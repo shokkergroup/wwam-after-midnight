@@ -41,3 +41,5 @@ next-env.d.ts
 /outputs/
 /work/
 /source-cache/
+__pycache__/
+*.pyc

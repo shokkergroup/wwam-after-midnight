@@ -32,11 +32,14 @@ test("root enters the standalone WWAM demo", async () => {
 
 test("ships the complete independent WWAM surface", async () => {
   const root = new URL("../dist/client/demo/", import.meta.url);
-  const [index, app, styles, deepDistill] = await Promise.all([
+  const [index, app, styles, deepDistill, liveDistill, curation, searchEngine] = await Promise.all([
     readFile(new URL("index.html", root), "utf8"),
     readFile(new URL("app.js", root), "utf8"),
     readFile(new URL("styles.css", root), "utf8"),
     readFile(new URL("deep-distill.js", root), "utf8"),
+    readFile(new URL("livestream-distill.js", root), "utf8"),
+    readFile(new URL("curation.js", root), "utf8"),
+    readFile(new URL("search-engine.js", root), "utf8"),
   ]);
 
   assert.match(index, /WWAM After Midnight/);
@@ -45,25 +48,114 @@ test("ships the complete independent WWAM surface", async () => {
   assert.match(index, /ASK THE COMMENTARY/);
   assert.match(index, /THE LORE LABS/);
   assert.match(index, /MIKE MODE/);
+  assert.match(index, /WWAM UP IN YA/);
+  assert.match(index, /THE LIVE/);
   assert.match(index, /THE DISTILL<br>HAS RECEIPTS/);
   assert.match(app, /WWAM_CATALOG/);
   assert.match(app, /WWAM_DEEP_DISTILL/);
+  assert.match(app, /WWAM_LIVESTREAMS/);
+  assert.match(app, /WWAMSearchEngine/);
   assert.match(app, /OPEN ORIGINAL ON YOUTUBE/);
   assert.match(deepDistill, /wordsAudited/);
   assert.match(deepDistill, /hot100/);
+  assert.match(liveDistill, /topicIndex/);
+  assert.match(liveDistill, /heatmap/);
+  assert.match(curation, /upInYa/);
+  assert.match(searchEngine, /human-curated soundbyte/);
   assert.match(styles, /--acid:\s*#d8ff38/);
 
-  const combined = `${index}\n${app}\n${styles}\n${deepDistill}`;
+  const combined = `${index}\n${app}\n${styles}\n${deepDistill}\n${liveDistill}\n${curation}\n${searchEngine}`;
   assert.doesNotMatch(combined, /Vigilante|VRL|racing site|SHOKKER LORE/i);
   assert.doesNotMatch(index, /\.\.\/\.\.\//);
 
   await Promise.all([
     access(new URL("catalog.js", root)),
     access(new URL("deep-distill.js", root)),
+    access(new URL("livestream-distill.js", root)),
+    access(new URL("curation.js", root)),
+    access(new URL("search-engine.js", root)),
     access(new URL("app.js", root)),
     access(new URL("styles.css", root)),
     access(new URL("../og.png", root)),
   ]);
+});
+
+test("newest livestreams are mapped, current, and copyright-bounded", async () => {
+  const source = await readFile(
+    new URL("../dist/client/demo/livestream-distill.js", import.meta.url),
+    "utf8",
+  );
+  const sandbox = { window: {} };
+  runInNewContext(source, sandbox);
+  const live = JSON.parse(JSON.stringify(sandbox.window.WWAM_LIVESTREAMS));
+
+  assert.equal(live.streams.length, 10);
+  assert.equal(live.streams[0].id, "LV2rmwEA0w4");
+  assert.equal(live.streams[0].date, "2026-07-23");
+  assert.equal(live.meta.captioned, 9);
+  assert.ok(live.meta.wordsAudited > 350_000);
+  assert.ok(live.meta.hours >= 34);
+  assert.ok(live.meta.moments >= 60);
+  assert.ok(live.meta.topics >= 20);
+  assert.equal(live.streams.filter((stream) => stream.captioned).length, 9);
+  assert.ok(
+    live.streams.filter((stream) => stream.captioned)
+      .every((stream) => stream.heatmap.length === 30 && stream.topics.length > 0),
+  );
+  assert.ok(
+    live.streams.flatMap((stream) => stream.moments).every(
+      (moment) => moment.quote.replace(/^\u2026\s*|\s*\u2026$/g, "").split(/\s+/).length <= 16,
+    ),
+  );
+  assert.ok(
+    live.streams.flatMap((stream) => stream.topics).every(
+      (topic) => topic.receipt.replace(/^\u2026\s*|\s*\u2026$/g, "").split(/\s+/).length <= 11,
+    ),
+  );
+});
+
+test("Ask understands films, live topics, recency, intent, and uncertainty", async () => {
+  const root = new URL("../dist/client/demo/", import.meta.url);
+  const sandbox = { window: {} };
+  for (const file of [
+    "catalog.js",
+    "deep-distill.js",
+    "livestream-distill.js",
+    "curation.js",
+    "search-engine.js",
+  ]) {
+    runInNewContext(await readFile(new URL(file, root), "utf8"), sandbox);
+  }
+  const engine = sandbox.window.WWAMSearchEngine.create(
+    sandbox.window.WWAM_CATALOG,
+    sandbox.window.WWAM_DEEP_DISTILL,
+    sandbox.window.WWAM_LIVESTREAMS,
+    sandbox.window.WWAM_CURATED,
+  );
+
+  const remake = engine.ask("What do they hate about the Elm Street remake?");
+  assert.equal(remake.results[0].sourceId, "qTQdWKcwn4A");
+  assert.equal(remake.results[0].category, "FRANCHISE FELONY");
+
+  const latestHalloween = engine.ask("What did they say about Halloween on the latest livestream?");
+  assert.equal(latestHalloween.entity, "Halloween");
+  assert.equal(latestHalloween.source, "livestream");
+  assert.equal(latestHalloween.results[0].sourceId, "LV2rmwEA0w4");
+  assert.equal(latestHalloween.results[0].kind, "topic");
+
+  const batman = engine.ask("Where did they talk about Batman recently?");
+  assert.equal(batman.entity, "Batman");
+  assert.equal(batman.results[0].source, "livestream");
+
+  const newestFunny = engine.ask("What is funniest in the newest stream?");
+  assert.equal(newestFunny.results[0].sourceId, "LV2rmwEA0w4");
+  assert.match(newestFunny.results[0].reasons.join(" "), /newest stream/);
+
+  const speaker = engine.ask("Who hated Scream 3?");
+  assert.match(speaker.answer, /won't invent a name/);
+
+  const deranged = engine.ask("Show me the most deranged thing they said");
+  assert.match(deranged.results[0].reasons.join(" "), /human-curated soundbyte/);
 });
 
 test("catalog preserves all four bounded franchise paths", async () => {

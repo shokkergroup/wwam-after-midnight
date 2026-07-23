@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#080608">
   <title>WWAM After Midnight — The Deep Distill</title>
-  <meta name="description" content="A source-linked, red-band living archive prototype built from four complete We Watched A Movie franchise commentary paths.">
+  <meta name="description" content="A source-linked WWAM living archive with 39 commentary autopsies, the ten newest livestreams, topic jumps, heat maps, and playable red-band receipts.">
   <meta property="og:title" content="WWAM After Midnight — The Deep Distill">
-  <meta property="og:description" content="39 tapes. 65 hours. 573,000+ words. Every wild receipt jumps back to the original commentary.">
+  <meta property="og:description" content="39 commentaries. 10 fresh livestreams. 953,000+ words. Every wild receipt jumps back to the original source.">
   <meta property="og:image" content="/og.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,10 +35,11 @@
       <i>W</i><span>WWAM<b>AFTER MIDNIGHT</b></span>
     </a>
     <div class="nav-links">
+      <a href="#upinya">WWAM UP IN YA</a>
+      <a href="#livewire">LIVE WIRE</a>
       <a href="#red100">RED BAND 100</a>
       <a href="#autopsies">TAPE AUTOPSIES</a>
       <a href="#ask">ASK THE COMMENTARY</a>
-      <a href="#labs">LORE LABS</a>
     </div>
     <button class="mike-button" id="mikeButton"><span></span> MIKE MODE</button>
   </nav>
@@ -49,7 +50,7 @@
       <div class="hero-copy">
         <div class="live-pill"><i></i> DEEP DISTILL // JULY 2026</div>
         <h1>FOUR FRANCHISES.<br><em>ZERO ALIBIS.</em></h1>
-        <p class="hero-dek">A searchable crime scene for every deranged take, franchise grudge, sudden love affair, and beautifully bad decision buried across the WWAM watchalong canon.</p>
+        <p class="hero-dek">A searchable crime scene for every deranged take, franchise grudge, live-show detour, sudden love affair, and beautifully bad decision buried across the WWAM archive.</p>
         <div class="hero-actions">
           <a class="primary" href="#red100">OPEN THE EVIDENCE LOCKER</a>
           <button id="rouletteButton">RED BAND ROULETTE <span>↗</span></button>
@@ -57,7 +58,7 @@
         <p class="receipt-note">Every receipt is short. Every timestamp is playable. Every view returns to the original WWAM upload.</p>
       </div>
       <div class="hero-console">
-        <div class="console-top"><span>LIVE EVIDENCE FEED</span><b id="consoleStatus">SCANNING 573,383 WORDS</b></div>
+        <div class="console-top"><span>LIVE EVIDENCE FEED</span><b id="consoleStatus">SCANNING 953,253 WORDS</b></div>
         <div class="console-screen" id="heroConsole"></div>
         <div class="console-bottom"><i>REC</i><span>AUTO-CAPTION EVIDENCE // VERIFY AGAINST TAPE</span><b id="consoleClock">00:00:00</b></div>
       </div>
@@ -84,6 +85,51 @@
       </div>
       <div class="red-grid" id="hotGrid"></div>
       <button class="load-more" id="loadMore">UNSEAL MORE EVIDENCE</button>
+    </section>
+
+    <section class="upinya" id="upinya">
+      <div class="upinya-marquee"><span>WWAM UP IN YA // WWAM UP IN YA // WWAM UP IN YA // WWAM UP IN YA //</span></div>
+      <div class="upinya-shell">
+        <header class="section-head">
+          <div>
+            <p class="kicker">HUMAN-CURATED // CONTEXT OPTIONAL // SOURCE MANDATORY</p>
+            <h2>WWAM<br><em>UP IN YA.</em></h2>
+          </div>
+          <p>The quick-hit wall for sentences that should not have survived the human mouth. These are editorially selected—not whatever a profanity counter happened to rank first.</p>
+        </header>
+        <div class="sound-controls">
+          <div id="soundFilters">
+            <button class="on" data-sound-source="commentary">COMMENTARY CONTRABAND</button>
+            <button data-sound-source="livestream">FRESHLY UNWELL</button>
+            <button data-sound-source="all">ALL BAD DECISIONS</button>
+          </div>
+          <button id="soundRoulette">PUT IT IN MY EARS ↗</button>
+        </div>
+        <div class="sound-stage">
+          <div class="sound-player" id="soundPlayer">
+            <div class="sound-idle">
+              <i></i><span>SELECT A SOUNDBYTE</span><b>THE SOURCE TAPE WILL CUE HERE</b>
+            </div>
+          </div>
+          <div class="soundbyte-grid" id="soundbyteGrid"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section livewire" id="livewire">
+      <header class="section-head">
+        <div>
+          <p class="kicker">THE TEN NEWEST LIVESTREAMS // UPDATED THROUGH JULY 23, 2026</p>
+          <h2>THE LIVE<br><em>WIRE.</em></h2>
+        </div>
+        <p>A rolling newsroom that proves the archive can understand the show while it is still warm: topic chapters, comedy heat, chat eruptions, exact jumps, and one honest “mapping unavailable” when YouTube supplies no captions.</p>
+      </header>
+      <div class="live-proof" id="liveProof"></div>
+      <div class="topic-radar">
+        <div><span>TOPIC RADAR</span><b id="topicRadarLabel">EVERYTHING THEY WON'T STOP TALKING ABOUT</b></div>
+        <div id="topicRadar"></div>
+      </div>
+      <div class="stream-grid" id="streamGrid"></div>
     </section>
 
     <section class="section franchise-room" id="franchises">
@@ -117,22 +163,17 @@
       <div class="ask-copy">
         <p class="kicker">ASK THE COMMENTARY // RECEIPTS BEFORE CONFIDENCE</p>
         <h2>ASK A BAD<br>QUESTION.</h2>
-        <p>This prototype searches film identity, franchise context, the distilled verdicts, evidence categories, and short caption receipts—then ranks the direct answer above the entertaining collateral damage.</p>
-        <div class="prompt-chips">
-          <button>What do they hate about the Elm Street remake?</button>
-          <button>Show me the wildest Scream moment</button>
-          <button>Which tape has the highest Unhinged Index?</button>
-          <button>Find Jason in space</button>
-        </div>
+        <p>This version parses intent, exact films, franchise aliases, sentiment, rankings, source type, recency, livestream topics, and speaker-attribution traps—then explains why the winning receipt beat the collateral damage.</p>
+        <div class="prompt-chips" id="askExamples"></div>
       </div>
       <div class="ask-machine">
         <form id="askForm">
-          <span>QUERY_</span><input id="askInput" autocomplete="off" placeholder="Ask the tape anything…" aria-label="Ask the commentary"><button>EXHUME</button>
+          <span>QUERY_</span><input id="askInput" autocomplete="off" placeholder="Ask tapes and livestreams anything…" aria-label="Ask the commentary"><button>EXHUME</button>
         </form>
         <div class="ask-readout">
           <div><i></i><span id="askStatus">THE MACHINE IS LISTENING</span><b>SOURCE-FIRST MODE</b></div>
           <div id="askResults" class="ask-results">
-            <p class="empty-state">Try a movie, killer, strong opinion, or evidence type. The machine will show its work.</p>
+            <p class="empty-state">Try a specific movie, a live topic, “latest,” “who,” a strong opinion, or a request for the funniest thing. The machine will show its work—and refuse to fake what the captions cannot prove.</p>
           </div>
         </div>
       </div>
@@ -178,10 +219,10 @@
         <h2>THE DISTILL<br>HAS RECEIPTS.</h2>
       </div>
       <ol>
-        <li><b>01 // DEFINE THE CANON</b><span>Only full movie watchalongs in the four requested franchise paths. Reviews, news, and unrelated streams stay outside the fence.</span></li>
-        <li><b>02 // AUDIT EVERY AVAILABLE WORD</b><span>38 caption tracks processed locally. The age-gated tape remains visible but never pretends to be distilled.</span></li>
-        <li><b>03 // SCORE THE SIGNAL</b><span>Profanity, hostility, affection, theories, kill language, callbacks, and breakdown cues build each tape's evidence profile.</span></li>
-        <li><b>04 // KEEP THE HUMAN IN CHARGE</b><span>Auto-captions are fallible. Short fragments are labeled, speaker identity is not guessed, and every claim opens the tape for verification.</span></li>
+        <li><b>01 // DEFINE EACH SOURCE LANE</b><span>Four complete watchalong paths remain their own canon. The ten newest completed streams become a separate rolling newsroom.</span></li>
+        <li><b>02 // AUDIT EVERY AVAILABLE WORD</b><span>38 commentary tracks and nine recent livestream tracks are processed. Gated or uncaptioned sources stay visible without counterfeit analysis.</span></li>
+        <li><b>03 // UNDERSTAND THE QUESTION</b><span>The engine resolves exact films, aliases, sentiment, ranking, recency, source preference, live topics, and questions whose speaker identity cannot be proven.</span></li>
+        <li><b>04 // PUT A HUMAN ON THE CHAOS</b><span>WWAM UP IN YA is deliberately curated. Machines surface candidates; editorial judgment decides what is actually funny enough to lead.</span></li>
       </ol>
     </section>
 
@@ -189,16 +230,16 @@
       <div class="pitch-copy">
         <p class="kicker">THE PRIVATE SCREENING ROOM</p>
         <h2>THIS ISN'T A<br>FAN PAGE.<br><em>IT'S A MEMORY BUSINESS.</em></h2>
-        <p>The archive turns years of uploads into new reasons to click, binge, share, join, buy, argue, and come back. The weirdness is the moat.</p>
+        <p>The archive turns years of uploads—and the show they aired today—into new reasons to click, binge, share, join, buy, argue, and come back. The weirdness is the moat.</p>
         <div>
           <button class="primary" id="pitchTourButton">START THE 60-SECOND PITCH</button>
           <button id="copyDemoButton">COPY THIS DEMO LINK</button>
         </div>
       </div>
       <div class="money-stack">
-        <article><b>01</b><span>DISCOVERY</span><h3>Old uploads become answers.</h3><p>Search sends the fan to a specific tape and second, not a dead results page.</p></article>
-        <article><b>02</b><span>RETENTION</span><h3>Lore creates the next click.</h3><p>Franchise paths, bit chains, rankings, and dossiers make the back catalog feel alive.</p></article>
-        <article><b>03</b><span>REVENUE</span><h3>Memory becomes inventory.</h3><p>Member-only vaults, sponsor takeovers, share cards, merch callbacks, and premium annuals fit the same evidence layer.</p></article>
+        <article><b>01</b><span>DISCOVERY</span><h3>Any question becomes a timestamp.</h3><p>Intent-aware answers send the fan to a specific tape, livestream, topic, and second.</p></article>
+        <article><b>02</b><span>RETENTION</span><h3>Yesterday and tonight connect.</h3><p>Live topics feed franchise paths, soundbytes, rankings, and dossiers instead of disappearing down the upload feed.</p></article>
+        <article><b>03</b><span>REVENUE</span><h3>Memory becomes inventory.</h3><p>Sponsored topic desks, member vaults, shareable soundbytes, merch callbacks, and premium annuals fit the same evidence layer.</p></article>
       </div>
     </section>
   </main>
@@ -229,6 +270,9 @@
 
   <script src="catalog.js"></script>
   <script src="deep-distill.js"></script>
+  <script src="livestream-distill.js"></script>
+  <script src="curation.js"></script>
+  <script src="search-engine.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

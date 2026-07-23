@@ -3,8 +3,12 @@
 
   var catalog = window.WWAM_CATALOG || [];
   var deep = window.WWAM_DEEP_DISTILL || { meta: {}, franchises: [], tapes: [], hot100: [] };
+  var live = window.WWAM_LIVESTREAMS || { meta: {}, streams: [], topicIndex: [] };
+  var curated = window.WWAM_CURATED || { upInYa: [], askExamples: [] };
+  var askEngine = window.WWAMSearchEngine.create(catalog, deep, live, curated);
   var tapeById = {};
   var itemById = {};
+  var streamById = {};
   var state = {
     redBand: localStorage.getItem("wwam-band") !== "bleep",
     hotCategory: "ALL EVIDENCE",
@@ -12,12 +16,15 @@
     franchise: "ALL",
     vaultQuery: "",
     lab: "Halloween",
+    soundSource: "commentary",
+    liveTopic: "ALL TOPICS",
     tourSlide: 0,
     consoleIndex: 0,
   };
 
   deep.tapes.forEach(function (tape) { tapeById[tape.id] = tape; });
   catalog.forEach(function (item) { itemById[item.id] = item; });
+  live.streams.forEach(function (stream) { streamById[stream.id] = stream; });
 
   var franchiseOrder = ["Halloween", "Friday the 13th", "Scream", "A Nightmare on Elm Street"];
   var colors = {
@@ -47,15 +54,15 @@
     {
       number: "02",
       eyebrow: "THE RECEIPT",
-      title: "573,383 WORDS<br>WENT UNDER THE KNIFE.",
-      body: "This bounded demo audits 38 available caption tracks across 39 commentaries, then turns short evidence fragments into searchable, playable paths back to the original upload.",
+      title: "953,253 WORDS<br>WENT UNDER THE KNIFE.",
+      body: "This demo audits 38 available commentary tracks plus nine captioned streams from the ten newest live uploads, then turns short evidence fragments into searchable, playable paths back to the original source.",
       proof: "NO FAKE QUOTES. NO GUESSED SPEAKERS. NO DEAD-END SEARCH RESULTS.",
     },
     {
       number: "03",
       eyebrow: "THE MOAT",
-      title: "THE ENGINE REPEATS.<br>THE WEIRDNESS DOESN'T.",
-      body: "Every creator gets the same durable evidence machinery. WWAM gets Loomis Logic, the Suspect Board, Dream Logic Court, the Unhinged Index, and a Red Band 100 because those belong to this show.",
+      title: "THE ENGINE UPDATES.<br>THE WEIRDNESS LEADS.",
+      body: "The newest stream becomes topics, funny-moment heat, and exact jumps while the archive keeps Loomis Logic, the Suspect Board, Dream Logic Court, the Unhinged Index, and a human-curated WWAM UP IN YA wall.",
       proof: "THE PRODUCT SCALES WITHOUT MAKING THE CREATOR FEEL GENERIC.",
     },
     {
@@ -120,12 +127,13 @@
 
   function renderProof() {
     var meta = deep.meta;
+    var liveMeta = live.meta || {};
     document.getElementById("proof").innerHTML = [
-      ["TAPES", meta.tapes, "THE BOUNDED CANON"],
-      ["WORDS AUDITED", fmt(meta.wordsAudited), "AVAILABLE CAPTIONS"],
-      ["HOURS", meta.captionHours, "UNDER THE KNIFE"],
-      ["RED BAND", meta.hotMoments, "PLAYABLE RECEIPTS"],
-      ["FRANCHISES", meta.franchises, "COMPLETE PATHS"],
+      ["SOURCES", meta.tapes + (liveMeta.streams || 0), "39 COMMENTARIES + 10 LIVES"],
+      ["WORDS AUDITED", fmt(meta.wordsAudited + (liveMeta.wordsAudited || 0)), "AVAILABLE CAPTIONS"],
+      ["HOURS", meta.captionHours + (liveMeta.hours || 0), "UNDER THE KNIFE"],
+      ["QUICK HITS", meta.hotMoments + (liveMeta.moments || 0), "PLAYABLE RECEIPTS"],
+      ["LIVE TOPICS", liveMeta.topics || 0, "ACROSS THE NEWEST SHOWS"],
     ].map(function (stat) {
       return '<article><span>' + stat[0] + '</span><b>' + stat[1] + '</b><small>' + stat[2] + '</small></article>';
     }).join("");
@@ -203,6 +211,169 @@
     }).join("");
     document.getElementById("loadMore").hidden = visible.length >= filtered.length;
     bindPlayButtons(document.getElementById("hotGrid"));
+  }
+
+  function resolveSoundbyte(entry) {
+    if (entry.source === "commentary") {
+      var tape = tapeById[entry.id];
+      var item = itemById[entry.id];
+      var moment = tape && tape.moments.filter(function (candidate) { return candidate.t === entry.t; })[0];
+      if (!item || !moment) return null;
+      return {
+        source: "commentary",
+        id: entry.id,
+        t: entry.t,
+        label: entry.label,
+        quote: moment.quote,
+        category: moment.category,
+        title: item.film,
+        subtitle: item.franchise,
+        thumbnail: item.thumbnail,
+      };
+    }
+    var stream = streamById[entry.id];
+    var liveMoment = stream && stream.moments.filter(function (candidate) { return candidate.t === entry.t; })[0];
+    if (!stream || !liveMoment) return null;
+    return {
+      source: "livestream",
+      id: entry.id,
+      t: entry.t,
+      label: entry.label,
+      quote: liveMoment.quote,
+      category: liveMoment.category,
+      title: stream.title,
+      subtitle: "FRESH FROM LIVE // " + shortDate(stream.date),
+      thumbnail: stream.thumbnail,
+    };
+  }
+
+  function soundbytes() {
+    return curated.upInYa.map(resolveSoundbyte).filter(Boolean).filter(function (item) {
+      return state.soundSource === "all" || item.source === state.soundSource;
+    });
+  }
+
+  function renderSoundbytes() {
+    var list = soundbytes();
+    document.getElementById("soundbyteGrid").innerHTML = list.map(function (item, index) {
+      return '<button class="soundbyte" data-sound-index="' + index + '">' +
+        '<span><i></i>' + String(index + 1).padStart(2, "0") + ' // ' + esc(item.category) + '</span>' +
+        '<b>' + esc(item.label) + '</b><p>“' + esc(displayQuote(item.quote)) + '”</p>' +
+        '<em>' + esc(item.title) + ' @ ' + timestamp(item.t) + '</em></button>';
+    }).join("");
+    Array.prototype.forEach.call(document.querySelectorAll("#soundbyteGrid [data-sound-index]"), function (button) {
+      button.onclick = function () {
+        var item = list[Number(button.getAttribute("data-sound-index"))];
+        if (item) cueSoundbyte(item);
+      };
+    });
+  }
+
+  function renderSoundFilters() {
+    Array.prototype.forEach.call(document.querySelectorAll("#soundFilters [data-sound-source]"), function (button) {
+      button.classList.toggle("on", button.getAttribute("data-sound-source") === state.soundSource);
+    });
+  }
+
+  function cueSoundbyte(item) {
+    document.getElementById("soundPlayer").innerHTML =
+      '<div class="sound-video"><iframe src="https://www.youtube.com/embed/' + encodeURIComponent(item.id) +
+      '?autoplay=1&rel=0&start=' + Math.max(0, Math.round(item.t)) +
+      '" title="WWAM source soundbyte" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>' +
+      '<div class="sound-now"><span>NOW VIOLATING THE SILENCE // ' + esc(item.category) + '</span><h3>' +
+      esc(item.label) + '</h3><blockquote>“' + esc(displayQuote(item.quote)) + '”</blockquote><p>' +
+      esc(item.title) + ' // ' + timestamp(item.t) + '</p><button data-open-sound="' + item.source +
+      '" data-id="' + item.id + '" data-time="' + item.t + '">OPEN THE FULL RECEIPT →</button></div>';
+    var button = document.querySelector("#soundPlayer [data-open-sound]");
+    if (button) {
+      button.onclick = function () {
+        if (button.getAttribute("data-open-sound") === "livestream") {
+          openLiveDossier(button.getAttribute("data-id"), Number(button.getAttribute("data-time")));
+        } else {
+          openDossier(button.getAttribute("data-id"), Number(button.getAttribute("data-time")));
+        }
+      };
+    }
+  }
+
+  function renderLiveProof() {
+    var meta = live.meta || {};
+    document.getElementById("liveProof").innerHTML = [
+      [meta.streams, "NEWEST STREAMS"],
+      [meta.captioned, "FULL LIVE MAPS"],
+      [fmt(meta.wordsAudited), "WORDS AUDITED"],
+      [meta.hours, "HOURS ON AIR"],
+      [meta.moments, "COMEDY SPIKES"],
+      [meta.topics, "TRACKED TOPICS"],
+    ].map(function (stat) {
+      return '<div><b>' + stat[0] + '</b><span>' + stat[1] + '</span></div>';
+    }).join("");
+  }
+
+  function renderTopicRadar() {
+    var topics = [{ name: "ALL TOPICS", mentions: 0, streams: live.streams }].concat(live.topicIndex.slice(0, 12));
+    document.getElementById("topicRadar").innerHTML = topics.map(function (topic) {
+      return '<button class="' + (state.liveTopic === topic.name ? "on" : "") + '" data-live-topic="' +
+        esc(topic.name) + '"><b>' + esc(topic.name) + '</b><span>' +
+        (topic.name === "ALL TOPICS" ? live.streams.length + " SHOWS" : topic.mentions + " MENTIONS // " + topic.streams.length + " SHOWS") +
+        '</span></button>';
+    }).join("");
+    document.getElementById("topicRadarLabel").textContent = state.liveTopic === "ALL TOPICS" ?
+      "EVERYTHING THEY WON'T STOP TALKING ABOUT" : state.liveTopic + " // SOURCE-DENSE STREAMS FIRST";
+    Array.prototype.forEach.call(document.querySelectorAll("#topicRadar [data-live-topic]"), function (button) {
+      button.onclick = function () {
+        state.liveTopic = button.getAttribute("data-live-topic");
+        renderTopicRadar();
+        renderStreams();
+      };
+    });
+  }
+
+  function miniHeat(stream) {
+    if (!stream.heatmap.length) return '<div class="mini-heat sealed"><span>NO CAPTION TRACK // MAP UNAVAILABLE</span></div>';
+    return '<div class="mini-heat">' + stream.heatmap.map(function (bin) {
+      return '<i style="--heat:' + bin.heat + '" title="' + esc(bin.signal + (bin.topic ? " // " + bin.topic : "")) + '"></i>';
+    }).join("") + '</div>';
+  }
+
+  function streamCard(stream, index) {
+    var topics = stream.topics.slice(0, 4);
+    var peak = stream.moments.slice().sort(function (a, b) { return b.heat - a.heat; })[0];
+    return '<article class="stream-card ' + (!stream.captioned ? "unmapped" : "") + '" data-live-id="' + stream.id + '">' +
+      '<div class="stream-thumb"><img loading="lazy" src="' + esc(stream.thumbnail) + '" alt=""><span>LIVE 0' +
+      (index + 1) + ' // ' + shortDate(stream.date) + '</span><b>' + duration(stream.duration) + '</b></div>' +
+      '<div class="stream-body"><div><i class="' + (stream.captioned ? "" : "sealed") + '">' +
+      (stream.captioned ? "FULL LIVE MAP" : "MAPPING UNAVAILABLE") + '</i><span>' + fmt(stream.wordsAudited) + ' WORDS</span></div>' +
+      '<h3>' + esc(stream.title) + '</h3><p>' + esc(stream.summary) + '</p>' +
+      '<div class="stream-topics">' + (topics.length ? topics.map(function (topic) {
+        return '<button data-stream-topic="' + esc(topic.name) + '" data-live-id="' + stream.id + '" data-time="' +
+          topic.peak + '">' + esc(topic.name) + ' <b>' + timestamp(topic.peak) + '</b></button>';
+      }).join("") : '<span>THE SOURCE IS LIVE. THE CAPTION MAP IS NOT.</span>') + '</div>' +
+      miniHeat(stream) + '<footer><span>' + (peak ? 'PEAK COMEDY // ' + timestamp(peak.t) + ' // ' + esc(peak.category) : 'ORIGINAL STREAM AVAILABLE') +
+      '</span><button>OPEN LIVE MAP →</button></footer></div></article>';
+  }
+
+  function renderStreams() {
+    var list = live.streams.slice();
+    if (state.liveTopic !== "ALL TOPICS") {
+      list = list.filter(function (stream) {
+        return stream.topics.some(function (topic) { return topic.name === state.liveTopic; });
+      }).sort(function (a, b) {
+        var aTopic = a.topics.filter(function (topic) { return topic.name === state.liveTopic; })[0];
+        var bTopic = b.topics.filter(function (topic) { return topic.name === state.liveTopic; })[0];
+        return (bTopic ? bTopic.mentions : 0) - (aTopic ? aTopic.mentions : 0);
+      });
+    }
+    document.getElementById("streamGrid").innerHTML = list.map(streamCard).join("");
+    Array.prototype.forEach.call(document.querySelectorAll(".stream-card"), function (card) {
+      card.onclick = function () { openLiveDossier(card.getAttribute("data-live-id")); };
+    });
+    Array.prototype.forEach.call(document.querySelectorAll(".stream-card [data-stream-topic]"), function (button) {
+      button.onclick = function (event) {
+        event.stopPropagation();
+        openLiveDossier(button.getAttribute("data-live-id"), Number(button.getAttribute("data-time")));
+      };
+    });
   }
 
   function renderFranchises() {
@@ -342,6 +513,72 @@
     history.replaceState(null, "", "?tape=" + encodeURIComponent(item.id) + (startTime != null ? "&at=" + Math.round(startTime) : "") + "#autopsies");
   }
 
+  function liveHeatMarkup(stream) {
+    if (!stream.heatmap.length) {
+      return '<p class="sealed-copy">YouTube supplies no caption track for this stream, so comedy scoring and topic chapters are deliberately unavailable. The original upload remains playable.</p>';
+    }
+    return stream.heatmap.map(function (bin, index) {
+      return '<button style="--heat:' + bin.heat + '" data-live-play="' + stream.id + '" data-time="' + bin.from +
+        '" title="' + esc(bin.signal + (bin.topic ? " // " + bin.topic : "")) + '"><i></i><span>' +
+        (index % 5 === 0 ? timestamp(bin.from) : "") + '</span></button>';
+    }).join("");
+  }
+
+  function liveTopicsMarkup(stream) {
+    if (!stream.topics.length) return '<li class="topic-empty">NO DEFENSIBLE TOPIC CHAPTERS WITHOUT CAPTIONS.</li>';
+    return stream.topics.map(function (topic, index) {
+      return '<li><button data-live-play="' + stream.id + '" data-time="' + topic.peak + '"><span>0' + (index + 1) +
+        '</span><div><b>' + esc(topic.name) + '</b><small>' + topic.mentions + ' MENTIONS // PEAK CLUSTER ' +
+        timestamp(topic.peak) + '</small></div><i>JUMP →</i></button></li>';
+    }).join("");
+  }
+
+  function liveMomentsMarkup(stream) {
+    if (!stream.moments.length) {
+      return '<p class="sealed-copy">No caption-derived comedy receipts are published for this stream. Open the original source to watch it in full.</p>';
+    }
+    return stream.moments.map(function (moment) {
+      return '<article><div><span>' + esc(moment.category) + ' // HEAT ' + moment.heat + '</span><b>' +
+        timestamp(moment.t) + '</b></div><p>“' + esc(displayQuote(moment.quote)) +
+        '”</p><footer><button data-live-play="' + stream.id + '" data-time="' + moment.t +
+        '">▶ PLAY</button><button data-share-live="' + stream.id + '" data-time="' + moment.t +
+        '">SHARE RECEIPT</button></footer></article>';
+    }).join("");
+  }
+
+  function openLiveDossier(id, startTime) {
+    var stream = streamById[id];
+    if (!stream) return;
+    var peak = stream.moments.slice().sort(function (a, b) { return b.heat - a.heat; })[0];
+    var modal = document.getElementById("tapeModal");
+    document.getElementById("modalContent").innerHTML =
+      '<div class="modal-hero live-modal-hero" style="--accent:var(--cyan)"><img src="' + esc(stream.thumbnail) +
+      '" alt=""><div><p>LIVE WIRE // NEWEST STREAM ' + String(live.streams.indexOf(stream) + 1).padStart(2, "0") +
+      '</p><h2>' + esc(stream.title) + '</h2><span>' + shortDate(stream.date) + ' // ' +
+      duration(stream.duration) + ' // ' + fmt(stream.views) + ' VIEWS</span></div></div>' +
+      '<div class="modal-grid live-modal-grid"><section class="modal-verdict"><p class="kicker">THE LIVE-ROOM AUTOPSY</p><blockquote>' +
+      esc(stream.summary) + '</blockquote><div class="live-peak"><b>' + (peak ? peak.heat : "—") +
+      '</b><span>PEAK<br>COMEDY HEAT</span></div><div class="source-actions"><a href="' + esc(stream.url) +
+      '" target="_blank" rel="noopener">OPEN ORIGINAL ON YOUTUBE ↗</a><button data-share-live="' + stream.id +
+      '">COPY LIVE MAP</button></div></section><section class="live-topic-index"><p class="kicker">JUMP TO A TOPIC // ' +
+      fmt(stream.wordsAudited) + ' WORDS AUDITED</p><ol>' + liveTopicsMarkup(stream) + '</ol></section></div>' +
+      '<section class="heat-section live-heat-section"><div><p class="kicker">THE 30-CHAPTER FUNNY-MOMENT HEAT MAP</p>' +
+      '<span>CLICK ANY BAR TO JUMP THERE // HEIGHT = COMEDY-SIGNAL DENSITY</span></div><div class="live-heatmap">' +
+      liveHeatMarkup(stream) + '</div></section>' +
+      '<section class="receipt-section"><div><p class="kicker">FRESHLY UNWELL // SOURCE RECEIPTS</p>' +
+      '<span>SHORT AUTO-CAPTION FRAGMENTS // VERIFY AGAINST ORIGINAL</span></div><div class="modal-player" id="modalPlayer">' +
+      '<div><span>SELECT A TOPIC, HEAT BAR, OR COMEDY HIT TO CUE THE STREAM.</span></div></div><div class="receipt-list">' +
+      liveMomentsMarkup(stream) + '</div></section>';
+    modal.classList.add("show");
+    modal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("modal-open");
+    bindLivePlayButtons(document.getElementById("modalContent"));
+    bindLiveShareButtons(document.getElementById("modalContent"));
+    if (startTime != null) loadPlayer(stream.id, Number(startTime));
+    history.replaceState(null, "", "?live=" + encodeURIComponent(stream.id) +
+      (startTime != null ? "&at=" + Math.round(startTime) : "") + "#livewire");
+  }
+
   function loadPlayer(id, at) {
     var player = document.getElementById("modalPlayer");
     if (!player) return;
@@ -357,6 +594,7 @@
     document.body.classList.remove("modal-open");
     var url = new URL(window.location.href);
     url.searchParams.delete("tape");
+    url.searchParams.delete("live");
     url.searchParams.delete("at");
     history.replaceState(null, "", url.pathname + url.hash);
   }
@@ -373,11 +611,29 @@
     });
   }
 
+  function bindLivePlayButtons(root) {
+    Array.prototype.forEach.call(root.querySelectorAll("[data-live-play]"), function (button) {
+      button.onclick = function (event) {
+        event.stopPropagation();
+        loadPlayer(button.getAttribute("data-live-play"), Number(button.getAttribute("data-time") || 0));
+      };
+    });
+  }
+
   function shareUrl(id, at) {
     var url = new URL(window.location.href);
     url.search = "";
     url.hash = "autopsies";
     url.searchParams.set("tape", id);
+    if (at != null) url.searchParams.set("at", Math.round(at));
+    return url.toString();
+  }
+
+  function shareLiveUrl(id, at) {
+    var url = new URL(window.location.href);
+    url.search = "";
+    url.hash = "livewire";
+    url.searchParams.set("live", id);
     if (at != null) url.searchParams.set("at", Math.round(at));
     return url.toString();
   }
@@ -404,68 +660,57 @@
     });
   }
 
+  function bindLiveShareButtons(root) {
+    Array.prototype.forEach.call(root.querySelectorAll("[data-share-live]"), function (button) {
+      button.onclick = function () {
+        copy(shareLiveUrl(button.getAttribute("data-share-live"),
+          button.hasAttribute("data-time") ? Number(button.getAttribute("data-time")) : null));
+      };
+    });
+  }
+
   function showToast() {
     var toast = document.getElementById("toast");
     toast.classList.add("show");
     setTimeout(function () { toast.classList.remove("show"); }, 2200);
   }
 
-  function searchResults(query) {
-    var q = query.toLowerCase().trim();
-    var terms = q.split(/[^a-z0-9']+/).filter(function (word) {
-      return word.length > 2 && ["what", "they", "show", "about", "which", "with", "have", "find", "movie", "moment"].indexOf(word) < 0;
-    });
-    var pool = catalog.map(function (item) {
-      var tape = tapeById[item.id] || { verdict: "", moments: [], unhinged: 0 };
-      var preferredCategory = q.indexOf("hate") >= 0 || q.indexOf("worst") >= 0 ? "FRANCHISE FELONY" :
-        q.indexOf("love") >= 0 || q.indexOf("best") >= 0 ? "LOVE LETTER" :
-        q.indexOf("theory") >= 0 || q.indexOf("predict") >= 0 ? "THEORY BOARD" :
-        q.indexOf("kill") >= 0 || q.indexOf("death") >= 0 ? "KILL ROOM" :
-        q.indexOf("wild") >= 0 || q.indexOf("crazy") >= 0 ? "OUT OF POCKET" : null;
-      var preferredMoments = preferredCategory ?
-        tape.moments.filter(function (candidate) { return candidate.category === preferredCategory; }) : [];
-      var candidateMoments = preferredMoments.length ? preferredMoments : tape.moments;
-      var moment = candidateMoments[0] || null;
-      var score = 0;
-      var base = [item.film, item.title, item.franchise, tape.verdict].join(" ").toLowerCase();
-      candidateMoments.forEach(function (candidate) {
-        var hay = (candidate.quote + " " + candidate.category).toLowerCase();
-        var local = terms.reduce(function (total, term) { return total + (hay.indexOf(term) >= 0 ? 5 : 0); }, 0);
-        if (!moment || local > terms.reduce(function (total, term) {
-          return total + ((moment.quote + " " + moment.category).toLowerCase().indexOf(term) >= 0 ? 5 : 0);
-        }, 0)) moment = candidate;
-      });
-      terms.forEach(function (term) {
-        if (item.film.toLowerCase().indexOf(term) >= 0) score += 12;
-        else if (item.franchise.toLowerCase().indexOf(term) >= 0) score += 8;
-        else if (base.indexOf(term) >= 0) score += 4;
-        if (moment && (moment.quote + " " + moment.category).toLowerCase().indexOf(term) >= 0) score += 5;
-      });
-      if (q.indexOf("highest") >= 0 && q.indexOf("unhinged") >= 0) score += tape.unhinged;
-      if (q.indexOf("wildest") >= 0 || q.indexOf("craziest") >= 0) score += tape.unhinged * 0.45;
-      if (q.indexOf("hate") >= 0 && moment && moment.category === "FRANCHISE FELONY") score += 20;
-      if (q.indexOf("love") >= 0 && moment && moment.category === "LOVE LETTER") score += 20;
-      if (q.indexOf("space") >= 0 && /Jason X/i.test(item.film)) score += 80;
-      if (q.indexOf("remake") >= 0 && /2010/.test(item.film)) score += 70;
-      return { item: item, tape: tape, moment: moment, score: score };
-    });
-    return pool.filter(function (result) { return result.score > 0; }).sort(function (a, b) {
-      return b.score - a.score || b.tape.unhinged - a.tape.unhinged;
-    }).slice(0, 6);
+  function renderAskExamples() {
+    document.getElementById("askExamples").innerHTML = curated.askExamples.map(function (example) {
+      return '<button>' + esc(example) + '</button>';
+    }).join("");
   }
 
   function ask(query) {
-    var results = searchResults(query);
-    document.getElementById("askStatus").textContent = results.length ? results.length + " EVIDENCE PATHS FOUND" : "NO CONFIDENT RECEIPT";
-    document.getElementById("askResults").innerHTML = results.length ? results.map(function (result, index) {
-      var moment = result.moment;
-      return '<article class="' + (index === 0 ? "best" : "") + '"><div><span>' + (index === 0 ? "DIRECT HIT" : "RELATED DAMAGE") +
-        '</span><b>' + esc(result.item.franchise) + '</b></div><h3>' + esc(result.item.film) + '</h3><p>' +
-        (moment ? '“' + esc(displayQuote(moment.quote)) + '”' : esc(result.tape.verdict)) + '</p><footer><span>' +
-        (moment ? esc(moment.category) + ' // ' + timestamp(moment.t) : "SOURCE TAPE") +
-        '</span><button data-play="' + result.item.id + '" data-time="' + (moment ? moment.t : 0) + '">SHOW ME →</button></footer></article>';
-    }).join("") : '<p class="empty-state">No confident match in this bounded four-franchise archive. Try a film title, killer, “hate,” “love,” “space,” or “unhinged.”</p>';
-    bindPlayButtons(document.getElementById("askResults"));
+    var analysis = askEngine.ask(query);
+    var results = analysis.results;
+    document.getElementById("askStatus").textContent = results.length ?
+      results.length + " RANKED PATHS // " + analysis.confidence + "% CONFIDENCE" : "NO DEFENSIBLE RECEIPT";
+    document.getElementById("askResults").innerHTML =
+      '<section class="answer-brief"><div><span>INTENT // ' + esc(analysis.intent.toUpperCase()) + '</span><b>' +
+      (analysis.entity ? 'ENTITY // ' + esc(analysis.entity.toUpperCase()) : 'ENTITY // OPEN') + '</b><i>' +
+      esc((analysis.source === "all" ? "ALL SOURCES" : analysis.source).toUpperCase()) + '</i></div><h3>' +
+      esc(analysis.answer) + '</h3><div class="confidence-track"><i style="width:' + analysis.confidence +
+      '%"></i></div></section>' +
+      (results.length ? results.map(function (result, index) {
+        return '<article class="' + (index === 0 ? "best" : "") + '"><div><span>' +
+          (index === 0 ? "DIRECT HIT" : result.label) + '</span><b>' + esc(result.source.toUpperCase()) +
+          '</b></div><h3>' + esc(result.title) + '</h3><p>“' + esc(displayQuote(result.excerpt)) +
+          '”</p><div class="why-row"><span>WHY THIS RANKED</span><b>' +
+          esc(result.reasons.length ? result.reasons.join(" + ").toUpperCase() : "TEXTUAL EVIDENCE") +
+          '</b></div><footer><span>' + esc(result.category) + (result.at ? ' // ' + timestamp(result.at) : '') +
+          '</span><button data-ask-source="' + result.source + '" data-id="' + result.sourceId +
+          '" data-time="' + result.at + '">SHOW ME →</button></footer></article>';
+      }).join("") : '<p class="empty-state">No confident match in the current source scope. Try a specific film, a franchise alias, a live topic, “latest,” or a clear opinion.</p>');
+    Array.prototype.forEach.call(document.querySelectorAll("#askResults [data-ask-source]"), function (button) {
+      button.onclick = function () {
+        if (button.getAttribute("data-ask-source") === "livestream") {
+          openLiveDossier(button.getAttribute("data-id"), Number(button.getAttribute("data-time") || 0));
+        } else {
+          openDossier(button.getAttribute("data-id"), Number(button.getAttribute("data-time") || 0));
+        }
+      };
+    });
   }
 
   function renderLabs() {
@@ -511,11 +756,13 @@
     document.getElementById("bandToggle").textContent = "OFFICE BLEEP: " + (state.redBand ? "OFF" : "ON");
     renderHeroConsole();
     renderHot100();
+    renderSoundbytes();
     renderLabs();
     var openModal = document.getElementById("tapeModal").classList.contains("show");
     if (openModal) {
       var params = new URLSearchParams(location.search);
       if (params.get("tape")) openDossier(params.get("tape"), params.get("at"));
+      else if (params.get("live")) openLiveDossier(params.get("live"), params.get("at"));
     }
   }
 
@@ -557,6 +804,18 @@
     document.getElementById("rouletteButton").onclick = function () {
       var moment = deep.hot100[Math.floor(Math.random() * deep.hot100.length)];
       if (moment) openDossier(moment.tapeId, moment.t);
+    };
+    Array.prototype.forEach.call(document.querySelectorAll("[data-sound-source]"), function (button) {
+      button.onclick = function () {
+        state.soundSource = button.getAttribute("data-sound-source");
+        renderSoundFilters();
+        renderSoundbytes();
+      };
+    });
+    document.getElementById("soundRoulette").onclick = function () {
+      var candidates = soundbytes();
+      var item = candidates[Math.floor(Math.random() * candidates.length)];
+      if (item) cueSoundbyte(item);
     };
     document.getElementById("vaultSearch").oninput = function (event) {
       state.vaultQuery = event.target.value;
@@ -607,12 +866,19 @@
   }
 
   function init() {
-    document.getElementById("consoleStatus").textContent = "SCANNING " + fmt(deep.meta.wordsAudited) + " WORDS";
+    document.getElementById("consoleStatus").textContent = "SCANNING " +
+      fmt(deep.meta.wordsAudited + live.meta.wordsAudited) + " WORDS";
     renderProof();
     renderMarquee();
     renderHeroConsole();
     renderCategoryFilters();
     renderHot100();
+    renderSoundFilters();
+    renderSoundbytes();
+    renderLiveProof();
+    renderTopicRadar();
+    renderStreams();
+    renderAskExamples();
     renderFranchises();
     renderFranchiseFilters();
     renderVault();
@@ -629,6 +895,7 @@
     }
     var params = new URLSearchParams(location.search);
     if (params.get("tape")) setTimeout(function () { openDossier(params.get("tape"), params.get("at")); }, 50);
+    else if (params.get("live")) setTimeout(function () { openLiveDossier(params.get("live"), params.get("at")); }, 50);
     else if (location.hash === "#pitch") setTimeout(openTour, 50);
   }
 
