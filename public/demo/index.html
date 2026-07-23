@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>WWAM After Midnight — The Commentaries, Takes, and Lore</title>
+  <meta name="description" content="An independent, source-linked fan prototype for the We Watched A Movie commentary archive.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;600;700&family=IBM+Plex+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <nav>
+    <a class="brand" href="#top"><i>W</i><span>WWAM<br><b>AFTER MIDNIGHT</b></span></a>
+    <div><a href="#vault">Watchalong Vault</a><a href="#lore">Lore Labs</a><a href="#roadmap">The Autopsy</a></div>
+  </nav>
+  <main id="top">
+    <section class="hero">
+      <div class="noise"></div>
+      <div class="hero-copy">
+        <p class="eyebrow">AN INDEPENDENT FAN PROTOTYPE · SOURCE-LINKED</p>
+        <h1>THEY WATCHED<br>A MOVIE.<br><em>WE KEPT THE LORE.</em></h1>
+        <p class="dek">The commentaries, the deranged takes, the running bits, and every franchise wound that never healed.</p>
+        <div class="hero-actions"><a class="hot" href="#vault">ENTER THE WATCHALONG VAULT</a><button id="randomBtn">RANDOM BAD DECISION</button></div>
+      </div>
+      <div class="hero-art">
+        <div class="tape t1"><b>HALLOWEEN</b><span>13 COMMENTARIES</span></div>
+        <div class="tape t2"><b>FRIDAY THE 13TH</b><span>12 COMMENTARIES</span></div>
+        <div class="knife"></div>
+      </div>
+    </section>
+    <section class="proof" id="proof"></section>
+    <section class="ask">
+      <p class="eyebrow">ASK THE COMMENTARY · PROTOTYPE SEARCH</p>
+      <h2>WHAT DO YOU WANT TO REGRET?</h2>
+      <div><input id="askQ" placeholder="Try “Jason in space” or “Rob Zombie”"><button id="askBtn">DIG IT UP</button></div>
+      <p id="askAnswer">This first pass searches the verified commentary canon. Timestamped takes and quotes arrive with the deep distill.</p>
+    </section>
+    <section class="trauma" id="trauma">
+      <div class="section-head"><div><p class="eyebrow">TWO FRANCHISES · ZERO HEALTHY COPING MECHANISMS</p><h2>FRANCHISE TRAUMA MAP</h2></div><div class="switch"><button data-franchise="Halloween" class="on">HALLOWEEN</button><button data-franchise="Friday the 13th">FRIDAY THE 13TH</button></div></div>
+      <div class="trauma-line" id="traumaLine"></div>
+    </section>
+    <section class="vault" id="vault">
+      <div class="section-head"><div><p class="eyebrow">SYNC YOUR COPY · PRESS PLAY ON THE ORIGINAL</p><h2>THE WATCHALONG VAULT</h2></div><span id="vaultCount"></span></div>
+      <div class="filters"><button data-filter="all" class="on">ALL TAPES</button><button data-filter="Halloween">MICHAEL</button><button data-filter="Friday the 13th">JASON</button><button data-filter="captioned">TAPE-SEARCH READY</button></div>
+      <div class="grid" id="vaultGrid"></div>
+    </section>
+    <section class="lore" id="lore">
+      <div class="section-head"><div><p class="eyebrow">THE SHOW-SPECIFIC DNA · NOT GENERIC PODCAST TAGS</p><h2>THE LORE LABS</h2></div><span>DESIGNED FOR THE DEEP DISTILL</span></div>
+      <div class="lore-grid">
+        <article class="acid"><span>01</span><h3>THE UNHINGED INDEX</h3><p>How far did a take travel from “reasonable movie opinion” to “someone check the carbon monoxide detector”?</p><b>HEAT + CERTAINTY + DARKNESS + CALLBACK VALUE</b></article>
+        <article><span>02</span><h3>THE QUOTE CRYPT</h3><p>Dark jokes, accidental prophecies, and lines too beautifully stupid to die—playable at the exact second.</p><b>QUOTE · CONTEXT · WHO BROKE FIRST</b></article>
+        <article><span>03</span><h3>LOOMIS LOGIC</h3><p>Every argument that begins with evidence and ends with blowing up a hospital.</p><b>THEORY · CONFIDENCE · SANITY DAMAGE</b></article>
+        <article><span>04</span><h3>THE BIT GRAVEYARD</h3><p>Running jokes mapped from birth, through escalation, to the night they were finally beaten into the dirt.</p><b>ORIGIN · CALLBACKS · LAST KNOWN SIGHTING</b></article>
+        <article><span>05</span><h3>TAKE TEMPERATURE</h3><p>Love, hate, denial, bargaining, and “this movie is secretly a masterpiece” tracked across the full runtime.</p><b>HOST ARC · REVERSALS · FINAL VERDICT</b></article>
+        <article><span>06</span><h3>JASON’S TRAVEL AGENT</h3><p>Camp, Manhattan, Hell, space: a geographic record of how far a franchise will go to avoid therapy.</p><b>SETTING · BODY COUNT ENERGY · TRAVEL REVIEW</b></article>
+      </div>
+    </section>
+    <section class="roadmap" id="roadmap">
+      <p class="eyebrow">THE PROTOTYPE AUTOPSY</p>
+      <h2>WHAT EXISTS. WHAT GETS A KNIFE NEXT.</h2>
+      <div>
+        <article><b>ALIVE NOW</b><ul><li>25 verified full-length source tapes</li><li>Complete Halloween and Friday the 13th watchalong paths</li><li>Franchise navigation and instant source playback</li><li>A standalone archive built around WWAM's own voice</li></ul></article>
+        <article><b>NEXT DISTILL</b><ul><li>Timestamped Quote Crypt</li><li>Host and recurring-character identity pages</li><li>Unhinged Index evidence model</li><li>Ask the Commentary across every spoken word</li></ul></article>
+      </div>
+    </section>
+    <section class="pitch">
+      <p>THE FIRST 25 TAPES ARE ONLY<br><b>THE OPENING KILL.</b></p>
+      <a href="#vault">GO BACK INTO THE VAULT ↑</a>
+    </section>
+  </main>
+  <footer>UNOFFICIAL INDEPENDENT FAN PROTOTYPE · ALL PLAYBACK RETURNS TO WE WATCHED A MOVIE ON YOUTUBE</footer>
+  <div class="player-modal" id="playerModal"><div><button id="closePlayer">×</button><div class="ratio"><iframe id="ytFrame" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div><h3 id="playingTitle"></h3><p>Start your own copy of the movie at 0:00, then run the original WWAM commentary here.</p><a id="youtubeLink" target="_blank" rel="noopener">OPEN ORIGINAL ON YOUTUBE ↗</a></div></div>
+  <script src="catalog.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
