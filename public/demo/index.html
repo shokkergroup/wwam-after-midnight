@@ -3,76 +3,232 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>WWAM After Midnight — The Commentaries, Takes, and Lore</title>
-  <meta name="description" content="An independent, source-linked fan prototype for the We Watched A Movie commentary archive.">
+  <meta name="theme-color" content="#080608">
+  <title>WWAM After Midnight — The Deep Distill</title>
+  <meta name="description" content="A source-linked, red-band living archive prototype built from four complete We Watched A Movie franchise commentary paths.">
+  <meta property="og:title" content="WWAM After Midnight — The Deep Distill">
+  <meta property="og:description" content="39 tapes. 65 hours. 573,000+ words. Every wild receipt jumps back to the original commentary.">
+  <meta property="og:image" content="/og.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;600;700&family=IBM+Plex+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <nav>
-    <a class="brand" href="#top"><i>W</i><span>WWAM<br><b>AFTER MIDNIGHT</b></span></a>
-    <div><a href="#vault">Watchalong Vault</a><a href="#lore">Lore Labs</a><a href="#roadmap">The Autopsy</a></div>
+  <div class="content-gate" id="contentGate">
+    <div class="gate-static"></div>
+    <div class="gate-card">
+      <div class="gate-mark">W</div>
+      <p class="kicker">CONTENT ADVISORY // THE CAPTIONS HAVE TEETH</p>
+      <h1>HOW RED DO YOU<br>WANT THE BAND?</h1>
+      <p>This prototype contains adult language and dark jokes pulled in short, source-linked fragments from public WWAM commentary captions.</p>
+      <div class="gate-actions">
+        <button class="primary" data-band="red">ENTER AFTER MIDNIGHT</button>
+        <button data-band="bleep">BLEEP IT FOR THE OFFICE</button>
+      </div>
+      <small>Independent fan prototype. Auto-captions can mishear people; speaker attribution is intentionally withheld.</small>
+    </div>
+  </div>
+
+  <nav class="topbar">
+    <a class="brand" href="#top" aria-label="WWAM After Midnight home">
+      <i>W</i><span>WWAM<b>AFTER MIDNIGHT</b></span>
+    </a>
+    <div class="nav-links">
+      <a href="#red100">RED BAND 100</a>
+      <a href="#autopsies">TAPE AUTOPSIES</a>
+      <a href="#ask">ASK THE COMMENTARY</a>
+      <a href="#labs">LORE LABS</a>
+    </div>
+    <button class="mike-button" id="mikeButton"><span></span> MIKE MODE</button>
   </nav>
+
   <main id="top">
     <section class="hero">
-      <div class="noise"></div>
+      <div class="hero-grain"></div>
       <div class="hero-copy">
-        <p class="eyebrow">AN INDEPENDENT FAN PROTOTYPE · SOURCE-LINKED</p>
-        <h1>THEY WATCHED<br>A MOVIE.<br><em>WE KEPT THE LORE.</em></h1>
-        <p class="dek">The commentaries, the deranged takes, the running bits, and every franchise wound that never healed.</p>
-        <div class="hero-actions"><a class="hot" href="#vault">ENTER THE WATCHALONG VAULT</a><button id="randomBtn">RANDOM BAD DECISION</button></div>
+        <div class="live-pill"><i></i> DEEP DISTILL // JULY 2026</div>
+        <h1>FOUR FRANCHISES.<br><em>ZERO ALIBIS.</em></h1>
+        <p class="hero-dek">A searchable crime scene for every deranged take, franchise grudge, sudden love affair, and beautifully bad decision buried across the WWAM watchalong canon.</p>
+        <div class="hero-actions">
+          <a class="primary" href="#red100">OPEN THE EVIDENCE LOCKER</a>
+          <button id="rouletteButton">RED BAND ROULETTE <span>↗</span></button>
+        </div>
+        <p class="receipt-note">Every receipt is short. Every timestamp is playable. Every view returns to the original WWAM upload.</p>
       </div>
-      <div class="hero-art">
-        <div class="tape t1"><b>HALLOWEEN</b><span>13 COMMENTARIES</span></div>
-        <div class="tape t2"><b>FRIDAY THE 13TH</b><span>12 COMMENTARIES</span></div>
-        <div class="knife"></div>
+      <div class="hero-console">
+        <div class="console-top"><span>LIVE EVIDENCE FEED</span><b id="consoleStatus">SCANNING 573,383 WORDS</b></div>
+        <div class="console-screen" id="heroConsole"></div>
+        <div class="console-bottom"><i>REC</i><span>AUTO-CAPTION EVIDENCE // VERIFY AGAINST TAPE</span><b id="consoleClock">00:00:00</b></div>
       </div>
     </section>
+
     <section class="proof" id="proof"></section>
-    <section class="ask">
-      <p class="eyebrow">ASK THE COMMENTARY · PROTOTYPE SEARCH</p>
-      <h2>WHAT DO YOU WANT TO REGRET?</h2>
-      <div><input id="askQ" placeholder="Try “Jason in space” or “Rob Zombie”"><button id="askBtn">DIG IT UP</button></div>
-      <p id="askAnswer">This first pass searches the verified commentary canon. Timestamped takes and quotes arrive with the deep distill.</p>
+
+    <section class="scope-strip">
+      <span>THE BOUNDED CANON</span>
+      <div id="franchiseMarquee"></div>
     </section>
-    <section class="trauma" id="trauma">
-      <div class="section-head"><div><p class="eyebrow">TWO FRANCHISES · ZERO HEALTHY COPING MECHANISMS</p><h2>FRANCHISE TRAUMA MAP</h2></div><div class="switch"><button data-franchise="Halloween" class="on">HALLOWEEN</button><button data-franchise="Friday the 13th">FRIDAY THE 13TH</button></div></div>
-      <div class="trauma-line" id="traumaLine"></div>
+
+    <section class="section red100" id="red100">
+      <header class="section-head">
+        <div>
+          <p class="kicker">THE HOTTEST SOURCE-LINKED RECEIPTS IN THE ROOM</p>
+          <h2>THE RED BAND <em>100</em></h2>
+        </div>
+        <p>Not “best quotes” guessed from memory. A full-caption signal pass ranked by hostility, profanity, affection, prediction, kill language, callbacks, and on-mic breakdown energy.</p>
+      </header>
+      <div class="red-controls">
+        <div class="category-filters" id="categoryFilters"></div>
+        <button class="band-toggle" id="bandToggle">OFFICE BLEEP: OFF</button>
+      </div>
+      <div class="red-grid" id="hotGrid"></div>
+      <button class="load-more" id="loadMore">UNSEAL MORE EVIDENCE</button>
     </section>
-    <section class="vault" id="vault">
-      <div class="section-head"><div><p class="eyebrow">SYNC YOUR COPY · PRESS PLAY ON THE ORIGINAL</p><h2>THE WATCHALONG VAULT</h2></div><span id="vaultCount"></span></div>
-      <div class="filters"><button data-filter="all" class="on">ALL TAPES</button><button data-filter="Halloween">MICHAEL</button><button data-filter="Friday the 13th">JASON</button><button data-filter="captioned">TAPE-SEARCH READY</button></div>
-      <div class="grid" id="vaultGrid"></div>
+
+    <section class="section franchise-room" id="franchises">
+      <header class="section-head">
+        <div>
+          <p class="kicker">FOUR COMPLETE PATHS // FOUR DIFFERENT FORMS OF DAMAGE</p>
+          <h2>THE FRANCHISE<br>CORONER'S REPORT</h2>
+        </div>
+        <p>Each path has its own language, its own recurring wounds, and a purpose-built lore lab. A creator archive should understand the show—not flatten it into generic tags.</p>
+      </header>
+      <div class="franchise-grid" id="franchiseGrid"></div>
     </section>
-    <section class="lore" id="lore">
-      <div class="section-head"><div><p class="eyebrow">THE SHOW-SPECIFIC DNA · NOT GENERIC PODCAST TAGS</p><h2>THE LORE LABS</h2></div><span>DESIGNED FOR THE DEEP DISTILL</span></div>
-      <div class="lore-grid">
-        <article class="acid"><span>01</span><h3>THE UNHINGED INDEX</h3><p>How far did a take travel from “reasonable movie opinion” to “someone check the carbon monoxide detector”?</p><b>HEAT + CERTAINTY + DARKNESS + CALLBACK VALUE</b></article>
-        <article><span>02</span><h3>THE QUOTE CRYPT</h3><p>Dark jokes, accidental prophecies, and lines too beautifully stupid to die—playable at the exact second.</p><b>QUOTE · CONTEXT · WHO BROKE FIRST</b></article>
-        <article><span>03</span><h3>LOOMIS LOGIC</h3><p>Every argument that begins with evidence and ends with blowing up a hospital.</p><b>THEORY · CONFIDENCE · SANITY DAMAGE</b></article>
-        <article><span>04</span><h3>THE BIT GRAVEYARD</h3><p>Running jokes mapped from birth, through escalation, to the night they were finally beaten into the dirt.</p><b>ORIGIN · CALLBACKS · LAST KNOWN SIGHTING</b></article>
-        <article><span>05</span><h3>TAKE TEMPERATURE</h3><p>Love, hate, denial, bargaining, and “this movie is secretly a masterpiece” tracked across the full runtime.</p><b>HOST ARC · REVERSALS · FINAL VERDICT</b></article>
-        <article><span>06</span><h3>JASON’S TRAVEL AGENT</h3><p>Camp, Manhattan, Hell, space: a geographic record of how far a franchise will go to avoid therapy.</p><b>SETTING · BODY COUNT ENERGY · TRAVEL REVIEW</b></article>
+
+    <section class="section autopsies" id="autopsies">
+      <header class="section-head">
+        <div>
+          <p class="kicker">39 COMMENTARIES // 38 FULL CAPTION PASSES // 1 HONESTLY SEALED TAPE</p>
+          <h2>THE TAPE AUTOPSIES</h2>
+        </div>
+        <p>Open any tape for its machine-audited verdict, Unhinged Index, language profile, eight-chapter heat arc, and strongest playable fragments.</p>
+      </header>
+      <div class="vault-tools">
+        <label><span>SEARCH THE MORGUE</span><input id="vaultSearch" placeholder="Scream 4, Freddy, worst, love, space…"></label>
+        <div class="franchise-filters" id="franchiseFilters"></div>
+        <b id="vaultCount"></b>
+      </div>
+      <div class="tape-grid" id="tapeGrid"></div>
+    </section>
+
+    <section class="ask-room" id="ask">
+      <div class="ask-copy">
+        <p class="kicker">ASK THE COMMENTARY // RECEIPTS BEFORE CONFIDENCE</p>
+        <h2>ASK A BAD<br>QUESTION.</h2>
+        <p>This prototype searches film identity, franchise context, the distilled verdicts, evidence categories, and short caption receipts—then ranks the direct answer above the entertaining collateral damage.</p>
+        <div class="prompt-chips">
+          <button>What do they hate about the Elm Street remake?</button>
+          <button>Show me the wildest Scream moment</button>
+          <button>Which tape has the highest Unhinged Index?</button>
+          <button>Find Jason in space</button>
+        </div>
+      </div>
+      <div class="ask-machine">
+        <form id="askForm">
+          <span>QUERY_</span><input id="askInput" autocomplete="off" placeholder="Ask the tape anything…" aria-label="Ask the commentary"><button>EXHUME</button>
+        </form>
+        <div class="ask-readout">
+          <div><i></i><span id="askStatus">THE MACHINE IS LISTENING</span><b>SOURCE-FIRST MODE</b></div>
+          <div id="askResults" class="ask-results">
+            <p class="empty-state">Try a movie, killer, strong opinion, or evidence type. The machine will show its work.</p>
+          </div>
+        </div>
       </div>
     </section>
-    <section class="roadmap" id="roadmap">
-      <p class="eyebrow">THE PROTOTYPE AUTOPSY</p>
-      <h2>WHAT EXISTS. WHAT GETS A KNIFE NEXT.</h2>
+
+    <section class="section labs" id="labs">
+      <header class="section-head">
+        <div>
+          <p class="kicker">THE SHOW'S ACTUAL DNA // NOW LIVE, NOT “COMING SOON”</p>
+          <h2>THE LORE LABS</h2>
+        </div>
+        <p>Four franchise-specific chambers sit on top of a common evidence engine. That is the product formula: reusable machinery, creator-native personality.</p>
+      </header>
+      <div class="lab-stage">
+        <div class="lab-tabs" id="labTabs"></div>
+        <div class="lab-panel" id="labPanel"></div>
+      </div>
+      <div class="lab-secondary">
+        <article>
+          <span>THE BIT GRAVEYARD</span>
+          <h3>CALLBACKS HAVE A FAMILY TREE.</h3>
+          <p>“Remember when,” “there it is,” and recurring-joke signals become a playable chain instead of dying in an old upload.</p>
+          <button data-category-jump="BIT ENERGY">EXHUME THE BITS →</button>
+        </article>
+        <article>
+          <span>THE TAKE REVERSAL UNIT</span>
+          <h3>LOVE. HATE. BARGAINING. CAPS LOCK.</h3>
+          <p>The eight-chapter arc shows where a commentary changes temperature—and where the final verdict contradicts the opening swagger.</p>
+          <button data-category-jump="LOVE LETTER">FIND THE LOVE LETTERS →</button>
+        </article>
+        <article>
+          <span>THE NO-CONTEXT DRAWER</span>
+          <h3>SAFE FOR ABSOLUTELY NO MEETING.</h3>
+          <p>Out-of-pocket fragments preserved with the one thing a quote graphic usually loses: a button back to the source.</p>
+          <button data-category-jump="OUT OF POCKET">MAKE HR NERVOUS →</button>
+        </article>
+      </div>
+    </section>
+
+    <section class="method">
       <div>
-        <article><b>ALIVE NOW</b><ul><li>25 verified full-length source tapes</li><li>Complete Halloween and Friday the 13th watchalong paths</li><li>Franchise navigation and instant source playback</li><li>A standalone archive built around WWAM's own voice</li></ul></article>
-        <article><b>NEXT DISTILL</b><ul><li>Timestamped Quote Crypt</li><li>Host and recurring-character identity pages</li><li>Unhinged Index evidence model</li><li>Ask the Commentary across every spoken word</li></ul></article>
+        <p class="kicker">HOW THE SAUSAGE GOT POSSESSED</p>
+        <h2>THE DISTILL<br>HAS RECEIPTS.</h2>
       </div>
+      <ol>
+        <li><b>01 // DEFINE THE CANON</b><span>Only full movie watchalongs in the four requested franchise paths. Reviews, news, and unrelated streams stay outside the fence.</span></li>
+        <li><b>02 // AUDIT EVERY AVAILABLE WORD</b><span>38 caption tracks processed locally. The age-gated tape remains visible but never pretends to be distilled.</span></li>
+        <li><b>03 // SCORE THE SIGNAL</b><span>Profanity, hostility, affection, theories, kill language, callbacks, and breakdown cues build each tape's evidence profile.</span></li>
+        <li><b>04 // KEEP THE HUMAN IN CHARGE</b><span>Auto-captions are fallible. Short fragments are labeled, speaker identity is not guessed, and every claim opens the tape for verification.</span></li>
+      </ol>
     </section>
-    <section class="pitch">
-      <p>THE FIRST 25 TAPES ARE ONLY<br><b>THE OPENING KILL.</b></p>
-      <a href="#vault">GO BACK INTO THE VAULT ↑</a>
+
+    <section class="pitch-room" id="pitch">
+      <div class="pitch-copy">
+        <p class="kicker">THE PRIVATE SCREENING ROOM</p>
+        <h2>THIS ISN'T A<br>FAN PAGE.<br><em>IT'S A MEMORY BUSINESS.</em></h2>
+        <p>The archive turns years of uploads into new reasons to click, binge, share, join, buy, argue, and come back. The weirdness is the moat.</p>
+        <div>
+          <button class="primary" id="pitchTourButton">START THE 60-SECOND PITCH</button>
+          <button id="copyDemoButton">COPY THIS DEMO LINK</button>
+        </div>
+      </div>
+      <div class="money-stack">
+        <article><b>01</b><span>DISCOVERY</span><h3>Old uploads become answers.</h3><p>Search sends the fan to a specific tape and second, not a dead results page.</p></article>
+        <article><b>02</b><span>RETENTION</span><h3>Lore creates the next click.</h3><p>Franchise paths, bit chains, rankings, and dossiers make the back catalog feel alive.</p></article>
+        <article><b>03</b><span>REVENUE</span><h3>Memory becomes inventory.</h3><p>Member-only vaults, sponsor takeovers, share cards, merch callbacks, and premium annuals fit the same evidence layer.</p></article>
+      </div>
     </section>
   </main>
-  <footer>UNOFFICIAL INDEPENDENT FAN PROTOTYPE · ALL PLAYBACK RETURNS TO WE WATCHED A MOVIE ON YOUTUBE</footer>
-  <div class="player-modal" id="playerModal"><div><button id="closePlayer">×</button><div class="ratio"><iframe id="ytFrame" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div><h3 id="playingTitle"></h3><p>Start your own copy of the movie at 0:00, then run the original WWAM commentary here.</p><a id="youtubeLink" target="_blank" rel="noopener">OPEN ORIGINAL ON YOUTUBE ↗</a></div></div>
+
+  <footer>
+    <div class="brand footer-brand"><i>W</i><span>WWAM<b>AFTER MIDNIGHT</b></span></div>
+    <p>UNOFFICIAL INDEPENDENT FAN PROTOTYPE // ALL PLAYBACK AND SOURCE TRAFFIC RETURN TO WE WATCHED A MOVIE ON YOUTUBE</p>
+    <div><a href="https://www.youtube.com/@WeWatchedAMovie" target="_blank" rel="noopener">ORIGINAL CHANNEL ↗</a><button id="footerPitch">MIKE MODE</button></div>
+  </footer>
+
+  <div class="tape-modal" id="tapeModal" aria-hidden="true">
+    <div class="modal-shell">
+      <button class="modal-close" id="modalClose" aria-label="Close">×</button>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <div class="tour" id="pitchTour" aria-hidden="true">
+    <div class="tour-shell">
+      <div class="tour-top"><span>PRIVATE SCREENING // MIKE MODE</span><button id="tourClose">EXIT ×</button></div>
+      <div class="tour-progress"><i id="tourProgress"></i></div>
+      <div class="tour-body" id="tourBody"></div>
+      <div class="tour-controls"><button id="tourBack">← BACK</button><span id="tourCounter"></span><button class="primary" id="tourNext">NEXT →</button></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">LINK COPIED TO THE EVIDENCE BAG</div>
+
   <script src="catalog.js"></script>
+  <script src="deep-distill.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
