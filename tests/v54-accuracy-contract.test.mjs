@@ -94,11 +94,12 @@ test("Clip Lab opens on a bounded, truth-labeled Tonight's 12", () => {
   assert.match(app, /RECEIPT-BACKED SHORTS POOL/);
 });
 
-test("the frozen V5.4 proof stays dated while the current three-batch overlay stays truthful", () => {
+test("the frozen V5.4 proof stays dated while the current four-batch overlay stays truthful", () => {
   assert.doesNotMatch(html, /<script[^>]+archive-deep-(?:distill|engine)/i);
   assert.match(app, /"archive-deep-distill\.js"/);
   assert.match(app, /"archive-deep-batch2\.js"/);
   assert.match(app, /"archive-deep-batch3\.js"/);
+  assert.match(app, /"archive-deep-batch4\.js"/);
   assert.match(app, /"archive-deep-engine\.js"/);
   assert.match(app, /"archive-deep-portfolio\.js"/);
   assert.match(app, /stream\._lane = "archive"/);

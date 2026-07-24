@@ -49,6 +49,19 @@ const BATCH_03_IDS = [
   "xBOTTKQ9pxU",
 ];
 
+const BATCH_04_IDS = [
+  "2FlxuJxv81s",
+  "MSVltTVeypc",
+  "Qb2rDe-kJkI",
+  "3Lu0beSDxcQ",
+  "21hL29hicoU",
+  "HLDAxs4_3U4",
+  "34BwSiucNEI",
+  "ETuRUYiQEBM",
+  "5k6I18ZekPQ",
+  "o0tcJcJk6MY",
+];
+
 function plain(value) {
   return JSON.parse(JSON.stringify(value));
 }
@@ -61,6 +74,7 @@ function load() {
     "archive-deep-distill.js",
     "archive-deep-batch2.js",
     "archive-deep-batch3.js",
+    "archive-deep-batch4.js",
     "archive-deep-engine.js",
     "archive-deep-portfolio.js",
   ]) {
@@ -76,11 +90,12 @@ function fixture() {
   const batch01 = plain(window.WWAM_ARCHIVE_DEEP);
   const batch02 = plain(window.WWAM_ARCHIVE_DEEP_BATCH2);
   const batch03 = plain(window.WWAM_ARCHIVE_DEEP_BATCH3);
+  const batch04 = plain(window.WWAM_ARCHIVE_DEEP_BATCH4);
   const engine = window.WWAMArchiveDeepPortfolio.create({
-    batches: [batch01, batch02, batch03],
+    batches: [batch01, batch02, batch03, batch04],
     engineFactory: window.WWAMArchiveDeepEngine,
   });
-  return { window, batch01, batch02, batch03, engine };
+  return { window, batch01, batch02, batch03, batch04, engine };
 }
 
 function stable(value) {
@@ -121,28 +136,29 @@ function exactKeys(value, output = []) {
   return output;
 }
 
-test("composes three pinned ten-source batches into truthful current metrics", () => {
+test("composes four pinned ten-source batches into truthful current metrics", () => {
   const { engine } = fixture();
   assert.equal(engine.engine, "WWAM Archive Deep Portfolio");
-  assert.equal(engine.version, "1.1.0");
+  assert.equal(engine.version, "1.2.0");
   assert.equal(
     engine.schema,
     "shokker-youtube-wiki/archive-deep-portfolio/v1"
   );
   assert.deepEqual(plain(engine.getMetrics()), {
-    batches: 3,
-    streams: 30,
-    captioned: 30,
-    restricted: 9,
-    visualRankingQuarantines: 10,
-    hours: 77.2,
-    wordsAudited: 957430,
-    captionEvents: 136539,
-    topicLanes: 300,
-    distinctTopics: 44,
-    publicMomentCandidates: 131,
-    characterSignals: 41,
-    snapshotViews: 335489,
+    batches: 4,
+    streams: 40,
+    captioned: 40,
+    restricted: 12,
+    limitedCaptionSpans: 1,
+    visualRankingQuarantines: 12,
+    hours: 97.7,
+    wordsAudited: 1216993,
+    captionEvents: 173675,
+    topicLanes: 400,
+    distinctTopics: 48,
+    publicMomentCandidates: 166,
+    characterSignals: 52,
+    snapshotViews: 445949,
   });
 });
 
@@ -151,23 +167,24 @@ test("keeps batch provenance and assigns one collision-free portfolio rank", () 
   const streams = engine.browse({ sort: "priority" }).records;
   assert.deepEqual(
     plain(streams.map((stream) => stream.id)),
-    [...BATCH_01_IDS, ...BATCH_02_IDS, ...BATCH_03_IDS]
+    [...BATCH_01_IDS, ...BATCH_02_IDS, ...BATCH_03_IDS, ...BATCH_04_IDS]
   );
   assert.deepEqual(
     plain(streams.map((stream) => stream.archivePriority.batchRank)),
     [...Array.from({ length: 10 }, (_, index) => index + 1),
       ...Array.from({ length: 10 }, (_, index) => index + 1),
+      ...Array.from({ length: 10 }, (_, index) => index + 1),
       ...Array.from({ length: 10 }, (_, index) => index + 1)]
   );
   assert.deepEqual(
     plain(streams.map((stream) => stream.archivePortfolioRank)),
-    Array.from({ length: 30 }, (_, index) => index + 1)
+    Array.from({ length: 40 }, (_, index) => index + 1)
   );
   assert.deepEqual(
     plain(streams.map((stream) => (
       stream.archivePriority.archivePortfolioRank
     ))),
-    Array.from({ length: 30 }, (_, index) => index + 1)
+    Array.from({ length: 40 }, (_, index) => index + 1)
   );
   assert.ok(streams.slice(0, 10).every(
     (stream) => stream.archiveBatch.id === "archive-deep-batch-01"
@@ -175,8 +192,11 @@ test("keeps batch provenance and assigns one collision-free portfolio rank", () 
   assert.ok(streams.slice(10, 20).every(
     (stream) => stream.archiveBatch.id === "archive-deep-batch-02"
   ));
-  assert.ok(streams.slice(20).every(
+  assert.ok(streams.slice(20, 30).every(
     (stream) => stream.archiveBatch.id === "archive-deep-batch-03"
+  ));
+  assert.ok(streams.slice(30).every(
+    (stream) => stream.archiveBatch.id === "archive-deep-batch-04"
   ));
   assert.ok(streams.every((stream) => (
     stream.archiveBatch.candidateState === "quarantined"
@@ -191,6 +211,7 @@ test("validates all batches through the legacy engine without mutating modern en
   const batch01 = plain(window.WWAM_ARCHIVE_DEEP);
   const batch02 = plain(window.WWAM_ARCHIVE_DEEP_BATCH2);
   const batch03 = plain(window.WWAM_ARCHIVE_DEEP_BATCH3);
+  const batch04 = plain(window.WWAM_ARCHIVE_DEEP_BATCH4);
   const calls = [];
   const factory = {
     SCHEMA: window.WWAMArchiveDeepEngine.SCHEMA,
@@ -200,10 +221,10 @@ test("validates all batches through the legacy engine without mutating modern en
     },
   };
   const engine = window.WWAMArchiveDeepPortfolio.create(
-    [batch01, batch02, batch03],
+    [batch01, batch02, batch03, batch04],
     factory
   );
-  assert.equal(calls.length, 3);
+  assert.equal(calls.length, 4);
   assert.ok(calls.every((payload) => (
     payload.schema === "wwam-archive-deep-distill/v1"
   )));
@@ -221,19 +242,32 @@ test("validates all batches through the legacy engine without mutating modern en
   assert.ok(batch03.streams.every(
     (stream) => stream.archivePriority.originalRank === undefined
   ));
+  assert.ok(batch04.streams.every(
+    (stream) => stream.archivePriority.originalRank === undefined
+  ));
 
   const verification = plain(engine.verifyFingerprint());
   assert.equal(verification.ok, true);
-  assert.equal(verification.actual, "fnv1a32:8e474ea8");
+  assert.equal(verification.actual, "fnv1a32:14050c7a");
   assert.equal(verification.authenticityVerified, false);
   assert.match(verification.scope, /structural-change-detection-only/);
   assert.deepEqual(
     verification.batches.map((batch) => batch.actual),
-    ["fnv1a32:17045a51", "fnv1a32:bcea5692", "fnv1a32:f79f2399"]
+    [
+      "fnv1a32:17045a51",
+      "fnv1a32:bcea5692",
+      "fnv1a32:f79f2399",
+      "fnv1a32:56ca74df",
+    ]
   );
   assert.deepEqual(
     verification.batches.map((batch) => batch.expected),
-    ["fnv1a32:17045a51", "fnv1a32:bcea5692", "fnv1a32:f79f2399"]
+    [
+      "fnv1a32:17045a51",
+      "fnv1a32:bcea5692",
+      "fnv1a32:f79f2399",
+      "fnv1a32:56ca74df",
+    ]
   );
   assert.notEqual(
     verification.batches[1].legacyCompatibilityFnv1a,
@@ -247,13 +281,21 @@ test("validates all batches through the legacy engine without mutating modern en
     verification.batches[2].legacyCompatibilityFnv1a,
     verification.batches[2].actual
   );
+  assert.notEqual(
+    verification.batches[3].legacyCompatibilityFnv1a,
+    verification.batches[3].actual
+  );
+  assert.equal(
+    verification.batches[3].legacyCompatibilityFnv1a,
+    "fnv1a32:95054bb7"
+  );
 });
 
 test("merges topic and character indexes with global source ranks", () => {
   const { engine } = fixture();
   const topics = engine.getTopicIndex();
   const characters = engine.getCharacterIndex();
-  assert.equal(topics.length, 44);
+  assert.equal(topics.length, 48);
   assert.equal(characters.length, 4);
   const scream = topics.find((topic) => topic.name === "Scream");
   assert.ok(scream.mentions > 327);
@@ -266,10 +308,13 @@ test("merges topic and character indexes with global source ranks", () => {
   assert.ok(scream.streams.some(
     (stream) => stream.archiveBatchId === "archive-deep-batch-03"
   ));
+  assert.ok(scream.streams.some(
+    (stream) => stream.archiveBatchId === "archive-deep-batch-04"
+  ));
   assert.ok(scream.streams.every((stream) => (
     stream.rank === stream.portfolioRank
     && stream.portfolioRank >= 1
-    && stream.portfolioRank <= 30
+    && stream.portfolioRank <= 40
   )));
   const challis = characters.find(
     (character) => character.character === "Dr. Challis"
@@ -284,9 +329,11 @@ test("provides compatible browse, search, and source lookup surfaces", () => {
   assert.equal(engine.browse({ batchId: "archive-deep-batch-02" }).total, 10);
   assert.equal(engine.browse({ batchSequence: 3 }).total, 10);
   assert.equal(engine.browse({ batchId: "archive-deep-batch-03" }).total, 10);
-  assert.equal(engine.browse({ restricted: true }).total, 9);
-  assert.equal(engine.browse({ restricted: false }).total, 21);
-  assert.equal(engine.browse({ contentMode: "visual-ranking" }).total, 9);
+  assert.equal(engine.browse({ batchSequence: 4 }).total, 10);
+  assert.equal(engine.browse({ batchId: "archive-deep-batch-04" }).total, 10);
+  assert.equal(engine.browse({ restricted: true }).total, 12);
+  assert.equal(engine.browse({ restricted: false }).total, 28);
+  assert.equal(engine.browse({ contentMode: "visual-ranking" }).total, 11);
   assert.equal(engine.browse({ minPriorityScore: 90 }).total, 9);
   assert.deepEqual(
     plain(engine.browse({ sort: "priority", offset: 19, limit: 2 }).records.map(
@@ -294,18 +341,19 @@ test("provides compatible browse, search, and source lookup surfaces", () => {
     )),
     [20, 21]
   );
-  assert.equal(engine.search("Scream").total, 21);
+  assert.equal(engine.search("Scream").total, 27);
   assert.match(engine.search("Scream").evidenceScope, /captions remain private/i);
   assert.equal(engine.search("").total, 0);
   assert.equal(engine.getStream("CFUHyfcJDTg").archivePortfolioRank, 11);
   assert.equal(engine.getStream("M9_5cX8xowI").archivePortfolioRank, 21);
+  assert.equal(engine.getStream("2FlxuJxv81s").archivePortfolioRank, 31);
   assert.equal(engine.getStream("not-a-source"), null);
 });
 
-test("keeps all 131 public moment candidates quarantined and non-diarized", () => {
+test("keeps all 166 public moment candidates quarantined and non-diarized", () => {
   const { engine } = fixture();
   const moments = engine.getMomentCandidates();
-  assert.equal(moments.length, 131);
+  assert.equal(moments.length, 166);
   assert.ok(moments.every((moment) => (
     moment.candidateState === "quarantined"
     && moment.promotionAllowed === false
@@ -327,6 +375,10 @@ test("keeps all 131 public moment candidates quarantined and non-diarized", () =
     engine.getMomentCandidates({ batchId: "archive-deep-batch-03" }).length,
     40
   );
+  assert.equal(
+    engine.getMomentCandidates({ batchId: "archive-deep-batch-04" }).length,
+    35
+  );
   const receipts = engine.getTopicReceipts("Scream");
   assert.ok(receipts.length >= 10);
   assert.ok(receipts.every((receipt) => (
@@ -336,20 +388,30 @@ test("keeps all 131 public moment candidates quarantined and non-diarized", () =
   )));
 });
 
-test("exports a bounded search payload with all three original fingerprints", () => {
+test("exports a bounded search payload with all four original fingerprints", () => {
   const { engine } = fixture();
   const payload = engine.getSearchPayload();
   assert.equal(payload.schema, engine.schema);
-  assert.equal(payload.streams.length, 30);
-  assert.equal(payload.topicIndex.length, 44);
-  assert.equal(payload.meta.publicMomentCandidates, 131);
+  assert.equal(payload.streams.length, 40);
+  assert.equal(payload.topicIndex.length, 48);
+  assert.equal(payload.meta.publicMomentCandidates, 166);
   assert.deepEqual(
     plain(payload.batches.map((batch) => batch.publicFnv1a)),
-    ["fnv1a32:17045a51", "fnv1a32:bcea5692", "fnv1a32:f79f2399"]
+    [
+      "fnv1a32:17045a51",
+      "fnv1a32:bcea5692",
+      "fnv1a32:f79f2399",
+      "fnv1a32:56ca74df",
+    ]
   );
   assert.deepEqual(
     plain(payload.fingerprints.batches.map((batch) => batch.publicFnv1a)),
-    ["fnv1a32:17045a51", "fnv1a32:bcea5692", "fnv1a32:f79f2399"]
+    [
+      "fnv1a32:17045a51",
+      "fnv1a32:bcea5692",
+      "fnv1a32:f79f2399",
+      "fnv1a32:56ca74df",
+    ]
   );
   assert.match(
     payload.evidencePolicy.fingerprintScope,
@@ -386,32 +448,32 @@ test("returns defensive copies from every state-bearing surface", () => {
   exported.streams.length = 0;
   exported.batches.length = 0;
 
-  assert.equal(engine.getMetrics().streams, 30);
+  assert.equal(engine.getMetrics().streams, 40);
   assert.notEqual(engine.getStream(BATCH_01_IDS[0]).title, "changed");
   assert.notEqual(engine.getStream(BATCH_01_IDS[0]).topics[0].name, "changed");
-  assert.equal(engine.browse({}).records.length, 30);
-  assert.equal(engine.getTopicIndex().length, 44);
+  assert.equal(engine.browse({}).records.length, 40);
+  assert.equal(engine.getTopicIndex().length, 48);
   assert.notEqual(engine.getCharacterIndex()[0].character, "changed");
   assert.notEqual(engine.getMomentCandidates()[0].sourceTitle, "changed");
   assert.equal(engine.getSelection()[0].publicFnv1a, "fnv1a32:17045a51");
   assert.equal(engine.getEvidencePolicy().promotionAllowed, false);
-  assert.equal(engine.exportSnapshot().streams.length, 30);
+  assert.equal(engine.exportSnapshot().streams.length, 40);
 });
 
 test("fails closed on arbitrary schemas, reordered batches, and bad factory output", () => {
-  const { window, batch01, batch02, batch03 } = fixture();
+  const { window, batch01, batch02, batch03, batch04 } = fixture();
   const arbitrary = structuredClone(batch02);
   arbitrary.schema = "some-other/archive/v999";
   assert.throws(
     () => window.WWAMArchiveDeepPortfolio.create(
-      [batch01, arbitrary, batch03],
+      [batch01, arbitrary, batch03, batch04],
       window.WWAMArchiveDeepEngine
     ),
     /requires schema/i
   );
   assert.throws(
     () => window.WWAMArchiveDeepPortfolio.create(
-      [batch01, batch03, batch02],
+      [batch01, batch03, batch02, batch04],
       window.WWAMArchiveDeepEngine
     ),
     /lane metadata/i
@@ -421,26 +483,32 @@ test("fails closed on arbitrary schemas, reordered batches, and bad factory outp
       [batch01, batch02],
       window.WWAMArchiveDeepEngine
     ),
-    /exactly three ordered batches/i
+    /exactly four ordered batches/i
   );
   assert.throws(
-    () => window.WWAMArchiveDeepPortfolio.create([batch01, batch02, batch03], {
+    () => window.WWAMArchiveDeepPortfolio.create(
+      [batch01, batch02, batch03, batch04],
+      {
       SCHEMA: "wrong",
       create() {},
-    }),
+      }
+    ),
     /compatible .* factory/i
   );
   assert.throws(
-    () => window.WWAMArchiveDeepPortfolio.create([batch01, batch02, batch03], {
+    () => window.WWAMArchiveDeepPortfolio.create(
+      [batch01, batch02, batch03, batch04],
+      {
       SCHEMA: window.WWAMArchiveDeepEngine.SCHEMA,
       create() { return {}; },
-    }),
+      }
+    ),
     /invalid legacy engine/i
   );
 });
 
 test("fails closed when lane, selection, exclusion, or priority metadata changes", () => {
-  const { window, batch01, batch02, batch03 } = fixture();
+  const { window, batch01, batch02, batch03, batch04 } = fixture();
   const cases = [
     (payload) => { payload.lane.promotionAllowed = true; },
     (payload) => { payload.lane.sequence = 1; },
@@ -451,12 +519,16 @@ test("fails closed when lane, selection, exclusion, or priority metadata changes
     (payload) => { payload.streams[0].archivePriority.currentRank = 2; },
     (payload) => { payload.streams[0].archivePriority.portfolioRank = 1; },
   ];
-  for (const [sequence, source] of [[2, batch02], [3, batch03]]) {
+  for (const [sequence, source] of [
+    [2, batch02],
+    [3, batch03],
+    [4, batch04],
+  ]) {
     for (const mutate of cases) {
       const changed = structuredClone(source);
       mutate(changed);
       resignPublicStreams(changed);
-      const inputs = [batch01, batch02, batch03];
+      const inputs = [batch01, batch02, batch03, batch04];
       inputs[sequence - 1] = changed;
       assert.throws(
         () => window.WWAMArchiveDeepPortfolio.create(
@@ -470,14 +542,14 @@ test("fails closed when lane, selection, exclusion, or priority metadata changes
 });
 
 test("rejects stream mutation even when an attacker recomputes the public FNV", () => {
-  const { window, batch01, batch02, batch03 } = fixture();
-  const changed = structuredClone(batch03);
+  const { window, batch01, batch02, batch03, batch04 } = fixture();
+  const changed = structuredClone(batch04);
   changed.streams[0].title = "self-signed mutation";
   resignPublicStreams(changed);
-  assert.notEqual(changed.fingerprints.publicFnv1a, "fnv1a32:f79f2399");
+  assert.notEqual(changed.fingerprints.publicFnv1a, "fnv1a32:56ca74df");
   assert.throws(
     () => window.WWAMArchiveDeepPortfolio.create(
-      [batch01, batch02, changed],
+      [batch01, batch02, batch03, changed],
       window.WWAMArchiveDeepEngine
     ),
     /pinned fingerprints/i
@@ -488,7 +560,7 @@ test("rejects stream mutation even when an attacker recomputes the public FNV", 
   resignPublicStreams(hiddenCaption);
   assert.throws(
     () => window.WWAMArchiveDeepPortfolio.create(
-      [hiddenCaption, batch02, batch03],
+      [hiddenCaption, batch02, batch03, batch04],
       window.WWAMArchiveDeepEngine
     ),
     /pinned fingerprints/i
@@ -496,39 +568,60 @@ test("rejects stream mutation even when an attacker recomputes the public FNV", 
 });
 
 test("rejects duplicate source identities and broken evidence boundaries", () => {
-  const { window, batch01, batch02, batch03 } = fixture();
-  const duplicate = structuredClone(batch03);
+  const { window, batch01, batch02, batch03, batch04 } = fixture();
+  const duplicate = structuredClone(batch04);
   duplicate.streams[0].id = batch01.streams[0].id;
   duplicate.selection.records[0].id = batch01.streams[0].id;
   resignPublicStreams(duplicate);
   assert.throws(
     () => window.WWAMArchiveDeepPortfolio.create(
-      [batch01, batch02, duplicate],
+      [batch01, batch02, batch03, duplicate],
       window.WWAMArchiveDeepEngine
     ),
     /Archive Deep Portfolio/
   );
 
-  const diarized = structuredClone(batch03);
+  const diarized = structuredClone(batch04);
   diarized.streams[0].captionEvidence.speakerDiarized = true;
   resignPublicStreams(diarized);
   assert.throws(
     () => window.WWAMArchiveDeepPortfolio.create(
-      [batch01, batch02, diarized],
+      [batch01, batch02, batch03, diarized],
       window.WWAMArchiveDeepEngine
     ),
     /evidence boundary|pinned fingerprints/i
   );
 
-  const promotable = structuredClone(batch03);
+  const promotable = structuredClone(batch04);
   promotable.streams[0].rightsPolicy.promotionAllowed = true;
   resignPublicStreams(promotable);
   assert.throws(
     () => window.WWAMArchiveDeepPortfolio.create(
-      [batch01, batch02, promotable],
+      [batch01, batch02, batch03, promotable],
       window.WWAMArchiveDeepEngine
     ),
     /quarantine boundary|pinned fingerprints/i
+  );
+
+  const visualClaim = structuredClone(batch04);
+  visualClaim.streams[0].rightsPolicy.visualClaimsAllowed = true;
+  resignPublicStreams(visualClaim);
+  assert.throws(
+    () => window.WWAMArchiveDeepPortfolio.create(
+      [batch01, batch02, batch03, visualClaim],
+      window.WWAMArchiveDeepEngine
+    ),
+    /evidence boundary|pinned fingerprints/i
+  );
+
+  const counterfeitMeta = structuredClone(batch04);
+  counterfeitMeta.meta.publicMomentCandidates += 1;
+  assert.throws(
+    () => window.WWAMArchiveDeepPortfolio.create(
+      [batch01, batch02, batch03, counterfeitMeta],
+      window.WWAMArchiveDeepEngine
+    ),
+    /derived metric/i
   );
 });
 

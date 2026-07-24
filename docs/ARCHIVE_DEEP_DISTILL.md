@@ -6,30 +6,32 @@ or Popular 25.
 
 Batch 01 preserves the original ten-source distill. Batch 02 freezes the exact
 next ten eligible priority records after Batch 01 exclusion. Batch 03 freezes
-the exact next ten after both earlier batches are excluded. Archive Deep
-Portfolio validates all three independent artifacts and makes their bounded
+the exact next ten after both earlier batches are excluded. Batch 04 freezes
+the exact next ten after all 30 earlier records are excluded. Archive Deep
+Portfolio validates all four independent artifacts and makes their bounded
 public records available through one read-only discovery surface.
 
 ## Current portfolio result
 
-- Independent batches: **3**
-- Selected, caption-audited sources: **30**
-- Runtime audited: **77.2 hours**
-- Words audited: **957,430**
-- Parsed caption events: **136,539**
-- Topic lanes / distinct normalized topics: **300 / 44**
-- Public machine moment candidates: **131**, all quarantined
-- Source-level character-signal records: **41**
-- Topic-only source-audio firewalls: **9**
-- Special visual-ranking quarantines: **10**
-- Cached views across the three frozen selections: **335,489**
+- Independent batches: **4**
+- Selected, caption-audited sources: **40**
+- Runtime audited: **97.7 hours**
+- Words audited: **1,216,993**
+- Parsed caption events: **173,675**
+- Topic lanes / distinct normalized topics: **400 / 48**
+- Public machine moment candidates: **166**, all quarantined
+- Source-level character-signal records: **52**
+- Topic-only source-audio firewalls: **12**
+- Special visual-ranking quarantines: **12**
+- Limited available caption spans: **1**
+- Cached views across the four frozen selections: **445,949**
 - Full caption payloads published: **0**
 
-All 30 sources forbid visual claims because caption timestamps cannot establish
-what was on screen. The 10-count is the narrower number of sources placed in
-the special visual-ranking quarantine lane; it does not mean the other 20 have
+All 40 sources forbid visual claims because caption timestamps cannot establish
+what was on screen. The 12-count is the narrower number of sources placed in
+the special visual-ranking quarantine lane; it does not mean the other 28 have
 verified visual context. See `docs/ARCHIVE_DEEP_PORTFOLIO.md` for the complete
-three-batch composition and audit matrix.
+four-batch composition and audit matrix.
 
 These are current overlay measurements. The immutable V5.4 proof remains
 exactly 84 inputs, 2,175,344 audited words, 194.9 caption-audited hours, 872
@@ -123,6 +125,21 @@ generated artifact and reproducible pipeline are
 `public/demo/archive-deep-batch3.js` and
 `pipeline/wwam_archive_deep_batch3.py`.
 
+## Batch 04 result
+
+Batch 04 contributes **20.5 audited hours**, **259,563 words**, **37,136**
+parsed caption events, **100 topic lanes / 33 batch-local distinct topics**,
+**35 quarantined moment candidates**, **11 source-level character-signal
+records**, and **110,460 cached snapshot views**.
+
+Its frozen selection is `2FlxuJxv81s`, `MSVltTVeypc`, `Qb2rDe-kJkI`,
+`3Lu0beSDxcQ`, `21hL29hicoU`, `HLDAxs4_3U4`, `34BwSiucNEI`,
+`ETuRUYiQEBM`, `5k6I18ZekPQ`, and `o0tcJcJk6MY`, in that priority order.
+Three explicit trailer sources are topic-navigation-only. Two tier-list
+sources occupy the visual-context-unverified lane. `2FlxuJxv81s` has a
+disclosed 96.03% `limited-available-track`; the other nine available tracks
+span at least 99.8%. No replacement or invented tail evidence was introduced.
+
 ## Evidence and rights boundary
 
 The public artifact never includes full captions. It includes aggregate counts,
@@ -159,6 +176,15 @@ Batch 02 adds three more topic-only source-audio firewalls:
 2. Script reading (`KIGg_I72x_M`)
 3. Watchalong (`QxJyVaAgZ_Y`)
 
+Batch 03 adds two topic-only firewalls: the Freddy death-scene ranking
+`nv99WEtXGvE` and the SAW X trailer-reaction source `yMAvXBYAxko`.
+
+Batch 04 adds three topic-only trailer firewalls:
+
+1. HALLOWEEN ENDS final trailer (`MSVltTVeypc`)
+2. PREDATOR BADLANDS trailer (`21hL29hicoU`)
+3. HELLRAISER game trailer (`34BwSiucNEI`)
+
 All 49 Batch 02 moment candidates are machine-surfaced, speaker-undiarized,
 origin-unattributed, and quarantined. Its 11 character-signal records describe
 source-level caption signals; they do not establish a performer, performance,
@@ -172,13 +198,14 @@ candidates for that source.
 
 Tier-list, merchandise, poster-ranking, and visual-ranking streams retain
 caption candidates, but their visual context remains explicitly unverified.
-Ten sources across the portfolio—three in each of the first two batches and
-four in Batch 03—occupy that special visual-ranking quarantine lane. All 30
+Twelve sources across the portfolio—three in each of the first two batches,
+four in Batch 03, and two in Batch 04—occupy that special visual-ranking
+quarantine lane. All 40
 sources forbid visual claims. A caption timestamp can prove what words
 survived; it cannot prove which poster, prop, matchup, death, or tier was on
 screen.
 
-The 131 public moments are machine candidates, not creator votes, confirmed
+The 166 public moments are machine candidates, not creator votes, confirmed
 soundbytes, Red Band placements, or canonical “UP IN YA” selections.
 Playback review may establish context; it does not promote a candidate into any
 downstream product lane. Each lane requires its own policy-compliant decision
@@ -197,6 +224,9 @@ window.WWAM_ARCHIVE_DEEP_BATCH2
 
 public/demo/archive-deep-batch3.js
 window.WWAM_ARCHIVE_DEEP_BATCH3
+
+public/demo/archive-deep-batch4.js
+window.WWAM_ARCHIVE_DEEP_BATCH4
 ```
 
 Batch 01 retains the legacy `wwam-archive-deep-distill/v1` shape:
@@ -224,11 +254,11 @@ Batch 01 retains the legacy `wwam-archive-deep-distill/v1` shape:
 }
 ```
 
-Batch 02 and Batch 03 use
+Batch 02 through Batch 04 use
 `shokker-youtube-wiki/archive-deep-batch/v1`. Each adds explicit `channel` and
 `lane` manifests, keeps batch topic and character indices derivable from its
 bounded `streams`, and remains `caption-audited-quarantine`. The portfolio
-composes all three into `shokker-youtube-wiki/archive-deep-portfolio/v1`
+composes all four into `shokker-youtube-wiki/archive-deep-portfolio/v1`
 without mutating any checked-in artifact.
 
 Each stream reuses the proven Popular 25 topic, signal, character-cue, heatmap,
@@ -243,13 +273,13 @@ and index shape where the source boundary is safe enough. V1 adds:
 - `evidence` on each public receipt;
 - `summary`: an evidence-bounded source description.
 
-Three independent fingerprint families make batch changes auditable:
+Three independent fingerprint families per batch make changes auditable:
 
 - `selectionSha256`: frozen selection manifest;
 - `captionSetSha256`: source-to-private-payload fingerprints;
 - `publicFnv1a`: browser-verifiable fingerprint over the public stream records.
 
-Archive Deep Portfolio retains all three batches' original values and adds a
+Archive Deep Portfolio retains all four batches' original values and adds a
 portfolio-manifest FNV. The FNV values are structural change detectors, not
 signatures or proof of authenticity, authorship, speaker identity, review,
 rights, or approval.
@@ -264,7 +294,8 @@ const archiveDeep = WWAMArchiveDeepPortfolio.create({
   batches: [
     WWAM_ARCHIVE_DEEP,
     WWAM_ARCHIVE_DEEP_BATCH2,
-    WWAM_ARCHIVE_DEEP_BATCH3
+    WWAM_ARCHIVE_DEEP_BATCH3,
+    WWAM_ARCHIVE_DEEP_BATCH4
   ],
   engineFactory: WWAMArchiveDeepEngine
 });
@@ -297,6 +328,7 @@ Offline, byte-identical validation:
 python pipeline\wwam_archive_deep_distill.py --check
 python pipeline\wwam_archive_deep_batch2.py --check
 python pipeline\wwam_archive_deep_batch3.py --check
+python pipeline\wwam_archive_deep_batch4.py --check
 ```
 
 Regenerate any public artifact from the existing private cache:
@@ -305,6 +337,7 @@ Regenerate any public artifact from the existing private cache:
 python pipeline\wwam_archive_deep_distill.py
 python pipeline\wwam_archive_deep_batch2.py
 python pipeline\wwam_archive_deep_batch3.py
+python pipeline\wwam_archive_deep_batch4.py
 ```
 
 Refresh each batch's ten private caption payloads using the default extractor
@@ -314,6 +347,7 @@ and explicit client fallbacks, then regenerate:
 python pipeline\wwam_archive_deep_distill.py --refresh-captions
 python pipeline\wwam_archive_deep_batch2.py --refresh-captions
 python pipeline\wwam_archive_deep_batch3.py --refresh-captions
+python pipeline\wwam_archive_deep_batch4.py --refresh-captions
 ```
 
 Targeted engine/data tests:
@@ -322,41 +356,44 @@ Targeted engine/data tests:
 node --test tests\archive-deep-distill.test.mjs
 node --test tests\archive-deep-batch2.test.mjs
 node --test tests\archive-deep-batch3.test.mjs
+node --test tests\archive-deep-batch4.test.mjs
 node --test tests\archive-deep-portfolio.test.mjs
 ```
 
 ## Atlas integration status
 
-All three batches are integrated as non-promotable evidence lanes:
+All four batches are integrated as non-promotable evidence lanes:
 
 1. Batch 01 retains the legacy `archive-deep-10` / “Archive Deep 10” lane.
 2. Batch 02 uses `archive-deep-batch-02` / “Archive Deep Batch 02” with
    `integrated-quarantine` state.
 3. Batch 03 uses `archive-deep-batch-03` / “Archive Deep Batch 03” with
    `integrated-quarantine` state.
-4. Popular 25 remains separate because it promises a dated view-ranked
+4. Batch 04 uses `archive-deep-batch-04` / “Archive Deep Batch 04” with
+   `integrated-quarantine` state.
+5. Popular 25 remains separate because it promises a dated view-ranked
    selection; none of the Archive Deep batches does.
-5. Current Atlas coverage is **64 deeply indexed / 400 metadata-only / 8
-   caption-limited**, or **13.6%** of 472 sources.
+6. Current Atlas coverage is **74 deeply indexed / 390 metadata-only / 8
+   caption-limited**, or **15.7%** of 472 sources.
 
-The regenerated Atlas keeps all thirty frozen batch IDs out of Distill Next.
+The regenerated Atlas keeps all forty frozen batch IDs out of Distill Next.
 Its provenance retains independent schema, source-selection, selection,
-caption-set, and public-stream fingerprint records for each batch. All three
+caption-set, and public-stream fingerprint records for each batch. All four
 pipelines retain byte-identical `--check` paths.
 
 ## Product integration boundary
 
-The browser lazy-loads all three compact batch artifacts and the portfolio
+The browser lazy-loads all four compact batch artifacts and the portfolio
 composer with Archive Deep rather than adding them to the first-load payload.
-Search and the Archive Atlas can address all three batches, while Fresh 10 and
+Search and the Archive Atlas can address all four batches, while Fresh 10 and
 Popular 25 keep their original counts and selection semantics.
 
-Do not send the 131 machine moments into Red Band, UP IN YA, character voice,
+Do not send the 166 machine moments into Red Band, UP IN YA, character voice,
 Canon, or creator-facing exports on playback review alone. Playback may
 establish context; each destination lane requires its own policy-compliant
 decision by an authenticated, authorized reviewer. Restricted sources stay
 excluded by construction.
 
-This sequence provides a real thirty-source coverage gain while cross-product
+This sequence provides a real forty-source coverage gain while cross-product
 promotion remains a set of separately scoped, authenticated and authorized
 lane decisions instead of silently turning automatic captions into canon.

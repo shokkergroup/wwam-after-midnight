@@ -37,6 +37,7 @@ function actualFixture() {
     "archive-deep-distill.js",
     "archive-deep-batch2.js",
     "archive-deep-batch3.js",
+    "archive-deep-batch4.js",
     "archive-deep-engine.js",
     "archive-deep-portfolio.js",
     "archive-atlas-data.js",
@@ -64,6 +65,7 @@ function actualFixture() {
       plain(window.WWAM_ARCHIVE_DEEP),
       plain(window.WWAM_ARCHIVE_DEEP_BATCH2),
       plain(window.WWAM_ARCHIVE_DEEP_BATCH3),
+      plain(window.WWAM_ARCHIVE_DEEP_BATCH4),
     ],
     engineFactory: window.WWAMArchiveDeepEngine,
   });
@@ -189,16 +191,16 @@ test("builds exact 2025 feed and quarantine ledgers without inventing promoted m
   assert.equal(capsule.feed.hours, 222.4);
   assert.equal(capsule.feed.cachedViews, 637_619);
   assert.deepEqual(plain(capsule.feed.coverage), {
-    deeplyIndexed: 14,
-    metadataOnly: 80,
+    deeplyIndexed: 19,
+    metadataOnly: 75,
     captionLimited: 0,
     unavailable: 0,
   });
   assert.equal(capsule.memory.sourceCount, 0);
   assert.equal(capsule.memory.receiptCount, 0);
-  assert.equal(capsule.quarantine.sourceCount, 14);
-  assert.equal(capsule.quarantine.candidateCount, 68);
-  assert.equal(capsule.quarantine.topicLaneCount, 140);
+  assert.equal(capsule.quarantine.sourceCount, 19);
+  assert.equal(capsule.quarantine.candidateCount, 83);
+  assert.equal(capsule.quarantine.topicLaneCount, 190);
   assert.equal(capsule.route.available, true);
   assert.equal(capsule.route.count, 5);
   assert.equal(capsule.route.quarantineFallback, true);
@@ -212,6 +214,28 @@ test("builds exact 2025 feed and quarantine ledgers without inventing promoted m
     && stop.archiveBatch.id
   )));
   assert.equal(capsule.status, "metadata-plus-quarantine");
+});
+
+test("Batch 04 becomes visible in the 2022 quarantine ledger", () => {
+  const { engine } = actualFixture();
+  const capsule = engine.build(2022);
+
+  assert.deepEqual(plain(capsule.feed.coverage), {
+    deeplyIndexed: 13,
+    metadataOnly: 37,
+    captionLimited: 1,
+    unavailable: 0,
+  });
+  assert.equal(capsule.quarantine.sourceCount, 3);
+  assert.equal(capsule.quarantine.candidateCount, 10);
+  assert.equal(capsule.quarantine.topicLaneCount, 30);
+  assert.ok(capsule.quarantine.candidates.some(
+    (candidate) => candidate.archiveBatch.id === "archive-deep-batch-04",
+  ));
+  assert.ok(capsule.quarantine.candidates.every((candidate) => (
+    candidate.promotionAllowed === false
+    && candidate.speaker === null
+  )));
 });
 
 test("keeps the 2019 cached-feed ledger separate from its non-feed indexed corpus", () => {

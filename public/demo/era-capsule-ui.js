@@ -652,7 +652,8 @@
       return root.WWAMArchiveDeepPortfolio.create([
         root.WWAM_ARCHIVE_DEEP,
         root.WWAM_ARCHIVE_DEEP_BATCH2,
-        root.WWAM_ARCHIVE_DEEP_BATCH3
+        root.WWAM_ARCHIVE_DEEP_BATCH3,
+        root.WWAM_ARCHIVE_DEEP_BATCH4
       ], root.WWAMArchiveDeepEngine);
     });
     return root.ShokkerEraCapsuleEngine.create({

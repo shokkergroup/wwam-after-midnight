@@ -122,13 +122,15 @@ metadata capsule. It does not manufacture a memory route to fill empty space.
 
 ## Reference snapshot
 
-The checked-in V5.9 data should reproduce these high-signal year slices:
+The current V5.12 four-batch data should reproduce these high-signal year
+slices:
 
 | Year | Cached feed | Known runtime | Cached views | Feed coverage | Separate indexed memory | Archive Deep quarantine |
 | --- | ---: | ---: | ---: | --- | --- | --- |
 | 2019 | 21 records | 30.7 h | 156,432 | 21 metadata-only | 12 sources / 96 receipts | none |
+| 2022 | 51 records | 137.4 h | 1,368,453 | 13 deep / 37 metadata / 1 limited | 13 sources / 190 receipts | 3 sources / 10 candidates |
 | 2024 | 63 records | 176.9 h | 643,691 | 5 deep / 58 metadata | none in promoted corpus | 5 sources / 19 candidates |
-| 2025 | 94 records | 222.4 h | 637,619 | 14 deep / 80 metadata | none in promoted corpus | 14 sources / 68 candidates |
+| 2025 | 94 records | 222.4 h | 637,619 | 19 deep / 75 metadata | none in promoted corpus | 19 sources / 83 candidates |
 | 2026 | 37 records | 120.9 h | 291,240 | 13 deep / 23 metadata / 1 limited | 10 sources / 153 receipts | 4 sources / 17 candidates |
 
 These are deterministic facts about the checked-in snapshots. They are not

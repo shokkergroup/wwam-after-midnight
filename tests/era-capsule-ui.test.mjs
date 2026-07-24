@@ -333,6 +333,11 @@ test("runtime construction is closure-independent and optional enrichment fails 
   assert.match(uiSource, /WWAMShowcaseEngine\.create\(\{/);
   assert.match(uiSource, /WWAMLoreEngine\.create\(\{/);
   assert.match(uiSource, /WWAMArchiveDeepPortfolio\.create\(\[/);
+  assert.match(uiSource, /root\.WWAM_ARCHIVE_DEEP_BATCH4/);
+  assert.match(
+    uiSource,
+    /rawBatch && typeof rawBatch === "object" \? rawBatch\.id : rawBatch/,
+  );
   assert.match(uiSource, /showcase:\s*showcase/);
   assert.match(uiSource, /lore:\s*lore/);
   assert.match(uiSource, /archiveDeep:\s*archiveDeep/);

@@ -7,52 +7,54 @@ character archaeology, topic paths, and creator-side editorial opportunities.
 This is an unofficial fan prototype. It sends playback and source traffic back
 to the official WWAM uploads.
 
-Current documented release: **V5.11 / 0.5.11**.
+Current documented release: **V5.12 / 0.5.12**.
 
-## V5.11 current Archive Deep overlay
+## V5.12 current Archive Deep overlay
 
-V5.11 retains the three independently fingerprinted Archive Deep batches from
-V5.8 as one read-only portfolio:
+V5.12 composes four independently fingerprinted Archive Deep batches as one
+read-only quarantine portfolio:
 
-- 30 caption-audited sources;
-- 77.2 audited hours, 957,430 words, and 136,539 parsed caption events;
-- 300 topic lanes across 44 distinct normalized topics;
-- 131 quarantined public moment candidates;
-- 41 source-level character-signal records, not people or verified
+- 40 caption-audited sources;
+- 97.7 audited hours, 1,216,993 words, and 173,675 parsed caption events;
+- 400 topic lanes across 48 distinct normalized topics;
+- 166 quarantined public moment candidates;
+- 52 source-level character-signal records, not people or verified
   performances;
-- 9 topic-only source-audio firewalls;
-- 10 special visual-ranking quarantines;
-- 335,489 cached snapshot views.
+- 12 topic-only source-audio firewalls;
+- 12 special visual-ranking quarantines;
+- one disclosed limited available caption span;
+- 445,949 cached snapshot views.
 
 Every portfolio candidate remains machine-surfaced, speaker-undiarized,
 origin-unattributed, unreviewed, and outside the promoted 872, Canon, Red Band,
 WWAM UP IN YA, and creator-approved inventory. The portfolio fingerprint is
-`fnv1a32:8e474ea8`; its independently retained Batch 01, 02, and 03 public
+`fnv1a32:14050c7a`; its independently retained Batch 01, 02, 03, and 04 public
 fingerprints are `fnv1a32:17045a51`, `fnv1a32:bcea5692`, and
-`fnv1a32:f79f2399`. These are structural change detectors, not signatures.
-All 30 sources forbid visual claims. The 10-count identifies the special
+`fnv1a32:f79f2399`, and `fnv1a32:56ca74df`. These are structural change
+detectors, not signatures. All 40 sources forbid visual claims. The 12-count
+identifies the special
 visual-ranking quarantine lane; it does not imply verified visuals for the
-other 20.
+other 28.
 
-Across the promoted and quarantine lanes, the current audit covers 104 source
-inputs: 101 caption-audited and 3 sealed or limited, with 2,838,303 audited
-words across about 248.4 hours. The 872 promoted-receipt and 168 promoted core
-memory-node counts remain unchanged; all 131 current Archive Deep moment
+Across the promoted and quarantine lanes, the current audit covers 114 source
+inputs: 111 caption-audited and 3 sealed or limited, with 3,097,866 audited
+words across about 268.9 hours. The 872 promoted-receipt and 168 promoted core
+memory-node counts remain unchanged; all 166 current Archive Deep moment
 candidates remain quarantined.
 
 The whole-feed Archive Atlas still maps 472 cached Streams-feed records.
-Current evidence coverage is **64 deeply indexed, 400 metadata-only, and 8
-caption-limited records**, or **13.6% deep coverage**. No record was classified
+Current evidence coverage is **74 deeply indexed, 390 metadata-only, and 8
+caption-limited records**, or **15.7% deep coverage**. No record was classified
 unavailable in the cached snapshot, and current availability was not rechecked.
-All 30 Archive Deep sources are excluded from the next metadata-only queue.
+All 40 Archive Deep sources are excluded from the next metadata-only queue.
 
 ## Immutable V5.4 proof — preserved release snapshot
 
-The following values are the frozen V5.4 proof, not the current V5.11 overlay:
+The following values are the frozen V5.4 proof, not the current V5.12 overlay:
 **84 inputs, 2,175,344 audited words, 194.9 caption-audited hours, 872 promoted
 receipts, 42 then-quarantined Batch 01 candidates, and 168 promoted core memory
-nodes**. The current thirty-source portfolio does not retroactively change
-those named release values, and its 131 candidates must not be added to the
+nodes**. The current forty-source portfolio does not retroactively change
+those named release values, and its 166 candidates must not be added to the
 promoted 872.
 
 - 39 franchise commentaries: 13 Halloween, 12 Friday the 13th, 6 Scream, and
@@ -92,6 +94,30 @@ chapters. Its one uncaptioned source correctly contributes no fabricated map.
 The Lore Galaxy exposes 953 labeled graph receipt links. That broader count
 includes source entry points and context records; the 872 count is the
 editorial-moment inventory.
+
+## V5.12 Archive Deep Batch 04
+
+Batch 04 freezes the exact next ten eligible Archive Atlas priority records
+after all 30 earlier Archive Deep IDs are excluded. Its deterministic score is
+cached-view gravity plus upload recency plus configured franchise-title
+signals; it is not raw view rank, current popularity, or a quality score.
+
+All ten sources have official automatic-caption tracks. One track covers
+96.03% of its cached runtime and stays visibly
+`limited-available-track`; the other nine cover at least 99.8%. The batch adds
+20.5 hours, 259,563 audited words, 37,136 caption events, 100 topic lanes, 35
+quarantined moments, and 11 character-name context signals. Three
+trailer-audio-sensitive sources remain topic-only, and two tier-list sources
+forbid visual-result claims.
+
+Batch 04's public ledger is `fnv1a32:56ca74df`; the composed portfolio is
+`fnv1a32:14050c7a`. Archive Atlas now reports 15.7% deep coverage and names
+`RzSxi8rVQGI` as the next deterministic distill candidate at score 81.9. No
+Batch 04 item enters the promoted 872, Canon, Red Band, WWAM UP IN YA, or the
+creator-approved character set. Ask now recognizes explicit fourth-batch
+grammar and all ten exact source titles; the complete Ask/search matrix passes
+128/128 subtests. See
+[Archive Deep Batch 04](docs/ARCHIVE_DEEP_BATCH4.md).
 
 ## V5.11 Ask the Tape: Answer Frame V2
 
@@ -164,7 +190,9 @@ records, while the separate promoted commentary corpus contains 12 sources and
 96 timestamped receipts. The capsule displays both facts without pretending
 the twelve commentary sources belong to the cached feed slice. In 2024 and
 2025, promoted memory is honestly empty while the quarantine drawer contains
-5 sources / 19 candidates and 14 sources / 68 candidates, respectively.
+5 sources / 19 candidates and 19 sources / 83 candidates, respectively.
+Batch 04 also makes 3 sources / 10 candidates visible in the 2022 quarantine
+drawer instead of silently degrading to an empty optional layer.
 
 Every capsule can assemble a deterministic five-stop route using official
 YouTube timestamps, copy a reproducible capsule link, and export a bounded
@@ -172,7 +200,7 @@ manifest. Quarantined stops remain marked `promotionAllowed: false` with no
 speaker claim. The export omits transcripts, caption payloads, and full event
 ledgers. See [Archive Time Capsules](docs/ARCHIVE_TIME_CAPSULES.md).
 
-## V5.11 product map
+## V5.12 product map
 
 The hero offers three deliberate entry points:
 
@@ -289,11 +317,11 @@ and order cached uploads by title metadata, year, date, or snapshot views, but
 they do not answer what happened inside a metadata-only source. The
 deterministic Distill Next queue scores only cached-view gravity, upload
 recency, and configured franchise-title signals. Priority is not raw view rank.
-Its current 472-record map is 64 deeply indexed, 400 metadata-only, 8
+Its current 472-record map is 74 deeply indexed, 390 metadata-only, 8
 caption-limited, and 0 records classified unavailable in the cached snapshot:
-13.6% deep coverage. Current availability was not rechecked. The Archive Deep
-Portfolio exposes all three ten-source batches and their independent
-provenance, while all 131 machine candidates remain quarantined from promoted
+15.7% deep coverage. Current availability was not rechecked. The Archive Deep
+Portfolio exposes all four ten-source batches and their independent
+provenance, while all 166 machine candidates remain quarantined from promoted
 product lanes.
 
 Ask Review Queue V1 turns **Flag This Answer** into a device-local,
@@ -339,7 +367,7 @@ establish which host is speaking.
 - The current Trust Desk still audits the 74-source promoted corpus: 71 healthy
   sources, 3 disclosed caption gaps, 0 structurally invalid or
   source-ID-mismatched URLs, 0 invalid indexed timestamps, and 95 human review
-  candidates. Archive Deep Portfolio's thirty caption-audited sources and 131
+  candidates. Archive Deep Portfolio's forty caption-audited sources and 166
   quarantined candidates are reported as a separate current overlay and have
   not been silently merged into that legacy Trust/Canon contract.
 - The promoted corpus spans 171.19 caption-audited hours and
@@ -428,7 +456,7 @@ artifacts contain derived measurements and short, timestamped fragments only.
 
 ## Documentation
 
-- [V5.11 product overview](docs/V5_OVERVIEW.md)
+- [V5.12 product overview](docs/V5_OVERVIEW.md)
 - [Ask the Tape: Answer Frame V2](docs/ASK_ANSWER_FRAME_V2.md)
 - [Comedy Black Box evidence contract](docs/RIFF_BLACK_BOX.md)
 - [Archive Time Capsules](docs/ARCHIVE_TIME_CAPSULES.md)

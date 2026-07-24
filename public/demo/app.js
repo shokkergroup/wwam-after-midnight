@@ -117,12 +117,12 @@
 
   function createArchiveDeep() {
     if (!window.WWAM_ARCHIVE_DEEP || !window.WWAM_ARCHIVE_DEEP_BATCH2 ||
-        !window.WWAM_ARCHIVE_DEEP_BATCH3 ||
+        !window.WWAM_ARCHIVE_DEEP_BATCH3 || !window.WWAM_ARCHIVE_DEEP_BATCH4 ||
         !window.WWAMArchiveDeepEngine || !window.WWAMArchiveDeepPortfolio) return null;
     archiveDeepEngine = attempt(function () {
       return window.WWAMArchiveDeepPortfolio.create(
         [window.WWAM_ARCHIVE_DEEP,window.WWAM_ARCHIVE_DEEP_BATCH2,
-          window.WWAM_ARCHIVE_DEEP_BATCH3],
+          window.WWAM_ARCHIVE_DEEP_BATCH3,window.WWAM_ARCHIVE_DEEP_BATCH4],
         window.WWAMArchiveDeepEngine
       );
     }, "Archive Deep portfolio initialization");
@@ -147,7 +147,7 @@
     if (archiveDeepEngine) return Promise.resolve(archiveDeepEngine);
     if (archiveDeepLoadPromise) return archiveDeepLoadPromise;
     archiveDeepLoadPromise = [
-      "archive-deep-distill.js","archive-deep-batch2.js","archive-deep-batch3.js",
+      "archive-deep-distill.js","archive-deep-batch2.js","archive-deep-batch3.js","archive-deep-batch4.js",
       "archive-deep-engine.js","archive-deep-portfolio.js",
     ].reduce(function(p,s){return p.then(function(){return loadDemoScript(s);});},
       Promise.resolve()).then(createArchiveDeep)
@@ -2155,7 +2155,7 @@
     }
     if (!redBandIntent && !archiveDeepEngine && /\barchive\s+deep\b/i.test(query)) {
       state.lastAskQuery = query;
-      statusNode.textContent = "OPENING ARCHIVE DEEP // 30 CAPTION AUDITS";
+      statusNode.textContent = "OPENING ARCHIVE DEEP // 40 CAPTION AUDITS";
       resultsNode.innerHTML =
         '<div class="ask-no-match"><b>SEARCHING THE QUARANTINED EVIDENCE LANE…</b>' +
         '<p>Machine candidates will stay visibly outside Canon while the batch loads.</p></div>';

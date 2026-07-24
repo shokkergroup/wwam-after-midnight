@@ -28,8 +28,8 @@ function sourceIds(items) {
   return items.map((item) => item.sourceId || item.tapeId || item.id);
 }
 
-test("all three Archive Deep batches and their portfolio are lazy-loaded before Atlas UI", () => {
-  assert.doesNotMatch(html, /<script[^>]+archive-deep-(?:distill|batch[23]|engine)\.js/i);
+test("all four Archive Deep batches and their portfolio are lazy-loaded before Atlas UI", () => {
+  assert.doesNotMatch(html, /<script[^>]+archive-deep-(?:distill|batch[234]|engine)\.js/i);
   const createDeepBody = app.slice(
     app.indexOf("function createArchiveDeep"),
     app.indexOf("function loadArchiveDeep"),
@@ -44,14 +44,16 @@ test("all three Archive Deep batches and their portfolio are lazy-loaded before 
   const deepData = app.indexOf('"archive-deep-distill.js"');
   const batch2 = app.indexOf('"archive-deep-batch2.js"', deepData);
   const batch3 = app.indexOf('"archive-deep-batch3.js"', batch2);
-  const deepEngine = app.indexOf('"archive-deep-engine.js"', batch3);
+  const batch4 = app.indexOf('"archive-deep-batch4.js"', batch3);
+  const deepEngine = app.indexOf('"archive-deep-engine.js"', batch4);
   const portfolio = app.indexOf('"archive-deep-portfolio.js"', deepEngine);
   const deepCreate = app.indexOf(".then(createArchiveDeep)", portfolio);
   assert.ok(
     deepData >= 0
       && deepData < batch2
       && batch2 < batch3
-      && batch3 < deepEngine
+      && batch3 < batch4
+      && batch4 < deepEngine
       && deepEngine < portfolio
       && portfolio < deepCreate,
   );
@@ -59,6 +61,7 @@ test("all three Archive Deep batches and their portfolio are lazy-loaded before 
   assert.match(createDeepBody, /WWAMArchiveDeepPortfolio\.create/);
   assert.match(createDeepBody, /WWAM_ARCHIVE_DEEP_BATCH2/);
   assert.match(createDeepBody, /WWAM_ARCHIVE_DEEP_BATCH3/);
+  assert.match(createDeepBody, /WWAM_ARCHIVE_DEEP_BATCH4/);
   assert.match(createDeepBody, /archiveDeepEngine\.getSearchPayload\(\)/);
   assert.match(createDeepBody, /stream\._lane = "archive"/);
   assert.match(createDeepBody, /Object\.assign\(\{\}, moment, \{ quote: moment\.excerpt \|\| "" \}\)/);
@@ -71,8 +74,12 @@ test("all three Archive Deep batches and their portfolio are lazy-loaded before 
     app,
     /streamById\[id\] && streamById\[id\]\._lane === "archive" \? "archive" : "livewire"/,
   );
-  assert.match(app, /OPENING ARCHIVE DEEP \/\/ 30 CAPTION AUDITS/);
+  assert.match(app, /OPENING ARCHIVE DEEP \/\/ 40 CAPTION AUDITS/);
   assert.match(app, /"AUTOPSIED BATCH 0" \+ archiveBatch\.sequence/);
+  assert.match(
+    html,
+    /archive-deep-batch3\.js,archive-deep-batch4\.js,archive-deep-engine\.js/,
+  );
 });
 
 test("Batch 01 remains immutable while Atlas and its current portfolio overlay stay truthful", () => {
@@ -92,13 +99,14 @@ test("Batch 01 remains immutable while Atlas and its current portfolio overlay s
   assert.equal(metrics.publicMomentCandidates, 42);
   assert.equal(metrics.restricted, 4);
   assert.equal(stats.records, 472);
-  assert.equal(stats.coverage["deeply-indexed"], 64);
-  assert.equal(stats.coverage["metadata-only"], 400);
+  assert.equal(stats.coverage["deeply-indexed"], 74);
+  assert.equal(stats.coverage["metadata-only"], 390);
   assert.equal(stats.coverage["caption-limited"], 8);
   assert.equal(stats.lanes["archive-deep-10"], 10);
   assert.equal(stats.lanes["archive-deep-batch-02"], 10);
   assert.equal(stats.lanes["archive-deep-batch-03"], 10);
-  assert.equal(stats.deepCoveragePercent, 13.6);
+  assert.equal(stats.lanes["archive-deep-batch-04"], 10);
+  assert.equal(stats.deepCoveragePercent, 15.7);
 
   for (const stream of streams) {
     const atlasRecord = atlas.getRecord(stream.id);

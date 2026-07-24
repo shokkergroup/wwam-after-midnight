@@ -14,6 +14,7 @@ const files = [
   "archive-deep-distill.js",
   "archive-deep-batch2.js",
   "archive-deep-batch3.js",
+  "archive-deep-batch4.js",
   "archive-deep-engine.js",
   "archive-deep-portfolio.js",
   "search-engine.js",
@@ -57,6 +58,7 @@ async function fixture() {
       window.WWAM_ARCHIVE_DEEP,
       window.WWAM_ARCHIVE_DEEP_BATCH2,
       window.WWAM_ARCHIVE_DEEP_BATCH3,
+      window.WWAM_ARCHIVE_DEEP_BATCH4,
     ],
     window.WWAMArchiveDeepEngine,
   );
@@ -180,7 +182,7 @@ test("a wrong SCREAM sequel boundary fails closed and timed Batch03 receipts bea
   assert.match(app, /var archiveFallback = timedDeepAnswer \? "" : archiveAskMarkup\(query\)/);
 });
 
-test("Fresh and Popular selectors remain unchanged with the 30-source portfolio", async () => {
+test("Fresh and Popular selectors remain unchanged with the 40-source portfolio", async () => {
   const { baseline, expanded } = await fixture();
   for (const query of [
     "What is the most viewed livestream?",

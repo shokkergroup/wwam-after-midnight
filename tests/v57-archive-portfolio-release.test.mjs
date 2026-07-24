@@ -23,41 +23,42 @@ const releaseDocs = releasePaths.map(read).join("\n");
 const portfolioDoc = read("docs/ARCHIVE_DEEP_PORTFOLIO.md");
 const runbook = read("docs/CREATOR_DEMO_RUNBOOK.md");
 
-test("V5.7 release identity stays synchronized", () => {
+test("the historical V5.7 entry remains while current identity stays synchronized", () => {
   const packageJson = JSON.parse(read("package.json"));
   const packageLock = JSON.parse(read("package-lock.json"));
   const changelog = read("docs/CHANGELOG.md");
 
-  assert.equal(packageJson.version, "0.5.11");
-  assert.equal(packageLock.version, "0.5.11");
-  assert.equal(packageLock.packages[""].version, "0.5.11");
+  assert.equal(packageJson.version, "0.5.12");
+  assert.equal(packageLock.version, "0.5.12");
+  assert.equal(packageLock.packages[""].version, "0.5.12");
   assert.match(changelog, /^## 0\.5\.7\b/m);
   assert.match(changelog, /V5\.7 Archive Deep Portfolio/i);
 });
 
 test("the current Archive Deep overlay publishes one exact measured vocabulary", () => {
   const required = [
-    /\| Independent batches \| 3 \|/i,
-    /\| Caption-audited sources \| 30 \|/i,
-    /\| Audited runtime \| 77\.2 hours \|/i,
-    /\| Audited caption words \| 957,430 \|/i,
-    /\| Parsed caption events \| 136,539 \|/i,
-    /\| Topic lanes \| 300 \|/i,
-    /\| Distinct normalized topics \| 44 \|/i,
-    /\| Quarantined public moment candidates \| 131 \|/i,
-    /\| Source-level character-signal records \| 41 \|/i,
-    /\| Topic-only source-audio firewalls \| 9 \|/i,
-    /\| Special visual-ranking quarantines \| 10 \|/i,
-    /\| Cached snapshot views \| 335,489 \|/i,
+    /\| Independent batches \| 4 \|/i,
+    /\| Caption-audited sources \| 40 \|/i,
+    /\| Audited runtime \| 97\.7 hours \|/i,
+    /\| Audited caption words \| 1,216,993 \|/i,
+    /\| Parsed caption events \| 173,675 \|/i,
+    /\| Topic lanes \| 400 \|/i,
+    /\| Distinct normalized topics \| 48 \|/i,
+    /\| Quarantined public moment candidates \| 166 \|/i,
+    /\| Source-level character-signal records \| 52 \|/i,
+    /\| Topic-only source-audio firewalls \| 12 \|/i,
+    /\| Special visual-ranking quarantines \| 12 \|/i,
+    /\| Limited available caption spans \| 1 \|/i,
+    /\| Cached snapshot views \| 445,949 \|/i,
   ];
 
   for (const pattern of required) {
     assert.match(portfolioDoc, pattern);
   }
-  assert.match(releaseDocs, /104 source\s+inputs/i);
-  assert.match(releaseDocs, /101 caption-audited and\s+3 sealed or limited/i);
-  assert.match(releaseDocs, /2,838,303 audited\s+words/i);
-  assert.match(releaseDocs, /(?:about\s+)?248\.4 hours/i);
+  assert.match(releaseDocs, /114 source\s+inputs/i);
+  assert.match(releaseDocs, /111 caption-audited and\s+3 sealed or limited/i);
+  assert.match(releaseDocs, /3,097,866 audited\s+words/i);
+  assert.match(releaseDocs, /(?:about\s+)?268\.9 hours/i);
   assert.match(releaseDocs, /872 promoted(?:-receipt)?[\s\S]{0,60}(?:remain|unchanged)/i);
 });
 
@@ -66,13 +67,15 @@ test("current Atlas coverage is never substituted with the superseded overlay", 
   const overview = read("docs/V5_OVERVIEW.md");
 
   for (const document of [atlas, overview]) {
-    assert.match(document, /64[\s\S]{0,24}deeply indexed|deeply-indexed` \| 64/i);
-    assert.match(document, /400[\s\S]{0,24}metadata-only|metadata-only` \| 400/i);
+    assert.match(document, /74[\s\S]{0,24}deeply indexed|deeply-indexed` \| 74/i);
+    assert.match(document, /390[\s\S]{0,24}metadata-only|metadata-only` \| 390/i);
     assert.match(document, /8[\s\S]{0,24}caption-limited|caption-limited` \| 8/i);
-    assert.match(document, /13\.6%/i);
+    assert.match(document, /15\.7%/i);
   }
   assert.match(atlas, /`archive-deep-10`/);
   assert.match(atlas, /`archive-deep-batch-02`/);
+  assert.match(atlas, /`archive-deep-batch-03`/);
+  assert.match(atlas, /`archive-deep-batch-04`/);
   assert.match(atlas, /`integrated-quarantine`/);
 });
 
@@ -124,22 +127,22 @@ test("release language prevents raw-view, performance, speaker, and canon inflat
   );
   assert.doesNotMatch(
     coreDocs,
-    /41 (?:verified |confirmed )?(?:character )?performances/i,
+    /52 (?:verified |confirmed )?(?:character )?performances/i,
   );
-  assert.match(coreDocs, /41 source-level character-signal records[\s\S]{0,160}not[\s\S]{0,80}performances/i);
-  assert.match(coreDocs, /all 131[^.\n]*speaker-undiarized/i);
-  assert.match(coreDocs, /all 131[^.\n]*(?:remain|outside)[^.\n]*(?:quarantined|promoted 872)/i);
+  assert.match(coreDocs, /52 source-level character-signal records[\s\S]{0,160}not[\s\S]{0,80}performances/i);
+  assert.match(coreDocs, /all 166[^.\n]*speaker-undiarized/i);
+  assert.match(coreDocs, /all 166[^.\n]*(?:remain|outside)[^.\n]*(?:quarantined|promoted 872)/i);
   assert.match(coreDocs, /(?:visual ranking context|visual context)[^.\n]*remains (?:explicitly )?unverified/i);
-  assert.match(coreDocs, /all 30[^.\n]*forbid visual claims[\s\S]{0,160}10-count/i);
-  assert.match(coreDocs, /nine[\s\S]{0,100}(?:source-audio|trailer|script-reading|watch-party)[\s\S]{0,100}(?:topic-navigation-only|firewalls)/i);
+  assert.match(coreDocs, /all 40[^.\n]*forbid visual claims[\s\S]{0,160}12-count/i);
+  assert.match(coreDocs, /twelve[\s\S]{0,100}(?:source-audio|trailer|script-reading|watch-party)[\s\S]{0,100}(?:topic-navigation-only|firewalls)/i);
   assert.match(
     coreDocs,
     /FNV[\s\S]{0,180}(?:structural change detector|structural-change-detection)[\s\S]{0,120}(?:not a signature|not signatures)/i,
   );
 });
 
-test("the portfolio documents three independent proof chains and twelve fail-honest audits", () => {
-  assert.match(portfolioDoc, /three[\s\S]{0,100}independently[\s\S]{0,100}ten-source/i);
+test("the portfolio documents four independent proof chains and twelve fail-honest audits", () => {
+  assert.match(portfolioDoc, /four[\s\S]{0,100}independently[\s\S]{0,100}ten-source/i);
   assert.match(portfolioDoc, /Each batch retains its own/i);
   assert.match(portfolioDoc, /selection SHA-256/i);
   assert.match(portfolioDoc, /private-caption-set SHA-256/i);
@@ -159,5 +162,5 @@ test("the portfolio documents three independent proof chains and twelve fail-hon
   assert.equal(auditRows.length, 12);
 
   assert.match(runbook, /Claims to avoid[\s\S]*(?:Archive Deep batch|Batch 02)[^.\n]*ranked by views/i);
-  assert.match(runbook, /41 character signals are verified performances/i);
+  assert.match(runbook, /52 character signals are verified performances/i);
 });

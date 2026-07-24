@@ -3,7 +3,7 @@
 
 No network access is used. The Atlas preserves the official Streams-feed
 membership captured on 2026-07-23, exposes only video metadata, and joins that
-metadata to the public Fresh 10, Popular 25, three independently fingerprinted
+metadata to the public Fresh 10, Popular 25, four independently fingerprinted
 Archive Deep batches, and commentary catalog solely to describe the current
 indexing lane. It never promotes an undistilled title into transcript knowledge.
 """
@@ -29,13 +29,14 @@ POPULAR_PATH = PUBLIC / "popular-live-distill.js"
 ARCHIVE_DEEP_PATH = PUBLIC / "archive-deep-distill.js"
 ARCHIVE_DEEP_BATCH2_PATH = PUBLIC / "archive-deep-batch2.js"
 ARCHIVE_DEEP_BATCH3_PATH = PUBLIC / "archive-deep-batch3.js"
+ARCHIVE_DEEP_BATCH4_PATH = PUBLIC / "archive-deep-batch4.js"
 
 SNAPSHOT_DATE = "2026-07-23"
 EXPECTED_FEED_ENTRIES = 472
 EXPECTED_ARCHIVE_DEEP_BATCH_ENTRIES = 10
-EXPECTED_ARCHIVE_DEEP_ENTRIES = 30
-EXPECTED_DEEPLY_INDEXED = 64
-EXPECTED_METADATA_ONLY = 400
+EXPECTED_ARCHIVE_DEEP_ENTRIES = 40
+EXPECTED_DEEPLY_INDEXED = 74
+EXPECTED_METADATA_ONLY = 390
 EXPECTED_CAPTION_LIMITED = 8
 MAX_PUBLIC_BYTES = 250_000
 EXPECTED_ARCHIVE_DEEP_BATCH3_IDS = (
@@ -49,6 +50,18 @@ EXPECTED_ARCHIVE_DEEP_BATCH3_IDS = (
     "3UCnMrLMXbI",
     "lH0EXRN4xdw",
     "xBOTTKQ9pxU",
+)
+EXPECTED_ARCHIVE_DEEP_BATCH4_IDS = (
+    "2FlxuJxv81s",
+    "MSVltTVeypc",
+    "Qb2rDe-kJkI",
+    "3Lu0beSDxcQ",
+    "21hL29hicoU",
+    "HLDAxs4_3U4",
+    "34BwSiucNEI",
+    "ETuRUYiQEBM",
+    "5k6I18ZekPQ",
+    "o0tcJcJk6MY",
 )
 
 # The official Streams snapshot and commentary catalog overlap once. The other
@@ -240,6 +253,9 @@ def archive_deep_totals(*payloads: dict[str, Any]) -> dict[str, Any]:
         ),
         "snapshotViews": sum(int(meta.get("snapshotViews") or 0) for meta in metas),
         "restricted": sum(int(meta.get("restricted") or 0) for meta in metas),
+        "limitedCaptionSpan": sum(
+            int(meta.get("limitedCaptionSpan") or 0) for meta in metas
+        ),
     }
 
 
@@ -261,6 +277,10 @@ def coverage_maps() -> tuple[
         ARCHIVE_DEEP_BATCH3_PATH,
         "WWAM_ARCHIVE_DEEP_BATCH3",
     )
+    archive_deep_batch4 = read_assignment(
+        ARCHIVE_DEEP_BATCH4_PATH,
+        "WWAM_ARCHIVE_DEEP_BATCH4",
+    )
     archive_deep_streams = validate_archive_deep_batch(
         archive_deep,
         schema="wwam-archive-deep-distill/v1",
@@ -279,10 +299,17 @@ def coverage_maps() -> tuple[
         selection_rank_key="currentPriorityRank",
         stream_rank_key="currentRank",
     )
+    archive_deep_batch4_streams = validate_archive_deep_batch(
+        archive_deep_batch4,
+        schema="shokker-youtube-wiki/archive-deep-batch/v1",
+        selection_rank_key="currentPriorityRank",
+        stream_rank_key="currentRank",
+    )
     batch_id_sets = [
         {item["id"] for item in archive_deep_streams},
         {item["id"] for item in archive_deep_batch2_streams},
         {item["id"] for item in archive_deep_batch3_streams},
+        {item["id"] for item in archive_deep_batch4_streams},
     ]
     if any(
         left & right
@@ -295,7 +322,16 @@ def coverage_maps() -> tuple[
         != EXPECTED_ARCHIVE_DEEP_BATCH3_IDS
     ):
         raise RuntimeError("Archive Deep Batch 03 source order changed")
-    for sequence, payload in ((2, archive_deep_batch2), (3, archive_deep_batch3)):
+    if (
+        tuple(item["id"] for item in archive_deep_batch4_streams)
+        != EXPECTED_ARCHIVE_DEEP_BATCH4_IDS
+    ):
+        raise RuntimeError("Archive Deep Batch 04 source order changed")
+    for sequence, payload in (
+        (2, archive_deep_batch2),
+        (3, archive_deep_batch3),
+        (4, archive_deep_batch4),
+    ):
         lane = payload.get("lane") or {}
         if (
             lane.get("id") != f"archive-deep-batch-{sequence:02d}"
@@ -329,6 +365,9 @@ def coverage_maps() -> tuple[
     for item in archive_deep_batch3_streams:
         captioned[item["id"]] = True
         lanes.setdefault(item["id"], []).append("archive-deep-batch-03")
+    for item in archive_deep_batch4_streams:
+        captioned[item["id"]] = True
+        lanes.setdefault(item["id"], []).append("archive-deep-batch-04")
 
     batch_provenance = [
         archive_deep_provenance(
@@ -346,11 +385,17 @@ def coverage_maps() -> tuple[
             atlas_lane="archive-deep-batch-03",
             payload=archive_deep_batch3,
         ),
+        archive_deep_provenance(
+            batch_id="archive-deep-batch-04",
+            atlas_lane="archive-deep-batch-04",
+            payload=archive_deep_batch4,
+        ),
     ]
     deep_totals = archive_deep_totals(
         archive_deep,
         archive_deep_batch2,
         archive_deep_batch3,
+        archive_deep_batch4,
     )
 
     provenance = {
@@ -483,6 +528,7 @@ def build_payload() -> dict[str, Any]:
             "archive-deep-10",
             "archive-deep-batch-02",
             "archive-deep-batch-03",
+            "archive-deep-batch-04",
             "commentary-catalog",
             "archive-metadata",
         )
@@ -581,13 +627,20 @@ def validate_payload(payload: dict[str, Any]) -> None:
         for record in records
         if "archive-deep-batch-03" in record["lanes"]
     ]
+    archive_deep_batch4 = [
+        record
+        for record in records
+        if "archive-deep-batch-04" in record["lanes"]
+    ]
     assert len(archive_deep_batch1) == EXPECTED_ARCHIVE_DEEP_BATCH_ENTRIES
     assert len(archive_deep_batch2) == EXPECTED_ARCHIVE_DEEP_BATCH_ENTRIES
     assert len(archive_deep_batch3) == EXPECTED_ARCHIVE_DEEP_BATCH_ENTRIES
+    assert len(archive_deep_batch4) == EXPECTED_ARCHIVE_DEEP_BATCH_ENTRIES
     archive_deep_id_sets = [
         {record["id"] for record in archive_deep_batch1},
         {record["id"] for record in archive_deep_batch2},
         {record["id"] for record in archive_deep_batch3},
+        {record["id"] for record in archive_deep_batch4},
     ]
     assert not any(
         left & right
@@ -609,6 +662,11 @@ def validate_payload(payload: dict[str, Any]) -> None:
         and record["lanes"] == ["archive-deep-batch-03"]
         for record in archive_deep_batch3
     )
+    assert all(
+        record["coverage"] == "deeply-indexed"
+        and record["lanes"] == ["archive-deep-batch-04"]
+        for record in archive_deep_batch4
+    )
     assert payload["stats"]["lanes"]["archive-deep-10"] == len(
         archive_deep_batch1
     )
@@ -618,17 +676,25 @@ def validate_payload(payload: dict[str, Any]) -> None:
     assert payload["stats"]["lanes"]["archive-deep-batch-03"] == len(
         archive_deep_batch3
     )
+    assert payload["stats"]["lanes"]["archive-deep-batch-04"] == len(
+        archive_deep_batch4
+    )
     assert payload["stats"]["coverage"] == {
         "deeply-indexed": EXPECTED_DEEPLY_INDEXED,
         "metadata-only": EXPECTED_METADATA_ONLY,
         "caption-limited": EXPECTED_CAPTION_LIMITED,
         "unavailable": 0,
     }
-    assert payload["stats"]["deepCoveragePercent"] == 13.6
+    assert payload["stats"]["deepCoveragePercent"] == 15.7
     assert payload["provenance"]["sourceLanes"]["archiveDeepSources"] == sum(
         map(
             len,
-            (archive_deep_batch1, archive_deep_batch2, archive_deep_batch3),
+            (
+                archive_deep_batch1,
+                archive_deep_batch2,
+                archive_deep_batch3,
+                archive_deep_batch4,
+            ),
         )
     )
     assert payload["provenance"]["sourceLanes"]["archiveDeepSchema"] == (
@@ -638,27 +704,30 @@ def validate_payload(payload: dict[str, Any]) -> None:
     assert payload["provenance"]["sourceLanes"]["archiveDeepPublicFnv1a"]
     source_lanes = payload["provenance"]["sourceLanes"]
     assert source_lanes["archiveDeepTotals"] == {
-        "batches": 3,
+        "batches": 4,
         "sources": EXPECTED_ARCHIVE_DEEP_ENTRIES,
-        "hours": 77.2,
-        "wordsAudited": 957430,
-        "captionEvents": 136539,
-        "topicLanes": 300,
-        "publicMomentCandidates": 131,
-        "characterSignals": 41,
-        "snapshotViews": 335489,
-        "restricted": 9,
+        "hours": 97.7,
+        "wordsAudited": 1_216_993,
+        "captionEvents": 173_675,
+        "topicLanes": 400,
+        "publicMomentCandidates": 166,
+        "characterSignals": 52,
+        "snapshotViews": 445_949,
+        "restricted": 12,
+        "limitedCaptionSpan": 1,
     }
     deep_batches = source_lanes["archiveDeepBatches"]
     assert [batch["batchId"] for batch in deep_batches] == [
         "archive-deep-batch-01",
         "archive-deep-batch-02",
         "archive-deep-batch-03",
+        "archive-deep-batch-04",
     ]
     assert [batch["atlasLane"] for batch in deep_batches] == [
         "archive-deep-10",
         "archive-deep-batch-02",
         "archive-deep-batch-03",
+        "archive-deep-batch-04",
     ]
     assert all(
         batch["sources"] == EXPECTED_ARCHIVE_DEEP_BATCH_ENTRIES

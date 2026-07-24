@@ -65,6 +65,7 @@ function renderedPortfolio() {
     "archive-deep-distill.js",
     "archive-deep-batch2.js",
     "archive-deep-batch3.js",
+    "archive-deep-batch4.js",
     "archive-deep-engine.js",
     "archive-deep-portfolio.js",
     "archive-atlas-data.js",
@@ -80,6 +81,7 @@ function renderedPortfolio() {
       context.window.WWAM_ARCHIVE_DEEP,
       context.window.WWAM_ARCHIVE_DEEP_BATCH2,
       context.window.WWAM_ARCHIVE_DEEP_BATCH3,
+      context.window.WWAM_ARCHIVE_DEEP_BATCH4,
     ],
     context.window.WWAMArchiveDeepEngine,
   );
@@ -223,7 +225,7 @@ test("source contract includes live status, busy state, disabled controls, and f
   assert.doesNotMatch(source, /scheduleIdle|IntersectionObserver|createElement\("script"\)/);
 });
 
-test("Archive Deep overlay derives all three-batch proof instead of freezing showcase totals", () => {
+test("Archive Deep overlay derives all four-batch proof instead of freezing showcase totals", () => {
   const source = fs.readFileSync(uiPath, "utf8");
 
   assert.match(source, /batchCount = meta\.batches \|\| batches\.length/);
@@ -240,18 +242,20 @@ test("Archive Deep overlay derives all three-batch proof instead of freezing sho
   assert.doesNotMatch(source, /CURRENT 20-SOURCE|TWO INDEPENDENTLY FINGERPRINTED/);
 });
 
-test("renders all 30 autopsies with dynamic proof, ranks, checksums, and firewalls", () => {
+test("renders all 40 autopsies with dynamic proof, ranks, checksums, and firewalls", () => {
   const markup = renderedPortfolio();
 
-  assert.match(markup, /CURRENT 30-SOURCE OVERLAY \/\/ 3 INDEPENDENT BATCH FINGERPRINTS/);
-  assert.match(markup, /77\.2H \/\/ 957,430 WORDS \/\/ 136,539 EVENTS \/\/ 131 QUARANTINED CANDIDATES/);
-  assert.equal((markup.match(/data-archive-open=/g) || []).length, 30);
+  assert.match(markup, /CURRENT 40-SOURCE OVERLAY \/\/ 4 INDEPENDENT BATCH FINGERPRINTS/);
+  assert.match(markup, /97\.7H \/\/ 1,216,993 WORDS \/\/ 173,675 EVENTS \/\/ 166 QUARANTINED CANDIDATES/);
+  assert.equal((markup.match(/data-archive-open=/g) || []).length, 40);
   assert.equal((markup.match(/BATCH 03/g) || []).length, 10);
+  assert.equal((markup.match(/BATCH 04/g) || []).length, 10);
   assert.match(markup, /B01 fnv1a32:17045a51/);
   assert.match(markup, /B02 fnv1a32:bcea5692/);
   assert.match(markup, /B03 fnv1a32:f79f2399/);
+  assert.match(markup, /B04 fnv1a32:56ca74df/);
   assert.match(markup, /BATCH-LOCAL PRIORITY #10/);
-  assert.match(markup, /PORTFOLIO #30/);
+  assert.match(markup, /PORTFOLIO #40/);
   assert.match(markup, /TOPIC-ONLY/);
   assert.match(markup, /VISUAL RESULT UNVERIFIED/);
   assert.doesNotMatch(markup, /NaN|undefined/);

@@ -3,6 +3,50 @@
 This changelog records product and evidence-contract changes. It does not by
 itself indicate that a build has been deployed.
 
+## 0.5.12 — V5.12 Archive Deep Batch 04 — 2026-07-24
+
+### Added
+
+- Archive Deep Batch 04 freezes the exact next ten eligible Atlas-priority
+  sources after the thirty IDs in Batches 01–03 are excluded.
+- The batch contributes **20.5 hours, 259,563 audited words, 37,136 caption
+  events, 100 topic lanes, 35 quarantined machine moments, and 11
+  character-name context signals**.
+- Archive Deep Portfolio V1.2 now composes **four batches / 40 sources / 97.7
+  hours / 1,216,993 words / 173,675 caption events / 166 quarantined moments /
+  52 character signals**.
+- Archive Atlas now reports **74 deeply indexed, 390 metadata-only, and 8
+  caption-limited records**, or **15.7% deep coverage**, across the same 472
+  cached feed records. All forty Archive Deep sources are excluded from the
+  next queue.
+- Ask recognizes Batch 04, Batch 4, Batch04, and fourth-batch grammar; routes
+  all ten exact titles; and keeps source-audio, visual-result, character,
+  sequel-number, and promotion firewalls closed.
+- Archive Time Capsules now construct the four-batch portfolio. The 2022
+  drawer exposes 3 Batch 04 sources / 10 candidates / 30 topic lanes, and 2025
+  reconciles to 19 sources / 83 candidates / 190 topic lanes.
+
+### Accuracy and authority boundaries
+
+- All 166 current portfolio candidates remain machine-surfaced,
+  speaker-undiarized, origin-unattributed, unreviewed, and promotion-forbidden.
+- Three Batch 04 trailer-audio-sensitive sources remain topic-only. Two
+  tier-list sources cannot answer visual-result questions.
+- One official caption track spans 96.03% of cached runtime and remains
+  `limited-available-track`; it is not silently presented as complete or
+  replaced with a different source.
+- Time Capsule runtime construction can no longer fail optional Archive Deep
+  enrichment merely because it still supplied three batches. Object-shaped
+  batch provenance renders its ID rather than `[object Object]`.
+- Batch 04 keeps `fnv1a32:56ca74df`; the four-batch portfolio keeps
+  `fnv1a32:14050c7a`; Atlas keeps
+  `sha256:c22572b2795edc2feb562362073eb8967a6f82793131d1e6671f42f9ac7579ac`
+  and runtime fingerprint `fnv1a32:0db0b888`.
+- The complete Ask/search matrix passes **128/128** subtests. The archive
+  integration gate passes **95/95** tests. These are structural and retrieval
+  checks, not editor review, source authenticity, rights clearance, or creator
+  certification.
+
 ## 0.5.11 — V5.11 Ask the Tape: Answer Frame V2 — 2026-07-24
 
 ### Added

@@ -11,7 +11,7 @@ three things quickly:
 
 ## Before the call
 
-- Open the current V5.11 build or its confirmed deployment and choose either
+- Open the current V5.12 build or its confirmed deployment and choose either
   content-advisory mode.
 - Confirm YouTube playback is available in the browser.
 - Start at the hero, not halfway down the page.
@@ -54,9 +54,9 @@ Press **Mike Mode** and use one sentence per slide:
 2. **Receipt:** “The immutable V5.4 proof binds 84 source inputs and 2,175,344
    caption words to 872 promoted exact jumps back to official videos.”
 3. **Map:** “The current Atlas maps 472 cached Streams-feed records and makes
-   the 64 deep, 400 metadata-only, eight caption-limited, and zero records
+   the 74 deep, 390 metadata-only, eight caption-limited, and zero records
    classified unavailable in the cached snapshot impossible to confuse.
-   That is 13.6% deep coverage; current availability was not rechecked.”
+   That is 15.7% deep coverage; current availability was not rechecked.”
 4. **Moat:** “The value compounds when takes, bits, characters, topics, and new
    uploads connect without pretending machine inference is canon.”
 5. **Money:** “Tonight's 12 turns the same archive proof into a labeled first
@@ -201,7 +201,7 @@ What it proves:
 Open **Canon Desk**.
 
 - State the boundary first: this desk covers the 74-source promoted corpus, not
-  Archive Deep Portfolio's 131 still-quarantined candidates.
+  Archive Deep Portfolio's 166 still-quarantined candidates.
 - Show Source Health: 71 healthy sources, 3 disclosed gaps, 0 structurally
   invalid or source-ID-mismatched URLs, and 0 out-of-range indexed timestamps.
 - Show Character Firewall: ordinary mentions are quarantined from curated
@@ -295,32 +295,36 @@ What it proves:
 - preference is capped at ±6 and cannot override risk, HOLD, evidence, canon,
   speaker, rights, or approval state.
 
-## V5.8 Archive Deep Portfolio proof — 75 seconds
+## V5.12 Archive Deep Portfolio proof — 90 seconds
 
 Use this branch when the buyer asks how the archive grows without turning
 automatic captions into fake certainty.
 
-- Open Archive Atlas and point to **64 deeply indexed / 400 metadata-only / 8
-  caption-limited / 0 unavailable**, or **13.6% deep coverage**.
-- Open the Archive Deep Portfolio and switch among Batch 01, Batch 02, and
-  Batch 03.
-- Show the current overlay totals: 30 sources, 77.2 hours, 957,430 words,
-  136,539 caption events, 300 topic lanes across 44 distinct topics, and 131
+- Open Archive Atlas and point to **74 deeply indexed / 390 metadata-only / 8
+  caption-limited / 0 unavailable**, or **15.7% deep coverage**.
+- Open the Archive Deep Portfolio and switch among Batch 01, Batch 02, Batch
+  03, and Batch 04.
+- Show the current overlay totals: 40 sources, 97.7 hours, 1,216,993 words,
+  173,675 caption events, 400 topic lanes across 48 distinct topics, and 166
   quarantined moment candidates.
-- Show the fingerprint strip: portfolio `fnv1a32:8e474ea8`, with Batch 01
+- Show the fingerprint strip: portfolio `fnv1a32:14050c7a`, with Batch 01
   `fnv1a32:17045a51`, Batch 02 `fnv1a32:bcea5692`, and Batch 03
-  `fnv1a32:f79f2399`.
-- Open one Batch 03 topic or moment. Point to the official source/time and the
+  `fnv1a32:f79f2399`, and Batch 04 `fnv1a32:56ca74df`.
+- Open the 2022 Time Capsule and show that Batch 04 now contributes 3
+  quarantine sources / 10 candidates / 30 topic lanes. This is the integration
+  proof that a fourth artifact did not silently disappear behind an optional
+  runtime fallback.
+- Open one Batch 04 topic or moment. Point to the official source/time and the
   speaker-undiarized, machine-candidate, quarantine labels.
-- Explain one Batch 03 priority card: cached-view gravity + upload recency +
+- Explain one Batch 04 priority card: cached-view gravity + upload recency +
   franchise-title signal. Do not call the position raw view rank.
 - Open a script-reading, trailer/new-footage, or watchalong record and show
   that it remains topic-navigation-only.
 - Open a visual-ranking record and point out that visual ranking context
-  remains unverified. All 30 sources forbid visual claims; the special
-  10-source lane does not make the other 20 visually verified.
+  remains unverified. All 40 sources forbid visual claims; the special
+  12-source lane does not make the other 28 visually verified.
 
-Say: “The impressive part is not that AI found words. It is that thirty more
+Say: “The impressive part is not that AI found words. It is that forty more
 sources can enter one useful archive without crossing the speaker, source
 audio, visual context, or promotion boundary.”
 
@@ -329,8 +333,8 @@ What it proves:
 - independent batches can compose behind one defensive read-only API;
 - source coverage can grow while the V5.4 sales proof remains frozen;
 - each batch retains independent selection and caption fingerprints;
-- 41 source-level character signals do not become 41 claimed performances;
-- all 131 current candidates remain outside the promoted 872.
+- 52 source-level character signals do not become 52 claimed performances;
+- all 166 current candidates remain outside the promoted 872.
 
 ## Optional ten-minute branches
 
@@ -339,7 +343,7 @@ Use only the branch the audience cares about:
 - **Fan community:** Tape Companion, Night Shift, Red Band 100, WWAM UP IN YA,
   Personalized Descent, Evidence Bag, Trivia.
 - **Back-catalog discovery:** Ask WWAM, Popular 25, Fresh 10, franchise reports,
-  Lore Galaxy, and Archive Atlas's three-batch Archive Deep Portfolio.
+  Lore Galaxy, and Archive Atlas's four-batch Archive Deep Portfolio.
 - **Editorial operations:** Clip Lab, Creator Taste Calibration, Live
   Aftermath, Control Room, Human Review Session, and correction packets.
 - **Recurring characters:** Ask the Character, then immediately show the
@@ -352,30 +356,31 @@ Use only the branch the audience cares about:
 - “The immutable V5.4 proof covers 84 source inputs, 2,175,344 audited caption
   words, 194.9 caption-audited hours, 872 promoted receipts, 42
   then-quarantined Batch 01 candidates, and 168 promoted core memory nodes.”
-- “Across promoted and quarantine lanes, the current audit covers 104 source
-  inputs: 101 caption-audited and three sealed or limited, with 2,838,303 words
-  across about 248.4 hours.”
+- “Across promoted and quarantine lanes, the current audit covers 114 source
+  inputs: 111 caption-audited and three sealed or limited, with 3,097,866 words
+  across about 268.9 hours.”
 - “Every item labeled as a moment returns to an exact indexed source
   timestamp.”
 - “The promoted corpus contains 872 bounded editorial receipts and 168 core
   memory nodes.”
-- “Archive Deep Portfolio currently overlays 30 caption-audited sources, 77.2
-  hours, 957,430 words, 136,539 parsed caption events, 300 topic lanes across
-  44 distinct topics, and 335,489 cached snapshot views.”
-- “Its 131 machine moments remain quarantined, its 41 character-signal records
-  are source-level signals rather than performances, and its nine
+- “Archive Deep Portfolio currently overlays 40 caption-audited sources, 97.7
+  hours, 1,216,993 words, 173,675 parsed caption events, 400 topic lanes across
+  48 distinct topics, and 445,949 cached snapshot views.”
+- “Its 166 machine moments remain quarantined, its 52 character-signal records
+  are source-level signals rather than performances, and its twelve
   source-audio-sensitive records remain topic-navigation-only.”
-- “Ten Archive Deep sources occupy the special visual-ranking quarantine lane,
-  and all 30 forbid visual claims. The 10-count does not mean the other 20 have
+- “Twelve Archive Deep sources occupy the special visual-ranking quarantine lane,
+  and all 40 forbid visual claims. The 12-count does not mean the other 28 have
   verified visual context; a caption timestamp never identifies which visual
   item was on screen.”
 - “The Trust Desk's 71 healthy and three gap counts cover the promoted
   74-source corpus; Archive Deep is disclosed separately.”
-- “Archive Atlas currently maps 472 records: 64 deeply indexed, 400
+- “Archive Atlas currently maps 472 records: 74 deeply indexed, 390
   metadata-only, eight caption-limited, and zero classified unavailable in the
-  cached snapshot, for 13.6% deep coverage. Current availability was not
+  cached snapshot, for 15.7% deep coverage. Current availability was not
   rechecked.”
-- “All 30 Archive Deep records are excluded from the next-distill queue.”
+- “All 40 Archive Deep records are excluded from the next-distill queue;
+  `RzSxi8rVQGI` is the next deterministic candidate at score 81.9.”
 - “Archive Deep priority combines cached-view gravity, upload recency, and
   configured franchise-title signals. It is not raw view rank.”
 - “Flag This Answer creates a device-local, append-only, unverified proposal.
@@ -397,10 +402,10 @@ Use only the branch the audience cares about:
   not a measurement of audience sentiment. The playback UI's snapshot-safe and
   crossed-event path keeps future event text sealed until its timestamp is
   crossed; the full compiled timeline is an audit API.”
-- “Ask WWAM's V5.11 release gate passes 122/122 Ask/search subtests,
-  including its complete 157-query adversarial corpus, plus 8/8 focused
-  answer-first cases. That is regression coverage, not a claim that every
-  possible phrasing is solved.”
+- “Ask WWAM's current V5.12 release gate passes 128/128 Ask/search subtests,
+  including the complete 157-query adversarial corpus, the 8/8 Answer Frame
+  cases, and 6/6 focused Batch 04 cases. That is regression coverage, not a
+  claim that every possible phrasing is solved.”
 - “A plain Dr. Loomis clips/how-often question returns 7 timestamp-validated
   human-curated performance candidates; explicit caption-mention wording
   returns 696 broad matches across 59 sources, and neither lane contains an
@@ -413,11 +418,11 @@ Use only the branch the audience cares about:
 
 - “The AI knows which host said every line.”
 - “All 872 receipts were manually quote-checked.”
-- “The 131 Archive Deep candidates are already approved Red Band or UP IN YA
+- “The 166 Archive Deep candidates are already approved Red Band or UP IN YA
   moments.”
 - “An Archive Deep batch is ranked by views” or “priority #1 means most
   watched.”
-- “The 41 character signals are verified performances.”
+- “The 52 character signals are verified performances.”
 - “The captions prove which tier, poster, death, or matchup was on screen.”
 - “A source-level summary is what the hosts said at that timestamp.”
 - “Owner-mapped character means this individual clip has a verified speaker.”

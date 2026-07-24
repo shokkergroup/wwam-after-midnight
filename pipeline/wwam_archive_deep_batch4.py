@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
-"""Build WWAM Archive Deep Batch 03 as a frozen quarantine evidence lane.
+"""Build WWAM Archive Deep Batch 04 as an integrated quarantine evidence lane.
 
-The selection is the exact next ten Archive Atlas priority records after
-Archive Deep Batches 01 and 02 leave the metadata-only pool. Complete YouTube
-JSON3 automatic-caption payloads remain in the gitignored source cache. The
-public artifact contains aggregate measurements, bounded topic navigation, and
-short timestamped machine candidates only.
+The selection is the exact next ten Archive Atlas priority records after the
+30 sources in Archive Deep Batches 01-03 leave the metadata-only pool. Complete
+official YouTube JSON3 automatic-caption payloads remain in the gitignored
+source cache. The public artifact contains aggregate measurements, bounded
+topic navigation, and short timestamped machine candidates only.
 
-The SAW X trailer stream and Freddy death-scene ranking remain
-topic-navigation-only because automatic captions cannot establish whether
-dialogue came from a host, trailer, or film clip. Poster, tier-list, and
-character-ranking sources may expose caption-derived candidates, but visual
-context remains explicitly unverified. No source makes a speaker, performer,
-performance, quote-origin, visual-outcome, canon, or promotion claim.
+Explicit trailer-reaction sources remain topic-navigation-only because
+automatic captions cannot establish whether audio came from a host or the
+trailer. Tier-list sources may expose caption-derived candidates, but visual
+context and ranking outcomes remain explicitly unverified. No source makes a
+speaker, performer, performance, quote-origin, visual-outcome, canon, or
+promotion claim.
 """
 
 from __future__ import annotations
@@ -22,6 +22,7 @@ import json
 from typing import Any, Iterable
 
 import wwam_archive_deep_batch2 as batch2
+import wwam_archive_deep_batch3 as batch3
 import wwam_archive_deep_distill as batch1
 from wwam_deep_distill import DISALLOWED_EXCERPT, parse_json3
 from wwam_popular_live_distill import (
@@ -33,152 +34,134 @@ from wwam_popular_live_distill import (
 )
 
 
-OUTPUT_PATH = batch1.PUBLIC / "archive-deep-batch3.js"
-PUBLIC_ASSIGNMENT = "WWAM_ARCHIVE_DEEP_BATCH3"
+OUTPUT_PATH = batch1.PUBLIC / "archive-deep-batch4.js"
+PUBLIC_ASSIGNMENT = "WWAM_ARCHIVE_DEEP_BATCH4"
 SCHEMA = "shokker-youtube-wiki/archive-deep-batch/v1"
 CHANNEL_ID = "we-watched-a-movie"
-LANE_ID = "archive-deep-batch-03"
+LANE_ID = "archive-deep-batch-04"
 SELECTION_DATE = "2026-07-23"
 GENERATED_DATE = "2026-07-24"
-CAPTION_OBSERVED_AT = "2026-07-24T09:59:08Z"
+CAPTION_OBSERVED_AT = "2026-07-24T12:12:37Z"
 PRIORITY_VERSION = "archive-distill-priority/v1"
 SOURCE_ATLAS_SHA256 = (
-    "sha256:8799e6de57d891952902bfaf26fe36839b75581cf7c3707f333473b3dcb75da5"
+    "sha256:b924d6f91c6a92b86e2d463fa22518f51bd09d57632e0c40f08f0876d97e1174"
 )
 EXCLUDED_SOURCE_IDS_SHA256 = (
-    "sha256:3ad06017c627aae67ab99e4207fca92b583b77e2a57f912dbbb76d3bfddb0cf8"
+    "sha256:42e8d84e2cb77c56b98c92286f876070e9195251a63ad068cd3145ab7c2e4878"
 )
 EXPECTED_SELECTION_SHA256 = (
-    "sha256:a06f9b2858be38a47fc83d003809f59e994756da68f01c88b46105754f1b6aa8"
+    "sha256:cb5c2cd7528c1dcffa6726b8ab17abeda9b808151ecee92566e53bf0068d30af"
 )
 EXPECTED_CAPTION_SET_SHA256 = (
-    "sha256:9251fdad02633189fd19071a641271b1ff9926ae1e392806f1e1ea9d8c49b1cb"
+    "sha256:dcfe15a3c00ff419f8afe50585f1b40acac25703e4f2dae5de063927e377b5c6"
 )
 EXCERPT_WORD_LIMIT = 16
 MAX_PUBLIC_BYTES = 125_000
 
 EXCLUDED_IDS: tuple[str, ...] = (
-    "fpNtQMexZiw",
-    "WKs1uPGMQvw",
-    "vq6mrfqOgZw",
-    "M3P4mMDpXUc",
-    "1j3F9vAWBo4",
-    "3iMZcaVcvTU",
-    "gR_64RyPhEM",
-    "5T1wWUjCGWk",
-    "KrBhfGxsJNM",
-    "hagePawEnC4",
-    "CFUHyfcJDTg",
-    "o4EMYqQ5DDU",
-    "Z7ArdfA054w",
-    "k698GIJe8EA",
-    "4X8EFw7MCmw",
-    "KIGg_I72x_M",
-    "o2O9T4nwVw4",
-    "qONN2sNoK2k",
-    "QxJyVaAgZ_Y",
-    "0svLtx3nZJM",
+    *batch3.EXCLUDED_IDS,
+    *(selected["id"] for selected in batch3.SELECTION),
 )
 
-# Frozen from Archive Atlas getDistillQueue({limit: 10}) after Batch 02
+# Frozen from Archive Atlas getDistillQueue({limit: 10}) after Batch 03
 # exclusion. This is an editorial work queue, not raw view rank.
 SELECTION: tuple[dict[str, Any], ...] = (
     {
-        "id": "M9_5cX8xowI",
+        "id": "2FlxuJxv81s",
         "rank": 1,
-        "score": 86.8,
-        "breakdown": {"popularity": 45.9, "recency": 20.9, "franchise": 20},
+        "score": 83.6,
+        "breakdown": {"popularity": 47.9, "recency": 15.7, "franchise": 20},
         "signals": ["Halloween"],
         "contentMode": "franchise-discussion",
         "rightsMode": "standard-caption-candidates",
         "restricted": False,
     },
     {
-        "id": "tUJviU09fWM",
+        "id": "MSVltTVeypc",
         "rank": 2,
-        "score": 86.8,
-        "breakdown": {"popularity": 44.1, "recency": 28.7, "franchise": 14},
-        "signals": ["Texas Chainsaw"],
-        "contentMode": "visual-ranking",
-        "rightsMode": "visual-context-unverified",
-        "restricted": False,
-    },
-    {
-        "id": "J5uGidPT9Jc",
-        "rank": 3,
-        "score": 85.8,
-        "breakdown": {"popularity": 43.8, "recency": 28.0, "franchise": 14},
-        "signals": ["Saw"],
-        "contentMode": "visual-ranking",
-        "rightsMode": "visual-context-unverified",
-        "restricted": False,
-    },
-    {
-        "id": "nv99WEtXGvE",
-        "rank": 4,
-        "score": 85.7,
-        "breakdown": {"popularity": 46.2, "recency": 19.5, "franchise": 20},
-        "signals": ["A Nightmare on Elm Street"],
-        "contentMode": "death-scene-ranking",
-        "rightsMode": "film-clip-audio-boundary-unverified",
-        "restricted": True,
-    },
-    {
-        "id": "wjJy46oVmow",
-        "rank": 5,
-        "score": 85.6,
-        "breakdown": {"popularity": 46.3, "recency": 19.3, "franchise": 20},
-        "signals": ["Halloween", "Friday the 13th"],
-        "contentMode": "franchise-discussion",
-        "rightsMode": "standard-caption-candidates",
-        "restricted": False,
-    },
-    {
-        "id": "yMAvXBYAxko",
-        "rank": 6,
-        "score": 85.5,
-        "breakdown": {"popularity": 47.0, "recency": 18.5, "franchise": 20},
-        "signals": ["Halloween", "The Exorcist", "Saw"],
+        "score": 83.5,
+        "breakdown": {"popularity": 48.3, "recency": 15.2, "franchise": 20},
+        "signals": ["Halloween"],
         "contentMode": "trailer-reaction",
         "rightsMode": "trailer-audio-boundary-unverified",
         "restricted": True,
     },
     {
-        "id": "fUCQoxTwKqo",
+        "id": "Qb2rDe-kJkI",
+        "rank": 3,
+        "score": 83.3,
+        "breakdown": {"popularity": 44.3, "recency": 25.0, "franchise": 14},
+        "signals": ["The Conjuring", "Superhero"],
+        "contentMode": "event-reaction",
+        "rightsMode": "standard-caption-candidates",
+        "restricted": False,
+    },
+    {
+        "id": "3Lu0beSDxcQ",
+        "rank": 4,
+        "score": 83.3,
+        "breakdown": {"popularity": 43.9, "recency": 19.4, "franchise": 20},
+        "signals": ["Scream"],
+        "contentMode": "visual-ranking",
+        "rightsMode": "visual-context-unverified",
+        "restricted": False,
+    },
+    {
+        "id": "21hL29hicoU",
+        "rank": 5,
+        "score": 83.0,
+        "breakdown": {"popularity": 43.8, "recency": 25.2, "franchise": 14},
+        "signals": ["Alien / Predator"],
+        "contentMode": "trailer-reaction",
+        "rightsMode": "trailer-audio-boundary-unverified",
+        "restricted": True,
+    },
+    {
+        "id": "HLDAxs4_3U4",
+        "rank": 6,
+        "score": 82.9,
+        "breakdown": {"popularity": 42.8, "recency": 26.1, "franchise": 14},
+        "signals": ["Hellraiser", "Superhero"],
+        "contentMode": "movie-news",
+        "rightsMode": "standard-caption-candidates",
+        "restricted": False,
+    },
+    {
+        "id": "34BwSiucNEI",
         "rank": 7,
-        "score": 84.8,
-        "breakdown": {"popularity": 45.7, "recency": 19.1, "franchise": 20},
+        "score": 82.9,
+        "breakdown": {"popularity": 41.5, "recency": 27.4, "franchise": 14},
+        "signals": ["Hellraiser"],
+        "contentMode": "trailer-reaction",
+        "rightsMode": "trailer-audio-boundary-unverified",
+        "restricted": True,
+    },
+    {
+        "id": "ETuRUYiQEBM",
+        "rank": 8,
+        "score": 82.8,
+        "breakdown": {"popularity": 48.2, "recency": 14.6, "franchise": 20},
         "signals": ["Halloween"],
         "contentMode": "q-and-a",
         "rightsMode": "standard-caption-candidates",
         "restricted": False,
     },
     {
-        "id": "3UCnMrLMXbI",
-        "rank": 8,
-        "score": 84.7,
-        "breakdown": {"popularity": 43.0, "recency": 27.7, "franchise": 14},
-        "signals": ["Alien / Predator"],
-        "contentMode": "visual-ranking",
-        "rightsMode": "visual-context-unverified",
-        "restricted": False,
-    },
-    {
-        "id": "lH0EXRN4xdw",
+        "id": "5k6I18ZekPQ",
         "rank": 9,
-        "score": 84.6,
-        "breakdown": {"popularity": 47.6, "recency": 17.0, "franchise": 20},
-        "signals": ["Scream"],
-        "contentMode": "spoiler-review",
+        "score": 82.7,
+        "breakdown": {"popularity": 42.3, "recency": 26.4, "franchise": 14},
+        "signals": ["Alien / Predator"],
+        "contentMode": "after-party-discussion",
         "rightsMode": "standard-caption-candidates",
         "restricted": False,
     },
     {
-        "id": "xBOTTKQ9pxU",
+        "id": "o0tcJcJk6MY",
         "rank": 10,
-        "score": 84.1,
-        "breakdown": {"popularity": 47.0, "recency": 17.1, "franchise": 20},
-        "signals": ["Scream"],
+        "score": 82.2,
+        "breakdown": {"popularity": 45.0, "recency": 17.2, "franchise": 20},
+        "signals": ["Halloween"],
         "contentMode": "visual-ranking",
         "rightsMode": "visual-context-unverified",
         "restricted": False,
@@ -201,11 +184,10 @@ def selection_records(
     ]
 
 
-def integrated_at_or_after_batch3(record: dict[str, Any]) -> bool:
-    """Return whether an Atlas record was promoted in Batch 03 or later."""
+def integrated_at_or_after_batch4(record: dict[str, Any]) -> bool:
     for lane in record.get("lanes", []):
         match = batch2.ARCHIVE_DEEP_BATCH_LANE.fullmatch(str(lane))
-        if match and int(match.group(1)) >= 3:
+        if match and int(match.group(1)) >= 4:
             return True
     return False
 
@@ -219,24 +201,21 @@ def validate_selection(
     missing = [selected["id"] for selected in SELECTION if selected["id"] not in records]
     if missing:
         raise RuntimeError(f"Selected Atlas records are missing: {missing}")
-    overlap = sorted(set(EXCLUDED_IDS) & {selected["id"] for selected in SELECTION})
-    if overlap:
-        raise RuntimeError(f"Batch 03 overlaps an earlier Archive Deep batch: {overlap}")
-    if batch1.sha256_label(list(EXCLUDED_IDS)) != EXCLUDED_SOURCE_IDS_SHA256:
-        raise RuntimeError("The frozen Batch 01 + Batch 02 exclusion set changed")
-
-    # This remains reproducible after downstream Atlas integration. Restore the
-    # selected records and every later Archive Deep lane to their pre-Batch-03
-    # metadata-only state, then require the exact source Atlas fingerprint and
-    # priority queue.
     selected_ids = {selected["id"] for selected in SELECTION}
+    overlap = sorted(set(EXCLUDED_IDS) & selected_ids)
+    if overlap:
+        raise RuntimeError(f"Batch 04 overlaps an earlier Archive Deep batch: {overlap}")
+    if len(EXCLUDED_IDS) != 30 or len(set(EXCLUDED_IDS)) != 30:
+        raise RuntimeError("The frozen prior-batch exclusion set is not 30 unique IDs")
+    if batch1.sha256_label(list(EXCLUDED_IDS)) != EXCLUDED_SOURCE_IDS_SHA256:
+        raise RuntimeError("The frozen Batch 01-03 exclusion set changed")
+
+    # Reproduce the pre-Batch-04 Atlas even after this or a later batch is
+    # eventually integrated. Earlier Archive Deep lanes remain excluded.
     source_records = []
     for record in atlas["records"]:
         restored = dict(record)
-        if (
-            record["id"] in selected_ids
-            or integrated_at_or_after_batch3(record)
-        ):
+        if record["id"] in selected_ids or integrated_at_or_after_batch4(record):
             restored["coverage"] = "metadata-only"
             restored["lanes"] = ["archive-metadata"]
         source_records.append(restored)
@@ -245,7 +224,7 @@ def validate_selection(
     )
     if reconstructed_sha256 != SOURCE_ATLAS_SHA256:
         raise RuntimeError(
-            "Archive Atlas cannot reproduce the frozen Batch 03 selection source"
+            "Archive Atlas cannot reproduce the frozen Batch 04 selection source"
         )
     queue = batch1.expected_queue(
         {"snapshotDate": atlas["snapshotDate"], "records": source_records}
@@ -261,7 +240,7 @@ def validate_selection(
                 f"{selected['id']} != {actual}"
             )
     if batch1.sha256_label(selection_records(records)) != EXPECTED_SELECTION_SHA256:
-        raise RuntimeError("The frozen Batch 03 selection manifest changed")
+        raise RuntimeError("The frozen Batch 04 selection manifest changed")
 
 
 def build_payload() -> dict[str, Any]:
@@ -320,9 +299,7 @@ def build_payload() -> dict[str, Any]:
                 "frozen view-gravity + recency + franchise-title metadata score; "
                 "not ranked by views alone"
             ),
-            "pool": (
-                "metadata-only after Archive Deep Batch 01 and Batch 02 exclusion"
-            ),
+            "pool": "metadata-only after Archive Deep Batches 01-03 exclusion",
         }
         stream["contentMode"] = selected["contentMode"]
         stream["rightsPolicy"] = {
@@ -335,14 +312,20 @@ def build_payload() -> dict[str, Any]:
             "visualClaimsAllowed": False,
             "promotionAllowed": False,
         }
+        coverage_percent = round(
+            min(100, 100 * last / max(1, record["duration"])),
+            2,
+        )
         stream["captionEvidence"] = {
             "track": "English YouTube automatic captions (JSON3)",
             "observedAt": CAPTION_OBSERVED_AT,
             "eventsAudited": len(lines),
             "spanSeconds": round(last, 1),
-            "durationCoveragePercent": round(
-                min(100, 100 * last / max(1, record["duration"])),
-                2,
+            "durationCoveragePercent": coverage_percent,
+            "spanStatus": (
+                "complete-available"
+                if coverage_percent >= 99.8
+                else "limited-available-track"
             ),
             "payloadSha256": caption_hash,
             "fullPayloadPublic": False,
@@ -354,8 +337,8 @@ def build_payload() -> dict[str, Any]:
     normalize_indices(streams)
     for stream, selected in zip(streams, SELECTION, strict=True):
         batch2.restrict_stream(stream, selected)
-        # Five per source keeps the artifact bounded while preserving the
-        # strongest deterministic caption candidates from every safe source.
+        # Five per source keeps the public artifact bounded while preserving a
+        # deterministic sample of the strongest candidates from every safe source.
         stream["moments"] = stream["moments"][:5]
         batch2.rewrite_editorial(stream, selected)
         topic_names = ", ".join(topic["name"] for topic in stream["topics"][:3])
@@ -386,14 +369,14 @@ def build_payload() -> dict[str, Any]:
         "lane": {
             "id": LANE_ID,
             "kind": "caption-audited-quarantine",
-            "sequence": 3,
+            "sequence": 4,
             "integrationStatus": "integrated-quarantine",
             "promotionAllowed": False,
             "requiresAuthenticatedReview": True,
         },
         "scope": (
             "The exact next ten frozen Atlas-priority sources after Archive Deep "
-            "Batch 01 and Batch 02 exclusion at the 2026-07-23 selection snapshot. "
+            "Batches 01-03 exclusion at the 2026-07-23 selection snapshot. "
             "Priority combines cached-view gravity, upload recency, and "
             "franchise-title signal; cached views remain a separate measurement."
         ),
@@ -410,6 +393,7 @@ def build_payload() -> dict[str, Any]:
             "excludedLaneIds": [
                 "archive-deep-batch-01",
                 "archive-deep-batch-02",
+                "archive-deep-batch-03",
             ],
             "excludedSourceIdsSha256": EXCLUDED_SOURCE_IDS_SHA256,
             "frozen": True,
@@ -425,10 +409,7 @@ def build_payload() -> dict[str, Any]:
             "originAttribution": False,
             "visualContextVerified": False,
             "candidateState": "quarantined",
-            "restrictedModes": [
-                "trailer-reaction",
-                "death-scene-ranking",
-            ],
+            "restrictedModes": ["trailer-reaction"],
             "restrictedSurface": (
                 "Topic names, counts, and timestamps only; excerpt, comedy, "
                 "character, heat, and visual-outcome surfaces withheld."
@@ -441,6 +422,11 @@ def build_payload() -> dict[str, Any]:
         "meta": {
             "streams": len(streams),
             "captioned": sum(stream["captioned"] for stream in streams),
+            "limitedCaptionSpan": sum(
+                stream["captionEvidence"]["spanStatus"]
+                == "limited-available-track"
+                for stream in streams
+            ),
             "restricted": sum(
                 stream["rightsPolicy"]["restrictedToTopicNavigation"]
                 for stream in streams
@@ -485,20 +471,15 @@ def iter_public_excerpts(payload: dict[str, Any]) -> Iterable[str]:
 def validate_payload(payload: dict[str, Any]) -> None:
     streams = payload["streams"]
     expected_ids = [selected["id"] for selected in SELECTION]
-    restricted_ids = {"nv99WEtXGvE", "yMAvXBYAxko"}
-    visual_ids = {
-        "tUJviU09fWM",
-        "J5uGidPT9Jc",
-        "3UCnMrLMXbI",
-        "xBOTTKQ9pxU",
-    }
+    restricted_ids = {"MSVltTVeypc", "21hL29hicoU", "34BwSiucNEI"}
+    visual_ids = {"3Lu0beSDxcQ", "o0tcJcJk6MY"}
 
     assert payload["schema"] == SCHEMA
     assert payload["channel"]["id"] == CHANNEL_ID
     assert payload["lane"] == {
         "id": LANE_ID,
         "kind": "caption-audited-quarantine",
-        "sequence": 3,
+        "sequence": 4,
         "integrationStatus": "integrated-quarantine",
         "promotionAllowed": False,
         "requiresAuthenticatedReview": True,
@@ -509,25 +490,37 @@ def validate_payload(payload: dict[str, Any]) -> None:
     assert payload["selection"]["excludedLaneIds"] == [
         "archive-deep-batch-01",
         "archive-deep-batch-02",
+        "archive-deep-batch-03",
     ]
     assert (
         payload["selection"]["excludedSourceIdsSha256"]
         == EXCLUDED_SOURCE_IDS_SHA256
     )
-    assert (
-        payload["fingerprints"]["selectionSha256"]
-        == EXPECTED_SELECTION_SHA256
-    )
+    assert payload["fingerprints"]["selectionSha256"] == EXPECTED_SELECTION_SHA256
     assert (
         payload["fingerprints"]["captionSetSha256"]
         == EXPECTED_CAPTION_SET_SHA256
     )
     assert all(stream["captioned"] for stream in streams)
     assert all(
-        stream["captionEvidence"]["durationCoveragePercent"] >= 99.8
+        stream["captionEvidence"]["durationCoveragePercent"] >= 95
         and stream["captionEvidence"]["speakerDiarized"] is False
         and stream["captionEvidence"]["originAttribution"] is False
+        and stream["captionEvidence"]["fullPayloadPublic"] is False
         for stream in streams
+    )
+    limited = [
+        stream
+        for stream in streams
+        if stream["captionEvidence"]["spanStatus"] == "limited-available-track"
+    ]
+    assert [stream["id"] for stream in limited] == ["2FlxuJxv81s"]
+    assert limited[0]["captionEvidence"]["durationCoveragePercent"] == 96.03
+    assert all(
+        stream["captionEvidence"]["spanStatus"] == "complete-available"
+        and stream["captionEvidence"]["durationCoveragePercent"] >= 99.8
+        for stream in streams
+        if stream["id"] != "2FlxuJxv81s"
     )
 
     excerpts = list(iter_public_excerpts(payload))
@@ -541,7 +534,7 @@ def validate_payload(payload: dict[str, Any]) -> None:
         policy = stream["rightsPolicy"]
         assert stream["archivePriority"]["rankStatus"] == "frozen-atlas-priority"
         assert "not ranked by views alone" in stream["archivePriority"]["basis"]
-        assert "Batch 01 and Batch 02 exclusion" in stream["archivePriority"]["pool"]
+        assert "Batches 01-03 exclusion" in stream["archivePriority"]["pool"]
         assert "Frozen Atlas priority" in stream["editorial"]["whyItMatters"]
         assert "Cached views are a separate snapshot measurement" in (
             stream["editorial"]["whyItMatters"]
@@ -576,13 +569,17 @@ def validate_payload(payload: dict[str, Any]) -> None:
     meta = payload["meta"]
     assert meta["streams"] == 10
     assert meta["captioned"] == 10
-    assert meta["restricted"] == 2
-    assert meta["visualContextUnverified"] == 4
-    assert meta["hours"] == 30.4
-    assert meta["wordsAudited"] == 378_427
-    assert meta["captionEvents"] == 53_988
+    assert meta["limitedCaptionSpan"] == 1
+    assert meta["restricted"] == len(restricted_ids)
+    assert meta["visualContextUnverified"] == len(visual_ids)
+    assert meta["hours"] == 20.5
+    assert meta["wordsAudited"] == 259_563
+    assert meta["captionEvents"] == 37_136
     assert meta["topicLanes"] == 100
-    assert meta["snapshotViews"] == 121_211
+    assert meta["distinctTopics"] == 33
+    assert meta["snapshotViews"] == 110_460
+    assert meta["publicMomentCandidates"] == 35
+    assert meta["characterSignals"] == 11
     assert meta["publicMomentCandidates"] == sum(
         len(stream["moments"]) for stream in streams
     )
@@ -646,7 +643,7 @@ def main() -> int:
     public_bytes = len(source_bytes)
     if public_bytes >= MAX_PUBLIC_BYTES:
         raise RuntimeError(
-            f"Public Archive Deep Batch 03 is {public_bytes:,} bytes; "
+            f"Public Archive Deep Batch 04 is {public_bytes:,} bytes; "
             f"limit is {MAX_PUBLIC_BYTES:,}"
         )
 
@@ -655,8 +652,8 @@ def main() -> int:
             raise RuntimeError(f"Missing generated artifact: {OUTPUT_PATH}")
         if OUTPUT_PATH.read_bytes() != source_bytes:
             raise RuntimeError(
-                "Archive Deep Batch 03 is stale; run "
-                "pipeline/wwam_archive_deep_batch3.py"
+                "Archive Deep Batch 04 is stale; run "
+                "pipeline/wwam_archive_deep_batch4.py"
             )
         print(
             f"Validated {OUTPUT_PATH.name}: {payload['meta']['streams']} streams, "

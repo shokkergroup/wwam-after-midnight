@@ -18,6 +18,7 @@ function load(files = [
   "archive-deep-distill.js",
   "archive-deep-batch2.js",
   "archive-deep-batch3.js",
+  "archive-deep-batch4.js",
   "archive-atlas-data.js",
   "archive-atlas-engine.js",
 ]) {
@@ -111,10 +112,14 @@ test("reconciles the feed with current deep-source lanes without importing catal
   const archiveDeepBatch3Ids = window.WWAM_ARCHIVE_DEEP_BATCH3.streams.map(
     (record) => record.id
   );
+  const archiveDeepBatch4Ids = window.WWAM_ARCHIVE_DEEP_BATCH4.streams.map(
+    (record) => record.id
+  );
   const deepIdSets = [
     new Set(archiveDeepIds),
     new Set(archiveDeepBatch2Ids),
     new Set(archiveDeepBatch3Ids),
+    new Set(archiveDeepBatch4Ids),
   ];
   const catalogIntersection = [...catalogIds].filter((id) => ids.has(id));
 
@@ -124,6 +129,7 @@ test("reconciles the feed with current deep-source lanes without importing catal
   assert.ok(archiveDeepIds.every((id) => ids.has(id)));
   assert.ok(archiveDeepBatch2Ids.every((id) => ids.has(id)));
   assert.ok(archiveDeepBatch3Ids.every((id) => ids.has(id)));
+  assert.ok(archiveDeepBatch4Ids.every((id) => ids.has(id)));
   assert.equal(deepIdSets.some((left, index) => (
     deepIdSets.slice(index + 1).some((right) => (
       [...left].some((id) => right.has(id))
@@ -165,17 +171,38 @@ test("reconciles the feed with current deep-source lanes without importing catal
       && !record.lanes.includes("archive-metadata")
     );
   }));
+  assert.deepEqual(plain(archiveDeepBatch4Ids), [
+    "2FlxuJxv81s",
+    "MSVltTVeypc",
+    "Qb2rDe-kJkI",
+    "3Lu0beSDxcQ",
+    "21hL29hicoU",
+    "HLDAxs4_3U4",
+    "34BwSiucNEI",
+    "ETuRUYiQEBM",
+    "5k6I18ZekPQ",
+    "o0tcJcJk6MY",
+  ]);
+  assert.ok(archiveDeepBatch4Ids.every((id) => {
+    const record = data.records.find((candidate) => candidate.id === id);
+    return (
+      record.coverage === "deeply-indexed"
+      && record.lanes.includes("archive-deep-batch-04")
+      && !record.lanes.includes("archive-metadata")
+    );
+  }));
   assert.deepEqual(data.stats.lanes, {
     "fresh-10": 10,
     "popular-25": 25,
     "archive-deep-10": 10,
     "archive-deep-batch-02": 10,
     "archive-deep-batch-03": 10,
+    "archive-deep-batch-04": 10,
     "commentary-catalog": 1,
-    "archive-metadata": 406,
+    "archive-metadata": 396,
   });
   assert.equal(data.provenance.sourceLanes.popularFeedEntries, 472);
-  assert.equal(data.provenance.sourceLanes.archiveDeepSources, 30);
+  assert.equal(data.provenance.sourceLanes.archiveDeepSources, 40);
   assert.equal(
     data.provenance.sourceLanes.archiveDeepSchema,
     "wwam-archive-deep-distill/v1",
@@ -196,13 +223,14 @@ test("reconciles the feed with current deep-source lanes without importing catal
     window.WWAM_ARCHIVE_DEEP,
     window.WWAM_ARCHIVE_DEEP_BATCH2,
     window.WWAM_ARCHIVE_DEEP_BATCH3,
+    window.WWAM_ARCHIVE_DEEP_BATCH4,
   ];
   const sum = (key) => batchPayloads.reduce(
     (total, batch) => total + Number(batch.meta[key] || 0),
     0,
   );
   assert.deepEqual(data.provenance.sourceLanes.archiveDeepTotals, {
-    batches: 3,
+    batches: 4,
     sources: sum("streams"),
     hours: Math.round(sum("hours") * 10) / 10,
     wordsAudited: sum("wordsAudited"),
@@ -212,6 +240,7 @@ test("reconciles the feed with current deep-source lanes without importing catal
     characterSignals: sum("characterSignals"),
     snapshotViews: sum("snapshotViews"),
     restricted: sum("restricted"),
+    limitedCaptionSpan: sum("limitedCaptionSpan"),
   });
   const deepBatches = data.provenance.sourceLanes.archiveDeepBatches;
   assert.deepEqual(
@@ -220,12 +249,14 @@ test("reconciles the feed with current deep-source lanes without importing catal
       ["archive-deep-batch-01", "archive-deep-10", 10],
       ["archive-deep-batch-02", "archive-deep-batch-02", 10],
       ["archive-deep-batch-03", "archive-deep-batch-03", 10],
+      ["archive-deep-batch-04", "archive-deep-batch-04", 10],
     ],
   );
   assert.deepEqual(
     deepBatches.map((batch) => batch.schema),
     [
       "wwam-archive-deep-distill/v1",
+      "shokker-youtube-wiki/archive-deep-batch/v1",
       "shokker-youtube-wiki/archive-deep-batch/v1",
       "shokker-youtube-wiki/archive-deep-batch/v1",
     ],
@@ -251,12 +282,12 @@ test("labels deep, metadata-only, caption-limited and unavailable states honestl
     "unavailable",
   ]);
   assert.deepEqual(data.stats.coverage, {
-    "deeply-indexed": 64,
-    "metadata-only": 400,
+    "deeply-indexed": 74,
+    "metadata-only": 390,
     "caption-limited": 8,
     unavailable: 0,
   });
-  assert.equal(data.stats.deepCoveragePercent, 13.6);
+  assert.equal(data.stats.deepCoveragePercent, 15.7);
   assert.ok(data.records.every((record) => allowed.has(record.coverage)));
   assert.equal(atlas.getRecord("x6tvsGRHgU0").coverage, "caption-limited");
   assert.equal(atlas.getRecord("cQAVmNFQmoI").coverage, "caption-limited");
@@ -276,13 +307,18 @@ test("labels deep, metadata-only, caption-limited and unavailable states honestl
     plain(atlas.getRecord("M9_5cX8xowI").lanes),
     ["archive-deep-batch-03"],
   );
+  assert.equal(atlas.getRecord("2FlxuJxv81s").coverage, "deeply-indexed");
+  assert.deepEqual(
+    plain(atlas.getRecord("2FlxuJxv81s").lanes),
+    ["archive-deep-batch-04"],
+  );
   assert.equal(atlas.getRecord("FVuwRHM0kcc").coverage, "metadata-only");
 
   const coverage = atlas.getCoverage();
-  assert.equal(coverage.currentSourceLaneRecords, 66);
-  assert.equal(coverage.captionBackedDeepRecords, 64);
+  assert.equal(coverage.currentSourceLaneRecords, 76);
+  assert.equal(coverage.captionBackedDeepRecords, 74);
   assert.equal(coverage.selectedCaptionLimitedRecords, 2);
-  assert.equal(coverage.deepCoveragePercent, 13.6);
+  assert.equal(coverage.deepCoveragePercent, 15.7);
   assert.match(coverage.policy, /no transcript/i);
 });
 
@@ -383,12 +419,13 @@ test("browses by decade, year, month, coverage and source lane deterministically
 
   assert.equal(atlas.browse({ decade: "2010s" }).total, 25);
   assert.equal(atlas.browse({ year: 2026, month: 7 }).total, 3);
-  assert.equal(atlas.browse({ coverage: "metadata-only" }).total, 400);
+  assert.equal(atlas.browse({ coverage: "metadata-only" }).total, 390);
   assert.equal(atlas.browse({ coverage: ["caption-limited", "unavailable"] }).total, 8);
   assert.equal(atlas.browse({ lane: "popular-25" }).total, 25);
   assert.equal(atlas.browse({ lane: "archive-deep-10" }).total, 10);
   assert.equal(atlas.browse({ lane: "archive-deep-batch-02" }).total, 10);
   assert.equal(atlas.browse({ lane: "archive-deep-batch-03" }).total, 10);
+  assert.equal(atlas.browse({ lane: "archive-deep-batch-04" }).total, 10);
   assert.ok(
     atlas.getFilterOptions().lanes.some((lane) => (
       lane.value === "archive-deep-10" && lane.label === "ARCHIVE DEEP 10"
@@ -480,13 +517,23 @@ test("ranks a reproducible distill-next queue with a fully exposed 50/30/20 form
     "3UCnMrLMXbI",
     "lH0EXRN4xdw",
     "xBOTTKQ9pxU",
+    "2FlxuJxv81s",
+    "MSVltTVeypc",
+    "Qb2rDe-kJkI",
+    "3Lu0beSDxcQ",
+    "21hL29hicoU",
+    "HLDAxs4_3U4",
+    "34BwSiucNEI",
+    "ETuRUYiQEBM",
+    "5k6I18ZekPQ",
+    "o0tcJcJk6MY",
   ]);
 
-  assert.equal(queue.eligible, 400);
-  assert.equal(queue.matched, 400);
+  assert.equal(queue.eligible, 390);
+  assert.equal(queue.matched, 390);
   assert.equal(queue.records.length, 25);
   assert.deepEqual(plain(queue.excluded), {
-    deeplyIndexed: 64,
+    deeplyIndexed: 74,
     captionLimited: 8,
     unavailable: 0,
   });
@@ -508,9 +555,9 @@ test("ranks a reproducible distill-next queue with a fully exposed 50/30/20 form
   assert.ok([...frozenBatch].every((id) => (
     atlas.getRecord(id).coverage === "deeply-indexed"
   )));
-  assert.equal(queue.records[0].id, "2FlxuJxv81s");
-  assert.equal(queue.records[0].title, "The Future of the HALLOWEEN Franchise - Live!");
-  assert.equal(queue.records[0].priority.score, 83.6);
+  assert.equal(queue.records[0].id, "RzSxi8rVQGI");
+  assert.equal(queue.records[0].title, "FRIDAY THE 13TH PARTY! Live!");
+  assert.equal(queue.records[0].priority.score, 81.9);
   assert.equal(queue.records[0].priority.breakdown.franchise, 20);
 });
 

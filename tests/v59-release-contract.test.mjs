@@ -32,7 +32,7 @@ test("V5.9 publishes the lazy Time Capsule surface without growing app.js", () =
   );
   assert.match(
     html,
-    /data-feature-scripts="archive-deep-distill\.js,archive-deep-batch2\.js,archive-deep-batch3\.js,archive-deep-engine\.js,archive-deep-portfolio\.js,archive-atlas-data\.js,archive-atlas-engine\.js,era-capsule-engine\.js,era-capsule-ui\.js"/
+    /data-feature-scripts="archive-deep-distill\.js,archive-deep-batch2\.js,archive-deep-batch3\.js,archive-deep-batch4\.js,archive-deep-engine\.js,archive-deep-portfolio\.js,archive-atlas-data\.js,archive-atlas-engine\.js,era-capsule-engine\.js,era-capsule-ui\.js"/
   );
   assert.doesNotMatch(html, /<script[^>]+src="era-capsule-(?:engine|ui)\.js"/);
   assert.ok(
@@ -49,7 +49,7 @@ test("V5.9 publishes the lazy Time Capsule surface without growing app.js", () =
   assert.ok(fs.statSync(path.join(demo, "era-capsule.css")).size < 20_000);
 });
 
-test("V5.9 release documentation pins the two-ledger and quarantine proofs", () => {
+test("V5.9 proof remains while current Time Capsule totals stay synchronized", () => {
   const manifest = JSON.parse(read("package.json"));
   const lock = JSON.parse(read("package-lock.json"));
   const readme = read("README.md");
@@ -58,19 +58,19 @@ test("V5.9 release documentation pins the two-ledger and quarantine proofs", () 
   const changelog = read("docs/CHANGELOG.md");
   const runbook = read("docs/CREATOR_DEMO_RUNBOOK.md");
 
-  assert.equal(manifest.version, "0.5.11");
-  assert.equal(lock.version, "0.5.11");
-  assert.equal(lock.packages[""].version, "0.5.11");
-  assert.match(readme, /Current documented release: \*\*V5\.11 \/ 0\.5\.11\*\*/);
-  assert.match(overview, /^# WWAM After Midnight V5\.10/m);
+  assert.equal(manifest.version, "0.5.12");
+  assert.equal(lock.version, "0.5.12");
+  assert.equal(lock.packages[""].version, "0.5.12");
+  assert.match(readme, /Current documented release: \*\*V5\.12 \/ 0\.5\.12\*\*/);
+  assert.match(overview, /^# WWAM After Midnight V5\.12/m);
   assert.match(changelog, /^## 0\.5\.9 .*V5\.9 Archive Time Capsules/m);
-  assert.match(runbook, /current V5\.10 build/);
+  assert.match(runbook, /current V5\.12 build/);
 
   [readme, overview, capsules, changelog].forEach((source) => {
     assert.match(source, /21 metadata-only/i);
     assert.match(source, /12 (?:separately indexed |indexed )?(?:commentary )?sources/i);
     assert.match(source, /96 (?:timestamped |playable )?(?:promoted )?receipts/i);
-    assert.match(source, /\*{0,2}68\*{0,2} [^\n]{0,40}candidates/i);
+    assert.match(source, /19[^\n]{0,40}sources[^\n]{0,80}83[^\n]{0,40}candidates/i);
   });
 
   assert.match(capsules, /promotionAllowed: false/);

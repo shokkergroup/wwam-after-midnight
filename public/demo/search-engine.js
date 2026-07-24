@@ -262,7 +262,9 @@
       /\b(?:first|earliest)(?: indexed)? (?:appear|appears|appeared|appearance|show up|showed up|debut)\b/.test(q);
     var sourceExplicit = false;
     var source = "all";
-    var archiveBatchSequence = includesAny(q, [
+    var archiveBatchSequence =
+      /\b(?:(?:archive deep )?batch ?0?4|fourth (?:archive deep )?batch)\b/.test(q) ?
+        4 : includesAny(q, [
       "batch 03", "batch 3", "batch03", "batch3", "third archive deep batch",
       "archive deep batch 03", "archive deep batch 3",
     ]) ? 3 : includesAny(q, [
@@ -377,10 +379,10 @@
     else if (includesAny(q, [
       "least favorite", "least favourite", "least liked", "like least",
       "liked least", "love least", "loved least",
-      "hate", "hated", "worst", "bad", "sucks", "trash", "garbage", "criticize",
+      "hate", "hated", "worst", "sucks", "trash", "garbage", "criticize",
       "criticized", "dislike", "disliked", "despise", "despised", "loathe",
       "loathed", "didnt like", "did not like", "couldnt stand",
-    ])) intent = "negative";
+    ]) || containsNormalizedPhrase(q, "bad")) intent = "negative";
     else if (includesAny(q, [
       "love", "loved", "best", "favorite", "amazing", "positive about", "liked",
       "praise", "praised", "enjoy", "enjoyed",
@@ -1017,7 +1019,8 @@
       if (intent.source === "commentary" &&
         (word === "watch" || word === "along" || word === "watchalong" ||
           word === "watchalongs")) return false;
-      if (intent.archiveBatchSequence && /^(?:batch)?(?:0?[123]|first|second|third)$/.test(word)) return false;
+      if (intent.archiveBatchSequence &&
+        /^(?:batch)?(?:0?[1234]|first|second|third|fourth)$/.test(word)) return false;
       if (intent.yearFilter && String(intent.requestedYear) === word) return false;
       if (intent.queryPlan && intent.queryPlan.controls.requestedLimit != null &&
         String(intent.queryPlan.controls.requestedLimit) === word) return false;

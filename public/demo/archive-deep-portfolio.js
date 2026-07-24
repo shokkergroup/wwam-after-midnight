@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.1.0";
+  var VERSION = "1.2.0";
   var SCHEMA = "shokker-youtube-wiki/archive-deep-portfolio/v1";
   var LEGACY_SCHEMA = "wwam-archive-deep-distill/v1";
   var BATCH_SCHEMA = "shokker-youtube-wiki/archive-deep-batch/v1";
@@ -56,6 +56,26 @@
       ]),
       excludedSourceIdsSha256:
         "sha256:3ad06017c627aae67ab99e4207fca92b583b77e2a57f912dbbb76d3bfddb0cf8",
+    }),
+    Object.freeze({
+      id: "archive-deep-batch-04",
+      sequence: 4,
+      schema: BATCH_SCHEMA,
+      integrationStatus: "integrated-quarantine",
+      publicFnv1a: "fnv1a32:56ca74df",
+      selectionSha256:
+        "sha256:cb5c2cd7528c1dcffa6726b8ab17abeda9b808151ecee92566e53bf0068d30af",
+      captionSetSha256:
+        "sha256:dcfe15a3c00ff419f8afe50585f1b40acac25703e4f2dae5de063927e377b5c6",
+      sourceAtlasArchiveSha256:
+        "sha256:b924d6f91c6a92b86e2d463fa22518f51bd09d57632e0c40f08f0876d97e1174",
+      excludedLaneIds: Object.freeze([
+        "archive-deep-batch-01",
+        "archive-deep-batch-02",
+        "archive-deep-batch-03",
+      ]),
+      excludedSourceIdsSha256:
+        "sha256:42e8d84e2cb77c56b98c92286f876070e9195251a63ad068cd3145ab7c2e4878",
     }),
   ]);
 
@@ -227,6 +247,7 @@
       if (!stream.rightsPolicy ||
           stream.rightsPolicy.speakerClaimsAllowed !== false ||
           stream.rightsPolicy.originClaimsAllowed !== false ||
+          stream.rightsPolicy.visualClaimsAllowed !== false ||
           !stream.captionEvidence ||
           stream.captionEvidence.fullPayloadPublic !== false ||
           stream.captionEvidence.speakerDiarized !== false ||
@@ -238,7 +259,70 @@
            stream.rightsPolicy.performerClaimsAllowed !== false)) {
         fail(spec.id + " source #" + (index + 1) + " lost its quarantine boundary");
       }
+      [stream.topics, stream.moments, stream.characters].forEach(function (items) {
+        array(items).forEach(function (candidate) {
+          var evidence = candidate && candidate.evidence;
+          if (!evidence ||
+              evidence.speakerStatus !== "not-diarized" ||
+              evidence.originStatus !== "not-inferred" ||
+              evidence.visualContextVerified !== false ||
+              (spec.sequence > 1 &&
+               evidence.promotionStatus !== "quarantined")) {
+            fail(spec.id + " source #" + (index + 1) +
+              " contains a candidate outside its evidence firewall");
+          }
+        });
+      });
     });
+  }
+
+  function validateMetrics(payload, spec) {
+    var streams = array(payload.streams);
+    var meta = payload.meta || {};
+    var expected = {
+      streams: streams.length,
+      captioned: streams.filter(function (stream) {
+        return stream.captioned === true;
+      }).length,
+      restricted: streams.filter(function (stream) {
+        return stream.rightsPolicy.restrictedToTopicNavigation === true;
+      }).length,
+      hours: Number((streams.reduce(function (total, stream) {
+        return total + Number(stream.duration || 0);
+      }, 0) / 3600).toFixed(1)),
+      wordsAudited: streams.reduce(function (total, stream) {
+        return total + Number(stream.wordsAudited || 0);
+      }, 0),
+      captionEvents: streams.reduce(function (total, stream) {
+        return total + Number(stream.captionEvidence.eventsAudited || 0);
+      }, 0),
+      topicLanes: streams.reduce(function (total, stream) {
+        return total + array(stream.topics).length;
+      }, 0),
+      publicMomentCandidates: streams.reduce(function (total, stream) {
+        return total + array(stream.moments).length;
+      }, 0),
+      characterSignals: streams.reduce(function (total, stream) {
+        return total + array(stream.characters).length;
+      }, 0),
+      snapshotViews: streams.reduce(function (total, stream) {
+        return total + Number(stream.views || 0);
+      }, 0),
+    };
+    Object.keys(expected).forEach(function (key) {
+      if (Number(meta[key]) !== expected[key]) {
+        fail(spec.id + " derived metric " + key + " does not reconcile");
+      }
+    });
+    if (Number(meta.distinctTopics) !== array(payload.topicIndex).length) {
+      fail(spec.id + " distinct-topic metric does not reconcile");
+    }
+    var limited = streams.filter(function (stream) {
+      return stream.captionEvidence.spanStatus === "limited-available-track";
+    }).length;
+    if (Number(meta.limitedCaptionSpan || 0) !== limited) {
+      fail(spec.id + " limited-caption-span metric does not reconcile");
+    }
   }
 
   function compatibilityEnvelope(payload, spec, factory) {
@@ -264,6 +348,7 @@
     validateLane(rawPayload, spec);
     validateSelection(rawPayload, spec);
     validateBoundary(rawPayload, spec);
+    validateMetrics(rawPayload, spec);
 
     var fingerprints = rawPayload.fingerprints;
     if (!fingerprints ||
@@ -464,6 +549,7 @@
       streams: sumMetric(batches, "streams"),
       captioned: sumMetric(batches, "captioned"),
       restricted: sumMetric(batches, "restricted"),
+      limitedCaptionSpans: sumMetric(batches, "limitedCaptionSpan"),
       visualRankingQuarantines: batches.reduce(function (total, batch) {
         return total + batch.payload.streams.filter(function (stream) {
           return stream.rightsPolicy.mode === "visual-context-unverified";
@@ -503,7 +589,7 @@
     var rawBatches = array(settings.batches);
     validateFactory(factory);
     if (rawBatches.length !== BATCH_SPECS.length) {
-      fail("exactly three ordered batches are required");
+      fail("exactly four ordered batches are required");
     }
 
     var batches = rawBatches.map(function (payload, index) {
@@ -726,7 +812,7 @@
             clean(batch.payload.generated) : latest;
         }, ""),
         scope:
-          "Deterministic public composition of three ordered Archive Deep batches.",
+          "Deterministic public composition of four ordered Archive Deep batches.",
         evidencePolicy: serialCopy(evidencePolicy),
         meta: serialCopy(metrics),
         batches: serialCopy(provenance),

@@ -147,10 +147,10 @@ test("neither extracted stylesheet is part of the first-load transfer", () => {
 
   assert.equal(criticalFiles.includes("tape-companion.css"), false);
   assert.equal(criticalFiles.includes("creator-taste.css"), false);
-  assert.ok(total < 1_500_000, `first-load source payload grew to ${total} bytes`);
+  assert.ok(total < 1_510_000, `first-load source payload grew to ${total} bytes`);
 });
 
-test("the two-batch portfolio proof keeps dense metadata readable", () => {
+test("the current four-batch portfolio proof keeps dense metadata readable", () => {
   assert.match(main, /\.archive-batch-fingerprints\s*\{[\s\S]{0,360}overflow-wrap:\s*anywhere;/);
   assert.match(main, /\.archive-batch-strip button small\s*\{[\s\S]{0,240}overflow-wrap:\s*anywhere;/);
   assert.match(main, /\.archive-batch-strip button small\s*\{[\s\S]{0,240}font:\s*700 8px\/1\.45 var\(--mono\);/);
