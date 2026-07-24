@@ -133,15 +133,15 @@ test("V5.16 release identity and documentation publish one relationship contract
     memoryOs,
   ].join("\n");
 
-  assert.equal(manifest.version, "0.5.19");
-  assert.equal(lock.version, "0.5.19");
-  assert.equal(lock.packages[""].version, "0.5.19");
-  assert.match(readme, /Current documented release: \*\*V5\.19 \/ 0\.5\.19\*\*/);
-  assert.match(overview, /^# WWAM After Midnight V5\.19/m);
+  assert.equal(manifest.version, "0.5.20");
+  assert.equal(lock.version, "0.5.20");
+  assert.equal(lock.packages[""].version, "0.5.20");
+  assert.match(readme, /Current documented release: \*\*V5\.20 \/ 0\.5\.20\*\*/);
+  assert.match(overview, /^# WWAM After Midnight V5\.20/m);
   assert.match(changelog, /^## 0\.5\.16 .*Evidence Relationship Gate/m);
-  assert.match(runbook, /current V5\.19 build/i);
-  assert.match(html, /youtube-playback\.js\?v=0\.5\.19/);
-  assert.match(html, /app\.js\?v=0\.5\.19/);
+  assert.match(runbook, /current V5\.20 build/i);
+  assert.match(html, /youtube-playback\.js\?v=0\.5\.20/);
+  assert.match(html, /app\.js\?v=0\.5\.20/);
 
   for (const relation of [
     ...ALLOWED_RELATIONS,

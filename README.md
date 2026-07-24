@@ -7,7 +7,45 @@ character archaeology, topic paths, and creator-side editorial opportunities.
 This is an unofficial fan prototype. It sends playback and source traffic back
 to the official WWAM uploads.
 
-Current documented release: **V5.19 / 0.5.19**.
+Current documented release: **V5.20 / 0.5.20**.
+
+## V5.20 Bit Bloodlines
+
+V5.20 turns the incomplete Bit Ancestry card into **Bit Bloodlines** inside the
+existing Memory OS tab. All four current recurring-character lineages are now
+selectable: The Challis Hotline, Slenderman Dispatch, The Loomis Alert System,
+and The Feldman Frequency. The feature does not add another homepage section
+or navigation destination.
+
+The current WWAM adapter compiles **25 exact, timestamp-validated
+human-curated performance candidates across 12 official uploads and 350
+seconds of bounded source time**. Every current window is exactly 14 seconds.
+Slenderman is the default demonstration: six windows, six sources, 84 source
+seconds, and 1,916 indexed days. Challis contains 7 / 6 / 98 / 1,464; Loomis
+contains 7 / 5 / 98 / 1,433; and Feldman contains 5 / 3 / 70 / 37, where the
+four values are windows / sources / source seconds / indexed days.
+
+The lineage compiler resolves and verifies each playable receipt through the
+canonical Source Dossier. On click, the host rechecks source availability and
+passes that resolved source, start, and end to the shared in-page YouTube
+player. **Cut This Bloodline** hands the same exact chronological
+selections to V5.19's Midnight Cut, where next-stop playback remains manual.
+No 14-second receipt is widened into a generic clip.
+
+Archive Deep's 28 character contexts and 24 character signals remain a
+separate **52-record, unbounded, quarantined machine-echo layer**. None can
+enter the performance rail or a cut. Chronology never becomes a mutation,
+confirmed callback, speaker-continuity, causality, or true-origin claim.
+
+See [Bit Bloodlines](docs/BIT_BLOODLINES.md).
+
+The production playback smoke check verifies that the published page carries
+YouTube's required referrer/client identity, loads the shared helper before the
+app, serves the recovery bridge, and preserves the exact Scream 4 test window:
+
+```powershell
+node scripts/check-wwam-playback-deploy.mjs
+```
 
 ## V5.19 The Midnight Cut
 
@@ -450,7 +488,7 @@ manifest. Quarantined stops remain marked `promotionAllowed: false` with no
 speaker claim. The export omits transcripts, caption payloads, and full event
 ledgers. See [Archive Time Capsules](docs/ARCHIVE_TIME_CAPSULES.md).
 
-## V5.19 product map
+## V5.20 product map
 
 The hero offers three deliberate entry points:
 
@@ -463,7 +501,7 @@ The hero offers three deliberate entry points:
 - **Deep Dive:** relationship-gated Ask WWAM with Play the Answer source
   trails, Lore Galaxy, Take
   Time Machine, year-sized Archive Time Capsules, The Tape Keeps Score, The
-  Verdict Room, Bit Ancestry, the
+  Verdict Room, Bit Bloodlines, the
   Comedy Black Box / Riff Autopsy, WWAM Court, franchise labs, autopsies, Fresh
   10, Popular 25, and the whole-feed Archive Atlas.
 - **Creator Proof:** Clip Lab edit briefs, exact-runtime Cold Open Factory
@@ -720,7 +758,8 @@ artifacts contain derived measurements and short, timestamped fragments only.
 
 ## Documentation
 
-- [V5.19 product overview](docs/V5_OVERVIEW.md)
+- [V5.20 product overview](docs/V5_OVERVIEW.md)
+- [Bit Bloodlines source-locked recurrence contract](docs/BIT_BLOODLINES.md)
 - [The Midnight Cut ordered-receipt contract](docs/THE_MIDNIGHT_CUT.md)
 - [Ask This Tape exact-source query contract](docs/ASK_THIS_TAPE.md)
 - [The Source Dossier](docs/SOURCE_DOSSIER.md)

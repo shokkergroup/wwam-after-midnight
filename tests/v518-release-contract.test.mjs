@@ -145,18 +145,18 @@ test("V5.18 package, lockfile, cache keys, and Ask This Tape docs move together"
   const lock = JSON.parse(readRoot("package-lock.json"));
   const html = readDemo("index.html");
 
-  assert.equal(manifest.version, "0.5.19");
-  assert.equal(lock.version, "0.5.19");
-  assert.equal(lock.packages[""].version, "0.5.19");
+  assert.equal(manifest.version, "0.5.20");
+  assert.equal(lock.version, "0.5.20");
+  assert.equal(lock.packages[""].version, "0.5.20");
 
   const cacheVersions = Array.from(
     html.matchAll(/\?v=(\d+\.\d+\.\d+)/g),
     (match) => match[1],
   );
   assert.ok(cacheVersions.length >= 2, "expected versioned runtime cache keys");
-  assert.deepEqual(new Set(cacheVersions), new Set(["0.5.19"]));
-  assert.match(html, /youtube-playback\.js\?v=0\.5\.19/);
-  assert.match(html, /app\.js\?v=0\.5\.19/);
+  assert.deepEqual(new Set(cacheVersions), new Set(["0.5.20"]));
+  assert.match(html, /youtube-playback\.js\?v=0\.5\.20/);
+  assert.match(html, /app\.js\?v=0\.5\.20/);
 
   const guidePath = path.join(root, "docs", "ASK_THIS_TAPE.md");
   assert.equal(fs.existsSync(guidePath), true, "Ask This Tape guide is missing");

@@ -348,7 +348,11 @@
       });
     return sourceDossierLoadPromise;
   }
-  window.WWAMSourceDossierAccess=Object.freeze({cutId:"evidenceBagCut",load:loadSourceDossier,get:function(){return sourceDossierEngine;},bag:function(){return state.evidenceBag.slice();}});
+  window.WWAMSourceDossierAccess=Object.freeze({cutId:"evidenceBagCut",load:loadSourceDossier,
+    get:function(){return sourceDossierEngine;},bag:function(){return state.evidenceBag.slice();},
+    play:function(p){return openSourceDossier(p.sourceId,p.at,{routeMode:"push",autoplay:false})
+      .then(function(ok){if(ok)loadPlayer(p.sourceId,p.at,p.end);return ok;});},
+    navigate:function(p){return openSourceDossier(p.sourceId,p.at,{routeMode:"push",autoplay:false});}});
 
   var SOURCE_DOSSIER_SECTION_IDS = Object.freeze({proof:"sourceDossierProof",player:"sourceDossierPlayerSection",inside:"sourceDossierInside",ask:"sourceDossierAsk",footprint:"sourceDossierFootprint",wake:"sourceDossierWake",chronology:"sourceDossierChronology",work:"sourceDossierWork",boundary:"sourceDossierBoundary"});
 
@@ -2552,17 +2556,9 @@
     var lineages = showcaseCall("getBitLineages", fallbackBitLineages);
     if (!Array.isArray(lineages)) lineages = lineages.items || lineages.bits || [];
     if (!lineages.length) return '<p class="memory-empty">NO RECURRING BIT HAS ENOUGH CURATED INDEXED SIGHTINGS YET.</p>';
-    var selected = lineages[0];
-    var events = (selected.events || selected.performances || selected.receipts || selected.sightings || []).map(enrichEvidence);
-    return '<div class="bit-intro"><span>BIT ANCESTRY // EARLIEST INDEXED TO LATEST SIGHTING</span><h3>' +
-      esc(selected.name || selected.label || selected.bit || "RECURRING BIT") + '</h3><p>' +
-      esc(selected.description || "A recurring performance or callback connected across its source appearances.") +
-      '</p></div><div class="bit-chain">' + events.slice(0, 12).map(function (event, index) {
-        var stage = index === 0 ? "EARLIEST INDEXED SIGHTING" : index === events.length - 1 ? "LATEST SIGHTING" : "MUTATION 0" + index;
-          return '<article><span>' + stage + '</span><b>' + esc(event.title || selected.name || selected.label || selected.bit) +
-          '</b><p>“' + esc(displayQuote(event.excerpt || event.quote || "")) + '”</p>' +
-          evidenceButton(event, "PLAY THE LINEAGE") + '</article>';
-      }).join("") + '</div>';
+    return window.WWAMBitBloodlineHost ?
+      window.WWAMBitBloodlineHost.view(lineages) :
+      '<p class="memory-empty">OPENING ALL FOUR SOURCE-LOCKED BIT BLOODLINES…</p>';
   }
 
   function renderChemistry() {
@@ -2758,6 +2754,7 @@
 
   function renderMemory() {
     if (window.WWAMLongitudinalDocketDemo) window.WWAMLongitudinalDocketDemo.destroy();
+    if (window.WWAMBitBloodlineHost) window.WWAMBitBloodlineHost.destroy();
     var content = state.memoryTab === "time" ? renderTimeMachine() :
       state.memoryTab === "bits" ? renderBitAncestry() :
       state.memoryTab === "chemistry" ? renderChemistry() :
@@ -4697,7 +4694,7 @@
       };
     });
     document.getElementById("memory").addEventListener("wwam:feature-ready", function () {
-      if (state.memoryTab === "score") renderMemory();
+      if (state.memoryTab === "score" || state.memoryTab === "bits") renderMemory();
     });
     addEventListener("hashchange", function () {
       if (location.hash !== "#tape-keeps-score") return;

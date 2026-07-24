@@ -1,6 +1,6 @@
 # YouTube Wiki Memory OS
 
-Current WWAM demonstration release: **V5.19 / 0.5.19**.
+Current WWAM demonstration release: **V5.20 / 0.5.20**.
 
 Version 1.0 — a reusable, evidence-first operating system for living channel archives.
 
@@ -45,6 +45,10 @@ The defensible product is not “AI made a website.” It is a source-backed mem
     every ordered receipt against the canonical registry, preserve exact
     bounds, label viewer prose as non-evidence, and fail closed rather than
     substitute, pad, or widen a cut.
+12. **A recurrence is chronology, not continuity.** A lineage may order
+    eligible bounded receipts under a channel-supplied label. It does not prove
+    a first occurrence, mutation, intentional callback, shared speaker,
+    influence, causality, approval, rights, or Canon.
 
 ## Universal evidence schema
 
@@ -452,21 +456,41 @@ Forbidden language without certification:
 - “J changed his mind on this date”;
 - “the first time ever.”
 
-### Bit Ancestry
+### Bit Bloodlines
 
-Tracks the earliest known receipt, later callbacks, sources, mutations, and
-timestamp-validated human-curated performance candidates for a recurring bit.
+Orders bounded canonical recurrence candidates under a channel-supplied
+lineage definition. It is a watch path through the current index, not proof
+that the first row originated the bit or that any later row intentionally
+called back to it.
 
-The current prototype marks the ancestry strong only when it has:
+The V5.20 WWAM projection contains:
 
-1. at least three timestamp-validated human-curated performance candidates;
-2. at least two separate sources;
-3. a human-confirmed bit label;
-4. a checked earliest-known receipt.
+| Measurement | Current value |
+| --- | ---: |
+| Lineages | 4 |
+| Curated performance candidates | 25 |
+| Unique official uploads | 12 |
+| Bounded source time | 350 seconds |
+| Challis windows / sources / seconds / days | 7 / 6 / 98 / 1,464 |
+| Slenderman windows / sources / seconds / days | 6 / 6 / 84 / 1,916 |
+| Loomis windows / sources / seconds / days | 7 / 5 / 98 / 1,433 |
+| Feldman windows / sources / seconds / days | 5 / 3 / 70 / 37 |
 
-A future production policy may additionally require authenticated
-editor-verified decisions, but that threshold is distinct from the current
-candidate tier.
+Every current performance window is exactly 14 seconds. The lineage compiler
+resolves the Source Dossier key and exact end bound; on click, the host
+rechecks canonical source availability before using those resolved coordinates.
+A complete WWAM lineage contains five to seven receipts, so it can enter the existing
+three-to-eight-stop ordered-cut contract without trimming.
+
+The 28 character contexts and 24 character signals remain a separate
+52-record machine-echo layer. All 52 are unbounded, quarantined, and forbidden
+from the performance rail and Memory Cut. Neutral labels describe the earliest
+and latest eligible windows in the current index; the UI must not call the
+middle rows mutations or confirmed callbacks.
+
+A future production policy may require authenticated editor decisions. That
+threshold is distinct from the current timestamp-validated human-curated
+candidate tier and cannot be inferred from a derived review artifact.
 
 ### Riff Chemistry
 
@@ -996,6 +1020,9 @@ VRL DNA:
 - Announcer’s Curse, Great Carnac, Upside Down;
 - driver identity reconciliation;
 - excitement score and Hot 100 moments.
+- source-locked recurrence trails for booth phrases, rivalries, rituals, and
+  Announcer's Curse candidates; chronology cannot claim that commentary caused
+  an incident or that a later call intentionally continued an earlier one;
 - a race companion that can wake up lead changes, cautions, incidents, booth
   calls, and driver-history connections as the official broadcast plays;
 - taste dimensions for finish type, track, driver story, booth intensity,
@@ -1141,9 +1168,29 @@ const share = player.exportShare(trail);
 const verifiedFreshTrail = player.restoreShare(share);
 ```
 
+Compile a channel-supplied recurrence only after the canonical Source Dossier
+registry is available:
+
+```js
+const bloodlines = window.ShokkerBitBloodline.create({
+  dossierEngine,
+  lineages: channelAdapter.lineages
+});
+
+const lineage = bloodlines.get("channel-lineage-id");
+const exactCutRequest = bloodlines.compileCutPacket(lineage.id);
+const playableCut = memoryCut.compile(exactCutRequest);
+```
+
+The adapter may call the object Slenderman Dispatch, The Announcer's Curse, or
+a victory ritual. The pure compiler retains source IDs, receipt keys,
+fingerprints, and exact bounds; it does not inherit the adapter's mythology as
+an origin or causality claim.
+
 ## Current implementation boundary
 
-`public/demo/showcase-engine.js`, `public/demo/source-dossier-engine.js`,
+`public/demo/showcase-engine.js`, `public/demo/bit-bloodline-engine.js`,
+`public/demo/source-dossier-engine.js`,
 `public/demo/source-query-engine.js`,
 `public/demo/tape-companion-engine.js`, and
 `public/demo/creator-taste-engine.js` are intentionally pure browser engines:
@@ -1158,13 +1205,16 @@ const verifiedFreshTrail = player.restoreShare(share);
 
 It is a presentation-independent foundation. WWAM can render it as a horror evidence room; VRL can render the same contracts as a race-control archive.
 
-The V5.18 WWAM adapter is intentionally stricter than the universal core: it
-fails closed unless the canonical union remains 510 sources and the receipt
+The V5.20 WWAM adapters are intentionally stricter than the universal core.
+The Source Dossier adapter fails closed unless the canonical union remains 510 sources and the receipt
 ledger remains 1,490. Its current proof is 111 caption-backed, 390
 metadata-only, nine caption-limited, zero unavailable, 928 source-bound
 artifact records, 25 exact curated windows, and a 24/28 Archive Deep
 signal/context split. Those adapter assertions are channel snapshot checks,
-not universal constants.
+not universal constants. The Bit Bloodlines adapter further pins 4 lineages,
+25 bounded performance candidates, 12 official uploads, 350 source seconds,
+and zero playable members from the separate 52-record unbounded machine-echo
+layer.
 
 The current companion UI stores core archive/source-ledger-bound local state;
 optional display decorations are outside that binding. Calibration stores

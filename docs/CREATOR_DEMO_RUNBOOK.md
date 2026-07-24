@@ -11,7 +11,7 @@ three things quickly:
 
 ## Before the call
 
-- Open the current V5.19 build or its confirmed deployment and choose either
+- Open the current V5.20 build or its confirmed deployment and choose either
   content-advisory mode.
 - Confirm YouTube playback is available in the browser.
 - Start at the hero, not halfway down the page.
@@ -58,6 +58,11 @@ Use this evidence vocabulary consistently:
   introduction. It is presentation around canonical receipts, visibly labeled
   `VIEWER-WRITTEN // NOT ARCHIVE EVIDENCE`, and cannot become a quote, archive
   summary, creator claim, or Canon entry.
+- **Source-locked recurrence** means two or more eligible bounded receipts
+  share one channel-supplied lineage definition and survive fresh canonical
+  resolution. Chronology makes a useful watch path; it does not prove a first
+  occurrence, mutation, intentional callback, speaker continuity, influence,
+  causality, approval, rights, or Canon.
 
 ## The 60-second version
 
@@ -89,6 +94,87 @@ Press **Mike Mode** and use one sentence per slide:
 
 Use the proof button on at least two slides. A pitch that exits into working
 evidence is stronger than a complete slideshow.
+
+## V5.20 Mike path - run the bloodline in two minutes
+
+Use this path to show that the archive remembers a recurring bit across years,
+plays every eligible window precisely, and keeps weaker machine evidence out.
+
+### 1. Open the complete recurrence
+
+Open **Memory OS**, then **Bit Bloodlines**. The default should be
+**Slenderman Dispatch**.
+
+Expected proof:
+
+- all four lineages are selectable in this existing tab;
+- Slenderman reports six performance candidates across six official uploads;
+- its bounded source time is 84 seconds;
+- its current indexed span is 1,916 days; and
+- every performance card remains labeled as a timestamp-validated curated
+  candidate with its clip speaker not diarized.
+
+Say: “This is six exact windows across five years, not six search results that
+happen to mention Slenderman.”
+
+### 2. Play proof, not a padded guess
+
+Play the earliest Slenderman window:
+
+```text
+character-receipt:slender-stomach
+Mf-0Tv_KHCE @ 541.04-555.04
+```
+
+Expected proof:
+
+- the lineage compiler has already resolved the exact Source Dossier receipt;
+- the click-time path rechecks that its canonical source still exists;
+- the in-page player receives both start and end;
+- the current window remains exactly 14 seconds;
+- no player existed before the visitor acted; and
+- the official-source recovery action remains available.
+
+Then choose **Cut This Bloodline**.
+
+Expected proof:
+
+- The Midnight Cut receives all six chronological receipt keys;
+- every selection retains source, dossier, start, and end bindings;
+- advancing to another official upload remains manual; and
+- no copied media, generated bridge dialogue, or automatic montage appears.
+
+Say: “The bloodline is a fan journey assembled from canonical evidence, not a
+new video the machine claims to own.”
+
+### 3. Show two shapes and one hard boundary
+
+Switch to **The Feldman Frequency**. It contains five windows across three
+sources, 70 source seconds, and only 37 indexed days. Compare that compact
+burst with Slenderman's 1,916-day trail.
+
+Then point to the separate machine-echo boundary:
+
+- 28 `caption-character-context` receipts;
+- 24 `caption-character-signal` receipts;
+- 52 quarantined machine records total;
+- zero end bounds; and
+- zero authority to enter playback or a cut.
+
+Say: “The system can show a five-year recurrence and a 37-day outbreak. It
+still refuses to call either a mutation, confirmed callback, or true origin.”
+
+The other current totals are:
+
+| Bloodline | Windows | Sources | Seconds | Indexed days |
+| --- | ---: | ---: | ---: | ---: |
+| The Challis Hotline | 7 | 6 | 98 | 1,464 |
+| Slenderman Dispatch | 6 | 6 | 84 | 1,916 |
+| The Loomis Alert System | 7 | 5 | 98 | 1,433 |
+| The Feldman Frequency | 5 | 3 | 70 | 37 |
+
+Across all four: 25 exact 14-second windows, 12 official uploads, and 350
+bounded seconds.
 
 ## V5.19 Mike path — cut the tape in two minutes
 

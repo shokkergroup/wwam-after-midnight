@@ -117,18 +117,22 @@
     return false;
   }
 
-  function request() {
+  function request(options) {
+    var settings = options && options.detail ? options.detail : options || {};
     var access = root.WWAMSourceDossierAccess;
     if (!access || typeof access.load !== "function") {
       return Promise.resolve(showError(new Error("The canonical source registry is unavailable.")));
     }
     var closeBag = document.getElementById("evidenceBagClose");
-    if (closeBag) closeBag.click();
+    var bag = document.getElementById("evidenceBag");
+    if (closeBag && (!bag || bag.classList.contains("show"))) closeBag.click();
     showLoading();
     return access.load().then(function () {
       return open({
         dossierEngine: access.get(),
-        selections: access.bag()
+        selections: settings.selections || access.bag(),
+        title: settings.title,
+        introduction: settings.introduction
       });
     }).catch(showError);
   }
@@ -158,10 +162,11 @@
     });
     activeUi.open({
       selections: selections,
-      title: usingPreset ? preset.title : "MY MIDNIGHT CUT",
+      title: usingPreset ? preset.title : settings.title || "MY MIDNIGHT CUT",
       introduction: usingPreset
         ? preset.introduction
-        : "Viewer-arranged source receipts. This sequence and its title are not archive evidence."
+        : settings.introduction ||
+          "Viewer-arranged source receipts. This sequence and its title are not archive evidence."
     });
     var modal = document.getElementById("tapeModal");
     if (modal) {

@@ -127,7 +127,7 @@ test("ships the complete independent WWAM memory-system surface", async () => {
     /THE POPULAR[\s\S]*TWENTY-FIVE/,
     /THE WWAM[\s\S]*MEMORY OS/,
     /TAKE TIME MACHINE/,
-    /BIT ANCESTRY/,
+    /BIT BLOODLINES/,
     /RIFF CHEMISTRY/,
     /WWAM COURT/,
     /PERSONALIZED DESCENT/,

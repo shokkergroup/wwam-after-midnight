@@ -125,11 +125,11 @@ test("V5.13 stays a correctly ordered lazy Memory OS enhancement", () => {
 
   const styles = commaList(attribute(memoryTag[0], "data-feature-styles"));
   const scripts = commaList(attribute(memoryTag[0], "data-feature-scripts"));
-  assert.deepEqual(styles, [
+  assert.deepEqual(styles.slice(0, 2), [
     "longitudinal-docket.css",
     "riff-black-box.css",
   ]);
-  assert.deepEqual(scripts, [
+  assert.deepEqual(scripts.slice(0, longitudinalFiles.length + 2), [
     ...longitudinalFiles,
     "riff-black-box-engine.js",
     "riff-black-box-ui.js",

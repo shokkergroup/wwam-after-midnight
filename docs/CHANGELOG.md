@@ -3,6 +3,56 @@
 This changelog records product and evidence-contract changes. It does not by
 itself indicate that a build has been deployed.
 
+## 0.5.20 - V5.20 Bit Bloodlines - 2026-07-24
+
+### Added
+
+- **Bit Bloodlines** replaces the single-lineage Bit Ancestry presentation
+  inside the existing Memory OS `bits` tab. All four current lineages are
+  selectable without adding another homepage section or navigation item.
+- The current WWAM adapter compiles exactly **4 lineages, 25 unique
+  timestamp-validated human-curated performance candidates, 12 official
+  uploads, and 350 seconds of exact source time**. Every current window remains
+  14 seconds.
+- The default Slenderman Dispatch demonstration contains six windows across
+  six sources, 84 bounded seconds, and 1,916 indexed days. Challis contains
+  7 / 6 / 98 / 1,464; Loomis contains 7 / 5 / 98 / 1,433; and Feldman
+  contains 5 / 3 / 70 / 37, expressed as windows / sources / seconds / days.
+- The lineage compiler canonically resolves each playable receipt. On click,
+  the host rechecks source availability before sending that resolved source,
+  start, and end to the shared in-page YouTube bridge.
+- **Cut This Bloodline** compiles an entire three-to-eight-stop lineage into
+  V5.19's Midnight Cut. Exact coordinates survive the handoff and advancing
+  between official uploads remains manual.
+- The recurrence compiler is channel-neutral. A racing ChannelPack can supply
+  bounded recurring booth calls, rivalries, rituals, or Announcer's Curse
+  candidates without placing WWAM character vocabulary in the pure engine.
+- A player-construction boundary test now prevents app and lazy UI modules
+  from bypassing the shared YouTube identity helper. A read-only post-deploy
+  smoke checker verifies the referrer policy, helper order, recovery bridge,
+  and exact `5et_A1tYnio @ 5406-5432` source bounds against the published URL.
+
+### Evidence boundary
+
+- Archive Deep's 28 `caption-character-context` and 24
+  `caption-character-signal` records remain a separate **52-record,
+  unbounded, quarantined machine-echo layer**. All have zero end bounds and
+  zero authority to enter playback or a Memory Cut.
+- The current performance rail contains only bounded
+  `curated-character-performance` candidates. Individual clip speakers remain
+  null / not diarized; profile performer mappings remain owner-supplied
+  context rather than clip-level proof.
+- Chronology uses neutral indexed-candidate language. It does not establish a
+  first spark, mutation, intentional callback, continuity, influence,
+  causality, or true origin.
+- Unknown, duplicate, foreign, stale, quarantined, withheld, unbounded,
+  out-of-range, entity-mismatched, artifact-mismatched, or
+  fingerprint-mismatched recurrence evidence fails closed.
+- No lineage grants creator approval, rights clearance, Canon authority,
+  publication authority, or copied-media rights.
+
+See [Bit Bloodlines](BIT_BLOODLINES.md).
+
 ## 0.5.19 — V5.19 The Midnight Cut — 2026-07-24
 
 ### Added

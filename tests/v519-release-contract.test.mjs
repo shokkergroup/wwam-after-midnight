@@ -33,24 +33,24 @@ test("V5.19 package, cache keys, and public documentation move together", () => 
   const guide = readRoot("docs/THE_MIDNIGHT_CUT.md");
   const memoryOs = readRoot("docs/YOUTUBE_WIKI_MEMORY_OS.md");
 
-  assert.equal(manifest.version, "0.5.19");
-  assert.equal(lock.version, "0.5.19");
-  assert.equal(lock.packages[""].version, "0.5.19");
+  assert.equal(manifest.version, "0.5.20");
+  assert.equal(lock.version, "0.5.20");
+  assert.equal(lock.packages[""].version, "0.5.20");
 
   const cacheVersions = Array.from(
     html.matchAll(/\?v=(\d+\.\d+\.\d+)/g),
     (match) => match[1],
   );
   assert.ok(cacheVersions.length >= 2, "expected versioned runtime cache keys");
-  assert.deepEqual(new Set(cacheVersions), new Set(["0.5.19"]));
+  assert.deepEqual(new Set(cacheVersions), new Set(["0.5.20"]));
 
-  assert.match(readme, /Current documented release: \*\*V5\.19 \/ 0\.5\.19\*\*/);
+  assert.match(readme, /Current documented release: \*\*V5\.20 \/ 0\.5\.20\*\*/);
   assert.match(readme, /docs\/THE_MIDNIGHT_CUT\.md/);
-  assert.match(overview, /^# WWAM After Midnight V5\.19/m);
+  assert.match(overview, /^# WWAM After Midnight V5\.20/m);
   assert.match(changelog, /^## 0\.5\.19 — V5\.19 The Midnight Cut/m);
   assert.match(changelog, /^## 0\.5\.18 .*V5\.18 Ask This Tape/m);
   assert.match(guide, /Release contract for \*\*V5\.19 \/ 0\.5\.19\*\*/);
-  assert.match(memoryOs, /Current WWAM demonstration release: \*\*V5\.19 \/ 0\.5\.19\*\*/);
+  assert.match(memoryOs, /Current WWAM demonstration release: \*\*V5\.20 \/ 0\.5\.20\*\*/);
 });
 
 test("The Midnight Cut is a lazy Evidence Bag action, not another front door", () => {

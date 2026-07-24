@@ -1,4 +1,4 @@
-# WWAM After Midnight V5.19
+# WWAM After Midnight V5.20
 
 ## One-sentence product
 
@@ -30,9 +30,18 @@ packet can reconstruct the evidence path without carrying excerpts or media,
 and its JSON/Markdown edit brief gives a creator exact coordinates for human
 review. Viewer prose stays labeled non-evidence throughout.
 
+V5.20 turns recurring-character chronology into a complete fan-facing
+experience. **Bit Bloodlines** exposes all four current lineages inside the
+existing Memory OS tab, re-resolves every playable window through the Source
+Dossier registry, and can hand the complete three-to-eight-stop trail to The
+Midnight Cut. The current proof is 25 exact 14-second performance candidates
+across 12 official uploads and 350 source seconds. A separate 52-record
+Archive Deep machine-echo layer remains unbounded, quarantined, and excluded
+from playback.
+
 ## Audited snapshot
 
-V5.19 keeps a frozen release proof, the V5.12 Archive Deep overlay, the V5.13
+V5.20 keeps a frozen release proof, the V5.12 Archive Deep overlay, the V5.13
 longitudinal docket, the V5.14 device-local adjudication overlay, and the new
 playable-answer projection and evidence-relationship gate visibly separate.
 The **immutable V5.4 proof** remains:
@@ -107,6 +116,28 @@ source-bound draft/review records, not 928 creator-approved or unique published
 assets.
 
 See [The Source Dossier](SOURCE_DOSSIER.md).
+
+V5.20 projects one strictly bounded recurrence view from that same registry:
+
+| Bit Bloodlines measurement | Current value |
+| --- | ---: |
+| Selectable source-locked lineages | 4 |
+| Exact curated performance candidates | 25 |
+| Unique official uploads | 12 |
+| Total bounded source time | 350 seconds |
+| Challis windows / sources / seconds / indexed days | 7 / 6 / 98 / 1,464 |
+| Slenderman windows / sources / seconds / indexed days | 6 / 6 / 84 / 1,916 |
+| Loomis windows / sources / seconds / indexed days | 7 / 5 / 98 / 1,433 |
+| Feldman windows / sources / seconds / indexed days | 5 / 3 / 70 / 37 |
+| Quarantined machine contexts / signals | 28 / 24 |
+| Machine echoes with an end bound | 0 |
+
+The 25 playable windows remain timestamp-validated human-curated candidates,
+not authenticated editor or creator decisions. The 52 machine contexts and
+signals are a different evidence class: timestamp-only, speaker-undiarized,
+unbounded, and forbidden from the performance rail or a Memory Cut.
+
+See [Bit Bloodlines](BIT_BLOODLINES.md).
 
 A separate Archive Atlas inventories all 472 records in the cached official
 Streams-feed snapshot from 2018–2026. Those records total 1,197.0 known hours
@@ -765,6 +796,31 @@ Mike Mode is the shortest route through the commercial argument:
    the preselected Archive Discovery Creator Pilot, inspect its acceptance
    checks, and keep every business outcome at `MEASURE DURING PILOT`.
 
+### Mike's V5.20 bloodline proof
+
+Open **Memory OS -> Bit Bloodlines**. Slenderman Dispatch should be selected
+first. Read the proof strip: six exact performance candidates, six official
+uploads, 84 seconds of source time, and 1,916 indexed days.
+
+Play one window. The lineage compiler has already resolved its exact Source
+Dossier receipt and 14-second end bound; the click path rechecks that source
+before the shared in-page YouTube player opens. Then choose
+**Cut This Bloodline**. The Midnight Cut should receive all six chronological
+stops and require a manual command before each next source.
+
+Switch to The Feldman Frequency. Its five windows occupy only 37 indexed days.
+That contrast is the demonstration: the same engine can make a five-year
+recurrence and a short outbreak legible without calling either a mutation,
+confirmed callback, or true origin.
+
+Point to the quarantine boundary: 28 machine contexts plus 24 machine signals
+exist around the four character profiles, but all 52 are unbounded and none
+can play or enter the cut.
+
+Say: “This is not a montage guessed from names. It is four complete,
+source-locked recurrence trails, and the machine evidence that cannot support
+playback is kept out on purpose.”
+
 ### Mike's V5.19 cut-the-tape proof
 
 Open the Evidence Bag and launch **The Character Ward // 2021–2026**. The room
@@ -909,6 +965,7 @@ consistently shortened at render time.
 | Source-synchronized companion rail with manual fallback | Guaranteed player API availability or owned playback |
 | Exact ordered playable-answer trails with same-coordinate player recovery | Guaranteed third-party embed availability or owned playback |
 | Three-to-eight-stop viewer cuts with canonical bounds, compact reconstruction packets, and creator edit briefs | Creator approval, rights clearance, owned media, authenticated collaboration, or automatic publishing |
+| Four source-locked recurring-character bloodlines with exact bounded playback and Midnight Cut handoff | Proof of true origin, intentional callback, mutation, speaker continuity, causality, creator approval, or rights clearance |
 | Local Evidence Bag, Human Review Session, and JSON exports | Shared accounts, remote queues, and owner-controlled approval |
 | Local, bounded taste calibration | Authenticated creator identity or shared preference profiles |
 | Local, bounded fresh-tape parsing and verifiable quarantine export | Trusted feed ingestion, authenticated review, and promotion into production ledgers |
@@ -966,6 +1023,12 @@ The reusable patterns now include:
   brief. Reordering adds no evidence, viewer prose stays labeled non-evidence,
   restore re-resolves every receipt, and no export copies media or grants
   approval, rights, origin, speaker, continuity, or Canon authority.
+- **Source-locked recurrence:** a channel adapter may group bounded canonical
+  receipts under a recurring character, phrase, ritual, rivalry, or broadcast
+  pattern. The compiler orders eligible candidates and can hand three to eight
+  exact windows to the ordered-cut engine, but chronology never proves a first
+  occurrence, intentional callback, mutation, speaker continuity, influence,
+  or causality. Unbounded machine echoes remain navigation-only quarantine.
 - **Longitudinal review:** a ChannelPack subject ontology binds earlier and
   later exact-source receipts under a `MAY_RESOLVE` relationship. Machine
   signals remain subordinate and contradictions stay visible.

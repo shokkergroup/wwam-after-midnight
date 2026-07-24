@@ -84,13 +84,13 @@ test("V5.12 release identity and current documentation publish one exact ledger"
   const runbook = read("docs/CREATOR_DEMO_RUNBOOK.md");
   const portfolioDoc = read("docs/ARCHIVE_DEEP_PORTFOLIO.md");
 
-  assert.equal(manifest.version, "0.5.19");
-  assert.equal(lock.version, "0.5.19");
-  assert.equal(lock.packages[""].version, "0.5.19");
-  assert.match(readme, /Current documented release: \*\*V5\.19 \/ 0\.5\.19\*\*/);
-  assert.match(overview, /^# WWAM After Midnight V5\.19/m);
+  assert.equal(manifest.version, "0.5.20");
+  assert.equal(lock.version, "0.5.20");
+  assert.equal(lock.packages[""].version, "0.5.20");
+  assert.match(readme, /Current documented release: \*\*V5\.20 \/ 0\.5\.20\*\*/);
+  assert.match(overview, /^# WWAM After Midnight V5\.20/m);
   assert.match(changelog, /^## 0\.5\.12 .*V5\.12 Archive Deep Batch 04/m);
-  assert.match(runbook, /current V5\.19 build/i);
+  assert.match(runbook, /current V5\.20 build/i);
 
   const currentDocs = [readme, overview, portfolioDoc, changelog, runbook];
   for (const document of currentDocs) {
