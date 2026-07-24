@@ -51,7 +51,7 @@ Supercuts require at least three receipts across at least two sources. Character
 
 Resurfacing pairs an older and newer receipt that share an indexed topic or character. The package explicitly does not claim that an opinion changed, a prediction came true, or the earlier receipt is the true origin.
 
-Campaign packets deterministically select source-diverse Shorts, a supercut, and archive resurfacing opportunities. The embedded clip manifest acts like a portable EDL/proof ledger: it can be exported as JSON, but it contains no copied media.
+Campaign packets deterministically select source-diverse Shorts, a supercut, and archive resurfacing opportunities. The embedded clip manifest acts like a portable EDL/proof ledger: it can be exported as JSON, but it contains no copied media. Public manifest excerpts are capped at 16 words and carry `excerptTruncated`, `originalExcerptWordCount`, and `publicExcerptWordLimit`; internal Clip Lab candidates retain their full bounded receipt text for editorial analysis.
 
 `snapshotSelection` stores the exact receipt and source ledger for one campaign asset. `restoreSelection` verifies its fingerprint and reconstructs that same filtered package. It returns `null` instead of silently widening a filtered supercut when a receipt is missing or the ledger has been altered.
 

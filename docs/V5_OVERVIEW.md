@@ -39,14 +39,15 @@ The build deliberately separates five evidence states:
 | --- | --- | --- |
 | Source metadata | The official upload, title, date, duration, observed views, or caption availability | A quote, topic claim, or speaker |
 | Source-level derived summary | A deterministic synopsis or editorial description attached to the whole source | That a host spoke the summary at a particular second |
-| Machine-surfaced timestamped receipt | The source link and timestamp resolve, and a bounded auto-caption fragment exists there | Human-confirmed wording, category, target, intent, or speaker |
+| Machine-surfaced timestamped receipt | The source URL matches its indexed source ID, the timestamp is in range, and a bounded auto-caption fragment exists there | Continuous network availability; human-confirmed wording, category, target, intent, or speaker |
 | Editor-verified performance event | A human checked the source, timestamp, and immediate performance context | Clip-level speaker identity when the caption track is not diarized |
 | Creator-certified claim | An authorized creator approved the specific claim | Anything beyond the scope of that approval |
 
 The current build contains 847 machine-level and 25 editor-level receipts, but
-no creator-certified receipts. “Zero invalid timestamps” means the indexed
-source/time pairs resolve and sit within the known source duration. It does not
-mean a human has certified all 872 excerpts or the claims derived from them.
+no creator-certified receipts. “Zero out-of-range indexed timestamps” means
+the indexed source/time pairs sit within the known source duration. It does not
+establish continuous network availability or mean a human has certified all
+872 excerpts and the claims derived from them.
 
 The owner-supplied Mike/J mappings describe who performs each recurring
 character generally. They do not turn an individual auto-caption event into a
@@ -87,7 +88,13 @@ editorial-moment receipts.
 The archive becomes reviewable production inventory:
 
 - Clip Lab offers 560 timestamped Short candidates across 71 sources, 32
-  multi-source supercut bundles, and 21 then/now resurfacing opportunities.
+  multi-source supercut bundles, 21 then/now resurfacing opportunities, and
+  117 deterministic 15/30/60/90-second cold-open storyboards spanning 163
+  receipts and 67 sources.
+- Cold Open Factory converts existing Clip Lab proof into a gapless edit
+  timeline with hook/build/payoff roles, public-safe excerpts, exact source
+  windows, and a portable edit-decision list. It assigns no speakers and
+  includes no copied media.
 - Every candidate keeps archival text separate from suggested promotional copy,
   shows a proposed edit window, assigns evidence and context risk, and exports a
   deterministic JSON handoff.
@@ -144,7 +151,8 @@ requires time and domain judgment.
 The current Trust Desk reports:
 
 - 71 healthy sources and 3 visible caption gaps;
-- 0 broken source links and 0 invalid receipt timestamps;
+- 0 structurally invalid or source-ID-mismatched URLs and 0 out-of-range
+  indexed receipt timestamps;
 - 847 machine-level and 25 editor-level receipts;
 - 0 creator-certified receipts in the current public snapshot;
 - 95 open review candidates with deterministic correction packets;
@@ -152,6 +160,14 @@ The current Trust Desk reports:
 - 12 ordinary character mentions kept out of the performance set;
 - 49 take timelines and 14 Court boards, with 0 currently passing the strict
   creator-canon gate.
+
+The release also runs a deterministic cross-engine Canon Integrity audit. The
+current fingerprinted report passes with zero hard errors across source IDs,
+timestamps, receipt references, speaker claims, evidence levels, Lore graph
+and lineage links, campaign manifests, Cold Open edit-decision lists, and
+approval ledgers. The 362 longer raw caption fragments remain internal review
+warnings; public Clip Lab and Cold Open exports hard-enforce the 16-word
+display boundary with truncation metadata.
 
 The interface caps public archival fragments. The underlying audit identifies
 362 raw excerpts that exceed the public display limit so they can be

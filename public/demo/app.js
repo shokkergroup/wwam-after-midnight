@@ -15,6 +15,7 @@
   var tapeTriviaEngine;
   var triviaSession;
   var clipLabEngine;
+  var coldOpenFactory;
   var trustEngine;
   var showcaseReceiptById = {};
   var showcaseSourceById = {};
@@ -79,6 +80,7 @@
     clipMode: "shorts",
     clipQuery: "",
     clipRisk: "",
+    coldOpenDuration: 30,
     campaignIds: loadCampaignIds(),
     canonTab: "health",
     canonDraft: null,
@@ -175,6 +177,9 @@
     clipLabEngine = window.WWAMCreatorClipLab && window.WWAMCreatorClipLab.create && showcaseEngine ?
       attempt(function () { return window.WWAMCreatorClipLab.create({ showcase: showcaseEngine }); },
         "creator clip lab initialization") : null;
+    coldOpenFactory = window.WWAMColdOpenFactory && window.WWAMColdOpenFactory.create && clipLabEngine ?
+      attempt(function () { return window.WWAMColdOpenFactory.create({ clipLab: clipLabEngine }); },
+        "cold open factory initialization") : null;
     if (clipLabEngine) {
       (clipLabEngine.shorts || []).concat(clipLabEngine.supercuts || [], clipLabEngine.resurfacing || [])
         .forEach(function (item) { clipItemById[item.id] = item; });
@@ -245,9 +250,15 @@
       number: "04",
       eyebrow: "THE MONEY",
       title: "MEMORY CREATES<br>NEW INVENTORY.",
-      body: "Premium franchise vaults. Member-only extended receipts. Sponsored lore labs. Annual supercuts. Merch tied to recurring bits. Share cards that drive old-video traffic. The archive creates surfaces without interrupting the show.",
-      proof: "DISCOVERY → RETENTION → MEMBERSHIP → MERCH → MORE BACK-CATALOG VIEWS.",
-      action: { kind: "clip", label: "OPEN A LOOMIS EDIT QUEUE", query: "Dr. Loomis" },
+      body: "The same receipt inventory now produces Shorts candidates, supercut spines, then/now callbacks, and 117 exact-runtime cold-open storyboards. Each one keeps a source ledger, proposed cut boundaries, risk, evidence, and the human approval gate.",
+      proof: "ARCHIVE MEMORY → REVIEWABLE EDIT PLAN → EXACT SOURCE LEDGER → CREATOR DECISION.",
+      action: {
+        kind: "clip",
+        mode: "cold-open",
+        duration: 30,
+        label: "BUILD A 30-SECOND LOOMIS COLD OPEN",
+        query: "Dr. Loomis",
+      },
     },
     {
       number: "05",
@@ -524,6 +535,36 @@
     return new Date(value + "T12:00:00").toLocaleDateString("en-US", {
       year: "numeric", month: "short", day: "numeric",
     }).toUpperCase();
+  }
+
+  function archiveFreshness() {
+    var generatedDates = [deep.generated, live.generated, popular.generated]
+      .filter(Boolean)
+      .map(String)
+      .sort();
+    var sourceDates = catalog.map(function (item) { return item.date; })
+      .concat((live.streams || []).map(function (stream) { return stream.date; }))
+      .concat((popular.streams || []).map(function (stream) { return stream.date; }))
+      .filter(Boolean)
+      .map(String)
+      .sort();
+    var snapshotDate = generatedDates[generatedDates.length - 1] || "";
+    var latestSourceDate = sourceDates[sourceDates.length - 1] || snapshotDate;
+    var dateParts = snapshotDate.split("-").map(Number);
+    var snapshotTime = dateParts.length === 3 && dateParts.every(Number.isFinite) ?
+      new Date(dateParts[0], dateParts[1] - 1, dateParts[2]).getTime() : NaN;
+    var today = new Date();
+    var todayTime = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+    var ageDays = Number.isFinite(snapshotTime) ?
+      Math.max(0, Math.round((todayTime - snapshotTime) / 86400000)) : null;
+    var status = ageDays == null ? "UNKNOWN" :
+      ageDays <= 7 ? "CURRENT" : ageDays <= 30 ? "AGING" : "REFRESH DUE";
+    return {
+      snapshotDate: snapshotDate,
+      latestSourceDate: latestSourceDate,
+      ageDays: ageDays,
+      status: status,
+    };
   }
 
   function franchiseSlug(name) {
@@ -2603,6 +2644,27 @@
     var filters = { limit: 12 };
     if (state.clipQuery.trim()) filters.query = state.clipQuery.trim();
     if (state.clipRisk) filters.maxRisk = state.clipRisk;
+    if (state.clipMode === "cold-open") {
+      filters.duration = state.coldOpenDuration;
+      filters.limit = 24;
+      var boards = coldOpenFactory ? coldOpenFactory.getStoryboards(filters) : [];
+      var query = state.clipQuery.trim().toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+      if (query) {
+        boards = boards.slice().sort(function (a, b) {
+          var score = function (board) {
+            var anchor = String(board.anchor && board.anchor.label || "")
+              .toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+            var title = String(board.title || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+            return anchor === query ? 4 :
+              anchor && (anchor.indexOf(query) >= 0 || query.indexOf(anchor) >= 0) ? 3 :
+                title.indexOf(query) >= 0 ? 2 : 1;
+          };
+          return score(b) - score(a) || Number(b.editorialPriority || 0) -
+            Number(a.editorialPriority || 0);
+        });
+      }
+      return boards.slice(0, 8);
+    }
     if (state.clipMode === "supercuts") return clipLabEngine.getSupercuts(filters);
     if (state.clipMode === "resurfacing") return clipLabEngine.getResurfacing(filters);
     return clipLabEngine.getShorts(filters);
@@ -2688,6 +2750,57 @@
       '" data-campaign-toggle="' + esc(pair.id) + '">' +
       (selected ? "IN CAMPAIGN ✓" : "ADD THEN / NOW +") + '</button></footer><small>' +
       esc(pair.claimBoundary || "") + '</small></article>';
+  }
+
+  function coldOpenFormatBar() {
+    return '<div class="cold-open-format-bar"><div><span>EXACT RUNTIME</span><b>CHOOSE THE SHAPE BEFORE THE TAPE</b></div>' +
+      '<nav aria-label="Cold open runtime">' + [15, 30, 60, 90].map(function (seconds) {
+        return '<button class="' + (state.coldOpenDuration === seconds ? "on" : "") +
+          '" data-cold-duration="' + seconds + '">' + seconds + ' SEC</button>';
+      }).join("") + '</nav><p>Every board is a deterministic edit plan with a gapless timeline, exact receipt ledger, no guessed speaker, and no copied media.</p></div>';
+  }
+
+  function coldOpenCard(board) {
+    return '<article class="clip-card cold-open-card"><header><div><span>COLD OPEN FACTORY // PRIORITY ' +
+      Number(board.editorialPriority || 0) + '</span><b>' + Number(board.formatSeconds || 0) +
+      ' SEC EXACT</b></div><p class="clip-provenance">' + esc(displayUiText(board.mode)) + ' // ' +
+      esc(displayUiText(board.anchor && board.anchor.label || "ARCHIVE ANCHOR")) + '</p>' +
+      clipBadges(board) + '</header><div class="suggested-copy"><span>' +
+      esc(displayUiText(board.copyLabel || "SUGGESTED EDITORIAL COPY — NOT ARCHIVAL")) +
+      '</span><h3>' + esc(displayUiText(board.title)) + '</h3><p>' +
+      esc(displayUiText(board.premise)) + '</p></div><div class="package-stats"><div><b>' +
+      Number(board.sourceCount || 0) + '</b><span>OFFICIAL SOURCES</span></div><div><b>' +
+      Number(board.sourceClipCount || 0) + '</b><span>TIMESTAMPED CUTS</span></div><div><b>' +
+      Number(board.formatSeconds || 0) + 's</b><span>GAPLESS RUNTIME</span></div></div>' +
+      '<ol class="cold-open-timeline">' + (board.slots || []).map(function (slot, index) {
+        var timeline = timestamp(slot.timelineIn || 0) + '–' + timestamp(slot.timelineOut || 0);
+        if (slot.kind === "editorial-card") {
+          return '<li class="editorial"><b>' + esc(timeline) + '</b><div><span>' +
+            esc(displayUiText(slot.role)) + ' // EDITORIAL CARD</span><h4>' +
+            esc(displayUiText(slot.copy)) + '</h4><small>' +
+            esc(displayUiText(slot.copyLabel || "NOT AN ARCHIVAL QUOTE")) +
+            ' // GENERATED VOICEOVER BLOCKED</small></div></li>';
+        }
+        return '<li><b>' + esc(timeline) + '</b><div><span>' +
+          esc(displayUiText(slot.role)) + ' // SOURCE CLIP // ' +
+          esc(displayUiText(slot.receiptTimecode)) + '</span><h4>' +
+          esc(displayUiText(slot.sourceTitle)) + '</h4><p>“' +
+          esc(displayQuote(slot.archivalExcerpt)) + '”</p><small>' +
+          esc(displayUiText(slot.excerptLabel || "ARCHIVAL CAPTION EXCERPT")) +
+          ' // SPEAKER NOT ASSIGNED</small></div><button data-cold-play="' +
+          esc(board.id) + '" data-cold-slot="' + index + '">PLAY RECEIPT →</button></li>';
+      }).join("") + '</ol><footer><button data-cold-copy="' + esc(board.id) +
+      '">COPY EDIT DECISION LIST</button><button data-cold-download="' + esc(board.id) +
+      '">DOWNLOAD STORYBOARD JSON</button></footer><small>' +
+      esc(displayUiText(board.pacing && board.pacing.note || "Pacing is an edit proposal, not a performance prediction.")) +
+      ' // CONTEXT REVIEW AND CREATOR APPROVAL REQUIRED</small></article>';
+  }
+
+  function coldOpenPacket(board) {
+    if (!coldOpenFactory || !board) return null;
+    return coldOpenFactory.createCampaignMetadata([board], {
+      name: "WWAM After Midnight — " + board.formatSeconds + "-second cold open",
+    });
   }
 
   function campaignSelection() {
@@ -2800,6 +2913,45 @@
     Array.prototype.forEach.call(document.querySelectorAll("[data-campaign-remove]"), function (button) {
       button.onclick = function () { toggleCampaign(button.getAttribute("data-campaign-remove")); };
     });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-cold-duration]"), function (button) {
+      button.onclick = function () {
+        state.coldOpenDuration = Number(button.getAttribute("data-cold-duration") || 30);
+        renderClipLab();
+      };
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-cold-play]"), function (button) {
+      button.onclick = function () {
+        var board = coldOpenFactory && coldOpenFactory.get(button.getAttribute("data-cold-play"));
+        var slot = board && board.slots[Number(button.getAttribute("data-cold-slot"))];
+        if (!slot || slot.kind !== "source-clip") return;
+        openLooseSource(
+          slot.sourceId,
+          slot.proposedSourceWindow.in,
+          slot.sourceTitle,
+          slot.proposedSourceWindow.out
+        );
+      };
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-cold-copy]"), function (button) {
+      button.onclick = function () {
+        var board = coldOpenFactory && coldOpenFactory.get(button.getAttribute("data-cold-copy"));
+        var packet = coldOpenPacket(board);
+        if (!packet) return;
+        copy(coldOpenFactory.exportCampaignMetadata(packet, 2), "COLD OPEN EDL COPIED");
+      };
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-cold-download]"), function (button) {
+      button.onclick = function () {
+        var board = coldOpenFactory && coldOpenFactory.get(button.getAttribute("data-cold-download"));
+        var packet = coldOpenPacket(board);
+        if (!packet) return;
+        downloadJson(
+          "wwam-cold-open-" + board.formatSeconds + "s-" + board.id.split(":").pop() + ".json",
+          packet
+        );
+        showToast("COLD OPEN STORYBOARD DOWNLOADED");
+      };
+    });
     syncBagButtons();
   }
 
@@ -2811,12 +2963,13 @@
       return;
     }
     var metrics = clipLabEngine.metrics || {};
+    var coldMetrics = coldOpenFactory && coldOpenFactory.metrics || {};
     document.getElementById("clipProof").innerHTML = [
       [metrics.shortCandidates, "SHORTS CANDIDATES"],
       [metrics.supercutBundles, "SUPERCUT SPINES"],
       [metrics.resurfacingOpportunities, "THEN / NOW PAIRS"],
+      [coldMetrics.storyboards || 0, "COLD OPEN BOARDS"],
       [metrics.sourcesRepresented, "SOURCES REPRESENTED"],
-      [metrics.holds, "AUTOMATIC HOLDS"],
     ].map(function (stat) {
       return '<div><b>' + fmt(stat[0]) + '</b><span>' + stat[1] + '</span></div>';
     }).join("");
@@ -2830,11 +2983,17 @@
       if (item.archive) clipItemById[item.archive.id] = item.archive;
       if (item.current) clipItemById[item.current.id] = item.current;
     });
-    document.getElementById("clipResults").innerHTML = values.length ? values.map(function (item) {
-      if (item.kind === "supercut-bundle") return supercutCard(item);
-      if (item.kind === "episode-resurfacing") return resurfacingCard(item);
-      return shortCard(item);
-    }).join("") : '<div class="clip-empty"><b>THE RISK GATE ATE THAT SEARCH.</b><span>Widen the filter or search a broader topic.</span></div>';
+    document.getElementById("clipResults").innerHTML =
+      (state.clipMode === "cold-open" ? coldOpenFormatBar() : "") +
+      (values.length ? values.map(function (item) {
+        if (item.kind === "cold-open-storyboard") return coldOpenCard(item);
+        if (item.kind === "supercut-bundle") return supercutCard(item);
+        if (item.kind === "episode-resurfacing") return resurfacingCard(item);
+        return shortCard(item);
+      }).join("") : '<div class="clip-empty"><b>' +
+        (state.clipMode === "cold-open" && !coldOpenFactory ?
+          "THE COLD OPEN FACTORY COULD NOT INITIALIZE." : "THE RISK GATE ATE THAT SEARCH.") +
+        '</b><span>Widen the filter or search a broader topic.</span></div>');
     renderCampaign();
     bindClipLab();
   }
@@ -2853,6 +3012,7 @@
       return (a.status === "LIMITED" ? -1 : 1) - (b.status === "LIMITED" ? -1 : 1) ||
         b.score - a.score;
     });
+    var freshness = archiveFreshness();
     var limited = sources.filter(function (source) { return source.status !== "HEALTHY"; });
     var healthy = sources.filter(function (source) { return source.status === "HEALTHY"; }).slice(0, 9);
     var card = function (source) {
@@ -2870,7 +3030,14 @@
     };
     return '<div class="canon-lane-head"><div><span>STRUCTURAL SOURCE AUDIT</span><h3>' +
       trustEngine.metrics.healthySources + ' OF ' + trustEngine.metrics.sources +
-      ' SOURCES ARE ARCHIVE-READY.</h3></div><p>Broken source links: 0. Invalid timestamps: 0. Limited sources stay visible instead of receiving counterfeit analysis.</p></div>' +
+      ' SOURCES ARE ARCHIVE-READY.</h3></div><div class="freshness-summary"><p>Structurally invalid or source-ID-mismatched URLs: 0. Invalid indexed timestamps: 0. Limited sources stay visible instead of receiving counterfeit analysis.</p>' +
+      '<dl class="freshness-ledger ' + esc(freshness.status.toLowerCase().replace(/\s+/g, "-")) +
+      '"><div><dt>INDEX SNAPSHOT</dt><dd>' + esc(shortDate(freshness.snapshotDate)) +
+      '</dd></div><div><dt>NEWEST SOURCE</dt><dd>' + esc(shortDate(freshness.latestSourceDate)) +
+      '</dd></div><div><dt>FRESHNESS</dt><dd>' + esc(freshness.status) +
+      (freshness.ageDays == null ? "" : freshness.ageDays === 0 ? " // TODAY" :
+        " // " + freshness.ageDays + " DAY" + (freshness.ageDays === 1 ? "" : "S")) +
+      '</dd></div></dl></div></div>' +
       '<section class="health-group"><header><span>LIMITED SOURCES // HONEST GAPS</span><b>' +
       limited.length + '</b></header><div>' + limited.map(card).join("") + '</div></section>' +
       '<section class="health-group"><header><span>HEALTHY SOURCE SAMPLE</span><b>' +
@@ -3069,7 +3236,7 @@
     var metrics = trustEngine.metrics;
     document.getElementById("canonProof").innerHTML = [
       [metrics.healthySources + "/" + metrics.sources, "HEALTHY SOURCES"],
-      [metrics.invalidTimestamps, "INVALID TIMESTAMPS"],
+      [metrics.invalidTimestamps, "OUT-OF-RANGE TIMES"],
       [metrics.ordinaryCharacterMentionsQuarantined, "MENTIONS QUARANTINED"],
       [metrics.reviewCandidates, "OPEN HUMAN REVIEWS"],
       [metrics.publicExcerptViolations, "RAW EXCERPTS UI-CAPPED"],
@@ -3188,7 +3355,8 @@
       renderLore();
       document.getElementById("lore").scrollIntoView({ behavior: "smooth" });
     } else if (action.kind === "clip") {
-      state.clipMode = "shorts";
+      state.clipMode = action.mode || "shorts";
+      if (action.duration) state.coldOpenDuration = action.duration;
       state.clipQuery = action.query;
       document.getElementById("clipSearch").value = action.query;
       renderClipLab();

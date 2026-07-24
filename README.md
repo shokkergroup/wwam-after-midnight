@@ -37,19 +37,21 @@ The hero offers three deliberate entry points:
   Roulette, WWAM UP IN YA, and playable descent paths.
 - **Deep Dive:** Ask WWAM, Lore Galaxy, Take Time Machine, Bit Ancestry, Riff
   Chemistry, WWAM Court, franchise labs, autopsies, Fresh 10, and Popular 25.
-- **Creator Proof:** Clip Lab edit briefs, supercut spines, then/now
-  resurfacing, Live Aftermath, Control Room, and the Trust / Canon Desk.
+- **Creator Proof:** Clip Lab edit briefs, exact-runtime Cold Open Factory
+  boards, supercut spines, then/now resurfacing, Live Aftermath, Control Room,
+  and the Trust / Canon Desk.
 
 Mike Mode is a five-beat private-screening walkthrough. Each beat exits the
 pitch and opens working proof: Trivia, Ask WWAM, a Loomis constellation, a
 Loomis edit queue, or the strict canon gate.
 
 The current creator inventory contains 560 timestamped Short candidates across
-71 sources, 32 multi-source supercut bundles, and 21 then/now resurfacing
-opportunities. These are reviewable edit plans, not predictions of virality or
-auto-published media. Filtered campaign assets persist an exact fingerprinted
-receipt/source ledger so a saved three-receipt package cannot silently reload
-as its broader parent bundle.
+71 sources, 32 multi-source supercut bundles, 21 then/now resurfacing
+opportunities, and 117 exact-runtime cold-open storyboards spanning 163
+receipts and 67 sources. These are reviewable edit plans, not predictions of
+virality or auto-published media. Filtered campaign assets persist an exact
+fingerprinted receipt/source ledger so a saved three-receipt package cannot
+silently reload as its broader parent bundle.
 
 Ask the Character supports the owner-supplied recurring mappings for J's Dr.
 Loomis, J's Slenderman, Mike's Dr. Challis, and J's Corey Feldman. Generated
@@ -71,7 +73,8 @@ establish which host is speaking.
 - Opinion timelines and Court cases remain discovery tools until a human
   certifies the underlying claim.
 - The current Trust Desk reports 71 healthy sources, 3 disclosed caption gaps,
-  0 broken source links, 0 invalid timestamps, and 95 human review candidates.
+  0 structurally invalid or source-ID-mismatched URLs, 0 invalid indexed
+  timestamps, and 95 human review candidates.
 - Public transcript fragments are display-capped; exported edit suggestions
   remain clearly separated from archival excerpts.
 
@@ -92,9 +95,10 @@ establish which host is speaking.
   certification.
 
 The current Trust Desk counts 847 machine-level receipts, 25 editor-level
-receipts, and 0 creator-certified receipts. Its “0 invalid timestamps” result
-validates source/time resolution, not the semantic truth of every derived
-claim.
+receipts, and 0 creator-certified receipts. Its “0 out-of-range indexed
+timestamps” result validates each time against the known source duration; it
+does not establish continuous network availability or the semantic truth of a
+derived claim.
 
 ## Local development
 
@@ -129,4 +133,5 @@ artifacts contain derived measurements and short, timestamped fragments only.
 - [Product changelog](docs/CHANGELOG.md)
 - [Reusable YouTube Wiki Memory OS](docs/YOUTUBE_WIKI_MEMORY_OS.md)
 - [Creator Clip Lab contract](docs/CREATOR_CLIP_LAB.md)
+- [Cold Open Factory contract](docs/COLD_OPEN_FACTORY.md)
 - [Tape Trivia engine contract](docs/TAPE_TRIVIA_ENGINE.md)

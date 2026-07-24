@@ -47,6 +47,17 @@ function plain(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+function words(value) {
+  return String(value || "").trim().split(/\s+/).filter(Boolean);
+}
+
+function publicExcerpt(value, limit = 16) {
+  const tokens = words(value);
+  return tokens.length > limit
+    ? `${tokens.slice(0, limit).join(" ")}…`
+    : tokens.join(" ");
+}
+
 test("Creator Clip Lab builds a substantial deterministic editorial inventory", () => {
   const window = load();
   const first = build(window);
@@ -287,10 +298,21 @@ test("campaign packets and clip manifests are deterministic, exportable, and app
   const manifest = first.manifest;
   assert.equal(manifest.schema, "shokker.creator-clip-manifest/v1");
   assert.equal(manifest.clipCount, manifest.clips.length);
+  assert.equal(manifest.publicExcerptWordLimit, 16);
   assert.equal(new Set(manifest.receiptIds).size, manifest.receiptIds.length);
   assert.match(manifest.approvalGate.status, /(HOLD|HUMAN EDIT REVIEW)/);
   manifest.clips.forEach((clip) => {
+    const candidate = lab.fromReceipt(clip.receiptId);
+    assert.ok(candidate);
     assert.equal(clip.mediaIncluded, false);
+    assert.ok(words(clip.archivalExcerpt).length <= 16);
+    assert.equal(clip.archivalExcerpt, publicExcerpt(candidate.archivalExcerpt));
+    assert.equal(clip.excerptTruncated, words(candidate.archivalExcerpt).length > 16);
+    assert.equal(
+      clip.originalExcerptWordCount,
+      words(candidate.archivalExcerpt).length
+    );
+    assert.equal(clip.publicExcerptWordLimit, 16);
     assert.match(clip.boundaryStatus, /^EDITORIAL WINDOW/);
     assert.match(clip.editorialCopy.label, /^SUGGESTED EDITORIAL COPY/);
     assert.match(clip.sourceAtReceipt, /^https:\/\/www\.youtube\.com\/watch\?v=/);

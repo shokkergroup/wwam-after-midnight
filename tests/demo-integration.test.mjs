@@ -27,6 +27,7 @@ test("the complete browser script chain exists in dependency order", () => {
     "lore-engine.js",
     "tape-trivia-engine.js",
     "creator-studio-engine.js",
+    "cold-open-engine.js",
     "trust-engine.js",
     "search-engine.js",
     "app.js",
@@ -98,6 +99,18 @@ test("Clip Lab UI honors the engine risk contract and persists exact derived led
     "Filtered campaign IDs must never fall back to their wider base bundle"
   );
   assert.match(app, /state\.campaignIds\.length >= 24/);
+});
+
+test("Cold Open Factory is a working fourth Clip Lab mode with source-ledgered exports", () => {
+  assert.match(index, /data-clip-mode="cold-open"/);
+  assert.match(app, /WWAMColdOpenFactory\.create\(\{ clipLab: clipLabEngine \}\)/);
+  assert.match(app, /coldOpenFactory\.getStoryboards\(filters\)/);
+  assert.match(app, /function coldOpenCard\(board\)/);
+  assert.match(app, /COPY EDIT DECISION LIST/);
+  assert.match(app, /DOWNLOAD STORYBOARD JSON/);
+  assert.match(app, /SPEAKER NOT ASSIGNED/);
+  assert.match(styles, /\.cold-open-timeline/);
+  assert.match(styles, /\.cold-open-format-bar/);
 });
 
 test("trust-sensitive public copy keeps archive boundaries visible", () => {
@@ -216,6 +229,45 @@ test("the rotating hero pauses for focus, hover, hidden pages, and open dialogs"
   assert.match(app, /consoleNode\.contains\(document\.activeElement\)/);
   assert.match(app, /activeDialog\(\)/);
   assert.match(app, /if \(gate && !gate\.classList\.contains\("gone"\)\) return gate/);
+});
+
+test("the living archive exposes snapshot age instead of implying permanent freshness", () => {
+  assert.match(app, /function archiveFreshness\(\)/);
+  assert.match(app, /INDEX SNAPSHOT/);
+  assert.match(app, /NEWEST SOURCE/);
+  assert.match(app, /REFRESH DUE/);
+  assert.match(styles, /\.freshness-ledger/);
+
+  const source = app.match(/function archiveFreshness\(\) \{[\s\S]*?\n  \}\n\n  function franchiseSlug/);
+  assert.ok(source, "archiveFreshness could not be isolated");
+  const functionSource = source[0].replace(/\n\n  function franchiseSlug$/, "");
+  const RealDate = Date;
+  const fixedDate = (year, month, day, hour = 12) => {
+    function FixedDate(...args) {
+      return args.length
+        ? new RealDate(...args)
+        : new RealDate(year, month - 1, day, hour, 0, 0);
+    }
+    FixedDate.prototype = RealDate.prototype;
+    return FixedDate;
+  };
+  const makeFreshness = (DateImpl) => Function(
+    "deep",
+    "live",
+    "popular",
+    "catalog",
+    "Date",
+    `${functionSource}; return archiveFreshness;`
+  )(
+    { generated: "2026-07-23" },
+    { generated: "2026-07-23", streams: [{ date: "2026-07-23" }] },
+    { generated: "2026-07-22", streams: [] },
+    [],
+    DateImpl
+  );
+
+  assert.equal(makeFreshness(fixedDate(2026, 7, 23, 23))().ageDays, 0);
+  assert.equal(makeFreshness(fixedDate(2026, 7, 24, 1))().ageDays, 1);
 });
 
 test("automatic campaign normalization persists only when it changed and reports failure", () => {

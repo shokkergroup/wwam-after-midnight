@@ -127,11 +127,12 @@ From the hero, choose **Put Memory to Work**.
   - the proposed edit window;
   - the evidence and context-risk labels.
 - Add one candidate to the campaign tray.
-- Switch to **Supercut Spines**, clear the risk gate, and search
-  **Halloween**. Add a filtered package and point to its exact receipt count.
-- Export or copy the JSON handoff. The saved ledger preserves that filtered
-  receipt and source list after reload; it never silently expands to the wider
-  parent supercut.
+- Switch to **Cold Open Factory**, choose **30 SEC**, and search
+  **Dr. Loomis**. Open the top board and point out its gapless
+  hook/build/turn/payoff timeline, exact source windows, and editorial cards
+  that are visibly not archival quotes.
+- Copy the edit-decision list. Its source and receipt ledger preserves the
+  exact board, caps public excerpts, assigns no speaker, and includes no media.
 
 Say: “This does not make the final editorial decision. It removes the blank
 page while preserving the source and review boundary.”
@@ -141,14 +142,15 @@ What it proves:
 - 560 timestamped Short candidates across 71 sources;
 - 32 multi-source supercut bundles;
 - 21 archive-resurfacing opportunities;
+- 117 exact-runtime cold-open storyboards spanning 163 receipts and 67 sources;
 - a portable edit/proof ledger without copied media.
 
 ### 4. Trust / Canon Desk — 45 seconds
 
 Open **Canon Desk**.
 
-- Show Source Health: 71 healthy sources, 3 disclosed gaps, 0 broken links, and
-  0 invalid timestamps.
+- Show Source Health: 71 healthy sources, 3 disclosed gaps, 0 structurally
+  invalid or source-ID-mismatched URLs, and 0 out-of-range indexed timestamps.
 - Show Character Firewall: ordinary mentions are quarantined from curated
   performance receipts, and owner-mapped characters remain distinct from
   undiarized clip speakers.

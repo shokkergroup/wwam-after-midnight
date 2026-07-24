@@ -20,18 +20,19 @@
   ];
 
   var QUERY_CUE_WORDS = [
-    "about", "again", "anything", "archive", "archived", "began", "begin", "best", "biggest",
-    "bit", "called", "caption", "captions", "change", "changed", "chapter",
-    "clip", "commentary", "crazy", "criticize", "criticized", "deranged",
-    "discuss", "discussed", "earliest", "ever", "evidence", "favorite",
+    "about", "again", "anything", "archive", "archived", "audience", "began", "begin", "best", "biggest",
+    "bit", "broadcast", "broadcasts", "called", "caption", "captions", "change", "changed", "chapter",
+    "clip", "commentaries", "commentary", "crazy", "criticize", "criticized", "deranged",
+    "cover", "covered", "coverage", "discuss", "discussed", "dislike", "disliked", "draw", "draws", "drew",
+    "earliest", "episode", "episodes", "ever", "evidence", "favorite", "fewest",
     "first", "foundational", "fresh", "funniest", "funny", "garbage", "hate",
     "hated", "highest", "index", "indexed", "last", "latest", "laugh", "like",
-    "liked", "live", "livestream", "love", "loved", "lowest", "mention",
-    "mentioned", "moment", "most", "newest", "oldest", "one", "ones",
-    "opinion", "popular", "ranking", "receipt", "recent", "recently", "score",
-    "something", "soundbyte", "source", "start", "started", "stream", "talk", "talked", "tape",
-    "think", "topic", "trash", "unhinged", "viewed", "views", "watchalong",
-    "watched", "wild", "worst",
+    "liked", "live", "livestream", "livestreams", "love", "loved", "lowest", "mention",
+    "mentioned", "moment", "most", "never", "newest", "oldest", "one", "ones",
+    "opinion", "popular", "praise", "praised", "prove", "ranking", "receipt", "recent", "recently", "score",
+    "something", "soundbyte", "source", "start", "started", "stream", "streams", "talk", "talked", "tape",
+    "think", "topic", "trash", "unhinged", "upload", "uploads", "video", "videos",
+    "viewed", "views", "watchalong", "watchalongs", "watched", "wild", "worst",
   ];
 
   var EXPANSIONS = {
@@ -45,11 +46,19 @@
     "hated": ["worst", "garbage", "trash", "awful", "sucks", "franchise felony", "take gets nuclear"],
     "criticize": ["worst", "garbage", "trash", "awful", "franchise felony", "take gets nuclear"],
     "criticized": ["worst", "garbage", "trash", "awful", "franchise felony", "take gets nuclear"],
+    "dislike": ["worst", "garbage", "trash", "awful", "franchise felony", "take gets nuclear"],
+    "disliked": ["worst", "garbage", "trash", "awful", "franchise felony", "take gets nuclear"],
+    "despise": ["worst", "garbage", "trash", "awful", "franchise felony", "take gets nuclear"],
+    "loathe": ["worst", "garbage", "trash", "awful", "franchise felony", "take gets nuclear"],
     "bad": ["worst", "garbage", "trash", "terrible", "franchise felony", "take gets nuclear"],
     "love": ["best", "favorite", "amazing", "love letter"],
     "loved": ["best", "favorite", "amazing", "love letter"],
     "like": ["favorite", "amazing", "love letter"],
     "liked": ["favorite", "amazing", "love letter"],
+    "praise": ["best", "favorite", "amazing", "love letter"],
+    "praised": ["best", "favorite", "amazing", "love letter"],
+    "enjoy": ["favorite", "amazing", "love letter"],
+    "enjoyed": ["favorite", "amazing", "love letter"],
     "topic": ["talk", "discuss", "mention", "chapter"],
     "talk": ["topic", "discuss", "mention"],
     "talked": ["topic", "discuss", "mention"],
@@ -137,22 +146,42 @@
     var q = normalize(query);
     var sourceExplicit = false;
     var source = "all";
-    if (includesAny(q, ["commentary", "watchalong", "watch along", "tape autopsy"])) {
+    if (includesAny(q, [
+      "commentary", "commentaries", "watchalong", "watchalongs", "watch along",
+      "watch alongs", "tape autopsy",
+    ])) {
       source = "commentary";
       sourceExplicit = true;
-    } else if (includesAny(q, ["livestream", "live stream", "stream", "recent show", "newest show"])) {
+    } else if (includesAny(q, [
+      "livestream", "live stream", "stream", "live show", "live episode",
+      "recent show", "newest show",
+    ])) {
       source = "livestream";
       sourceExplicit = true;
     }
 
-    var temporal = includesAny(q, ["earliest", "oldest", "first indexed", "first time"]) ? "earliest" :
-      includesAny(q, ["latest", "newest", "most recent", "last time", "today", "last night"]) ? "latest" :
+    var temporal = includesAny(q, [
+      "earliest", "oldest", "first indexed", "first time", "first livestream",
+      "first live stream", "first live show", "first commentary", "first watchalong",
+      "first upload", "first video",
+    ]) ? "earliest" :
+      includesAny(q, [
+        "latest", "newest", "most recent", "last time", "last livestream",
+        "last live stream", "last live show", "last commentary", "last watchalong",
+        "last upload", "last video", "today", "last night",
+      ]) ? "latest" :
         q.indexOf("recent") >= 0 ? "recent" : "all";
+    var viewSelector = includesAny(q, [
+      "most viewed", "most watched", "most views", "highest views", "top by views",
+      "biggest audience", "largest audience", "biggest stream", "top stream",
+      "least viewed", "fewest views", "lowest views",
+    ]);
     var popularity = includesAny(q, [
-      "popular", "most viewed", "most watched", "biggest stream", "top stream", "foundational",
+      "popular", "most viewed", "most watched", "most views", "highest views",
+      "biggest audience", "largest audience", "biggest stream", "top stream", "foundational",
     ]) ? "popular" : "all";
-    var originRequest = includesAny(q, [
-      "origin", "originate", "started", "start of", "began", "debut", "first ever",
+    var originRequest = containsNormalizedPhrase(q, "origin") || includesAny(q, [
+      "originate", "started", "start of", "began", "debut", "first ever",
       "first time", "earliest ever", "invented", "bit start", "bit begin",
     ]) || (
       includesAny(q, ["earliest", "first"]) &&
@@ -169,15 +198,42 @@
     );
     var neutralOpinion = includesAny(q, [
       "think about", "thoughts about", "thoughts on", "opinion about", "opinion of",
-      "opinion on", "take about", "take on", "feel about", "feel on",
+      "opinion on", "take about", "take on", "feel about", "feel on", "make of",
     ]);
+    var negativeExistence = includesAny(q, [
+      "never cover", "never covered", "never discuss", "never discussed",
+      "never talk about", "never talked about", "never mention", "never mentioned",
+      "did not cover", "didnt cover", "did not discuss", "didnt discuss",
+      "did not mention", "didnt mention", "have not covered", "havent covered",
+      "has not covered", "hasnt covered",
+    ]);
+    var coverageLanguage = includesAny(q, [
+      "cover", "covered", "discuss", "discussed", "talk about", "talked about",
+      "mention", "mentioned", "indexed for", "anything indexed", "do you have",
+      "is there",
+    ]);
+    var existenceRequest = negativeExistence || (
+      coverageLanguage && (
+        containsNormalizedPhrase(q, "ever") ||
+        beginsWithAny(q, ["did", "do", "does", "have", "has", "is", "are", "was", "were", "prove"])
+      )
+    );
 
     var intent = "discovery";
     if (trajectory) intent = "trajectory";
     else if (includesAny(q, ["highest", "lowest", "rank", "ranking", "most popular", "most unhinged",
-      "most viewed", "most watched", "biggest stream", "top stream", "foundational"])) intent = "ranking";
-    else if (includesAny(q, ["hate", "hated", "worst", "bad", "sucks", "trash", "garbage", "criticize", "criticized"])) intent = "negative";
-    else if (includesAny(q, ["love", "loved", "best", "favorite", "amazing", "positive about", "liked"])) intent = "positive";
+      "least unhinged", "most viewed", "most watched", "most views", "least viewed",
+      "fewest views", "biggest audience", "largest audience", "biggest stream",
+      "top stream", "foundational"]) || viewSelector) intent = "ranking";
+    else if (includesAny(q, [
+      "hate", "hated", "worst", "bad", "sucks", "trash", "garbage", "criticize",
+      "criticized", "dislike", "disliked", "despise", "despised", "loathe",
+      "loathed", "didnt like", "did not like", "couldnt stand",
+    ])) intent = "negative";
+    else if (includesAny(q, [
+      "love", "loved", "best", "favorite", "amazing", "positive about", "liked",
+      "praise", "praised", "enjoy", "enjoyed",
+    ])) intent = "positive";
     else if (neutralOpinion) intent = "opinion";
     else if (includesAny(q, ["funny", "funniest", "laugh", "deranged", "wild", "crazy", "fucked", "soundbyte"])) intent = "comedy";
     else if (includesAny(q, ["theory", "predict", "prediction", "called it"])) intent = "theory";
@@ -188,31 +244,58 @@
     var namedHostAttribution = includesAny(q, [
       "what did mike", "what does mike", "mike say", "mikes take", "according to mike",
       "what did j say", "what does j say", "j said", "js take", "according to j",
-      "show me j doing", "show j doing",
+      "show me j doing", "show j doing", "was that mike", "was this mike",
+      "was that j", "was this j", "is that mike", "is this mike", "is that j", "is this j",
     ]) || (
       /(?:^| )(?:mike|mikes|j|js)(?: |$)/.test(q) &&
-      includesAny(q, ["doing", "favorite", "hate", "love", "opinion", "say", "said", "take", "think", "thought"]) &&
+      includesAny(q, [
+        "create", "created", "doing", "favorite", "hate", "invent", "invented",
+        "love", "opinion", "owns", "perform", "performed", "portray", "portrayed",
+        "say", "said", "take", "think", "thought", "voice", "voiced",
+      ]) &&
       q.indexOf("mike myers") < 0
     );
-    var questionType = beginsWithAny(q, ["who", "which host", "which one of them"]) || namedHostAttribution ? "speaker" :
+    var anonymousSpeakerAttribution = includesAny(q, [
+      "who said", "who performed", "who was performing", "who portrays", "who portrayed",
+      "who voiced", "who created", "who invented", "who owns", "who came up with",
+      "which host", "which one of them", "mike or j", "j or mike",
+    ]);
+    var questionType = beginsWithAny(q, ["who", "which host", "which one of them"]) ||
+      namedHostAttribution || anonymousSpeakerAttribution ? "speaker" :
       beginsWithAny(q, ["when"]) ? "when" :
         beginsWithAny(q, ["where"]) ? "where" :
           beginsWithAny(q, ["which"]) ? "which" :
             beginsWithAny(q, ["how many", "how often"]) ? "count" :
-              beginsWithAny(q, ["did", "do", "does", "is", "are", "was", "were"]) ? "yes-no" :
+              beginsWithAny(q, ["did", "do", "does", "have", "has", "is", "are", "was", "were"]) ? "yes-no" :
                 beginsWithAny(q, ["what", "how"]) ? "what" : "discovery";
 
     var liveHeatRequest = source === "livestream" && includesAny(q, [
       "chaos", "chaotic", "highest heat", "lowest heat", "hottest stream",
       "unhinged index", "unhinged score", "most unhinged", "least unhinged",
     ]);
+    var unhingedRequest = includesAny(q, [
+      "unhinged index", "unhinged score", "most unhinged", "least unhinged",
+    ]);
+    var mentionsRequest = includesAny(q, [
+      "most discussed", "most mentioned", "mentions", "how often",
+    ]);
+    var heatRequest = includesAny(q, ["hottest", "highest heat", "most chaotic"]);
+    var viewMetricRequest = viewSelector || containsNormalizedPhrase(q, "views");
     var metric = liveHeatRequest ? "live-heat" :
-      includesAny(q, ["unhinged index", "unhinged score", "most unhinged", "least unhinged"]) ? "unhinged" :
-      includesAny(q, ["most viewed", "most watched", "popular", "views"]) ? "views" :
-        includesAny(q, ["most discussed", "most mentioned", "mentions", "how often"]) ? "mentions" :
-          includesAny(q, ["hottest", "highest heat", "most chaotic"]) ? "heat" :
+      unhingedRequest ? "unhinged" :
+      viewMetricRequest || containsNormalizedPhrase(q, "popular") ? "views" :
+        mentionsRequest ? "mentions" :
+          heatRequest ? "heat" :
             temporal !== "all" ? "date" : "relevance";
     var direction = includesAny(q, ["lowest", "least", "earliest", "oldest"]) ? "ascending" : "descending";
+    var performanceRequested = includesAny(q, [
+      "performance", "performed", "performing", "impression", "impersonation",
+      "in character", "portrays", "portrayed", "portrayal", "voiced", "voicing",
+      "doing loomis", "doing dr loomis", "doing doctor loomis", "did loomis",
+      "do loomis", "does loomis", "doing challis", "doing dr challis",
+      "doing doctor challis", "did challis", "do challis", "does challis",
+      "doing slenderman", "doing slender man", "doing corey feldman",
+    ]);
 
     return {
       name: intent,
@@ -223,16 +306,14 @@
       popularity: popularity,
       popularityExplicit: popularity !== "all",
       questionType: questionType,
-      refusesSpeakerGuess: questionType === "speaker" || includesAny(q, ["who said", "which host said", "mike or j"]),
+      refusesSpeakerGuess: questionType === "speaker",
       originRequest: originRequest,
       trajectory: trajectory,
-      performanceRequested: includesAny(q, [
-        "performance", "impression", "impersonation", "in character", "portrays", "portrayal",
-        "doing loomis", "doing dr loomis", "doing doctor loomis", "doing challis",
-        "doing dr challis", "doing doctor challis", "doing slenderman", "doing slender man",
-        "doing corey feldman",
-      ]),
+      existenceRequest: existenceRequest,
+      negativeExistence: negativeExistence,
+      performanceRequested: performanceRequested,
       metric: metric,
+      metricExplicit: liveHeatRequest || unhingedRequest || viewMetricRequest || mentionsRequest || heatRequest,
       direction: direction,
       normalized: q,
       words: tokens(q),
@@ -347,27 +428,134 @@
     return 1;
   }
 
+  function containsNormalizedPhrase(query, phrase) {
+    return (" " + query + " ").indexOf(" " + phrase + " ") >= 0;
+  }
+
+  function editDistance(left, right) {
+    if (left === right) return 0;
+    if (!left.length) return right.length;
+    if (!right.length) return left.length;
+    var previous = [];
+    var current = [];
+    var index;
+    for (index = 0; index <= right.length; index += 1) previous[index] = index;
+    for (var leftIndex = 1; leftIndex <= left.length; leftIndex += 1) {
+      current = [leftIndex];
+      for (var rightIndex = 1; rightIndex <= right.length; rightIndex += 1) {
+        var substitution = previous[rightIndex - 1] +
+          (left.charAt(leftIndex - 1) === right.charAt(rightIndex - 1) ? 0 : 1);
+        current[rightIndex] = Math.min(
+          current[rightIndex - 1] + 1,
+          previous[rightIndex] + 1,
+          substitution
+        );
+      }
+      previous = current;
+    }
+    return previous[right.length];
+  }
+
+  function fuzzyTokenLimit(aliasWord, aliasWordCount) {
+    if (/^\d+$/.test(aliasWord)) return 0;
+    if (aliasWord.length >= 7) return 2;
+    if (aliasWord.length >= 4) return 1;
+    return aliasWordCount >= 3 && aliasWord.length >= 2 ? 1 : 0;
+  }
+
+  /*
+   * Typo recovery is deliberately narrow: the phrase must be contiguous, every
+   * token but one must be exact, and the remaining token gets only a small edit
+   * budget. Single-word topic aliases are excluded because fuzzy matching words
+   * such as "Saw" or "Horror" would create more false positives than value.
+   */
+  function fuzzyAliasDistance(queryWords, aliasWords, definition) {
+    if (!aliasWords.length || queryWords.length < aliasWords.length) return null;
+    if (definition.type === "topic" && aliasWords.length === 1) return null;
+    if (aliasWords.length === 1 && aliasWords[0].length < 5) return null;
+
+    var best = null;
+    for (var start = 0; start <= queryWords.length - aliasWords.length; start += 1) {
+      var changedWords = 0;
+      var totalDistance = 0;
+      var valid = true;
+      for (var offset = 0; offset < aliasWords.length; offset += 1) {
+        var aliasWord = aliasWords[offset];
+        var queryWord = queryWords[start + offset];
+        if (aliasWord === queryWord) continue;
+        if (aliasWords.length === 1 && QUERY_CUE_WORDS.indexOf(queryWord) >= 0) {
+          valid = false;
+          break;
+        }
+        if (aliasWords.length === 1 && aliasWord.charAt(0) !== queryWord.charAt(0)) {
+          valid = false;
+          break;
+        }
+        changedWords += 1;
+        if (changedWords > 1) {
+          valid = false;
+          break;
+        }
+        var distance = editDistance(aliasWord, queryWord);
+        var distanceLimit = fuzzyTokenLimit(aliasWord, aliasWords.length);
+        if (aliasWords.length === 1) distanceLimit = Math.min(1, distanceLimit);
+        if (distance > distanceLimit) {
+          valid = false;
+          break;
+        }
+        totalDistance += distance;
+      }
+      if (valid && changedWords === 1 && (best == null || totalDistance < best)) {
+        best = totalDistance;
+      }
+    }
+    return best;
+  }
+
   function identifyEntity(query, aliases, intent) {
     var q = normalize(query);
+    var queryWords = q.split(" ").filter(Boolean);
     var matches = [];
     aliases.forEach(function (definition) {
       definition.aliases.forEach(function (alias) {
         var normalizedAlias = normalize(alias);
-        if (normalizedAlias && q.indexOf(normalizedAlias) >= 0) {
+        if (!normalizedAlias) return;
+        var aliasWords = normalizedAlias.split(" ");
+        if (containsNormalizedPhrase(q, normalizedAlias)) {
           matches.push({
             definition: definition,
             alias: normalizedAlias,
             length: normalizedAlias.length,
+            tokenCount: aliasWords.length,
+            distance: 0,
+            priority: entityPriority(definition, intent),
+          });
+          return;
+        }
+        var fuzzyDistance = fuzzyAliasDistance(queryWords, aliasWords, definition);
+        if (fuzzyDistance != null) {
+          matches.push({
+            definition: definition,
+            alias: normalizedAlias,
+            length: normalizedAlias.length,
+            tokenCount: aliasWords.length,
+            distance: fuzzyDistance,
             priority: entityPriority(definition, intent),
           });
         }
       });
     });
     matches.sort(function (a, b) {
-      return b.length - a.length || b.priority - a.priority;
+      return b.tokenCount - a.tokenCount ||
+        a.distance - b.distance ||
+        b.length - a.length ||
+        b.priority - a.priority;
     });
     if (!matches.length) return null;
-    return Object.assign({}, matches[0].definition, { matchedAlias: matches[0].alias });
+    return Object.assign({}, matches[0].definition, {
+      matchedAlias: matches[0].alias,
+      matchMode: matches[0].distance ? "conservative-typo" : "exact",
+    });
   }
 
   function entityFromLabel(label, aliases, intent, preferredSource) {
@@ -621,7 +809,7 @@
   function termMatches(candidate, terms) {
     var text = candidateText(candidate);
     return terms.filter(function (term) {
-      return text.indexOf(normalize(term)) >= 0;
+      return containsNormalizedPhrase(text, normalize(term));
     });
   }
 
@@ -994,9 +1182,19 @@
       return "Archive boundary: the index contains explicit evaluative receipts for " + entityLabel +
         ", including " + location + "." + polarityNote + opinionCaveat;
     }
+    if (intent.existenceRequest) {
+      if (intent.negativeExistence) {
+        return "No — the current bounded index contains a defensible " + entityLabel +
+          " receipt at " + location +
+          ". That answers the archive-level “never” claim; it is not an exhaustive claim about every broadcast.";
+      }
+      return "Yes — the current bounded index contains a defensible " + entityLabel +
+        " receipt at " + location + ".";
+    }
     if (intent.metric === "views") {
+      var viewExtreme = intent.direction === "ascending" ? "least-viewed" : "most-viewed";
       return "By the captured official view snapshot, " + (top.sourceTitle || top.title) +
-        " is the most-viewed indexed " + sourceNoun(top.source) +
+        " is the " + viewExtreme + " indexed " + sourceNoun(top.source) +
         (entity ? " match for " + entityLabel : "") + " at " +
         Number(top.views || 0).toLocaleString("en-US") + " official views.";
     }
@@ -1148,7 +1346,8 @@
       inherited.source = previous.source;
       contextUsed.push("source");
     }
-    if (!inherited.temporalExplicit && !inherited.popularityExplicit && previousIntent.temporal !== "all") {
+    if (!inherited.temporalExplicit && !inherited.popularityExplicit &&
+      !inherited.metricExplicit && previousIntent.temporal !== "all") {
       inherited.temporal = previousIntent.temporal;
       inherited.metric = previousIntent.metric;
       inherited.direction = previousIntent.direction;

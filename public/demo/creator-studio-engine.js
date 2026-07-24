@@ -5,6 +5,7 @@
   var EDITORIAL_LABEL = "SUGGESTED EDITORIAL COPY — NOT AN ARCHIVAL QUOTE";
   var EXCERPT_LABEL = "ARCHIVAL CAPTION EXCERPT — VERIFY IN SOURCE BEFORE PUBLISHING";
   var BOUNDARY_LABEL = "EDITORIAL WINDOW — IN/OUT POINTS REQUIRE CONTEXT REVIEW";
+  var PUBLIC_EXCERPT_WORD_LIMIT = 16;
   var RISK_ORDER = { LOW: 1, MEDIUM: 2, HIGH: 3, HOLD: 4 };
   var CATEGORY_PRESETS = {
     "CHARACTER PERFORMANCE": {
@@ -78,6 +79,18 @@
 
   function clean(value) {
     return text(value).replace(/\s+/g, " ").trim();
+  }
+
+  function boundedExcerpt(value, maximumWords) {
+    var words = clean(value).split(/\s+/).filter(Boolean);
+    var limit = Math.max(1, Math.floor(number(maximumWords, PUBLIC_EXCERPT_WORD_LIMIT)));
+    var truncated = words.length > limit;
+    return {
+      text: truncated ? words.slice(0, limit).join(" ") + "…" : words.join(" "),
+      truncated: truncated,
+      originalWordCount: words.length,
+      publicWordLimit: limit
+    };
   }
 
   function normalized(value) {
@@ -1121,6 +1134,10 @@
   }
 
   function manifestClip(candidate, index) {
+    var excerpt = boundedExcerpt(
+      candidate.archivalExcerpt,
+      PUBLIC_EXCERPT_WORD_LIMIT
+    );
     return {
       order: index + 1,
       clipId: "clip:" + fingerprint(candidate.receiptId + "|" + candidate.editWindow.in + "|" + candidate.editWindow.out),
@@ -1137,7 +1154,10 @@
       suggestedOut: candidate.editWindow.out,
       suggestedDuration: candidate.editWindow.seconds,
       boundaryStatus: candidate.editWindow.status,
-      archivalExcerpt: candidate.archivalExcerpt,
+      archivalExcerpt: excerpt.text,
+      excerptTruncated: excerpt.truncated,
+      originalExcerptWordCount: excerpt.originalWordCount,
+      publicExcerptWordLimit: excerpt.publicWordLimit,
       excerptLabel: candidate.excerptLabel,
       category: candidate.category,
       topics: candidate.topics,
@@ -1195,6 +1215,7 @@
       }, 0),
       receiptIds: receiptIds,
       sourceIds: sourceIds,
+      publicExcerptWordLimit: PUBLIC_EXCERPT_WORD_LIMIT,
       clips: manifestClips,
       approvalGate: {
         status: holdCount ? "HOLD ITEMS PRESENT" : "HUMAN EDIT REVIEW REQUIRED",
@@ -1625,7 +1646,8 @@
     labels: Object.freeze({
       editorial: EDITORIAL_LABEL,
       archivalExcerpt: EXCERPT_LABEL,
-      editBoundary: BOUNDARY_LABEL
+      editBoundary: BOUNDARY_LABEL,
+      publicExcerptWordLimit: PUBLIC_EXCERPT_WORD_LIMIT
     })
   });
 })(typeof window !== "undefined" ? window : globalThis);

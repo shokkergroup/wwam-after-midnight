@@ -3,6 +3,43 @@
 This changelog records product and evidence-contract changes. It does not by
 itself indicate that a build has been deployed.
 
+## 0.5.1 — V5.1 accuracy and creator-operations pass — 2026-07-23
+
+### Added
+
+- A 157-query adversarial Ask WWAM benchmark spanning exact facts, aliases,
+  characters, chronology, selectors, absence, follow-ups, typos, ambiguity,
+  and unsupported-claim attempts.
+- Cold Open Factory with 117 deterministic 15/30/60/90-second storyboards,
+  gapless pacing slots, 163 receipt references across 67 sources, exact
+  edit-decision ledgers, and zero inferred speakers.
+- A deterministic Canon Integrity release audit that cross-checks source and
+  receipt IDs, timestamp bounds, speaker claims, evidence levels, graph and
+  lineage references, public excerpt policy, campaign ledgers, manifests, and
+  approval gates. The current fingerprinted report has zero hard errors.
+- A release-surface contract covering local assets, hash routes, accessibility
+  relationships, runtime element lookups, social metadata, payload budgets,
+  and documentation/version alignment.
+- A visible freshness ledger that distinguishes index snapshot date, newest
+  indexed source, and current/aging/refresh-due status.
+
+### Improved
+
+- Ask WWAM's adversarial pass rate rose from 114/157 (72.6%) to 157/157
+  (100%). Fixes cover boundary-safe subject matching, conservative typo
+  recovery, selector synonyms, yes/no presence questions, follow-up context,
+  and broader refusal of unsupported speaker/performance claims.
+- `ice cream` no longer collides with `Scream`, and short substrings no longer
+  earn topic evidence through unrelated words.
+- Creator Clip Lab and Cold Open public exports hard-cap archival fragments at
+  16 words with explicit truncation metadata while leaving longer raw captions
+  available only as internal audit warnings.
+- Mike Mode's commercial proof now exits directly into a working 30-second
+  Loomis cold-open storyboard and exact source ledger.
+- Source health copy now states exactly what the structural audit proves:
+  source URL/ID agreement and in-range indexed timestamps, not continuous
+  network availability.
+
 ## 0.5.0 — V5 product pass — 2026-07-23
 
 ### Added
@@ -83,7 +120,8 @@ itself indicate that a build has been deployed.
 
 - 74 unique sources; 71 healthy and 3 caption-limited.
 - 1,880,873 audited caption words across roughly 177 hours.
-- 872 bounded editorial receipts with 0 broken links and 0 invalid timestamps.
+- 872 bounded editorial receipts with 0 structurally invalid or
+  source-ID-mismatched URLs and 0 out-of-range indexed timestamps.
 - 847 machine-level receipts and 25 editor-level receipts.
 - 0 creator-certified receipts in the current public snapshot.
 - 25 curated character-performance receipts and 12 ordinary mentions
