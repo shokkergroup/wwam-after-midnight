@@ -26,9 +26,13 @@ test("the complete browser script chain exists in dependency order", () => {
     "showcase-engine.js",
     "lore-engine.js",
     "tape-trivia-engine.js",
+    "night-shift-engine.js",
     "creator-studio-engine.js",
     "cold-open-engine.js",
     "trust-engine.js",
+    "canon-integrity-engine.js",
+    "human-review-session-engine.js",
+    "pilot-builder-engine.js",
     "search-engine.js",
     "app.js",
   ];
@@ -46,9 +50,12 @@ test("every deep surface has a renderer and an isolated initialization stage", (
     "createFanEngines",
     "createCreatorEngines",
     "renderLore",
+    "renderNightShift",
     "renderTrivia",
     "renderClipLab",
     "renderCanon",
+    "renderHumanReviewSession",
+    "renderPilotBuilder",
   ].forEach((name) => assert.equal(functions.has(name), true, `${name} is not defined`));
 
   assert.match(app, /scheduleIdle\(createFanEngines,/);
@@ -68,6 +75,7 @@ test("new interactive surface hooks exist in both HTML and application wiring", 
     "triviaFranchise",
     "triviaStart",
     "triviaStage",
+    "nightShiftStage",
     "clipSearch",
     "clipRisk",
     "clipResults",
@@ -75,6 +83,7 @@ test("new interactive surface hooks exist in both HTML and application wiring", 
     "campaignDownload",
     "campaignClear",
     "canonStage",
+    "pilotBuilder",
     "evidenceBag",
   ];
   ids.forEach((id) => {
@@ -85,6 +94,48 @@ test("new interactive surface hooks exist in both HTML and application wiring", 
   assert.match(index, /id="canonTabs"/, "canonTabs is missing from index.html");
   assert.match(index, /data-canon-tab=/, "Canon Desk tab controls are missing from index.html");
   assert.match(app, /querySelectorAll\("\[data-canon-tab\]"\)/, "Canon Desk tabs are not wired in app.js");
+});
+
+test("V5.2 daily return, human review, and pilot proof are real wired systems", () => {
+  assert.match(index, /id="night-shift"/);
+  assert.match(index, /id="nightShiftStage"/);
+  assert.match(app, /WWAMNightShiftEngine\.create/);
+  assert.match(app, /nightShiftEngine\.createDaily/);
+  assert.match(app, /nightShiftEngine\.restoreProgress/);
+  assert.match(app, /nightShiftProgress\.completeCurrent/);
+  assert.match(app, /searchParams\.set\("nightShift"/);
+  assert.match(styles, /\.night-shift-section/);
+  assert.match(styles, /\.night-shift-grid/);
+
+  assert.match(index, /data-canon-tab="session"/);
+  assert.match(app, /WWAMHumanReviewSession\.create/);
+  assert.match(app, /WWAMHumanReviewSession\.restore/);
+  assert.match(app, /humanReviewSession\.recordDecision/);
+  assert.match(app, /CANON, SPEAKER, AND CREATOR CERTIFICATION REMAIN FALSE/);
+  assert.match(app, /reviewForm\.checkValidity/);
+  assert.match(app, /wwam-human-review-v52-quarantine/);
+  assert.match(app, /RECORDED IN THIS TAB ONLY/);
+  assert.match(app, /reviewAttestation/);
+  assert.match(styles, /\.review-session-grid/);
+
+  assert.match(index, /id="pilotBuilder"/);
+  assert.match(app, /WWAMCreatorPilotBuilder\.create/);
+  assert.match(app, /pilotBuilderEngine\.build/);
+  assert.match(app, /pilotBuilderEngine\.verify/);
+  assert.match(app, /exportMarkdown/);
+  assert.match(app, /CONSISTENCY CHECK PASSED/);
+  assert.doesNotMatch(app, /TAMPER CHECK PASSED/);
+  assert.match(styles, /\.pilot-builder/);
+});
+
+test("V5.2 mode and tab selections expose state and restore keyboard focus", () => {
+  assert.match(index, /role="tablist" aria-label="Canon Desk views"/);
+  assert.match(index, /role="tab" aria-selected="true"/);
+  assert.match(app, /setAttribute\("aria-selected"/);
+  assert.match(app, /data-night-mode=[\s\S]{0,120}aria-pressed=/);
+  assert.match(app, /data-pilot-goal=[\s\S]{0,120}aria-pressed=/);
+  assert.match(app, /activeHeading\.focus\(\)/);
+  assert.match(app, /selectedGoal\.focus\(\)/);
 });
 
 test("Clip Lab UI honors the engine risk contract and persists exact derived ledgers", () => {
@@ -126,8 +177,10 @@ test("Ask answers and Mike Mode proofs leave reproducible deep links", () => {
   assert.match(app, /searchParams\.set\("ask"/);
   assert.match(app, /params\.get\("ask"\)/);
   assert.match(app, /data-copy-ask/);
-  assert.match(app, /played\|portrays\?\|portrayed\|performs\?\|performed/);
-  assert.match(app, /played\\s\+by\|performed\\s\+by\|portrayed\\s\+by/);
+  assert.match(app, /WWAMSearchEngine\.create\([\s\S]{0,160}characterLore/);
+  assert.doesNotMatch(app, /applyOwnerMappedCharacterKnowledge/);
+  assert.match(search, /owner-mapped-character/);
+  assert.match(search, /character-performance/);
   assert.match(app, /location\.search \+ "#" \+ targetId/);
   assert.match(app, /if \(location\.hash === "#pitch"\)/);
 });

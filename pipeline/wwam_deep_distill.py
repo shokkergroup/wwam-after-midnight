@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import concurrent.futures
+import hashlib
 import html
 import json
 import math
@@ -18,6 +19,7 @@ import statistics
 import sys
 import urllib.request
 from collections import Counter, defaultdict
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -28,6 +30,35 @@ ROOT = Path(__file__).resolve().parents[1]
 CACHE = ROOT / "source-cache"
 PUBLIC = ROOT / "public" / "demo"
 EXISTING_CATALOG = PUBLIC / "catalog.js"
+
+
+def resolve_observed_at(value: str | None = None) -> str:
+    """Return an explicit timezone-aware observation time for a build."""
+    if value:
+        normalized = value.strip()
+        try:
+            parsed = datetime.fromisoformat(normalized.replace("Z", "+00:00"))
+        except ValueError as error:
+            raise ValueError("--observed-at must be an ISO-8601 timestamp") from error
+        if parsed.tzinfo is None:
+            raise ValueError("--observed-at must include a UTC offset or Z")
+    else:
+        parsed = datetime.now().astimezone()
+    return parsed.isoformat(timespec="seconds")
+
+
+def observed_date(observed_at: str) -> str:
+    return datetime.fromisoformat(observed_at.replace("Z", "+00:00")).date().isoformat()
+
+
+def fingerprint_ids(items: list[dict[str, Any]]) -> str:
+    """Fingerprint an ordered source/feed window without copying its metadata."""
+    payload = json.dumps(
+        [str(item.get("id") or "") for item in items],
+        ensure_ascii=False,
+        separators=(",", ":"),
+    )
+    return "sha256:" + hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 NEW_CANON = [
     ("2G8lpFaeIdw", "Scream", "Scream (1996)", 1),
@@ -206,35 +237,72 @@ def fetch_json(url: str) -> Any:
         return json.load(response)
 
 
-def extract_one(seed: dict[str, Any], refresh: bool) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+def extract_metadata(
+    seed: dict[str, Any],
+    refresh: bool,
+    require_live_status: bool = False,
+    observed_at: str | None = None,
+) -> dict[str, Any]:
     video_id = seed["id"]
     info_path = CACHE / "metadata" / f"{video_id}.json"
-    captions_path = CACHE / "captions" / f"{video_id}.json"
     if not refresh and info_path.exists():
         info = json.loads(info_path.read_text(encoding="utf-8"))
-    else:
-        options = {
-            "quiet": True,
-            "no_warnings": True,
-            "skip_download": True,
-            "extract_flat": False,
-            "socket_timeout": 45,
-        }
-        with YoutubeDL(options) as ydl:
-            raw = ydl.extract_info(seed["url"], download=False)
-        info = {
-            "id": raw.get("id"),
-            "title": raw.get("title"),
-            "upload_date": raw.get("upload_date"),
-            "duration": raw.get("duration"),
-            "view_count": raw.get("view_count"),
-            "channel": raw.get("channel"),
-            "channel_id": raw.get("channel_id"),
-            "thumbnail": raw.get("thumbnail"),
-            "caption_url": choose_caption_url(raw),
-        }
-        info_path.parent.mkdir(parents=True, exist_ok=True)
-        info_path.write_text(json.dumps(info, ensure_ascii=False), encoding="utf-8")
+        if not require_live_status or info.get("live_status"):
+            return info
+
+    observation = resolve_observed_at(observed_at)
+    options = {
+        "quiet": True,
+        "no_warnings": True,
+        "skip_download": True,
+        "extract_flat": False,
+        # Keep factual metadata even when an age gate withholds media formats.
+        "ignore_no_formats_error": True,
+        "socket_timeout": 45,
+        "extractor_args": {
+            "youtube": {
+                "player_client": ["web_safari"],
+            },
+        },
+    }
+    with YoutubeDL(options) as ydl:
+        raw = ydl.extract_info(seed["url"], download=False)
+    info = {
+        "id": raw.get("id"),
+        "title": raw.get("title"),
+        "upload_date": raw.get("upload_date"),
+        "duration": raw.get("duration"),
+        "view_count": raw.get("view_count"),
+        "channel": raw.get("channel"),
+        "channel_id": raw.get("channel_id"),
+        "thumbnail": raw.get("thumbnail"),
+        "caption_url": choose_caption_url(raw),
+        "age_limit": raw.get("age_limit"),
+        "availability": raw.get("availability"),
+        "live_status": raw.get("live_status"),
+        "observed_at": observation,
+    }
+    info_path.parent.mkdir(parents=True, exist_ok=True)
+    info_path.write_text(json.dumps(info, ensure_ascii=False), encoding="utf-8")
+    return info
+
+
+def extract_one(
+    seed: dict[str, Any],
+    refresh: bool,
+    *,
+    require_live_status: bool = False,
+    observed_at: str | None = None,
+    info: dict[str, Any] | None = None,
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    video_id = seed["id"]
+    captions_path = CACHE / "captions" / f"{video_id}.json"
+    info = info or extract_metadata(
+        seed,
+        refresh,
+        require_live_status=require_live_status,
+        observed_at=observed_at,
+    )
 
     if not refresh and captions_path.exists():
         payload = json.loads(captions_path.read_text(encoding="utf-8"))
@@ -438,6 +506,20 @@ def build_tape(seed: dict[str, Any], info: dict[str, Any], lines: list[dict[str,
         "transcript": bool(lines),
         "url": seed["url"],
     }
+    age_limit = info.get("age_limit")
+    if age_limit is None:
+        age_limit = seed.get("ageLimit")
+    availability = info.get("availability") or seed.get("availability")
+    live_status = info.get("live_status") or seed.get("liveStatus")
+    metadata_observed_at = info.get("observed_at") or seed.get("viewsObservedAt")
+    if age_limit is not None:
+        catalog_item["ageLimit"] = age_limit
+    if availability:
+        catalog_item["availability"] = availability
+    if live_status:
+        catalog_item["liveStatus"] = live_status
+    if metadata_observed_at:
+        catalog_item["viewsObservedAt"] = metadata_observed_at
     return catalog_item, distill
 
 
@@ -473,13 +555,26 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--refresh", action="store_true", help="Ignore local metadata/caption cache.")
     parser.add_argument("--workers", type=int, default=4)
+    parser.add_argument(
+        "--observed-at",
+        help="Timezone-aware ISO-8601 build observation time; defaults to the local runtime.",
+    )
     args = parser.parse_args()
+    observed_at = resolve_observed_at(args.observed_at)
 
     seeds = canon()
     print(f"Auditing {len(seeds)} bounded-canon watchalongs…", flush=True)
     extracted: dict[str, tuple[dict[str, Any], list[dict[str, Any]]]] = {}
     with concurrent.futures.ThreadPoolExecutor(max_workers=max(1, args.workers)) as pool:
-        futures = {pool.submit(extract_one, seed, args.refresh): seed for seed in seeds}
+        futures = {
+            pool.submit(
+                extract_one,
+                seed,
+                args.refresh,
+                observed_at=observed_at,
+            ): seed
+            for seed in seeds
+        }
         for future in concurrent.futures.as_completed(futures):
             seed = futures[future]
             try:
@@ -504,7 +599,14 @@ def main() -> int:
     franchise_counts = Counter(item["franchise"] for item in catalog)
     scores = [tape["unhinged"] for tape in tapes if tape["wordsAudited"]]
     deep = {
-        "generated": "2026-07-23",
+        "generated": observed_date(observed_at),
+        "observedAt": observed_at,
+        "provenance": {
+            "generator": "pipeline/wwam_deep_distill.py",
+            "observedAt": observed_at,
+            "sourceFingerprint": fingerprint_ids(seeds),
+            "sourceCount": len(seeds),
+        },
         "method": "Full available YouTube auto-caption pass; short excerpts scored by profanity, hostility, affection, prediction, kill-language, callbacks, and breakdown signals.",
         "scope": "Four bounded watchalong paths only. Reviews, news streams, and non-commentary uploads are excluded.",
         "meta": {

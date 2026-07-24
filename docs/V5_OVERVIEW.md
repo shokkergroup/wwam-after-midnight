@@ -25,7 +25,7 @@ The July 23, 2026 build covers:
 | Unique sources | 74 |
 | Captioned / limited sources | 71 / 3 |
 | Audited caption words | 1,880,873 |
-| Approximate runtime | 177 hours |
+| Caption-audited / total known runtime | 171.19 / 177.45 hours |
 | Bounded, timestamped editorial receipts | 872 |
 
 The Popular 25 ranking is a time-stamped view-count snapshot, not a permanent
@@ -43,8 +43,9 @@ The build deliberately separates five evidence states:
 | Editor-verified performance event | A human checked the source, timestamp, and immediate performance context | Clip-level speaker identity when the caption track is not diarized |
 | Creator-certified claim | An authorized creator approved the specific claim | Anything beyond the scope of that approval |
 
-The current build contains 847 machine-level and 25 editor-level receipts, but
-no creator-certified receipts. “Zero out-of-range indexed timestamps” means
+The current build contains 847 machine-level receipts and 25 human-curated
+character-performance candidates, but no authenticated editor-verified or
+creator-certified receipts. “Zero out-of-range indexed timestamps” means
 the indexed source/time pairs sit within the known source duration. It does not
 establish continuous network availability or mean a human has certified all
 872 excerpts and the claims derived from them.
@@ -60,6 +61,10 @@ or creator verification exists.
 
 The archive becomes something to play:
 
+- Night Shift creates a deterministic daily three- to five-beat journey from
+  the newest indexed source through an older callback, playable proof,
+  grounded interaction, and closing payoff. A shared seed recreates the exact
+  route against the same archive fingerprint.
 - Tape Trivia builds deterministic five- or ten-round games from 872 playable
   receipts and never asks the player to identify an undiarized speaker.
 - The Evidence Bag saves moments on the device and exports a source manifest.
@@ -72,7 +77,10 @@ The archive becomes navigable memory:
 
 - Ask WWAM scopes questions to titles, topics, source lanes, popularity, and
   follow-up context, then explains its evidence boundary.
-- Lore Galaxy organizes 177 field-guide entries into 820 receipt-backed edges,
+- Character Intelligence V2 adds 25 curated performance receipts as a distinct
+  Ask lane. It separates recurring performer mapping, clip-level speaker
+  attribution, and true origin; only the first can use owner-supplied context.
+- Lore Galaxy organizes 177 field-guide entries into 821 receipt-backed edges,
   19 constellations, and 51 indexed lineages.
 - Take Time Machine and WWAM Court expose chronological signals and competing
   receipts without silently turning an inference into canon.
@@ -105,6 +113,15 @@ The archive becomes reviewable production inventory:
   which old source may be relevant again, and what a human should review next.
 - Trust / Canon Desk exposes source health, correction packets, character
   attribution firewalls, claim audits, and local contribution packets.
+- Human Review Session binds all 95 Trust findings and 362 Canon warnings into
+  a local, proof-chained queue. Positive routing requires a caller-attested
+  human role, notes, a human-entered timestamp, and registered playable
+  evidence; it has no canon or certification capability and does not
+  authenticate reviewer identity.
+- Creator Pilot Builder packages Archive Discovery, Compilation Workflow, Fan
+  + Member Experience, or Recurring Lore System into a draft with current
+  proof, acceptance checks, decisions requiring authenticated human approval,
+  and measurements that begin unobserved.
 
 No feature downloads media, publishes a clip, clears rights, or guarantees
 performance. It shortens discovery and editorial preparation; a creator or
@@ -115,7 +132,7 @@ editor still watches the surrounding tape and makes the decision.
 Mike Mode is the shortest route through the commercial argument:
 
 1. **The problem:** a large catalog has no native memory layer. Live proof:
-   play a source-grounded Trivia round.
+   run tonight's deterministic source-grounded Night Shift.
 2. **The receipt:** 74 sources become 872 exact jumps. Live proof: ask for the
    most-viewed foundational livestream.
 3. **The moat:** years of connected lore compound. Live proof: open the Dr.
@@ -153,9 +170,12 @@ The current Trust Desk reports:
 - 71 healthy sources and 3 visible caption gaps;
 - 0 structurally invalid or source-ID-mismatched URLs and 0 out-of-range
   indexed receipt timestamps;
-- 847 machine-level and 25 editor-level receipts;
+- 847 machine-level receipts and 25 human-curated character-performance
+  candidates awaiting an authenticated editorial decision;
 - 0 creator-certified receipts in the current public snapshot;
 - 95 open review candidates with deterministic correction packets;
+- 457 locally routable Human Review findings when the 362 Canon excerpt
+  warnings are included;
 - 25 curated character-performance receipts;
 - 12 ordinary character mentions kept out of the performance set;
 - 49 take timelines and 14 Court boards, with 0 currently passing the strict
@@ -180,7 +200,7 @@ consistently shortened at render time.
 | Static, source-linked fan experience | Official branding and approval |
 | Deterministic browser engines | Authenticated accounts and server storage |
 | Exact YouTube timestamp jumps | Licensed media editing or hosting |
-| Local Evidence Bag and JSON exports | Shared queues and editorial workflow |
+| Local Evidence Bag, Human Review Session, and JSON exports | Shared accounts, remote queues, and owner-controlled approval |
 | Machine/editor evidence labels | Creator certification and diarization |
 | Candidate edit plans | Human final cuts, rights, and platform review |
 | Current source snapshot | Scheduled ingest and monitoring |

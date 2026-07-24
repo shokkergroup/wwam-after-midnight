@@ -1,14 +1,38 @@
 (function (global) {
   "use strict";
 
-  var INTENT_TERMS = {
-    danger: ["danger", "evil", "michael", "myers", "kill", "hurt", "attack", "safe", "survive", "threat", "scary"],
-    advice: ["advice", "help", "should", "how do", "what do i do", "doctor", "sick", "feel", "fix"],
-    opinion: ["think", "opinion", "rate", "rank", "best", "worst", "better", "versus", "vs"],
-    career: ["cast", "casting", "role", "movie", "sequel", "band", "song", "soundtrack", "career"],
-    relationship: ["love", "date", "marry", "relationship", "girlfriend", "boyfriend", "romance"],
-    technology: ["ai", "internet", "youtube", "phone", "computer", "stream", "social media", "app"],
-    hypothetical: ["what if", "would you", "could you", "imagine", "suppose"],
+  /*
+   * Character questions have two useful dimensions:
+   *   - speechAct: what the fan is asking the character to do;
+   *   - domain: what the question is actually about.
+   *
+   * Keeping those separate prevents grammar such as "should I" from erasing a
+   * stronger subject signal such as YouTube, casting, dating, or Ghostface.
+   */
+  var SPEECH_ACT_TERMS = {
+    opinion: ["what do you think", "how do you feel", "your opinion", "rate", "rank", "best", "worst", "better", "versus", "vs"],
+    hypothetical: ["what if", "imagine", "suppose"],
+    advice: ["what should i do", "what should we do", "how do i", "how should i", "can you help", "give me advice", "advice", "help", "fix"],
+  };
+
+  var DOMAIN_TERMS = {
+    danger: [
+      "danger", "dangerous", "evil", "michael", "myers", "ghostface", "kill",
+      "kills", "killed", "killing", "hurt", "attack", "safe", "survive",
+      "threat", "scary", "murder",
+    ],
+    career: [
+      "cast", "casting", "role", "movie", "sequel", "band", "song",
+      "soundtrack", "career", "audition", "actor", "acting",
+    ],
+    relationship: [
+      "love", "date", "dates", "dating", "marry", "marriage", "relationship",
+      "girlfriend", "boyfriend", "romance",
+    ],
+    technology: [
+      "ai", "artificial intelligence", "internet", "youtube", "phone", "phones",
+      "computer", "stream", "streaming", "social media", "app", "algorithm",
+    ],
   };
 
   var RECEIPT_TERMS = {
@@ -21,6 +45,19 @@
     hypothetical: ["persona", "prompt", "impossible", "fictional"],
     open: ["performance", "character"],
   };
+
+  var QUESTION_STOP_WORDS = [
+    "about", "after", "again", "anything", "could", "does", "doing", "from",
+    "have", "into", "just", "latest", "please", "should", "something", "that",
+    "their", "there", "these", "they", "think", "this", "those", "want",
+    "what", "when", "where", "which", "who", "with", "would", "your",
+  ];
+
+  var FICTIONAL_NAMES = [
+    "michael myers", "freddy krueger", "jason voorhees", "billy loomis",
+    "ghostface", "batman", "superman", "dr loomis", "doctor loomis",
+    "dr challis", "doctor challis", "slenderman", "slender man",
+  ];
 
   var BANKS = {
     loomis: {
@@ -175,73 +212,220 @@
     return terms.some(function (term) { return value.indexOf(term) >= 0; });
   }
 
-  function detectIntent(question) {
+  function containsPhrase(value, phrase) {
+    return (" " + normalize(value) + " ").indexOf(" " + normalize(phrase) + " ") >= 0;
+  }
+
+  function termScore(value, terms) {
+    return terms.reduce(function (total, term) {
+      return total + (containsPhrase(value, term) ? Math.max(1, normalize(term).split(" ").length) : 0);
+    }, 0);
+  }
+
+  function rankedSignal(value, dictionary) {
+    return Object.keys(dictionary).map(function (name) {
+      return { name: name, score: termScore(value, dictionary[name]) };
+    }).sort(function (left, right) {
+      return right.score - left.score;
+    });
+  }
+
+  function analyzeIntent(question) {
     var q = normalize(question);
-    var ranked = Object.keys(INTENT_TERMS).map(function (intent) {
-      return {
-        intent: intent,
-        score: INTENT_TERMS[intent].reduce(function (total, term) {
-          return total + (q.indexOf(term) >= 0 ? Math.max(1, term.split(" ").length) : 0);
-        }, 0),
-      };
-    }).sort(function (a, b) { return b.score - a.score; });
-    return ranked[0] && ranked[0].score ? ranked[0].intent : "open";
+    var speech = rankedSignal(q, SPEECH_ACT_TERMS);
+    var domains = rankedSignal(q, DOMAIN_TERMS);
+    var speechAct = speech[0] && speech[0].score ? speech[0].name : "open";
+    var domain = domains[0] && domains[0].score ? domains[0].name : null;
+    var explicitDanger = termScore(q, [
+      "danger", "dangerous", "safe", "survive", "threat", "kill", "kills",
+      "killed", "killing", "hurt", "attack", "murder",
+    ]) > 0;
+    var intent = "open";
+
+    if (speechAct === "opinion") intent = "opinion";
+    else if (explicitDanger) intent = "danger";
+    else if (domain) intent = domain;
+    else if (speechAct !== "open") intent = speechAct;
+
+    return {
+      intent: intent,
+      speechAct: speechAct,
+      domain: domain,
+      scores: {
+        speechActs: speech,
+        domains: domains,
+      },
+    };
+  }
+
+  function detectIntent(question) {
+    return analyzeIntent(question).intent;
   }
 
   function extractSubject(question) {
     var subject = String(question || "").trim().replace(/[?!.]+$/g, "");
     subject = subject
       .replace(/^(hey|okay|ok|please)\s+/i, "")
+      .replace(/^and\s+/i, "")
       .replace(/^what\s+should\s+(we|i|you)\s+do\s+about\s+/i, "")
       .replace(/^how\s+should\s+(we|i|you)\s+(deal\s+with|handle|approach)\s+/i, "")
+      .replace(/^what\s+do\s+you\s+think\s+(?:about|of)\s+/i, "")
+      .replace(/^how\s+do\s+you\s+feel\s+about\s+/i, "")
+      .replace(/^(?:what|how)\s+about\s+/i, "")
+      .replace(/^who\s+(?:would\s+you\s+)?(?:cast|choose|pick)\s+(?:as|for|in)\s+/i, "")
+      .replace(/^who\s+wins?\s*[,:\-]?\s*/i, "")
+      .replace(/^(?:should\s+i|would\s+you|can\s+you)\s+/i, "")
+      .replace(/^how\s+do\s+i\s+/i, "")
       .replace(/^(what|how|why|where|when|who)\s+(do|does|did|would|could|should|is|are|was|were|can)\s+(you\s+)?/i, "")
       .replace(/^(do|does|did|would|could|should|can)\s+you\s+/i, "")
       .replace(/^(tell me|give me|i want to know)\s+(about\s+)?/i, "")
       .replace(/^(think|feel|say)\s+(about\s+)?/i, "")
+      .replace(/^of\s+/i, "")
       .trim();
     if (!subject) subject = "this entire situation";
     if (subject.length > 78) subject = subject.slice(0, 75).replace(/\s+\S*$/, "") + "…";
     return subject;
   }
 
+  function hasExplicitSubjectSwitch(question) {
+    var q = normalize(question);
+    if (/^(?:what|how) about (?!it\b|that\b|this\b|them\b|those\b)/.test(q)) return true;
+    if (/^and (?!if\b|then\b|why\b|tomorrow\b|today\b|later\b|now\b|what\b)/.test(q)) return true;
+    return false;
+  }
+
   function isFollowup(question) {
-    var words = normalize(question).split(" ").filter(Boolean);
-    return words.length <= 6 && includesAny(" " + normalize(question) + " ", [
-      " it ", " that ", " them ", " this ", " what about ", " how about ", " and if ", " and ",
-      " then ", " tomorrow ", " why ",
-    ]);
+    var q = normalize(question);
+    var words = q.split(" ").filter(Boolean);
+    if (words.length > 7 || hasExplicitSubjectSwitch(question)) return false;
+    return /^(?:why is that|why would it|why does it|why did it|what about (?:it|that|this|them|those)|how about (?:it|that|this|them|those)|and if\b|and then\b|and (?:tomorrow|today|later|now)\b|then\b|tomorrow\b)/.test(q) ||
+      /\b(?:it|that|this|them|those)\b/.test(q);
   }
 
   function profileId(profile) {
     return profile.id || normalize(profile.name).replace(/\s+/g, "-");
   }
 
-  function chooseReceipt(profile, intent, question) {
+  function validReceipt(receipt) {
+    return Boolean(receipt && receipt.id && receipt.sourceId && receipt.url &&
+      Number.isFinite(Number(receipt.t)) && Number(receipt.t) >= 0 &&
+      receipt.playback && Number.isFinite(Number(receipt.playback.start)) &&
+      Number.isFinite(Number(receipt.playback.end)) &&
+      Number(receipt.playback.end) > Number(receipt.playback.start) &&
+      receipt.provenance && receipt.provenance.timestampStatus);
+  }
+
+  function meaningfulQuestionTerms(question) {
+    return normalize(question).split(" ").filter(function (word) {
+      return word.length >= 4 && QUESTION_STOP_WORDS.indexOf(word) < 0;
+    });
+  }
+
+  function chooseReceipt(profile, intent, question, receipts) {
     var terms = RECEIPT_TERMS[intent] || RECEIPT_TERMS.open;
-    var candidates = (profile.soundbytes || []).map(function (receipt) {
+    var queryTerms = meaningfulQuestionTerms(question);
+    var candidates = receipts.map(function (receipt) {
       var blob = normalize([receipt.trigger, receipt.note, receipt.excerpt].join(" "));
-      var score = terms.reduce(function (total, term) {
-        return total + (blob.indexOf(term) >= 0 ? 1 : 0);
+      var reasons = [];
+      var intentScore = terms.reduce(function (total, term) {
+        if (!containsPhrase(blob, term)) return total;
+        reasons.push("intent:" + term);
+        return total + 2;
       }, 0);
-      return { receipt: receipt, score: score };
+      var queryScore = queryTerms.reduce(function (total, term) {
+        if (!containsPhrase(blob, term)) return total;
+        reasons.push("query:" + term);
+        return total + 5;
+      }, 0);
+      return { receipt: receipt, score: intentScore + queryScore, reasons: reasons };
     }).sort(function (a, b) { return b.score - a.score; });
     if (!candidates.length) return null;
     var bestScore = candidates[0].score;
     var pool = candidates.filter(function (candidate) { return candidate.score === bestScore; });
-    return pool[hash(question + profileId(profile) + intent) % pool.length].receipt;
+    return pool[hash(question + profileId(profile) + intent) % pool.length];
   }
 
-  function groundingMoves(profile, intent) {
-    var patterns = (profile.behaviorPatterns || []).map(function (pattern) { return pattern.label; });
+  function groundingPlan(profile, intent, receipt) {
+    var patterns = profile.behaviorPatterns || [];
     var moves = profile.responseKit && profile.responseKit.moves || [];
-    var offset = hash(profileId(profile) + intent) % Math.max(1, patterns.length || moves.length);
-    var combined = patterns.concat(moves);
+    var matchingPatterns = receipt ? patterns.filter(function (pattern) {
+      return (pattern.evidence || []).indexOf(receipt.id) >= 0;
+    }) : [];
+    var remainingPatterns = patterns.filter(function (pattern) {
+      return matchingPatterns.indexOf(pattern) < 0;
+    });
+    var offset = hash(profileId(profile) + intent) % Math.max(1, remainingPatterns.length || moves.length);
+    var rotatedPatterns = remainingPatterns.slice(offset).concat(remainingPatterns.slice(0, offset));
+    var combined = matchingPatterns.map(function (pattern) {
+      return { label: pattern.label, evidenceIds: pattern.evidence || [] };
+    }).concat(rotatedPatterns.map(function (pattern) {
+      return { label: pattern.label, evidenceIds: pattern.evidence || [] };
+    })).concat(moves.map(function (move) {
+      return { label: move, evidenceIds: [] };
+    }));
     var selected = [];
+    var evidenceRecipe = {};
     for (var index = 0; index < combined.length && selected.length < 3; index += 1) {
-      var value = combined[(offset + index) % combined.length];
-      if (value && selected.indexOf(value) < 0) selected.push(value);
+      var item = combined[index];
+      if (item.label && selected.indexOf(item.label) < 0) {
+        selected.push(item.label);
+        evidenceRecipe[item.label] = item.evidenceIds.slice();
+      }
     }
-    return selected;
+    return { ingredients: selected, evidenceRecipe: evidenceRecipe };
+  }
+
+  function detectSafetyBoundary(question) {
+    var raw = String(question || "");
+    var q = normalize(raw);
+    if (includesAny(" " + q + " ", [
+      " chest pain ", " heart attack ", " signs of stroke ", " having a stroke ",
+      " overdose ", " overdosed ", " severe bleeding ", " cant breathe ",
+      " cannot breathe ", " trouble breathing ",
+    ])) {
+      return {
+        type: "urgent-medical",
+        message: "This needs real-world urgent medical help, not a character riff. Contact local emergency services or a qualified clinician now.",
+      };
+    }
+    if (includesAny(" " + q + " ", [
+      " kill myself ", " hurt myself ", " want to die ", " end my life ",
+      " suicidal ", " suicide plan ",
+    ])) {
+      return {
+        type: "self-harm",
+        message: "I can't turn a self-harm statement into a comedy riff. Please contact local emergency services or a trusted person who can stay with you right now.",
+      };
+    }
+    if (/(?:^| )(?:how (?:do|can|should) i|i (?:plan|want|am going) to) (?:kill|hurt|attack|murder)(?: |$)/.test(q)) {
+      return {
+        type: "violent-intent",
+        message: "I can't help turn real-world violent intent into instructions or entertainment.",
+      };
+    }
+
+    var allegation = /\b(?:murderer|rapist|pedophile|molester|criminal|steal|stole|sabotage|sabotaged|abuse|abused|assault|assaulted)\b/i;
+    if (allegation.test(raw)) {
+      var fictionalPremise = FICTIONAL_NAMES.some(function (name) {
+        return containsPhrase(q, name);
+      });
+      var nameScan = raw;
+      FICTIONAL_NAMES.forEach(function (name) {
+        var pattern = new RegExp("\\b" + name.replace(/\s+/g, "\\s+") + "\\b", "ig");
+        nameScan = nameScan.replace(pattern, " ");
+      });
+      nameScan = nameScan.replace(/^\s*(?:say|tell|claim|prove|write|pretend|did|does|is|was|are|were)\s+/i, "");
+      var names = nameScan.match(/\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2}\b/g) || [];
+      var hasRealName = names.length > 0;
+      var allegationInjection = /^(?:say|tell|claim|prove|write|pretend)\b/i.test(raw.trim());
+      if (hasRealName || (allegationInjection && !fictionalPremise)) {
+        return {
+          type: "real-person-allegation",
+          message: "I can't generate or amplify an unverified allegation about a real person. Keep the premise fictional or ask about an archived, sourced receipt.",
+        };
+      }
+    }
+    return null;
   }
 
   function fill(template, subject) {
@@ -260,19 +444,48 @@
         if (!profile || !profile.askEnabled) {
           return {
             ok: false,
+            status: profile ? "locked-character" : "unknown-character",
             error: "That character remains locked until the archive has enough curated performance receipts.",
           };
         }
         var cleaned = String(question || "").trim();
         if (cleaned.length < 2) return { ok: false, error: "Ask a complete question." };
-        var intent = detectIntent(cleaned);
+        var safetyBoundary = detectSafetyBoundary(cleaned);
+        if (safetyBoundary) {
+          return {
+            ok: false,
+            safety: true,
+            status: "safety-boundary",
+            safetyBoundary: safetyBoundary.type,
+            error: safetyBoundary.message,
+          };
+        }
+        var bank = BANKS[characterId];
+        if (!bank) {
+          return {
+            ok: false,
+            status: "unsupported-character",
+            error: "This character has no reviewed response bank, so the engine will not borrow another character's voice.",
+          };
+        }
+        var receipts = (profile.soundbytes || []).filter(validReceipt);
+        if (!receipts.length) {
+          return {
+            ok: false,
+            status: "insufficient-grounding",
+            error: "This character has no timestamp-validated performance receipts available for a grounded riff.",
+          };
+        }
+        var analysis = analyzeIntent(cleaned);
+        var intent = analysis.intent;
         var continuedFrom = Boolean(previous && previous.characterId === characterId &&
           previous.subject && isFollowup(cleaned));
         var subject = continuedFrom ? previous.subject : extractSubject(cleaned);
-        var bank = BANKS[characterId] || BANKS.loomis;
         var choices = bank[intent] || bank.open;
         var text = fill(choices[hash(cleaned + characterId + intent) % choices.length], subject);
-        var receipt = chooseReceipt(profile, intent, cleaned);
+        var receiptMatch = chooseReceipt(profile, intent, cleaned, receipts);
+        var receipt = receiptMatch && receiptMatch.receipt;
+        var grounding = groundingPlan(profile, intent, receipt);
         return {
           ok: true,
           characterId: characterId,
@@ -281,17 +494,25 @@
           question: cleaned,
           subject: subject,
           intent: intent,
+          speechAct: analysis.speechAct,
+          domain: analysis.domain,
           continuedFrom: continuedFrom,
           text: text,
-          ingredients: groundingMoves(profile, intent),
+          ingredients: grounding.ingredients,
+          evidenceRecipe: grounding.evidenceRecipe,
           receipt: receipt,
+          receiptMatch: receiptMatch ? {
+            score: receiptMatch.score,
+            reasons: receiptMatch.reasons,
+          } : null,
           readiness: {
-            verifiedSoundbytes: (profile.soundbytes || []).length,
-            timestampValidatedReceipts: (profile.soundbytes || []).length,
+            verifiedSoundbytes: receipts.length,
+            timestampValidatedReceipts: receipts.length,
             clipSpeakersDiarized: false,
-            confidence: Math.min(98, 68 + (profile.soundbytes || []).length * 4),
+            confidence: Math.min(98, 68 + receipts.length * 4),
             basis: "Owner-supplied recurring-character mapping plus timestamp-validated curated receipts; clip speakers are not diarized.",
           },
+          guardrailLabel: lore.guardrails && lore.guardrails.requiredLabel || null,
           disclaimer: "FAN-MADE GENERATED RIFF — NOT AN ARCHIVAL QUOTE OR THE HOST SPEAKING",
         };
       },
@@ -302,7 +523,9 @@
 
   global.WWAMCharacterEngine = {
     create: create,
+    analyzeIntent: analyzeIntent,
     detectIntent: detectIntent,
+    detectSafetyBoundary: detectSafetyBoundary,
     extractSubject: extractSubject,
   };
 })(window);

@@ -24,7 +24,6 @@ import statistics
 import sys
 import time
 from collections import Counter, defaultdict
-from datetime import date
 from pathlib import Path
 from typing import Any
 
@@ -37,8 +36,11 @@ from wwam_deep_distill import (
     choose_caption_url,
     clean_text,
     fetch_json,
+    fingerprint_ids,
     js_assignment,
+    observed_date,
     parse_json3,
+    resolve_observed_at,
 )
 
 
@@ -46,6 +48,7 @@ STREAMS_URL = "https://www.youtube.com/@WeWatchedAMovie/streams"
 FRESH_PATH = PUBLIC / "livestream-distill.js"
 CATALOG_PATH = PUBLIC / "catalog.js"
 OUTPUT_PATH = PUBLIC / "popular-live-distill.js"
+COMPLETED_LIVE_STATUSES = frozenset({"was_live"})
 
 # A topic is a navigational lane, not a claim about the hosts' opinion.
 # The broad editorial lanes near the bottom ensure generic movie-news streams
@@ -228,11 +231,22 @@ def metadata_path(video_id: str) -> Path:
     return CACHE / "metadata" / f"{video_id}.json"
 
 
-def fetch_metadata(seed: dict[str, Any], refresh: bool) -> dict[str, Any]:
+def fetch_metadata(
+    seed: dict[str, Any],
+    refresh: bool,
+    observed_at: str | None = None,
+) -> dict[str, Any]:
     path = metadata_path(seed["id"])
     if not refresh and path.exists():
-        return json.loads(path.read_text(encoding="utf-8"))
+        cached = json.loads(path.read_text(encoding="utf-8"))
+        if cached.get("observed_at") and cached.get("live_status"):
+            return cached
+        raise RuntimeError(
+            f"{seed['id']} uses a legacy metadata cache without observation/live-status "
+            "provenance; rerun with --refresh-ranking"
+        )
     last_error: Exception | None = None
+    observation = resolve_observed_at(observed_at)
     for attempt in range(3):
         try:
             with YoutubeDL(
@@ -264,6 +278,10 @@ def fetch_metadata(seed: dict[str, Any], refresh: bool) -> dict[str, Any]:
                 "channel_id": raw.get("channel_id"),
                 "thumbnail": raw.get("thumbnail"),
                 "caption_url": choose_caption_url(raw),
+                "age_limit": raw.get("age_limit"),
+                "availability": raw.get("availability"),
+                "live_status": raw.get("live_status"),
+                "observed_at": observation,
             }
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(json.dumps(info, ensure_ascii=False), encoding="utf-8")
@@ -277,9 +295,11 @@ def fetch_metadata(seed: dict[str, Any], refresh: bool) -> dict[str, Any]:
 def extract_selected(
     seed: dict[str, Any],
     refresh: bool,
+    observed_at: str | None = None,
+    info: dict[str, Any] | None = None,
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     """Fetch one chosen stream without requiring a playable media format."""
-    info = fetch_metadata(seed, refresh)
+    info = info or fetch_metadata(seed, refresh, observed_at)
     captions_path = CACHE / "captions" / f"{seed['id']}.json"
     if not refresh and captions_path.exists():
         payload = json.loads(captions_path.read_text(encoding="utf-8"))
@@ -297,14 +317,21 @@ def rank_archive(
     excluded: set[str],
     refresh: bool,
     workers: int,
-) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    observed_at: str,
+) -> tuple[
+    list[dict[str, Any]],
+    list[dict[str, Any]],
+    list[dict[str, Any]],
+    dict[str, Any],
+    int,
+]:
     metadata: dict[str, dict[str, Any]] = {}
     failures: list[dict[str, Any]] = []
     completed = 0
     lockstep = max(1, workers)
     with concurrent.futures.ThreadPoolExecutor(max_workers=lockstep) as pool:
         futures = {
-            pool.submit(fetch_metadata, seed, refresh): seed
+            pool.submit(fetch_metadata, seed, refresh, observed_at): seed
             for seed in entries
         }
         for future in concurrent.futures.as_completed(futures):
@@ -322,9 +349,18 @@ def rank_archive(
                 )
 
     eligible = []
+    incomplete = []
     for seed in entries:
         info = metadata.get(seed["id"])
         if seed["id"] in excluded or not info or info.get("view_count") is None:
+            continue
+        if info.get("live_status") not in COMPLETED_LIVE_STATUSES:
+            incomplete.append(
+                {
+                    "id": seed["id"],
+                    "liveStatus": info.get("live_status") or "unavailable",
+                }
+            )
             continue
         eligible.append({**seed, "_metadata": info})
     eligible.sort(
@@ -336,7 +372,29 @@ def rank_archive(
     )
     if len(eligible) < 25:
         raise RuntimeError(f"Only {len(eligible)} ranked streams remain after exclusions")
-    return eligible[:25], failures
+    last_selected = eligible[24]
+    first_excluded = eligible[25] if len(eligible) > 25 else None
+    cutoff = {
+        "lastSelected": {
+            "id": last_selected["id"],
+            "views": int(last_selected["_metadata"].get("view_count") or 0),
+        },
+        "firstExcluded": (
+            {
+                "id": first_excluded["id"],
+                "views": int(first_excluded["_metadata"].get("view_count") or 0),
+            }
+            if first_excluded
+            else None
+        ),
+        "viewMargin": (
+            int(last_selected["_metadata"].get("view_count") or 0)
+            - int(first_excluded["_metadata"].get("view_count") or 0)
+            if first_excluded
+            else None
+        ),
+    }
+    return eligible[:25], failures, incomplete, cutoff, len(eligible)
 
 
 def clip_words(text: str, limit: int) -> str:
@@ -739,6 +797,10 @@ def build_stream(
         "date": stream_date,
         "duration": info.get("duration"),
         "views": info.get("view_count"),
+        "viewsObservedAt": info.get("observed_at"),
+        "ageLimit": info.get("age_limit"),
+        "availability": info.get("availability"),
+        "liveStatus": info.get("live_status"),
         "thumbnail": f"https://i.ytimg.com/vi/{seed['id']}/maxresdefault.jpg",
         "url": seed["url"],
         "captioned": captioned,
@@ -861,6 +923,18 @@ def validate_payload(payload: dict[str, Any], excluded: set[str], archive_count:
     assert meta["viewsAtSnapshot"] == sum(stream["views"] or 0 for stream in streams)
     assert meta["topicLanes"] == sum(len(stream["topics"]) for stream in streams)
     assert meta["moments"] == sum(len(stream["moments"]) for stream in streams)
+    if payload.get("provenance"):
+        provenance = payload["provenance"]
+        selection = payload["selection"]
+        assert provenance["observedAt"] == payload["observedAt"]
+        assert selection["observedAt"] == payload["observedAt"]
+        assert selection["feedFingerprint"] == provenance["feedFingerprint"]
+        assert str(provenance["feedFingerprint"]).startswith("sha256:")
+        assert selection["cutoff"]["lastSelected"]["id"] == streams[-1]["id"]
+        assert all(
+            stream["liveStatus"] in COMPLETED_LIVE_STATUSES
+            for stream in streams
+        )
 
 
 def load_public_payload() -> dict[str, Any]:
@@ -888,6 +962,10 @@ def main() -> int:
         help="Validate the existing public artifact without network access or regeneration.",
     )
     parser.add_argument("--workers", type=int, default=8)
+    parser.add_argument(
+        "--observed-at",
+        help="Timezone-aware ISO-8601 build observation time; defaults to the local runtime.",
+    )
     args = parser.parse_args()
 
     fresh = fresh_ids()
@@ -903,17 +981,19 @@ def main() -> int:
         )
         return 0
 
+    observed_at = resolve_observed_at(args.observed_at)
     archive = discover_archive()
     print(
         f"Official archive: {len(archive)} streams; excluding Fresh 10 plus "
         f"{len(catalog)} commentary sources and ranking by views.",
         flush=True,
     )
-    selected, failures = rank_archive(
+    selected, failures, incomplete, cutoff, eligible_entries = rank_archive(
         archive,
         excluded,
         args.refresh_ranking,
         max(1, args.workers),
+        observed_at,
     )
     print("Popular 25 selection:", flush=True)
     for rank, seed in enumerate(selected, 1):
@@ -927,7 +1007,13 @@ def main() -> int:
     extracted: dict[str, tuple[dict[str, Any], list[dict[str, Any]]]] = {}
     with concurrent.futures.ThreadPoolExecutor(max_workers=max(1, min(args.workers, 6))) as pool:
         futures = {
-            pool.submit(extract_selected, seed, args.refresh_captions): seed
+            pool.submit(
+                extract_selected,
+                seed,
+                args.refresh_captions,
+                observed_at,
+                seed["_metadata"],
+            ): seed
             for seed in selected
         }
         for future in concurrent.futures.as_completed(futures):
@@ -951,9 +1037,18 @@ def main() -> int:
     normalize_indices(streams)
     topic_index = aggregate_topics(streams)
     character_index = aggregate_characters(streams)
-    generated = date.today().isoformat()
+    generated = observed_date(observed_at)
+    feed_fingerprint = fingerprint_ids(archive)
     payload = {
         "generated": generated,
+        "observedAt": observed_at,
+        "provenance": {
+            "generator": "pipeline/wwam_popular_live_distill.py",
+            "observedAt": observed_at,
+            "officialFeed": STREAMS_URL,
+            "feedFingerprint": feed_fingerprint,
+            "feedEntriesInspected": len(archive),
+        },
         "scope": (
             "The 25 most-viewed completed uploads in the official WWAM Streams "
             "archive after excluding the rolling Fresh 10 and every source already "
@@ -967,9 +1062,15 @@ def main() -> int:
         "selection": {
             "ranking": "YouTube view_count descending",
             "snapshot": generated,
+            "observedAt": observed_at,
+            "feedFingerprint": feed_fingerprint,
             "officialFeedEntries": len(archive),
+            "eligibleCompletedEntries": eligible_entries,
+            "completedLiveStatuses": sorted(COMPLETED_LIVE_STATUSES),
+            "cutoff": cutoff,
             "excludedFresh10": sorted(fresh),
             "excludedCommentaryCatalog": sorted(catalog),
+            "excludedIncomplete": incomplete,
             "metadataUnavailable": failures,
         },
         "meta": {

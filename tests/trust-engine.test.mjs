@@ -111,9 +111,11 @@ test("source health separates valid archives from transcript-limited sources", (
 
   const missingCommentary = trust.getSourceHealth("AzrcgoyE7C4");
   assert.equal(missingCommentary.captioned, false);
+  assert.equal(missingCommentary.date, "2018-03-22");
+  assert.equal(missingCommentary.duration, 7247);
   assert.ok(missingCommentary.issues.includes("CAPTIONS_UNAVAILABLE"));
-  assert.ok(missingCommentary.issues.includes("DATE_MISSING_OR_INVALID"));
-  assert.ok(missingCommentary.issues.includes("DURATION_MISSING"));
+  assert.ok(!missingCommentary.issues.includes("DATE_MISSING_OR_INVALID"));
+  assert.ok(!missingCommentary.issues.includes("DURATION_MISSING"));
   assert.equal(missingCommentary.archiveReady, false);
 
   const healthy = trust.getSourceHealth("6VXSBDZ-3WE");

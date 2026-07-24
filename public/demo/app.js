@@ -14,9 +14,15 @@
   var loreEngine;
   var tapeTriviaEngine;
   var triviaSession;
+  var nightShiftEngine;
+  var nightShiftJourney;
+  var nightShiftProgress;
   var clipLabEngine;
   var coldOpenFactory;
   var trustEngine;
+  var canonIntegrityReport;
+  var humanReviewSession;
+  var pilotBuilderEngine;
   var showcaseReceiptById = {};
   var showcaseSourceById = {};
   var clipItemById = {};
@@ -77,6 +83,13 @@
     triviaLength: 5,
     triviaFranchise: "",
     triviaSeed: 0,
+    nightMode: storageGet("wwam-night-mode") || "lore",
+    nightDate: "",
+    nightVariant: "daily",
+    nightVariantIndex: 0,
+    nightReveal: null,
+    nightNotice: "",
+    nightShareHandled: false,
     clipMode: "shorts",
     clipQuery: "",
     clipRisk: "",
@@ -84,6 +97,14 @@
     campaignIds: loadCampaignIds(),
     canonTab: "health",
     canonDraft: null,
+    reviewOrigin: "trust",
+    reviewStatus: "unreviewed",
+    reviewQuery: "",
+    reviewSelected: "",
+    reviewNotice: "",
+    reviewRestoreNotice: "",
+    reviewQuarantinedLedger: "",
+    pilotGoal: "archive-discovery",
     askContext: null,
     lastAskQuery: "",
     lastAskAnalysis: null,
@@ -106,7 +127,14 @@
     stream._lane = "popular";
     streamById[stream.id] = stream;
   });
-  askEngine = window.WWAMSearchEngine.create(catalog, deep, live, curated, popular);
+  askEngine = window.WWAMSearchEngine.create(
+    catalog,
+    deep,
+    live,
+    curated,
+    popular,
+    characterLore
+  );
   characterEngine = window.WWAMCharacterEngine && window.WWAMCharacterEngine.create ?
     window.WWAMCharacterEngine.create(characterLore) : null;
 
@@ -168,9 +196,150 @@
         difficulty: state.triviaDifficulty,
       }); });
     }
+    nightShiftEngine = window.WWAMNightShiftEngine && window.WWAMNightShiftEngine.create && showcaseEngine ?
+      attempt(function () {
+        return window.WWAMNightShiftEngine.create({
+          showcase: showcaseEngine,
+          lore: loreEngine,
+          trivia: tapeTriviaEngine,
+          today: localDateKey(),
+        });
+      }, "night shift engine initialization") : null;
+    if (nightShiftEngine) attempt(buildNightShift, "daily night shift initialization");
     state.fanEnginesSettled = true;
     attempt(renderLore);
     attempt(renderTrivia);
+    attempt(renderNightShift);
+    if (state.creatorEnginesSettled && !pilotBuilderEngine) attempt(createPilotBuilder);
+  }
+
+  function createPilotBuilder() {
+    if (pilotBuilderEngine) return pilotBuilderEngine;
+    if (!showcaseEngine || !loreEngine || !clipLabEngine || !coldOpenFactory || !trustEngine) {
+      return null;
+    }
+    canonIntegrityReport = window.WWAMCanonIntegrity && window.WWAMCanonIntegrity.audit ?
+      window.WWAMCanonIntegrity.audit({
+        catalog: catalog,
+        deep: deep,
+        live: live,
+        popular: popular,
+        characters: characterLore,
+        showcase: showcaseEngine,
+        lore: loreEngine,
+        clip: clipLabEngine,
+      }) : null;
+    if (!humanReviewSession && window.WWAMHumanReviewSession && window.WWAMHumanReviewSession.create &&
+      canonIntegrityReport) {
+      var reviewDate = /^\d{4}-\d{2}-\d{2}$/.test(showcaseEngine.snapshotDate) ?
+        showcaseEngine.snapshotDate : "2026-07-23";
+      var reviewInput = {
+        showcase: showcaseEngine,
+        trust: trustEngine,
+        canon: canonIntegrityReport,
+      };
+      var savedReview = storageGet("wwam-human-review-v52");
+      if (savedReview && window.WWAMHumanReviewSession.restore) {
+        try {
+          humanReviewSession = window.WWAMHumanReviewSession.restore(
+            JSON.parse(savedReview),
+            reviewInput
+          );
+        } catch (error) {
+          state.reviewQuarantinedLedger = savedReview;
+          storageSet("wwam-human-review-v52-quarantine:" + Date.now(), savedReview);
+          state.reviewRestoreNotice = "SAVED REVIEW HELD // " +
+            (error.code || "INCOMPATIBLE_OR_TAMPERED_LEDGER") +
+            " // THE ORIGINAL LEDGER WAS QUARANTINED FOR EXPORT; A NEW LOCAL SESSION WAS OPENED.";
+        }
+      }
+      if (!humanReviewSession) {
+        humanReviewSession = window.WWAMHumanReviewSession.create(Object.assign({}, reviewInput, {
+          session: {
+            id: "wwam-v52-accuracy-" + reviewDate,
+            name: "WWAM V5.2 Local Accuracy Pass",
+            createdAt: reviewDate + "T00:00:00-04:00",
+          },
+        }));
+      }
+    }
+    pilotBuilderEngine = window.WWAMCreatorPilotBuilder && window.WWAMCreatorPilotBuilder.create ?
+      window.WWAMCreatorPilotBuilder.create({
+        showcase: showcaseEngine,
+        lore: loreEngine,
+        clipLab: clipLabEngine,
+        coldOpen: coldOpenFactory,
+        trust: trustEngine,
+        integrityReport: canonIntegrityReport,
+      }) : null;
+    renderPilotBuilder();
+    return pilotBuilderEngine;
+  }
+
+  function localDateKey() {
+    var now = new Date();
+    return [
+      now.getFullYear(),
+      String(now.getMonth() + 1).padStart(2, "0"),
+      String(now.getDate()).padStart(2, "0"),
+    ].join("-");
+  }
+
+  function nightProgressKey(journey) {
+    return "wwam-night-shift:" + (journey && journey.id || "unknown");
+  }
+
+  function saveNightProgress() {
+    if (!nightShiftJourney || !nightShiftProgress) return false;
+    return storageSet(
+      nightProgressKey(nightShiftJourney),
+      JSON.stringify(nightShiftProgress.exportState())
+    );
+  }
+
+  function buildNightShift() {
+    if (!nightShiftEngine) return null;
+    var journey = null;
+    if (!state.nightShareHandled) {
+      state.nightShareHandled = true;
+      var sharedSeed = new URLSearchParams(location.search).get("nightShift");
+      if (sharedSeed) {
+        try {
+          journey = nightShiftEngine.createFromSeed(sharedSeed);
+          state.nightMode = journey.mode.id;
+          state.nightDate = journey.date;
+          state.nightVariant = journey.variant;
+          state.nightNotice = "SHARED SHIFT RECREATED AGAINST ARCHIVE " +
+            journey.snapshot.inputFingerprint;
+        } catch (error) {
+          state.nightNotice = "SHARED SHIFT HELD // " + (error.message || String(error));
+        }
+      }
+    }
+    if (!journey) {
+      if (!state.nightDate) state.nightDate = localDateKey();
+      journey = nightShiftEngine.createDaily({
+        date: state.nightDate,
+        mode: state.nightMode,
+        variant: state.nightVariant,
+      });
+    }
+    nightShiftJourney = journey;
+    state.nightDate = journey.date;
+    state.nightMode = journey.mode.id;
+    var saved = storageGet(nightProgressKey(journey));
+    nightShiftProgress = null;
+    if (saved) {
+      try {
+        nightShiftProgress = nightShiftEngine.restoreProgress(journey, JSON.parse(saved));
+      } catch {
+        storageSet(nightProgressKey(journey), "");
+      }
+    }
+    if (!nightShiftProgress) nightShiftProgress = nightShiftEngine.createProgress(journey);
+    state.nightReveal = null;
+    storageSet("wwam-night-mode", state.nightMode);
+    return journey;
   }
 
   function createCreatorEngines() {
@@ -196,7 +365,9 @@
       }); }, "trust engine initialization") : null;
     state.creatorEnginesSettled = true;
     attempt(renderClipLab);
+    attempt(createPilotBuilder, "creator pilot builder initialization");
     attempt(renderCanon);
+    attempt(renderPilotBuilder);
   }
 
   function scheduleIdle(work, timeout) {
@@ -228,7 +399,7 @@
       title: "THOUSANDS OF HOURS.<br>NO MEMORY LAYER.",
       body: "YouTube knows what a video is called. It does not know where a bit first surfaced in the indexed archive, where take signals diverged, which commentary drew the largest captured audience, or what exact second deserves to live again.",
       proof: "THE BACK CATALOG IS VALUABLE—BUT MOST OF ITS VALUE IS BURIED.",
-      action: { kind: "trivia", label: "PLAY A SOURCE-GROUNDED ROUND" },
+      action: { kind: "night", label: "RUN TONIGHT'S SOURCE-GROUNDED SHIFT" },
     },
     {
       number: "02",
@@ -1665,33 +1836,6 @@
     return result.subtitle || "Open the indexed source to inspect the evidence behind this result.";
   }
 
-  function applyOwnerMappedCharacterKnowledge(analysis, query) {
-    var asksPerformer = /\bwho\s+(did|does|plays?|played|portrays?|portrayed|performs?|performed)\b|\b(character\s+performer|played\s+by|performed\s+by|portrayed\s+by)\b/i.test(query);
-    if (!asksPerformer || analysis.entityType !== "character" || !analysis.entity) return;
-    var entity = String(analysis.entity).toLowerCase();
-    var profile = characterProfiles().filter(function (candidate) {
-      var names = [candidate.name, candidate.id].concat(candidate.aliases || []);
-      return names.some(function (name) {
-        var normalized = String(name || "").toLowerCase();
-        return normalized && (normalized.indexOf(entity) >= 0 || entity.indexOf(normalized) >= 0);
-      });
-    })[0];
-    var performer = profile && (profile.performedBy || profile.performer);
-    if (!performer || /unknown|recurring performance/i.test(performer)) return;
-    analysis.answer = "Project owner mapping identifies " + performer + " as the recurring performer behind " +
-      profile.name + ". That owner-supplied identity applies to the recurring character; the linked auto-caption receipt is not speaker-diarized and cannot prove who speaks in any individual clip.";
-    analysis.confidenceBasis = ["owner-supplied recurring-character mapping"].concat(analysis.confidenceBasis || []);
-    analysis.limitations = [
-      "Owner mapping and clip-level speaker diarization are separate evidence layers.",
-    ].concat(analysis.limitations || []);
-    analysis.recommendedSurface = {
-      id: "lore",
-      href: "#lore",
-      label: "Lore / Character Lab",
-      reason: "Open the curated performance lineage and its attribution basis.",
-    };
-  }
-
   function askShareUrl(query) {
     var url = new URL(location.href);
     url.searchParams.delete("tape");
@@ -1704,7 +1848,6 @@
 
   function ask(query, preservedAnalysis) {
     var analysis = preservedAnalysis || askEngine.ask(query, state.askContext);
-    if (!preservedAnalysis) applyOwnerMappedCharacterKnowledge(analysis, query);
     var results = analysis.results || [];
     var roleByKey = {};
     (analysis.evidenceChain || []).forEach(function (entry) {
@@ -1748,7 +1891,8 @@
         var role = roleByKey[result.key] || (index === 0 ? "DIRECT HIT" : result.label);
         var excerpt = askExcerpt(result);
         var isCaptionReceipt = String(result.evidenceType || "").indexOf("caption") >= 0 ||
-          result.evidenceLevel === "TIMESTAMPED CAPTION RECEIPT";
+          result.evidenceLevel === "TIMESTAMPED CAPTION RECEIPT" ||
+          result.kind === "character-performance";
         var excerptMarkup = isCaptionReceipt ?
           "“" + esc(displayQuote(excerpt)) + "”" :
           '<b class="derived-answer-copy">' + esc(displayQuote(excerpt)) + '</b>';
@@ -2508,7 +2652,7 @@
       '</h3><div><article><b>' + summary.score + '</b><span>POINTS</span></article><article><b>' +
       summary.accuracy + '%</b><span>ACCURACY</span></article><article><b>' + summary.correct +
       '/' + summary.total + '</b><span>SURVIVED</span></article><article><b>' + summary.bestStreak +
-      '</b><span>BEST STREAK</span></article></div><p>You were tested on indexed source metadata and bounded caption receipts. No round guessed a speaker or invented a quote.</p><footer><button data-trivia-export>DOWNLOAD SESSION RECEIPTS</button><button data-trivia-restart>PLAY ANOTHER NIGHT SHIFT →</button></footer></div>';
+      '</b><span>BEST STREAK</span></article></div><p>You were tested on indexed source metadata and bounded caption receipts. No round guessed a speaker or invented a quote.</p><footer><button data-trivia-export>DOWNLOAD SESSION RECEIPTS</button><button data-trivia-restart>PLAY ANOTHER TRIVIA RUN →</button></footer></div>';
   }
 
   function bindTrivia() {
@@ -2561,6 +2705,221 @@
     document.getElementById("triviaStage").innerHTML = sessionState.complete ?
       renderTriviaSummary(sessionState.summary) : renderTriviaRound(sessionState);
     bindTrivia();
+  }
+
+  function nightEvidenceCard(receipt, index) {
+    return '<article class="night-evidence-card"><header><span>RECEIPT ' +
+      String(index + 1).padStart(2, "0") + ' // ' +
+      esc(displayUiText(receipt.category || "INDEXED RECEIPT")) +
+      '</span><b>' + esc(receipt.timecode) + '</b></header><h4>' +
+      esc(displayUiText(receipt.sourceTitle)) + '</h4><blockquote>"' +
+      esc(displayQuote(receipt.excerpt)) + '"</blockquote><footer>' +
+      evidenceButton(receipt, "OPEN SOURCE CONTEXT") +
+      bagButton(receipt, "BAG IT") + '</footer><small>' +
+      esc(receipt.evidenceLevel) + ' // SPEAKER NOT DIARIZED // ' +
+      receipt.excerptWordCount + '/' + receipt.excerptWordLimit +
+      ' PUBLIC WORDS</small></article>';
+  }
+
+  function nightInteraction(beat) {
+    var interaction = beat.interaction;
+    if (!interaction) return "";
+    var round = interaction.round || {};
+    var choices = interaction.type === "trivia" ? round.choices : interaction.choices;
+    var prompt = interaction.type === "trivia" ? round.prompt : interaction.prompt;
+    var clue = round.clue || {};
+    var clueCopy = clue.excerpt || (clue.cards && clue.cards.map(function (card) {
+      return card.excerpt;
+    }).join(" // ")) || "";
+    return '<div class="night-choice"><div><span>' +
+      esc(interaction.type === "trivia" ? "TAPE TRIVIA HANDOFF" : "NO-CORRECT-ANSWER FAN CHOICE") +
+      '</span><h4>' + esc(displayUiText(prompt)) + '</h4>' +
+      (clueCopy ? '<blockquote>"' + esc(displayQuote(clueCopy)) + '"</blockquote>' : "") +
+      '</div><div class="night-choice-grid">' + (choices || []).map(function (choice, index) {
+        return '<button data-night-choice="' + esc(choice.id) + '"><b>' +
+          String.fromCharCode(65 + index) + '</b><span>' +
+          esc(displayUiText(choice.label)) + '<small>' +
+          esc(displayUiText(choice.detail || "")) + '</small></span></button>';
+      }).join("") + '</div><small>' +
+      (interaction.playableReceiptMayRevealAnswer ?
+        "HONOR SYSTEM // THE PLAYABLE RECEIPT MAY REVEAL THE ANSWER" :
+        "YOUR CHOICE RECORDS A PREFERENCE, NOT AN OBJECTIVE WINNER") +
+      ' // NO SPEAKER CLAIM</small></div>';
+  }
+
+  function nightRevealCard() {
+    var response = state.nightReveal;
+    if (!response || response.type === "acknowledged") return "";
+    var answer = response.answer && (response.answer.label || response.answer.detail);
+    return '<div class="night-reveal ' + (response.correct === false ? "wrong" : "") +
+      '"><span>' + (response.type === "trivia" ?
+        (response.correct ? "THE TAPE ACCEPTED YOUR ANSWER" : "THE ARCHIVE CAUGHT YOU") :
+        "PREFERENCE PINNED FOR THIS SHIFT") + '</span><h4>' +
+      esc(answer || response.selected && response.selected.label || "CHOICE RECORDED") +
+      '</h4><p>' + esc(response.explanation || "The next beat is unlocked.") +
+      '</p><small>REVEAL REMAINS SOURCE-GROUNDED // SPEAKER, ORIGIN, AND SYNTHETIC-QUOTE CLAIMS: 0</small></div>';
+  }
+
+  function renderNightShift(focusTarget) {
+    var stage = document.getElementById("nightShiftStage");
+    if (!stage) return;
+    if (!nightShiftEngine || !nightShiftJourney || !nightShiftProgress) {
+      stage.innerHTML = '<div class="night-shift-loading"><i></i><b>' +
+        (state.fanEnginesSettled ? "THE NIGHT SHIFT COULD NOT INITIALIZE." :
+          "BUILDING TONIGHT'S SOURCE-GROUNDED DESCENT...") + '</b></div>';
+      return;
+    }
+    var journey = nightShiftJourney;
+    var progress = nightShiftProgress.getState();
+    var active = nightShiftProgress.getCurrentBeat();
+    var metrics = nightShiftEngine.metrics;
+    var completed = new Set(progress.completedBeatIds);
+    var route = journey.beats.map(function (beat) {
+      var status = completed.has(beat.id) ? "done" :
+        active && active.id === beat.id ? "active" : "locked";
+      return '<li class="' + status + '"><i>' + String(beat.order).padStart(2, "0") +
+        '</i><div><span>' + esc(beat.kicker) + '</span><b>' +
+        esc(beat.title) + '</b><small>' +
+        esc(beat.roles.join(" + ").replace(/-/g, " ").toUpperCase()) +
+        '</small></div><em>' + (status === "done" ? "CLEARED" :
+          status === "active" ? "LIVE" : "LOCKED") + '</em></li>';
+    }).join("");
+    var activeCard = active ?
+      '<article class="night-active"><header><div><span>BEAT ' +
+      active.order + ' OF ' + journey.beats.length + ' // ' +
+      esc(active.kicker) + '</span><h3>' + esc(active.title) +
+      '</h3></div><b>' + esc(active.requiredAction.toUpperCase()) +
+      '</b></header><p>' + esc(displayUiText(active.copy)) +
+      '</p><div class="night-source-line"><span>' +
+      esc(active.source.type.toUpperCase() + " // " + active.source.date) +
+      '</span><b>' + esc(displayUiText(active.source.title)) +
+      '</b></div><div class="night-evidence-grid">' +
+      active.evidence.map(nightEvidenceCard).join("") + '</div>' +
+      nightInteraction(active) +
+      (!active.interaction ? '<button class="night-continue" id="nightContinue">CLEAR THIS BEAT -></button>' : "") +
+      '<footer>DERIVED NAVIGATION COPY // EVERY ARCHIVAL EXCERPT IS BOUNDED // ' +
+      'NO SPEAKER, TRUE-ORIGIN, OR GENERATED-DIALOGUE CLAIM</footer></article>' :
+      '<article class="night-complete"><span>SHIFT COMPLETE // ALL REQUIRED ROLES CLEARED</span>' +
+      '<h3>THE ARCHIVE LET YOU OUT.<br>FOR NOW.</h3><p>You crossed ' +
+      journey.metrics.uniqueReceipts + ' exact receipts from ' +
+      journey.metrics.uniqueSources + ' sources. The same seed will recreate this route against archive ' +
+      esc(journey.snapshot.inputFingerprint) + '.</p><div><button id="nightAnother">BUILD ANOTHER CUT</button>' +
+      '<a href="#trivia">KEEP GOING WITH TAPE TRIVIA -></a></div></article>';
+    stage.innerHTML =
+      '<div class="night-shift-top"><div><span>WWAM NIGHT SHIFT // ' +
+      esc(journey.status.toUpperCase()) + '</span><h3>' +
+      esc(journey.mode.label) + '</h3><p>' + esc(journey.mode.description) +
+      '</p></div><div class="night-shift-stats"><div><b>' +
+      metrics.indexedSources + '</b><span>INDEXED SOURCES</span></div><div><b>' +
+      metrics.playableReceipts + '</b><span>PLAYABLE RECEIPTS</span></div><div><b>' +
+      journey.metrics.beats + '</b><span>TONIGHT\'S BEATS</span></div><div><b>0</b><span>SPEAKER GUESSES</span></div></div></div>' +
+      '<div class="night-shift-controls"><div class="night-modes">' +
+      nightShiftEngine.modes.map(function (mode) {
+        return '<button class="' + (mode.id === state.nightMode ? "on" : "") +
+          '" data-night-mode="' + esc(mode.id) + '" aria-pressed="' +
+          (mode.id === state.nightMode ? "true" : "false") + '"><span>' +
+          esc(mode.label) + '</span><b>' + esc(mode.description) + '</b></button>';
+      }).join("") + '</div><label><span>SHIFT DATE</span><input id="nightDate" type="date" value="' +
+      esc(state.nightDate) + '"></label><div><button id="nightShare">SHARE TONIGHT\'S SEED</button>' +
+      '<button id="nightNewCut">NEW DETERMINISTIC CUT</button></div></div>' +
+      '<div class="night-snapshot ' + esc(journey.snapshot.status) +
+      '"><span>INDEXED THROUGH ' + esc(journey.snapshot.indexedThrough) +
+      ' // ' + esc(journey.snapshot.status.toUpperCase()) +
+      ' // ARCHIVE ' + esc(journey.snapshot.inputFingerprint) + '</span><b>' +
+      esc(journey.snapshot.notice) + '</b></div>' +
+      (state.nightNotice ? '<p class="night-notice">' + esc(state.nightNotice) + '</p>' : "") +
+      nightRevealCard() +
+      '<div class="night-shift-grid"><aside><div><span>ORDERED PROGRESS</span><b>' +
+      progress.progress.percent + '%</b></div><div class="night-progress"><i style="width:' +
+      progress.progress.percent + '%"></i></div><ol>' + route +
+      '</ol></aside><section>' + activeCard + '</section></div>';
+    bindNightShift();
+    if (focusTarget === "mode") {
+      var selectedMode = document.querySelector('[data-night-mode="' + state.nightMode + '"]');
+      if (selectedMode) selectedMode.focus();
+    } else if (focusTarget === "date") {
+      var renderedDate = document.getElementById("nightDate");
+      if (renderedDate) renderedDate.focus();
+    } else if (focusTarget === "active") {
+      var activeHeading = stage.querySelector(".night-active h3, .night-complete h3");
+      if (activeHeading) {
+        activeHeading.setAttribute("tabindex", "-1");
+        activeHeading.focus();
+      }
+    }
+  }
+
+  function bindNightShift() {
+    Array.prototype.forEach.call(document.querySelectorAll("[data-night-mode]"), function (button) {
+      button.onclick = function () {
+        state.nightMode = button.getAttribute("data-night-mode");
+        state.nightVariant = "daily";
+        state.nightVariantIndex = 0;
+        state.nightNotice = "";
+        buildNightShift();
+        renderNightShift("mode");
+      };
+    });
+    var dateInput = document.getElementById("nightDate");
+    if (dateInput) dateInput.onchange = function () {
+      state.nightDate = dateInput.value;
+      state.nightVariant = "daily";
+      state.nightVariantIndex = 0;
+      state.nightNotice = "";
+      try {
+        buildNightShift();
+      } catch (error) {
+        state.nightNotice = "SHIFT HELD // " + (error.message || String(error));
+      }
+      renderNightShift("date");
+    };
+    var share = document.getElementById("nightShare");
+    if (share) share.onclick = function () {
+      var url = new URL(location.href);
+      url.search = "";
+      url.searchParams.set("nightShift", nightShiftJourney.seed);
+      url.hash = "night-shift";
+      copy(url.toString(), "TONIGHT'S DETERMINISTIC SHIFT LINK COPIED");
+    };
+    function newCut() {
+      state.nightVariantIndex += 1;
+      state.nightVariant = "daily-cut-" + state.nightVariantIndex;
+      state.nightNotice = "NEW CUT // SAME DATE AND MODE, DIFFERENT REPRODUCIBLE VARIANT";
+      buildNightShift();
+      renderNightShift("active");
+    }
+    var newCutButton = document.getElementById("nightNewCut");
+    if (newCutButton) newCutButton.onclick = newCut;
+    var another = document.getElementById("nightAnother");
+    if (another) another.onclick = newCut;
+    var next = document.getElementById("nightContinue");
+    if (next) next.onclick = function () {
+      var result = nightShiftProgress.completeCurrent();
+      if (result.accepted) {
+        state.nightReveal = result.response;
+        saveNightProgress();
+      } else {
+        state.nightNotice = "BEAT HELD // " + result.reason;
+      }
+      renderNightShift("active");
+    };
+    Array.prototype.forEach.call(document.querySelectorAll("[data-night-choice]"), function (button) {
+      button.onclick = function () {
+        var result = nightShiftProgress.completeCurrent({
+          choiceId: button.getAttribute("data-night-choice"),
+        });
+        if (result.accepted) {
+          state.nightReveal = result.response;
+          state.nightNotice = "";
+          saveNightProgress();
+        } else {
+          state.nightNotice = "CHOICE HELD // " + result.reason;
+        }
+        renderNightShift("active");
+      };
+    });
+    bindMemoryReceipts();
+    syncBagButtons();
   }
 
   function fallbackAftermath() {
@@ -3147,6 +3506,127 @@
     return parts.reduce(function (total, part) { return total * 60 + part; }, 0);
   }
 
+  function saveHumanReviewSession() {
+    if (!humanReviewSession) return false;
+    return storageSet("wwam-human-review-v52", humanReviewSession.exportJSON());
+  }
+
+  function reviewCandidateButton(candidate) {
+    return '<button class="' + (candidate.id === state.reviewSelected ? "on" : "") +
+      '" data-review-select="' + esc(candidate.id) + '"><span>' +
+      esc(candidate.origin.toUpperCase() + " // " + candidate.severity + " // " +
+        candidate.reviewStatus.replace(/-/g, " ").toUpperCase()) +
+      '</span><b>' + esc(candidate.title) + '</b><small>' +
+      candidate.evidence.length + ' EVIDENCE RECEIPT' +
+      (candidate.evidence.length === 1 ? "" : "S") + '</small></button>';
+  }
+
+  function renderHumanReviewSession() {
+    if (!humanReviewSession) {
+      return '<p class="memory-empty">THE LOCAL REVIEW SESSION COULD NOT INITIALIZE. NO DECISIONS WERE RECORDED.</p>';
+    }
+    var filters = {
+      origin: state.reviewOrigin,
+      status: state.reviewStatus,
+      query: state.reviewQuery,
+    };
+    var allMatches = humanReviewSession.getQueue(filters);
+    var queue = allMatches.slice(0, 40);
+    if (!state.reviewSelected || !allMatches.some(function (item) {
+      return item.id === state.reviewSelected;
+    })) {
+      state.reviewSelected = queue[0] ? queue[0].id : "";
+    }
+    var candidate = state.reviewSelected ? humanReviewSession.getCandidate(state.reviewSelected) : null;
+    var history = candidate ? humanReviewSession.getLedger(candidate.id) : [];
+    var metrics = humanReviewSession.metrics;
+    var transitions = candidate && window.WWAMHumanReviewSession.TRANSITIONS[candidate.reviewStatus] || [];
+    var evidence = candidate ? candidate.evidence : [];
+    var dossier = candidate ?
+      '<article class="review-dossier"><header><div><span>' +
+      esc(candidate.origin.toUpperCase() + " FINDING // " + candidate.kind.toUpperCase()) +
+      '</span><h4>' + esc(candidate.title) + '</h4></div><b>' +
+      esc(candidate.reviewStatus.replace(/-/g, " ").toUpperCase()) +
+      '</b></header><p>' + esc(candidate.summary || candidate.claim || "No summary supplied.") +
+      '</p><blockquote>' + esc(candidate.recommendation || "Human context review required.") +
+      '</blockquote><div class="review-evidence"><span>ATTACHED PLAYABLE EVIDENCE // CHECK BEFORE POSITIVE ROUTING</span>' +
+      (evidence.length ? evidence.map(function (item, index) {
+        return '<div class="review-evidence-row"><input type="checkbox" aria-label="Include receipt ' +
+          String(index + 1) + '" data-review-evidence value="' + esc(item.id) +
+          '" ' + (item.eligibleForProgression ? "checked" : "disabled") + '><b>RECEIPT ' +
+          String(index + 1).padStart(2, "0") + '</b><span>' +
+          esc((item.sourceId || "UNRESOLVED SOURCE") + " @ " +
+            (item.t == null ? "NO TIME" : timestamp(item.t)) + " // " +
+            (item.evidenceLevel || "UNLABELED")) + '</span>' +
+          (item.sourceId && item.t != null ?
+            canonEvidenceButton(item, "OPEN FULL SOURCE CONTEXT") : "") + '</div>';
+      }).join("") :
+        '<div class="review-no-evidence">NO PLAYABLE RECEIPT ATTACHED. POSITIVE PROGRESSION IS LOCKED.</div>') +
+      '</div><form id="humanReviewForm"><div class="review-form-grid">' +
+      '<label><span>CALLER-ATTESTED HUMAN REVIEWER ROLE</span><input id="reviewRole" required placeholder="editor, researcher, owner..."></label>' +
+      '<label><span>OPTIONAL REVIEWER NAME / ID</span><input id="reviewName" placeholder="Ricky or reviewer-17"></label>' +
+      '<label><span>HUMAN-ENTERED ISO TIME + ZONE</span><input id="reviewAt" required ' +
+      'placeholder="2026-07-23T21:30:00-04:00"></label>' +
+      '<label class="wide"><span>HUMAN NOTES</span><textarea id="reviewNotes" required placeholder="What did you check, and what remains uncertain?"></textarea></label>' +
+      '<label class="wide"><span>EXACT WORDING YOU PERSONALLY CHECKED // REQUIRED FOR WORDING CHECKED</span>' +
+      '<textarea id="reviewWording" placeholder="Do not paste a certification label. Preserve the evidence boundary."></textarea></label>' +
+      '<label class="wide review-attestation"><input id="reviewAttestation" type="checkbox" required>' +
+      '<span>I ATTEST THIS DECISION WAS MADE BY A HUMAN REVIEWER. THIS LOCAL PROTOTYPE DOES NOT AUTHENTICATE IDENTITY.</span></label>' +
+      '</div><div class="review-actions">' +
+      (transitions.length ? transitions.map(function (status) {
+        var positive = status === "wording-checked" || status === "ready-for-creator-review";
+        return '<button type="button" data-review-decision="' + esc(status) +
+          '" class="' + (positive ? "positive" : status === "reject-candidate" ? "reject" : "") +
+          '" ' + (positive && !evidence.some(function (item) {
+            return item.eligibleForProgression;
+          }) ? "disabled" : "") + '>' + esc(status.replace(/-/g, " ").toUpperCase()) +
+          '</button>';
+      }).join("") : '<b>TERMINAL LOCAL STATUS // NO FURTHER TRANSITION</b>') +
+      '</div><small>Routing only. This form cannot certify a creator, identify an undiarized speaker, or mutate canon.</small></form>' +
+      (history.length ? '<div class="review-history"><span>PROOF-CHAINED LOCAL HISTORY</span>' +
+        history.map(function (decision) {
+          return '<article><b>' + esc(decision.before.status.toUpperCase() + " -> " +
+            decision.after.status.toUpperCase()) + '</b><span>' + esc(decision.at) +
+            ' // ' + esc(decision.reviewer.role.toUpperCase()) + '</span><small>' +
+            esc(decision.proofFingerprint) + '</small></article>';
+        }).join("") + '</div>' : "") + '</article>' :
+      '<div class="review-dossier review-empty"><b>NO FINDINGS MATCH THIS FILTER.</b><span>Widen the origin, status, or search terms.</span></div>';
+
+    return '<div class="canon-lane-head"><div><span>LOCAL REVIEW ROUTING // CALLER-ATTESTED, CORPUS-BOUND, ZERO SELF-CERTIFICATION</span>' +
+      '<h3>' + metrics.candidates + ' FINDINGS. ' + metrics.decisions +
+      ' CALLER-ATTESTED DECISIONS. 0 CANON MUTATIONS.</h3></div><p>Identity is not authenticated in this local prototype. Decisions remain local routing records; incompatible saved ledgers are quarantined for export instead of silently deleted.</p></div>' +
+      '<div class="review-session-metrics">' + [
+        [metrics.unreviewed, "UNREVIEWED"],
+        [metrics.needsContext, "NEEDS CONTEXT"],
+        [metrics.wordingChecked, "WORDING CHECKED"],
+        [metrics.readyForCreatorReview, "READY FOR CREATOR REVIEW"],
+        [metrics.rejected, "REJECTED"],
+      ].map(function (item) {
+        return '<div><b>' + item[0] + '</b><span>' + item[1] + '</span></div>';
+      }).join("") + '</div>' +
+      '<div class="review-session-toolbar"><label><span>FINDING ORIGIN</span><select id="reviewOrigin">' +
+      '<option value="">TRUST + CANON</option><option value="trust" ' +
+      (state.reviewOrigin === "trust" ? "selected" : "") + '>TRUST DESK</option><option value="canon" ' +
+      (state.reviewOrigin === "canon" ? "selected" : "") + '>CANON AUDIT</option></select></label>' +
+      '<label><span>LOCAL STATUS</span><select id="reviewStatus"><option value="">ALL STATUSES</option>' +
+      ["unreviewed", "needs-context", "wording-checked", "ready-for-creator-review", "reject-candidate"].map(function (status) {
+        return '<option value="' + status + '" ' + (state.reviewStatus === status ? "selected" : "") +
+          '>' + status.replace(/-/g, " ").toUpperCase() + '</option>';
+      }).join("") + '</select></label><label><span>SEARCH FINDINGS</span><input id="reviewQuery" value="' +
+      esc(state.reviewQuery) + '" placeholder="court, character, excerpt..."></label><div><button id="reviewCopySession">COPY SESSION</button>' +
+      '<button id="reviewDownloadSession">DOWNLOAD JSON</button>' +
+      (state.reviewQuarantinedLedger ? '<button id="reviewDownloadQuarantine">EXPORT HELD LEDGER</button>' : "") +
+      '</div></div>' +
+      '<p class="review-notice" id="reviewNotice" role="status" aria-live="polite"' +
+      (state.reviewNotice || state.reviewRestoreNotice ? "" : ' hidden') + '>' +
+      esc([state.reviewRestoreNotice, state.reviewNotice].filter(Boolean).join(" ")) + '</p>' +
+      '<div class="review-session-grid"><aside><header><span>' + allMatches.length +
+      ' MATCHES // SHOWING ' + queue.length + '</span><b>' +
+      esc(humanReviewSession.corpus.reviewInputFingerprint) + '</b></header><div>' +
+      queue.map(reviewCandidateButton).join("") + '</div></aside><section>' + dossier +
+      '</section></div>';
+  }
+
   function bindCanon() {
     Array.prototype.forEach.call(document.querySelectorAll("[data-canon-tab]"), function (button) {
       button.onclick = function () {
@@ -3224,6 +3704,104 @@
       downloadJson("wwam-community-memory-proposal.json", state.canonDraft);
       showToast("CONTRIBUTION PACKET DOWNLOADED");
     };
+    var reviewOrigin = document.getElementById("reviewOrigin");
+    if (reviewOrigin) reviewOrigin.onchange = function () {
+      state.reviewOrigin = reviewOrigin.value;
+      state.reviewSelected = "";
+      state.reviewNotice = "";
+      renderCanon();
+    };
+    var reviewStatus = document.getElementById("reviewStatus");
+    if (reviewStatus) reviewStatus.onchange = function () {
+      state.reviewStatus = reviewStatus.value;
+      state.reviewSelected = "";
+      state.reviewNotice = "";
+      renderCanon();
+    };
+    var reviewQuery = document.getElementById("reviewQuery");
+    if (reviewQuery) reviewQuery.onchange = function () {
+      state.reviewQuery = reviewQuery.value.trim();
+      state.reviewSelected = "";
+      state.reviewNotice = "";
+      renderCanon();
+    };
+    Array.prototype.forEach.call(document.querySelectorAll("[data-review-select]"), function (button) {
+      button.onclick = function () {
+        state.reviewSelected = button.getAttribute("data-review-select");
+        state.reviewNotice = "";
+        renderCanon();
+      };
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-review-decision]"), function (button) {
+      button.onclick = function () {
+        var reviewForm = document.getElementById("humanReviewForm");
+        var reviewNotice = document.getElementById("reviewNotice");
+        if (!reviewForm || !reviewForm.checkValidity()) {
+          state.reviewNotice = "HELD FORM_INCOMPLETE // COMPLETE THE REQUIRED HUMAN-ENTERED FIELDS AND ATTESTATION.";
+          if (reviewNotice) {
+            reviewNotice.hidden = false;
+            reviewNotice.textContent = state.reviewNotice;
+          }
+          if (reviewForm) reviewForm.reportValidity();
+          return;
+        }
+        var targetStatus = button.getAttribute("data-review-decision");
+        var action = {
+          status: targetStatus,
+          at: document.getElementById("reviewAt").value.trim(),
+          reviewer: {
+            role: document.getElementById("reviewRole").value.trim(),
+            name: document.getElementById("reviewName").value.trim(),
+            humanAttested: document.getElementById("reviewAttestation").checked,
+            attestation: "caller-attested-human",
+          },
+          notes: document.getElementById("reviewNotes").value.trim(),
+          evidenceReceiptIds: Array.prototype.map.call(
+            document.querySelectorAll("[data-review-evidence]:checked"),
+            function (input) { return input.value; }
+          ),
+        };
+        if (targetStatus === "wording-checked") {
+          action.proposedWording = document.getElementById("reviewWording").value.trim();
+        }
+        try {
+          var decision = humanReviewSession.recordDecision(state.reviewSelected, action);
+          var persisted = saveHumanReviewSession();
+          state.reviewNotice = (persisted ? "RECORDED " : "RECORDED IN THIS TAB ONLY // LOCAL PERSISTENCE FAILED // DOWNLOAD THE SESSION // ") +
+            decision.after.status.toUpperCase() +
+            " // PROOF " + decision.proofFingerprint +
+            " // CANON, SPEAKER, AND CREATOR CERTIFICATION REMAIN FALSE";
+          renderCanon();
+        } catch (error) {
+          state.reviewNotice = "HELD " + (error.code || "REVIEW_ERROR") + " // " +
+            (error.message || String(error));
+          if (reviewNotice) {
+            reviewNotice.hidden = false;
+            reviewNotice.textContent = state.reviewNotice;
+          }
+        }
+      };
+    });
+    var reviewCopySession = document.getElementById("reviewCopySession");
+    if (reviewCopySession) reviewCopySession.onclick = function () {
+      copy(humanReviewSession.exportMarkdown(), "LOCAL REVIEW SESSION COPIED");
+    };
+    var reviewDownloadSession = document.getElementById("reviewDownloadSession");
+    if (reviewDownloadSession) reviewDownloadSession.onclick = function () {
+      downloadJson("wwam-local-human-review-session.json", humanReviewSession.snapshot());
+      showToast("LOCAL REVIEW SESSION DOWNLOADED");
+    };
+    var reviewDownloadQuarantine = document.getElementById("reviewDownloadQuarantine");
+    if (reviewDownloadQuarantine) reviewDownloadQuarantine.onclick = function () {
+      var heldLedger;
+      try {
+        heldLedger = JSON.parse(state.reviewQuarantinedLedger);
+      } catch {
+        heldLedger = { raw: state.reviewQuarantinedLedger };
+      }
+      downloadJson("wwam-held-review-ledger.json", heldLedger);
+      showToast("HELD REVIEW LEDGER EXPORTED // NO DECISIONS IMPORTED");
+    };
   }
 
   function renderCanon() {
@@ -3244,14 +3822,115 @@
       return '<div><b>' + stat[0] + '</b><span>' + stat[1] + '</span></div>';
     }).join("");
     Array.prototype.forEach.call(document.querySelectorAll("[data-canon-tab]"), function (button) {
-      button.classList.toggle("on", button.getAttribute("data-canon-tab") === state.canonTab);
+      var selected = button.getAttribute("data-canon-tab") === state.canonTab;
+      button.classList.toggle("on", selected);
+      button.setAttribute("aria-selected", selected ? "true" : "false");
     });
     var content = state.canonTab === "review" ? renderReviewQueue() :
       state.canonTab === "characters" ? renderCharacterFirewall() :
       state.canonTab === "claims" ? renderClaimAudit() :
-      state.canonTab === "contribute" ? renderCommunityMemory() : renderSourceHealth();
+      state.canonTab === "contribute" ? renderCommunityMemory() :
+        state.canonTab === "session" ? renderHumanReviewSession() : renderSourceHealth();
     document.getElementById("canonStage").innerHTML = content;
     bindCanon();
+  }
+
+  function bindPilotBuilder(brief) {
+    Array.prototype.forEach.call(document.querySelectorAll("[data-pilot-goal]"), function (button) {
+      button.onclick = function () {
+        state.pilotGoal = button.getAttribute("data-pilot-goal");
+        renderPilotBuilder(true);
+      };
+    });
+    var copyButton = document.getElementById("pilotCopy");
+    if (copyButton) copyButton.onclick = function () {
+      copy(
+        pilotBuilderEngine.exportMarkdown(brief),
+        "CREATOR PILOT BRIEF COPIED // STILL A DRAFT"
+      );
+    };
+    var downloadButton = document.getElementById("pilotDownload");
+    if (downloadButton) downloadButton.onclick = function () {
+      downloadJson("wwam-" + state.pilotGoal + "-pilot-draft.json", brief);
+      showToast("PILOT DRAFT DOWNLOADED // HUMAN APPROVAL STILL REQUIRED");
+    };
+  }
+
+  function renderPilotBuilder(focusGoal) {
+    var stage = document.getElementById("pilotBuilder");
+    if (!stage) return;
+    if (!pilotBuilderEngine) {
+      stage.innerHTML = '<div class="pilot-loading"><i></i><b>' +
+        (state.creatorEnginesSettled && state.fanEnginesSettled ?
+          "PILOT BUILDER HELD // ONE OR MORE EVIDENCE ENGINES DID NOT INITIALIZE" :
+          "ASSEMBLING AN EVIDENCE-BACKED CREATOR PILOT...") +
+        '</b></div>';
+      return;
+    }
+    var brief = attempt(function () {
+      return pilotBuilderEngine.build(state.pilotGoal);
+    }, "creator pilot brief rendering");
+    if (!brief) {
+      stage.innerHTML = '<div class="pilot-loading"><b>PILOT BRIEF FAILED CLOSED // CHECK THE TRUST DESK</b></div>';
+      return;
+    }
+    var verification = pilotBuilderEngine.verify(brief);
+    var integrity = pilotBuilderEngine.integrity;
+    stage.innerHTML =
+      '<header class="pilot-head"><div><span>CREATOR PILOT BUILDER // PICK ONE JOB, THEN PROVE IT</span>' +
+      '<h3>DON\'T BUY THE DREAM.<br>TEST THE MACHINE.</h3></div><div class="pilot-status"><b>' +
+      esc(brief.status) + '</b><span>BRIEF ' + esc(brief.fingerprint) + '</span><span>INTEGRITY ' +
+      esc(integrity.status) + ' // ' + esc(integrity.fingerprint) + '</span></div></header>' +
+      '<nav class="pilot-goals" aria-label="Choose a creator pilot goal">' +
+      pilotBuilderEngine.goals.map(function (goal) {
+        return '<button class="' + (goal.id === state.pilotGoal ? "on" : "") +
+          '" data-pilot-goal="' + esc(goal.id) + '" aria-pressed="' +
+          (goal.id === state.pilotGoal ? "true" : "false") + '"><span>' + esc(goal.label) +
+          '</span><b>' + esc(goal.question) + '</b></button>';
+      }).join("") + '</nav>' +
+      '<div class="pilot-brief">' +
+      '<section class="pilot-promise"><span>THE NARROW PROMISE</span><h4>' +
+      esc(brief.goal.label) + '</h4><p>' + esc(brief.pitch) +
+      '</p><div class="pilot-snapshot">' +
+      brief.currentProof.summary.map(function (item) {
+        var match = String(item).match(/^([\d,]+)\s+(.*)$/);
+        return '<div><b>' + esc(match ? match[1] : "PROOF") + '</b><span>' +
+          esc(match ? match[2] : item) + '</span></div>';
+      }).join("") + '</div></section>' +
+      '<aside class="pilot-proof-ledger"><div><span>SIX RECEIPTS, NOT SIX PROMISES</span><b>' +
+      (verification.ok ? "CONSISTENCY CHECK PASSED" : "CONSISTENCY CHECK FAILED") + '</b></div><ol>' +
+      brief.currentProof.sampleReceipts.map(function (receipt) {
+        return '<li><a href="' + esc(receipt.url) +
+          '" target="_blank" rel="noopener"><b>' + esc(receipt.sourceTitle) +
+          '</b><span>' + esc(receipt.sourceDate || "UNDATED") + ' // ' +
+          timestamp(receipt.at) + ' // ' + esc(receipt.evidenceLevel.toUpperCase()) +
+          '</span></a></li>';
+      }).join("") + '</ol><p>' + esc(brief.currentProof.label) +
+      '. Source coverage does not certify context.</p></aside></div>' +
+      '<div class="pilot-deliverables">' +
+      brief.deliverables.map(function (item, index) {
+        return '<article><span>DELIVERABLE 0' + (index + 1) + ' // ' +
+          esc(item.approvalState) + '</span><h4>' + esc(item.label) +
+          '</h4><p>' + esc(item.description) + '</p><footer><b>PASS WHEN</b><span>' +
+          esc(item.acceptanceCheck) + '</span></footer></article>';
+      }).join("") + '</div>' +
+      '<div class="pilot-bottom"><section><span>MEASUREMENT CONTRACT // ' +
+      esc(brief.measurementPlan.status) + '</span><h4>NO FAKE BEFORE-AND-AFTER.</h4><p>' +
+      esc(brief.measurementPlan.claimsBoundary) + '</p><ul>' +
+      brief.measurementPlan.instruments.map(function (item) {
+        return '<li>' + esc(item) + '</li>';
+      }).join("") + '</ul></section><aside><span>THE CREATOR STILL DECIDES</span><ol>' +
+      brief.humanDecisionsRequired.map(function (item) {
+        return '<li>' + esc(item) + '</li>';
+      }).join("") + '</ol></aside></div>' +
+      '<footer class="pilot-actions"><p>' + esc(brief.commercialBoundary) +
+      '</p><div><button id="pilotCopy">COPY PILOT BRIEF</button>' +
+      '<button id="pilotDownload">DOWNLOAD PROOF LEDGER</button></div></footer>';
+    bindPilotBuilder(brief);
+    if (focusGoal) {
+      var selectedGoal = stage.querySelector('[data-pilot-goal="' + state.pilotGoal + '"]');
+      if (selectedGoal) selectedGoal.focus();
+    }
   }
 
   function renderLabs() {
@@ -3304,6 +3983,7 @@
     refreshCharacterAnswerCopy();
     renderMemory();
     renderLore();
+    renderNightShift();
     renderTrivia();
     renderControlRoom();
     renderClipLab();
@@ -3341,7 +4021,8 @@
     var targetId = action.kind === "ask" ? "ask" :
       action.kind === "lore" ? "lore" :
         action.kind === "clip" ? "clip-lab" :
-          action.kind === "canon" ? "canon" : "trivia";
+          action.kind === "canon" ? "canon" :
+            action.kind === "night" ? "night-shift" : "trivia";
     history.replaceState(null, "", location.pathname + location.search + "#" + targetId);
     if (action.kind === "ask") {
       document.getElementById("askInput").value = action.query;
@@ -3365,6 +4046,8 @@
       state.canonTab = action.tab;
       renderCanon();
       document.getElementById("canon").scrollIntoView({ behavior: "smooth" });
+    } else if (action.kind === "night") {
+      document.getElementById("night-shift").scrollIntoView({ behavior: "smooth" });
     } else {
       document.getElementById("trivia").scrollIntoView({ behavior: "smooth" });
       focusSoon("#triviaStart");
@@ -3646,6 +4329,10 @@
         ask(sharedQuestion);
         document.getElementById("ask").scrollIntoView();
       }, 50);
+    } else if (params.get("nightShift")) {
+      setTimeout(function () {
+        document.getElementById("night-shift").scrollIntoView();
+      }, 50);
     } else if (location.hash === "#pitch") {
       setTimeout(openTour, 50);
     }
@@ -3674,10 +4361,12 @@
     renderPopular();
     renderMemory();
     renderLore();
+    renderNightShift();
     renderTrivia();
     renderControlRoom();
     renderClipLab();
     renderCanon();
+    renderPilotBuilder();
     renderAskExamples();
     renderFranchises();
     renderFranchiseFilters();

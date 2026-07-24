@@ -3,6 +3,84 @@
 This changelog records product and evidence-contract changes. It does not by
 itself indicate that a build has been deployed.
 
+## 0.5.2 — V5.2 return, review, and creator-pilot pass — 2026-07-23
+
+### Added
+
+- Night Shift, a deterministic daily fan journey across the newest indexed
+  source, an honest older callback, a playable receipt, a grounded Trivia or
+  preference choice, and a closing payoff. Lore, Chaos, and Franchise modes
+  preserve all five semantic roles across three-, four-, or five-beat cuts.
+- Shareable Night Shift seeds bound to the archive fingerprint, local ordered
+  progress, canonical-response-checked restore, date-controlled rotation, and
+  explicit current/recent/stale snapshot language.
+- Human Review Session, a local proof-chained editorial ledger covering 95
+  Trust findings plus 362 Canon warnings. Its 457 candidates can move through
+  needs-context, wording-checked, reject-candidate, and
+  ready-for-creator-review states without mutating canon.
+- Creator Pilot Builder with four narrow proposals: Archive Discovery,
+  Compilation Workflow, Fan + Member Experience, and Recurring Lore System.
+  Each export includes current snapshot counts, source receipts, acceptance
+  checks, human gates, a measurement contract, and a deterministic consistency
+  ledger. The fingerprint is reproducibility evidence, not an owner signature.
+- Working public interfaces for all three systems, including Night Shift
+  playback and choices, Canon Desk review decisions, and JSON/Markdown pilot
+  exports.
+- Character Intelligence V2 connects Ask WWAM to 25 curated recurring-character
+  performance receipts. Latest, earliest, funniest, specific-bit, typo-alias,
+  and owner-mapping questions now resolve through the character evidence lane
+  while clip-level speaker claims remain locked.
+
+### Accuracy and safety
+
+- Corrected Popular 25 heatmap documentation from 750 to 720 caption-backed
+  chapters and separated 171.19 caption-audited hours from the preserved
+  snapshot's 177.45 hours of known source runtime.
+- Recovered factual metadata for age-gated commentary `AzrcgoyE7C4` while
+  retaining its sealed, zero-receipt status; no transcript or moment was
+  invented.
+- Future source rebuilds accept or derive an explicit timezone-aware
+  observation time. Fresh-stream selection verifies completed live status;
+  provenance records include ordered feed/source fingerprints and cutoff
+  evidence where applicable.
+- Night Shift public evidence is capped at 16 words, links to the original
+  source second, and permanently reports zero speaker, true-origin, and
+  synthetic-quote claims.
+- Human Review positive progression requires an explicit caller attestation,
+  reviewer role, notes, a human-entered timestamp, and a registered playable
+  receipt whose source, URL, and timestamp match the indexed evidence.
+  Wording-checked decisions require exact reviewed wording; the next state
+  cannot silently change it.
+- Review snapshots bind to the complete source/receipt, Trust, Canon, and
+  candidate corpus. Inconsistent data or a changed corpus fails closed. The
+  local attestation is recorded but does not authenticate reviewer identity.
+- Local review cannot certify a creator, identify a speaker, promote a claim
+  into canon, or alter the source candidate. Those metrics remain permanently
+  zero.
+- Pilot briefs begin as `DRAFT / HUMAN APPROVAL REQUIRED`, with results marked
+  `MEASURE DURING PILOT`. The builder does not invent conversion, retention,
+  revenue, labor savings, rights clearance, or creator endorsement.
+- Character intent parsing now uses token and phrase boundaries, explicit topic
+  switches override stale follow-up context, unknown voice banks fail closed,
+  and urgent medical, self-harm, violent-intent, or real-person allegation
+  prompts do not get recycled into parody dialogue.
+- Archive metrics now distinguish 171.19 caption-audited hours from 177.45
+  hours of known runtime and correct the Popular 25 to 720 caption-backed
+  heatmap chapters. Rob Zombie's Halloween II retains recovered factual
+  metadata while remaining visibly uncaptioned with zero invented receipts.
+- Future distill runs record timezone-aware observation times, input
+  fingerprints, completed-livestream status, and Popular ranking cutoffs
+  instead of relying on hard-coded generation dates.
+
+### Current measured proof
+
+- Night Shift composes 74 indexed sources, 872 playable receipts, 71 dated
+  playable sources, and 177 Lore Field Guide entries.
+- The Human Review Session binds 457 local findings with zero automatic
+  decisions, zero canon mutations, and zero speaker or creator certifications.
+- All four pilot types reproduce deterministically from the same indexed
+  snapshot and passed semantic-safety, corruption, boundary, and export tests.
+
 ## 0.5.1 — V5.1 accuracy and creator-operations pass — 2026-07-23
 
 ### Added
@@ -48,7 +126,7 @@ itself indicate that a build has been deployed.
 - Tape Trivia with deterministic 5/10-round sessions, five question modes,
   source filters, scoring, streaks, exact-timestamp reveals, Evidence Bag
   support, and JSON session export.
-- Lore Galaxy with 177 field-guide entries, 820 receipt-backed graph edges, 19
+- Lore Galaxy with 177 field-guide entries, 821 receipt-backed graph edges, 19
   constellations, 51 indexed lineages, and 23 discovery prompts.
 - Creator Clip Lab with 560 Short candidates, 32 multi-source supercut bundles,
   21 then/now resurfacing opportunities, risk gates, campaign selection, and
@@ -119,10 +197,12 @@ itself indicate that a build has been deployed.
 ### Current measured proof
 
 - 74 unique sources; 71 healthy and 3 caption-limited.
-- 1,880,873 audited caption words across roughly 177 hours.
+- 1,880,873 audited caption words across 171.19 captioned hours, with 177.45
+  hours of total known runtime including disclosed caption gaps.
 - 872 bounded editorial receipts with 0 structurally invalid or
   source-ID-mismatched URLs and 0 out-of-range indexed timestamps.
-- 847 machine-level receipts and 25 editor-level receipts.
+- 847 machine-level receipts and 25 human-curated character-performance
+  candidates; no authenticated editor-verification decisions are claimed.
 - 0 creator-certified receipts in the current public snapshot.
 - 25 curated character-performance receipts and 12 ordinary mentions
   quarantined from that set.

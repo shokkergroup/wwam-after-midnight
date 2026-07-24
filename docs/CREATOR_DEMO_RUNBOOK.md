@@ -62,7 +62,7 @@ question. Do not add optional features until the close.
 
 | Elapsed | Surface | One proof to show |
 | --- | --- | --- |
-| 0:00–0:30 | Tape Trivia | One reveal returns to an exact source second |
+| 0:00–0:30 | Night Shift | A daily route connects newest source, archive callback, choice, and payoff |
 | 0:30–1:40 | Ask + Lore | Source metadata, a source-level answer, and a timestamped receipt stay visibly distinct |
 | 1:40–3:10 | Clip Lab | Evidence becomes a reviewable Short and an exact campaign ledger |
 | 3:10–3:55 | Trust Desk | Character mapping is separated from clip-level speaker proof |
@@ -70,20 +70,23 @@ question. Do not add optional features until the close.
 
 ### 1. Fan Experience — 30 seconds
 
-From the hero, choose **Play the Archive**.
+From the hero, choose **Start Tonight's Shift**.
 
-- Start a five-receipt Tape Trivia session.
-- Answer one round and reveal the exact source timestamp.
-- Point to **Add to Evidence Bag**; save it only if the demo is ahead of time.
+- Show the dated snapshot notice and five-beat ordered route.
+- Open the active exact timestamp, then clear the beat.
+- On the grounded choice beat, submit one answer and show the source-backed
+  reveal.
+- Copy the deterministic shift link if time permits.
 
-Say: “This is not generic trivia pasted onto the brand. The question, answer,
-and replay all come from the indexed archive.”
+Say: “This is a daily return ritual assembled from this channel's indexed
+memory. The same seed recreates the exact route; every archival claim still
+opens the source.”
 
 What it proves:
 
 - a return loop for fans;
 - replay traffic to official uploads;
-- one evidence object can power a game and a personal watch queue.
+- one evidence object can power a journey, a game, and a personal watch queue.
 
 ### 2. Deep Dive — 70 seconds
 
@@ -176,25 +179,29 @@ Say:
 > that remains uniquely yours is the lore, voice, approvals, and history it
 > learns with you.
 
-Then ask a concrete discovery question:
+Open **Creator Pilot Builder** in the private screening room and choose one
+goal. Point to the current snapshot proof, acceptance checks, decisions still
+requiring authenticated human approval, and `MEASURE DURING PILOT` boundary.
+Copy the draft brief.
 
-> If this were connected to your real workflow, which would save you more time
-> first: finding old moments, building compilations, or turning recurring lore
-> into member experiences?
+Then ask:
 
-That question tests product fit without claiming a price or outcome the
-prototype has not measured.
+> Which narrow pilot should we judge first: archive discovery, compilation
+> workflow, a fan/member experience, or recurring lore?
+
+That question tests product fit without claiming a price, saved hours, or
+outcome the prototype has not measured.
 
 ## Optional ten-minute branches
 
 Use only the branch the audience cares about:
 
-- **Fan community:** Red Band 100, WWAM UP IN YA, Personalized Descent, Evidence
-  Bag, Trivia.
+- **Fan community:** Night Shift, Red Band 100, WWAM UP IN YA, Personalized
+  Descent, Evidence Bag, Trivia.
 - **Back-catalog discovery:** Ask WWAM, Popular 25, Fresh 10, franchise reports,
   Lore Galaxy.
-- **Editorial operations:** Clip Lab, Live Aftermath, Control Room, review and
-  correction packets.
+- **Editorial operations:** Clip Lab, Live Aftermath, Control Room, Human
+  Review Session, and correction packets.
 - **Recurring characters:** Ask the Character, then immediately show the
   performance receipts and Character Firewall.
 - **Platform strategy:** explain the universal evidence schema and how a

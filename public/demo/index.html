@@ -44,6 +44,7 @@
       <a href="#lore">LORE GALAXY</a>
       <a href="#clip-lab">CLIP LAB</a>
       <a href="#canon">CANON DESK</a>
+      <a href="#night-shift">NIGHT SHIFT</a>
       <a href="#ask">ASK WWAM</a>
     </div>
     <button class="mike-button" id="mikeButton"><span></span> MIKE MODE</button>
@@ -61,7 +62,7 @@
           <button id="rouletteButton">RED BAND ROULETTE <span>↗</span></button>
         </div>
         <div class="hero-doorways" aria-label="Choose a WWAM experience">
-          <a href="#trivia"><span>FAN EXPERIENCE</span><b>PLAY THE ARCHIVE →</b></a>
+          <a href="#night-shift"><span>FAN EXPERIENCE</span><b>START TONIGHT'S SHIFT →</b></a>
           <a href="#lore"><span>DEEP DIVE</span><b>FOLLOW THE LORE →</b></a>
           <a href="#clip-lab"><span>CREATOR PROOF</span><b>PUT MEMORY TO WORK →</b></a>
         </div>
@@ -240,6 +241,20 @@
       </div>
     </section>
 
+    <section class="night-shift-section" id="night-shift">
+      <div class="night-shift-static"></div>
+      <header class="section-head">
+        <div>
+          <p class="kicker">THE DAILY RETURN RITUAL // FIVE ROLES // EVERY BEAT PLAYS</p>
+          <h2>YOUR NIGHTLY<br><em>DESCENT.</em></h2>
+        </div>
+        <p>The newest indexed show opens the door. An older callback reaches through it. A playable receipt, one grounded choice, and a closing payoff make the archive feel different every day without inventing dialogue, speakers, or true origins.</p>
+      </header>
+      <div class="night-shift-stage" id="nightShiftStage" aria-live="polite">
+        <div class="night-shift-loading"><i></i><b>BUILDING TONIGHT'S SOURCE-GROUNDED DESCENT...</b></div>
+      </div>
+    </section>
+
     <section class="tape-trivia" id="trivia">
       <header class="section-head">
         <div>
@@ -251,7 +266,7 @@
       <div class="trivia-proof" id="triviaProof"></div>
       <div class="trivia-shell">
         <aside class="trivia-controls">
-          <div><span>BUILD A NIGHT SHIFT</span><h3>CHOOSE YOUR DAMAGE.</h3></div>
+          <div><span>BUILD A TRIVIA RUN</span><h3>CHOOSE YOUR DAMAGE.</h3></div>
           <label><span>DIFFICULTY</span><select id="triviaDifficulty"><option value="mixed">MIXED BAG</option><option value="easy">CASUALTY</option><option value="medium">FINAL GIRL</option><option value="hard">ARCHIVE GOBLIN</option></select></label>
           <label><span>ROUNDS</span><select id="triviaLength"><option value="5">5 RECEIPTS</option><option value="10">10 RECEIPTS</option></select></label>
           <label><span>FRANCHISE FILTER</span><select id="triviaFranchise"><option value="">ANY BLOODLINE</option><option>Halloween</option><option>Friday the 13th</option><option>Scream</option><option>A Nightmare on Elm Street</option></select></label>
@@ -401,14 +416,15 @@
         <p>This is where the machine argues with itself. Healthy sources, caption gaps, character-attribution firewalls, opinion claims, excerpt limits, and community corrections all become inspectable work—not invisible caveats.</p>
       </header>
       <div class="canon-proof" id="canonProof"></div>
-      <div class="canon-tabs" id="canonTabs">
-        <button class="on" data-canon-tab="health">SOURCE HEALTH</button>
-        <button data-canon-tab="review">REVIEW QUEUE</button>
-        <button data-canon-tab="characters">CHARACTER FIREWALL</button>
-        <button data-canon-tab="claims">TAKES + COURT</button>
-        <button data-canon-tab="contribute">COMMUNITY MEMORY</button>
+      <div class="canon-tabs" id="canonTabs" role="tablist" aria-label="Canon Desk views">
+        <button class="on" role="tab" aria-selected="true" aria-controls="canonStage" data-canon-tab="health">SOURCE HEALTH</button>
+        <button role="tab" aria-selected="false" aria-controls="canonStage" data-canon-tab="review">REVIEW QUEUE</button>
+        <button role="tab" aria-selected="false" aria-controls="canonStage" data-canon-tab="characters">CHARACTER FIREWALL</button>
+        <button role="tab" aria-selected="false" aria-controls="canonStage" data-canon-tab="claims">TAKES + COURT</button>
+        <button role="tab" aria-selected="false" aria-controls="canonStage" data-canon-tab="contribute">COMMUNITY MEMORY</button>
+        <button role="tab" aria-selected="false" aria-controls="canonStage" data-canon-tab="session">HUMAN REVIEW SESSION</button>
       </div>
-      <div class="canon-stage" id="canonStage"></div>
+      <div class="canon-stage" id="canonStage" role="tabpanel"></div>
     </section>
 
     <section class="method">
@@ -438,6 +454,9 @@
         <article><b>01</b><span>DISCOVERY</span><h3>Good questions become receipts—or an honest unknown.</h3><p>Intent-aware answers route the fan to the strongest available source, exact second when the evidence supports one, and visible limitations when it does not.</p></article>
         <article><b>02</b><span>RETENTION</span><h3>Yesterday and tonight connect.</h3><p>Live topics feed franchise paths, soundbytes, rankings, and dossiers instead of disappearing down the upload feed.</p></article>
         <article><b>03</b><span>REVENUE</span><h3>Memory becomes inventory.</h3><p>Sponsored topic desks, member vaults, shareable soundbytes, merch callbacks, and premium annuals fit the same evidence layer.</p></article>
+      </div>
+      <div class="pilot-builder" id="pilotBuilder" aria-live="polite">
+        <div class="pilot-loading"><i></i><b>ASSEMBLING AN EVIDENCE-BACKED CREATOR PILOT...</b></div>
       </div>
     </section>
   </main>
@@ -492,9 +511,13 @@
   <script src="showcase-engine.js"></script>
   <script src="lore-engine.js"></script>
   <script src="tape-trivia-engine.js"></script>
+  <script src="night-shift-engine.js"></script>
   <script src="creator-studio-engine.js"></script>
   <script src="cold-open-engine.js"></script>
   <script src="trust-engine.js"></script>
+  <script src="canon-integrity-engine.js"></script>
+  <script src="human-review-session-engine.js"></script>
+  <script src="pilot-builder-engine.js"></script>
   <script src="search-engine.js"></script>
   <script src="app.js"></script>
 </body>

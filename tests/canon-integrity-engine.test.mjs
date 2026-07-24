@@ -301,7 +301,7 @@ test("current corpus passes canon integrity with deterministic internal-only war
   assert.equal(first.metrics.showcaseReceipts, 872);
   assert.equal(first.metrics.loreReceipts, 953);
   assert.equal(first.metrics.loreGraphNodes, 177);
-  assert.equal(first.metrics.loreGraphEdges, 820);
+  assert.equal(first.metrics.loreGraphEdges, 821);
   assert.equal(first.metrics.clipShorts, 560);
   assert.equal(first.metrics.clipSupercuts, 32);
   assert.equal(first.metrics.clipResurfacing, 21);

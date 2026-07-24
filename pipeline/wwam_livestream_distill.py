@@ -24,12 +24,18 @@ from wwam_deep_distill import (
     DISALLOWED_EXCERPT,
     PUBLIC,
     clean_text,
+    extract_metadata,
     extract_one,
+    fingerprint_ids,
     js_assignment,
+    observed_date,
+    resolve_observed_at,
 )
 
 
 STREAMS_URL = "https://www.youtube.com/@WeWatchedAMovie/streams"
+DISCOVERY_WINDOW = 20
+COMPLETED_LIVE_STATUSES = frozenset({"was_live"})
 
 TOPIC_RULES = {
     "Halloween": [r"\bhalloween\b", r"\bmichael myers\b", r"\bloomis\b"],
@@ -112,19 +118,19 @@ PUBLIC_REJECT = re.compile(
 )
 
 
-def discover_streams() -> list[dict[str, Any]]:
+def discover_streams(limit: int = DISCOVERY_WINDOW) -> list[dict[str, Any]]:
     options = {
         "quiet": True,
         "no_warnings": True,
         "extract_flat": True,
-        "playlistend": 10,
+        "playlistend": limit,
         "skip_download": True,
     }
     with YoutubeDL(options) as ydl:
         info = ydl.extract_info(STREAMS_URL, download=False)
-    entries = list(info.get("entries") or [])[:10]
-    if len(entries) != 10:
-        raise RuntimeError(f"Expected 10 recent livestreams, found {len(entries)}")
+    entries = list(info.get("entries") or [])[:limit]
+    if len(entries) < 10:
+        raise RuntimeError(f"Expected at least 10 recent livestream candidates, found {len(entries)}")
     return [
         {
             "id": entry["id"],
@@ -135,6 +141,42 @@ def discover_streams() -> list[dict[str, Any]]:
         }
         for index, entry in enumerate(entries)
     ]
+
+
+def select_completed_streams(
+    seeds: list[dict[str, Any]],
+    metadata: dict[str, dict[str, Any]],
+    limit: int = 10,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, Any] | None]:
+    completed: list[dict[str, Any]] = []
+    excluded: list[dict[str, Any]] = []
+    for seed in seeds:
+        info = metadata.get(seed["id"]) or {}
+        live_status = str(info.get("live_status") or "")
+        duration = info.get("duration")
+        if live_status in COMPLETED_LIVE_STATUSES and duration:
+            completed.append(seed)
+        else:
+            excluded.append(
+                {
+                    "id": seed["id"],
+                    "liveStatus": live_status or "unavailable",
+                    "reason": "not a verified completed livestream",
+                }
+            )
+    if len(completed) < limit:
+        raise RuntimeError(
+            f"Only {len(completed)} verified completed livestreams were found "
+            f"in the first {len(seeds)} feed entries"
+        )
+    cutoff = None
+    if len(completed) > limit:
+        next_seed = completed[limit]
+        cutoff = {
+            "nextCompletedId": next_seed["id"],
+            "reason": "outside rolling newest ten",
+        }
+    return completed[:limit], excluded, cutoff
 
 
 def clip_words(text: str, limit: int) -> str:
@@ -333,6 +375,10 @@ def build_stream(
         "date": date,
         "duration": info.get("duration"),
         "views": info.get("view_count"),
+        "viewsObservedAt": info.get("observed_at"),
+        "ageLimit": info.get("age_limit"),
+        "availability": info.get("availability"),
+        "liveStatus": info.get("live_status"),
         "thumbnail": f"https://i.ytimg.com/vi/{seed['id']}/maxresdefault.jpg",
         "url": seed["url"],
         "captioned": bool(lines),
@@ -371,17 +417,53 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--refresh", action="store_true")
     parser.add_argument("--workers", type=int, default=4)
+    parser.add_argument(
+        "--observed-at",
+        help="Timezone-aware ISO-8601 build observation time; defaults to the local runtime.",
+    )
     args = parser.parse_args()
+    observed_at = resolve_observed_at(args.observed_at)
 
-    seeds = discover_streams()
+    candidates = discover_streams()
+    metadata: dict[str, dict[str, Any]] = {}
+    metadata_failures: list[dict[str, str]] = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max(1, args.workers)) as pool:
+        futures = {
+            pool.submit(
+                extract_metadata,
+                seed,
+                args.refresh,
+                True,
+                observed_at,
+            ): seed
+            for seed in candidates
+        }
+        for future in concurrent.futures.as_completed(futures):
+            seed = futures[future]
+            try:
+                metadata[seed["id"]] = future.result()
+            except Exception as error:
+                metadata_failures.append({"id": seed["id"], "error": str(error)})
+
+    seeds, excluded_incomplete, cutoff = select_completed_streams(candidates, metadata)
     print("Newest livestream canon:", flush=True)
     for seed in seeds:
-        print(f"  {seed['id']}  {seed['film']}", flush=True)
+        info = metadata[seed["id"]]
+        print(
+            f"  {seed['id']}  {info.get('live_status')}  {seed['film']}",
+            flush=True,
+        )
 
     extracted: dict[str, tuple[dict[str, Any], list[dict[str, Any]]]] = {}
     with concurrent.futures.ThreadPoolExecutor(max_workers=max(1, args.workers)) as pool:
         futures = {
-            pool.submit(extract_one, seed, args.refresh): seed
+            pool.submit(
+                extract_one,
+                seed,
+                args.refresh,
+                observed_at=observed_at,
+                info=metadata[seed["id"]],
+            ): seed
             for seed in seeds
         }
         for future in concurrent.futures.as_completed(futures):
@@ -395,7 +477,7 @@ def main() -> int:
                 )
             except Exception as error:
                 print(f"  {seed['id']} ERROR {error}", file=sys.stderr, flush=True)
-                extracted[seed["id"]] = ({}, [])
+                extracted[seed["id"]] = (metadata[seed["id"]], [])
 
     streams = [
         build_stream(seed, *extracted[seed["id"]])
@@ -403,9 +485,27 @@ def main() -> int:
     ]
     topic_index = aggregate_topics(streams)
     payload = {
-        "generated": "2026-07-23",
+        "generated": observed_date(observed_at),
+        "observedAt": observed_at,
+        "provenance": {
+            "generator": "pipeline/wwam_livestream_distill.py",
+            "observedAt": observed_at,
+            "officialFeed": STREAMS_URL,
+            "feedFingerprint": fingerprint_ids(candidates),
+            "feedEntriesInspected": len(candidates),
+        },
         "scope": "The ten newest completed uploads on the official WWAM YouTube Streams feed.",
         "method": "Full available auto-caption pass with topic clustering and comedy-signal heat scoring. Short excerpts remain source-linked.",
+        "selection": {
+            "ranking": "official feed order after completed-live-status verification",
+            "observedAt": observed_at,
+            "completedLiveStatuses": sorted(COMPLETED_LIVE_STATUSES),
+            "feedFingerprint": fingerprint_ids(candidates),
+            "feedEntriesInspected": len(candidates),
+            "excludedIncomplete": excluded_incomplete,
+            "metadataUnavailable": metadata_failures,
+            "cutoff": cutoff,
+        },
         "meta": {
             "streams": len(streams),
             "captioned": sum(stream["captioned"] for stream in streams),

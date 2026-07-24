@@ -260,6 +260,9 @@
       "who voiced", "who created", "who invented", "who owns", "who came up with",
       "which host", "which one of them", "mike or j", "j or mike",
     ]);
+    var mappingRequest = /^(?:who|which host) (?:usually |normally )?(?:performs|plays|portrays|voices|does) /.test(q) ||
+      /^(?:who|which host) is .+ (?:played|performed|portrayed|voiced) by$/.test(q) ||
+      includesAny(q, ["character performer", "recurring character mapping", "who is behind the character"]);
     var questionType = beginsWithAny(q, ["who", "which host", "which one of them"]) ||
       namedHostAttribution || anonymousSpeakerAttribution ? "speaker" :
       beginsWithAny(q, ["when"]) ? "when" :
@@ -291,11 +294,23 @@
     var performanceRequested = includesAny(q, [
       "performance", "performed", "performing", "impression", "impersonation",
       "in character", "portrays", "portrayed", "portrayal", "voiced", "voicing",
+      "verified performance", "verified bit", "verified clip", "real performance",
+      "real bit", "real clip", "performance receipt", "character clip",
       "doing loomis", "doing dr loomis", "doing doctor loomis", "did loomis",
       "do loomis", "does loomis", "doing challis", "doing dr challis",
       "doing doctor challis", "did challis", "do challis", "does challis",
       "doing slenderman", "doing slender man", "doing corey feldman",
+    ]) || (
+      includesAny(q, ["verified", "real"]) &&
+      includesAny(q, ["bit", "clip", "performance", "moment", "receipt"])
+    );
+    var characterSignalRequested = includesAny(q, [
+      "character signal", "character signals", "ordinary reference", "ordinary references",
+      "character reference", "character references", "caption signal", "caption signals",
+      "signal", "signals", "reference", "references", "mentioned", "mentions",
+      "show up", "showed up", "came up",
     ]);
+    var yearMatch = q.match(/(?:^| )((?:19|20)\d{2})(?: |$)/);
 
     return {
       name: intent,
@@ -306,12 +321,15 @@
       popularity: popularity,
       popularityExplicit: popularity !== "all",
       questionType: questionType,
-      refusesSpeakerGuess: questionType === "speaker",
+      refusesSpeakerGuess: questionType === "speaker" && !mappingRequest,
+      mappingRequest: mappingRequest,
       originRequest: originRequest,
       trajectory: trajectory,
       existenceRequest: existenceRequest,
       negativeExistence: negativeExistence,
       performanceRequested: performanceRequested,
+      characterSignalRequested: characterSignalRequested,
+      requestedYear: yearMatch ? Number(yearMatch[1]) : null,
       metric: metric,
       metricExplicit: liveHeatRequest || unhingedRequest || viewMetricRequest || mentionsRequest || heatRequest,
       direction: direction,
@@ -327,7 +345,7 @@
     }).join(" ");
   }
 
-  function aliasDefinitions(catalog, live, curated) {
+  function aliasDefinitions(catalog, live, curated, characterLore) {
     var aliases = [
       { type: "film", label: "A Nightmare on Elm Street (2010)", id: "qTQdWKcwn4A", aliases: ["elm street remake", "nightmare remake", "freddy remake", "elm street 2010", "nightmare 2010"] },
       { type: "film", label: "Jason X", id: "LiTEaN8mpl8", aliases: ["jason in space", "space jason", "jason x"] },
@@ -398,6 +416,36 @@
         character: label,
         aliases: unique(characterAliases),
       });
+    });
+    ((characterLore && characterLore.characters) || []).forEach(function (profile) {
+      var label = profile.name;
+      var canonical = normalize(label);
+      var existing = aliases.filter(function (definition) {
+        return definition.type === "character" &&
+          normalize(definition.character || definition.label) === canonical;
+      })[0];
+      var characterAliases = unique([canonical].concat(profile.aliases || []).map(normalize));
+      var mapping = {
+        characterId: profile.id || canonical.replace(/\s+/g, "-"),
+        performedBy: profile.performedBy || null,
+        hostAttribution: profile.hostAttribution || null,
+      };
+      if (existing) {
+        existing.aliases = unique(existing.aliases.concat(characterAliases));
+        existing.characterId = mapping.characterId;
+        existing.performedBy = mapping.performedBy;
+        existing.hostAttribution = mapping.hostAttribution;
+      } else {
+        aliases.push({
+          type: "character",
+          label: label,
+          character: label,
+          aliases: characterAliases,
+          characterId: mapping.characterId,
+          performedBy: mapping.performedBy,
+          hostAttribution: mapping.hostAttribution,
+        });
+      }
     });
     (curated.upInYa || []).forEach(function (item) {
       var normalizedLabel = normalize(item.label);
@@ -768,6 +816,47 @@
     return output;
   }
 
+  function characterPerformanceCandidates(characterLore) {
+    var output = [];
+    ((characterLore && characterLore.characters) || []).forEach(function (profile) {
+      (profile.soundbytes || []).forEach(function (receipt) {
+        var start = receipt.playback && Number(receipt.playback.start);
+        var end = receipt.playback && Number(receipt.playback.end);
+        var valid = receipt.id && receipt.sourceId && receipt.url && receipt.provenance &&
+          receipt.provenance.timestampStatus && Number.isFinite(Number(receipt.t)) &&
+          Number.isFinite(start) && Number.isFinite(end) && end > start;
+        if (!valid) return;
+        output.push({
+          key: "character-performance-" + profile.id + "-" + receipt.id,
+          kind: "character-performance",
+          source: receipt.sourceType || "livestream",
+          sourceId: receipt.sourceId,
+          sourceTitle: receipt.sourceTitle,
+          title: profile.name,
+          subtitle: receipt.sourceTitle,
+          franchise: "",
+          date: receipt.date,
+          at: Number(receipt.t),
+          category: "CHARACTER PERFORMANCE",
+          excerpt: receipt.excerpt,
+          url: receipt.url,
+          captioned: true,
+          character: profile.name,
+          characterId: profile.id,
+          characterStatus: "human-curated performance candidate",
+          trigger: receipt.trigger || "",
+          note: receipt.note || "",
+          curationConfidence: Number(receipt.confidence || 0),
+          performanceReceiptId: receipt.id,
+          playback: receipt.playback,
+          provenance: receipt.provenance,
+          evidenceType: "curated-character-performance",
+        });
+      });
+    });
+    return output;
+  }
+
   function entityMatches(candidate, entity) {
     if (!entity) return false;
     if (entity.type === "film") return candidate.source === "commentary" && candidate.sourceId === entity.id;
@@ -783,7 +872,7 @@
         normalize(candidate.title) === normalize(entity.topic);
     }
     if (entity.type === "character") {
-      return candidate.kind === "character" &&
+      return (candidate.kind === "character" || candidate.kind === "character-performance") &&
         normalize(candidate.character) === normalize(entity.character);
     }
     if (entity.type === "bit") {
@@ -803,6 +892,8 @@
       candidate.excerpt,
       candidate.curatedLabel,
       candidate.characterStatus,
+      candidate.trigger,
+      candidate.note,
     ].join(" "));
   }
 
@@ -854,6 +945,7 @@
     var subtitle = normalize(candidate.subtitle);
     var excerpt = normalize(candidate.excerpt);
     var category = normalize(candidate.category);
+    var annotation = normalize([candidate.trigger, candidate.note].join(" "));
     var breakdown = [];
     var reasons = [];
     var matchedTerms = [];
@@ -866,7 +958,8 @@
             entity.type === "topic" ? 145 : 115;
       var entityReason = entity.type === "film" ? "exact film" :
         entity.type === "topic" ? "exact topic" :
-          entity.type === "character" ? "exact character signal" :
+          entity.type === "character" ?
+            (candidate.kind === "character-performance" ? "exact curated character performance" : "exact character signal") :
             entity.type === "bit" ? "exact curated bit" : "franchise match";
       addScore(breakdown, entityPoints, entityReason, entity.label);
       reasons.push(entityReason);
@@ -878,6 +971,7 @@
       if (subtitle.indexOf(term) >= 0) points = Math.max(points, 10);
       if (category.indexOf(term) >= 0) points = Math.max(points, 15);
       if (excerpt.indexOf(term) >= 0) points = Math.max(points, 6);
+      if (annotation.indexOf(term) >= 0) points = Math.max(points, 22);
       if (points) {
         matchedTerms.push(term);
         addScore(breakdown, points, "text match", term);
@@ -956,6 +1050,15 @@
       addScore(breakdown, 36, "caption-indexed character signal", candidate.characterStatus);
       reasons.push("caption-indexed character signal");
     }
+    if (candidate.kind === "character-performance") {
+      var performancePoints = intent.performanceRequested || intent.mappingRequest ? 112 :
+        intent.name === "comedy" ? 96 :
+          intent.temporal !== "all" ? 84 : 58;
+      addScore(breakdown, performancePoints, "human-curated character performance", candidate.performanceReceiptId);
+      addScore(breakdown, Math.round(Number(candidate.curationConfidence || 0) * 12),
+        "curation confidence", String(candidate.curationConfidence || 0));
+      reasons.unshift("human-curated character performance");
+    }
     if ((intent.metric === "views" || intent.metric === "date") &&
       (candidate.kind === "tape" || candidate.kind === "livestream")) {
       addScore(breakdown, 32, "source-level answer", candidate.kind);
@@ -991,10 +1094,13 @@
 
   function candidateInScope(candidate, intent, entity, subjectTerms) {
     if (intent.source !== "all" && candidate.source !== intent.source) return false;
+    if (intent.requestedYear && entity && entity.type === "character" &&
+      String(candidate.date || "").slice(0, 4) !== String(intent.requestedYear)) return false;
     if (entity && !entityMatches(candidate, entity)) return false;
     if (!entity && subjectTerms.length && !hasSubjectCoverage(candidate, subjectTerms)) return false;
     if ((intent.name === "trajectory" || intent.name === "opinion") && !isTrajectoryEvidence(candidate)) return false;
     if (intent.name === "comedy" &&
+      candidate.kind !== "character-performance" &&
       (candidate.kind !== "moment" || CATEGORY_INTENTS.comedy.indexOf(candidate.category) < 0)) return false;
     if ((intent.name === "negative" || intent.name === "positive") && !hasOpinionEvidence(candidate, intent)) return false;
     if (intent.metric === "unhinged" && candidate.kind !== "tape") return false;
@@ -1004,12 +1110,17 @@
       !(entity && (entity.type === "topic" || entity.type === "character"))) return false;
     if ((intent.temporal === "latest" || intent.temporal === "earliest") &&
       !entity && intent.name !== "comedy" && candidate.kind !== "tape" && candidate.kind !== "livestream") return false;
-    /*
-     * characterIndex stores caption signals and cue counts, not verified
-     * performances. Performance questions belong to the Lore surface, which has
-     * bounded verified soundbytes; returning a prompt here would overclaim.
-     */
-    if (intent.performanceRequested && entity && entity.type === "character") return false;
+    if (entity && entity.type === "character") {
+      var performanceMode = intent.performanceRequested || intent.mappingRequest ||
+        (intent.characterPerformanceArchiveAvailable &&
+          !intent.characterSignalRequested && !intent.originRequest &&
+          (intent.name === "comedy" ||
+            intent.temporal === "latest" || intent.temporal === "earliest" || intent.temporal === "recent"));
+      var signalMode = intent.characterSignalRequested ||
+        (intent.originRequest && !intent.performanceRequested);
+      if (performanceMode && candidate.kind !== "character-performance") return false;
+      if (signalMode && candidate.kind !== "character") return false;
+    }
     return true;
   }
 
@@ -1020,6 +1131,7 @@
 
   function sourceLevelRank(candidate, entity) {
     if (entity && entity.type === "topic" && candidate.kind === "topic") return 4;
+    if (entity && entity.type === "character" && candidate.kind === "character-performance") return 5;
     if (entity && entity.type === "character" && candidate.kind === "character") return 4;
     if (entity && entity.type === "bit" && candidate.curatedLabel) return 4;
     if (candidate.kind === "tape" || candidate.kind === "livestream") return 3;
@@ -1083,6 +1195,7 @@
   }
 
   function resultLabel(candidate) {
+    if (candidate.kind === "character-performance") return "CURATED CHARACTER PERFORMANCE";
     if (candidate.kind === "character") return "CHARACTER SIGNAL";
     if (candidate.curatedLabel) return "CURATED SOUNDBYTE";
     if (candidate.source === "livestream") {
@@ -1141,6 +1254,11 @@
     }
     if (intent.originRequest) {
       if (entity && entity.type === "character") {
+        if (top.kind === "character-performance") {
+          return "Archive boundary: the earliest curated " + entityLabel +
+            " performance receipt in the current verified set is " + location +
+            ". This is an archive-first receipt for the bounded set, not a claim that the bit or portrayal originated there.";
+        }
         return "Archive boundary: the earliest machine-indexed " + entityLabel +
           " character signal in this broad caption index is " + location +
           ". This machine-indexed signal is not the same as Lore's curated verified-performance archive-first receipt for the current verified set. " +
@@ -1223,12 +1341,24 @@
         Number(top.mentions || 0).toLocaleString("en-US") + " caption matches.";
     }
     if (intent.name === "comedy") {
+      if (top.kind === "character-performance") {
+        return "Strongest source-grounded comedy route in the current curated " + entityLabel +
+          " performance set: " + location + ". This is a verified receipt route, not an objective claim that one bit is the funniest.";
+      }
       return "Fastest evidence-backed route to chaos: " + location + ", filed as " + top.category + ".";
     }
     if (intent.temporal === "latest") {
+      if (top.kind === "character-performance") {
+        return "Latest curated " + entityLabel + " performance receipt in the current verified set: " +
+          location + ".";
+      }
       return "Most recent indexed " + sourceNoun(top.source) + " match: " + location + ".";
     }
     if (intent.temporal === "earliest") {
+      if (top.kind === "character-performance") {
+        return "Earliest curated " + entityLabel + " performance receipt in the current verified set: " +
+          location + ". This describes the bounded archive, not an all-time origin.";
+      }
       return "Earliest indexed " + sourceNoun(top.source) + " match: " + location +
         ". This describes the current archive, not an all-time origin.";
     }
@@ -1256,6 +1386,10 @@
         ". It supports this moment only; it is not being promoted into a settled host opinion.";
     }
     if (entity && entity.type === "character") {
+      if (top.kind === "character-performance") {
+        return "Strongest curated " + entityLabel + " performance receipt: " + location +
+          ", grounded by the timestamp-validated Lore set. The clip remains speaker-undiarized.";
+      }
       return "Strongest indexed " + entityLabel + " character signal: " + location +
         ", labeled " + String(top.characterStatus || "character reference") +
         ". The label does not identify a performer.";
@@ -1322,9 +1456,26 @@
   }
 
   function isFollowup(intent) {
-    return beginsWithAny(intent.normalized, ["and", "another", "how about", "what about", "where about"]) ||
-      includesAny(intent.normalized, ["did that", "was that", "show another", "more like", "same one", "those ones"]) ||
-      (intent.words.length <= 4 && includesAny(intent.normalized, ["that", "those", "one", "ones", "more", "instead"]));
+    var q = intent.normalized;
+    if (beginsWithAny(q, ["what about", "how about", "where about"])) {
+      return includesAny(" " + q + " ", [
+        " it ", " that ", " this ", " them ", " those ", " one ", " ones ",
+        " another ", " more ", " same ", " instead ",
+      ]);
+    }
+    if (beginsWithAny(q, ["and"])) {
+      return beginsWithAny(q, [
+        "and if", "and then", "and what about", "and how about", "and another",
+        "and more", "and the", "and in", "and on", "and from", "and commentary",
+        "and commentaries", "and livestream", "and livestreams", "and instead",
+      ]);
+    }
+    return beginsWithAny(q, ["another"]) ||
+      includesAny(q, ["did that", "was that", "show another", "more like", "same one", "those ones"]) ||
+      (intent.words.length <= 4 && includesAny(" " + q + " ", [
+        " it ", " this ", " them ", " that ", " those ", " one ", " ones ",
+        " more ", " instead ",
+      ]));
   }
 
   function contextualEntity(previous, aliases, intent, preferredSource) {
@@ -1380,11 +1531,17 @@
         warnings.push("This is an ordinary reference, not a verified character performance.");
       }
     }
+    if (candidate.kind === "character-performance") {
+      warnings.push("Human curation verifies a performance candidate at this timestamp, not the identity of the voice in the clip.");
+      warnings.push("Recurring-character owner mapping is response-level context and is not clip-speaker attribution.");
+    }
     return warnings;
   }
 
   function enrichResult(candidate) {
-    var evidenceLevel = candidate.evidenceType === "caption-excerpt" ||
+    var evidenceLevel = candidate.evidenceType === "curated-character-performance" ?
+      "TIMESTAMPED CURATED PERFORMANCE RECEIPT" :
+      candidate.evidenceType === "caption-excerpt" ||
       candidate.evidenceType === "caption-topic-receipt" ||
       candidate.evidenceType === "caption-character-signal" ? "TIMESTAMPED CAPTION RECEIPT" :
       candidate.captioned ? "SOURCE-LEVEL DERIVED SUMMARY" : "SOURCE METADATA ONLY";
@@ -1429,12 +1586,16 @@
       });
       if (!origins.length) origins = ranked;
       var characterOrigin = entity && entity.type === "character";
+      var curatedPerformanceOrigin = characterOrigin && origins[0] &&
+        origins[0].kind === "character-performance";
       var originChain = [{
-        role: characterOrigin ? "EARLIEST MACHINE-INDEXED CHARACTER SIGNAL" : "EARLIEST INDEXED RECEIPT",
+        role: curatedPerformanceOrigin ? "EARLIEST CURATED PERFORMANCE RECEIPT IN CURRENT SET" :
+          characterOrigin ? "EARLIEST MACHINE-INDEXED CHARACTER SIGNAL" : "EARLIEST INDEXED RECEIPT",
         result: origins[0],
       }];
       if (origins[1]) originChain.push({
-        role: characterOrigin ? "LATER MACHINE-INDEXED CHARACTER SIGNAL" : "LATER INDEXED RECEIPT",
+        role: curatedPerformanceOrigin ? "LATER CURATED PERFORMANCE RECEIPT IN CURRENT SET" :
+          characterOrigin ? "LATER MACHINE-INDEXED CHARACTER SIGNAL" : "LATER INDEXED RECEIPT",
         result: origins[1],
       });
       return originChain;
@@ -1487,6 +1648,7 @@
     var confidence = entity ? 78 : top.matchedSubjectTerms.length ? 68 : 62;
     if (entity && entityMatches(top, entity)) confidence += 8;
     if (top.evidenceType === "caption-excerpt" || top.evidenceType === "caption-topic-receipt") confidence += 4;
+    if (top.evidenceType === "curated-character-performance") confidence += 6;
     if (intent.metric !== "relevance") confidence += 4;
     if (second && top.score > second.score) confidence += Math.min(5, Math.round((top.score - second.score) / 25));
     if (intent.name === "negative" || intent.name === "positive") confidence = Math.min(confidence, 84);
@@ -1504,6 +1666,7 @@
       var key = preserveExactReceipts ? candidate.key :
         candidate.source + "|" + candidate.sourceId + "|" + candidate.kind;
       if (!preserveExactReceipts && candidate.kind === "moment") key += "|" + candidate.category;
+      if (!preserveExactReceipts && candidate.kind === "character-performance") key += "|" + Number(candidate.at || 0);
       if (!preserveExactReceipts && candidate.kind === "character") key += "|" + normalize(candidate.character);
       if (!preserveExactReceipts && candidate.kind === "topic") key += "|" + normalize(candidate.title);
       if (seen[key]) return;
@@ -1534,16 +1697,19 @@
     return null;
   }
 
-  function create(catalog, deep, live, curated, popular) {
+  function create(catalog, deep, live, curated, popular, characterLore) {
     catalog = catalog || [];
     deep = deep || { tapes: [] };
     live = live || { streams: [], topicIndex: [] };
     popular = popular || { streams: [], topicIndex: [], characterIndex: [] };
     curated = curated || { upInYa: [] };
+    characterLore = characterLore || { characters: [] };
 
     var combinedLive = combineLiveData(live, popular);
-    var candidates = commentaryCandidates(catalog, deep).concat(liveCandidates(combinedLive));
-    var aliases = aliasDefinitions(catalog, combinedLive, curated);
+    var candidates = commentaryCandidates(catalog, deep)
+      .concat(liveCandidates(combinedLive))
+      .concat(characterPerformanceCandidates(characterLore));
+    var aliases = aliasDefinitions(catalog, combinedLive, curated, characterLore);
     var curatedByReceipt = {};
     (curated.upInYa || []).forEach(function (item, index) {
       curatedByReceipt[item.source + "|" + item.id + "|" + Number(item.t || 0)] = {
@@ -1567,6 +1733,38 @@
       var entity = directEntity || context.entity;
       var continuedFrom = !directEntity && context.continuedFrom;
       var contextUsed = !directEntity ? context.contextUsed : [];
+      if (entity && entity.type === "character" && entity.matchedAlias &&
+        intent.name === "negative") {
+        var residualQuery = (" " + intent.normalized + " ").replace(
+          " " + normalize(entity.matchedAlias) + " ",
+          " "
+        );
+        if (!includesAny(residualQuery, [
+          " hate", " hated", " worst", " bad", " sucks", " trash", " garbage",
+          " criticize", " dislike", " despise", " loathe", " didnt like",
+          " did not like", " couldnt stand",
+        ])) {
+          intent = Object.assign({}, intent, { name: "discovery" });
+        }
+      }
+      var ownerMapping = null;
+      if (intent.mappingRequest && entity && entity.type === "character" &&
+        entity.performedBy && entity.hostAttribution) {
+        ownerMapping = {
+          character: entity.label,
+          performer: entity.performedBy,
+          status: entity.hostAttribution.status || "owner-supplied",
+          confidence: Number(entity.hostAttribution.confidence || 0),
+          basis: entity.hostAttribution.basis || "Project-owner recurring-character mapping.",
+          scope: "recurring-character-only",
+          clipSpeakerVerified: false,
+        };
+      } else if (intent.mappingRequest) {
+        intent = Object.assign({}, intent, { refusesSpeakerGuess: true });
+      }
+      intent = Object.assign({}, intent, {
+        characterPerformanceArchiveAvailable: Boolean((characterLore.characters || []).length),
+      });
       var terms = expandedTerms(intent);
       var subjectTerms = entity ? [] : querySubjectTerms(intent);
 
@@ -1600,18 +1798,34 @@
         })) : ranked;
       var results = dedupeCandidates(displayRanked, evidenceFirst).slice(0, 7).map(enrichResult);
       if (intent.originRequest && entity && entity.type === "character" && results[0]) {
-        results[0].label = "EARLIEST MACHINE-INDEXED CHARACTER SIGNAL";
-        results[0].archiveBoundary = {
-          index: "broad machine-indexed caption signals",
-          differsFrom: "Lore curated verified-performance archive-first receipt for the current verified set",
-          trueOriginClaim: false,
-        };
+        if (results[0].kind === "character-performance") {
+          results[0].label = "EARLIEST CURATED PERFORMANCE RECEIPT IN CURRENT SET";
+          results[0].archiveBoundary = {
+            index: "Lore timestamp-validated curated performance receipts",
+            differsFrom: "an exhaustive all-time origin claim",
+            trueOriginClaim: false,
+          };
+        } else {
+          results[0].label = "EARLIEST MACHINE-INDEXED CHARACTER SIGNAL";
+          results[0].archiveBoundary = {
+            index: "broad machine-indexed caption signals",
+            differsFrom: "Lore curated verified-performance archive-first receipt for the current verified set",
+            trueOriginClaim: false,
+          };
+        }
       }
-      var confidence = confidenceFor(intent, entity, results);
-      var status = intent.refusesSpeakerGuess ? "speaker-unknown" :
+      var confidence = ownerMapping ? Math.round(ownerMapping.confidence * 100) :
+        confidenceFor(intent, entity, results);
+      var status = ownerMapping ? "owner-mapped-character" :
+        intent.refusesSpeakerGuess ? "speaker-unknown" :
         intent.name === "trajectory" || intent.name === "opinion" ? "archive-boundary" :
         !results.length ? "insufficient-evidence" : "supported";
       var answer = buildAnswer(intent, entity, results, combinedLive, chain, subjectTerms);
+      if (ownerMapping) {
+        answer = "Project-owner recurring-character mapping: " + ownerMapping.character +
+          " is performed by " + ownerMapping.performer +
+          ". This identifies the recurring character owner only; it does not verify who is speaking in any individual clip, so every result remains non-diarized.";
+      }
 
       return {
         query: query,
@@ -1621,12 +1835,18 @@
         temporal: intent.temporal,
         popularity: intent.popularity,
         metric: intent.metric,
+        requestedYear: intent.requestedYear,
         entity: entity ? entity.label : null,
         entityType: entity ? entity.type : null,
+        ownerMapping: ownerMapping,
         continuedFrom: continuedFrom,
         contextUsed: contextUsed,
         confidence: confidence,
-        confidenceBasis: results.length ? (intent.name === "trajectory" ? [
+        confidenceBasis: ownerMapping ? [
+          "project-owner supplied recurring-character mapping",
+          "mapping applies to the recurring character, not any individual clip",
+          "result speakers remain not diarized",
+        ] : results.length ? (intent.name === "trajectory" ? [
           "receipt retrieval confidence; change claim not established",
           entity ? "recognized archive entity" : "archive text match",
           results[0].evidenceLevel.toLowerCase(),
@@ -1643,7 +1863,9 @@
         answer: answer,
         limitations: unique((results[0] ? results[0].evidenceWarnings : [
           "Absence from this bounded index is not proof a subject was never discussed.",
-        ]).concat(intent.originRequest ? [
+        ]).concat(ownerMapping ? [
+          "Owner mapping does not establish the speaker at a specific timestamp.",
+        ] : []).concat(intent.originRequest ? [
           "Earliest indexed receipt is not a claim of true origin.",
         ] : []).concat(intent.name === "trajectory" ? [
           entity && entity.type === "franchise" ?
@@ -1661,6 +1883,7 @@
           resultCountBeforeDisplayLimit: fullRanked.length,
           safeguards: [
             "no speaker guessing",
+            "recurring-character ownership kept separate from clip attribution",
             "no unsupported opinion claims",
             "no true-origin claims",
             "unknown subjects return no evidence",
