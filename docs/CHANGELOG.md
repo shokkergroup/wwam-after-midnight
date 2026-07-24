@@ -3,6 +3,45 @@
 This changelog records product and evidence-contract changes. It does not by
 itself indicate that a build has been deployed.
 
+## 0.5.19 — V5.19 The Midnight Cut — 2026-07-24
+
+### Added
+
+- **The Midnight Cut** turns three to eight canonical timed receipts from the
+  Evidence Bag into one ordered, manually controlled route through official
+  YouTube uploads.
+- Compilation re-resolves every selection against the current Source Dossier
+  registry. Unknown, duplicate, quarantined, withheld, stale-fingerprint,
+  ambiguous, foreign, out-of-range, and untimed selections fail closed.
+- Exact registered start/end bounds survive compilation, playback, sharing,
+  restoration, and edit-brief export. Human-curated 14-second character
+  windows are never widened to a generic fallback.
+- Optional titles and introductions remain labeled **VIEWER-WRITTEN // NOT
+  ARCHIVE EVIDENCE** and cannot become archive claims.
+- The compact share packet carries ordered receipt keys,
+  channel/archive/registry bindings, bounded viewer prose, and deterministic
+  cut/packet fingerprints. It
+  omits excerpts, transcripts, summaries, generated dialogue, speakers, and
+  media.
+- JSON and Markdown creator edit briefs provide exact official-source
+  coordinates for human review without copying media, publishing, modifying
+  Canon, clearing rights, authenticating approval, or proving speaker
+  continuity, causality, opinion change, or true origin.
+- The launch preset **The Character Ward // 2021–2026** orders five exact
+  curated character-performance windows from 2021 through the July 23, 2026
+  livestream.
+
+### Product boundary
+
+- Playback is dormant until the visitor acts and never autoplays the next
+  stop.
+- The feature launches from the existing Evidence Bag and tape theater. It
+  does not add a homepage section or navigation destination.
+- The ordered-cut compiler is channel-neutral. Channel-specific presets and
+  voice belong to the ChannelPack/adapter rather than the evidence engine.
+
+See [The Midnight Cut](THE_MIDNIGHT_CUT.md).
+
 ## 0.5.18 — V5.18 Ask This Tape — 2026-07-24
 
 ### Added

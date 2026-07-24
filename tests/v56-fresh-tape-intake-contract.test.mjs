@@ -35,7 +35,7 @@ test("V5.6 release identity and ChannelPack capability stay synchronized", () =>
   const changelog = read("docs/CHANGELOG.md");
   const pack = loadPack();
 
-  assert.equal(packageJson.version, "0.5.18");
+  assert.equal(packageJson.version, "0.5.19");
   assert.match(changelog, /^## 0\.5\.6\b/m);
   assert.equal(pack.fingerprint, "cp1-dd23bc386008689b");
   assert.equal(pack.capabilities.includes("fresh-tape-intake"), true);

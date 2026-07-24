@@ -11,7 +11,7 @@ three things quickly:
 
 ## Before the call
 
-- Open the current V5.18 build or its confirmed deployment and choose either
+- Open the current V5.19 build or its confirmed deployment and choose either
   content-advisory mode.
 - Confirm YouTube playback is available in the browser.
 - Start at the hero, not halfway down the page.
@@ -54,6 +54,10 @@ Use this evidence vocabulary consistently:
   its exact fixed, code-specific scoped sentence on this device. Reviewer
   identity remains unverified; the result is not creator-certified,
   rights-cleared, written to Canon, or published to a server.
+- **Viewer-written cut context** means a fan supplied a Midnight Cut title or
+  introduction. It is presentation around canonical receipts, visibly labeled
+  `VIEWER-WRITTEN // NOT ARCHIVE EVIDENCE`, and cannot become a quote, archive
+  summary, creator claim, or Canon entry.
 
 ## The 60-second version
 
@@ -85,6 +89,71 @@ Press **Mike Mode** and use one sentence per slide:
 
 Use the proof button on at least two slides. A pitch that exits into working
 evidence is stronger than a complete slideshow.
+
+## V5.19 Mike path — cut the tape in two minutes
+
+Use this path to demonstrate the loop from archive proof to fan delight to
+creator utility without adding a new homepage destination.
+
+### 1. Launch the exact preset
+
+Open the Evidence Bag and enter **The Midnight Cut**. Choose **The Character
+Ward // 2021–2026**. The rail must contain exactly:
+
+1. `character-receipt:slender-stomach` —
+   `Mf-0Tv_KHCE @ 541.04–555.04`;
+2. `character-receipt:challis-boilermaker` —
+   `lCH31VtaSeI @ 6511.44–6525.44`;
+3. `character-receipt:loomis-biscuit-job` —
+   `Qc2vVFMO4ts @ 7693.02–7707.02`;
+4. `character-receipt:feldman-atmosphere` —
+   `shoWljlgSUU @ 8097.2–8111.2`; and
+5. `character-receipt:loomis-funding` —
+   `LV2rmwEA0w4 @ 9042.64–9056.64`.
+
+Expected proof:
+
+- five unique canonical receipts survive re-resolution;
+- every window is exactly 14 seconds;
+- the current stop exposes source ID and exact bounds;
+- playback begins only after a click; and
+- advancing to the next stop is manual.
+
+Say: “This is not an AI-generated compilation. It is a fan's ordered route
+through five exact receipts, played from the official uploads.”
+
+### 2. Make authorship visible
+
+Reorder one stop and add a short title or introduction.
+
+Expected proof:
+
+- order changes without changing any receipt;
+- the prose is labeled `VIEWER-WRITTEN // NOT ARCHIVE EVIDENCE`;
+- no generated narration or speaker claim appears; and
+- the official-source/recovery action remains available.
+
+Say: “A fan can author the journey. They cannot author the archive facts.”
+
+### 3. Hand the route to a creator
+
+Copy the share packet, then export either the JSON or Markdown creator brief.
+
+Expected proof:
+
+- the reconstruction packet contains ordered keys, channel/archive/registry
+  bindings, bounded viewer prose, and deterministic cut/packet fingerprints;
+- it contains no excerpt, transcript, caption payload, speaker, generated
+  dialogue, or media;
+- restore re-resolves every receipt against the canonical registry; and
+- the production brief supplies official URLs and exact edit coordinates for
+  human review.
+
+Say: “The same fan experience becomes useful editorial prep, but no button
+pretends to clear rights, approve a clip, prove origin, or publish.”
+
+If a source will not embed, use the in-page recovery action and official link.
+Do not describe third-party player availability as guaranteed.
 
 ## V5.18 Mike path — exact-source proof in two minutes
 

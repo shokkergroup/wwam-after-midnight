@@ -1,4 +1,4 @@
-# WWAM After Midnight V5.18
+# WWAM After Midnight V5.19
 
 ## One-sentence product
 
@@ -22,9 +22,17 @@ its cached metadata supports only an honest source record. V5.16's
 relationship rule remains: a timestamp inside a relevant upload is not
 automatically an answer.
 
+V5.19 turns saved evidence into a deliberate fan-authored viewing route.
+**The Midnight Cut** re-resolves three to eight Evidence Bag selections
+against that canonical registry, preserves their exact source windows, and
+plays the ordered stops manually inside the existing tape theater. Its share
+packet can reconstruct the evidence path without carrying excerpts or media,
+and its JSON/Markdown edit brief gives a creator exact coordinates for human
+review. Viewer prose stays labeled non-evidence throughout.
+
 ## Audited snapshot
 
-V5.18 keeps a frozen release proof, the V5.12 Archive Deep overlay, the V5.13
+V5.19 keeps a frozen release proof, the V5.12 Archive Deep overlay, the V5.13
 longitudinal docket, the V5.14 device-local adjudication overlay, and the new
 playable-answer projection and evidence-relationship gate visibly separate.
 The **immutable V5.4 proof** remains:
@@ -129,6 +137,59 @@ The combined portfolio fingerprint is `fnv1a32:14050c7a`. Batch 01, 02, 03,
 and 04 retain `fnv1a32:17045a51`, `fnv1a32:bcea5692`,
 `fnv1a32:f79f2399`, and `fnv1a32:56ca74df`, respectively. These FNV values
 detect structural change; they do not authenticate the sources or an operator.
+
+## The Midnight Cut
+
+The Midnight Cut closes the loop implied by the Evidence Bag: a fan can save
+three to eight strong moments, arrange them, and watch that exact route
+without leaving the page. It is an ordered projection of existing canonical
+receipts, not a new evidence class.
+
+The compiler re-resolves each selected key against the current Source Dossier
+registry before it creates a cut. Legacy bag coordinates are accepted only
+when source ID plus start second identify exactly one canonical receipt.
+Unknown, duplicate, quarantined, withheld, stale-fingerprint, ambiguous,
+foreign, out-of-range, and untimed items are held rather than guessed. A cut
+must retain three to eight eligible unique receipts after validation.
+
+Every stop preserves its canonical source ID, source fingerprint, evidence
+class, official URL, and exact start/end bounds. This matters most for the 25
+human-curated character windows: their reviewed 14-second bounds cannot
+expand into a generic 30-second playback fallback.
+
+Playback is manual. Previous, replay, next, and direct-stop controls move
+through dormant official YouTube embeds; no media is copied and the next stop
+never autoplays. The existing first-party player identity and recovery path
+remain available when a third-party embed fails.
+
+The compact share packet contains only ordered receipt keys,
+channel/archive/registry bindings, bounded viewer title/introduction, and
+deterministic cut/packet fingerprints. It contains no captions, excerpts,
+summaries, speakers, generated dialogue, or media. Viewer fields are always
+labeled **VIEWER-WRITTEN // NOT ARCHIVE EVIDENCE**, and restore runs the full
+canonical validation again.
+
+JSON and Markdown creator exports are edit briefs: exact source IDs, official
+URLs, bounds, order, and evidence classes for human review. They do not clear
+rights, approve or publish clips, identify speakers, prove continuity,
+causality, opinion change, or true origin, mutate Canon, or copy source media.
+
+The launch preset **The Character Ward // 2021–2026** contains:
+
+1. `character-receipt:slender-stomach` —
+   `Mf-0Tv_KHCE @ 541.04–555.04`;
+2. `character-receipt:challis-boilermaker` —
+   `lCH31VtaSeI @ 6511.44–6525.44`;
+3. `character-receipt:loomis-biscuit-job` —
+   `Qc2vVFMO4ts @ 7693.02–7707.02`;
+4. `character-receipt:feldman-atmosphere` —
+   `shoWljlgSUU @ 8097.2–8111.2`; and
+5. `character-receipt:loomis-funding` —
+   `LV2rmwEA0w4 @ 9042.64–9056.64`.
+
+The feature launches from the Evidence Bag into the existing tape theater. It
+adds no homepage section or navigation item. See
+[The Midnight Cut](THE_MIDNIGHT_CUT.md).
 
 ## Ask This Tape
 
@@ -543,6 +604,9 @@ The archive becomes something to play:
   25 UP IN YA annotations, 25 recurring-character annotations, and 2,967
   receipt-backed Lore connections.
 - The Evidence Bag saves moments on the device and exports a source manifest.
+  The Midnight Cut can re-resolve three to eight of those receipts into a
+  manually controlled, exact-bound route and a human-review edit brief without
+  copying media or promoting viewer prose into evidence.
 - The Red Band Memorability Candidate Index V2.1 compares 567 deduplicated
   playable receipts and publishes exactly 100 unique ranks across 53 sources.
   Its raw score remains inspectable, while a deterministic post-score pass
@@ -701,6 +765,25 @@ Mike Mode is the shortest route through the commercial argument:
    the preselected Archive Discovery Creator Pilot, inspect its acceptance
    checks, and keep every business outcome at `MEASURE DURING PILOT`.
 
+### Mike's V5.19 cut-the-tape proof
+
+Open the Evidence Bag and launch **The Character Ward // 2021–2026**. The room
+should show five source-locked stops in this order: Slenderman stomach,
+Challis boilermaker, Loomis biscuit job, Feldman atmosphere, and Loomis
+funding. Play one stop, advance manually, and point out that all five retain
+their exact 14-second boundaries.
+
+Then reorder one stop and enter a short title. The title remains visibly
+viewer-written and outside archive evidence. Copy the reconstruction packet
+or export a creator brief: the former carries only keys, registry bindings,
+viewer context, and fingerprints; the latter supplies official URLs and edit
+coordinates for human review. Neither contains source media or represents
+creator approval.
+
+Say: “The archive did not merely find five moments. It turned exact proof into
+a fan journey and an editor-ready plan without pretending the fan authored
+new facts.”
+
 ### Mike's V5.18 source-lock proof
 
 After the six beats, use three dossiers:
@@ -825,6 +908,7 @@ consistently shortened at render time.
 | Exact YouTube timestamp jumps | Licensed media editing or hosting |
 | Source-synchronized companion rail with manual fallback | Guaranteed player API availability or owned playback |
 | Exact ordered playable-answer trails with same-coordinate player recovery | Guaranteed third-party embed availability or owned playback |
+| Three-to-eight-stop viewer cuts with canonical bounds, compact reconstruction packets, and creator edit briefs | Creator approval, rights clearance, owned media, authenticated collaboration, or automatic publishing |
 | Local Evidence Bag, Human Review Session, and JSON exports | Shared accounts, remote queues, and owner-controlled approval |
 | Local, bounded taste calibration | Authenticated creator identity or shared preference profiles |
 | Local, bounded fresh-tape parsing and verifiable quarantine export | Trusted feed ingestion, authenticated review, and promotion into production ledgers |
@@ -876,6 +960,12 @@ The reusable patterns now include:
   restore reruns the current answer and requires an exact chain match; order
   creates a watch path, not a continuity, causality, opinion, origin, rights,
   or Canon claim.
+- **Ordered receipt cut:** three to eight independently saved canonical
+  receipts may become a manually controlled official-source route, a
+  keys-and-bindings reconstruction packet, and a human-review production
+  brief. Reordering adds no evidence, viewer prose stays labeled non-evidence,
+  restore re-resolves every receipt, and no export copies media or grants
+  approval, rights, origin, speaker, continuity, or Canon authority.
 - **Longitudinal review:** a ChannelPack subject ontology binds earlier and
   later exact-source receipts under a `MAY_RESOLVE` relationship. Machine
   signals remain subordinate and contradictions stay visible.

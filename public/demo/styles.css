@@ -2049,6 +2049,9 @@ body > footer a, body > footer button { border: 0; background: transparent; colo
 .evidence-bag-empty b { color: var(--acid); font: 35px var(--display); }
 .evidence-bag-empty span { max-width: 310px; color: #777e67; font: 10px/1.6 var(--mono); }
 .evidence-bag > footer { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 14px; border-top: 1px solid #3a4226; }
+.evidence-bag > footer .evidence-bag-cut { grid-column: 1/-1; border-color: var(--acid); background: var(--acid); color: #090b05; }
+.evidence-bag > footer .evidence-bag-cut:hover,
+.evidence-bag > footer .evidence-bag-cut:focus-visible { background: #eaff57; color: #050603; }
 .evidence-bag > footer button:last-child { grid-column: 1/-1; color: var(--pink); }
 
 .tape-modal {

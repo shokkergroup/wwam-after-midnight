@@ -217,28 +217,16 @@
   }
 
   function sourceDossierBindings() {
-    if (!window.ShokkerChannelPack || !window.WWAM_CHANNEL_PACK_ADAPTER) {
-      throw new Error("The ChannelPack boundary is not available.");
-    }
-    var pack = window.ShokkerChannelPack.compile(
-      channelDNA,
-      window.WWAM_CHANNEL_PACK_ADAPTER
-    );
-    return {
-      id: pack.identity.id,
-      label: pack.identity.channel,
-      packFingerprint: pack.fingerprint,
-    };
+    if(!window.ShokkerChannelPack||!window.WWAM_CHANNEL_PACK_ADAPTER)
+      throw new Error("ChannelPack boundary unavailable");
+    var pack=window.ShokkerChannelPack.compile(channelDNA,window.WWAM_CHANNEL_PACK_ADAPTER);
+    return {id:pack.identity.id,label:pack.identity.channel,packFingerprint:pack.fingerprint};
   }
 
   function buildSourceDossierRuntime() {
-    if (!window.ShokkerSourceDossier ||
-        !window.ShokkerSourceQuery ||
-        !window.WWAMSourceDossierAdapter ||
-        !window.WWAMSourceDossierUI ||
-        !archiveAtlasPayload) {
-      throw new Error("The Source Dossier runtime is incomplete.");
-    }
+    if(!window.ShokkerSourceDossier||!window.ShokkerSourceQuery||!window.WWAMSourceDossierAdapter||
+        !window.WWAMSourceDossierUI||!archiveAtlasPayload)
+      throw new Error("Source Dossier runtime held");
     var payload = window.WWAMSourceDossierAdapter.build({
       archiveAtlas: archiveAtlasPayload,
       catalog: catalog,
@@ -305,7 +293,7 @@
         addToEvidenceBag({
           source: source.sourceType === "commentary" ? "commentary" : "livestream",
           sourceId: source.id,
-          at: receipt.at,
+          at:receipt.at, end:receipt.end, receiptKey:receipt.key,
           title: source.displayTitle || source.title,
           category: receipt.label,
           excerpt: receipt.excerpt,
@@ -360,6 +348,7 @@
       });
     return sourceDossierLoadPromise;
   }
+  window.WWAMSourceDossierAccess=Object.freeze({cutId:"evidenceBagCut",load:loadSourceDossier,get:function(){return sourceDossierEngine;},bag:function(){return state.evidenceBag.slice();}});
 
   var SOURCE_DOSSIER_SECTION_IDS = Object.freeze({proof:"sourceDossierProof",player:"sourceDossierPlayerSection",inside:"sourceDossierInside",ask:"sourceDossierAsk",footprint:"sourceDossierFootprint",wake:"sourceDossierWake",chronology:"sourceDossierChronology",work:"sourceDossierWork",boundary:"sourceDossierBoundary"});
 
@@ -897,7 +886,7 @@
     if (!bagItem.id) return "";
     var buttonLabel = label || "BAG THIS RECEIPT";
     var data = Object.assign(evidenceBoundary(bagItem), {
-      source: bagItem.source, id: bagItem.id, at: bagItem.at,
+      source:bagItem.source,id:bagItem.id,at:bagItem.at,end:bagItem.end,receiptKey:bagItem.receiptKey,
       title: bagItem.title, category: bagItem.category, excerpt: bagItem.excerpt,
     });
     return '<button class="bag-add" data-bag-add data-default-label="' + esc(buttonLabel + " +") +
@@ -2038,6 +2027,7 @@
       history.back();
       return;
     }
+    if(window.WWAMMemoryCutLauncher)window.WWAMMemoryCutLauncher.destroy();
     var modal = document.getElementById("tapeModal");
     modal.classList.remove("show");
     modal.setAttribute("aria-hidden", "true");

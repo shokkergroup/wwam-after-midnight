@@ -1,5 +1,7 @@
 # YouTube Wiki Memory OS
 
+Current WWAM demonstration release: **V5.19 / 0.5.19**.
+
 Version 1.0 — a reusable, evidence-first operating system for living channel archives.
 
 ## Product thesis
@@ -39,6 +41,10 @@ The defensible product is not “AI made a website.” It is a source-backed mem
     the requested source ID and fingerprint before interpreting the question.
     A duplicate title, nearby upload, or stronger global result cannot
     substitute another source.
+11. **A fan-authored sequence never becomes archive evidence.** Re-resolve
+    every ordered receipt against the canonical registry, preserve exact
+    bounds, label viewer prose as non-evidence, and fail closed rather than
+    substitute, pad, or widen a cut.
 
 ## Universal evidence schema
 
@@ -121,6 +127,53 @@ The latter 52 Archive Deep records remain machine-surfaced and quarantined.
 They are not performances. Curated clip normalization must preserve explicit
 human end bounds; it may not replace a 14-second reviewed window with a
 generic 30-second fallback.
+
+### Ordered receipt cut
+
+A viewer-authored route through canonical receipts.
+
+```json
+{
+  "schema": "shokker-memory-cut-share/v1",
+  "version": "1.0.0",
+  "title": "Viewer-written title",
+  "introduction": "Viewer-written introduction",
+  "viewerTextLabel": "VIEWER-WRITTEN // NOT ARCHIVE EVIDENCE",
+  "bindings": {
+    "channelId": "channel-pack-id",
+    "channelPackFingerprint": "channel-pack-change-detector",
+    "archiveFingerprint": "archive-change-detector",
+    "registryFingerprint": "source-registry-change-detector"
+  },
+  "receiptKeys": [
+    "canonical-receipt-key-1",
+    "canonical-receipt-key-2",
+    "canonical-receipt-key-3"
+  ],
+  "cutFingerprint": "compiled-cut-change-detector",
+  "fingerprint": "share-packet-change-detector"
+}
+```
+
+Ordered-cut requirements:
+
+- three to eight unique promoted timed receipts;
+- canonical re-resolution before compile and again on share restore;
+- exact registered start/end preservation;
+- fail-closed rejection of unknown, duplicate, quarantined, withheld,
+  stale-fingerprint, ambiguous, foreign, out-of-range, or untimed selections;
+- manual in-page playback from official sources with no player before an
+  explicit command and no automatic chaining into another stop;
+- viewer title/introduction labeled as non-evidence;
+- share packets limited to keys, channel/archive/registry bindings, bounded
+  viewer prose, and deterministic cut/packet fingerprints; and
+- JSON/Markdown creator briefs treated as human-review plans rather than
+  approval, rights clearance, copied media, Canon mutation, or publication.
+
+The ordered-cut engine is universal. A comedy ChannelPack may define a
+character-archaeology preset; a racing ChannelPack may order a restart, lead
+change, booth reaction, final-lap battle, and finish. The sequence contract
+does not inherit either channel's vocabulary.
 
 ### Entity
 

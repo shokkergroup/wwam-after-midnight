@@ -7,7 +7,43 @@ character archaeology, topic paths, and creator-side editorial opportunities.
 This is an unofficial fan prototype. It sends playback and source traffic back
 to the official WWAM uploads.
 
-Current documented release: **V5.18 / 0.5.18**.
+Current documented release: **V5.19 / 0.5.19**.
+
+## V5.19 The Midnight Cut
+
+V5.19 lets a fan turn **three to eight canonical timed receipts** from the
+Evidence Bag into one ordered route through the official WWAM uploads. **The
+Midnight Cut** plays each exact source window inside the existing tape theater
+with manual previous, replay, next, and direct-stop controls. It does not
+instantiate a player before an explicit command, chain into another stop
+automatically, stitch copied media, or turn a viewer's sequence into archive fact.
+
+Compilation re-resolves every selection against the canonical Source Dossier
+registry and fails closed on unknown, duplicate, quarantined, withheld,
+stale-fingerprint, ambiguous, foreign, out-of-range, or untimed evidence.
+Explicit human-curated end bounds survive compilation. A reviewed 14-second
+window cannot quietly expand into a generic playback window.
+
+A compact share packet carries ordered receipt keys, channel/archive/registry
+bindings, bounded viewer prose, and deterministic cut/packet fingerprints. It
+carries no transcripts, excerpts, summaries, speakers, generated dialogue, or
+media.
+Optional viewer title and introduction remain visibly labeled
+**VIEWER-WRITTEN // NOT ARCHIVE EVIDENCE**. Restore performs the same
+fail-closed canonical resolution again.
+
+The same sequence exports a JSON or Markdown creator edit brief with official
+URLs and exact edit coordinates. It is a human-review handoff, not creator
+approval, rights clearance, proof of speaker continuity or origin, a Canon
+mutation, or an automatic publish action.
+
+The launch preset, **The Character Ward // 2021–2026**, preserves five exact
+14-second human-curated performance windows in this order: Slenderman stomach,
+Challis boilermaker, Loomis biscuit job, Feldman atmosphere, and Loomis
+funding. The feature launches from the Evidence Bag and existing tape theater;
+it is deliberately not another homepage section or navigation item.
+
+See [The Midnight Cut](docs/THE_MIDNIGHT_CUT.md).
 
 ## V5.18 Ask This Tape
 
@@ -414,11 +450,12 @@ manifest. Quarantined stops remain marked `promotionAllowed: false` with no
 speaker claim. The export omits transcripts, caption payloads, and full event
 ledgers. See [Archive Time Capsules](docs/ARCHIVE_TIME_CAPSULES.md).
 
-## V5.18 product map
+## V5.19 product map
 
 The hero offers three deliberate entry points:
 
-- **Fan Experience:** 510 canonical Source Dossiers, the daily Night Shift
+- **Fan Experience:** 510 canonical Source Dossiers, The Midnight Cut's
+  evidence-safe personal viewing routes, the daily Night Shift
   return ritual, source-grounded Tape
   Trivia, Tape Companion's synchronized second screen, the Evidence Bag, the
   100-rank Red Band Memorability Candidate Index V2.1, WWAM UP IN YA, and
@@ -683,7 +720,8 @@ artifacts contain derived measurements and short, timestamped fragments only.
 
 ## Documentation
 
-- [V5.18 product overview](docs/V5_OVERVIEW.md)
+- [V5.19 product overview](docs/V5_OVERVIEW.md)
+- [The Midnight Cut ordered-receipt contract](docs/THE_MIDNIGHT_CUT.md)
 - [Ask This Tape exact-source query contract](docs/ASK_THIS_TAPE.md)
 - [The Source Dossier](docs/SOURCE_DOSSIER.md)
 - [Evidence Relationship Gate](docs/EVIDENCE_RELATIONSHIP_GATE.md)
