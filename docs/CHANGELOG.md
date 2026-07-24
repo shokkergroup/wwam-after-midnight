@@ -3,6 +3,55 @@
 This changelog records product and evidence-contract changes. It does not by
 itself indicate that a build has been deployed.
 
+## 0.5.7 — V5.7 Archive Deep Portfolio — 2026-07-24
+
+### Added
+
+- **Archive Deep Batch 02** freezes and caption-audits the exact next ten
+  eligible Archive Atlas priority records after Batch 01 exclusion. Its
+  priority is the declared combination of cached-view gravity, upload recency,
+  and configured franchise-title signals—not raw view rank, popularity rank,
+  or a claim about content quality.
+- **Archive Deep Portfolio V1** validates and composes the two independent
+  ten-source batches into one read-only discovery and quarantine surface. It
+  preserves both batch selections and fingerprint chains, rejects duplicate
+  source identities or priority drift, and emits its own
+  structural-change-detection fingerprint.
+- The current overlay spans **20 caption-audited sources, 46.8 hours, 579,003
+  words, 82,551 parsed caption events, 200 topic lanes across 42 distinct
+  topics, 91 quarantined public moment candidates, 23 source-level
+  character-signal records, 7 topic-only source-audio firewalls, and 214,278
+  cached snapshot views**.
+- Archive Atlas now reports **54 deeply indexed, 410 metadata-only, and 8
+  caption-limited records**, or **11.4% deep coverage**, across its unchanged
+  472-record cached Streams-feed snapshot.
+- A twelve-query portfolio audit matrix covers counts, batch filtering,
+  priority explanation, dated view sorting, topic and moment retrieval,
+  speaker abstention, character-signal boundaries, source-audio firewalls,
+  visual-context abstention, and promotion refusal.
+
+### Accuracy and release boundaries
+
+- All 91 portfolio moments remain machine-surfaced, speaker-undiarized,
+  origin-unattributed, unreviewed, and quarantined. They do not enter the
+  promoted 872, Canon, Red Band, WWAM UP IN YA, character voice, or
+  creator-approved inventory.
+- The 23 source-level character-signal records are not 23 people,
+  performances, verified appearances, or clip-level speaker attributions.
+- Seven trailer, script-reading, or watch-party uploads are
+  topic-navigation-only. Six visual-context-unverified sources—three in each
+  batch—can expose bounded caption navigation, but their visual ranking context
+  remains unverified.
+- Each batch retains independent selection, caption-set, and public-stream
+  fingerprints. The portfolio adds a composition fingerprint. Every FNV value
+  is a deterministic structural change detector, not a signature or proof of
+  authenticity, authorship, review, speaker identity, rights, or approval.
+- The immutable V5.4 proof remains exactly **84 inputs, 2,175,344 audited
+  words, 194.9 caption-audited hours, 872 promoted receipts, 42
+  then-quarantined Batch 01 candidates, and 168 promoted core memory nodes**.
+  V5.7's twenty-source portfolio is a current overlay, not a retroactive
+  rewrite of that named proof snapshot.
+
 ## 0.5.6 — V5.6 bounded fresh-tape intake — 2026-07-24
 
 ### Added

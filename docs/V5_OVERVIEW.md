@@ -1,4 +1,4 @@
-# WWAM After Midnight V5.6
+# WWAM After Midnight V5.7
 
 ## One-sentence product
 
@@ -15,9 +15,8 @@ masquerading as timestamped utterances.
 
 ## Audited snapshot
 
-The V5.6 release preserves the July 23 source snapshot and July 24 Archive Deep
-Batch 01 audit while adding synchronized playback, retrieval-planning, local
-creator-taste, and bounded fresh-tape intake contracts:
+V5.7 keeps a frozen release proof and a current Archive Deep overlay visibly
+separate. The **immutable V5.4 proof** remains:
 
 | Source lane | Coverage |
 | --- | ---: |
@@ -35,19 +34,52 @@ creator-taste, and bounded fresh-tape intake contracts:
 The Popular 25 ranking is a time-stamped view-count snapshot, not a permanent
 popularity claim.
 
+The **current V5.7 Archive Deep Portfolio overlay** is additive quarantine
+inventory, not a retroactive rewrite of that proof:
+
+| Archive Deep Portfolio measurement | Current overlay |
+| --- | ---: |
+| Independently fingerprinted batches | 2 |
+| Caption-audited sources | 20 |
+| Audited runtime | 46.8 hours |
+| Audited caption words | 579,003 |
+| Parsed caption events | 82,551 |
+| Topic lanes / distinct normalized topics | 200 / 42 |
+| Quarantined public moment candidates | 91 |
+| Source-level character-signal records | 23 |
+| Topic-only source-audio firewalls | 7 |
+| Visual-context-unverified sources | 6 |
+| Cached snapshot views | 214,278 |
+
+The frozen headline is exactly **84 inputs, 2,175,344 audited words, 194.9
+caption-audited hours, 872 promoted receipts, 42 then-quarantined Batch 01
+candidates, and 168 promoted core memory nodes**. The portfolio's 91 current
+candidates do not enter the promoted receipt count.
+
+Across promoted and quarantine lanes, the current audit covers **94 source
+inputs: 91 caption-audited and 3 sealed or limited, 2,459,876 audited words,
+and 217.99 hours (about 218.0)**. The promoted receipt count remains 872.
+
 A separate Archive Atlas inventories all 472 records in the cached official
 Streams-feed snapshot from 2018–2026. Those records total 1,197.0 known hours
-and 5,674,608 cached views: 44 are deeply indexed, 420 are metadata-only, 8 are
+and 5,674,608 cached views: 54 are deeply indexed, 410 are metadata-only, 8 are
 caption-limited, and 0 are classified unavailable in the cached snapshot.
-Current availability was not rechecked. Deep coverage is 9.3%. This broad
+Current availability was not rechecked. Deep coverage is 11.4%. This broad
 source map does not invent knowledge inside the metadata-only uploads.
 
-Archive Deep Batch 01 is the first frozen Atlas queue batch distilled into a
-separate caption-audited quarantine lane. Its ten streams contribute 23.7 hours,
-294,471 words, 43,585 parsed caption events, 100 topic lanes, 42 public machine
-candidates, and 12 character signals. Four source-audio-sensitive streams are
-topic-navigation-only. The 42 candidates are review inventory, not additions
-to the promoted 872, Canon, Red Band, or WWAM UP IN YA.
+Archive Deep Batch 01 freezes the first ten Atlas priority sources; Batch 02
+freezes the next ten eligible sources after Batch 01 exclusion. Batch 02
+priority combines cached-view gravity, upload recency, and configured
+franchise-title signals. It is not raw view rank or a quality score. The
+portfolio preserves independent selection and caption fingerprints for both
+batches while exposing one defensive, read-only search payload.
+
+All 91 moment candidates remain speaker-undiarized and unreviewed. The 23
+source-level character-signal records are not people, performances, verified
+appearances, or clip-level speaker attributions. Seven source-audio-sensitive
+streams are topic-navigation-only. Six visual-context-unverified sources—three
+in each batch—retain caption-derived navigation, but visual ranking context
+remains unverified.
 
 ## How to read the proof
 
@@ -70,10 +102,10 @@ the indexed source/time pairs sit within the known source duration. It does not
 establish continuous network availability or mean a human has certified all
 872 excerpts and the claims derived from them.
 
-Archive Deep's 42 additional public records are explicitly labeled
+Archive Deep's 91 current public records are explicitly labeled
 machine-surfaced candidates and remain outside that promoted receipt contract.
 Its automatic captions do not establish speaker, host-versus-source-audio
-origin, intent, or visual context.
+origin, intent, performance, or visual context.
 
 The owner-supplied Mike/J mappings describe who performs each recurring
 character generally. They do not turn an individual auto-caption event into a
@@ -142,12 +174,12 @@ The archive becomes navigable memory:
 - Take Time Machine and WWAM Court expose chronological signals and competing
   receipts without silently turning an inference into canon.
 - Archive Atlas browses 472 cached feed records by year, month, title metadata,
-  and evidence depth: 44 deeply indexed, 420 metadata-only, 8
+  and evidence depth: 54 deeply indexed, 410 metadata-only, 8
   caption-limited, and 0 classified unavailable in the cached snapshot;
   current availability was not rechecked. Its Ask fallback locates sources
-  without presenting metadata as a content answer. Its Autopsied Batch 01 row
-  exposes the ten newly caption-audited sources without promoting their 42
-  machine candidates into editorial canon.
+  without presenting metadata as a content answer. The Archive Deep Portfolio
+  exposes Batch 01 and integrated-quarantine Batch 02 without promoting any of
+  their 91 machine candidates into editorial canon.
 - Fresh Tape Intake can examine manually supplied WebVTT, SRT, or YouTube JSON3
   against a declared source lane and channel-native literal rules. Its exact
   timed matches remain quarantined review inventory. Untimed plain text is held
@@ -219,12 +251,12 @@ Mike Mode is the shortest route through the commercial argument:
 
 1. **The problem:** a large catalog has no native memory layer. Live proof:
    run tonight's deterministic source-grounded Night Shift.
-2. **The receipt:** 84 total source inputs resolve into 2,175,344 audited words
-   while the promoted corpus remains 872 exact jumps. Live proof: ask for the
-   most-viewed foundational livestream.
+2. **The receipt:** the immutable V5.4 proof binds 84 source inputs to
+   2,175,344 audited words and 872 promoted exact jumps. Live proof: ask for
+   the most-viewed foundational livestream.
 3. **The map:** 472 cached Streams-feed records reveal both coverage and blind
-   spots. Live proof: open Archive Atlas, Autopsied Batch 01, and its
-   deterministic distill queue.
+   spots. Live proof: open Archive Atlas, compare both Archive Deep batches,
+   and show the current 54 / 410 / 8 coverage split.
 4. **The moat:** years of connected lore compound. Live proof: open the Dr.
    Loomis constellation.
 5. **The money:** archive memory creates editorial inventory. Live proof: open
@@ -260,7 +292,7 @@ requires time and domain judgment.
 ## Trust snapshot
 
 The current Trust Desk reports on the 74-source promoted corpus. Its counts do
-not silently absorb Archive Deep Batch 01:
+not silently absorb either Archive Deep batch:
 
 - 71 healthy sources and 3 visible caption gaps;
 - 0 structurally invalid or source-ID-mismatched URLs and 0 out-of-range
@@ -289,12 +321,13 @@ not silently absorb Archive Deep Batch 01:
   detectors only. Source-content, authenticity, and authority verification
   remain explicitly false.
 
-Separately, the full proof snapshot contains 84 source inputs: 81
-caption-audited and 3 sealed or limited. Archive Deep contributes the ten-source
-difference, but its 42 machine candidates remain outside the promoted 872,
-Canon, Red Band, and WWAM UP IN YA. Playback review alone does not promote a
-candidate across those separate lanes; each applies its own evidence policy and
-authenticated decision requirements.
+Separately, the immutable V5.4 proof contains 84 source inputs: 81
+caption-audited and 3 sealed or limited. Its 42 then-quarantined Batch 01
+candidates remain outside the promoted 872. The current two-batch overlay
+contains 20 Archive Deep sources and 91 quarantined candidates, but it does not
+rewrite the frozen proof or enter Canon, Red Band, or WWAM UP IN YA. Playback
+review alone does not promote a candidate across those separate lanes; each
+applies its own evidence policy and authenticated decision requirements.
 
 The release also runs a deterministic cross-engine Canon Integrity audit. The
 current fingerprinted report passes with zero hard errors across source IDs,
@@ -335,7 +368,7 @@ they become seasons, races, drivers, lead changes, close finishes, booth
 intensity, and recurring broadcast moments. The system is portable; the
 personality and proof are not generic.
 
-Three V5.6 patterns make that portability executable:
+Four V5.7 patterns make that portability executable:
 
 - **Synchronized evidence:** a source adapter supplies official playback,
   exact receipt markers, derived heat windows, entity annotations, and
@@ -351,3 +384,7 @@ Three V5.6 patterns make that portability executable:
   undiarized quarantine. Plain text is held, raw transcripts stay out of
   exports, and a valid export proves structural consistency rather than source
   content, authenticity, ownership, speaker identity, authority, or canon.
+- **Composable quarantine:** independently fingerprinted archive batches can
+  accumulate behind one defensive portfolio API without rewriting a frozen
+  sales proof, merging candidates into promoted ledgers, or weakening the
+  source-audio, speaker, performance, and visual-context boundaries.

@@ -8,12 +8,12 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const demo = path.join(here, "..", "public", "demo");
 const html = fs.readFileSync(path.join(demo, "index.html"), "utf8");
 const ui = fs.readFileSync(path.join(demo, "creator-taste-ui.js"), "utf8");
-const css = fs.readFileSync(path.join(demo, "styles.css"), "utf8");
+const css = fs.readFileSync(path.join(demo, "creator-taste.css"), "utf8");
 
 test("The Cut Test loads its universal contract before its channel skin", () => {
   assert.match(
     html,
-    /id="cut-test"[\s\S]{0,240}data-feature-scripts="channel-pack-contract\.js,wwam-channel-pack-adapter\.js,creator-taste-engine\.js,creator-taste-ui\.js"/,
+    /id="cut-test"[\s\S]{0,180}data-feature-styles="creator-taste\.css"[\s\S]{0,180}data-feature-scripts="channel-pack-contract\.js,wwam-channel-pack-adapter\.js,creator-taste-engine\.js,creator-taste-ui\.js"/,
   );
   for (const id of [
     "cutTestProof",

@@ -8,12 +8,12 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const demo = path.join(here, "..", "public", "demo");
 const html = fs.readFileSync(path.join(demo, "index.html"), "utf8");
 const ui = fs.readFileSync(path.join(demo, "tape-companion-ui.js"), "utf8");
-const css = fs.readFileSync(path.join(demo, "styles.css"), "utf8");
+const css = fs.readFileSync(path.join(demo, "tape-companion.css"), "utf8");
 
 test("Tape Companion lazy-loads as one coherent synchronized surface", () => {
   assert.match(
     html,
-    /id="companion"[\s\S]{0,180}data-feature-scripts="red-band-ranking-v2\.js,tape-companion-engine\.js,tape-companion-ui\.js"/,
+    /id="companion"[\s\S]{0,180}data-feature-styles="tape-companion\.css"[\s\S]{0,180}data-feature-scripts="red-band-ranking-v2\.js,tape-companion-engine\.js,tape-companion-ui\.js"/,
   );
   for (const id of [
     "companionProof",

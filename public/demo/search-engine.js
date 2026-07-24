@@ -28,11 +28,11 @@
     "earliest", "episode", "episodes", "ever", "evidence", "favorite", "fewest",
     "first", "foundational", "fresh", "funniest", "funny", "garbage", "hate",
     "hated", "highest", "index", "indexed", "last", "latest", "laugh", "like",
-    "liked", "live", "livestream", "livestreams", "love", "loved", "lowest", "mention",
-    "happen", "happened", "mentioned", "moment", "moments", "most", "never",
+    "liked", "live", "livestream", "livestreams", "love", "loved", "lowest",
+    "happen", "happened", "mention", "mentioned", "mentions", "moment", "moments", "most", "never",
     "newest", "oldest", "one", "ones",
     "opinion", "popular", "praise", "praised", "prove", "ranking", "receipt", "recent", "recently", "score",
-    "results", "something", "soundbyte", "soundbytes", "source", "start", "started",
+    "results", "second", "something", "soundbyte", "soundbytes", "source", "start", "started",
     "stream", "streams", "talk", "talked", "talking", "tape", "think", "topic",
     "topics", "discussing", "trash", "unhinged", "upload", "uploaded", "uploads",
     "posted", "published", "video", "videos",
@@ -234,10 +234,17 @@
       /\b(?:first|earliest)(?: indexed)? (?:appear|appears|appeared|appearance|show up|showed up|debut)\b/.test(q);
     var sourceExplicit = false;
     var source = "all";
-    var archiveRequested = includesAny(q, [
-      "archive deep", "deep archive", "archive batch", "batch 01", "batch 1",
+    var archiveBatchSequence = includesAny(q, [
+      "batch 02", "batch 2", "batch02", "batch2", "second archive deep batch",
+      "archive deep batch 02", "archive deep batch 2",
+    ]) ? 2 : includesAny(q, [
+      "batch 01", "batch 1", "batch01", "batch1", "first archive deep batch",
+      "archive deep batch 01", "archive deep batch 1",
+    ]) ? 1 : null;
+    var archiveRequested = archiveBatchSequence != null || includesAny(q, [
+      "archive deep", "deep archive", "archive batch",
       "archived livestream", "archived live stream", "archive livestream",
-      "archive live stream",
+      "archive live stream", "archive stream", "archive streams",
     ]);
     if (includesAny(q, [
       "commentary", "commentaries", "watchalong", "watchalongs", "watch along",
@@ -328,7 +335,7 @@
     var compoundViewComedy = comedyRequest && viewSelector;
     var intent = "discovery";
     if (trajectory) intent = "trajectory";
-    else if (!compoundViewComedy && (
+    else if (!comedyRequest && (
       includesAny(q, ["highest", "lowest", "rank", "ranking", "most popular", "most unhinged",
         "least unhinged", "most viewed", "most watched", "most views", "least viewed",
         "fewest views", "biggest audience", "largest audience", "biggest stream",
@@ -431,12 +438,21 @@
       "show up", "showed up", "came up",
     ]);
     var yearMatch = q.match(/(?:^| )((?:19|20)\d{2})(?: |$)/);
+    var visualResultRequest = includesAny(q, [
+      "which kill won", "what kill won", "winning kill", "winner kill",
+      "which death won", "what death won", "winning death", "winner death",
+      "best kill", "best death", "kill ranked best", "death ranked best",
+      "what kill ranked", "what death ranked", "which kill ranked",
+      "which death ranked",
+    ]);
 
     return {
       name: intent,
       source: source,
       sourceExplicit: sourceExplicit,
       archiveRequested: archiveRequested,
+      archiveBatchSequence: archiveBatchSequence,
+      visualResultRequest: visualResultRequest,
       temporal: temporal,
       temporalExplicit: temporal !== "all",
       popularity: popularity,
@@ -919,6 +935,7 @@
     return intent.words.filter(function (word) {
       if (QUERY_CUE_WORDS.indexOf(word) >= 0) return false;
       if (QUERY_CONTROL_WORDS.indexOf(word) >= 0) return false;
+      if (intent.archiveBatchSequence && /^(?:0?[12]|first|second)$/.test(word)) return false;
       if (intent.yearFilter && String(intent.requestedYear) === word) return false;
       if (intent.queryPlan && intent.queryPlan.controls.requestedLimit != null &&
         String(intent.queryPlan.controls.requestedLimit) === word) return false;
@@ -930,7 +947,8 @@
     return unique(normalize(romanVariant(value)).split(" ").filter(function (word) {
       return (word.length > 1 || /^\d+$/.test(word)) &&
         STOP_WORDS.indexOf(word) < 0 &&
-        QUERY_CUE_WORDS.indexOf(word) < 0 &&
+        (QUERY_CUE_WORDS.indexOf(word) < 0 ||
+          word === "watchalong" || word === "watchalongs") &&
         SOURCE_TITLE_NOISE_WORDS.indexOf(word) < 0;
     }));
   }
@@ -948,6 +966,12 @@
         views: Number(candidate.views || 0),
         lane: candidate.lane || null,
         restrictedToTopicNavigation: false,
+        rightsMode: candidate.rightsMode || null,
+        visualContextVerified: candidate.visualContextVerified,
+        archiveBatchId: candidate.archiveBatchId || null,
+        archiveBatchSequence: candidate.archiveBatchSequence || null,
+        archiveBatchRank: candidate.archiveBatchRank || null,
+        archivePortfolioRank: candidate.archivePortfolioRank || null,
       };
       record.restrictedToTopicNavigation = record.restrictedToTopicNavigation ||
         Boolean(candidate.restrictedToTopicNavigation);
@@ -1018,29 +1042,55 @@
    * breakdown". Numbers are exact-only so "Scream 8" cannot leak into Scream 1.
    */
   function selectIndexedSource(sourceIndex, intent, entity) {
-    if (intent.sourceSelector || (entity &&
-      entity.type !== "film" && entity.type !== "franchise")) return null;
+    if (intent.sourceSelector || (entity && entity.type === "bit")) return null;
     var queryTerms = sourceTitleTerms(intent.normalized);
-    if (queryTerms.length < 2) return null;
     var entityResidual = entityResidualTitleTerms(intent, entity);
+    var entityScoped = entity &&
+      (entity.type === "topic" || entity.type === "character");
+    if (entityScoped && entityResidual.length) queryTerms = entityResidual;
+    if (queryTerms.length < 2) return null;
+    var watchAlongQuery = includesAny(intent.normalized, [
+      "watchalong", "watchalongs", "watch along", "watch alongs",
+    ]);
     if (entity && (entity.type === "film" || entity.type === "franchise") &&
-      !entityResidual.length) return null;
+      !entityResidual.length && !watchAlongQuery) return null;
 
     var matches = sourceIndex.filter(function (record) {
-      if (intent.source !== "all" && record.source !== intent.source) return false;
+      var archiveWatchAlong = record.lane === "archive" && watchAlongQuery;
+      if (intent.source !== "all" && record.source !== intent.source &&
+        !archiveWatchAlong) return false;
       if (intent.archiveRequested && record.lane !== "archive") return false;
+      if (intent.archiveBatchSequence &&
+        record.archiveBatchSequence !== intent.archiveBatchSequence) return false;
       return true;
     }).map(function (record) {
-      var match = sourceTitleTermMatch(queryTerms, record.titleTerms);
+      var titleContained = containsNormalizedPhrase(
+        intent.normalized,
+        record.normalizedTitle
+      );
+      var match = titleContained ? {
+        edits: 0,
+        exact: record.titleTerms.length,
+        residual: 0,
+      } : sourceTitleTermMatch(queryTerms, record.titleTerms);
       if (!match) return null;
       return Object.assign({}, record, match, {
+        watchAlongTitle: Boolean(
+          watchAlongQuery && record.lane === "archive" &&
+          (record.titleTerms.indexOf("watchalong") >= 0 ||
+            (record.titleTerms.indexOf("watch") >= 0 &&
+              record.titleTerms.indexOf("along") >= 0))
+        ),
+        titleContained: titleContained,
         phraseExact: containsNormalizedPhrase(
           record.titleTerms.join(" "),
           queryTerms.join(" ")
         ),
       });
     }).filter(Boolean).sort(function (a, b) {
-      return Number(b.phraseExact) - Number(a.phraseExact) ||
+      return Number(b.watchAlongTitle) - Number(a.watchAlongTitle) ||
+        Number(b.phraseExact) - Number(a.phraseExact) ||
+        Number(b.titleContained) - Number(a.titleContained) ||
         a.edits - b.edits ||
         a.residual - b.residual ||
         dateValue(b.date) - dateValue(a.date) ||
@@ -1049,7 +1099,8 @@
     });
 
     if (!matches.length) {
-      var unresolvedNumber = entity && entity.type === "franchise" &&
+      var unresolvedNumber = entity &&
+        (entity.type === "film" || entity.type === "franchise" || entity.type === "topic") &&
         entityResidual.some(function (term) { return /^\d+$/.test(term); });
       return unresolvedNumber ? {
         blocked: true,
@@ -1061,7 +1112,9 @@
 
     var top = matches[0];
     var sameQuality = matches.filter(function (match) {
-      return match.phraseExact === top.phraseExact &&
+      return match.watchAlongTitle === top.watchAlongTitle &&
+        match.phraseExact === top.phraseExact &&
+        match.titleContained === top.titleContained &&
         match.edits === top.edits &&
         match.residual === top.residual;
     });
@@ -1094,10 +1147,16 @@
       views: top.views,
       lane: top.lane,
       restrictedToTopicNavigation: top.restrictedToTopicNavigation,
+      rightsMode: top.rightsMode,
+      visualContextVerified: top.visualContextVerified,
+      archiveBatchId: top.archiveBatchId,
+      archiveBatchSequence: top.archiveBatchSequence,
+      archiveBatchRank: top.archiveBatchRank,
+      archivePortfolioRank: top.archivePortfolioRank,
       metric: "title-relevance",
       direction: "descending",
       titleMatchMode: top.edits ? "near-exact" : "exact",
-      matchedTerms: queryTerms,
+      matchedTerms: top.titleContained ? top.titleTerms : queryTerms,
       alternativeCount: Math.max(0, sameQuality.length - 1),
       tieBreak: sameQuality.length > 1 ? "latest-indexed-source" : null,
     };
@@ -1223,10 +1282,19 @@
       var liveHeat = liveHeatScore(stream);
       var lane = stream._lane || "fresh";
       var rightsPolicy = stream.rightsPolicy || {};
+      var archiveBatch = stream.archiveBatch || {};
+      var archiveFields = {
+        archiveBatch: stream.archiveBatch || null,
+        archiveBatchId: archiveBatch.id || null,
+        archiveBatchSequence: Number(archiveBatch.sequence || 0) || null,
+        archiveBatchRank: Number(archiveBatch.batchRank || 0) || null,
+        archivePortfolioRank: Number(archiveBatch.portfolioRank || 0) || null,
+        visualContextVerified: rightsPolicy.visualContextVerified === true,
+      };
       var restrictedToTopicNavigation = lane === "archive" &&
         Boolean(rightsPolicy.restrictedToTopicNavigation);
       if (!restrictedToTopicNavigation) {
-        output.push({
+        output.push(Object.assign({
           key: "live-" + stream.id,
           kind: "livestream",
           source: "livestream",
@@ -1252,11 +1320,11 @@
           restrictedToTopicNavigation: false,
           rightsMode: rightsPolicy.mode || null,
           evidenceType: "derived-source-summary",
-        });
+        }, archiveFields));
       }
       (stream.topics || []).forEach(function (topic) {
         var topicEvidence = topic.evidence || {};
-        output.push({
+        output.push(Object.assign({
           key: "topic-" + stream.id + "-" + normalize(topic.name),
           kind: "topic",
           source: "livestream",
@@ -1285,11 +1353,11 @@
           rightsMode: rightsPolicy.mode || null,
           evidence: topicEvidence,
           evidenceType: topic.receipt ? "caption-topic-receipt" : "caption-topic-navigation",
-        });
+        }, archiveFields));
       });
       (stream.moments || []).forEach(function (moment, momentIndex) {
         var momentEvidence = moment.evidence || {};
-        output.push({
+        output.push(Object.assign({
           key: "live-moment-" + stream.id + "-" + Number(moment.t || 0),
           kind: "moment",
           source: "livestream",
@@ -1319,11 +1387,11 @@
           rightsMode: rightsPolicy.mode || null,
           evidence: momentEvidence,
           evidenceType: "caption-excerpt",
-        });
+        }, archiveFields));
       });
       (stream.characters || []).forEach(function (character, characterIndex) {
         var characterEvidence = character.evidence || {};
-        output.push({
+        output.push(Object.assign({
           key: "character-" + stream.id + "-" + normalize(character.character) + "-" + characterIndex,
           kind: "character",
           source: "livestream",
@@ -1355,7 +1423,7 @@
           rightsMode: rightsPolicy.mode || null,
           evidence: characterEvidence,
           evidenceType: "caption-character-signal",
-        });
+        }, archiveFields));
       });
     });
     return output;
@@ -1825,6 +1893,8 @@
   function candidateInScope(candidate, intent, entity, subjectTerms) {
     if (intent.source !== "all" && candidate.source !== intent.source) return false;
     if (intent.archiveRequested && candidate.lane !== "archive") return false;
+    if (intent.archiveBatchSequence &&
+      candidate.archiveBatchSequence !== intent.archiveBatchSequence) return false;
     if (candidate.lane === "archive" && !intent.archiveRequested &&
       (intent.metric !== "relevance" || intent.temporal !== "all")) return false;
     if (intent.yearFilter &&
@@ -1846,7 +1916,9 @@
     if (intent.name === "comedy" &&
       outputShape !== "curated-soundbytes" &&
       candidate.kind !== "character-performance" &&
-      (candidate.kind !== "moment" || CATEGORY_INTENTS.comedy.indexOf(candidate.category) < 0)) return false;
+      (candidate.kind !== "moment" ||
+        (candidate.lane !== "archive" &&
+          CATEGORY_INTENTS.comedy.indexOf(candidate.category) < 0))) return false;
     if ((intent.name === "negative" || intent.name === "positive") &&
       !intent.refusesSpeakerGuess && !hasOpinionEvidence(candidate, intent)) return false;
     if (intent.metric === "unhinged" && candidate.kind !== "tape") return false;
@@ -1943,8 +2015,10 @@
       if (aOpinionStrength !== bOpinionStrength) return bOpinionStrength - aOpinionStrength;
     }
     if (intent.name === "comedy") {
-      var aComedy = (CATEGORY_INTENTS.comedy.indexOf(a.category) >= 0 ? 1 : 0);
-      var bComedy = (CATEGORY_INTENTS.comedy.indexOf(b.category) >= 0 ? 1 : 0);
+      var aComedy = a.lane === "archive" && a.kind === "moment" ? 1 :
+        (CATEGORY_INTENTS.comedy.indexOf(a.category) >= 0 ? 1 : 0);
+      var bComedy = b.lane === "archive" && b.kind === "moment" ? 1 :
+        (CATEGORY_INTENTS.comedy.indexOf(b.category) >= 0 ? 1 : 0);
       if (aComedy !== bComedy) return bComedy - aComedy;
       var comedyHeatDifference = Number(b.heat || 0) - Number(a.heat || 0);
       if (comedyHeatDifference) return comedyHeatDifference;
@@ -2084,6 +2158,11 @@
 
   function buildNoEvidenceAnswer(intent, entity, subjectTerms) {
     var subject = entity ? entity.label : subjectTerms.join(" ");
+    if (intent.visualContextRefusal && intent.selectedSource) {
+      return "The captions can route you inside " + intent.selectedSource.sourceTitle +
+        ", but they cannot verify which on-screen kill or death won the visual ranking. " +
+        "Open the original for that result; Ask the Tape will not convert caption text into a visual verdict.";
+    }
     if (intent.titleBoundary) {
       if (intent.titleBoundary.reason === "unresolved-numbered-title") {
         return "No indexed source title matches \"" +
@@ -2623,6 +2702,9 @@
     if (candidate.restrictedToTopicNavigation) {
       warnings.push("This source is restricted to topic navigation; excerpts, moments, character signals, and heat claims are withheld.");
     }
+    if (candidate.rightsMode === "visual-context-unverified") {
+      warnings.push("The source's visual-ranking outcome is unverified; this result supports only the indexed caption route, not which kill or death won.");
+    }
     if (!candidate.captioned) warnings.push("No transcript-derived receipt is available for this source.");
     if (candidate.evidenceType === "derived-source-summary") {
       warnings.push("This result is a derived source summary, not a verbatim quote.");
@@ -3065,11 +3147,62 @@
         titleSelection :
         topicOverviewSource || selectCompoundSource(candidates, intent, entity, subjectTerms);
       if (selectedSource) {
-        intent = Object.assign({}, intent, { selectedSource: selectedSource });
+        intent = Object.assign({}, intent, {
+          selectedSource: selectedSource,
+          source: selectedSource.source,
+          archiveRequested: intent.archiveRequested || selectedSource.lane === "archive",
+          visualContextRefusal: Boolean(
+            intent.visualResultRequest &&
+            selectedSource.rightsMode === "visual-context-unverified" &&
+            selectedSource.visualContextVerified !== true
+          ),
+        });
+      }
+      var sourceEntity = null;
+      if (selectedSource && (
+        intent.questionType === "where" || intent.name === "topic" ||
+        intent.metric === "mentions" || intent.characterSignalRequested
+      )) {
+        var entityKinds = intent.characterSignalRequested ?
+          ["character"] : ["topic"];
+        var sourceEntityMatch = intent.normalized.match(
+          /\bwhere (?:is|are|did) (.+?)(?: mentions?)? in \b/
+        ) || (intent.characterSignalRequested && intent.normalized.match(
+          /\b(?:archive deep )?(.+?) signals? in \b/
+        ));
+        var sourceEntityNeedle = sourceEntityMatch ?
+          normalize(sourceEntityMatch[1]) : "";
+        var sourceEntityCandidate = candidates.filter(function (candidate) {
+          return candidate.sourceId === selectedSource.sourceId &&
+            entityKinds.indexOf(candidate.kind) >= 0 &&
+            (!sourceEntityNeedle ||
+              normalize(candidate.title) === sourceEntityNeedle ||
+              containsNormalizedPhrase(sourceEntityNeedle, normalize(candidate.title))) &&
+            containsNormalizedPhrase(intent.normalized, normalize(candidate.title));
+        }).sort(function (left, right) {
+          var leftExact = normalize(left.title) === sourceEntityNeedle;
+          var rightExact = normalize(right.title) === sourceEntityNeedle;
+          if (leftExact !== rightExact) return Number(rightExact) - Number(leftExact);
+          return normalize(right.title).length - normalize(left.title).length;
+        })[0];
+        if (sourceEntityCandidate) {
+          sourceEntity = sourceEntityCandidate.kind === "character" ? {
+            type: "character",
+            character: sourceEntityCandidate.character,
+            label: sourceEntityCandidate.character,
+          } : {
+            type: "topic",
+            topic: sourceEntityCandidate.title,
+            label: sourceEntityCandidate.title,
+          };
+          entity = sourceEntity;
+        }
       }
       var orphanSpeakerFollowup = intent.refusesSpeakerGuess &&
         !anchorActive && !entity && !subjectTerms.length;
-      var rankingEntity = selectedSource || anchorActive ? null : entity;
+      var rankingEntity = sourceEntity || (selectedSource && entity &&
+        ["topic", "discovery"].indexOf(intent.name) >= 0 ? entity :
+        selectedSource || anchorActive ? null : entity);
 
       var ranked = [];
       if (queryPlan.outputShape === "character-roster") {
@@ -3104,7 +3237,8 @@
             }
           );
         }).filter(Boolean);
-      } else if (!titleBoundary && !orphanSpeakerFollowup && normalize(query) &&
+      } else if (!intent.visualContextRefusal && !titleBoundary &&
+        !orphanSpeakerFollowup && normalize(query) &&
         (!intent.sourceSelector || selectedSource)) {
         var scoped = candidates.filter(function (candidate) {
           if (selectedSource && candidate.sourceId !== selectedSource.sourceId) return false;
@@ -3223,9 +3357,11 @@
           };
         }
       }
-      var confidence = ownerMapping ? Math.round(ownerMapping.confidence * 100) :
+      var confidence = intent.visualContextRefusal ? 100 :
+        ownerMapping ? Math.round(ownerMapping.confidence * 100) :
         confidenceFor(intent, rankingEntity, results);
-      var status = ownerMapping ? "owner-mapped-character" :
+      var status = intent.visualContextRefusal ? "visual-context-unverified" :
+        ownerMapping ? "owner-mapped-character" :
         selectedSource && selectedSource.restrictedToTopicNavigation && !results.length ?
           "topic-only-boundary" :
         intent.refusesSpeakerGuess ? "speaker-unknown" :
@@ -3262,6 +3398,12 @@
           matchedTerms: selectedSource.matchedTerms || null,
           alternativeCount: Number(selectedSource.alternativeCount || 0),
           tieBreak: selectedSource.tieBreak || null,
+          rightsMode: selectedSource.rightsMode || null,
+          visualContextVerified: selectedSource.visualContextVerified === true,
+          archiveBatchId: selectedSource.archiveBatchId || null,
+          archiveBatchSequence: selectedSource.archiveBatchSequence || null,
+          archiveBatchRank: selectedSource.archiveBatchRank || null,
+          archivePortfolioRank: selectedSource.archivePortfolioRank || null,
         },
         withinSource: {
           intent: intent.name,
@@ -3311,7 +3453,11 @@
         collection: collection,
         selectionPlan: selectionPlan,
         confidence: confidence,
-        confidenceBasis: ownerMapping ? [
+        confidenceBasis: intent.visualContextRefusal ? [
+          "exact indexed source-title match",
+          "source policy marks visual context unverified",
+          "caption routes cannot establish an on-screen ranking result",
+        ] : ownerMapping ? [
           "project-owner supplied recurring-character mapping",
           "mapping applies to the recurring character, not any individual clip",
           "result speakers remain not diarized",
@@ -3336,7 +3482,10 @@
         answer: answer,
         limitations: unique((results[0] ? results[0].evidenceWarnings : [
           "Absence from this bounded index is not proof a subject was never discussed.",
-        ]).concat(ownerMapping ? [
+        ]).concat(intent.visualContextRefusal ? [
+          "Visual-ranking results require watching the original source; captions alone cannot establish which kill or death won.",
+          "Caption topic and comedy candidates remain searchable because they make no visual-result claim.",
+        ] : []).concat(ownerMapping ? [
           "Owner mapping does not establish the speaker at a specific timestamp.",
         ] : []).concat(intent.originRequest ? [
           "Earliest indexed receipt is not a claim of true origin.",

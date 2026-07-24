@@ -28,7 +28,7 @@ function sourceIds(items) {
   return items.map((item) => item.sourceId || item.tapeId || item.id);
 }
 
-test("Archive Deep is lazy-loaded before Atlas UI and registered as an internal dossier lane", () => {
+test("both Archive Deep batches and their portfolio are lazy-loaded before Atlas UI", () => {
   assert.doesNotMatch(html, /<script[^>]+archive-deep-(?:distill|engine)\.js/i);
   const createDeepBody = app.slice(
     app.indexOf("function createArchiveDeep"),
@@ -42,11 +42,21 @@ test("Archive Deep is lazy-loaded before Atlas UI and registered as an internal 
   assert.ok(atlasData >= 0 && atlasData < deep && deep < atlasEngine && atlasEngine < atlasView);
 
   const deepData = app.indexOf('loadDemoScript("archive-deep-distill.js")');
-  const deepEngine = app.indexOf('loadDemoScript("archive-deep-engine.js")', deepData);
-  const deepCreate = app.indexOf(".then(createArchiveDeep)", deepEngine);
-  assert.ok(deepData >= 0 && deepData < deepEngine && deepEngine < deepCreate);
+  const batch2 = app.indexOf('loadDemoScript("archive-deep-batch2.js")', deepData);
+  const deepEngine = app.indexOf('loadDemoScript("archive-deep-engine.js")', batch2);
+  const portfolio = app.indexOf('loadDemoScript("archive-deep-portfolio.js")', deepEngine);
+  const deepCreate = app.indexOf(".then(createArchiveDeep)", portfolio);
+  assert.ok(
+    deepData >= 0
+      && deepData < batch2
+      && batch2 < deepEngine
+      && deepEngine < portfolio
+      && portfolio < deepCreate,
+  );
 
-  assert.match(createDeepBody, /archiveDeepEngine\.browse\(\{ sort: "priority" \}\)\.records/);
+  assert.match(createDeepBody, /WWAMArchiveDeepPortfolio\.create/);
+  assert.match(createDeepBody, /WWAM_ARCHIVE_DEEP_BATCH2/);
+  assert.match(createDeepBody, /archiveDeepEngine\.getSearchPayload\(\)/);
   assert.match(createDeepBody, /stream\._lane = "archive"/);
   assert.match(createDeepBody, /Object\.assign\(\{\}, moment, \{ quote: moment\.excerpt \|\| "" \}\)/);
   assert.match(createDeepBody, /streamById\[stream\.id\] = stream/);
@@ -60,7 +70,7 @@ test("Archive Deep is lazy-loaded before Atlas UI and registered as an internal 
   );
 });
 
-test("Archive Deep lane counts, dossier adaptation, and restricted surfaces stay truthful", () => {
+test("Batch 01 remains immutable while Atlas and its current portfolio overlay stay truthful", () => {
   const window = load([
     "archive-atlas-data.js",
     "archive-atlas-engine.js",
@@ -77,11 +87,12 @@ test("Archive Deep lane counts, dossier adaptation, and restricted surfaces stay
   assert.equal(metrics.publicMomentCandidates, 42);
   assert.equal(metrics.restricted, 4);
   assert.equal(stats.records, 472);
-  assert.equal(stats.coverage["deeply-indexed"], 44);
-  assert.equal(stats.coverage["metadata-only"], 420);
+  assert.equal(stats.coverage["deeply-indexed"], 54);
+  assert.equal(stats.coverage["metadata-only"], 410);
   assert.equal(stats.coverage["caption-limited"], 8);
   assert.equal(stats.lanes["archive-deep-10"], 10);
-  assert.equal(stats.deepCoveragePercent, 9.3);
+  assert.equal(stats.lanes["archive-deep-batch-02"], 10);
+  assert.equal(stats.deepCoveragePercent, 11.4);
 
   for (const stream of streams) {
     const atlasRecord = atlas.getRecord(stream.id);
@@ -102,18 +113,24 @@ test("Archive Deep lane counts, dossier adaptation, and restricted surfaces stay
     }
   }
 
-  assert.match(atlasUi, /42 short machine candidates remain quarantined/);
-  assert.match(atlasUi, /Playback review may establish context/);
+  assert.match(atlasUi, /CURRENT 20-SOURCE OVERLAY/);
+  assert.match(atlasUi, /TWO INDEPENDENTLY FINGERPRINTED BATCHES/);
+  assert.match(atlasUi, /QUARANTINED CANDIDATES/);
+  assert.match(atlasUi, /BATCH-LOCAL PRIORITY/);
+  assert.match(atlasUi, /ATLAS SCORE/);
+  assert.match(atlasUi, /CACHED VIEWS/);
+  assert.doesNotMatch(atlasUi, /VIEW RANK/);
+  assert.match(atlasUi, /TOPIC-ONLY FIREWALLS/);
   assert.match(
     atlasUi,
-    /requires its own policy-compliant decision by an authenticated, authorized reviewer/
+    /stream\.rightsPolicy\.mode === "visual-context-unverified"/,
   );
   assert.match(app, /SOURCE-AUDIO FIREWALL \/\/ TOPIC NAVIGATION ONLY/);
   assert.match(app, /No public joke or character receipts are exposed from this source/);
   assert.match(app, /SPEAKER NOT DIARIZED \/\/ VERIFY AGAINST ORIGINAL/);
 });
 
-test("the 42 Archive Deep candidates do not enter Red Band, UP IN YA, or creator output pools", () => {
+test("Batch 01's immutable 42 candidates do not enter Red Band, UP IN YA, or creator output pools", () => {
   const window = load([
     "catalog.js",
     "deep-distill.js",
@@ -173,4 +190,12 @@ test("the 42 Archive Deep candidates do not enter Red Band, UP IN YA, or creator
     ),
     /archiveDeep/,
   );
+});
+
+test("caption-timed Archive Deep answers suppress the metadata-only Atlas fallback", () => {
+  assert.match(
+    app,
+    /var timedDeepAnswer = results\.some\(function \(result\) \{[\s\S]{0,320}result\.lane === "archive"[\s\S]{0,220}Number\.isFinite\(Number\(result\.at\)\) && Number\(result\.at\) >= 0/,
+  );
+  assert.match(app, /var archiveFallback = timedDeepAnswer \? "" : archiveAskMarkup\(query\)/);
 });

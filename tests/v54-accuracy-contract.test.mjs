@@ -94,22 +94,26 @@ test("Clip Lab opens on a bounded, truth-labeled Tonight's 12", () => {
   assert.match(app, /RECEIPT-BACKED SHORTS POOL/);
 });
 
-test("Archive Deep Batch 01 lazy-loads into internal Atlas dossiers without becoming canon", () => {
+test("the frozen V5.4 proof stays dated while the current two-batch overlay stays truthful", () => {
   assert.doesNotMatch(html, /<script[^>]+archive-deep-(?:distill|engine)/i);
   assert.match(app, /loadDemoScript\("archive-deep-distill\.js"\)/);
+  assert.match(app, /loadDemoScript\("archive-deep-batch2\.js"\)/);
   assert.match(app, /loadDemoScript\("archive-deep-engine\.js"\)/);
+  assert.match(app, /loadDemoScript\("archive-deep-portfolio\.js"\)/);
   assert.match(app, /stream\._lane = "archive"/);
   assert.match(app, /AUTOPSIED BATCH 01/);
+  assert.match(app, /AUTOPSIED BATCH 02/);
   assert.match(app, /REVIEW-REQUIRED CANDIDATES/);
   assert.match(app, /restrictedToTopicNavigation/);
   assert.match(html, /id="archiveBatch" hidden/);
-  assert.match(atlasUi, /TEN BLIND SPOTS BECAME CAPTION-BACKED MAPS/);
-  assert.match(atlasUi, /42 short machine candidates remain quarantined/);
-  assert.match(atlasUi, /Playback review may establish context/);
-  assert.match(
-    atlasUi,
-    /requires its own policy-compliant decision by an authenticated, authorized reviewer/
-  );
+  assert.match(atlasUi, /CURRENT 20-SOURCE OVERLAY/);
+  assert.match(atlasUi, /TWO INDEPENDENTLY FINGERPRINTED BATCHES/);
+  assert.match(atlasUi, /BATCH-LOCAL PRIORITY/);
+  assert.match(atlasUi, /PORTFOLIO #/);
+  assert.match(atlasUi, /ATLAS SCORE/);
+  assert.match(atlasUi, /CACHED VIEWS/);
+  assert.match(atlasUi, /VISUAL RESULT UNVERIFIED/);
+  assert.doesNotMatch(atlasUi, /VIEW RANK/);
 });
 
 test("the buyer room proves universal infrastructure without erasing WWAM's channel DNA", () => {

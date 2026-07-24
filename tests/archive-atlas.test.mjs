@@ -16,6 +16,7 @@ function load(files = [
   "livestream-distill.js",
   "popular-live-distill.js",
   "archive-deep-distill.js",
+  "archive-deep-batch2.js",
   "archive-atlas-data.js",
   "archive-atlas-engine.js",
 ]) {
@@ -103,12 +104,20 @@ test("reconciles the feed with current deep-source lanes without importing catal
   const freshIds = window.WWAM_LIVESTREAMS.streams.map((record) => record.id);
   const popularIds = window.WWAM_POPULAR_LIVE.streams.map((record) => record.id);
   const archiveDeepIds = window.WWAM_ARCHIVE_DEEP.streams.map((record) => record.id);
+  const archiveDeepBatch2Ids = window.WWAM_ARCHIVE_DEEP_BATCH2.streams.map(
+    (record) => record.id
+  );
   const catalogIntersection = [...catalogIds].filter((id) => ids.has(id));
 
   assert.deepEqual(catalogIntersection, ["3wK00_-K-Y0"]);
   assert.ok(freshIds.every((id) => ids.has(id)));
   assert.ok(popularIds.every((id) => ids.has(id)));
   assert.ok(archiveDeepIds.every((id) => ids.has(id)));
+  assert.ok(archiveDeepBatch2Ids.every((id) => ids.has(id)));
+  assert.equal(
+    archiveDeepIds.filter((id) => archiveDeepBatch2Ids.includes(id)).length,
+    0,
+  );
   assert.ok(archiveDeepIds.every((id) => {
     const record = data.records.find((candidate) => candidate.id === id);
     return (
@@ -117,15 +126,24 @@ test("reconciles the feed with current deep-source lanes without importing catal
       && !record.lanes.includes("archive-metadata")
     );
   }));
+  assert.ok(archiveDeepBatch2Ids.every((id) => {
+    const record = data.records.find((candidate) => candidate.id === id);
+    return (
+      record.coverage === "deeply-indexed"
+      && record.lanes.includes("archive-deep-batch-02")
+      && !record.lanes.includes("archive-metadata")
+    );
+  }));
   assert.deepEqual(data.stats.lanes, {
     "fresh-10": 10,
     "popular-25": 25,
     "archive-deep-10": 10,
+    "archive-deep-batch-02": 10,
     "commentary-catalog": 1,
-    "archive-metadata": 426,
+    "archive-metadata": 416,
   });
   assert.equal(data.provenance.sourceLanes.popularFeedEntries, 472);
-  assert.equal(data.provenance.sourceLanes.archiveDeepSources, 10);
+  assert.equal(data.provenance.sourceLanes.archiveDeepSources, 20);
   assert.equal(
     data.provenance.sourceLanes.archiveDeepSchema,
     "wwam-archive-deep-distill/v1",
@@ -142,6 +160,41 @@ test("reconciles the feed with current deep-source lanes without importing catal
     data.provenance.sourceLanes.archiveDeepPublicFnv1a,
     /^fnv1a32:[a-f0-9]{8}$/,
   );
+  assert.deepEqual(data.provenance.sourceLanes.archiveDeepTotals, {
+    batches: 2,
+    sources: 20,
+    hours: 46.8,
+    wordsAudited: 579003,
+    captionEvents: 82551,
+    topicLanes: 200,
+    publicMomentCandidates: 91,
+    characterSignals: 23,
+    snapshotViews: 214278,
+    restricted: 7,
+  });
+  const deepBatches = data.provenance.sourceLanes.archiveDeepBatches;
+  assert.deepEqual(
+    deepBatches.map((batch) => [batch.batchId, batch.atlasLane, batch.sources]),
+    [
+      ["archive-deep-batch-01", "archive-deep-10", 10],
+      ["archive-deep-batch-02", "archive-deep-batch-02", 10],
+    ],
+  );
+  assert.deepEqual(
+    deepBatches.map((batch) => batch.schema),
+    [
+      "wwam-archive-deep-distill/v1",
+      "shokker-youtube-wiki/archive-deep-batch/v1",
+    ],
+  );
+  assert.ok(deepBatches.every((batch) => (
+    /^sha256:[a-f0-9]{64}$/.test(batch.selectionSourceAtlasSha256)
+    && /^sha256:[a-f0-9]{64}$/.test(batch.selectionSha256)
+    && /^sha256:[a-f0-9]{64}$/.test(batch.captionSetSha256)
+    && /^fnv1a32:[a-f0-9]{8}$/.test(batch.publicFnv1a)
+  )));
+  assert.equal(deepBatches[1].integrationStatus, "integrated-quarantine");
+  assert.equal(deepBatches[1].promotionAllowed, false);
 });
 
 test("labels deep, metadata-only, caption-limited and unavailable states honestly", () => {
@@ -153,11 +206,12 @@ test("labels deep, metadata-only, caption-limited and unavailable states honestl
     "unavailable",
   ]);
   assert.deepEqual(data.stats.coverage, {
-    "deeply-indexed": 44,
-    "metadata-only": 420,
+    "deeply-indexed": 54,
+    "metadata-only": 410,
     "caption-limited": 8,
     unavailable: 0,
   });
+  assert.equal(data.stats.deepCoveragePercent, 11.4);
   assert.ok(data.records.every((record) => allowed.has(record.coverage)));
   assert.equal(atlas.getRecord("x6tvsGRHgU0").coverage, "caption-limited");
   assert.equal(atlas.getRecord("cQAVmNFQmoI").coverage, "caption-limited");
@@ -167,13 +221,18 @@ test("labels deep, metadata-only, caption-limited and unavailable states honestl
     plain(atlas.getRecord("fpNtQMexZiw").lanes),
     ["archive-deep-10"],
   );
+  assert.equal(atlas.getRecord("CFUHyfcJDTg").coverage, "deeply-indexed");
+  assert.deepEqual(
+    plain(atlas.getRecord("CFUHyfcJDTg").lanes),
+    ["archive-deep-batch-02"],
+  );
   assert.equal(atlas.getRecord("FVuwRHM0kcc").coverage, "metadata-only");
 
   const coverage = atlas.getCoverage();
-  assert.equal(coverage.currentSourceLaneRecords, 46);
-  assert.equal(coverage.captionBackedDeepRecords, 44);
+  assert.equal(coverage.currentSourceLaneRecords, 56);
+  assert.equal(coverage.captionBackedDeepRecords, 54);
   assert.equal(coverage.selectedCaptionLimitedRecords, 2);
-  assert.equal(coverage.deepCoveragePercent, 9.3);
+  assert.equal(coverage.deepCoveragePercent, 11.4);
   assert.match(coverage.policy, /no transcript/i);
 });
 
@@ -274,10 +333,11 @@ test("browses by decade, year, month, coverage and source lane deterministically
 
   assert.equal(atlas.browse({ decade: "2010s" }).total, 25);
   assert.equal(atlas.browse({ year: 2026, month: 7 }).total, 3);
-  assert.equal(atlas.browse({ coverage: "metadata-only" }).total, 420);
+  assert.equal(atlas.browse({ coverage: "metadata-only" }).total, 410);
   assert.equal(atlas.browse({ coverage: ["caption-limited", "unavailable"] }).total, 8);
   assert.equal(atlas.browse({ lane: "popular-25" }).total, 25);
   assert.equal(atlas.browse({ lane: "archive-deep-10" }).total, 10);
+  assert.equal(atlas.browse({ lane: "archive-deep-batch-02" }).total, 10);
   assert.ok(
     atlas.getFilterOptions().lanes.some((lane) => (
       lane.value === "archive-deep-10" && lane.label === "ARCHIVE DEEP 10"
@@ -349,13 +409,23 @@ test("ranks a reproducible distill-next queue with a fully exposed 50/30/20 form
     "5T1wWUjCGWk",
     "KrBhfGxsJNM",
     "hagePawEnC4",
+    "CFUHyfcJDTg",
+    "o4EMYqQ5DDU",
+    "Z7ArdfA054w",
+    "k698GIJe8EA",
+    "4X8EFw7MCmw",
+    "KIGg_I72x_M",
+    "o2O9T4nwVw4",
+    "qONN2sNoK2k",
+    "QxJyVaAgZ_Y",
+    "0svLtx3nZJM",
   ]);
 
-  assert.equal(queue.eligible, 420);
-  assert.equal(queue.matched, 420);
+  assert.equal(queue.eligible, 410);
+  assert.equal(queue.matched, 410);
   assert.equal(queue.records.length, 25);
   assert.deepEqual(plain(queue.excluded), {
-    deeplyIndexed: 44,
+    deeplyIndexed: 54,
     captionLimited: 8,
     unavailable: 0,
   });
@@ -374,9 +444,9 @@ test("ranks a reproducible distill-next queue with a fully exposed 50/30/20 form
     ) * 10) / 10
   )));
   assert.ok(queue.records.every((record) => !frozenBatch.has(record.id)));
-  assert.equal(queue.records[0].id, "CFUHyfcJDTg");
-  assert.equal(queue.records[0].title, "Michael Myers VS Jason Voorhees Kill V Kill LIVE!");
-  assert.equal(queue.records[0].priority.score, 89.8);
+  assert.equal(queue.records[0].id, "M9_5cX8xowI");
+  assert.equal(queue.records[0].title, "Halloween TV Series Talk LIVE! 3/11");
+  assert.equal(queue.records[0].priority.score, 86.8);
   assert.equal(queue.records[0].priority.breakdown.franchise, 20);
 });
 
@@ -385,14 +455,14 @@ test("filters the priority queue by title-grounded franchise and time without re
   const full = atlas.getDistillQueue({ limit: 200 });
   const scream = atlas.getDistillQueue({
     franchise: "scream",
-    year: 2025,
+    year: 2023,
     limit: 50,
   });
   const ranks = new Map(full.records.map((record) => [record.id, record.priority.rank]));
 
   assert.ok(scream.matched > 0);
   assert.ok(scream.records.every((record) => (
-    record.date.startsWith("2025-")
+    record.date.startsWith("2023-")
     && /scream|ghostface|woodsboro/i.test(record.title)
     && record.priority.breakdown.franchise === 20
   )));

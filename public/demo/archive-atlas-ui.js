@@ -33,34 +33,23 @@
     "fresh-10": "FRESH 10",
     "popular-25": "POPULAR 25",
     "archive-deep-10": "AUTOPSIED BATCH 01",
+    "archive-deep-batch-02": "ARCHIVE DEEP BATCH 02",
     "commentary-catalog": "COMMENTARY",
     "archive-metadata": "ARCHIVE RECORD",
   };
 
-  function clean(value) {
-    return String(value == null ? "" : value).replace(/\s+/g, " ").trim();
-  }
+  function clean(value) { return String(value == null ? "" : value).replace(/\s+/g, " ").trim(); }
+  function serialCopy(value) { return JSON.parse(JSON.stringify(value)); }
 
-  function serialCopy(value) {
-    return JSON.parse(JSON.stringify(value));
-  }
-
-  function normalized(value) {
-    return clean(value).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
-  }
+  function normalized(value) { return clean(value).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim(); }
 
   function fallbackEscape(value) {
-    return String(value == null ? "" : value)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
+    return String(value == null ? "" : value).replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")
       .replace(/'/g, "&#39;");
   }
 
-  function fallbackNumber(value) {
-    return Number(value || 0).toLocaleString("en-US");
-  }
+  function fallbackNumber(value) { return Number(value || 0).toLocaleString("en-US"); }
 
   function fallbackDuration(seconds) {
     var total = Math.max(0, Number(seconds) || 0);
@@ -69,15 +58,11 @@
     return hours ? hours + "H " + String(minutes).padStart(2, "0") + "M" : minutes + "M";
   }
 
-  function fallbackDate(value) {
-    return clean(value);
-  }
+  function fallbackDate(value) { return clean(value); }
 
-  function validEngine(engine) {
-    return Boolean(engine) && REQUIRED_ENGINE_METHODS.every(function (method) {
+  function validEngine(engine) { return Boolean(engine) && REQUIRED_ENGINE_METHODS.every(function (method) {
       return typeof engine[method] === "function";
-    });
-  }
+    }); }
 
   function metadataCompare(mode) {
     return function (left, right) {
@@ -102,32 +87,22 @@
     if (engine && !validEngine(engine)) {
       throw new Error("Archive Atlas UI received an incompatible engine");
     }
+    var archiveDeepEngine = input.archiveDeepEngine || null;
 
-    var formatNumber = typeof input.formatNumber === "function" ? input.formatNumber : fallbackNumber;
-    var formatDuration = typeof input.formatDuration === "function" ? input.formatDuration : fallbackDuration;
-    var formatDate = typeof input.formatDate === "function" ? input.formatDate : fallbackDate;
-    var escapeHtml = typeof input.escapeHtml === "function" ? input.escapeHtml : fallbackEscape;
-    var isInternal = typeof input.isInternal === "function" ? input.isInternal : function () { return false; };
-    var openRecord = typeof input.openRecord === "function" ? input.openRecord : function () {};
-    var downloadJson = typeof input.downloadJson === "function" ? input.downloadJson : function () {};
-    var showToast = typeof input.showToast === "function" ? input.showToast : function () {};
-    var documentRef = input.document || (typeof document !== "undefined" ? document : null);
-    var frame = typeof root.requestAnimationFrame === "function"
-      ? root.requestAnimationFrame.bind(root)
-      : function (work) { return setTimeout(work, 0); };
+    var formatNumber = typeof input.formatNumber === "function" ? input.formatNumber : fallbackNumber,
+      formatDuration = typeof input.formatDuration === "function" ? input.formatDuration : fallbackDuration,
+      formatDate = typeof input.formatDate === "function" ? input.formatDate : fallbackDate,
+      escapeHtml = typeof input.escapeHtml === "function" ? input.escapeHtml : fallbackEscape,
+      isInternal = typeof input.isInternal === "function" ? input.isInternal : function () { return false; },
+      openRecord = typeof input.openRecord === "function" ? input.openRecord : function () {},
+      downloadJson = typeof input.downloadJson === "function" ? input.downloadJson : function () {},
+      showToast = typeof input.showToast === "function" ? input.showToast : function () {},
+      documentRef = input.document || (typeof document !== "undefined" ? document : null);
+    var frame = typeof root.requestAnimationFrame === "function" ?
+      root.requestAnimationFrame.bind(root) : function (work) { return setTimeout(work, 0); };
 
-    var state = {
-      query: "",
-      year: "",
-      month: "",
-      coverage: "",
-      limit: 18,
-      busy: !engine,
-      error: "",
-      mounted: false,
-      lastTotal: 0,
-      lastShown: 0,
-    };
+    var state = { query: "", year: "", month: "", coverage: "", limit: 18,
+      busy: !engine, error: "", mounted: false, lastTotal: 0, lastShown: 0 };
     var removeListeners = [];
     var api;
 
@@ -437,29 +412,47 @@
 
     function renderBatch() {
       var node = byId("archiveBatch");
-      var batch = root.WWAM_ARCHIVE_DEEP;
-      if (!node || !batch || !Array.isArray(batch.streams) || !batch.streams.length) return;
-      var meta = batch.meta || {};
+      if (!node || !archiveDeepEngine) return;
+      var meta = archiveDeepEngine.getMetrics();
+      var batches = archiveDeepEngine.getSelection();
+      var streams = archiveDeepEngine.browse({ sort: "priority" }).records;
+      if (!streams.length) return;
+      var metrics = [
+        [meta.streams, "SOURCES DISTILLED"],
+        [formatNumber(meta.snapshotViews), "CACHED SNAPSHOT VIEWS"],
+        [meta.topicLanes + " / " + meta.distinctTopics, "TOPIC LANES / DISTINCT TOPICS"],
+        [meta.characterSignals, "CHARACTER-SIGNAL RECORDS"],
+        [meta.restricted, "TOPIC-ONLY FIREWALLS"],
+        [meta.visualContextUnverified, "VISUAL-CONTEXT UNVERIFIED"],
+      ].map(function (metric) {
+        return "<div><b>" + escapeHtml(metric[0]) + "</b><span>" +
+          metric[1] + "</span></div>";
+      }).join("");
       node.hidden = false;
-      node.innerHTML = '<header><div><span>AUTOPSIED BATCH 01 // THE QUEUE MOVED</span>' +
-        '<h3>TEN BLIND SPOTS BECAME CAPTION-BACKED MAPS.</h3></div><p>' +
-        escapeHtml(formatNumber(meta.wordsAudited || 0)) + " words across " +
-        escapeHtml(meta.hours || 0) + " hours. " +
-        "The 42 short machine candidates remain quarantined. Playback review may establish context; " +
-        "Canon, Red Band, or any other product lane requires its own policy-compliant decision by an authenticated, authorized reviewer.</p></header>" +
-        '<div class="archive-batch-metrics"><div><b>' + Number(meta.streams || 0) +
-        '</b><span>SOURCES DISTILLED</span></div><div><b>' +
-        escapeHtml(formatNumber(meta.captionEvents || 0)) +
-        '</b><span>CAPTION EVENTS</span></div><div><b>' +
-        Number(meta.topicLanes || 0) + '</b><span>TOPIC LANES</span></div><div><b>' +
-        Number(meta.restricted || 0) + '</b><span>SOURCE-AUDIO FIREWALLS</span></div></div>' +
-        '<div class="archive-batch-strip">' + batch.streams.map(function (stream) {
+      node.innerHTML = '<header><div><span>CURRENT 20-SOURCE OVERLAY // TWO INDEPENDENTLY FINGERPRINTED BATCHES</span>' +
+        '<h3>THE ARCHIVE DEEP PORTFOLIO.</h3></div><p>' +
+        Number(meta.hours || 0).toFixed(1) + "H // " +
+        escapeHtml(formatNumber(meta.wordsAudited || 0)) + " WORDS // " +
+        escapeHtml(formatNumber(meta.captionEvents || 0)) + " EVENTS // " +
+        escapeHtml(formatNumber(meta.publicMomentCandidates || 0)) +
+        " QUARANTINED CANDIDATES.</p></header>" +
+        '<div class="archive-batch-metrics">' + metrics + "</div>" +
+        '<p class="archive-batch-fingerprints">' + batches.map(function (batch) {
+          return "B0" + batch.sequence + " " + batch.publicFnv1a;
+        }).join(" // ") + " // CHANGE DETECTION, NOT AUTHENTICATION.</p>" +
+        '<div class="archive-batch-strip">' + streams.map(function (stream) {
+          var batch = stream.archiveBatch;
+          var visual = stream.rightsPolicy.mode === "visual-context-unverified" ?
+            " // VISUAL RESULT UNVERIFIED" : "";
           return '<button type="button" data-archive-open="' + escapeHtml(stream.id) +
-            '" aria-label="Open Batch 01 autopsy for ' + escapeHtml(stream.title) +
             '"><img loading="lazy" src="' + escapeHtml(stream.thumbnail) +
-            '" alt=""><span>#' + String(stream.archivePriority.originalRank).padStart(2, "0") +
-            " // " + escapeHtml(stream.contentMode.replace(/-/g, " ").toUpperCase()) +
-            '</span><b>' + escapeHtml(stream.title) + "</b></button>";
+            '" alt=""><span>BATCH 0' + batch.sequence +
+            " // BATCH-LOCAL PRIORITY #" + String(batch.batchRank).padStart(2, "0") +
+            " // PORTFOLIO #" + String(batch.portfolioRank).padStart(2, "0") +
+            '</span><b>' + escapeHtml(stream.title) + "</b><small>ATLAS SCORE " +
+            Number(stream.archivePriority.score || 0).toFixed(1) +
+            " // " + escapeHtml(formatNumber(stream.views || 0)) +
+            " CACHED VIEWS" + escapeHtml(visual) + "</small></button>";
         }).join("") + "</div>";
     }
 

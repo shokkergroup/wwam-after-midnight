@@ -1,52 +1,26 @@
 (function () {
   "use strict";
 
-  var catalog = window.WWAM_CATALOG || [];
-  var deep = window.WWAM_DEEP_DISTILL || { meta: {}, franchises: [], tapes: [], hot100: [] };
-  var live = window.WWAM_LIVESTREAMS || { meta: {}, streams: [], topicIndex: [] };
-  var popular = window.WWAM_POPULAR_LIVE || { meta: {}, streams: [], topicIndex: [] };
-  var curated = window.WWAM_CURATED || { upInYa: [], askExamples: [] };
-  var characterLore = window.WWAM_CHARACTER_LORE || { meta: {}, characters: [] };
-  var channelDNA = window.WWAM_CHANNEL_DNA || {};
-  var archiveAtlasPayload = window.WWAM_ARCHIVE_ATLAS || null;
-  var archiveDeepPayload = window.WWAM_ARCHIVE_DEEP || null;
-  var askEngine;
-  var characterEngine;
-  var showcaseEngine;
-  var loreEngine;
-  var tapeTriviaEngine;
-  var triviaSession;
-  var nightShiftEngine;
-  var nightShiftJourney;
-  var nightShiftProgress;
-  var clipLabEngine;
-  var coldOpenFactory;
-  var trustEngine;
-  var canonIntegrityReport;
-  var humanReviewSession;
-  var pilotBuilderEngine;
-  var archiveAtlasEngine;
-  var archiveAtlasUi;
-  var archiveDeepEngine;
-  var archiveDeepStreams = [];
-  var archiveDeepLoadPromise;
-  var redBandRankingEngine;
-  var redBandQueryEngine;
-  var redBandMoments = deep.hot100 || [];
-  var archiveAtlasLoadPromise;
-  var archiveAtlasObserver;
-  var redBandLoadPromise;
-  var redBandObserver;
-  var showcaseReceiptById = {};
-  var showcaseSourceById = {};
-  var clipItemById = {};
-  var campaignSnapshots = {};
-  var lastDialogFocus = null;
-  var tapeById = {};
-  var itemById = {};
-  var streamById = {};
-  var storageFallback = {};
-  var runtimeDiagnostics = [];
+  var catalog = window.WWAM_CATALOG || [],
+    deep = window.WWAM_DEEP_DISTILL || { meta: {}, franchises: [], tapes: [], hot100: [] },
+    live = window.WWAM_LIVESTREAMS || { meta: {}, streams: [], topicIndex: [] },
+    popular = window.WWAM_POPULAR_LIVE || { meta: {}, streams: [], topicIndex: [] },
+    curated = window.WWAM_CURATED || { upInYa: [], askExamples: [] },
+    characterLore = window.WWAM_CHARACTER_LORE || { meta: {}, characters: [] },
+    channelDNA = window.WWAM_CHANNEL_DNA || {},
+    archiveAtlasPayload = window.WWAM_ARCHIVE_ATLAS || null,
+    archiveDeepPayload = window.WWAM_ARCHIVE_DEEP || null;
+  var askEngine, characterEngine, showcaseEngine, loreEngine, tapeTriviaEngine,
+    triviaSession, nightShiftEngine, nightShiftJourney, nightShiftProgress,
+    clipLabEngine, coldOpenFactory, trustEngine, canonIntegrityReport,
+    humanReviewSession, pilotBuilderEngine, archiveAtlasEngine, archiveAtlasUi,
+    archiveDeepEngine, archiveDeepLoadPromise, redBandRankingEngine,
+    redBandQueryEngine, archiveAtlasLoadPromise, archiveAtlasObserver,
+    redBandLoadPromise, redBandObserver;
+  var archiveDeepStreams = [], redBandMoments = deep.hot100 || [],
+    showcaseReceiptById = {}, showcaseSourceById = {}, clipItemById = {},
+    campaignSnapshots = {}, lastDialogFocus = null, tapeById = {}, itemById = {},
+    streamById = {}, storageFallback = {}, runtimeDiagnostics = [];
   window.WWAM_RUNTIME_DIAGNOSTICS = runtimeDiagnostics;
 
   function storageGet(key) {
@@ -54,9 +28,7 @@
       var value = window.localStorage.getItem(key);
       if (value != null) storageFallback[key] = value;
       return value != null ? value : (storageFallback[key] || null);
-    } catch {
-      return storageFallback[key] || null;
-    }
+    } catch { return storageFallback[key] || null; }
   }
 
   function storageSet(key, value) {
@@ -64,71 +36,29 @@
     try {
       window.localStorage.setItem(key, String(value));
       return true;
-    } catch {
-      return false;
-    }
+    } catch { return false; }
   }
 
   var state = {
-    redBand: storageGet("wwam-band") !== "bleep",
-    hotCategory: "ALL EVIDENCE",
-    hotLimit: 12,
-    franchise: "ALL",
-    vaultQuery: "",
-    lab: "Halloween",
-    soundSource: "commentary",
-    activeSoundbyte: null,
-    liveTopic: "ALL TOPICS",
-    popularQuery: "",
-    popularTopic: "ALL TOPICS",
-    character: "",
-    characterContext: null,
-    lastCharacterRiff: "",
-    evidenceBag: loadEvidenceBag(),
-    bagOpen: false,
-    memoryTab: "time",
-    memoryEntity: "Halloween",
-    battleA: "franchise:Halloween",
-    battleB: "franchise:Friday the 13th",
-    loreQuery: "",
-    loreKind: "character",
-    loreSelected: "character:loomis",
-    triviaDifficulty: "mixed",
-    triviaLength: 5,
-    triviaFranchise: "",
-    triviaSeed: 0,
-    nightMode: storageGet("wwam-night-mode") || "lore",
-    nightDate: "",
-    nightVariant: "daily",
-    nightVariantIndex: 0,
-    nightReveal: null,
-    nightNotice: "",
-    nightShareHandled: false,
-    clipMode: "shorts",
-    clipQuery: "",
-    clipRisk: "",
-    coldOpenDuration: 30,
-    campaignIds: loadCampaignIds(),
-    canonTab: "health",
-    canonDraft: null,
-    reviewOrigin: "trust",
-    reviewStatus: "unreviewed",
-    reviewQuery: "",
-    reviewSelected: "",
-    reviewNotice: "",
-    reviewRestoreNotice: "",
-    reviewQuarantinedLedger: "",
-    pilotGoal: "archive-discovery",
-    askContext: null,
-    lastAskQuery: "",
-    lastAskAnalysis: null,
-    initialRouteHandled: false,
-    fanEnginesSettled: false,
-    creatorEnginesSettled: false,
-    descentMinutes: 20,
-    descentMode: "CHAOS",
-    tourSlide: 0,
-    consoleIndex: 0,
+    redBand: storageGet("wwam-band") !== "bleep", hotCategory: "ALL EVIDENCE",
+    hotLimit: 12, franchise: "ALL", vaultQuery: "", lab: "Halloween",
+    soundSource: "commentary", activeSoundbyte: null, liveTopic: "ALL TOPICS",
+    popularQuery: "", popularTopic: "ALL TOPICS", character: "",
+    characterContext: null, lastCharacterRiff: "", evidenceBag: loadEvidenceBag(),
+    bagOpen: false, memoryTab: "time", memoryEntity: "Halloween",
+    battleA: "franchise:Halloween", battleB: "franchise:Friday the 13th",
+    loreQuery: "", loreKind: "character", loreSelected: "character:loomis",
+    triviaDifficulty: "mixed", triviaLength: 5, triviaFranchise: "", triviaSeed: 0,
+    nightMode: storageGet("wwam-night-mode") || "lore", nightDate: "",
+    nightVariant: "daily", nightVariantIndex: 0, nightReveal: null, nightNotice: "",
+    nightShareHandled: false, clipMode: "shorts", clipQuery: "", clipRisk: "",
+    coldOpenDuration: 30, campaignIds: loadCampaignIds(), canonTab: "health",
+    canonDraft: null, reviewOrigin: "trust", reviewStatus: "unreviewed",
+    reviewQuery: "", reviewSelected: "", reviewNotice: "", reviewRestoreNotice: "",
+    reviewQuarantinedLedger: "", pilotGoal: "archive-discovery", askContext: null,
+    lastAskQuery: "", lastAskAnalysis: null, initialRouteHandled: false,
+    fanEnginesSettled: false, creatorEnginesSettled: false, descentMinutes: 20,
+    descentMode: "CHAOS", tourSlide: 0, consoleIndex: 0,
   };
 
   deep.tapes.forEach(function (tape) { tapeById[tape.id] = tape; });
@@ -142,21 +72,13 @@
     streamById[stream.id] = stream;
   });
   askEngine = window.WWAMSearchEngine.create(
-    catalog,
-    deep,
-    live,
-    curated,
-    popular,
-    characterLore,
-    archiveDeepPayload
+    catalog, deep, live, curated, popular, characterLore, archiveDeepPayload
   );
   characterEngine = window.WWAMCharacterEngine && window.WWAMCharacterEngine.create ?
     window.WWAMCharacterEngine.create(characterLore) : null;
 
   function attempt(work, label) {
-    try {
-      return work();
-    } catch (error) {
+    try { return work(); } catch (error) {
       var diagnostic = {
         at: new Date().toISOString(),
         operation: label || work.name || "anonymous operation",
@@ -180,18 +102,13 @@
     if (archiveAtlasEngine && window.WWAMArchiveAtlasUI && window.WWAMArchiveAtlasUI.create) {
       archiveAtlasUi = attempt(function () {
         return window.WWAMArchiveAtlasUI.create({
-          engine: archiveAtlasEngine,
-          formatNumber: fmt,
-          formatDuration: duration,
-          formatDate: shortDate,
-          escapeHtml: esc,
+          engine: archiveAtlasEngine, formatNumber: fmt, formatDuration: duration,
+          formatDate: shortDate, escapeHtml: esc,
           isInternal: function (record) {
             return Boolean(itemById[record.id] || streamById[record.id]);
           },
-          openRecord: openArchiveRecord,
-          downloadJson: downloadJson,
-          showToast: showToast,
-          document: document,
+          openRecord: openArchiveRecord, downloadJson: downloadJson,
+          showToast: showToast, archiveDeepEngine: archiveDeepEngine, document: document,
         }).mount();
       }, "archive atlas UI initialization");
     }
@@ -199,13 +116,16 @@
   }
 
   function createArchiveDeep() {
-    archiveDeepPayload = window.WWAM_ARCHIVE_DEEP || archiveDeepPayload;
-    if (!archiveDeepPayload || !window.WWAMArchiveDeepEngine ||
-        !window.WWAMArchiveDeepEngine.create) return null;
+    if (!window.WWAM_ARCHIVE_DEEP || !window.WWAM_ARCHIVE_DEEP_BATCH2 ||
+        !window.WWAMArchiveDeepEngine || !window.WWAMArchiveDeepPortfolio) return null;
     archiveDeepEngine = attempt(function () {
-      return window.WWAMArchiveDeepEngine.create(archiveDeepPayload);
-    }, "Archive Deep Batch 01 initialization");
+      return window.WWAMArchiveDeepPortfolio.create(
+        [window.WWAM_ARCHIVE_DEEP, window.WWAM_ARCHIVE_DEEP_BATCH2],
+        window.WWAMArchiveDeepEngine
+      );
+    }, "Archive Deep portfolio initialization");
     if (!archiveDeepEngine) return null;
+    archiveDeepPayload = archiveDeepEngine.getSearchPayload();
     archiveDeepStreams = archiveDeepEngine.browse({ sort: "priority" }).records;
     archiveDeepStreams.forEach(function (stream) {
       stream._lane = "archive";
@@ -216,13 +136,7 @@
       streamById[stream.id] = stream;
     });
     askEngine = window.WWAMSearchEngine.create(
-      catalog,
-      deep,
-      live,
-      curated,
-      popular,
-      characterLore,
-      archiveDeepPayload
+      catalog, deep, live, curated, popular, characterLore, archiveDeepPayload
     );
     return archiveDeepEngine;
   }
@@ -231,14 +145,14 @@
     if (archiveDeepEngine) return Promise.resolve(archiveDeepEngine);
     if (archiveDeepLoadPromise) return archiveDeepLoadPromise;
     archiveDeepLoadPromise = loadDemoScript("archive-deep-distill.js")
+      .then(function () { return loadDemoScript("archive-deep-batch2.js"); })
       .then(function () { return loadDemoScript("archive-deep-engine.js"); })
+      .then(function () { return loadDemoScript("archive-deep-portfolio.js"); })
       .then(createArchiveDeep)
       .catch(function (error) {
-        runtimeDiagnostics.push({
-          at: new Date().toISOString(),
-          operation: "Archive Deep Batch 01 lazy load",
-          message: error && error.message ? error.message : String(error),
-        });
+        runtimeDiagnostics.push({ at: new Date().toISOString(),
+          operation: "Archive Deep portfolio lazy load",
+          message: error && error.message ? error.message : String(error) });
         archiveDeepLoadPromise = null;
         return null;
       });
@@ -247,26 +161,24 @@
 
   function loadDemoScript(source) {
     return new Promise(function (resolve, reject) {
-      var existing = document.querySelector('script[data-lazy-source="' + source + '"]');
-      if (existing) {
-        if (existing.getAttribute("data-loaded") === "true") resolve();
+      var script = document.querySelector('script[data-lazy-source="' + source + '"]');
+      if (script) {
+        if (script.getAttribute("data-loaded") === "true") resolve();
         else {
-          existing.addEventListener("load", resolve, { once: true });
-          existing.addEventListener("error", reject, { once: true });
+          script.addEventListener("load", resolve, { once: true });
+          script.addEventListener("error", reject, { once: true });
         }
         return;
       }
-      var script = document.createElement("script");
+      script = document.createElement("script");
       script.src = source;
       script.async = true;
       script.setAttribute("data-lazy-source", source);
       script.onload = function () {
-        script.setAttribute("data-loaded", "true");
-        resolve();
+        script.setAttribute("data-loaded", "true"); resolve();
       };
       script.onerror = function () {
-        script.remove();
-        reject(new Error("Unable to load " + source));
+        script.remove(); reject(new Error("Unable to load " + source));
       };
       document.body.appendChild(script);
     });
@@ -639,46 +551,46 @@
     "A Nightmare on Elm Street": "#55e5ff",
   };
   var categoryCopy = {
-    "OUT OF POCKET": "The sentence that gets the group chat subpoenaed.",
-    "FRANCHISE FELONY": "Aggravated assault on a movie's reputation.",
-    "LOVE LETTER": "Genuine affection, still holding a knife.",
-    "THEORY BOARD": "Confidence enters. Future context waits outside.",
-    "KILL ROOM": "The body-count vocabulary spikes.",
-    "BIT ENERGY": "A callback signal escaped the grave.",
-    "BREAKDOWN": "On-mic structural integrity approaches zero.",
-    "HORROR BRAIN": "The horror-nerd cortex has the wheel.",
-    "UP IN YA": "A sentence that escaped adult supervision.",
-    "THE ROOM BREAKS": "Laughter or a room-break pattern pushes the receipt over the edge.",
-    "CHARACTER CALLBACK": "Recurring-character or callback pressure makes the moment compound.",
-    "FULL SEND": "The live room commits completely to the bit.",
-    "TAKE GETS NUCLEAR": "Opinion intensity reaches unsafe operating temperature.",
-    "CHAT DID THIS": "The audience put the hosts on a road nobody should travel.",
+    "OUT OF POCKET": "Subpoena fuel.",
+    "FRANCHISE FELONY": "Reputation murder.",
+    "LOVE LETTER": "Knife-wielding affection.",
+    "THEORY BOARD": "Context pending.",
+    "KILL ROOM": "Bodies.",
+    "BIT ENERGY": "Graveyard callback.",
+    "BREAKDOWN": "Integrity: zero.",
+    "HORROR BRAIN": "Horror cortex driving.",
+    "UP IN YA": "Unsupervised sentence.",
+    "THE ROOM BREAKS": "Laughter wins.",
+    "CHARACTER CALLBACK": "Character compounds.",
+    "FULL SEND": "Bit fully committed.",
+    "TAKE GETS NUCLEAR": "Opinion reactor breach.",
+    "CHAT DID THIS": "Audience-made chaos.",
   };
   var tourSlides = [
     { number: "01", eyebrow: "THE PROBLEM", title: "THOUSANDS OF HOURS.<br>NO MEMORY LAYER.",
-      body: "YouTube remembers titles—not the bits, takes, room breaks, or exact seconds worth reviving.",
-      proof: "THE BACK CATALOG HAS VALUE. MOST OF IT IS BURIED.",
+      body: "YouTube remembers titles—not the bits or exact seconds worth reviving.",
+      proof: "THE BACK CATALOG IS BURIED.",
       action: { kind: "night", label: "RUN TONIGHT'S SOURCE-GROUNDED SHIFT" } },
     { number: "02", eyebrow: "THE RECEIPT", title: "2,175,344 WORDS.<br>84 SOURCES. PROVE IT.",
-      body: "Audited: 39 commentaries, Fresh 10, Popular 25, Batch 01. Forty-two candidates stay outside 872 receipts.",
+      body: "Audited: 39 commentaries + Fresh 10 + Popular 25 + Batch 01.",
       proof: "84 INPUTS = 74 PROMOTED + 10 ARCHIVE DEEP QUARANTINE. 872 RECEIPTS + 42 REVIEW CANDIDATES.",
       action: { kind: "ask", label: "ASK FOR THE MOST-VIEWED LIVE", query: "What is the most-viewed foundational livestream?" } },
     { number: "03", eyebrow: "THE MAP", title: "472 STREAMS.<br>EVERY BLIND SPOT VISIBLE.",
-      body: "The 2018–2026 feed maps 44 deep, 420 metadata-only, 8 caption-limited records. Titles are not knowledge.",
-      proof: "1,197 CACHED HOURS. DEPTH, BOUNDARIES, NEXT-DISTILL QUEUE: VISIBLE.",
+      body: "The feed maps depth and blind spots.",
+      proof: "1,197 CACHED HOURS. GAPS VISIBLE.",
       action: { kind: "archive", label: "OPEN THE ARCHIVE ATLAS" } },
     { number: "04", eyebrow: "THE MOAT", title: "THE CHANNEL<br>REMEMBERS ITSELF.",
-      body: "Time Machines track takes; Bit Ancestry tracks characters; Court awaits review.",
-      proof: "CONNECTED MEMORY. TRUST FIREWALL. DISCOVERY NEVER BECOMES CANON BY ACCIDENT.",
+      body: "Time Machines track takes; Ancestry tracks bits.",
+      proof: "CONNECTED MEMORY. NO SELF-CERTIFYING.",
       action: { kind: "lore", label: "OPEN THE LOOMIS CONSTELLATION", entry: "character:loomis" } },
     { number: "05", eyebrow: "THE MONEY", title: "MEMORY CREATES<br>NEW INVENTORY.",
-      body: "One inventory yields Shorts, supercuts, callbacks, 117 cold opens—with ledgers and approval.",
-      proof: "ARCHIVE MEMORY → EDIT PLAN → SOURCE LEDGER → CREATOR DECISION.",
+      body: "One ledger yields Shorts, supercuts, and cold opens.",
+      proof: "MEMORY → EDIT PLAN → LEDGER → CREATOR DECISION.",
       action: { kind: "clip", mode: "cold-open", duration: 30,
         label: "BUILD A 30-SECOND LOOMIS COLD OPEN", query: "Dr. Loomis" } },
     { number: "06", eyebrow: "THE PILOT", title: "DON'T BUY THE DREAM.<br>TEST THE MACHINE.",
-      body: "Choose one job, six receipts, a measurement contract, and a stop condition. Test it.",
-      proof: "ONE CHANNEL PILOT. VISIBLE INPUTS. REVIEWABLE OUTPUTS. A REAL YES / NO.",
+      body: "Choose a job, six receipts, and a stop.",
+      proof: "ONE PILOT. VISIBLE INPUTS.",
       action: { kind: "pilot", label: "BUILD THE ARCHIVE-DISCOVERY PILOT", goal: "archive-discovery" } },
   ];
 
@@ -1976,11 +1888,13 @@
     if (!stream) return;
     rememberDialogFocus();
     var isArchiveDeep = stream._lane === "archive";
+    var archiveBatch = stream.archiveBatch || {};
     var lane = stream._lane === "popular" ? "FOUNDATIONAL 25" :
-      isArchiveDeep ? "AUTOPSIED BATCH 01" : "FRESH 10";
-    var laneList = stream._lane === "popular" ? popular.streams :
-      isArchiveDeep ? archiveDeepStreams : live.streams;
-    var laneRank = laneList.indexOf(stream) + 1;
+      isArchiveDeep ? (archiveBatch.sequence === 2 ?
+        "AUTOPSIED BATCH 02" : "AUTOPSIED BATCH 01") : "FRESH 10";
+    var laneRank = isArchiveDeep ?
+      Number(archiveBatch.batchRank || 0) :
+      (stream._lane === "popular" ? popular.streams : live.streams).indexOf(stream) + 1;
     var peak = stream.moments.slice().sort(function (a, b) { return b.heat - a.heat; })[0];
     var streamSummary = safeEditorialCopy(stream.summary || stream.whyItMatters ||
       (stream.editorial && stream.editorial.whyItMatters) ||
@@ -1988,9 +1902,16 @@
     var modal = document.getElementById("tapeModal");
     document.getElementById("modalContent").innerHTML =
       '<div class="modal-hero live-modal-hero" style="--accent:var(--cyan)"><img src="' + esc(stream.thumbnail) +
-      '" alt=""><div><p>' + lane + ' // LIVE MAP ' + String(laneRank).padStart(2, "0") +
+      '" alt=""><div><p>' + lane + ' // ' +
+      (isArchiveDeep ? "BATCH-LOCAL PRIORITY #" : "LIVE MAP ") +
+      String(laneRank).padStart(2, "0") +
+      (isArchiveDeep ? " // PORTFOLIO #" +
+        String(archiveBatch.portfolioRank || 0).padStart(2, "0") : "") +
       '</p><h2>' + esc(stream.title) + '</h2><span>' + shortDate(stream.date) + ' // ' +
-      duration(stream.duration) + ' // ' + fmt(stream.views) + ' VIEWS</span></div></div>' +
+      duration(stream.duration) + ' // ' + fmt(stream.views) +
+      (isArchiveDeep ? ' CACHED VIEWS' : ' VIEWS') + '</span></div></div>' +
+      (isArchiveDeep && stream.contentMode === "visual-ranking" ?
+        '<p class="sealed-copy">VISUAL-RANKING RESULT UNVERIFIED // CAPTIONS CANNOT ESTABLISH WHICH KILL OR DEATH WON.</p>' : '') +
       '<div class="modal-grid live-modal-grid"><section class="modal-verdict"><p class="kicker">THE LIVE-ROOM AUTOPSY</p><blockquote>' +
       esc(streamSummary) + '</blockquote><div class="live-peak"><b>' + (peak ? peak.heat : "—") +
       '</b><span>PEAK<br>' + (isArchiveDeep ? "CANDIDATE HEAT" : "COMEDY HEAT") +
@@ -2232,7 +2153,7 @@
     }
     if (!redBandIntent && !archiveDeepEngine && /\barchive\s+deep\b/i.test(query)) {
       state.lastAskQuery = query;
-      statusNode.textContent = "OPENING ARCHIVE DEEP // 10 CAPTION AUDITS";
+      statusNode.textContent = "OPENING ARCHIVE DEEP // 20 CAPTION AUDITS";
       resultsNode.innerHTML =
         '<div class="ask-no-match"><b>SEARCHING THE QUARANTINED EVIDENCE LANE…</b>' +
         '<p>Machine candidates will stay visibly outside Canon while the batch loads.</p></div>';
@@ -2267,7 +2188,11 @@
       });
     }
     var results = analysis.results || [];
-    var archiveFallback = archiveAskMarkup(query);
+    var timedDeepAnswer = results.some(function (result) {
+      return result.lane === "archive" && result.kind !== "livestream" &&
+        Number.isFinite(Number(result.at)) && Number(result.at) >= 0;
+    });
+    var archiveFallback = timedDeepAnswer ? "" : archiveAskMarkup(query);
     var roleByKey = {};
     (analysis.evidenceChain || []).forEach(function (entry) {
       if (entry.result && entry.result.key) roleByKey[entry.result.key] = entry.role;
