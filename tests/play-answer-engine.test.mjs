@@ -30,6 +30,7 @@ function receipt({
   at,
   evidenceLevel = "TIMESTAMPED CAPTION RECEIPT",
   evidenceType = "caption-excerpt",
+  claimRelation = "explicit-caption-target",
   warnings = ["Speaker identity is not established by this receipt."],
   ...extra
 }) {
@@ -39,6 +40,7 @@ function receipt({
     at,
     evidenceLevel,
     evidenceType,
+    claimRelation,
     evidenceWarnings: warnings,
     speaker: null,
     speakerStatus: "not-diarized",
@@ -89,6 +91,7 @@ function neutralFixture(overrides = {}) {
               "The booth speaker is not identified.",
               "Sequence does not establish causality.",
             ],
+            claimRelation: "screen-referent-in-exact-commentary",
           }),
         },
       ]),
@@ -108,7 +111,7 @@ function neutralFixture(overrides = {}) {
         channelId: "neutral-racing",
         channelPackFingerprint: "cp1-0000000000000001",
         archiveAsOf: "2026-07-24",
-        answerEngineVersion: "ask-v2.0.0",
+        answerEngineVersion: "ask-v2.1.0",
       },
     sources:
       overrides.sources || [
@@ -182,10 +185,14 @@ test("publishes one frozen, non-replaceable channel-neutral API", () => {
   assert.equal(descriptor.configurable, false);
   assert.equal(descriptor.enumerable, true);
   assert.ok(Object.isFrozen(window.ShokkerPlayAnswer));
-  assert.equal(window.ShokkerPlayAnswer.VERSION, "1.0.0");
+  assert.equal(window.ShokkerPlayAnswer.VERSION, "2.0.0");
   assert.equal(
     window.ShokkerPlayAnswer.TRAIL_SCHEMA,
-    "shokker-play-answer/trail/v1",
+    "shokker-play-answer/trail/v2",
+  );
+  assert.equal(
+    window.ShokkerPlayAnswer.SHARE_SCHEMA,
+    "shokker-play-answer/share/v2",
   );
   assert.doesNotMatch(
     engineSource,
@@ -207,10 +214,25 @@ test("compiles an exact ordered racing trail with every authority claim forced o
       stop.sourceId,
       stop.at,
       stop.end,
+      stop.claimRelation,
     ])),
     [
-      ["PRIMARY RECEIPT", "race-opening-call", "RACE01A", 118, 148],
-      ["SUPPORTING RECEIPT", "race-final-call", "RACE02B", 3598, 3628],
+      [
+        "PRIMARY RECEIPT",
+        "race-opening-call",
+        "RACE01A",
+        118,
+        148,
+        "explicit-caption-target",
+      ],
+      [
+        "SUPPORTING RECEIPT",
+        "race-final-call",
+        "RACE02B",
+        3598,
+        3628,
+        "screen-referent-in-exact-commentary",
+      ],
     ],
   );
   assert.deepEqual(plain(first.stops[0].warnings), [
@@ -227,6 +249,15 @@ test("compiles an exact ordered racing trail with every authority claim forced o
     canon: false,
   });
   assert.equal(first.mediaCopied, false);
+  assert.deepEqual(plain(fixture.instance.getPolicy().allowedClaimRelations), [
+    "explicit-caption-target",
+    "exact-topic-receipt",
+    "screen-referent-in-exact-commentary",
+  ]);
+  assert.equal(
+    fixture.instance.getPolicy().sourceContextOnlyPlayable,
+    false,
+  );
   assert.match(first.fingerprint, /^fnv1a32:[0-9a-f]{8}$/);
   assert.ok(Object.isFrozen(first));
   assert.ok(Object.isFrozen(first.stops));
@@ -239,6 +270,84 @@ test("compiles an exact ordered racing trail with every authority claim forced o
   assert.equal(fixture.calls(), 2);
 });
 
+test("accepts only the three exact claim relations in a neutral racing trail", () => {
+  const fixture = neutralFixture();
+  fixture.current.value = analysis(fixture.query, [
+    {
+      role: "PRIMARY RECEIPT",
+      result: receipt({
+        key: "explicit-booth-target",
+        sourceId: "RACE01A",
+        at: 118,
+        claimRelation: "explicit-caption-target",
+      }),
+    },
+    {
+      role: "SUPPORTING RECEIPT",
+      result: receipt({
+        key: "exact-race-topic",
+        sourceId: "RACE01A",
+        at: 900,
+        evidenceType: "caption-topic-receipt",
+        kind: "topic",
+        claimRelation: "exact-topic-receipt",
+      }),
+    },
+    {
+      role: "COUNTERPOINT",
+      result: receipt({
+        key: "screen-referent-call",
+        sourceId: "RACE02B",
+        at: 3598,
+        claimRelation: "screen-referent-in-exact-commentary",
+      }),
+    },
+  ]);
+
+  const trail = fixture.instance.build(fixture.query);
+  assert.deepEqual(
+    plain(trail.stops.map((stop) => stop.claimRelation)),
+    [
+      "explicit-caption-target",
+      "exact-topic-receipt",
+      "screen-referent-in-exact-commentary",
+    ],
+  );
+
+  for (const relation of [
+    undefined,
+    null,
+    "",
+    "source-context-only",
+    "unknown",
+    "EXPLICIT-CAPTION-TARGET",
+  ]) {
+    const unsafe = receipt({
+      key: `unsafe-${String(relation)}`,
+      sourceId: "RACE01A",
+      at: 100,
+      claimRelation: relation,
+    });
+    if (relation === undefined) delete unsafe.claimRelation;
+    fixture.current.value = analysis(fixture.query, [
+      { role: "PRIMARY RECEIPT", result: unsafe },
+      {
+        role: "SUPPORTING RECEIPT",
+        result: receipt({
+          key: "safe-relation",
+          sourceId: "RACE02B",
+          at: 200,
+        }),
+      },
+    ]);
+    assert.throws(
+      () => fixture.instance.build(fixture.query),
+      errorCode("NONPLAYABLE_CLAIM_RELATION"),
+      String(relation),
+    );
+  }
+});
+
 test("shares coordinates only and restores solely through a fresh exact rebuild", () => {
   const fixture = neutralFixture();
   const packet = fixture.instance.createShare(fixture.query);
@@ -247,6 +356,7 @@ test("shares coordinates only and restores solely through a fresh exact rebuild"
   assert.equal(packet.stops.length, 2);
   assert.deepEqual(Object.keys(packet.stops[0]).sort(), [
     "at",
+    "claimRelation",
     "end",
     "key",
     "role",
@@ -269,6 +379,24 @@ test("shares coordinates only and restores solely through a fresh exact rebuild"
     ["race-opening-call", "race-final-call"],
   );
   assert.equal(fixture.calls(), 2);
+});
+
+test("legacy v1 trails and shares fail as foreign contracts", () => {
+  const fixture = neutralFixture();
+  const trail = plain(fixture.instance.build(fixture.query));
+  const packet = plain(fixture.instance.createShare(fixture.query));
+
+  trail.schema = "shokker-play-answer/trail/v1";
+  assert.throws(
+    () => fixture.instance.exportShare(trail),
+    errorCode("INVALID_TRAIL"),
+  );
+
+  packet.schema = "shokker-play-answer/share/v1";
+  assert.throws(
+    () => fixture.instance.restoreShare(rehash(packet)),
+    errorCode("FOREIGN_SHARE"),
+  );
 });
 
 test("reordered or altered shares fail even after an attacker recomputes the public checksum", () => {
@@ -310,6 +438,21 @@ test("reordered or altered shares fail even after an attacker recomputes the pub
     errorCode("INVALID_WINDOW"),
   );
 
+  const changedRelation = structuredClone(packet);
+  changedRelation.stops[0].claimRelation =
+    "screen-referent-in-exact-commentary";
+  assert.throws(
+    () => fixture.instance.restoreShare(rehash(changedRelation)),
+    errorCode("TAMPERED_SHARE"),
+  );
+
+  const unsafeRelation = structuredClone(packet);
+  unsafeRelation.stops[0].claimRelation = "source-context-only";
+  assert.throws(
+    () => fixture.instance.restoreShare(rehash(unsafeRelation)),
+    errorCode("NONPLAYABLE_CLAIM_RELATION"),
+  );
+
   const fakeTrail = structuredClone(packet);
   fakeTrail.trailFingerprint = "fnv1a32:00000000";
   assert.throws(
@@ -327,7 +470,7 @@ test("foreign bindings, changed source registries, and changed warning tiers inv
       channelId: "neutral-racing",
       channelPackFingerprint: "cp1-0000000000000002",
       archiveAsOf: "2026-07-24",
-      answerEngineVersion: "ask-v2.0.0",
+      answerEngineVersion: "ask-v2.1.0",
     },
   });
   assert.throws(
@@ -758,7 +901,7 @@ test("requires exact immutable bindings and a whole-second playable source regis
     channelId: "neutral-racing",
     channelPackFingerprint: "cp1-0000000000000001",
     archiveAsOf: "2026-07-24",
-    answerEngineVersion: "ask-v2.0.0",
+    answerEngineVersion: "ask-v2.1.0",
   };
   const sources = [
     { sourceId: "RACE01A", durationSeconds: 4200, playable: true },
@@ -962,7 +1105,7 @@ test("archival excerpts and hostile payload fields never leave the canonical Ask
   );
 });
 
-test("real Ask trajectory compiles and round-trips the exact Halloween archive-boundary chain", async () => {
+test("real Ask launch chains preserve exact claim relations through round-trip", async () => {
   const sourceFiles = [
     "catalog.js",
     "deep-distill.js",
@@ -1001,7 +1144,7 @@ test("real Ask trajectory compiles and round-trips the exact Halloween archive-b
       channelId: "wwam",
       channelPackFingerprint: "cp1-dd23bc386008689b",
       archiveAsOf: "2026-07-23",
-      answerEngineVersion: "ask-v2.0.0",
+      answerEngineVersion: "ask-v2.1.0",
     },
     sources: [...registry].map(([sourceId, durationSeconds]) => ({
       sourceId,
@@ -1009,46 +1152,78 @@ test("real Ask trajectory compiles and round-trips the exact Halloween archive-b
       playable: true,
     })),
   });
-  const query = "How did their opinion on Halloween change?";
-  const trail = engine.build(query);
-
-  assert.equal(trail.status, "archive-boundary");
-  assert.deepEqual(
-    plain(trail.stops.map((stop) => [
-      stop.role,
-      stop.sourceId,
-      stop.at,
-      stop.end,
-      stop.evidenceLevel,
-    ])),
-    [
-      [
-        "EARLIEST INDEXED RECEIPT",
-        "6VXSBDZ-3WE",
-        1597,
-        1627,
-        "TIMESTAMPED CAPTION RECEIPT",
+  const cases = [
+    {
+      query: "How did their opinion on Halloween change?",
+      status: "archive-boundary",
+      limitation: /cannot prove a host changed their mind/i,
+      stops: [
+        [
+          "EARLIEST INDEXED RECEIPT",
+          "6VXSBDZ-3WE",
+          1597,
+          1627,
+          "screen-referent-in-exact-commentary",
+        ],
+        [
+          "LATEST INDEXED RECEIPT",
+          "I6QKteG_hK0",
+          5993,
+          6023,
+          "screen-referent-in-exact-commentary",
+        ],
       ],
-      [
-        "LATEST INDEXED RECEIPT",
-        "I6QKteG_hK0",
-        5993,
-        6023,
-        "TIMESTAMPED CAPTION RECEIPT",
+    },
+    {
+      query: "What do they hate about the Elm Street remake?",
+      status: "supported",
+      stops: [
+        [
+          "PRIMARY RECEIPT",
+          "qTQdWKcwn4A",
+          1132,
+          1162,
+          "screen-referent-in-exact-commentary",
+        ],
+        [
+          "SUPPORTING RECEIPT",
+          "qTQdWKcwn4A",
+          2101,
+          2131,
+          "screen-referent-in-exact-commentary",
+        ],
       ],
-    ],
-  );
-  assert.match(
-    trail.limitations.join(" "),
-    /cannot prove a host changed their mind/i,
-  );
-  assert.ok(trail.stops.every((stop) => stop.speaker === null));
+    },
+  ];
 
-  const packet = engine.createShare(query);
-  const restored = engine.restoreShare(plain(packet));
-  assert.equal(restored.fingerprint, trail.fingerprint);
-  assert.deepEqual(
-    plain(restored.stops.map((stop) => stop.key)),
-    plain(trail.stops.map((stop) => stop.key)),
-  );
+  for (const scenario of cases) {
+    const trail = engine.build(scenario.query);
+    assert.equal(trail.status, scenario.status);
+    assert.deepEqual(
+      plain(trail.stops.map((stop) => [
+        stop.role,
+        stop.sourceId,
+        stop.at,
+        stop.end,
+        stop.claimRelation,
+      ])),
+      scenario.stops,
+    );
+    if (scenario.limitation) {
+      assert.match(trail.limitations.join(" "), scenario.limitation);
+    }
+    assert.ok(trail.stops.every((stop) => stop.speaker === null));
+
+    const packet = engine.createShare(scenario.query);
+    assert.deepEqual(
+      plain(packet.stops.map((stop) => stop.claimRelation)),
+      plain(trail.stops.map((stop) => stop.claimRelation)),
+    );
+    const restored = engine.restoreShare(plain(packet));
+    assert.equal(restored.fingerprint, trail.fingerprint);
+    assert.deepEqual(
+      plain(restored.stops.map((stop) => stop.key)),
+      plain(trail.stops.map((stop) => stop.key)),
+    );
+  }
 });

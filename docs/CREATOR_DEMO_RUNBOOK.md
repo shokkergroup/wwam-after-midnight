@@ -11,7 +11,7 @@ three things quickly:
 
 ## Before the call
 
-- Open the current V5.15 build or its confirmed deployment and choose either
+- Open the current V5.16 build or its confirmed deployment and choose either
   content-advisory mode.
 - Confirm YouTube playback is available in the browser.
 - Start at the hero, not halfway down the page.
@@ -131,6 +131,16 @@ Return to the hero and choose **Follow the Lore**.
 
 - Use the top navigation to open Ask WWAM and ask:
 
+> What do they say about Halloween?
+
+Point out that V5.15 could put the unrelated `4UokRLETypU @ 809` and
+`Q6SN-Om1gIo @ 2835` soundbytes first merely because they occurred inside
+Halloween commentaries. V5.16 excludes both as `source-context-only`. Every
+returned aboutness receipt must expose an allowed relationship to Halloween;
+heat and human curation cannot buy an unrelated moment back into the answer.
+
+Then ask:
+
 > What did they say about the mask in Halloween 5?
 
 Follow with:
@@ -164,6 +174,10 @@ comedy.”
 
 What it proves:
 
+- a relevant source is no longer accepted as proof that a bounded remark is
+  about the requested subject;
+- every surviving aboutness receipt exposes one typed relationship basis;
+- heat, profanity, and curation rank only after relationship eligibility;
 - direct-answer retrieval instead of correct-source / wrong-moment matching;
 - exact follow-up context anchored to a source and second;
 - honest abstention when the requested subtopic is not indexed;
@@ -425,6 +439,38 @@ What it proves:
 - identity, rights, speaker, causality, creator approval, Canon, and public
   publication remain outside the prototype's authority.
 
+## V5.16 Evidence Relationship Gate proof — 60 seconds
+
+Use this branch when the buyer says any chatbot can search a relevant video.
+
+1. Ask **What do they say about Halloween?**
+2. Explain the reproduced V5.15 result honestly: the system previously ranked
+   `4UokRLETypU @ 13:29` (“Would you suck your own dick?”) and
+   `Q6SN-Om1gIo @ 47:15`. Both were precise and memorable, but neither bounded
+   remark established Halloween as its subject.
+3. Show that both are absent. Open one surviving result and point to its
+   `claimRelation`: `explicit-caption-target`, `exact-topic-receipt`, or
+   `screen-referent-in-exact-commentary`.
+4. Ask **What did they say about the mask in Halloween 5?** Show that the
+   direct `AtcRT3Xkk6E @ 22:07` mask receipt survives.
+5. Ask **What did they say about the ending in Scream 3?** Show the
+   `insufficient-evidence` answer with zero receipts and no Play the Answer
+   action.
+
+Say: “A relevant title tells us where to look. This layer still has to prove
+why the exact second is evidence for what you asked. Funny, popular, and
+human-curated moments cannot skip that test.”
+
+What it proves:
+
+- the accuracy failure is reproduced and regression-pinned instead of hidden;
+- typed receipt-to-subject relationships precede ranking;
+- a good direct receipt survives while an unsupported subtopic refuses;
+- `source-context-only` cannot enter an evidence chain or playable trail; and
+- the same playable/rejection contract accepts neutral racing vocabulary; a
+  production racing classifier must still supply driver/event aliases and
+  race-referent rules.
+
 ## V5.15 Play the Answer proof — 60 seconds
 
 Use this branch when the buyer says a chatbot can also return links.
@@ -435,11 +481,15 @@ Use this branch when the buyer says a chatbot can also return links.
 3. Select **PLAY THIS ANSWER**. Show the exact ordered rail:
    `6VXSBDZ-3WE @ 26:37` as the earliest indexed receipt and
    `I6QKteG_hK0 @ 1:39:53` as the latest.
+   Under V5.16 both stops must expose
+   `screen-referent-in-exact-commentary`; a merely source-context stop would
+   make the trail ineligible.
 4. Play the first official upload in-page, choose **NEXT RECEIPT**, and play
    the second. Point out that the evidence tier, speaker warning, and complete
    Ask limitations remain visible.
 5. Copy the trail link. Explain that the share contains only bindings and
-   coordinates; opening it reruns Ask and rejects a changed or reordered trail.
+   coordinates plus the exact relationship codes; opening it reruns Ask and
+   rejects a changed, reordered, or relationship-drifted trail.
 6. If a player is blocked, use **RECOVER PLAYER** to reopen the same bounded
    source window through the hosted bridge.
 
@@ -484,6 +534,14 @@ Use only the branch the audience cares about:
   across about 268.9 hours.”
 - “Every item labeled as a moment returns to an exact indexed source
   timestamp.”
+- “V5.16 also requires a typed receipt-to-subject relationship. A timestamp in
+  a relevant upload is not automatically evidence about the requested
+  subject.”
+- “The relationship gate reproduced and removed unrelated Halloween, Scream,
+  and Friday the 13th answers without sacrificing the direct Halloween 5 mask
+  receipt or inventing a Scream 3 ending result.”
+- “Heat, curation, comedy, popularity, and profanity rank only after
+  relationship eligibility; none can upgrade `source-context-only`.”
 - “The promoted corpus contains 872 bounded editorial receipts and 168 core
   memory nodes.”
 - “Archive Deep Portfolio currently overlays 40 caption-audited sources, 97.7

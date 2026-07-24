@@ -53,7 +53,33 @@ function plain(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
-function actualFixture() {
+function neutralResult({
+  key,
+  sourceId,
+  at,
+  claimRelation,
+  evidenceType = "caption-excerpt",
+  kind = "moment",
+}) {
+  return {
+    key,
+    sourceId,
+    at,
+    claimRelation,
+    evidenceLevel: "TIMESTAMPED CAPTION RECEIPT",
+    evidenceType,
+    evidenceWarnings: ["Broadcast speaker identity is not established."],
+    speaker: null,
+    speakerStatus: "not-diarized",
+    originInferred: false,
+    kind,
+    captioned: true,
+  };
+}
+
+function actualFixture(
+  query = "How did their opinion on Halloween change?",
+) {
   const window = load();
   const ask = window.WWAMSearchEngine.create(
     window.WWAM_CATALOG,
@@ -64,7 +90,6 @@ function actualFixture() {
   );
   const registry = window.WWAMPlayAnswerUI.buildSourceRegistry(window);
   const bindings = window.WWAMPlayAnswerUI.compileBindings(window);
-  const query = "How did their opinion on Halloween change?";
   const analysis = ask.ask(query);
   const engine = window.ShokkerPlayAnswer.create({
     analyze(value) {
@@ -186,7 +211,7 @@ test("the UI builds the exact canonical WWAM binding and playable source registr
     channelId: "wwam",
     channelPackFingerprint: "cp1-dd23bc386008689b",
     archiveAsOf: "2026-07-23",
-    answerEngineVersion: "ask-v2.0.0",
+    answerEngineVersion: "ask-v2.1.0",
   });
   assert.ok(
     registry.engineSources.every(
@@ -228,16 +253,172 @@ test("a real standalone Ask trail compiles to exact bounded playable stops", () 
         stop.sourceId,
         stop.start,
         stop.end,
+        stop.claimRelation,
       ]),
     ),
     [
-      ["EARLIEST INDEXED RECEIPT", "6VXSBDZ-3WE", 1597, 1627],
-      ["LATEST INDEXED RECEIPT", "I6QKteG_hK0", 5993, 6023],
+      [
+        "EARLIEST INDEXED RECEIPT",
+        "6VXSBDZ-3WE",
+        1597,
+        1627,
+        "screen-referent-in-exact-commentary",
+      ],
+      [
+        "LATEST INDEXED RECEIPT",
+        "I6QKteG_hK0",
+        5993,
+        6023,
+        "screen-referent-in-exact-commentary",
+      ],
     ],
   );
   assert.ok(trail.warnings.some((warning) => /cannot prove/i.test(warning)));
   assert.ok(trail.stops.every((stop) => stop.end > stop.start));
   assert.match(trail.stops[0].excerpt, /\S/);
+});
+
+test("the Elm Street launch chain preserves exact screen-referent relations", () => {
+  const fixture = actualFixture(
+    "What do they hate about the Elm Street remake?",
+  );
+  const { window, registry, query, analysis, engine } = fixture;
+  assert.equal(
+    window.WWAMPlayAnswerUI.safeAskAnalysis(analysis, query, registry),
+    analysis,
+  );
+  const trail = window.WWAMPlayAnswerUI.normalizeTrail(
+    engine.build(query),
+    { query, analysis },
+    registry,
+  );
+
+  assert.equal(trail.valid, true);
+  assert.deepEqual(
+    plain(trail.stops.map((stop) => [
+      stop.sourceId,
+      stop.start,
+      stop.end,
+      stop.claimRelation,
+    ])),
+    [
+      [
+        "qTQdWKcwn4A",
+        1132,
+        1162,
+        "screen-referent-in-exact-commentary",
+      ],
+      [
+        "qTQdWKcwn4A",
+        2101,
+        2131,
+        "screen-referent-in-exact-commentary",
+      ],
+    ],
+  );
+});
+
+test("the UI preserves all three exact claim relations for a neutral racing archive", () => {
+  const window = load(["play-answer-engine.js", "play-answer-ui.js"]);
+  const query = "Show the start, strategy call, and finish";
+  const sources = [
+    {
+      id: "RACE00001A1",
+      sourceId: "RACE00001A1",
+      title: "Neutral Racing Round 1",
+      duration: 4200,
+      durationSeconds: 4200,
+      captioned: true,
+    },
+    {
+      id: "RACE00002B2",
+      sourceId: "RACE00002B2",
+      title: "Neutral Racing Round 2",
+      duration: 4800,
+      durationSeconds: 4800,
+      captioned: true,
+    },
+  ];
+  const registry = {
+    byId: Object.fromEntries(sources.map((source) => [source.id, source])),
+    list: sources,
+    engineSources: sources.map((source) => ({
+      sourceId: source.id,
+      durationSeconds: source.durationSeconds,
+      playable: true,
+    })),
+    size: sources.length,
+  };
+  const analysis = {
+    query,
+    status: "supported",
+    continuedFrom: false,
+    contextUsed: [],
+    limitations: ["Order does not establish causality or speaker identity."],
+    evidenceChain: [
+      {
+        role: "PRIMARY RECEIPT",
+        result: neutralResult({
+          key: "race-start",
+          sourceId: "RACE00001A1",
+          at: 118,
+          claimRelation: "explicit-caption-target",
+        }),
+      },
+      {
+        role: "SUPPORTING RECEIPT",
+        result: neutralResult({
+          key: "strategy-topic",
+          sourceId: "RACE00001A1",
+          at: 900,
+          claimRelation: "exact-topic-receipt",
+          evidenceType: "caption-topic-receipt",
+          kind: "topic",
+        }),
+      },
+      {
+        role: "COUNTERPOINT",
+        result: neutralResult({
+          key: "finish-screen-referent",
+          sourceId: "RACE00002B2",
+          at: 3598,
+          claimRelation: "screen-referent-in-exact-commentary",
+        }),
+      },
+    ],
+  };
+  const engine = window.ShokkerPlayAnswer.create({
+    analyze() {
+      return analysis;
+    },
+    bindings: {
+      channelId: "neutral-racing",
+      channelPackFingerprint: "cp1-0000000000000001",
+      archiveAsOf: "2026-07-24",
+      answerEngineVersion: "ask-v2.1.0",
+    },
+    sources: registry.engineSources,
+  });
+
+  assert.equal(
+    window.WWAMPlayAnswerUI.safeAskAnalysis(analysis, query, registry),
+    analysis,
+  );
+  const trail = window.WWAMPlayAnswerUI.normalizeTrail(
+    engine.build(query),
+    { query, analysis },
+    registry,
+  );
+  assert.equal(trail.valid, true);
+  assert.deepEqual(
+    plain(trail.stops.map((stop) => stop.claimRelation)),
+    [
+      "explicit-caption-target",
+      "exact-topic-receipt",
+      "screen-referent-in-exact-commentary",
+    ],
+  );
+  assert.doesNotMatch(JSON.stringify(trail), /WWAM|Halloween|Loomis/i);
 });
 
 test("the UI preflight rejects unsafe Ask surfaces before the playback core", () => {
@@ -280,6 +461,15 @@ test("the UI preflight rejects unsafe Ask surfaces before the playback core", ()
       value.evidenceChain[0].result.evidenceLevel = "SOURCE METADATA ONLY";
     },
     (value) => {
+      delete value.evidenceChain[0].result.claimRelation;
+    },
+    (value) => {
+      value.evidenceChain[0].result.claimRelation = "source-context-only";
+    },
+    (value) => {
+      value.evidenceChain[0].result.claimRelation = "unknown";
+    },
+    (value) => {
       value.evidenceChain[1] = plain(value.evidenceChain[0]);
     },
   ];
@@ -289,7 +479,7 @@ test("the UI preflight rejects unsafe Ask surfaces before the playback core", ()
     mutate(unsafe);
     assert.throws(
       () => window.WWAMPlayAnswerUI.safeAskAnalysis(unsafe, query, registry),
-      /playback|trail|receipt|source|role|diarized|context|evidence|supported|played/i,
+      /playback|trail|receipt|source|role|diarized|context|evidence|supported|played|relation/i,
     );
   }
 });
@@ -330,6 +520,28 @@ test("normalization rejects the entire chain when one bound or receipt is bad", 
     ).valid,
     false,
   );
+
+  const missingRelation = plain(raw);
+  delete missingRelation.stops[1].claimRelation;
+  assert.equal(
+    window.WWAMPlayAnswerUI.normalizeTrail(
+      missingRelation,
+      { query, analysis },
+      registry,
+    ).valid,
+    false,
+  );
+
+  const sourceContextOnly = plain(raw);
+  sourceContextOnly.stops[1].claimRelation = "source-context-only";
+  assert.equal(
+    window.WWAMPlayAnswerUI.normalizeTrail(
+      sourceContextOnly,
+      { query, analysis },
+      registry,
+    ).valid,
+    false,
+  );
 });
 
 test("share packets encode outside the core and restore only after a fresh exact rebuild", () => {
@@ -348,7 +560,12 @@ test("share packets encode outside the core and restore only after a fresh exact
       (stop) =>
         Number.isInteger(stop.at) &&
         Number.isInteger(stop.end) &&
-        stop.end > stop.at,
+        stop.end > stop.at &&
+        [
+          "explicit-caption-target",
+          "exact-topic-receipt",
+          "screen-referent-in-exact-commentary",
+        ].includes(stop.claimRelation),
     ),
   );
 
@@ -359,6 +576,13 @@ test("share packets encode outside the core and restore only after a fresh exact
     (error) =>
       error &&
       ["INVALID_WINDOW", "TAMPERED_SHARE"].includes(error.code),
+  );
+
+  const relationTamper = plain(decoded);
+  relationTamper.stops[0].claimRelation = "source-context-only";
+  assert.throws(
+    () => engine.restoreShare(relationTamper),
+    (error) => error?.code === "NONPLAYABLE_CLAIM_RELATION",
   );
 });
 

@@ -2,12 +2,12 @@
   "use strict";
 
   /*
-   * V5.15 // PLAY THE ANSWER
+   * V5.16 // PLAY THE ANSWER V2
    *
    * This surface is deliberately downstream of ShokkerPlayAnswer. The engine
    * decides whether a trail is defensible; this file only renders a valid,
-   * source-bounded trail and refuses to infer identity, continuity, causality,
-   * or a verdict from its ordering.
+   * source-bounded trail with an exact claim relation and refuses to infer
+   * identity, continuity, causality, or a verdict from its ordering.
    */
 
   var SHARE_PARAM = "playAnswer";
@@ -43,6 +43,12 @@
     "caption-topic-receipt": true,
     "caption-character-signal": true,
     "curated-character-performance": true
+  });
+  var SAFE_CLAIM_RELATIONS = Object.freeze({
+    "explicit-caption-target": "EXPLICIT CAPTION TARGET",
+    "exact-topic-receipt": "EXACT TOPIC RECEIPT",
+    "screen-referent-in-exact-commentary":
+      "SCREEN REFERENT IN EXACT COMMENTARY"
   });
   var SOURCE_GLOBALS = Object.freeze([
     Object.freeze({ name: "WWAM_CATALOG", path: "", lane: "commentary", score: 50 }),
@@ -227,7 +233,7 @@
       channelId: text(channelPack.identity && channelPack.identity.id, 64),
       channelPackFingerprint: text(channelPack.fingerprint, 20),
       archiveAsOf: archiveAsOf,
-      answerEngineVersion: "ask-v2.0.0"
+      answerEngineVersion: "ask-v2.1.0"
     });
   }
 
@@ -271,6 +277,15 @@
       if (!Object.prototype.hasOwnProperty.call(SAFE_EVIDENCE_LEVELS, result.evidenceLevel) ||
           !Object.prototype.hasOwnProperty.call(SAFE_EVIDENCE_TYPES, result.evidenceType)) {
         unsafeAnalysis("Every stop must be a timed caption or curated-performance receipt.");
+      }
+      if (typeof result.claimRelation !== "string" ||
+          !Object.prototype.hasOwnProperty.call(
+            SAFE_CLAIM_RELATIONS,
+            result.claimRelation
+          )) {
+        unsafeAnalysis(
+          "Every stop must prove an exact claim relation; source context alone cannot play."
+        );
       }
       if (!Object.prototype.hasOwnProperty.call(result, "speaker") ||
           result.speaker !== null || result.speakerStatus !== "not-diarized") {
@@ -368,7 +383,8 @@
     if (!record(result) ||
         result.key !== candidate.key ||
         result.sourceId !== candidate.sourceId ||
-        result.at !== candidate.at) return null;
+        result.at !== candidate.at ||
+        result.claimRelation !== candidate.claimRelation) return null;
     return result;
   }
 
@@ -389,6 +405,11 @@
     if (source.duration != null && bounds.end > source.duration + 1) return null;
     var receipt = analysisReceipt(analysis, index, candidate);
     if (!receipt) return null;
+    if (typeof candidate.claimRelation !== "string" ||
+        !Object.prototype.hasOwnProperty.call(
+          SAFE_CLAIM_RELATIONS,
+          candidate.claimRelation
+        )) return null;
     var warnings = uniqueStrings(
       array(candidate.warnings)
         .concat(array(candidate.limitations))
@@ -409,6 +430,7 @@
       title: source.title,
       start: bounds.start,
       end: bounds.end,
+      claimRelation: candidate.claimRelation,
       excerpt: firstText([
         receipt.excerpt,
         receipt.quote,
@@ -433,7 +455,8 @@
           stop.sourceId,
           Number(stop.start),
           Number(stop.end),
-          text(stop.role, 120)
+          text(stop.role, 120),
+          text(stop.claimRelation, 80)
         ];
       })
     });
@@ -879,7 +902,9 @@
       var excerpt = theater.querySelector("[data-play-answer-excerpt]");
       excerpt.textContent = stop.excerpt || "No excerpt copy supplied; use the bounded source.";
       excerpt.setAttribute("data-empty", stop.excerpt ? "false" : "true");
-      theater.querySelector("[data-play-answer-level]").textContent = stop.evidenceLevel;
+      theater.querySelector("[data-play-answer-level]").textContent =
+        stop.evidenceLevel + " // " +
+        SAFE_CLAIM_RELATIONS[stop.claimRelation];
       var official = theater.querySelector("[data-play-answer-official]");
       official.href = officialUrl(stop);
       renderWarnings(stop);

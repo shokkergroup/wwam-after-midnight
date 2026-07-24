@@ -224,6 +224,30 @@ test("fan shorthand resolves exact films without leaking into adjacent franchise
   }
 });
 
+test("aboutness shorthand returns content evidence rather than an in-scope soundbyte", async () => {
+  const { engine } = await harness();
+  const query = "What do they say about the original Halloween?";
+  const answer = ask(engine, query);
+
+  assert.equal(answer.status, "supported");
+  assert.equal(answer.entity, "Halloween (1978)");
+  assert.ok(answer.results.length >= 2);
+  assert.ok(answer.evidenceChain.length >= 2);
+  assert.ok(answer.results.every((result) => result.sourceId === "6VXSBDZ-3WE"));
+  assert.ok(answer.results.every((result) => result.curatedRank == null));
+  assert.ok(answer.results.every((result) => (
+    result.claimRelation === "explicit-caption-target" ||
+    result.claimRelation === "screen-referent-in-exact-commentary"
+  )));
+  assert.ok(answer.evidenceChain.every((entry) => (
+    entry.result.claimRelation !== "source-context-only"
+  )));
+  assert.ok(
+    answer.evidenceChain.every((entry) => entry.result.key !== "moment-6VXSBDZ-3WE-3231"),
+    "the unrelated curated Michael-motivation soundbyte must not answer aboutness",
+  );
+});
+
 test("franchise commentary selectors stay scoped and honor archive date or view data", async () => {
   const { catalog, engine } = await harness();
 

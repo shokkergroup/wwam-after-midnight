@@ -1,9 +1,9 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.0.0";
-  var TRAIL_SCHEMA = "shokker-play-answer/trail/v1";
-  var SHARE_SCHEMA = "shokker-play-answer/share/v1";
+  var VERSION = "2.0.0";
+  var TRAIL_SCHEMA = "shokker-play-answer/trail/v2";
+  var SHARE_SCHEMA = "shokker-play-answer/share/v2";
   var REVIEW_WINDOW_SECONDS = 30;
   var SOURCE_ID = /^[A-Za-z0-9_-]{6,64}$/;
   var FINGERPRINT = /^fnv1a32:[0-9a-f]{8}$/;
@@ -32,6 +32,14 @@
   var ALLOWED_STATUSES = Object.create(null);
   ["supported", "archive-boundary"].forEach(function (status) {
     ALLOWED_STATUSES[status] = true;
+  });
+  var ALLOWED_CLAIM_RELATIONS = Object.create(null);
+  [
+    "explicit-caption-target",
+    "exact-topic-receipt",
+    "screen-referent-in-exact-commentary"
+  ].forEach(function (relation) {
+    ALLOWED_CLAIM_RELATIONS[relation] = true;
   });
   var EVIDENCE_CONTRACTS = Object.create(null);
   [
@@ -63,6 +71,12 @@
     minimumStops: 2,
     maximumStops: 6,
     reviewWindowSeconds: REVIEW_WINDOW_SECONDS,
+    allowedClaimRelations: freezeDeep([
+      "explicit-caption-target",
+      "exact-topic-receipt",
+      "screen-referent-in-exact-commentary"
+    ]),
+    sourceContextOnlyPlayable: false,
     sourceRegistryRequired: true,
     copiedMedia: false,
     speakerAttribution: false,
@@ -72,7 +86,8 @@
     trueOriginClaim: false,
     rightsClearance: false,
     canonPromotion: false,
-    sharePayload: "query, bindings, exact ordered source coordinates, and fingerprints only"
+    sharePayload:
+      "query, bindings, exact ordered source coordinates, claim relations, and fingerprints only"
   });
 
   function failure(code, message) {
@@ -460,6 +475,23 @@
           resultLabel + ".evidenceType",
           120
         );
+        var claimRelation = ownValue(
+          resultDescriptors,
+          "claimRelation",
+          resultLabel,
+          false
+        );
+        if (typeof claimRelation !== "string" ||
+            !Object.prototype.hasOwnProperty.call(
+              ALLOWED_CLAIM_RELATIONS,
+              claimRelation
+            )) {
+          failure(
+            "NONPLAYABLE_CLAIM_RELATION",
+            resultLabel +
+              " must carry an exact engine-owned claim relation; source context alone is not playable evidence."
+          );
+        }
         var restrictedToTopicNavigation = ownValue(
           resultDescriptors,
           "restrictedToTopicNavigation",
@@ -567,6 +599,7 @@
           end: end,
           evidenceLevel: evidenceLevel,
           evidenceType: evidenceType,
+          claimRelation: claimRelation,
           warnings: warnings,
           speaker: null
         });
@@ -607,7 +640,8 @@
           role: stop.role,
           sourceId: stop.sourceId,
           at: stop.at,
-          end: stop.end
+          end: stop.end,
+          claimRelation: stop.claimRelation
         });
       });
       var base = {
@@ -681,7 +715,11 @@
       ).map(function (stop, index) {
         var label = "share.stops[" + index + "]";
         var stopDescriptors = recordDescriptors(stop, label);
-        exactKeys(stopDescriptors, ["key", "role", "sourceId", "at", "end"], label);
+        exactKeys(
+          stopDescriptors,
+          ["key", "role", "sourceId", "at", "end", "claimRelation"],
+          label
+        );
         var key = cleanString(
           ownValue(stopDescriptors, "key", label, true),
           label + ".key",
@@ -698,6 +736,23 @@
         var sourceId = ownValue(stopDescriptors, "sourceId", label, true);
         var at = ownValue(stopDescriptors, "at", label, true);
         var end = ownValue(stopDescriptors, "end", label, true);
+        var claimRelation = ownValue(
+          stopDescriptors,
+          "claimRelation",
+          label,
+          false
+        );
+        if (typeof claimRelation !== "string" ||
+            !Object.prototype.hasOwnProperty.call(
+              ALLOWED_CLAIM_RELATIONS,
+              claimRelation
+            )) {
+          failure(
+            "NONPLAYABLE_CLAIM_RELATION",
+            label +
+              " must preserve an exact engine-owned claim relation."
+          );
+        }
         if (typeof sourceId !== "string" || !SOURCE_ID.test(sourceId) ||
             !Object.prototype.hasOwnProperty.call(registry.byId, sourceId)) {
           failure("UNKNOWN_SOURCE", label + " is outside the canonical source registry.");
@@ -716,7 +771,8 @@
           role: role,
           sourceId: sourceId,
           at: at,
-          end: end
+          end: end,
+          claimRelation: claimRelation
         });
       });
       var packetKeys = Object.create(null);
@@ -763,7 +819,8 @@
           role: stop.role,
           sourceId: stop.sourceId,
           at: stop.at,
-          end: stop.end
+          end: stop.end,
+          claimRelation: stop.claimRelation
         };
       });
       if (canonical(exactStops) !== canonical(checked.stops)) {

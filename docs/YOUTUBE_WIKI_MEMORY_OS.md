@@ -20,12 +20,15 @@ The defensible product is not “AI made a website.” It is a source-backed mem
 ## Non-negotiable rules
 
 1. **A public factual claim must resolve to evidence.** Video ID and timestamp are the minimum viable receipt.
-2. **Inference must identify itself.** Opinion changes, joke origins, excitement scores, and humor scores are useful interpretations—not facts.
-3. **Unknown is a valid answer.** Missing captions or ambiguous speakers remain unknown until reviewed.
-4. **The machine proposes canon; people certify it.** High-value findings enter a review queue.
-5. **The archive must sound like the channel without pretending to be the channel.**
-6. **Generated character dialogue is never presented as a real quote.** Archival audio and generated text are separate surfaces.
-7. **Every new feature must improve discovery, trust, creator utility, or fan delight.** If it does none of those, it is decoration.
+2. **A relevant source is not automatically subject evidence.** Every
+   subject-bearing answer must expose how the bounded receipt is related to
+   the requested subject before ranking can use heat, curation, or popularity.
+3. **Inference must identify itself.** Opinion changes, joke origins, excitement scores, and humor scores are useful interpretations—not facts.
+4. **Unknown is a valid answer.** Missing captions or ambiguous speakers remain unknown until reviewed.
+5. **The machine proposes canon; people certify it.** High-value findings enter a review queue.
+6. **The archive must sound like the channel without pretending to be the channel.**
+7. **Generated character dialogue is never presented as a real quote.** Archival audio and generated text are separate surfaces.
+8. **Every new feature must improve discovery, trust, creator utility, or fan delight.** If it does none of those, it is decoration.
 
 ## Universal evidence schema
 
@@ -79,6 +82,7 @@ The smallest replayable unit of evidence.
   "speaker": null,
   "speakerConfidence": 0,
   "entityIds": ["topic:halloween"],
+  "claimRelation": "explicit-caption-target",
   "score": 92
 }
 ```
@@ -88,6 +92,8 @@ Receipt requirements:
 - `sourceId`, `t`, and playable `url`;
 - a bounded excerpt when transcripts are used;
 - the extraction method and evidence level;
+- a closed-vocabulary receipt-to-subject relationship whenever the receipt is
+  used to answer about a resolved subject;
 - no named speaker unless the evidence supports it;
 - deterministic ID generation so corrections do not create silent duplicates.
 
@@ -149,6 +155,49 @@ Recommended universal relationships:
 - `RESULTED_IN`
 
 Do not create a factual relationship merely because a language model says it is plausible.
+
+### Evidence Relationship Gate
+
+A graph edge, matching source title, or matching franchise supplies retrieval
+context. It does not by itself prove that one bounded receipt is about the
+resolved subject. The universal answer layer therefore assigns exactly one
+`claimRelation` before a subject-bearing receipt may rank:
+
+| Relation | Meaning |
+| --- | --- |
+| `explicit-caption-target` | The bounded caption explicitly names the canonical subject or a registered alias. |
+| `exact-topic-receipt` | A structured timed topic record is canonically bound to the exact subject. |
+| `screen-referent-in-exact-commentary` | The receipt belongs to the exact resolved commentary/program and its bounded caption contains a concrete screen/event referent governed by channel vocabulary. |
+| `source-context-only` | The source context matches, but the bounded receipt supplies no eligible subject relationship. |
+
+Only the first three may answer neutral aboutness. `source-context-only` can
+help a visitor find or inspect the relevant upload, but it cannot enter the
+answer evidence chain or a playable answer projection.
+
+The classifier runs before ranking. Heat, profanity, source views, human
+curation, memorability rank, comedy score, and editorial priority cannot
+upgrade an ineligible relationship. Exact-commentary context also does not
+make every second eligible: the bounded caption must contain a concrete
+screen/event referent rather than an unrelated tangent that occurred while the
+program was playing.
+
+Relationship eligibility is not opinion evidence. A neutral aboutness route
+may use an exact topic record without implying sentiment. Evaluative answers
+also need target-proximate evaluative evidence. Change/evolution answers need
+multiple relationship-eligible, chronology-compatible evaluative receipts and
+still cannot infer speaker continuity or one person's mind change from
+undiarized captions.
+
+This is a portable accuracy contract. WWAM supplies film/franchise aliases and
+screen referents; a racing pack supplies driver/event aliases and race-event
+referents. An unrelated high-heat crash call remains `source-context-only` for
+a question about car 33 merely because car 33 was entered in that race. The
+current V5.16 neutral fixture proves relationship transport and Play rejection;
+it does not rerun the WWAM search classifier against a neutral corpus. Each
+channel still requires its own classifier adapter and query truth set.
+
+See `docs/EVIDENCE_RELATIONSHIP_GATE.md` for the reproduced V5.15 failures,
+positive controls, Play the Answer boundary, and release regressions.
 
 ### Derivation
 
@@ -412,15 +461,18 @@ and annotations are not part of the companion's core share fingerprint.
 
 A structured answer may become a short, ordered watch path only when its
 existing evidence chain contains two to six unique, registered, in-range,
-timed receipts. This projection is downstream of retrieval: it preserves the
-answer engine's exact role and receipt order and cannot rerank by heat,
-popularity, profanity, or interface position.
+timed receipts, each carrying one allowed Evidence Relationship Gate relation.
+This projection is downstream of retrieval: it preserves the answer engine's
+exact role, relationship, and receipt order and cannot rerank by heat,
+popularity, profanity, or interface position. Missing, unknown, and
+`source-context-only` relations fail closed.
 
 The portable trail stores only the question, channel/archive bindings,
 receipt keys, fixed roles, official source IDs, whole-second starts, bounded
-ends, and deterministic fingerprints. It stores no answer prose, excerpt,
-caption payload, speaker, thumbnail, audio, or video. Restore reruns the
-current standalone answer and opens only after an exact trail match.
+ends, exact claim relations, and deterministic fingerprints. It stores no
+answer prose, excerpt, caption payload, speaker, thumbnail, audio, or video.
+Restore reruns the current standalone answer and opens only after an exact
+trail match, including every relationship value.
 
 Playing adjacent receipts is navigation, not a documentary claim. It does not
 establish speaker identity or continuity, causality, opinion change, true
@@ -646,6 +698,8 @@ A surface fails if any of these are true:
 - It repeats the transcript instead of explaining why the moment matters.
 - It invents a speaker, intention, consensus, or “first ever.”
 - It hides missing data.
+- It treats a matching source title or collection as proof that an unrelated
+  bounded receipt is about the requested subject.
 - It gives one result where the question requires an evidence chain.
 - Its scores have no formula or visible dimensions.
 - It uses synthetic host audio.
@@ -685,6 +739,7 @@ Maintain at least 25 real user questions per channel:
 - “latest” and “most popular” scope;
 - positive and negative takes;
 - topic across multiple sources;
+- neutral aboutness where the hottest receipts are unrelated source context;
 - recurring bit;
 - apparent opinion change;
 - missing-caption question;
@@ -697,6 +752,7 @@ Score:
 - top-3 recall;
 - correct lane;
 - exact timestamp;
+- allowed receipt-to-subject relationship;
 - faithful synthesis;
 - refusal to invent unsupported identity.
 
@@ -724,6 +780,11 @@ Score:
 - Every playable-answer trail preserves the structured answer's exact
   two-to-six-stop role/key/source/start/end order; no context-dependent
   follow-up can be restored as a standalone query.
+- Every subject-bearing playable-answer stop has
+  `explicit-caption-target`, `exact-topic-receipt`, or
+  `screen-referent-in-exact-commentary`. Missing, unknown, and
+  `source-context-only` relations fail closed even when the source and
+  timestamp are otherwise valid.
 - Player recovery preserves the same official source and exact bounded
   coordinates. Direct, recovered, and file-mode playback all retain a visible
   official timestamp fallback.

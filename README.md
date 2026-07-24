@@ -7,7 +7,44 @@ character archaeology, topic paths, and creator-side editorial opportunities.
 This is an unofficial fan prototype. It sends playback and source traffic back
 to the official WWAM uploads.
 
-Current documented release: **V5.15 / 0.5.15**.
+Current documented release: **V5.16 / 0.5.16**.
+
+## V5.16 Evidence Relationship Gate
+
+Ask now distinguishes **a receipt from a relevant source** from **a receipt
+that is evidence about the requested subject**. Every subject-bearing
+candidate receives one closed-vocabulary `claimRelation`:
+`explicit-caption-target`, `exact-topic-receipt`,
+`screen-referent-in-exact-commentary`, or `source-context-only`. The first
+three may support neutral aboutness under their stated limits.
+`source-context-only` may navigate to a source, but it cannot answer “what did
+they say about X?”, enter an evidence chain, or become a Play the Answer stop.
+
+This closes a reproduced V5.15 failure. `What do they say about Halloween?`
+could rank `4UokRLETypU @ 809` (“Would you suck your own dick?”) and
+`Q6SN-Om1gIo @ 2835`; the source titles were relevant, but the bounded remarks
+did not establish Halloween as their subject. The equivalent Scream query
+could rank `2G8lpFaeIdw @ 1585` and `jLIfEdg8Oc0 @ 4366`, while the Friday the
+13th query could rank the curated Burp Defense. Those were precise,
+source-linked, memorable wrong answers.
+
+Relationship eligibility now runs before heat, curation, comedy, popularity,
+or source-title score. None can upgrade `source-context-only`. Direct evidence
+still survives: the Halloween 5 mask receipt at `AtcRT3Xkk6E @ 1327` remains
+available, the absent Scream 3 ending subtopic still refuses, and the Elm
+Street remake's two exact-commentary screen referents remain an
+`archive-boundary` route rather than a host-level opinion claim.
+
+The closed relationship vocabulary and Play enforcement are channel-neutral.
+A racing adapter can apply the same distinction between a caption that names
+car 33, an exact driver/event topic, a concrete referent inside the selected
+race, and an unrelated exciting call that merely occurred in a race where car
+33 started. The neutral fixture proves transport and rejection, not that
+WWAM's film-specific search classifier can classify racing unchanged. This is
+an accuracy moat, not another interface surface: the system must prove why the
+exact played second is evidence for the question.
+
+See [Evidence Relationship Gate](docs/EVIDENCE_RELATIONSHIP_GATE.md).
 
 ## V5.15 Play the Answer
 
@@ -24,15 +61,17 @@ upload at its registered indexed second, and the complete Ask limitation set
 stays visible beside the player.
 
 Eligibility is deliberately narrow: two to six unique timed receipts, all
-registered and in range. Metadata-only answers, source-level summaries,
+registered and in range, with one V5.16-allowed `claimRelation` per stop.
+Metadata-only answers, source-level summaries, source-context-only receipts,
 one-receipt answers, global ranking handoffs, longitudinal handoffs,
 adjudication handoffs, and unknown subjects cannot manufacture a trail.
 
 Share packets contain the query, exact bindings, ordered receipt keys, roles,
-source IDs, and bounded coordinates—never excerpts, captions, generated answer
-copy, or speaker fields. Restore reruns Ask and opens only when the fresh trail
-matches exactly; stale, reordered, foreign, or tampered packets fail closed.
-The same core passes a neutral racing fixture without WWAM vocabulary.
+source IDs, bounded coordinates, and exact claim relations—never excerpts,
+captions, generated answer copy, or speaker fields. Restore reruns Ask and
+opens only when the fresh trail matches exactly; stale, reordered, foreign, or
+tampered packets fail closed. The same core passes a neutral racing fixture
+without WWAM vocabulary.
 
 The release pins two concrete watch paths: the Halloween trajectory from
 `6VXSBDZ-3WE @ 1597` to `I6QKteG_hK0 @ 5993`, and the Elm Street remake
@@ -306,7 +345,7 @@ manifest. Quarantined stops remain marked `promotionAllowed: false` with no
 speaker claim. The export omits transcripts, caption payloads, and full event
 ledgers. See [Archive Time Capsules](docs/ARCHIVE_TIME_CAPSULES.md).
 
-## V5.15 product map
+## V5.16 product map
 
 The hero offers three deliberate entry points:
 
@@ -314,7 +353,8 @@ The hero offers three deliberate entry points:
   Trivia, Tape Companion's synchronized second screen, the Evidence Bag, the
   100-rank Red Band Memorability Candidate Index V2.1, WWAM UP IN YA, and
   playable descent paths.
-- **Deep Dive:** Ask WWAM with Play the Answer source trails, Lore Galaxy, Take
+- **Deep Dive:** relationship-gated Ask WWAM with Play the Answer source
+  trails, Lore Galaxy, Take
   Time Machine, year-sized Archive Time Capsules, The Tape Keeps Score, The
   Verdict Room, Bit Ancestry, the
   Comedy Black Box / Riff Autopsy, WWAM Court, franchise labs, autopsies, Fresh
@@ -567,7 +607,8 @@ artifacts contain derived measurements and short, timestamped fragments only.
 
 ## Documentation
 
-- [V5.15 product overview](docs/V5_OVERVIEW.md)
+- [V5.16 product overview](docs/V5_OVERVIEW.md)
+- [Evidence Relationship Gate](docs/EVIDENCE_RELATIONSHIP_GATE.md)
 - [Play the Answer source-trail contract](docs/PLAY_THE_ANSWER.md)
 - [The Tape Keeps Score longitudinal evidence contract](docs/LONGITUDINAL_DOCKET.md)
 - [The Verdict Room local adjudication contract](docs/VERDICT_ROOM_DESIGN.md)

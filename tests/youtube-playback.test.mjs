@@ -169,8 +169,8 @@ test("the document and both direct player paths cannot suppress YouTube's referr
     /<meta name="referrer" content="strict-origin-when-cross-origin">/
   );
   assert.ok(
-    index.indexOf('<script src="youtube-playback.js?v=0.5.15"></script>') <
-      index.indexOf('<script src="app.js?v=0.5.15"></script>')
+    index.indexOf('<script src="youtube-playback.js?v=0.5.16"></script>') <
+      index.indexOf('<script src="app.js?v=0.5.16"></script>')
   );
   assert.equal((app.match(/ShokkerYouTubePlayback\.iframe/g) || []).length, 2);
   assert.match(companion, /PLAYER IDENTITY ERROR 153/);

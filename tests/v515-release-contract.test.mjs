@@ -98,9 +98,9 @@ test("V5.15 package, cache keys, lazy order, and source ceilings move together",
     /<section\b[^>]*\bid="ask"[^>]*data-feature-styles="[^"]*"[^>]*data-feature-scripts="[^"]*"[^>]*>/,
   )?.[0];
 
-  assert.equal(manifest.version, "0.5.15");
-  assert.equal(lock.version, "0.5.15");
-  assert.equal(lock.packages[""].version, "0.5.15");
+  assert.equal(manifest.version, "0.5.16");
+  assert.equal(lock.version, "0.5.16");
+  assert.equal(lock.packages[""].version, "0.5.16");
   assert.ok(askTag, "The Ask section lost its lazy feature declaration.");
   assert.match(
     askTag,
@@ -120,8 +120,8 @@ test("V5.15 package, cache keys, lazy order, and source ceilings move together",
   );
 
   const playbackTag =
-    '<script src="youtube-playback.js?v=0.5.15"></script>';
-  const appTag = '<script src="app.js?v=0.5.15"></script>';
+    '<script src="youtube-playback.js?v=0.5.16"></script>';
+  const appTag = '<script src="app.js?v=0.5.16"></script>';
   assert.ok(html.indexOf(playbackTag) >= 0, "Playback cache key is stale.");
   assert.ok(
     html.indexOf(appTag) > html.indexOf(playbackTag),
@@ -169,8 +169,8 @@ test("V5.15 documentation pins the product, recovery, evidence, and universal bo
   const runbook = readRoot("docs/CREATOR_DEMO_RUNBOOK.md");
   const memoryOs = readRoot("docs/YOUTUBE_WIKI_MEMORY_OS.md");
 
-  assert.match(readme, /Current documented release: \*\*V5\.15 \/ 0\.5\.15\*\*/);
-  assert.match(overview, /^# WWAM After Midnight V5\.15/m);
+  assert.match(readme, /Current documented release: \*\*V5\.16 \/ 0\.5\.16\*\*/);
+  assert.match(overview, /^# WWAM After Midnight V5\.16/m);
   assert.match(contract, /^# V5\.15 Release Contract .* Play the Answer/m);
   assert.match(contract, /two and six|two-to-six/i);
   assert.match(contract, /same official source and exact bounds/i);
@@ -190,7 +190,7 @@ test("the exact Halloween and Elm Street launch chains remain playable and order
     channelId: "wwam",
     channelPackFingerprint: "cp1-dd23bc386008689b",
     archiveAsOf: "2026-07-23",
-    answerEngineVersion: "ask-v2.0.0",
+    answerEngineVersion: "ask-v2.1.0",
   });
   assert.ok(registry.engineSources.length > 0);
 

@@ -3,6 +3,49 @@
 This changelog records product and evidence-contract changes. It does not by
 itself indicate that a build has been deployed.
 
+## 0.5.16 — V5.16 Evidence Relationship Gate — 2026-07-24
+
+### Accuracy moat
+
+- Ask now classifies the exact relationship between every subject-bearing
+  candidate and the resolved subject before ranking. The closed vocabulary is
+  `explicit-caption-target`, `exact-topic-receipt`,
+  `screen-referent-in-exact-commentary`, and `source-context-only`.
+- Neutral aboutness questions accept only the first three relationships.
+  `source-context-only` remains usable for source discovery or surrounding-tape
+  navigation, but cannot answer aboutness, enter the evidence chain, or become
+  a Play the Answer stop.
+- The release preserves the reproduced failure rather than hiding it:
+  `What do they say about Halloween?` previously promoted
+  `4UokRLETypU @ 809` and `Q6SN-Om1gIo @ 2835`; the equivalent Scream query
+  promoted `2G8lpFaeIdw @ 1585` and `jLIfEdg8Oc0 @ 4366`; and the Friday the
+  13th query promoted the Burp Defense at `BIbyzMlstmM @ 1528`. All were
+  source-context matches without bounded subject evidence.
+- Heat, profanity, curation, Red Band rank, Riff Chemistry, source views, and
+  editorial priority now operate only after relationship eligibility. None can
+  upgrade `source-context-only`.
+- Exact evidence remains reachable: `What did they say about the mask in
+  Halloween 5?` retains `AtcRT3Xkk6E @ 1327`; the unsupported Scream 3 ending
+  query keeps zero results; and the Elm Street remake's two bounded
+  exact-commentary referents remain available under an `archive-boundary`
+  answer without becoming a host-level verdict.
+- Neutral aboutness, evaluative opinion, and change/evolution remain separate
+  evidence contracts. Topic membership alone cannot prove sentiment; an
+  eligible chronological pair cannot prove speaker continuity or a mind
+  change.
+- Play the Answer rejects missing, unknown, and `source-context-only`
+  relationship stops directly. Fresh Ask analysis also removes those stops
+  before trail construction, and share restore cannot use stale coordinates as
+  replacement evidence.
+- The relation vocabulary and Play enforcement are channel-neutral. A neutral
+  racing fixture verifies allowed relation transport and rejects an unrelated
+  source-context stop. It does not claim that WWAM's film-specific Ask
+  classifier classifies racing unchanged; a racing port still needs its own
+  registered entities, aliases, exact source/topic bindings, referent
+  vocabulary, and query truth set.
+
+See [Evidence Relationship Gate](EVIDENCE_RELATIONSHIP_GATE.md).
+
 ## 0.5.15 — V5.15 Play the Answer — 2026-07-24
 
 ### Added

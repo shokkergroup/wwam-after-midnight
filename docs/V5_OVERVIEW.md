@@ -1,4 +1,4 @@
-# WWAM After Midnight V5.15
+# WWAM After Midnight V5.16
 
 ## One-sentence product
 
@@ -13,12 +13,16 @@ receipt, that proof also includes the exact indexed second. Source-level
 metadata and summaries remain labeled as source-level evidence rather than
 masquerading as timestamped utterances.
 
+V5.16 adds one more requirement: the bounded receipt must state how it is
+evidence about the resolved subject. A timestamp inside a relevant upload is
+not automatically an answer.
+
 ## Audited snapshot
 
-V5.15 keeps a frozen release proof, the V5.12 Archive Deep overlay, the V5.13
+V5.16 keeps a frozen release proof, the V5.12 Archive Deep overlay, the V5.13
 longitudinal docket, the V5.14 device-local adjudication overlay, and the new
-playable-answer projection visibly separate. The **immutable V5.4 proof**
-remains:
+playable-answer projection and evidence-relationship gate visibly separate.
+The **immutable V5.4 proof** remains:
 
 | Source lane | Coverage |
 | --- | ---: |
@@ -91,6 +95,76 @@ The combined portfolio fingerprint is `fnv1a32:14050c7a`. Batch 01, 02, 03,
 and 04 retain `fnv1a32:17045a51`, `fnv1a32:bcea5692`,
 `fnv1a32:f79f2399`, and `fnv1a32:56ca74df`, respectively. These FNV values
 detect structural change; they do not authenticate the sources or an operator.
+
+## Evidence Relationship Gate
+
+V5.16 hardens Ask without adding another destination. Before subject-bearing
+receipts can be ranked, added to an evidence chain, or projected into Play the
+Answer, each receives one closed-vocabulary `claimRelation`:
+
+- `explicit-caption-target`;
+- `exact-topic-receipt`;
+- `screen-referent-in-exact-commentary`; or
+- `source-context-only`.
+
+The first three may support a neutral aboutness question under their specific
+limits. `source-context-only` means the source title, franchise, or selected
+program is relevant while the bounded receipt does not establish the requested
+subject. It remains source navigation, not answer evidence.
+
+This fixes a reproduced, commercially important failure. Before the gate,
+`What do they say about Halloween?` ranked `4UokRLETypU @ 809` (“Would you
+suck your own dick?”) and `Q6SN-Om1gIo @ 2835`; the equivalent Scream route
+ranked `2G8lpFaeIdw @ 1585` and `jLIfEdg8Oc0 @ 4366`; and the Friday the 13th
+route could promote the Burp Defense at `BIbyzMlstmM @ 1528`. The source
+contexts matched. The bounded remarks did not establish the requested
+franchises as their subjects.
+
+The gate runs before heat, curation, comedy, popularity, profanity, source
+views, or editorial priority. A memorable timestamp and a human-curated label
+cannot upgrade `source-context-only`.
+
+Neutral aboutness remains separate from opinion or change. An exact topic
+binding can establish topic navigation without proving sentiment. Evaluative
+answers additionally require target-proximate evaluative evidence.
+Change/evolution answers require multiple relationship-eligible,
+chronology-compatible evaluative receipts and remain archive-boundary results:
+undiarized captions cannot establish that one host made both statements or
+changed a position.
+
+The gate preserves valid and missing evidence:
+
+- the Halloween 5 mask query retains `AtcRT3Xkk6E @ 1327` as
+  `explicit-caption-target`;
+- the unavailable Scream 3 ending query still returns zero results and zero
+  evidence-chain stops;
+- the neutral Elm Street remake opinion route retains
+  `qTQdWKcwn4A @ 1132` and `@ 2101` as
+  `screen-referent-in-exact-commentary`, without promoting a host-level
+  verdict; and
+- the Halloween change route may retain only relationship-eligible
+  evaluative receipts and still cannot prove speaker continuity or mind
+  change.
+
+Play the Answer rejects missing, unknown, and `source-context-only` relations
+directly. Ask also removes those receipts before trail construction, so a
+stale share cannot use old coordinates as substitute evidence.
+
+The relation vocabulary and Play enforcement are channel-neutral. A racing
+adapter supplies its driver/event entities, aliases, exact program bindings,
+topics, and concrete event-referent vocabulary. An exciting crash call that
+happened in a race where car 33 started remains `source-context-only` unless
+the bounded evidence actually connects it to car 33. The V5.16 neutral fixture
+proves relationship transport and fail-closed playback, not that WWAM's
+film-specific search classifier classifies racing unchanged.
+
+The sales proof is accuracy, not feature count: show the memorable wrong
+Halloween answer disappear, show the direct Halloween 5 mask receipt survive,
+then show the Scream 3 ending refusal. The system demonstrates why a played
+second supports the question instead of searching a relevant title and
+decorating its hottest moment.
+
+See [Evidence Relationship Gate](EVIDENCE_RELATIONSHIP_GATE.md).
 
 ## The Tape Keeps Score
 
@@ -411,15 +485,16 @@ The archive becomes navigable memory:
   curated top-N soundbytes,
   source-scoped latest-show maps, named-result replay/before/after/another
   navigation, and explicit handoffs when another ranked surface owns the
-  question. The full Ask/search matrix passes 122/122 subtests, including its
+  question. The full Ask/search matrix passes 128/128 subtests, including its
   157-query adversarial corpus.
 - Play the Answer turns only Ask's current ordered two-to-six-stop timed
   `evidenceChain` into an on-page official-source trail. It preserves roles,
-  coordinates, evidence tiers, and warnings; it does not generate narration,
-  rerank receipts, infer speakers, or convert a trajectory into an
+  claim relations, coordinates, evidence tiers, and warnings; it rejects
+  missing, unknown, and `source-context-only` relations and does not generate
+  narration, rerank receipts, infer speakers, or convert a trajectory into an
   opinion-change claim. Compact shares carry no excerpts, captions, generated
   answer copy, or speaker fields and restore only after a fresh exact-chain
-  match.
+  and relationship match.
 - Ask Review Queue V1 lets a user flag the rendered answer into a device-local,
   append-only proposal ledger. It can optionally name a better source, whole
   second, expected answer, or editor note. The packet performs no automatic

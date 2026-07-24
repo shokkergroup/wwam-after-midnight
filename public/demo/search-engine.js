@@ -395,6 +395,14 @@
     else if (topicOverviewRequest || includesAny(q, [
       "talk about", "talked about", "talking about", "discuss", "mention", "topic", "jump to",
       "say about", "said about", "think about", "what did they say"])) intent = "topic";
+    var neutralAboutness = includesAny(q, [
+      "what did they say", "what do they say", "say about", "said about",
+      "talk about", "talked about", "talking about", "discuss", "discussed",
+      "mention", "mentioned",
+    ]);
+    var evaluativeAboutness = trajectory || neutralOpinion ||
+      /\b(?:hate|hated|worst|dislike|disliked|despise|despised|loathe|loathed|trash|garbage|sucks|bad|criticize|criticized|love|loved|best|favorite|favourite|liked|praise|praised|enjoy|enjoyed|amazing)\b/.test(q);
+    var aboutnessRequest = neutralAboutness || evaluativeAboutness;
 
     var namedHostAttribution = includesAny(q, [
       "what did mike", "what does mike", "mike say", "mikes take", "according to mike",
@@ -496,6 +504,7 @@
       popularity: popularity,
       popularityExplicit: popularity !== "all",
       topicOverviewRequest: topicOverviewRequest,
+      aboutnessRequest: aboutnessRequest,
       firstAppearanceRequest: firstAppearanceGrammar,
       questionType: questionType,
       refusesSpeakerGuess: questionType === "speaker" && !mappingRequest,
@@ -2021,6 +2030,83 @@
       support.proximityPairs.length > 0;
   }
 
+  function isNeutralOpinionEvidence(candidate, entity) {
+    var support = entity && entity.type === "film" ?
+      opinionEvidenceSupport(candidate) : trajectoryEvidenceSupport(candidate);
+    return candidate.kind === "moment" &&
+      candidate.evidenceType === "caption-excerpt" &&
+      candidate.reviewStatus !== "machine-candidate" &&
+      !candidate.curatedRank &&
+      TAKE_EVIDENCE_CATEGORIES.indexOf(candidate.category) >= 0 &&
+      support.proximityPairs.length > 0;
+  }
+
+  function entityRelationTerms(entity) {
+    if (!entity) return [];
+    return unique([
+      entity.matchedAlias,
+      entity.label,
+      entity.topic,
+      entity.franchise,
+      entity.character,
+    ].concat(entity.aliases || []).map(normalize).filter(Boolean));
+  }
+
+  function hasExplicitCaptionTarget(candidate, entity, subjectTerms) {
+    if (entity && entity.type === "bit" && candidate.curatedLabel &&
+      normalize(candidate.curatedLabel) === normalize(entity.label)) return true;
+    if (entity && entity.type === "character" &&
+      (candidate.kind === "character" || candidate.kind === "character-performance") &&
+      entityMatches(candidate, entity)) return true;
+    var evidenceText = normalize([
+      candidate.excerpt,
+      candidate.trigger,
+      candidate.note,
+      candidate.curatedLabel,
+    ].join(" "));
+    if (!evidenceText) return false;
+    if (entityRelationTerms(entity).some(function (term) {
+      return containsNormalizedPhrase(evidenceText, term);
+    })) return true;
+    return Boolean(subjectTerms && subjectTerms.length &&
+      hasSubjectCoverage(candidate, subjectTerms, true));
+  }
+
+  function hasConcreteScreenReferent(candidate) {
+    var excerpt = normalize(candidate.excerpt);
+    return TAKE_TARGET_TERMS.some(function (term) {
+      return containsNormalizedPhrase(excerpt, term);
+    });
+  }
+
+  function claimRelation(candidate, intent, entity, subjectTerms) {
+    var relationEntity = entity || intent.claimEntity || null;
+    if (candidate.kind === "topic" &&
+      (candidate.evidenceType === "caption-topic-receipt" ||
+        candidate.evidenceType === "caption-topic-navigation") &&
+      (intent.topicOverviewRequest ||
+        (relationEntity && entityMatches(candidate, relationEntity)) ||
+        (subjectTerms && subjectTerms.length &&
+          hasSubjectCoverage(candidate, subjectTerms, true)))) {
+      return "exact-topic-receipt";
+    }
+    if (hasExplicitCaptionTarget(candidate, relationEntity, subjectTerms)) {
+      return "explicit-caption-target";
+    }
+    if (candidate.kind === "moment" &&
+      candidate.source === "commentary" &&
+      candidate.evidenceType === "caption-excerpt" &&
+      relationEntity &&
+      (relationEntity.type === "film" || relationEntity.type === "franchise") &&
+      entityMatches(candidate, relationEntity) &&
+      (hasConcreteScreenReferent(candidate) ||
+        (["negative", "positive", "opinion", "trajectory"].indexOf(intent.name) >= 0 &&
+          opinionEvidenceSupport(candidate).proximityPairs.length > 0))) {
+      return "screen-referent-in-exact-commentary";
+    }
+    return "source-context-only";
+  }
+
   function addScore(breakdown, points, reason, detail) {
     if (!points) return;
     breakdown.push({ points: Math.round(points * 100) / 100, reason: reason, detail: detail || "" });
@@ -2041,6 +2127,7 @@
       termMatches(candidate, subjectTerms);
     var opinionSupport = ["negative", "positive", "opinion", "trajectory"].indexOf(intent.name) >= 0 ?
       opinionEvidenceSupport(candidate) : null;
+    var relation = claimRelation(candidate, intent, entity, subjectTerms);
 
     if (entityMatches(candidate, entity)) {
       var entityPoints = entity.type === "bit" ? 190 :
@@ -2119,7 +2206,8 @@
       addScore(breakdown, 72, intent.name + " evidence", candidate.category);
       reasons.push(intent.name + " evidence");
     }
-    if ((intent.name === "trajectory" || intent.name === "opinion") && isTrajectoryEvidence(candidate)) {
+    if ((intent.name === "trajectory" && isTrajectoryEvidence(candidate)) ||
+      (intent.name === "opinion" && isNeutralOpinionEvidence(candidate, entity))) {
       addScore(breakdown, 86, "evaluative take evidence", candidate.category);
       reasons.push("evaluative take evidence");
     }
@@ -2167,7 +2255,7 @@
       addScore(breakdown, Math.max(8, 52 - candidate.hotRank * 0.45), "Hot 100 placement", String(candidate.hotRank));
       reasons.push("Hot 100 placement");
     }
-    if (candidate.curatedRank) {
+    if (candidate.curatedRank && !intent.aboutnessRequest) {
       addScore(breakdown, Math.max(28, 92 - candidate.curatedRank * 2.4), "human-curated soundbyte", candidate.curatedLabel);
       reasons.unshift("human-curated soundbyte");
     }
@@ -2189,18 +2277,28 @@
       addScore(breakdown, 32, "source-level answer", candidate.kind);
       reasons.push("source-level answer");
     }
+    var relationReason = relation === "exact-topic-receipt" ? "exact topic receipt" :
+      relation === "explicit-caption-target" ? "explicit caption target" :
+        relation === "screen-referent-in-exact-commentary" ?
+          "exact-commentary screen referent" : "source context only";
+    breakdown.push({ points: 0, reason: relationReason, detail: relation });
+    reasons.unshift(relationReason);
 
     return {
       score: breakdown.reduce(function (total, component) { return total + component.points; }, 0),
-      reasons: unique(reasons).slice(0, 4),
+      reasons: unique(reasons).slice(0, 5),
       scoreBreakdown: breakdown,
       matchedTerms: unique(matchedTerms),
       matchedSubjectTerms: unique(matchedSubjectTerms),
-      takeEvidence: intent.name === "trajectory" || intent.name === "opinion" ?
-        Object.assign({ category: candidate.category }, trajectoryEvidenceSupport(candidate)) : null,
+      claimRelation: relation,
+      takeEvidence: intent.name === "trajectory" ?
+        Object.assign({ category: candidate.category }, trajectoryEvidenceSupport(candidate)) :
+        intent.name === "opinion" ?
+          Object.assign({ category: candidate.category }, opinionSupport) : null,
       trajectoryEvidence: intent.name === "trajectory" ?
         Object.assign({ category: candidate.category }, trajectoryEvidenceSupport(candidate)) : null,
-      opinionEvidence: intent.name === "negative" || intent.name === "positive" ?
+      opinionEvidence: intent.name === "negative" || intent.name === "positive" ||
+        intent.name === "opinion" ?
         Object.assign({ category: candidate.category }, opinionSupport) : null,
     };
   }
@@ -2247,8 +2345,13 @@
       subjectTerms,
       Boolean(intent.secondaryTargetTerms && intent.secondaryTargetTerms.length)
     )) return false;
+    if (intent.aboutnessRequest &&
+      claimRelation(candidate, intent, entity, subjectTerms) === "source-context-only") {
+      return false;
+    }
     if (intent.topicOverviewRequest && candidate.kind !== "topic") return false;
-    if ((intent.name === "trajectory" || intent.name === "opinion") && !isTrajectoryEvidence(candidate)) return false;
+    if (intent.name === "trajectory" && !isTrajectoryEvidence(candidate)) return false;
+    if (intent.name === "opinion" && !isNeutralOpinionEvidence(candidate, entity)) return false;
     if (intent.name === "comedy" &&
       outputShape !== "curated-soundbytes" &&
       candidate.kind !== "character-performance" &&
@@ -2298,8 +2401,19 @@
     return 1;
   }
 
+  function claimRelationRank(value) {
+    return value === "exact-topic-receipt" ? 3 :
+      value === "explicit-caption-target" ? 2 :
+        value === "screen-referent-in-exact-commentary" ? 1 : 0;
+  }
+
   function compareCandidates(a, b, intent, entity) {
     var direction = intent.direction === "ascending" ? 1 : -1;
+    if (intent.name === "topic" && intent.aboutnessRequest) {
+      var relationDifference =
+        claimRelationRank(b.claimRelation) - claimRelationRank(a.claimRelation);
+      if (relationDifference) return relationDifference;
+    }
     if (intent.queryPlan && intent.queryPlan.outputShape === "curated-soundbytes") {
       var curatedDifference = Number(a.curatedRank || Number.MAX_SAFE_INTEGER) -
         Number(b.curatedRank || Number.MAX_SAFE_INTEGER);
@@ -3120,6 +3234,7 @@
         matchedTerms: candidate.matchedTerms,
         matchedSubjectTerms: candidate.matchedSubjectTerms,
         evidenceType: candidate.evidenceType,
+        claimRelation: candidate.claimRelation,
         takeEvidence: candidate.takeEvidence || null,
         trajectoryEvidence: candidate.trajectoryEvidence || null,
         opinionEvidence: candidate.opinionEvidence || null,
@@ -3178,6 +3293,14 @@
         opinionChain.push({ role: "CRITICAL-LANGUAGE RECEIPT", result: criticalTake });
       }
       if (!opinionChain.length) opinionChain.push({ role: "PRIMARY RECEIPT", result: ranked[0] });
+      if (opinionChain.length === 1) {
+        var opinionSupport = ranked.filter(function (candidate) {
+          return candidate.key !== opinionChain[0].result.key;
+        })[0];
+        if (opinionSupport) {
+          opinionChain.push({ role: "SUPPORTING RECEIPT", result: opinionSupport });
+        }
+      }
       return opinionChain;
     }
 
@@ -3873,6 +3996,9 @@
       var rankingEntity = sourceEntity || (selectedSource && entity &&
         ["topic", "discovery"].indexOf(intent.name) >= 0 ? entity :
         selectedSource || anchorActive ? null : entity);
+      intent = Object.assign({}, intent, {
+        claimEntity: anchorActive ? entity : rankingEntity,
+      });
 
       var ranked = [];
       if (queryPlan.outputShape === "character-roster") {
