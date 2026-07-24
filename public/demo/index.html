@@ -501,7 +501,9 @@
       </div>
     </section>
 
-    <section class="memory-os" id="memory">
+    <section class="memory-os" id="memory"
+      data-feature-styles="riff-black-box.css"
+      data-feature-scripts="riff-black-box-engine.js,riff-black-box-ui.js">
       <div class="memory-grid-bg"></div>
       <header class="section-head">
         <div>
@@ -844,6 +846,25 @@
     <div class="modal-shell">
       <button class="modal-close" id="modalClose" aria-label="Close">×</button>
       <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <div class="riff-black-box" id="riffBlackBox" hidden inert aria-hidden="true"
+    role="dialog" aria-modal="true" aria-labelledby="riffBlackBoxTitle"
+    aria-describedby="riffBlackBoxTruth">
+    <div class="riff-black-box-shell" role="document">
+      <header class="riff-black-box-top">
+        <div>
+          <span>COMEDY BLACK BOX // RIFF AUTOPSY V1</span>
+          <h2 id="riffBlackBoxTitle" tabindex="-1">OPEN THE MACHINE.</h2>
+          <small id="riffBlackBoxTruth">SCORE INPUTS, NOT A CLAIM ABOUT WHY COMEDY WORKED</small>
+        </div>
+        <button class="riff-black-box-close" id="riffBlackBoxClose" type="button"
+          aria-label="Close Comedy Black Box">×</button>
+      </header>
+      <div class="riff-black-box-stage" id="riffBlackBoxStage"></div>
+      <p class="riff-black-box-status" id="riffBlackBoxStatus" role="status"
+        aria-live="polite" aria-atomic="true">BLACK BOX SEALED</p>
     </div>
   </div>
 

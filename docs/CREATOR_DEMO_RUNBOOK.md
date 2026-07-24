@@ -11,7 +11,7 @@ three things quickly:
 
 ## Before the call
 
-- Open the current V5.9 build or its confirmed deployment and choose either
+- Open the current V5.10 build or its confirmed deployment and choose either
   content-advisory mode.
 - Confirm YouTube playback is available in the browser.
 - Start at the hero, not halfway down the page.
@@ -77,7 +77,7 @@ question. Do not add optional features until the close.
 | --- | --- | --- |
 | 0:00–0:30 | Night Shift | A daily route connects newest source, archive callback, choice, and payoff |
 | 0:30–1:05 | Archive Atlas + Time Capsule | The whole-feed map becomes an honest, playable 2019 capsule without merging its two source ledgers |
-| 1:05–2:05 | Ask + Lore | Source metadata, a source-level answer, and a timestamped receipt stay visibly distinct |
+| 1:05–2:05 | Ask + Comedy Black Box | An answer and a ranked riff both exit into timestamped, inspectable proof |
 | 2:05–3:20 | Clip Lab | Evidence becomes a reviewable Short and an exact campaign ledger |
 | 3:20–4:00 | Trust Desk | Character mapping is separated from clip-level speaker proof |
 | 4:00–4:20 | Close | Ask which workflow deserves a production pilot |
@@ -111,7 +111,13 @@ Return to the hero and choose **Follow the Lore**.
   commentary sources and 96 promoted timestamped receipts.
 - Open one stop from **Play the Year**. It must jump to an official source
   second and must not autoplay.
-- Search Lore Galaxy for **Loomis**, open the dossier, and open one receipt.
+- Open **Riff Chemistry**, choose **INSPECT THE RIFF**, and point to the six
+  weighted inputs, zero-drift recomputation, and official Runway / Impact /
+  Aftershock playback coordinates. Say clearly that adjacent indexed receipts
+  are navigation aids rather than a proven setup and payoff.
+- Point to the machine or curated-candidate evidence tier, then copy the
+  selected one-riff autopsy. It is independently re-verifiable and does not
+  dump the full 301-anchor ledger, captions, or media.
 
 - Use the top navigation to open Ask WWAM and ask:
 
@@ -131,9 +137,10 @@ and displayed coordinates. Optionally add a better source, whole second, or
 expected answer. Point to the `unverified user proposal` label and say that
 nothing automatically changes Ask, Canon, certification, or promoted evidence.
 
-Say: “Search finds a source. Memory explains why it belongs, what it connects
-to, which evidence layer supports the answer, and where the next useful path
-starts.”
+Say: “Search finds a source. The Black Box then shows exactly how one promoted
+moment received its rank and puts the official tape beside the calculation.
+It exposes the machinery without pretending the machinery understands
+comedy.”
 
 What it proves:
 
@@ -141,7 +148,9 @@ What it proves:
 - follow-up context;
 - source-level and moment-level evidence that remains visibly distinct;
 - a portable human-review proposal without an invisible corpus mutation;
-- a growing channel-specific knowledge graph.
+- a growing channel-specific knowledge graph;
+- a six-factor rank that can be reproduced, challenged, and ported to a
+  different channel without hiding behind an AI score.
 
 ### 3. Creator Proof — 90 seconds
 

@@ -1,4 +1,4 @@
-# WWAM After Midnight V5.9
+# WWAM After Midnight V5.10
 
 ## One-sentence product
 
@@ -15,7 +15,7 @@ masquerading as timestamped utterances.
 
 ## Audited snapshot
 
-V5.9 keeps a frozen release proof and a current Archive Deep overlay visibly
+V5.10 keeps a frozen release proof and a current Archive Deep overlay visibly
 separate. The **immutable V5.4 proof** remains:
 
 | Source lane | Coverage |
@@ -34,7 +34,7 @@ separate. The **immutable V5.4 proof** remains:
 The Popular 25 ranking is a time-stamped view-count snapshot, not a permanent
 popularity claim.
 
-The **current V5.9 Archive Deep Portfolio overlay**, retained from V5.8, is additive quarantine
+The **current V5.10 Archive Deep Portfolio overlay**, retained from V5.8, is additive quarantine
 inventory, not a retroactive rewrite of that proof:
 
 | Archive Deep Portfolio measurement | Current overlay |
@@ -124,6 +124,43 @@ label adapter. Its bounded share/export packet omits transcripts, caption
 payloads, and full event arrays. Identical inputs produce identical ordering
 and a deterministic structural fingerprint. Missing optional evidence layers
 degrade to an honest metadata capsule rather than synthetic memory.
+
+## Comedy Black Box
+
+The existing Riff Chemistry rank now opens into a deterministic score autopsy
+instead of stopping at three decorative bars. The engine validates **301
+promoted chemistry anchors across 69 sources** against the full **74-source /
+872-receipt** promoted ledger. It reproduces six declared dimensions—source
+heat, escalation, callback density, derailment, room break, and topic
+collision—and accepts zero score drift.
+
+Each inspection exposes official-source coordinates for a bounded playback
+window: fifteen seconds before the exact anchor and twenty seconds after it.
+The nearest promoted receipt on either side is included when it falls within
+fifteen minutes in the same upload. Those records are labeled navigation aids,
+not a proven setup and payoff. The engine reconstructs no surrounding dialogue
+and does not autoplay.
+
+The reaction lane uses an intentionally narrow literal test. Only **13**
+bounded excerpts contain `laughter`, `laughing`, or `can't breathe`; **288**
+remain `UNKNOWN`. Neither state identifies a speaker, audience, host, guest,
+or source-audio origin. Speaker remains null.
+
+The visible evidence split is **276 machine-level anchors and 25
+timestamp-validated human-curated candidates**; neither tier implies editor or
+creator certification. Twenty-four fractional source indexes retain their
+exact finite `sourceAt` value while official playback deliberately normalizes
+down to a disclosed whole second.
+
+The interface exports one independently verified autopsy. A separate
+full-ledger audit API preserves all 301 anchors. Both can be reverified against
+the ChannelPack, promoted ledger, chemistry ledger, label-independent evidence
+fingerprint, and deterministic artifact fingerprint. Quarantined inputs,
+formula or literal-basis drift, hostile JSON shapes, and a reaction cue outside
+the bounded public excerpt fail closed. Public excerpts are capped at sixteen
+words; transcript, caption, segment, and full event-array fields are forbidden.
+The artifacts contain no copied media. See
+[Comedy Black Box](RIFF_BLACK_BOX.md).
 
 ## How to read the proof
 

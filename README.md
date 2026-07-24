@@ -7,11 +7,11 @@ character archaeology, topic paths, and creator-side editorial opportunities.
 This is an unofficial fan prototype. It sends playback and source traffic back
 to the official WWAM uploads.
 
-Current documented release: **V5.9 / 0.5.9**.
+Current documented release: **V5.10 / 0.5.10**.
 
-## V5.9 current Archive Deep overlay
+## V5.10 current Archive Deep overlay
 
-V5.9 retains the three independently fingerprinted Archive Deep batches from
+V5.10 retains the three independently fingerprinted Archive Deep batches from
 V5.8 as one read-only portfolio:
 
 - 30 caption-audited sources;
@@ -48,7 +48,7 @@ All 30 Archive Deep sources are excluded from the next metadata-only queue.
 
 ## Immutable V5.4 proof — preserved release snapshot
 
-The following values are the frozen V5.4 proof, not the current V5.9 overlay:
+The following values are the frozen V5.4 proof, not the current V5.10 overlay:
 **84 inputs, 2,175,344 audited words, 194.9 caption-audited hours, 872 promoted
 receipts, 42 then-quarantined Batch 01 candidates, and 168 promoted core memory
 nodes**. The current thirty-source portfolio does not retroactively change
@@ -93,6 +93,36 @@ The Lore Galaxy exposes 953 labeled graph receipt links. That broader count
 includes source entry points and context records; the 872 count is the
 editorial-moment inventory.
 
+## V5.10 Comedy Black Box
+
+**Riff Autopsy** upgrades the existing Riff Chemistry cards from opaque ranks
+to inspectable evidence. The checked-in ledger contains **301 promoted
+chemistry anchors across 69 sources**. Every inspection reproduces the six
+published score dimensions and their weights, recomputes the score with
+**zero permitted drift**, and opens the official YouTube source at the exact
+promoted whole-second playback coordinate.
+
+The inspector also frames a bounded playback window—15 seconds before and 20
+seconds after the anchor—and shows the nearest indexed promoted receipt on
+either side when one exists within fifteen minutes. Those neighbors are
+navigation aids, not proof of setup, payoff, intent, or causality. The engine
+reconstructs no surrounding dialogue and does not autoplay.
+
+Only 13 of the 301 bounded excerpts contain a declared literal reaction cue;
+the other **288 remain `UNKNOWN`**. A literal cue still receives no speaker or
+audience attribution. The ledger also keeps its evidence split visible:
+**276 machine-level anchors and 25 timestamp-validated human-curated
+candidates**, none silently upgraded to editor or creator certification.
+
+Copy and download now release one independently verified riff autopsy rather
+than the entire roughly half-megabyte audit ledger. A separate full-ledger API
+binds all 301 anchors to the promoted source, receipt, chemistry, evidence, and
+ChannelPack fingerprints. Quarantine signals, recomputed basis drift, foreign
+ledgers, hostile JSON shapes, formula drift, and reaction cues outside the
+sixteen-word public excerpt fail closed. Both artifacts omit transcripts,
+captions, event arrays, copied audio, and copied video. See
+[Comedy Black Box](docs/RIFF_BLACK_BOX.md).
+
 ## V5.9 Archive Time Capsules
 
 **The Years Have Teeth** opens any Atlas year from 2018 through 2026 as a
@@ -118,7 +148,7 @@ manifest. Quarantined stops remain marked `promotionAllowed: false` with no
 speaker claim. The export omits transcripts, caption payloads, and full event
 ledgers. See [Archive Time Capsules](docs/ARCHIVE_TIME_CAPSULES.md).
 
-## V5.9 product map
+## V5.10 product map
 
 The hero offers three deliberate entry points:
 
@@ -127,8 +157,9 @@ The hero offers three deliberate entry points:
   100-rank Red Band Memorability Candidate Index V2.1, WWAM UP IN YA, and
   playable descent paths.
 - **Deep Dive:** Ask WWAM, Lore Galaxy, Take Time Machine, year-sized Archive
-  Time Capsules, Bit Ancestry, Riff Chemistry, WWAM Court, franchise labs,
-  autopsies, Fresh 10, Popular 25, and the whole-feed Archive Atlas.
+  Time Capsules, Bit Ancestry, the Comedy Black Box / Riff Autopsy, WWAM
+  Court, franchise labs, autopsies, Fresh 10, Popular 25, and the whole-feed
+  Archive Atlas.
 - **Creator Proof:** Clip Lab edit briefs, exact-runtime Cold Open Factory
   boards, supercut spines, then/now resurfacing, Live Aftermath, Control Room,
   the Trust / Canon Desk, the local Creator Taste Calibration, Fresh Tape
@@ -366,7 +397,8 @@ artifacts contain derived measurements and short, timestamped fragments only.
 
 ## Documentation
 
-- [V5.9 product overview](docs/V5_OVERVIEW.md)
+- [V5.10 product overview](docs/V5_OVERVIEW.md)
+- [Comedy Black Box evidence contract](docs/RIFF_BLACK_BOX.md)
 - [Archive Time Capsules](docs/ARCHIVE_TIME_CAPSULES.md)
 - [Creator demo runbook](docs/CREATOR_DEMO_RUNBOOK.md)
 - [Product changelog](docs/CHANGELOG.md)

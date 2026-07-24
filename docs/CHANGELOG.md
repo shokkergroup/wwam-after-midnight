@@ -3,6 +3,50 @@
 This changelog records product and evidence-contract changes. It does not by
 itself indicate that a build has been deployed.
 
+## 0.5.10 — V5.10 Comedy Black Box — 2026-07-24
+
+### Added
+
+- **Comedy Black Box / Riff Autopsy** turns every existing Riff Chemistry card
+  into an inspectable deterministic score instead of adding another homepage
+  feature panel.
+- The engine validates **301 promoted chemistry anchors across 69 sources**
+  against the complete **74-source / 872-receipt** promoted ledger.
+- Each inspection exposes the six declared dimensions—28% source heat, 20%
+  escalation, 16% callback density, 16% derailment, 14% room break, and 6%
+  topic collision—and refuses any score drift.
+- Runway, Impact, and Aftershock controls open official YouTube playback at a
+  bounded 15-seconds-before / 20-seconds-after context window with no autoplay.
+- Same-source prior and next promoted receipts become explicitly non-causal
+  navigation aids within a declared fifteen-minute neighborhood.
+- A compact, independently re-verifiable one-riff packet makes a selected
+  autopsy shareable without copying the roughly half-megabyte full audit
+  ledger. The complete 301-anchor snapshot remains a separate release API.
+
+### Accuracy and authority boundaries
+
+- The Black Box reproduces an existing declared rank; it does not claim to
+  explain why a joke worked or predict audience response.
+- The 301-anchor ledger has **zero score drift**. Exactly **13** bounded
+  excerpts contain one of the narrow literal reaction cues; **288** correctly
+  remain `UNKNOWN`.
+- Evidence tier remains visible: **276 machine-level anchors and 25
+  timestamp-validated human-curated candidates**, with no silent editor or
+  creator certification.
+- Literal reaction language does not establish who reacted or whether it came
+  from a host, guest, source audio, or another voice. Speaker stays null.
+- Nearest receipts do not establish setup, payoff, intent, continuity, or
+  causality. Context coordinates do not reconstruct dialogue.
+- Twenty-four exact fractional source indexes remain fingerprint-bound while
+  public YouTube playback explicitly normalizes down to a whole second.
+- Quarantined or promotion-denied inputs, changed entity or evidence binding,
+  recomputed basis drift, formula drift, hostile prototypes, circular or
+  non-JSON values, and order-dependent ledger changes are covered by the
+  fail-closed release suite.
+- Exports cap excerpts at sixteen words and reject transcripts, captions, and
+  full event arrays. FNV fingerprints detect structural change only; they are
+  not identity, ownership, source-authenticity, review, or approval proof.
+
 ## 0.5.9 — V5.9 Archive Time Capsules — 2026-07-24
 
 ### Added
