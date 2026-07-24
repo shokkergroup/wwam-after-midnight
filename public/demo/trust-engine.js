@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.0.0";
+  var VERSION = "1.1.0";
   var YOUTUBE_WATCH = /^https:\/\/(?:www\.)?youtube\.com\/watch\?[^#]*\bv=([^&#]+)/i;
   var YOUTUBE_SHORT = /^https:\/\/youtu\.be\/([^?&#/]+)/i;
   var ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -218,6 +218,18 @@
       characters: input.characters || {},
       dna: input.dna || root.WWAM_CHANNEL_DNA || {}
     });
+  }
+
+  function resolveCorrectionRipple(showcase) {
+    if (
+      !root.WWAMCorrectionRippleEngine ||
+      typeof root.WWAMCorrectionRippleEngine.create !== "function"
+    ) {
+      throw new Error(
+        "WWAMTrustEngine requires WWAMCorrectionRippleEngine before trust-engine.js."
+      );
+    }
+    return root.WWAMCorrectionRippleEngine.create({ showcase: showcase });
   }
 
   function rawSourceRegistry(input) {
@@ -1589,10 +1601,15 @@
     return stableSort(queue, compareSeverity);
   }
 
-  function correctionPacket(candidate, snapshotDate, inputFingerprint) {
+  function correctionPacket(
+    candidate,
+    snapshotDate,
+    inputFingerprint,
+    correctionRipple
+  ) {
     var item = makeCandidate(candidate);
     return {
-      schema: "wwam.correction.v1",
+      schema: "wwam.correction.v2",
       packetId: "correction:" + slug(item.id),
       status: "DRAFT",
       snapshotDate: clean(snapshotDate),
@@ -1619,7 +1636,12 @@
       },
       allowedDecisions: ["ACCEPT", "CORRECT", "REJECT", "NEEDS_MORE_EVIDENCE"],
       canonEffect:
-        "No correction becomes canon until the required reviewer records a decision."
+        "No correction becomes canon until the required reviewer records a decision.",
+      dryRunRipple: correctionRipple.analyze({
+        candidateId: item.id,
+        target: item.target,
+        evidence: item.evidence
+      })
     };
   }
 
@@ -1794,8 +1816,14 @@
           })
           .join("|")
       );
+    var correctionRipple = resolveCorrectionRipple(showcase);
     var correctionPackets = reviewCandidates.map(function (candidate) {
-      return correctionPacket(candidate, snapshotDate, inputFingerprint);
+      return correctionPacket(
+        candidate,
+        snapshotDate,
+        inputFingerprint,
+        correctionRipple
+      );
     });
     var contributionPackets = buildContributionPackets(
       sourceHealth,
@@ -1908,6 +1936,24 @@
         performanceWordingReviews: popularEditorialAudits.length,
         reviewCandidates: reviewCandidates.length,
         correctionPackets: correctionPackets.length,
+        rippleReadyPackets: correctionPackets.filter(function (packet) {
+          return packet.dryRunRipple.analysisComplete;
+        }).length,
+        rippleBlockedPackets: correctionPackets.filter(function (packet) {
+          return !packet.dryRunRipple.analysisComplete;
+        }).length,
+        rippleExactReceiptRecords: correctionPackets.reduce(function (
+          total,
+          packet
+        ) {
+          return total + packet.dryRunRipple.totals.exactReceiptRecords;
+        }, 0),
+        rippleSourceOnlyRecords: correctionPackets.reduce(function (
+          total,
+          packet
+        ) {
+          return total + packet.dryRunRipple.totals.sourceOnlyRecords;
+        }, 0),
         contributionPackets: contributionPackets.length
       },
       sourceHealth: sourceHealth,
@@ -1919,6 +1965,14 @@
       popularRankingAudit: popularRankingAudit,
       reviewCandidates: reviewCandidates,
       correctionPackets: correctionPackets,
+      correctionRipple: {
+        engine: correctionRipple.engine,
+        version: correctionRipple.version,
+        schema: correctionRipple.schema,
+        registeredSurfaces: correctionRipple.registeredSurfaces,
+        registeredRecords: correctionRipple.registeredRecords,
+        registryHealth: correctionRipple.registryHealth
+      },
       contributionPackets: contributionPackets,
       uiContract: {
         summaryCards: [
@@ -2009,7 +2063,12 @@
               })
             : request;
         if (!candidate) return null;
-        return correctionPacket(candidate, snapshotDate, inputFingerprint);
+        return correctionPacket(
+          candidate,
+          snapshotDate,
+          inputFingerprint,
+          correctionRipple
+        );
       },
       buildContributionPacket: function (request) {
         return contributionPacket(request, snapshotDate, inputFingerprint);

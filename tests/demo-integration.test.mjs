@@ -9,6 +9,7 @@ const demo = path.join(here, "..", "public", "demo");
 const index = fs.readFileSync(path.join(demo, "index.html"), "utf8");
 const app = fs.readFileSync(path.join(demo, "app.js"), "utf8");
 const search = fs.readFileSync(path.join(demo, "search-engine.js"), "utf8");
+const askShare = fs.readFileSync(path.join(demo, "ask-share.js"), "utf8");
 const trivia = fs.readFileSync(path.join(demo, "tape-trivia-engine.js"), "utf8");
 const styles = fs.readFileSync(path.join(demo, "styles.css"), "utf8");
 
@@ -29,15 +30,23 @@ test("the complete browser script chain exists in dependency order", () => {
     "night-shift-engine.js",
     "creator-studio-engine.js",
     "cold-open-engine.js",
-    "trust-engine.js",
     "canon-integrity-engine.js",
     "human-review-session-engine.js",
     "pilot-builder-engine.js",
     "search-engine.js",
+    "ask-share.js",
     "app.js",
   ];
   assert.deepEqual(scripts, required);
   required.forEach((file) => assert.equal(fs.existsSync(path.join(demo, file)), true, `${file} is missing`));
+  ["correction-ripple-engine.js", "trust-engine.js"].forEach((file) => {
+    assert.doesNotMatch(index, new RegExp(`<script[^>]+${file.replace(".", "\\.")}`, "i"));
+    assert.equal(fs.existsSync(path.join(demo, file)), true);
+  });
+  assert.match(
+    app,
+    /loadDemoScript\("correction-ripple-engine\.js"\)[\s\S]{0,120}loadDemoScript\("trust-engine\.js"\)[\s\S]{0,80}then\(createCreatorEngines\)/,
+  );
 });
 
 test("every deep surface has a renderer and an isolated initialization stage", () => {
@@ -134,6 +143,8 @@ test("V5.2 mode and tab selections expose state and restore keyboard focus", () 
   assert.match(app, /setAttribute\("aria-selected"/);
   assert.match(app, /data-night-mode=[\s\S]{0,120}aria-pressed=/);
   assert.match(app, /data-pilot-goal=[\s\S]{0,120}aria-pressed=/);
+  assert.match(app, /data-clip-mode[\s\S]{0,180}aria-pressed/);
+  assert.match(index, /id="clipModes" role="group" aria-label="Clip Lab mode"/);
   assert.match(app, /activeHeading\.focus\(\)/);
   assert.match(app, /selectedGoal\.focus\(\)/);
 });
@@ -172,10 +183,19 @@ test("trust-sensitive public copy keeps archive boundaries visible", () => {
   assert.match(index, /Graph receipt links/i);
 });
 
+test("Trust Desk correction exports make the dry-run ripple visible", () => {
+  assert.match(app, /COPY PACKET \+ RIPPLE/);
+  assert.match(app, /RIPPLE COPIED \/\/ [\s\S]{0,120}affectedSurfaces/);
+  assert.match(app, /RIPPLE BLOCKED \/\/ UNRESOLVED EVIDENCE/);
+});
+
 test("Ask answers and Mike Mode proofs leave reproducible deep links", () => {
   assert.match(app, /function askShareUrl\(query\)/);
-  assert.match(app, /searchParams\.set\("ask"/);
-  assert.match(app, /params\.get\("ask"\)/);
+  assert.match(app, /WWAMAskShare\.build\(location\.href,\s*query,\s*state\.askContext\)/);
+  assert.match(app, /WWAMAskShare\.read\(location\.search\)/);
+  assert.match(askShare, /searchParams\.set\("ask"/);
+  assert.match(askShare, /resultAnchor/);
+  assert.match(askShare, /snapshot/);
   assert.match(app, /data-copy-ask/);
   assert.match(app, /WWAMSearchEngine\.create\([\s\S]{0,160}characterLore/);
   assert.doesNotMatch(app, /applyOwnerMappedCharacterKnowledge/);

@@ -1,0 +1,268 @@
+{
+  "schema": "shokker.ask-truth-set/v1",
+  "frozen": "2026-07-24",
+  "scope": "Release-gate questions for Ask WWAM, Archive Deep machine candidates, exact Memorability Candidate Index ranks, and Archive Atlas title-metadata discovery.",
+  "policy": "Expected source IDs, result kinds, abstentions, and context behavior must remain stable unless the evidence ledger or an explicitly reviewed expectation changes.",
+  "cases": [
+    {
+      "id": "most-viewed-halloween-live",
+      "surface": "ask",
+      "query": "What is the most viewed Halloween livestream?",
+      "expect": {
+        "intent": "ranking",
+        "status": "supported",
+        "sourceId": "jG93HvyP420",
+        "kind": "topic"
+      }
+    },
+    {
+      "id": "compound-source-then-comedy",
+      "surface": "ask",
+      "query": "What is funniest in the most viewed livestream?",
+      "expect": {
+        "intent": "comedy",
+        "status": "supported",
+        "sourceId": "jG93HvyP420",
+        "kind": "moment",
+        "allResultsSameSource": true
+      }
+    },
+    {
+      "id": "halloween-ends-opinion",
+      "surface": "ask",
+      "query": "What do they think of Halloween Ends?",
+      "expect": {
+        "intent": "opinion",
+        "status": "archive-boundary",
+        "sourceId": "I6QKteG_hK0",
+        "kind": "moment",
+        "targetProximityRequired": true
+      }
+    },
+    {
+      "id": "scream-3-opinion",
+      "surface": "ask",
+      "query": "Do they like Scream 3?",
+      "expect": {
+        "intent": "opinion",
+        "status": "archive-boundary",
+        "sourceId": "jLIfEdg8Oc0",
+        "kind": "moment",
+        "targetProximityRequired": true
+      }
+    },
+    {
+      "id": "friday-negative-comparison",
+      "surface": "ask",
+      "query": "Which Friday the 13th movie do they hate most?",
+      "expect": {
+        "intent": "negative",
+        "status": "supported",
+        "sourceId": "G2m0effDrwI",
+        "kind": "moment",
+        "answerIncludes": "target-proximate"
+      }
+    },
+    {
+      "id": "earliest-loomis-performance",
+      "surface": "ask",
+      "query": "When did J first do Dr. Loomis?",
+      "expect": {
+        "status": "supported",
+        "sourceId": "WyT--HIrL8U",
+        "kind": "character-performance",
+        "performanceReceiptId": "loomis-dj"
+      }
+    },
+    {
+      "id": "burp-defense",
+      "surface": "ask",
+      "query": "Where is The Burp Defense?",
+      "expect": {
+        "status": "supported",
+        "sourceId": "BIbyzMlstmM",
+        "kind": "moment",
+        "at": 1528
+      }
+    },
+    {
+      "id": "burp-speaker-follow-up",
+      "surface": "ask",
+      "query": "Who said that?",
+      "contextOf": "burp-defense",
+      "expect": {
+        "status": "speaker-unknown",
+        "sourceId": "BIbyzMlstmM",
+        "kind": "moment",
+        "at": 1528,
+        "answerIncludes": "won't invent a name"
+      }
+    },
+    {
+      "id": "unknown-opinion-abstention",
+      "surface": "ask",
+      "query": "Do they like Galactic Turnip Massacre?",
+      "expect": {
+        "intent": "opinion",
+        "resultCount": 0,
+        "confidence": 0,
+        "answerIncludes": "No target-proximate evaluative receipt"
+      }
+    },
+    {
+      "id": "newest-scream-commentary",
+      "surface": "ask",
+      "query": "What is the newest Scream commentary?",
+      "expect": {
+        "status": "supported",
+        "sourceId": "ISDlaQ9DWSM",
+        "kind": "tape"
+      }
+    },
+    {
+      "id": "latest-livestream-topic-map",
+      "surface": "ask",
+      "query": "What are they talking about in the latest livestream?",
+      "expect": {
+        "intent": "topic",
+        "status": "supported",
+        "sourceId": "LV2rmwEA0w4",
+        "kind": "topic",
+        "lane": "fresh",
+        "selectionSourceId": "LV2rmwEA0w4",
+        "selectionMatchMode": "latest-indexed-livestream",
+        "allResultsSameSource": true,
+        "answerIncludes": "not blended streams or invented dialogue"
+      }
+    },
+    {
+      "id": "earliest-loomis-appearance",
+      "surface": "ask",
+      "query": "When did Dr. Loomis first appear?",
+      "expect": {
+        "status": "supported",
+        "sourceId": "WyT--HIrL8U",
+        "kind": "character-performance",
+        "at": 8057.28,
+        "performanceReceiptId": "loomis-dj",
+        "trueOriginClaim": false,
+        "answerIncludes": "not a claim that the bit or portrayal originated there"
+      }
+    },
+    {
+      "id": "named-bit-next-highlight",
+      "surface": "ask",
+      "query": "What happened after The Burp Defense?",
+      "expect": {
+        "status": "supported",
+        "sourceId": "BIbyzMlstmM",
+        "kind": "moment",
+        "at": 2373,
+        "selectionMode": "next",
+        "selectionResolvedFrom": "named-result",
+        "allResultsSameSource": true,
+        "answerIncludes": "next indexed highlight"
+      }
+    },
+    {
+      "id": "exact-numbered-source-title",
+      "surface": "ask",
+      "query": "Tell me about Scream 7",
+      "expect": {
+        "status": "supported",
+        "sourceId": "WKs1uPGMQvw",
+        "lane": "archive",
+        "selectionSourceId": "WKs1uPGMQvw",
+        "selectionMatchMode": "exact",
+        "allResultsSameSource": true
+      }
+    },
+    {
+      "id": "restricted-exact-title-firewall",
+      "surface": "ask",
+      "query": "What's the funniest thing in the Scream 7 trailer reaction?",
+      "expect": {
+        "intent": "comedy",
+        "status": "topic-only-boundary",
+        "resultCount": 0,
+        "selectionSourceId": "fpNtQMexZiw",
+        "selectionMatchMode": "exact",
+        "answerIncludes": "will not substitute adjacent franchise content"
+      }
+    },
+    {
+      "id": "contextless-speaker-fails-closed",
+      "surface": "ask",
+      "query": "Who said that?",
+      "expect": {
+        "status": "speaker-unknown",
+        "resultCount": 0,
+        "answerIncludes": "cannot identify a host"
+      }
+    },
+    {
+      "id": "archive-deep-comedy-candidate",
+      "surface": "ask",
+      "query": "What is funniest about an AI version of us in Archive Deep?",
+      "expect": {
+        "status": "supported",
+        "sourceId": "1j3F9vAWBo4",
+        "kind": "moment",
+        "at": 7492,
+        "lane": "archive",
+        "reviewStatus": "machine-candidate"
+      }
+    },
+    {
+      "id": "archive-deep-restricted-topic",
+      "surface": "ask",
+      "query": "Where is Movie Theaters in the Scream 7 trailer reaction in Archive Deep?",
+      "expect": {
+        "status": "supported",
+        "sourceId": "fpNtQMexZiw",
+        "kind": "topic",
+        "lane": "archive",
+        "reviewStatus": "machine-candidate",
+        "restrictedToTopicNavigation": true
+      }
+    },
+    {
+      "id": "archive-deep-character-signal",
+      "surface": "ask",
+      "query": "Show Archive Deep Dr. Challis character signals",
+      "expect": {
+        "status": "supported",
+        "kind": "character",
+        "lane": "archive",
+        "reviewStatus": "machine-candidate"
+      }
+    },
+    {
+      "id": "exact-candidate-rank-25",
+      "surface": "red-rank",
+      "query": "What is Red Band #25?",
+      "expect": {
+        "status": "machine-ranked",
+        "rank": 25
+      }
+    },
+    {
+      "id": "invalid-candidate-rank",
+      "surface": "red-rank",
+      "query": "What is #101 in the Red Band 100?",
+      "expect": {
+        "status": "out-of-range",
+        "resultCount": 0
+      }
+    },
+    {
+      "id": "hyphenated-atlas-sort",
+      "surface": "archive-atlas",
+      "query": "What is the most-viewed Halloween livestream?",
+      "expect": {
+        "firstTitle": "HALLOWEEN ENDS Spoiler Party Live!",
+        "markupIncludes": "ORDER: CACHED VIEWS, HIGHEST FIRST"
+      }
+    }
+  ]
+}

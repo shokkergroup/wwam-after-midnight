@@ -3,6 +3,100 @@
 This changelog records product and evidence-contract changes. It does not by
 itself indicate that a build has been deployed.
 
+## 0.5.4 — V5.4 archive-deep, retrieval, and creator-pilot pass — 2026-07-24
+
+### Added
+
+- Archive Deep Batch 01 converts the first frozen ten records from the Archive
+  Atlas Distill Next queue into a separate caption-audited lane. Its compact
+  public artifact exposes bounded topic navigation, review-required machine
+  candidates, source dossiers, provenance, and reproducible fingerprints
+  without publishing full captions.
+- An **Autopsied Batch 01** Atlas row opens all ten newly distilled source
+  dossiers while keeping the remaining metadata queue and its evidence
+  boundary visible.
+- Ask WWAM can retain result-anchored source, timestamp, kind, and entity
+  context for “that one,” “who said that?,” “what happened next?,” and a
+  most-viewed-source-to-funniest-moment follow-up. Opinion questions require
+  target-proximate evaluative evidence and abstain when that evidence is not
+  present. Context-bearing answer links replay the exact bounded receipt after
+  a reload, while numbered source titles, restricted source-audio firewalls,
+  and contextless speaker pronouns fail closed.
+- Natural questions about the latest livestream's topics, a recurring
+  character's first appearance, and what happened after a named bit now route
+  to one evidence-bounded source instead of broad lexical collateral.
+- A frozen 22-case Ask truth set covers promoted content retrieval, quarantined
+  Archive Deep candidates, exact Red Band rank lookup, Archive Atlas metadata
+  discovery, context, and honest abstention.
+- Correction Ripple adds a deterministic dry-run blast-radius report to every
+  Trust Desk correction packet. It separates exact-receipt dependencies from
+  same-source-only dependencies across nine registered Showcase surfaces.
+- Red Band Memorability Candidate Index V2.1 adds deterministic Top 25
+  diversity caps, exact rank/range queries, inspectable baseline deferrals, and
+  candidate-specific ranking explanations. A language-neutral
+  caption-coherence gate removes thin filler fragments from the Top 25 without
+  penalizing wild or profane vocabulary. The raw machine score remains
+  distinct from post-diversity rank.
+- Mike Mode now closes on a measurable Creator Pilot. Clip Lab's
+  **Tonight's 12** is explicitly a first editorial pass, not an automated
+  publish queue, and the final proof action opens the Archive Discovery pilot
+  with outcomes still marked `MEASURE DURING PILOT`.
+- ChannelPack V1 turns the universal-core claim into an executable,
+  downloadable contract. The same fail-closed compiler now validates WWAM and
+  a synthetic racing fixture across identity, source lanes, taxonomy, evidence
+  policy, update workflow, storage isolation, surface vocabulary, and
+  capabilities; canonical fingerprints expose policy drift and the portfolio
+  validator rejects channel or namespace collisions.
+
+### Accuracy and evidence boundaries
+
+- The stable proof reports a preserved July 23 source snapshot, with Archive
+  Deep Batch 01 audited July 24: 84 total source inputs, 81 caption-audited
+  inputs, 3 sealed or limited inputs, 2,175,344 audited words,
+  194.89 caption-audited hours, 201.15 hours of known runtime, 872 promoted
+  receipts, and 168 core memory nodes in the 74-source promoted corpus.
+- Archive Deep Batch 01 contributes 10 streams, 23.7 audited hours, 294,471
+  words, 43,585 parsed caption events, 100 topic lanes, 42 public machine
+  candidates, and 12 character signals.
+- Four trailer, script-reading, or watch-party sources are
+  topic-navigation-only. They publish no excerpts, comedy candidates,
+  character candidates, or heatmaps that could misattribute source audio as
+  host speech.
+- All 42 Archive Deep machine candidates remain outside the promoted 872,
+  Canon, Red Band, and WWAM UP IN YA until playback review. Automatic captions
+  do not establish the speaker, host-versus-source-audio origin, intent, or
+  visual context.
+- The Trust Desk's 71 healthy and 3 gap counts remain explicitly scoped to the
+  74-source promoted corpus. Archive Deep is reported separately rather than
+  being silently merged into the legacy Trust/Canon contract.
+- Source artifacts are pinned to LF checkouts so generated fingerprints and
+  tested byte budgets remain reproducible on Windows as well as Linux.
+- Deferred Trust/Ripple loading reduces the static script payload to 1,255,382
+  bytes (1,432,954 including styles). The two-row mobile header keeps every
+  primary route reachable, and Clip Lab mode buttons expose their selected
+  state to assistive technology.
+- Correction Ripple blocks partial impact claims when evidence is missing or
+  mismatched, performs no canon mutation, and explicitly reports Ask the Tape
+  and Clip Lab as `NOT_REGISTERED` rather than inventing an effect.
+
+### Current measured proof
+
+- Archive Atlas: 472 cached feed records, with 44 deeply indexed, 420
+  metadata-only, 8 caption-limited, and 0 records classified unavailable in
+  the cached snapshot. Current availability was not rechecked. Deep coverage
+  is 9.3%.
+- Archive Deep Batch 01: 10 caption-backed sources, 4 restricted
+  topic-navigation-only sources, and 42 review-required machine candidates.
+- Promoted memory corpus: 872 bounded receipts and 168 core memory nodes;
+  Archive Deep candidate promotion remains zero.
+- Red Band Top 25: 8 categories, 21 source videos, 5 explicit lexical hits, 8
+  preselected candidates, 0 relaxed selections, and 0 caption-coherence
+  failures. Mean coherence is 73.76; minimum is 58.93.
+- Correction Ripple: 1,374 registered records across nine surfaces; all 95
+  correction packets include a dry run, with 90 complete and five stopped
+  closed on unresolved evidence. The packet-level aggregate contains 904
+  exact-receipt and 2,403 source-only dependency records.
+
 ## 0.5.3 — V5.3 archive breadth and memorability pass — 2026-07-23
 
 ### Added
@@ -10,8 +104,9 @@ itself indicate that a build has been deployed.
 - Archive Atlas V1 maps all 472 records in the cached official Streams-feed
   snapshot from 2018–2026: 1,197.0 hours and 5,674,608 cached views. It
   distinguishes 34 caption-backed deep records, 430 metadata-only records, 8
-  caption-limited records, and 0 unavailable records without treating a title
-  or thumbnail as transcript knowledge.
+  caption-limited records, and 0 records classified unavailable in that cached
+  snapshot without treating a title or thumbnail as transcript knowledge.
+  Current availability was not rechecked.
 - Year, month, title-metadata, and evidence-depth browsing with explicit
   snapshot provenance, deterministic fingerprints, original-source links, and
   an Ask WWAM source-discovery fallback that is visibly separate from content

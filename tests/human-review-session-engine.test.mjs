@@ -19,6 +19,7 @@ function load() {
     "character-lore.js",
     "wwam-channel-dna.js",
     "showcase-engine.js",
+    "correction-ripple-engine.js",
     "trust-engine.js",
     "lore-engine.js",
     "creator-studio-engine.js",

@@ -50,6 +50,12 @@ function words(value) {
   return String(value).replace(/ …$/, "").trim().split(/\s+/).filter(Boolean);
 }
 
+function hasExplicitBodyOrSexualLexical(value) {
+  return /\b(?:dick|cock|penis|jizz|splooge|cum|pussy|vagina|balls?|testicles?|tits?|boobs?|butt\s*plug|butthole|asshole)\w*\b/i.test(
+    String(value).replace(/\bdick\s+(?:tracy|warlock)\b/gi, "proper name")
+  );
+}
+
 function syntheticSource(id, title, quote, category = "FULL SEND") {
   return {
     source: {
@@ -67,7 +73,7 @@ function syntheticSource(id, title, quote, category = "FULL SEND") {
 test("creates exactly 100 unique playable bounded receipts over the current archive", () => {
   const { window, index } = createFull();
 
-  assert.equal(window.WWAMRedBandRankingV2.VERSION, "2.0.0");
+  assert.equal(window.WWAMRedBandRankingV2.VERSION, "2.1.0");
   assert.equal(window.WWAMRedBandRankingV2.DEFAULT_LIMIT, 100);
   assert.equal(window.WWAMRedBandRankingV2.EXCERPT_WORD_LIMIT, 16);
   assert.equal(index.rankings.length, 100);
@@ -95,11 +101,188 @@ test("creates exactly 100 unique playable bounded receipts over the current arch
     assert.ok(item.score >= 0 && item.score <= 100);
     assert.ok(item.confidence >= 0 && item.confidence <= 1);
     assert.equal(typeof item.humanCurated, "boolean");
-    assert.match(item.humanCurationStatus, /HUMAN-CURATED|NO HUMAN-CURATION/);
+    assert.match(
+      item.humanCurationStatus,
+      /PRESELECTED CANDIDATE|NO PRESELECTED-CANDIDATE CLAIM/
+    );
+    assert.doesNotMatch(item.humanCurationStatus, /^HUMAN-CURATED/);
+    assert.equal(item.preselectedCandidate, item.humanCurated);
+    assert.equal(item.creatorVoteClaim, false);
+    assert.equal(item.editorSelectionAuthenticated, false);
+    assert.equal(item.selectionProvenance.authenticatedCreatorVote, false);
+    assert.equal(item.selectionProvenance.authenticatedEditorDecision, false);
     assert.equal(typeof item.characterLoreReceipt, "boolean");
+    assert.equal(item.receiptCoherence.policyVersion, "receipt-coherence/v1");
+    assert.ok(item.receiptCoherence.score >= 0 && item.receiptCoherence.score <= 100);
+    assert.equal(item.receiptCoherence.languageNeutral, true);
+    assert.equal(
+      item.diversityControl.receiptCoherenceScore,
+      item.receiptCoherence.score
+    );
     assert.ok(item.whyMemorable.length >= 1);
+    assert.match(item.whyMemorableSummary, /Receipt anchor:/);
     assert.ok(item.basis.length >= 4);
   });
+});
+
+test("Top 25 enforces transparent lexical, preselection, source, and category diversity", () => {
+  const { window, index } = createFull();
+  const policy = window.WWAMRedBandRankingV2.TOP_SLICE_POLICY;
+  const top = index.rankings.slice(0, policy.window);
+  const categoryCounts = top.reduce((counts, item) => {
+    counts[item.category] = (counts[item.category] || 0) + 1;
+    return counts;
+  }, {});
+  const lexicalCount = top.filter((item) =>
+    hasExplicitBodyOrSexualLexical(item.quote)
+  ).length;
+  const preselectedCount = top.filter((item) => item.preselectedCandidate).length;
+  const diagnostics = index.diagnostics.topSliceDiversity;
+
+  assert.equal(top.length, 25);
+  assert.ok(
+    lexicalCount <= policy.maximumExplicitBodyOrSexualLexical,
+    `explicit lexical count ${lexicalCount}`
+  );
+  assert.ok(
+    preselectedCount <= policy.maximumPreselectedCandidates,
+    `preselected count ${preselectedCount}`
+  );
+  assert.ok(
+    Math.max(...Object.values(categoryCounts)) <= policy.maximumPerCategory
+  );
+  assert.ok(Object.keys(categoryCounts).length >= 7);
+  assert.ok(new Set(top.map((item) => item.sourceId)).size >= 20);
+  assert.equal(top.every((item) => item.diversityControl.strictPolicyPass), true);
+  assert.equal(
+    top.every((item) => item.receiptCoherence.eligibleForTopSlice),
+    true
+  );
+  assert.equal(diagnostics.selectedAfterConstraintRelaxation, 0);
+  assert.equal(diagnostics.explicitBodyOrSexualLexicalCount, lexicalCount);
+  assert.equal(diagnostics.preselectedCandidateCount, preselectedCount);
+  assert.equal(
+    new Set(index.rankings.map((item) => item.whyMemorableSummary)).size,
+    100
+  );
+  assert.match(diagnostics.interpretation, /Raw machine scores are computed first/);
+  assert.equal(diagnostics.receiptCoherence.beforeGate.failed, 3);
+  assert.equal(diagnostics.receiptCoherence.afterGate.failed, 0);
+  assert.ok(
+    diagnostics.receiptCoherence.afterGate.meanScore >
+      diagnostics.receiptCoherence.beforeGate.meanScore
+  );
+  assert.equal(
+    diagnostics.receiptCoherence.afterGate.minimumScore >
+      diagnostics.receiptCoherence.beforeGate.minimumScore,
+    true
+  );
+  assert.equal(index.methodology.topSliceDiversity.creatorVoteClaim, false);
+  assert.equal(index.methodology.topSliceDiversity.comedyQualityClaim, false);
+  assert.equal(
+    window.WWAMRedBandRankingV2.RECEIPT_COHERENCE_POLICY.languageNeutral,
+    true
+  );
+});
+
+test("current thin sauce fragment stays playable but is deferred from the showcase Top 25", () => {
+  const { index } = createFull();
+  const receipt = index.getByReceiptKey("kX3wb5pBRDo@1223");
+
+  assert.ok(receipt, "known receipt must remain inside the playable Top 100");
+  assert.equal(receipt.diversityControl.baselineRank, 66);
+  assert.ok(receipt.rank > 25);
+  assert.equal(receipt.rank, 80);
+  assert.equal(receipt.receiptCoherence.score, 44.17);
+  assert.equal(receipt.receiptCoherence.eligibleForTopSlice, false);
+  assert.deepEqual(
+    serial(receipt.receiptCoherence.flags),
+    ["thin-context", "repetition-loop", "boundary-fragment"]
+  );
+  assert.equal(receipt.diversityControl.deferredFromTopSlice, true);
+  assert.equal(
+    receipt.diversityControl.deferralReasons.includes(
+      "receipt-coherence-score:44.17<48"
+    ),
+    true
+  );
+  assert.match(
+    receipt.rankInterpretation,
+    /not a creator vote, comedy verdict, or authenticated editor ranking/
+  );
+});
+
+test("synthetic coherence gate defers filler loops without sanitizing coherent wild language", () => {
+  const window = load();
+  const categories = [
+    "THE ROOM BREAKS",
+    "OUT OF POCKET",
+    "UP IN YA",
+    "FULL SEND",
+    "TAKE GETS NUCLEAR",
+    "KILL ROOM",
+    "BREAKDOWN",
+    "BIT ENERGY"
+  ];
+  const thin = syntheticSource(
+    "synthetic-thin",
+    "Synthetic Thin Fragment",
+    "sauce yeah yeah yeah i can't i can't go there i can't …",
+    "THE ROOM BREAKS"
+  ).source;
+  thin.moments[0].heat = 100;
+  const wild = syntheticSource(
+    "synthetic-wild",
+    "Synthetic Complete Wild Receipt",
+    "fuck this haunted tax audit the killer weaponizes a cursed casserole before midnight",
+    "OUT OF POCKET"
+  ).source;
+  wild.moments[0].heat = 99;
+  const coherent = Array.from({ length: 38 }, (_, index) =>
+    syntheticSource(
+      `coherent-${index}`,
+      `Coherent ${index}`,
+      `alpha${index} beta${index} gamma${index} delta${index} epsilon${index} zeta${index} eta${index} theta${index}`,
+      categories[index % categories.length]
+    ).source
+  );
+  const index = window.WWAMRedBandRankingV2.create({
+    catalog: [],
+    deep: {},
+    live: { streams: [thin, wild, ...coherent] },
+    popular: {},
+    curation: {},
+    characters: {},
+    limit: 40
+  });
+  const thinResult = index.getByReceiptKey("synthetic-thin@100");
+  const wildResult = index.getByReceiptKey("synthetic-wild@100");
+  const beforeFailed =
+    index.diagnostics.topSliceDiversity.receiptCoherence.beforeGate.failedReceipts;
+
+  assert.ok(
+    beforeFailed.some((item) => item.receiptKey === "synthetic-thin@100"),
+    "counterfactual diversity-only selection should expose the thin fragment"
+  );
+  assert.ok(thinResult);
+  assert.ok(thinResult.rank > 25);
+  assert.equal(thinResult.diversityControl.deferredFromTopSlice, true);
+  assert.equal(
+    thinResult.diversityControl.deferralReasons.some((reason) =>
+      reason.startsWith("receipt-coherence:")
+    ),
+    true
+  );
+  assert.ok(wildResult);
+  assert.equal(wildResult.receiptCoherence.eligibleForTopSlice, true);
+  assert.equal(wildResult.receiptCoherence.languageNeutral, true);
+  assert.equal(
+    wildResult.receiptCoherence.flags.length,
+    0,
+    "wild vocabulary is not a negative coherence signal"
+  );
+  assert.equal(index.rankings.length, 40);
+  assert.equal(new Set(index.rankings.map((item) => item.rankKey)).size, 40);
 });
 
 test("publishes transparent percentile components and never makes speaker or origin claims", () => {
@@ -279,6 +462,62 @@ test("content-derived tie resolution does not follow source-ID lexical order", (
     renamed.rankings.map((item) => item.quote)
   );
   assert.match(original.diagnostics.collisions.tieBreakPolicy, /Source-ID lexical order is never/);
+});
+
+test("near-duplicate transcript variants cannot crowd the Top 25", () => {
+  const window = load();
+  const categories = [
+    "THE ROOM BREAKS",
+    "OUT OF POCKET",
+    "UP IN YA",
+    "FULL SEND",
+    "TAKE GETS NUCLEAR",
+    "KILL ROOM",
+    "BREAKDOWN",
+    "BIT ENERGY"
+  ];
+  const duplicateSources = Array.from({ length: 8 }, (_, index) =>
+    syntheticSource(
+      `duplicate-${index}`,
+      `Duplicate ${index}`,
+      `laughing duplicate ritual detonates impossible callback thunder goddamn nightmare token${index}`,
+      categories[index % categories.length]
+    ).source
+  );
+  const distinctSources = Array.from({ length: 28 }, (_, index) =>
+    syntheticSource(
+      `distinct-${index}`,
+      `Distinct ${index}`,
+      `unique${index} comet${index} lantern${index} orbit${index} mosaic${index} signal${index} chorus${index} erupts tonight`,
+      categories[index % categories.length]
+    ).source
+  );
+  const index = window.WWAMRedBandRankingV2.create({
+    catalog: [],
+    deep: {},
+    live: { streams: duplicateSources.concat(distinctSources) },
+    popular: {},
+    curation: {},
+    characters: {},
+    limit: 40
+  });
+  const topDuplicates = index.rankings
+    .slice(0, 25)
+    .filter((item) => item.quote.includes("duplicate ritual"));
+  const deferredDuplicate = index.rankings.find(
+    (item) =>
+      item.quote.includes("duplicate ritual") &&
+      item.diversityControl.deferredFromTopSlice
+  );
+
+  assert.equal(topDuplicates.length, 1);
+  assert.ok(deferredDuplicate);
+  assert.equal(
+    deferredDuplicate.diversityControl.deferralReasons.some((reason) =>
+      reason.startsWith("near-duplicate:")
+    ),
+    true
+  );
 });
 
 test("diagnostics report lane, franchise, category, collision, and tie health", () => {

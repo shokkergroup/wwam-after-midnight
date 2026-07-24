@@ -482,7 +482,7 @@
   function goalProofSummary(goalId, metrics) {
     if (goalId === "archive-discovery") {
       return [
-        metrics.archive.sources + " indexed sources",
+        metrics.archive.sources + " promoted-corpus indexed sources",
         metrics.archive.receipts + " timestamped receipts",
         metrics.memory.timelines + " candidate take timelines",
         metrics.lore.playableReceipts + " lore-layer playable receipts"
@@ -607,7 +607,7 @@
         goal.promise +
         " The pilot is deliberately narrow so the creator can judge the workflow with source evidence before authorizing a wider build.",
       currentProof: {
-        label: "CURRENT INDEXED SNAPSHOT / NOT A PERFORMANCE CLAIM",
+        label: "CURRENT PROMOTED-CORPUS SNAPSHOT / NOT A PERFORMANCE CLAIM",
         summary: goalProofSummary(goal.id, builder.metrics),
         sampleReceipts: proof
       },

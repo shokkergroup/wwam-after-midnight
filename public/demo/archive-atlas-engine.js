@@ -28,6 +28,7 @@
   var LANE_LABELS = {
     "fresh-10": "FRESH 10",
     "popular-25": "POPULAR 25",
+    "archive-deep-10": "ARCHIVE DEEP 10",
     "commentary-catalog": "COMMENTARY CATALOG",
     "archive-metadata": "ARCHIVE METADATA",
   };

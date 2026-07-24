@@ -22,6 +22,7 @@ function load() {
     "lore-engine.js",
     "creator-studio-engine.js",
     "cold-open-engine.js",
+    "correction-ripple-engine.js",
     "trust-engine.js",
     "canon-integrity-engine.js",
     "pilot-builder-engine.js"

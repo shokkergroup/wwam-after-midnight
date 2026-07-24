@@ -68,8 +68,22 @@ test("intent and subject parsing are deterministic", () => {
   assert.equal(api.extractSubject("What do you think about Halloween Ends?"), "Halloween Ends");
   assert.equal(api.extractSubject("What should we do about AI?"), "AI");
   assert.equal(api.extractSubject("How should I deal with haunted Wi-Fi?"), "haunted Wi-Fi");
+  assert.equal(api.extractSubject("What should I watch tonight?"), "tonight's watchlist");
+  assert.equal(api.extractSubject("What movie should we watch?"), "the watchlist");
   assert.equal(
     JSON.stringify(engine.answer("slenderman", "What about phones?")),
     JSON.stringify(engine.answer("slenderman", "What about phones?")),
   );
+});
+
+test("ordinary watch recommendations stay grammatical in every enabled voice", () => {
+  for (const id of ["loomis", "challis", "slenderman", "corey-feldman"]) {
+    const result = engine.answer(id, "What should I watch tonight?");
+    assert.equal(result.ok, true, id);
+    assert.equal(result.intent, "advice", id);
+    assert.equal(result.subject, "tonight's watchlist", id);
+    assert.match(result.text, /tonight's watchlist/i, id);
+    assert.doesNotMatch(result.text, /\bI watch tonight\b/i, id);
+    assert.doesNotMatch(result.text, /\breviewed I\b|\bme I\b/i, id);
+  }
 });

@@ -7,26 +7,35 @@ character archaeology, topic paths, and creator-side editorial opportunities.
 This is an unofficial fan prototype. It sends playback and source traffic back
 to the official WWAM uploads.
 
-## Audited scope — July 23, 2026
+## Audited scope — July 23 source snapshot, V5.4 audit on July 24, 2026
 
 - 39 franchise commentaries: 13 Halloween, 12 Friday the 13th, 6 Scream, and
   8 A Nightmare on Elm Street
 - The 10 newest official livestreams
 - 25 additional official livestreams ranked by snapshot view count, with zero
   overlap against either source lane
-- 74 unique source videos; 71 with available captions and 3 disclosed gaps
+- Archive Deep Batch 01: 10 additional caption-audited livestreams selected
+  from the frozen Archive Atlas Distill Next queue
+- 84 total source inputs: 81 caption-audited and 3 sealed or caption-limited
+- 2,175,344 audited caption words across 194.89 caption-audited hours;
+  201.15 hours of known source runtime
+- 872 promoted, bounded, playable evidence receipts
+- The 74-source promoted corpus contains 168 core memory nodes and 603
+  source-backed core edges
 - A separate whole-feed Archive Atlas with 472 cached Streams-feed records
-  from 2018–2026: 1,197.0 known hours, 5,674,608 cached views, 34
-  caption-backed deep records, 430 metadata-only records, and 8
-  caption-limited records
-- 1,880,873 audited caption words across 171.19 caption-audited hours;
-  177.45 hours of known source runtime in the preserved July 23 distill
-  snapshot
-- 872 bounded, playable evidence receipts
-- 168 core memory nodes and 603 source-backed core edges
+  from 2018–2026: 1,197.0 known hours, 5,674,608 cached views, 44
+  deeply indexed records, 420 metadata-only records, 8 caption-limited
+  records, 0 records classified unavailable in the cached snapshot, and 9.3%
+  deep coverage; current availability was not rechecked
 - 177 Lore Galaxy entries, 821 graph edges, 19 constellations, and 51 indexed
   lineages
 - 49 Take Time Machine timelines and 14 WWAM Court argument boards
+
+Archive Deep Batch 01 contributes 23.7 audited hours, 294,471 words, 43,585
+parsed caption events, 100 topic lanes, 42 public machine candidates, and 12
+character signals. Four source-audio-sensitive uploads are deliberately
+topic-navigation-only. All 42 candidates remain outside the promoted 872,
+Canon, Red Band, and WWAM UP IN YA until playback review promotes them.
 
 The Popular 25 alone contributes 927,620 audited words, 1,467,586 snapshot
 views, 240 topic chapters, 168 comedy moments, and 720 caption-backed heatmap
@@ -41,8 +50,8 @@ editorial-moment inventory.
 The hero offers three deliberate entry points:
 
 - **Fan Experience:** the daily Night Shift return ritual, source-grounded Tape
-  Trivia, the Evidence Bag, the 100-rank Red Band Memorability Index V2, WWAM
-  UP IN YA, and playable descent paths.
+  Trivia, the Evidence Bag, the 100-rank Red Band Memorability Candidate Index
+  V2.1, WWAM UP IN YA, and playable descent paths.
 - **Deep Dive:** Ask WWAM, Lore Galaxy, Take Time Machine, Bit Ancestry, Riff
   Chemistry, WWAM Court, franchise labs, autopsies, Fresh 10, Popular 25, and
   the whole-feed Archive Atlas.
@@ -53,7 +62,10 @@ The hero offers three deliberate entry points:
 
 Mike Mode is a six-beat private-screening walkthrough. Each beat exits the
 pitch and opens working proof: Night Shift, Ask WWAM, the whole-feed Archive
-Atlas, a Loomis constellation, a Loomis edit queue, or the strict canon gate.
+Atlas, a Loomis constellation, the **Tonight's 12** first editorial pass, or a
+measurable Archive Discovery Creator Pilot. The close asks for a narrow pilot
+decision instead of treating a prototype feature tour as proof of canon or
+business results.
 
 Night Shift produces a deterministic three- to five-beat daily journey whose
 five required roles are the newest indexed source, an older archive callback,
@@ -81,21 +93,48 @@ Ask WWAM now indexes those curated performance receipts as their own evidence
 lane. Questions about a character's latest, earliest, funniest, or specific
 recurring bit can return the relevant source second, while performer mapping,
 individual clip attribution, and true origin remain three separate claims.
+Its downloadable 22-case frozen release gate executes promoted-corpus
+retrieval, Archive Deep quarantine behavior, result-anchored follow-ups, exact
+Red Band ranks, Atlas metadata discovery, and honest abstention against fixed
+expected source IDs and result kinds. Natural questions can also map the latest
+livestream's topics, locate the earliest curated character performance in the
+current set, and advance from a named bit to the next indexed same-source
+highlight. Context-bearing answer links preserve the exact source and
+timestamp across a reload.
 
 Archive Atlas source-discovery questions are a separate lane. They can locate
 and order cached uploads by title metadata, year, date, or snapshot views, but
 they do not answer what happened inside a metadata-only source. The
 deterministic Distill Next queue scores only cached-view gravity, upload
-recency, and configured franchise-title signals.
+recency, and configured franchise-title signals. Its current 472-record map is
+44 deeply indexed, 420 metadata-only, 8 caption-limited, and 0 records
+classified unavailable in the cached snapshot. Current availability was not
+rechecked. The Autopsied Batch 01 row exposes ten newly caption-audited
+sources, while its 42 machine candidates remain quarantined from promoted
+product lanes.
 
 The Red Band 100 now starts with 567 deduplicated playable candidates and
-publishes exactly 100 unique ranks spanning 52 sources. Its default score uses
+publishes exactly 100 unique ranks spanning 53 sources. Its raw score uses
 percentile-normalized category intensity, room-break energy, language voltage,
-callback value, human curation, source diversity, and an evidence modifier.
-Recency is off by default, unsupplied editorial votes are literal zero, and no
-rank identifies an undiarized speaker. Ask WWAM can retrieve an exact rank,
-bounded rank range, or top-ten cut by rank key, and the full ranked ledger plus
-methodology is downloadable as JSON.
+callback value, preselected-candidate input, source diversity, and an evidence
+modifier. This is the V2.1 successor to the Red Band Memorability Index V2. A
+deterministic second pass constructs the Top 25 from a bounded 150-candidate
+horizon, capped at four per category, five explicit body/sexual-lexical
+excerpts, eight preselected candidates, two per source, and one near-duplicate
+wording cluster.
+
+The measured Top 25 currently spans eight categories and 21 sources, with five
+explicit lexical hits, eight preselected candidates, zero relaxed selections,
+and zero caption-coherence failures. Its mean coherence score is 73.76 and its
+minimum is 58.93. The displayed score remains the raw machine score; rank is
+the post-diversity candidate position, and the baseline rank plus every
+deferral reason stays inspectable. Recency is off by default, all unsupplied
+editorial votes are literal zero, no creator/editor vote is authenticated, and
+no rank identifies an undiarized speaker. UP IN YA remains its own editorially
+selected soundbyte lane; Red Band treats membership only as
+preselected-candidate input.
+Ask WWAM can retrieve an exact rank, bounded rank range, or top-ten cut by rank
+key, and the full ranked ledger plus methodology is downloadable as JSON.
 
 The Marky Mark candidate remains deliberately locked: three timestamped
 character-performance candidates exist, but automatic captions cannot
@@ -109,9 +148,14 @@ establish which host is speaking.
 - Generated parody is never represented as an archival quote.
 - Opinion timelines and Court cases remain discovery tools until a human
   certifies the underlying claim.
-- The current Trust Desk reports 71 healthy sources, 3 disclosed caption gaps,
-  0 structurally invalid or source-ID-mismatched URLs, 0 invalid indexed
-  timestamps, and 95 human review candidates.
+- The current Trust Desk still audits the 74-source promoted corpus: 71 healthy
+  sources, 3 disclosed caption gaps, 0 structurally invalid or
+  source-ID-mismatched URLs, 0 invalid indexed timestamps, and 95 human review
+  candidates. Archive Deep's ten caption-audited sources and 42 quarantined
+  candidates are reported separately and have not been silently merged into
+  that legacy Trust/Canon contract.
+- The promoted corpus spans 171.19 caption-audited hours and
+  177.45 hours of known source runtime.
 - Public transcript fragments are display-capped; exported edit suggestions
   remain clearly separated from archival excerpts.
 - The local Human Review Session binds 95 Trust findings and 362 Canon warnings
@@ -167,6 +211,8 @@ python pipeline/wwam_deep_distill.py --workers 4
 python pipeline/wwam_livestream_distill.py --workers 4
 python pipeline/wwam_popular_live_distill.py --check
 python pipeline/wwam_character_distill.py --check
+python pipeline/wwam_archive_deep_distill.py --check
+python pipeline/wwam_archive_atlas.py --check
 ```
 
 Full caption payloads stay in the gitignored `source-cache/` directory. Public
@@ -178,11 +224,14 @@ artifacts contain derived measurements and short, timestamped fragments only.
 - [Creator demo runbook](docs/CREATOR_DEMO_RUNBOOK.md)
 - [Product changelog](docs/CHANGELOG.md)
 - [Reusable YouTube Wiki Memory OS](docs/YOUTUBE_WIKI_MEMORY_OS.md)
+- [Executable ChannelPack V1 contract](docs/CHANNEL_PACK_CONTRACT.md)
 - [Creator Clip Lab contract](docs/CREATOR_CLIP_LAB.md)
 - [Cold Open Factory contract](docs/COLD_OPEN_FACTORY.md)
 - [Tape Trivia engine contract](docs/TAPE_TRIVIA_ENGINE.md)
 - [Night Shift engine contract](docs/NIGHT_SHIFT_ENGINE.md)
 - [Human Review Session contract](docs/HUMAN_REVIEW_SESSION.md)
+- [Correction Ripple contract](docs/CORRECTION_RIPPLE.md)
 - [Creator Pilot Builder contract](docs/CREATOR_PILOT_BUILDER.md)
 - [Archive Atlas contract](docs/ARCHIVE_ATLAS.md)
-- [Red Band Memorability Index V2](docs/RED_BAND_RANKING_V2.md)
+- [Archive Deep Distill contract](docs/ARCHIVE_DEEP_DISTILL.md)
+- [Red Band Memorability Candidate Index V2.1](docs/RED_BAND_RANKING_V2.md)

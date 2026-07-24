@@ -9,6 +9,7 @@
   var characterLore = window.WWAM_CHARACTER_LORE || { meta: {}, characters: [] };
   var channelDNA = window.WWAM_CHANNEL_DNA || {};
   var archiveAtlasPayload = window.WWAM_ARCHIVE_ATLAS || null;
+  var archiveDeepPayload = window.WWAM_ARCHIVE_DEEP || null;
   var askEngine;
   var characterEngine;
   var showcaseEngine;
@@ -26,7 +27,11 @@
   var pilotBuilderEngine;
   var archiveAtlasEngine;
   var archiveAtlasUi;
+  var archiveDeepEngine;
+  var archiveDeepStreams = [];
+  var archiveDeepLoadPromise;
   var redBandRankingEngine;
+  var redBandQueryEngine;
   var redBandMoments = deep.hot100 || [];
   var archiveAtlasLoadPromise;
   var archiveAtlasObserver;
@@ -142,7 +147,8 @@
     live,
     curated,
     popular,
-    characterLore
+    characterLore,
+    archiveDeepPayload
   );
   characterEngine = window.WWAMCharacterEngine && window.WWAMCharacterEngine.create ?
     window.WWAMCharacterEngine.create(characterLore) : null;
@@ -192,6 +198,53 @@
     return archiveAtlasEngine;
   }
 
+  function createArchiveDeep() {
+    archiveDeepPayload = window.WWAM_ARCHIVE_DEEP || archiveDeepPayload;
+    if (!archiveDeepPayload || !window.WWAMArchiveDeepEngine ||
+        !window.WWAMArchiveDeepEngine.create) return null;
+    archiveDeepEngine = attempt(function () {
+      return window.WWAMArchiveDeepEngine.create(archiveDeepPayload);
+    }, "Archive Deep Batch 01 initialization");
+    if (!archiveDeepEngine) return null;
+    archiveDeepStreams = archiveDeepEngine.browse({ sort: "priority" }).records;
+    archiveDeepStreams.forEach(function (stream) {
+      stream._lane = "archive";
+      stream.captioned = true;
+      stream.moments = (stream.moments || []).map(function (moment) {
+        return Object.assign({}, moment, { quote: moment.excerpt || "" });
+      });
+      streamById[stream.id] = stream;
+    });
+    askEngine = window.WWAMSearchEngine.create(
+      catalog,
+      deep,
+      live,
+      curated,
+      popular,
+      characterLore,
+      archiveDeepPayload
+    );
+    return archiveDeepEngine;
+  }
+
+  function loadArchiveDeep() {
+    if (archiveDeepEngine) return Promise.resolve(archiveDeepEngine);
+    if (archiveDeepLoadPromise) return archiveDeepLoadPromise;
+    archiveDeepLoadPromise = loadDemoScript("archive-deep-distill.js")
+      .then(function () { return loadDemoScript("archive-deep-engine.js"); })
+      .then(createArchiveDeep)
+      .catch(function (error) {
+        runtimeDiagnostics.push({
+          at: new Date().toISOString(),
+          operation: "Archive Deep Batch 01 lazy load",
+          message: error && error.message ? error.message : String(error),
+        });
+        archiveDeepLoadPromise = null;
+        return null;
+      });
+    return archiveDeepLoadPromise;
+  }
+
   function loadDemoScript(source) {
     return new Promise(function (resolve, reject) {
       var existing = document.querySelector('script[data-lazy-source="' + source + '"]');
@@ -225,6 +278,7 @@
     document.getElementById("archive").setAttribute("aria-busy", "true");
     document.getElementById("archiveStatus").textContent = "LOADING THE 472-RECORD LEDGER";
     archiveAtlasLoadPromise = loadDemoScript("archive-atlas-data.js")
+      .then(loadArchiveDeep)
       .then(function () { return loadDemoScript("archive-atlas-engine.js"); })
       .then(function () { return loadDemoScript("archive-atlas-ui.js"); })
       .then(function () {
@@ -287,10 +341,26 @@
         curation: curated,
         characters: characterLore,
       });
-    }, "Red Band Memorability Index V2 initialization");
+    }, "Red Band Memorability Candidate Index V2.1 initialization");
     if (redBandRankingEngine && Array.isArray(redBandRankingEngine.rankings) &&
         redBandRankingEngine.rankings.length === 100) {
       redBandMoments = redBandRankingEngine.rankings;
+    }
+    if (redBandRankingEngine && window.WWAMRedBandQuery &&
+        window.WWAMRedBandQuery.create) {
+      redBandQueryEngine = attempt(function () {
+        return window.WWAMRedBandQuery.create({
+          ranking: redBandRankingEngine,
+          boundedExcerpt: boundedExcerpt,
+          resolveSource: function (moment) {
+            var source = redSource(moment);
+            source.sourceType = itemById[source.id] ? "commentary" : "livestream";
+            source.laneLabel = moment.lane === "recent-livestream" ? "FRESH 10" :
+              moment.lane === "popular-livestream" ? "POPULAR 25" : "COMMENTARY";
+            return source;
+          },
+        });
+      }, "Red Band exact-rank query initialization");
     }
     return redBandRankingEngine;
   }
@@ -299,10 +369,11 @@
     if (redBandRankingEngine) return Promise.resolve(redBandRankingEngine);
     if (redBandLoadPromise) return redBandLoadPromise;
     redBandLoadPromise = loadDemoScript("red-band-ranking-v2.js")
+      .then(function () { return loadDemoScript("red-band-query.js"); })
       .then(function () {
         createRedBandRanking();
-        if (!redBandRankingEngine || redBandMoments.length !== 100) {
-          throw new Error("Memorability Index V2 did not produce 100 ranks");
+        if (!redBandRankingEngine || !redBandQueryEngine || redBandMoments.length !== 100) {
+          throw new Error("Memorability Candidate Index V2.1 did not produce 100 ranks");
         }
         if (categories().indexOf(state.hotCategory) < 0) state.hotCategory = "ALL EVIDENCE";
         renderRedMethod();
@@ -315,7 +386,7 @@
       .catch(function (error) {
         runtimeDiagnostics.push({
           at: new Date().toISOString(),
-          operation: "Red Band Memorability Index V2 lazy load",
+          operation: "Red Band Memorability Candidate Index V2.1 lazy load",
           message: error && error.message ? error.message : String(error),
         });
         redBandLoadPromise = null;
@@ -526,6 +597,8 @@
   }
 
   function createCreatorEngines() {
+    if (!window.WWAMTrustEngine) return loadDemoScript("correction-ripple-engine.js")
+      .then(function () { return loadDemoScript("trust-engine.js"); }).then(createCreatorEngines);
     clipLabEngine = window.WWAMCreatorClipLab && window.WWAMCreatorClipLab.create && showcaseEngine ?
       attempt(function () { return window.WWAMCreatorClipLab.create({ showcase: showcaseEngine }); },
         "creator clip lab initialization") : null;
@@ -574,7 +647,7 @@
     "BIT ENERGY": "A callback signal escaped the grave.",
     "BREAKDOWN": "On-mic structural integrity approaches zero.",
     "HORROR BRAIN": "The horror-nerd cortex has the wheel.",
-    "UP IN YA": "A human-curated sentence that escaped adult supervision.",
+    "UP IN YA": "A sentence that escaped adult supervision.",
     "THE ROOM BREAKS": "Laughter or a room-break pattern pushes the receipt over the edge.",
     "CHARACTER CALLBACK": "Recurring-character or callback pressure makes the moment compound.",
     "FULL SEND": "The live room commits completely to the bit.",
@@ -582,60 +655,31 @@
     "CHAT DID THIS": "The audience put the hosts on a road nobody should travel.",
   };
   var tourSlides = [
-    {
-      number: "01",
-      eyebrow: "THE PROBLEM",
-      title: "THOUSANDS OF HOURS.<br>NO MEMORY LAYER.",
-      body: "YouTube knows what a video is called. It does not know where a bit first surfaced in the indexed archive, where take signals diverged, which commentary drew the largest captured audience, or what exact second deserves to live again.",
+    { number: "01", eyebrow: "THE PROBLEM", title: "THOUSANDS OF HOURS.<br>NO MEMORY LAYER.",
+      body: "YouTube remembers titles, not where a bit surfaced, takes diverged, audiences peaked, or the exact second worth resurfacing.",
       proof: "THE BACK CATALOG IS VALUABLE—BUT MOST OF ITS VALUE IS BURIED.",
-      action: { kind: "night", label: "RUN TONIGHT'S SOURCE-GROUNDED SHIFT" },
-    },
-    {
-      number: "02",
-      eyebrow: "THE RECEIPT",
-      title: "1,880,873 WORDS.<br>74 SOURCES. PROVE IT.",
-      body: "The expanded demo audits every available caption across 39 franchise commentaries, the rolling Fresh 10, and 25 new foundational livestreams—then turns 872 bounded evidence receipts into paths back to the exact source second.",
-      proof: "71 CAPTIONED SOURCES. THREE HONESTLY DISCLOSED GAPS. ZERO COUNTERFEIT ANALYSIS.",
-      action: { kind: "ask", label: "ASK FOR THE MOST-VIEWED LIVE", query: "What is the most-viewed foundational livestream?" },
-    },
-    {
-      number: "03",
-      eyebrow: "THE MAP",
-      title: "472 STREAMS.<br>EVERY BLIND SPOT VISIBLE.",
-      body: "The Archive Atlas maps the cached official Streams-feed snapshot from 2018–2026 before pretending the whole channel is understood: 34 records are deeply indexed, 430 remain title-metadata-only, and eight are caption-limited.",
+      action: { kind: "night", label: "RUN TONIGHT'S SOURCE-GROUNDED SHIFT" } },
+    { number: "02", eyebrow: "THE RECEIPT", title: "2,175,344 WORDS.<br>84 SOURCES. PROVE IT.",
+      body: "Available captions across 39 commentaries, Fresh 10, Popular 25, and Batch 01 are audited; 42 new candidates stay outside 872 promoted receipts.",
+      proof: "84 INPUTS = 74 PROMOTED + 10 ARCHIVE DEEP QUARANTINE. 872 RECEIPTS + 42 REVIEW CANDIDATES.",
+      action: { kind: "ask", label: "ASK FOR THE MOST-VIEWED LIVE", query: "What is the most-viewed foundational livestream?" } },
+    { number: "03", eyebrow: "THE MAP", title: "472 STREAMS.<br>EVERY BLIND SPOT VISIBLE.",
+      body: "The cached 2018–2026 feed maps 44 deep, 420 metadata-only, and eight caption-limited records without pretending titles are knowledge.",
       proof: "1,197 CACHED HOURS MAPPED — COVERAGE DEPTH, SOURCE BOUNDARIES, AND THE NEXT-DISTILL QUEUE STAY VISIBLE.",
-      action: { kind: "archive", label: "OPEN THE ARCHIVE ATLAS" },
-    },
-    {
-      number: "04",
-      eyebrow: "THE MOAT",
-      title: "THE CHANNEL<br>REMEMBERS ITSELF.",
-      body: "Take Time Machines surface chronological opinion signals for human review. Bit Ancestry tracks recurring characters. Ask the Character pairs a clearly labeled fan-made riff with a bounded real performance clip. WWAM Court remains an open argument board until both sides pass the canon gate.",
+      action: { kind: "archive", label: "OPEN THE ARCHIVE ATLAS" } },
+    { number: "04", eyebrow: "THE MOAT", title: "THE CHANNEL<br>REMEMBERS ITSELF.",
+      body: "Time Machines surface take signals. Bit Ancestry tracks characters. Riffs sit beside proof. WWAM Court stays open pending review.",
       proof: "CONNECTED MEMORY WITH A VISIBLE TRUST FIREWALL — DISCOVERY IS NOT QUIETLY UPGRADED INTO CANON.",
-      action: { kind: "lore", label: "OPEN THE LOOMIS CONSTELLATION", entry: "character:loomis" },
-    },
-    {
-      number: "05",
-      eyebrow: "THE MONEY",
-      title: "MEMORY CREATES<br>NEW INVENTORY.",
-      body: "The same receipt inventory now produces Shorts candidates, supercut spines, then/now callbacks, and 117 exact-runtime cold-open storyboards. Each one keeps a source ledger, proposed cut boundaries, risk, evidence, and the human approval gate.",
+      action: { kind: "lore", label: "OPEN THE LOOMIS CONSTELLATION", entry: "character:loomis" } },
+    { number: "05", eyebrow: "THE MONEY", title: "MEMORY CREATES<br>NEW INVENTORY.",
+      body: "One receipt inventory produces Shorts, supercut spines, callbacks, and 117 timed cold opens with source ledgers and human-approval gates.",
       proof: "ARCHIVE MEMORY → REVIEWABLE EDIT PLAN → EXACT SOURCE LEDGER → CREATOR DECISION.",
-      action: {
-        kind: "clip",
-        mode: "cold-open",
-        duration: 30,
-        label: "BUILD A 30-SECOND LOOMIS COLD OPEN",
-        query: "Dr. Loomis",
-      },
-    },
-    {
-      number: "06",
-      eyebrow: "THE ASK",
-      title: "THIS IS THE DEMO.<br>THE SYSTEM IS THE PRODUCT.",
-      body: "The creator-facing Control Room shows what the latest stream added to indexed memory, what an editor should verify, which older uploads just became relevant, and which moments can become tomorrow's compilation, Short, membership perk, or merch callback.",
-      proof: "THE CHANNEL'S HISTORY STOPS BEING STORAGE AND STARTS COMPOUNDING.",
-      action: { kind: "canon", label: "WATCH THE MACHINE REJECT A CLAIM", tab: "claims" },
-    },
+      action: { kind: "clip", mode: "cold-open", duration: 30,
+        label: "BUILD A 30-SECOND LOOMIS COLD OPEN", query: "Dr. Loomis" } },
+    { number: "06", eyebrow: "THE PILOT", title: "DON'T BUY THE DREAM.<br>TEST THE MACHINE.",
+      body: "Choose one creator job, six receipts, a measurement contract, and a stop condition. Test the archive before drawing business conclusions.",
+      proof: "ONE CHANNEL-SPECIFIC PILOT. VISIBLE INPUTS. REVIEWABLE OUTPUTS. A REAL YES / NO DECISION.",
+      action: { kind: "pilot", label: "BUILD THE ARCHIVE-DISCOVERY PILOT", goal: "archive-discovery" } },
   ];
 
   function esc(value) {
@@ -976,16 +1020,16 @@
     var meta = deep.meta;
     var liveMeta = live.meta || {};
     var popularMeta = popular.meta || {};
+    var stable = channelDNA.proofSnapshot || {};
     var sourceCount = meta.tapes + (liveMeta.streams || 0) + (popularMeta.streams || 0);
     var words = meta.wordsAudited + (liveMeta.wordsAudited || 0) + (popularMeta.wordsAudited || 0);
-    var hours = meta.captionHours + (liveMeta.hours || 0) + (popularMeta.hours || 0);
     var moments = meta.hotMoments + (liveMeta.moments || 0) + (popularMeta.moments || 0);
     document.getElementById("proof").innerHTML = [
-      ["SOURCES", showcaseMetric("sources", sourceCount), "COMMENTARIES + FRESH 10 + POPULAR 25"],
-      ["WORDS AUDITED", fmt(showcaseMetric("wordsAudited", words)), "AVAILABLE CAPTIONS"],
-      ["HOURS", hours, "UNDER THE KNIFE"],
-      ["EDITORIAL RECEIPTS", showcaseMetric("receipts", moments), "PLAYABLE SOURCE MOMENTS"],
-      ["MEMORY NODES", showcaseMetric("nodes", (liveMeta.topics || 0) + (popularMeta.topics || 0)), "CONNECTED, NOT JUST TAGGED"],
+      ["AUDITED INPUTS", stable.sources || sourceCount, "74 PROMOTED + 10 ARCHIVE DEEP QUARANTINE"],
+      ["WORDS AUDITED", fmt(stable.wordsAudited || words), "AVAILABLE CAPTIONS"],
+      ["CAPTION HOURS", Number(stable.captionHours || 0).toFixed(1), "AVAILABLE CAPTIONS AUDITED"],
+      ["EDITORIAL RECEIPTS", stable.receipts || moments, "872 PROMOTED + 42 QUARANTINED CANDIDATES"],
+      ["PROMOTED NODES", stable.nodes || (liveMeta.topics || 0) + (popularMeta.topics || 0), "CONNECTED, NOT JUST TAGGED"],
     ].map(function (stat) {
       return '<article><span>' + stat[0] + '</span><b>' + stat[1] + '</b><small>' + stat[2] + '</small></article>';
     }).join("");
@@ -1117,7 +1161,7 @@
       categoryIntensity: "CATEGORY",
       roomBreak: "ROOM BREAK",
       loreCallback: "CALLBACK",
-      humanCuration: "HUMAN CURATION",
+      humanCuration: "PRESELECTION",
     };
     return '<div class="evidence-signals">' + Object.keys(labels).map(function (key) {
       var value = Math.round(Number((moment.scoreComponents[key] || {}).percentile || 0));
@@ -1129,7 +1173,7 @@
   function renderRedMethod() {
     var root = document.getElementById("redMethod");
     if (!redBandRankingEngine) {
-      root.innerHTML = '<article class="red-method-verdict"><span>MEMORABILITY INDEX V2</span><b>CALIBRATING</b><p>The legacy receipt wall remains playable while the transparent cross-archive ranker loads.</p></article>' +
+      root.innerHTML = '<article class="red-method-verdict"><span>MEMORABILITY CANDIDATE INDEX V2.1</span><b>CALIBRATING</b><p>The receipt wall remains playable while the transparent cross-archive candidate ranker loads.</p></article>' +
         '<article><span>RANK CONTRACT</span><b>100</b><p>Exact target; no duplicate rank keys.</p></article>' +
         '<article><span>EDITORIAL VOTES</span><b>ZERO DEFAULT</b><p>No human preference is invented.</p></article>' +
         '<article><span>SPEAKER POLICY</span><b>NOT DIARIZED</b><p>A great line is not assigned to a host.</p></article>' +
@@ -1139,9 +1183,13 @@
     var metrics = redBandRankingEngine.metrics;
     var diagnostics = redBandRankingEngine.diagnostics;
     root.innerHTML = [
-      ["100 UNIQUE RANKS", "EXACT CONTRACT", "567 playable receipts competed; every winner keeps a timestamp.", "red-method-verdict"],
-      [metrics.uniqueRankedSources, "RANKED SOURCES", "Commentaries, Fresh 10, and Popular 25 share one disclosed field.", ""],
-      [diagnostics.collisions.scoreTieGroups, "TIE GROUPS", "Resolved by evidence and content signals, never lexical source ID.", ""],
+      ["100 CANDIDATE RANKS", "EXACT CONTRACT", fmt(metrics.playableCandidates) + " playable receipts competed; every rank keeps a timestamp.", "red-method-verdict"],
+      [diagnostics.topSliceDiversity.uniqueCategories + " CAT / " +
+        diagnostics.topSliceDiversity.uniqueSources + " SRC", "TOP-25 RANGE",
+      "Category, source, near-duplicate, and preselection caps prevent one joke shape from owning the list.", ""],
+      [diagnostics.topSliceDiversity.explicitBodyOrSexualLexicalCount + " / " +
+        diagnostics.topSliceDiversity.caps.maximumExplicitBodyOrSexualLexical,
+      "EXPLICIT LEXICAL", "Anatomy and sexual-word hits are capped in the Top 25; they do not define memorability.", ""],
       [diagnostics.editorialVotes.suppliedNonZero, "EDITORIAL VOTES", "Literal zero by default; the human lane is visible and optional.", ""],
       [diagnostics.recency.label, "TIME BIAS", "Recency is excluded from the default score.", ""],
     ].map(function (entry) {
@@ -1169,7 +1217,7 @@
         (moment.score != null ? "INDEX " + Number(moment.score).toFixed(2) + " // " : "") +
         timestamp(moment.t) + '</i></div>' +
         '<blockquote>“' + esc(displayQuote(moment.quote)) + '”</blockquote>' +
-        '<div class="evidence-why"><span>WHY THIS IS MEMORABLE</span><p>' +
+        '<div class="evidence-why"><span>WHY THIS CANDIDATE RANKED</span><p>' +
         esc(displayUiText(why)) + '</p></div>' + redSignalMarkup(moment) +
         '<p>' + esc(displayUiText(categoryCopy[moment.category] ||
           "A source-linked evidence fragment.")) + ' // SPEAKER NOT DIARIZED.</p>' +
@@ -1690,7 +1738,7 @@
       (stream.editorial && stream.editorial.showShape ? ' // ' + esc(stream.editorial.showShape) : '') + '</span>' +
       esc(safeEditorialCopy(stream.whyItMatters || stream.why_it_matters ||
         (stream.editorial && stream.editorial.whyItMatters) ||
-        stream.summary || "A high-gravity WWAM livestream in the foundational live canon.")) +
+        stream.summary || "A high-gravity WWAM livestream in the foundational live archive.")) +
       '</p><div class="popular-topic-row">' + topics.map(function (topic) {
         return '<button data-popular-jump="' + esc(stream.id) + '" data-time="' + Number(topic.peak || topic.t || 0) +
           '">' + esc(topic.name) + ' <b>' + timestamp(topic.peak || topic.t || 0) + '</b></button>';
@@ -1880,6 +1928,9 @@
 
   function liveHeatMarkup(stream) {
     if (!stream.heatmap.length) {
+      if (stream.rightsPolicy && stream.rightsPolicy.restrictedToTopicNavigation) {
+        return '<p class="sealed-copy">Captions were audited end to end, but this trailer, script, or watch-party source is deliberately topic-navigation-only. Comedy heat and excerpts are withheld because automatic captions cannot prove which words belong to the hosts.</p>';
+      }
       return '<p class="sealed-copy">YouTube supplies no caption track for this stream, so comedy scoring and topic chapters are deliberately unavailable. The original upload remains playable.</p>';
     }
     return stream.heatmap.map(function (bin, index) {
@@ -1900,6 +1951,9 @@
 
   function liveMomentsMarkup(stream) {
     if (!stream.moments.length) {
+      if (stream.rightsPolicy && stream.rightsPolicy.restrictedToTopicNavigation) {
+        return '<p class="sealed-copy">No public joke or character receipts are exposed from this source. Topic timestamps remain available; candidate excerpts stay withheld until a human can separate host speech from source audio.</p>';
+      }
       return '<p class="sealed-copy">No caption-derived comedy receipts are published for this stream. Open the original source to watch it in full.</p>';
     }
     return stream.moments.map(function (moment) {
@@ -1915,8 +1969,11 @@
     var stream = streamById[id];
     if (!stream) return;
     rememberDialogFocus();
-    var lane = stream._lane === "popular" ? "FOUNDATIONAL 25" : "FRESH 10";
-    var laneList = stream._lane === "popular" ? popular.streams : live.streams;
+    var isArchiveDeep = stream._lane === "archive";
+    var lane = stream._lane === "popular" ? "FOUNDATIONAL 25" :
+      isArchiveDeep ? "AUTOPSIED BATCH 01" : "FRESH 10";
+    var laneList = stream._lane === "popular" ? popular.streams :
+      isArchiveDeep ? archiveDeepStreams : live.streams;
     var laneRank = laneList.indexOf(stream) + 1;
     var peak = stream.moments.slice().sort(function (a, b) { return b.heat - a.heat; })[0];
     var streamSummary = safeEditorialCopy(stream.summary || stream.whyItMatters ||
@@ -1930,16 +1987,21 @@
       duration(stream.duration) + ' // ' + fmt(stream.views) + ' VIEWS</span></div></div>' +
       '<div class="modal-grid live-modal-grid"><section class="modal-verdict"><p class="kicker">THE LIVE-ROOM AUTOPSY</p><blockquote>' +
       esc(streamSummary) + '</blockquote><div class="live-peak"><b>' + (peak ? peak.heat : "—") +
-      '</b><span>PEAK<br>COMEDY HEAT</span></div><div class="source-actions"><a href="' + esc(stream.url) +
+      '</b><span>PEAK<br>' + (isArchiveDeep ? "CANDIDATE HEAT" : "COMEDY HEAT") +
+      '</span></div><div class="source-actions"><a href="' + esc(stream.url) +
       '" target="_blank" rel="noopener">OPEN ORIGINAL ON YOUTUBE ↗</a><button data-share-live="' + stream.id +
       '">COPY LIVE MAP</button></div></section><section class="live-topic-index"><p class="kicker">JUMP TO A TOPIC // ' +
       fmt(stream.wordsAudited) + ' WORDS AUDITED</p><ol>' + liveTopicsMarkup(stream) + '</ol></section></div>' +
-      '<section class="heat-section live-heat-section"><div><p class="kicker">THE 30-CHAPTER FUNNY-MOMENT HEAT MAP</p>' +
-      '<span>CLICK ANY BAR TO JUMP THERE // HEIGHT = COMEDY-SIGNAL DENSITY</span></div><div class="live-heatmap">' +
+      '<section class="heat-section live-heat-section"><div><p class="kicker">' +
+      (stream.rightsPolicy && stream.rightsPolicy.restrictedToTopicNavigation ?
+        "SOURCE-AUDIO FIREWALL // TOPIC NAVIGATION ONLY" : "THE 30-CHAPTER FUNNY-MOMENT HEAT MAP") +
+      '</p><span>' + (isArchiveDeep ? "MACHINE CANDIDATES // NOT CANON // HUMAN PLAYBACK REVIEW REQUIRED" :
+        "CLICK ANY BAR TO JUMP THERE // HEIGHT = COMEDY-SIGNAL DENSITY") + '</span></div><div class="live-heatmap">' +
       liveHeatMarkup(stream) + '</div></section>' +
       '<section class="receipt-section"><div><p class="kicker">' +
-      (stream._lane === "popular" ? "FOUNDATIONAL CHAOS" : "FRESHLY UNWELL") + ' // SOURCE RECEIPTS</p>' +
-      '<span>SHORT AUTO-CAPTION FRAGMENTS // VERIFY AGAINST ORIGINAL</span></div><div class="modal-player" id="modalPlayer">' +
+      (stream._lane === "popular" ? "FOUNDATIONAL CHAOS" :
+        isArchiveDeep ? "ARCHIVE DEEP // REVIEW-REQUIRED CANDIDATES" : "FRESHLY UNWELL") +
+      ' // SOURCE RECEIPTS</p><span>SHORT AUTO-CAPTION FRAGMENTS // SPEAKER NOT DIARIZED // VERIFY AGAINST ORIGINAL</span></div><div class="modal-player" id="modalPlayer">' +
       '<div><span>SELECT A TOPIC, HEAT BAR, OR COMEDY HIT TO CUE THE STREAM.</span></div></div><div class="receipt-list">' +
       liveMomentsMarkup(stream) + '</div></section>';
     modal.classList.add("show");
@@ -1952,7 +2014,7 @@
     if (startTime != null) loadPlayer(stream.id, Number(startTime));
     history.replaceState(null, "", "?live=" + encodeURIComponent(stream.id) +
       (startTime != null ? "&at=" + Math.round(startTime) : "") +
-      (stream._lane === "popular" ? "#popular25" : "#livewire"));
+      (stream._lane === "popular" ? "#popular25" : isArchiveDeep ? "#archive" : "#livewire"));
   }
 
   function openLooseSource(id, startTime, label, endTime) {
@@ -2037,7 +2099,8 @@
   function shareLiveUrl(id, at) {
     var url = new URL(window.location.href);
     url.search = "";
-    url.hash = streamById[id] && streamById[id]._lane === "popular" ? "popular25" : "livewire";
+    url.hash = streamById[id] && streamById[id]._lane === "popular" ? "popular25" :
+      streamById[id] && streamById[id]._lane === "archive" ? "archive" : "livewire";
     url.searchParams.set("live", id);
     if (at != null) url.searchParams.set("at", Math.round(at));
     return url.toString();
@@ -2065,7 +2128,6 @@
           window.prompt("Clipboard access was blocked. Press Ctrl+C or Cmd+C to copy this value:", value);
           manualOpened = true;
         } catch {
-          // Some embedded browsers block prompts as well as clipboard writes.
         }
         showToast(manualOpened ? "COPY BLOCKED // MANUAL COPY WINDOW OPENED" :
           "COPY BLOCKED // USE THE DOWNLOAD OPTION");
@@ -2113,10 +2175,7 @@
   }
 
   function renderAskExamples() {
-    var examples = (askEngine.examples || curated.askExamples || []).concat([
-      "What is the most-viewed foundational livestream?",
-      "Did their opinion on Halloween change?",
-    ]).slice(0, 8);
+    var examples = (askEngine.examples || curated.askExamples || []).slice(0, 8);
     document.getElementById("askExamples").innerHTML = examples.map(function (example) {
       return '<button>' + esc(example) + '</button>';
     }).join("");
@@ -2132,132 +2191,54 @@
   }
 
   function askShareUrl(query) {
-    var url = new URL(location.href);
-    url.searchParams.delete("tape");
-    url.searchParams.delete("live");
-    url.searchParams.delete("at");
-    url.searchParams.set("ask", String(query || "").slice(0, 240));
-    url.hash = "ask";
-    return url.toString();
+    return window.WWAMAskShare.build(location.href, query, state.askContext);
   }
 
   function isRedBandRankQuery(query) {
+    if (redBandQueryEngine) return redBandQueryEngine.matches(query, state.askContext);
     return /\b(?:red\s*band(?:\s*100)?|memorability\s+index|most\s+memorable\s+moments?)\b/i.test(
       String(query || "")
     );
   }
 
-  function redBandRankSelection(query) {
-    var value = String(query || "");
-    var range = value.match(/\b(?:ranks?|numbers?)?\s*#?(\d{1,3})\s*(?:-|–|to|through)\s*#?(\d{1,3})\b/i);
-    if (range) {
-      var first = Math.max(1, Math.min(100, Number(range[1])));
-      var last = Math.max(1, Math.min(100, Number(range[2])));
-      var start = Math.min(first, last);
-      var end = Math.min(Math.max(first, last), start + 9);
-      return { start: start, end: end, mode: "range" };
-    }
-    var exact = value.match(/(?:\brank(?:ed)?|\bnumber|#)\s*#?\s*(\d{1,3})\b/i);
-    if (exact) {
-      var rank = Math.max(1, Math.min(100, Number(exact[1])));
-      return { start: rank, end: rank, mode: "exact" };
-    }
-    var top = value.match(/\btop\s+(\d{1,2})\b/i);
-    var limit = top ? Math.max(1, Math.min(10, Number(top[1]))) : 1;
-    return { start: 1, end: limit, mode: limit === 1 ? "leader" : "top" };
-  }
-
-  function redBandAskAnalysis(query) {
-    if (!redBandRankingEngine || !isRedBandRankQuery(query)) return null;
-    var selection = redBandRankSelection(query);
-    var moments = [];
-    for (var rank = selection.start; rank <= selection.end; rank += 1) {
-      var moment = redBandRankingEngine.getByRank(rank);
-      if (moment) moments.push(moment);
-    }
-    var results = moments.map(function (moment) {
-      var source = redSource(moment);
-      var why = moment.whyMemorable || [];
-      return {
-        key: moment.rankKey,
-        kind: "red-band-rank",
-        source: itemById[source.id] ? "commentary" : "livestream",
-        sourceId: source.id,
-        lane: moment.lane,
-        laneLabel: moment.lane === "recent-livestream" ? "FRESH 10" :
-          moment.lane === "popular-livestream" ? "POPULAR 25" : "COMMENTARY",
-        at: Number(moment.t || 0),
-        title: "#" + String(moment.rank).padStart(3, "0") + " · " + source.title,
-        category: moment.category,
-        excerpt: moment.excerpt || moment.quote || "",
-        score: moment.score,
-        speaker: null,
-        evidenceLevel: "TIMESTAMPED CAPTION RECEIPT",
-        evidenceType: "caption-excerpt",
-        reasons: [
-          "INDEX " + Number(moment.score).toFixed(2),
-          moment.category,
-          moment.confidenceLabel,
-        ],
-        evidenceWarnings: [
-          "Machine-ranked by Memorability Index V2; not a creator vote or canon declaration.",
-          "Speaker not diarized; the receipt makes no host-authorship or true-origin claim.",
-        ].concat((moment.uncertainty && moment.uncertainty.reasons) || []),
-        subtitle: why.join(" "),
-      };
-    });
-    var rankLabel = selection.start === selection.end ?
-      "#" + String(selection.start).padStart(3, "0") :
-      "#" + String(selection.start).padStart(3, "0") + "–#" +
-        String(selection.end).padStart(3, "0");
-    var answer = results.length === 1 ?
-      rankLabel + " is “" + boundedExcerpt(results[0].excerpt) + "” from " +
-        results[0].title.replace(/^#\d+\s*·\s*/, "") + "." :
-      "Here are Red Band ranks " + rankLabel + " in exact index order.";
-    return {
-      intent: "red-band-ranking",
-      entity: "Red Band 100",
-      source: "all",
-      results: results,
-      evidenceChain: results.map(function (result, index) {
-        return {
-          role: index === 0 ? "EXACT INDEX HIT" : "NEXT INDEX RANK",
-          result: result,
-        };
-      }),
-      confidence: results.length ? 100 : 0,
-      status: "machine-ranked",
-      questionType: selection.mode === "exact" ? "exact rank lookup" : "ranked list",
-      metric: "memorability index v2",
-      answer: answer,
-      confidenceBasis: [
-        "Exact unique rank key from Memorability Index V2",
-        "Playable YouTube timestamp and bounded caption excerpt",
-        "Disclosed score components with recency excluded and editorial votes at zero by default",
-      ],
-      limitations: [
-        "Memorability is a transparent machine ranking, not an authenticated Mike/J vote.",
-        "The indexed caption receipt is not speaker-diarized.",
-        "Rankings compare the current bounded commentary, Fresh 10, and Popular 25 evidence sets.",
-      ],
-      recommendedSurface: {
-        href: "#red100",
-        label: "Inspect the full Red Band 100",
-        reason: "See every score, signal bar, source, timestamp, and ranking boundary.",
-      },
-      suggestions: [
-        "What is Red Band rank #25?",
-        "Show me the top 5 most memorable moments",
-      ],
-    };
-  }
-
   function ask(query, preservedAnalysis) {
     var redBandIntent = isRedBandRankQuery(query);
-    var rankedAnalysis = redBandIntent ? redBandAskAnalysis(query) : null;
-    var analysis = rankedAnalysis || preservedAnalysis || askEngine.ask(query, state.askContext);
-    if (redBandIntent && !redBandRankingEngine) {
+    if (redBandIntent && !redBandQueryEngine) {
+      state.lastAskQuery = query;
+      document.getElementById("askStatus").textContent = "OPENING MEMORABILITY INDEX V2.1…";
+      document.getElementById("askResults").replaceChildren();
       loadRedBandRanking().then(function (engine) {
+        if (engine && state.lastAskQuery === query) ask(query);
+      });
+      return;
+    }
+    if (!redBandIntent && !archiveDeepEngine && /\barchive\s+deep\b/i.test(query)) {
+      state.lastAskQuery = query;
+      document.getElementById("askStatus").textContent = "OPENING ARCHIVE DEEP // 10 CAPTION AUDITS";
+      document.getElementById("askResults").innerHTML =
+        '<div class="ask-no-match"><b>SEARCHING THE QUARANTINED EVIDENCE LANE…</b>' +
+        '<p>Machine candidates will stay visibly outside Canon while the batch loads.</p></div>';
+      loadArchiveDeep().then(function (engine) {
+        if (engine && state.lastAskQuery === query) ask(query);
+        else document.getElementById("askStatus").textContent = "ARCHIVE DEEP LOAD FAILED";
+      });
+      return;
+    }
+    var rankedAnalysis = redBandIntent && redBandQueryEngine ?
+      redBandQueryEngine.analyze(query, state.askContext) : null;
+    var analysis = rankedAnalysis || preservedAnalysis || askEngine.ask(query, state.askContext);
+    if (!redBandIntent && !archiveDeepEngine && analysis.selectionPlan &&
+        analysis.selectionPlan.sourceTitleBoundary) {
+      state.lastAskQuery = query;
+      document.getElementById("askStatus").textContent = "CHECKING ARCHIVE DEEP // EXACT TITLE HELD";
+      document.getElementById("askResults").replaceChildren();
+      loadArchiveDeep().then(function (engine) {
+        if (engine && state.lastAskQuery === query) ask(query);
+      });
+      return;
+    }
+    if (!redBandIntent && !archiveDeepEngine) {
+      loadArchiveDeep().then(function (engine) {
         if (engine && state.lastAskQuery === query) ask(query);
       });
     }
@@ -2273,7 +2254,7 @@
     (analysis.evidenceChain || []).forEach(function (entry) {
       if (entry.result && entry.result.key) roleByKey[entry.result.key] = entry.role;
     });
-    state.askContext = {
+    state.askContext = analysis.context || {
       entity: analysis.entity,
       intent: analysis.intent,
       source: analysis.source,
@@ -2300,12 +2281,14 @@
       return;
     }
     document.getElementById("askStatus").textContent =
-      analysis.status === "machine-ranked" && results.length ?
-        "MEMORABILITY INDEX V2 // EXACT RANK KEY // MACHINE-RANKED, NOT A CREATOR VOTE" :
+      analysis.status === "out-of-range" ?
+        "RED BAND 100 // RANK OUT OF RANGE // NO SILENT CLAMPING" :
+        analysis.status === "machine-ranked" && results.length ?
+        "MEMORABILITY CANDIDATE INDEX V2.1 // EXACT RANK KEY // MACHINE-RANKED, NOT A CREATOR VOTE" :
         results.length ?
           (analysis.evidenceChain || []).length + " RECEIPT CHAIN // " + analysis.confidence +
           (analysis.status === "archive-boundary" ? "% RETRIEVAL // CLAIM NOT ESTABLISHED" : "% CONFIDENCE") :
-      archiveFallback ? "TITLE-METADATA DISCOVERY // NO CONTENT CLAIM" : "NO DEFENSIBLE RECEIPT";
+          "NO DEFENSIBLE RECEIPT";
     var boundary = '<section class="ask-boundary ' + esc(analysis.status || "unknown") +
       '"><header><span>ANSWER STATUS // ' + esc(String(analysis.status || "UNKNOWN").toUpperCase()) +
       '</span><b>' + esc(String(analysis.questionType || analysis.intent || "QUERY").toUpperCase()) +
@@ -2320,6 +2303,11 @@
         '<a href="' + esc(analysis.recommendedSurface.href === "#canon-desk" ? "#canon" : analysis.recommendedSurface.href) +
         '"><b>' + esc(displayUiText(analysis.recommendedSurface.label)) + ' →</b><span>' +
         esc(displayUiText(analysis.recommendedSurface.reason)) + '</span></a>' : "") + '</section>';
+    var noMatchHeadline = analysis.status === "out-of-range" ?
+      "THAT RANK DOES NOT EXIST." : "THE ARCHIVE REFUSED TO MAKE SOMETHING UP.";
+    var noMatchBody = analysis.status === "out-of-range" ?
+      "Choose #001 through #100; the engine will not swap your request for a different rank." :
+      "No confident match in the current source scope.";
     document.getElementById("askResults").innerHTML =
       '<section class="answer-brief"><div><span>INTENT // ' + esc(analysis.intent.toUpperCase()) + '</span><b>' +
       (analysis.entity ? 'ENTITY // ' + esc(displayUiText(analysis.entity.toUpperCase())) : 'ENTITY // OPEN') + '</b><i>' +
@@ -2361,11 +2349,11 @@
           '" data-time="' + Number(result.at || 0) + '">SHOW ME →</button>' +
           bagButton(Object.assign({}, result, { excerpt: excerpt }), "BAG IT") +
           '</footer></article>';
-      }).join("") : '<div class="ask-no-match"><b>THE ARCHIVE REFUSED TO MAKE SOMETHING UP.</b><p>No confident match in the current source scope.</p>' +
+      }).join("") : '<div class="ask-no-match"><b>' + noMatchHeadline + '</b><p>' + noMatchBody + '</p>' +
         (analysis.suggestions || []).map(function (suggestion) {
           return '<button data-ask-suggestion="' + esc(suggestion) + '">' +
             esc(displayUiText(suggestion)) + '</button>';
-        }).join("") + '</div>') + archiveFallback;
+        }).join("") + '</div>');
     Array.prototype.forEach.call(document.querySelectorAll("#askResults [data-ask-source]"), function (button) {
       button.onclick = function () {
         if (button.getAttribute("data-ask-source") === "livestream") {
@@ -2397,7 +2385,6 @@
         var result = showcaseEngine[method].apply(showcaseEngine, args || []);
         if (result != null) return result;
       } catch {
-        // The public showcase remains usable if an optional derived surface fails.
       }
     }
     return fallback();
@@ -2794,7 +2781,7 @@
       state.memoryTab === "battle" ? renderBattle() : renderDescent();
     document.getElementById("memoryStage").innerHTML = content;
     document.getElementById("memoryProof").innerHTML = [
-      [showcaseMetric("nodes", 0), "MEMORY NODES"],
+      [showcaseMetric("nodes", 0), "PROMOTED NODES"],
       [showcaseMetric("edges", 0), "SOURCE-BACKED EDGES"],
       [showcaseMetric("timelines", fallbackTimeMachines().length), "TAKE TRAILS TO REVIEW"],
       [showcaseMetric("bits", fallbackBitLineages().length), "BIT LINEAGES"],
@@ -3766,7 +3753,7 @@
     var metrics = clipLabEngine.metrics || {};
     var coldMetrics = coldOpenFactory && coldOpenFactory.metrics || {};
     document.getElementById("clipProof").innerHTML = [
-      [metrics.shortCandidates, "SHORTS CANDIDATES"],
+      [metrics.shortCandidates, "RECEIPT-BACKED SHORTS POOL"],
       [metrics.supercutBundles, "SUPERCUT SPINES"],
       [metrics.resurfacingOpportunities, "THEN / NOW PAIRS"],
       [coldMetrics.storyboards || 0, "COLD OPEN BOARDS"],
@@ -3775,7 +3762,9 @@
       return '<div><b>' + fmt(stat[0]) + '</b><span>' + stat[1] + '</span></div>';
     }).join("");
     Array.prototype.forEach.call(document.querySelectorAll("[data-clip-mode]"), function (button) {
-      button.classList.toggle("on", button.getAttribute("data-clip-mode") === state.clipMode);
+      var on = button.getAttribute("data-clip-mode") === state.clipMode;
+      button.classList.toggle("on", on);
+      button.setAttribute("aria-pressed", on);
     });
     var values = clipCandidates();
     values.forEach(function (item) {
@@ -3786,6 +3775,12 @@
     });
     document.getElementById("clipResults").innerHTML =
       (state.clipMode === "cold-open" ? coldOpenFormatBar() : "") +
+      (state.clipMode === "shorts"
+        ? '<div class="clip-shortlist-bar"><div><span>TONIGHT\'S 12 // MACHINE SHORTLIST</span>' +
+          '<b>THE FIRST EDITORIAL PASS, NOT A PUBLISH QUEUE.</b></div><p>The twelve highest-priority ' +
+          'receipt-backed candidates under the current search and risk gate. Every hook is proposed copy; ' +
+          'context, speaker, rights, and the final cut still require a human.</p></div>'
+        : "") +
       (values.length ? values.map(function (item) {
         if (item.kind === "cold-open-storyboard") return coldOpenCard(item);
         if (item.kind === "supercut-bundle") return supercutCard(item);
@@ -3848,7 +3843,7 @@
   function renderReviewQueue() {
     var queue = trustEngine.getReviewQueue({ limit: 16 });
     return '<div class="canon-lane-head"><div><span>THE MACHINE MAY SURFACE // ONLY A HUMAN MAY CERTIFY</span><h3>' +
-      queue.length + ' OF ' + trustEngine.metrics.reviewCandidates + ' PRIORITY REVIEWS.</h3></div><p>Every row exports a deterministic correction packet containing the current claim, evidence, recommended action, and required reviewer role.</p></div>' +
+      queue.length + ' OF ' + trustEngine.metrics.reviewCandidates + ' PRIORITY REVIEWS.</h3></div><p>Every packet includes its evidence, reviewer gate, and a deterministic dry-run dependency ripple.</p></div>' +
       '<div class="review-queue">' + queue.map(function (item, index) {
         var evidence = item.evidence && item.evidence[0];
         return '<article><header><b>#' + String(index + 1).padStart(2, "0") + ' // ' +
@@ -3856,7 +3851,7 @@
           esc(item.title) + '</h3><p>' + esc(item.summary) + '</p><blockquote>' +
           esc(item.recommendation) + '</blockquote><footer>' +
           (evidence ? canonEvidenceButton(evidence, "INSPECT RECEIPT") : "") +
-          '<button data-correction-packet="' + esc(item.id) + '">COPY CORRECTION PACKET</button></footer></article>';
+          '<button data-correction-packet="' + esc(item.id) + '">COPY PACKET + RIPPLE</button></footer></article>';
       }).join("") + '</div>';
   }
 
@@ -4088,7 +4083,9 @@
     Array.prototype.forEach.call(document.querySelectorAll("[data-correction-packet]"), function (button) {
       button.onclick = function () {
         var packet = trustEngine.buildCorrectionPacket(button.getAttribute("data-correction-packet"));
-        if (packet) copy(JSON.stringify(packet, null, 2), "CORRECTION PACKET COPIED");
+        if (packet) copy(JSON.stringify(packet, null, 2), packet.dryRunRipple.analysisComplete ?
+          "RIPPLE COPIED // " + packet.dryRunRipple.totals.affectedSurfaces + " SURFACES // " +
+          packet.dryRunRipple.totals.exactReceiptRecords + " EXACT" : "RIPPLE BLOCKED // UNRESOLVED EVIDENCE");
       };
     });
     Array.prototype.forEach.call(document.querySelectorAll("[data-fill-contribution]"), function (button) {
@@ -4255,7 +4252,7 @@
     }
     var metrics = trustEngine.metrics;
     document.getElementById("canonProof").innerHTML = [
-      [metrics.healthySources + "/" + metrics.sources, "HEALTHY SOURCES"],
+      [metrics.healthySources + "/" + metrics.sources, "HEALTHY · PROMOTED CORPUS"],
       [metrics.invalidTimestamps, "OUT-OF-RANGE TIMES"],
       [metrics.ordinaryCharacterMentionsQuarantined, "MENTIONS QUARANTINED"],
       [metrics.reviewCandidates, "OPEN HUMAN REVIEWS"],
@@ -4463,6 +4460,7 @@
     var targetId = action.kind === "ask" ? "ask" :
       action.kind === "lore" ? "lore" :
         action.kind === "clip" ? "clip-lab" :
+          action.kind === "pilot" ? "pitch" :
           action.kind === "canon" ? "canon" :
             action.kind === "night" ? "night-shift" :
               action.kind === "archive" ? "archive" : "trivia";
@@ -4485,6 +4483,11 @@
       document.getElementById("clipSearch").value = action.query;
       renderClipLab();
       document.getElementById("clip-lab").scrollIntoView({ behavior: "smooth" });
+    } else if (action.kind === "pilot") {
+      state.pilotGoal = action.goal || "archive-discovery";
+      renderPilotBuilder();
+      document.getElementById("pilotBuilder").scrollIntoView({ behavior: "smooth", block: "start" });
+      focusSoon('[data-pilot-goal="' + state.pilotGoal + '"]');
     } else if (action.kind === "canon") {
       state.canonTab = action.tab;
       renderCanon();
@@ -4776,13 +4779,23 @@
     if (params.get("tape")) {
       setTimeout(function () { openDossier(params.get("tape"), params.get("at")); }, 50);
     } else if (params.get("live")) {
-      setTimeout(function () { openLiveDossier(params.get("live"), params.get("at")); }, 50);
-    } else if (params.get("ask")) {
       setTimeout(function () {
-        var sharedQuestion = params.get("ask").slice(0, 240);
-        document.getElementById("askInput").value = sharedQuestion;
-        ask(sharedQuestion);
-        document.getElementById("ask").scrollIntoView();
+        var id = params.get("live");
+        if (streamById[id]) openLiveDossier(id, params.get("at"));
+        else loadArchiveAtlas().then(function () { openLiveDossier(id, params.get("at")); });
+      }, 50);
+    } else if (window.WWAMAskShare.read(location.search)) {
+      setTimeout(function () {
+        var shared = window.WWAMAskShare.read(location.search);
+        var replay = function () {
+          state.askContext = shared.context;
+          document.getElementById("askInput").value = shared.query;
+          ask(shared.query);
+          document.getElementById("ask").scrollIntoView();
+        };
+        if (shared.needsArchive) loadArchiveDeep().then(replay);
+        else if (shared.needsRedBand) loadRedBandRanking().then(replay);
+        else replay();
       }, 50);
     } else if (params.get("nightShift")) {
       setTimeout(function () {
@@ -4798,7 +4811,8 @@
     document.getElementById("bandToggle").textContent =
       "REDUCED PROFANITY: " + (state.redBand ? "OFF" : "ON");
     document.getElementById("consoleStatus").textContent = "SCANNING " +
-      fmt(deep.meta.wordsAudited + live.meta.wordsAudited + (popular.meta.wordsAudited || 0)) + " WORDS";
+      fmt((channelDNA.proofSnapshot && channelDNA.proofSnapshot.wordsAudited) ||
+        deep.meta.wordsAudited + live.meta.wordsAudited + (popular.meta.wordsAudited || 0)) + " WORDS";
     renderProof();
     renderMarquee();
     renderHeroConsole();

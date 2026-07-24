@@ -11,7 +11,8 @@ three things quickly:
 
 ## Before the call
 
-- Open the deployed demo and choose either content-advisory mode.
+- Open the current V5.4 build or its confirmed deployment and choose either
+  content-advisory mode.
 - Confirm YouTube playback is available in the browser.
 - Start at the hero, not halfway down the page.
 - Keep the official WWAM channel open in another tab in case the creator wants
@@ -42,18 +43,20 @@ Press **Mike Mode** and use one sentence per slide:
 
 1. **Problem:** “YouTube stores the catalog, but it does not remember the
    relationships inside it.”
-2. **Receipt:** “This snapshot audits 74 sources and turns 872 bounded indexed
-   receipts into exact jumps back to the official videos.”
-3. **Map:** “The Atlas maps 472 cached Streams-feed records and makes the 34
-   deep, 430 metadata-only, and eight caption-limited records impossible to
-   confuse.”
+2. **Receipt:** “This snapshot audits 84 source inputs and 2,175,344 caption
+   words, while its 872 promoted receipts remain exact jumps back to the
+   official videos.”
+3. **Map:** “The Atlas maps 472 cached Streams-feed records and makes the 44
+   deep, 420 metadata-only, eight caption-limited, and zero records classified
+   unavailable in the cached snapshot impossible to confuse. Current
+   availability was not rechecked.”
 4. **Moat:** “The value compounds when takes, bits, characters, topics, and new
    uploads connect without pretending machine inference is canon.”
-5. **Money:** “The same archive produces reviewable Short candidates, supercut
-   spines, resurfacing ideas, member experiences, and new routes into old
-   videos.”
-6. **Trust:** “The system shows the gaps, blocks unsupported claims, and leaves
-   publishing decisions with the creator.”
+5. **Money:** “Tonight's 12 turns the same archive proof into a labeled first
+   editorial pass, not a publish queue or virality promise.”
+6. **Pilot:** “The close converts proof into one measurable Creator Pilot,
+   while every unmeasured business outcome stays marked `MEASURE DURING
+   PILOT`.”
 
 Use the proof button on at least two slides. A pitch that exits into working
 evidence is stronger than a complete slideshow.
@@ -66,7 +69,7 @@ question. Do not add optional features until the close.
 | Elapsed | Surface | One proof to show |
 | --- | --- | --- |
 | 0:00–0:30 | Night Shift | A daily route connects newest source, archive callback, choice, and payoff |
-| 0:30–0:55 | Archive Atlas | The whole-feed map shows coverage depth and the next-distill queue |
+| 0:30–0:55 | Archive Atlas | The whole-feed map shows Autopsied Batch 01, coverage depth, and the next-distill queue |
 | 0:55–1:55 | Ask + Lore | Source metadata, a source-level answer, and a timestamped receipt stay visibly distinct |
 | 1:55–3:15 | Clip Lab | Evidence becomes a reviewable Short and an exact campaign ledger |
 | 3:15–3:55 | Trust Desk | Character mapping is separated from clip-level speaker proof |
@@ -125,6 +128,8 @@ What it proves:
 
 From the hero, choose **Put Memory to Work**.
 
+- Open **Tonight's 12** and say that it is the first machine shortlist for an
+  editor to review, not an automated publish queue.
 - Search Clip Lab for **Dr. Loomis**.
 - Set the Risk Gate to **LOW** and point out that every visible result is LOW.
 - Open a Short candidate and point out:
@@ -156,6 +161,8 @@ What it proves:
 
 Open **Canon Desk**.
 
+- State the boundary first: this desk covers the 74-source promoted corpus, not
+  Archive Deep's still-quarantined candidates.
 - Show Source Health: 71 healthy sources, 3 disclosed gaps, 0 structurally
   invalid or source-ID-mismatched URLs, and 0 out-of-range indexed timestamps.
 - Show Character Firewall: ordinary mentions are quarantined from curated
@@ -184,9 +191,10 @@ Say:
 > learns with you.
 
 Open **Creator Pilot Builder** in the private screening room and choose one
-goal. Point to the current snapshot proof, acceptance checks, decisions still
-requiring authenticated human approval, and `MEASURE DURING PILOT` boundary.
-Copy the draft brief.
+goal. Mike Mode preselects **Archive Discovery**; keep it or choose a different
+narrow workflow. Point to the current snapshot proof, acceptance checks,
+decisions still requiring authenticated human approval, and `MEASURE DURING
+PILOT` boundary. Copy the draft brief.
 
 Then ask:
 
@@ -203,7 +211,7 @@ Use only the branch the audience cares about:
 - **Fan community:** Night Shift, Red Band 100, WWAM UP IN YA, Personalized
   Descent, Evidence Bag, Trivia.
 - **Back-catalog discovery:** Ask WWAM, Popular 25, Fresh 10, franchise reports,
-  Lore Galaxy.
+  Lore Galaxy, and Archive Atlas's Autopsied Batch 01.
 - **Editorial operations:** Clip Lab, Live Aftermath, Control Room, Human
   Review Session, and correction packets.
 - **Recurring characters:** Ask the Character, then immediately show the
@@ -213,11 +221,26 @@ Use only the branch the audience cares about:
 
 ## Claims to use
 
-- “The current snapshot covers 74 unique official uploads.”
-- “Seventy-one sources have usable caption evidence; three gaps remain visible.”
+- “The current proof snapshot covers 84 total source inputs: 81
+  caption-audited and three sealed or caption-limited.”
+- “Those inputs contain 2,175,344 audited caption words across 194.89
+  caption-audited hours and 201.15 hours of known runtime.”
 - “Every item labeled as a moment returns to an exact indexed source
   timestamp.”
-- “The current archive contains 872 bounded editorial receipts.”
+- “The promoted corpus contains 872 bounded editorial receipts and 168 core
+  memory nodes.”
+- “Archive Deep Batch 01 adds ten caption-audited streams, 23.7 hours, 294,471
+  words, 43,585 parsed caption events, 100 topic lanes, 42 machine candidates,
+  and 12 character signals.”
+- “Four Archive Deep sources are topic-navigation-only; all 42 machine
+  candidates remain outside the promoted 872, Canon, Red Band, and WWAM UP IN
+  YA until playback review.”
+- “The Trust Desk's 71 healthy and three gap counts cover the promoted
+  74-source corpus; Archive Deep is disclosed separately.”
+- “Archive Atlas currently maps 472 records: 44 deeply indexed, 420
+  metadata-only, eight caption-limited, and zero classified unavailable in the
+  cached snapshot, for 9.3% deep coverage. Current availability was not
+  rechecked.”
 - “A working timestamp proves where an indexed fragment lives; it does not
   automatically prove speaker, target, intent, or human-verified wording.”
 - “Source-level summaries are labeled summaries, not timestamped quotes.”
@@ -233,6 +256,8 @@ Use only the branch the audience cares about:
 
 - “The AI knows which host said every line.”
 - “All 872 receipts were manually quote-checked.”
+- “The 42 Archive Deep candidates are already approved Red Band or UP IN YA
+  moments.”
 - “A source-level summary is what the hosts said at that timestamp.”
 - “Owner-mapped character means this individual clip has a verified speaker.”
 - “This is the first time the bit ever happened.”

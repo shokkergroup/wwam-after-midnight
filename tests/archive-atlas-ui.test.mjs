@@ -89,6 +89,8 @@ test("Ask applies oldest, newest, and cached-view ordering after title matching"
   const oldest = ui.askMarkup("oldest Scream uploads");
   const newest = ui.askMarkup("newest Scream uploads");
   const viewed = ui.askMarkup("most viewed Scream uploads");
+  const hyphenated = ui.askMarkup("What is the most-viewed Halloween livestream?");
+  const pluralQuestion = ui.askMarkup("What are the oldest Scream uploads?");
 
   assert.equal(firstTitle(oldest), "HALLOWEEN KILLS + SCREAM 5 UPDATES! Live!");
   assert.equal(firstTitle(newest), "SCREAM 7 Spoiler Review Party!");
@@ -99,6 +101,10 @@ test("Ask applies oldest, newest, and cached-view ordering after title matching"
   assert.match(oldest, /ORDER: UPLOAD DATE, OLDEST FIRST/);
   assert.match(newest, /ORDER: UPLOAD DATE, NEWEST FIRST/);
   assert.match(viewed, /ORDER: CACHED VIEWS, HIGHEST FIRST/);
+  assert.equal(firstTitle(hyphenated), "HALLOWEEN ENDS Spoiler Party Live!");
+  assert.match(hyphenated, /ORDER: CACHED VIEWS, HIGHEST FIRST/);
+  assert.equal(firstTitle(pluralQuestion), "HALLOWEEN KILLS + SCREAM 5 UPDATES! Live!");
+  assert.match(pluralQuestion, /ORDER: UPLOAD DATE, OLDEST FIRST/);
 });
 
 test("alias-aware Ask filtering rejects substring collateral before metadata sorting", () => {

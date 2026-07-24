@@ -126,6 +126,13 @@ test("the first-load static payload stays inside the showcase performance budget
   });
 });
 
+test("source byte budgets and generated fingerprints survive Windows checkouts", () => {
+  const attributes = fs.readFileSync(path.join(root, ".gitattributes"), "utf8");
+  for (const extension of ["css", "html", "js", "json", "md", "mjs", "py"]) {
+    assert.match(attributes, new RegExp(`\\*\\.${extension} text eol=lf`));
+  }
+});
+
 test("release identity, social proof, and documentation stay synchronized", () => {
   assert.match(html, /<title>[^<]*WWAM After Midnight[^<]*<\/title>/);
   assert.match(html, /<meta name="description" content="[^"]{80,}">/);

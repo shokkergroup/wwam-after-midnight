@@ -15,7 +15,7 @@
   ];
   var ARCHIVE_QUERY = /\b(uploads?|uploaded|streams?|streamed|livestreams?|videos?|archive|feed)\b/i;
   var STOP_WORDS = new Set([
-    "a", "an", "and", "archive", "did", "do", "feed", "find", "for", "from",
+    "a", "an", "and", "are", "archive", "did", "do", "feed", "find", "for", "from",
     "has", "have", "i", "in", "is", "latest", "list", "live", "livestream",
     "livestreams", "made", "make", "me", "most", "newest", "of", "oldest", "on",
     "popular", "recent", "show", "shows", "stream", "streamed", "streams", "the",
@@ -32,6 +32,7 @@
   var LANE_COPY = {
     "fresh-10": "FRESH 10",
     "popular-25": "POPULAR 25",
+    "archive-deep-10": "AUTOPSIED BATCH 01",
     "commentary-catalog": "COMMENTARY",
     "archive-metadata": "ARCHIVE RECORD",
   };
@@ -434,12 +435,40 @@
       }).join("");
     }
 
+    function renderBatch() {
+      var node = byId("archiveBatch");
+      var batch = root.WWAM_ARCHIVE_DEEP;
+      if (!node || !batch || !Array.isArray(batch.streams) || !batch.streams.length) return;
+      var meta = batch.meta || {};
+      node.hidden = false;
+      node.innerHTML = '<header><div><span>AUTOPSIED BATCH 01 // THE QUEUE MOVED</span>' +
+        '<h3>TEN BLIND SPOTS BECAME CAPTION-BACKED MAPS.</h3></div><p>' +
+        escapeHtml(formatNumber(meta.wordsAudited || 0)) + " words across " +
+        escapeHtml(meta.hours || 0) + " hours. " +
+        "The 42 short machine candidates remain outside canon and Red Band until playback review.</p></header>" +
+        '<div class="archive-batch-metrics"><div><b>' + Number(meta.streams || 0) +
+        '</b><span>SOURCES DISTILLED</span></div><div><b>' +
+        escapeHtml(formatNumber(meta.captionEvents || 0)) +
+        '</b><span>CAPTION EVENTS</span></div><div><b>' +
+        Number(meta.topicLanes || 0) + '</b><span>TOPIC LANES</span></div><div><b>' +
+        Number(meta.restricted || 0) + '</b><span>SOURCE-AUDIO FIREWALLS</span></div></div>' +
+        '<div class="archive-batch-strip">' + batch.streams.map(function (stream) {
+          return '<button type="button" data-archive-open="' + escapeHtml(stream.id) +
+            '" aria-label="Open Batch 01 autopsy for ' + escapeHtml(stream.title) +
+            '"><img loading="lazy" src="' + escapeHtml(stream.thumbnail) +
+            '" alt=""><span>#' + String(stream.archivePriority.originalRank).padStart(2, "0") +
+            " // " + escapeHtml(stream.contentMode.replace(/-/g, " ").toUpperCase()) +
+            '</span><b>' + escapeHtml(stream.title) + "</b></button>";
+        }).join("") + "</div>";
+    }
+
     function renderAll() {
       applyTruthCopy();
       renderProof();
       if (!engine) return;
       renderFilters();
       renderGrid();
+      renderBatch();
       renderQueue();
     }
 
@@ -537,7 +566,7 @@
 
     function askPlan(query) {
       if (!engine || !ARCHIVE_QUERY.test(query)) return null;
-      var lower = clean(query).toLowerCase();
+      var lower = normalized(query);
       var yearMatch = lower.match(/\b(20(?:1[8-9]|2[0-6]))\b/);
       var titleTerms = lower.replace(/[^a-z0-9]+/g, " ").split(/\s+/).filter(function (term) {
         return term && !STOP_WORDS.has(term) && !/^20\d{2}$/.test(term);

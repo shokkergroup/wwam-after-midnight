@@ -1,12 +1,33 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "2.0.0";
-  var PRODUCT = "WWAM AFTER MIDNIGHT · RED BAND MEMORABILITY INDEX";
+  var VERSION = "2.1.0";
+  var PRODUCT = "WWAM AFTER MIDNIGHT · RED BAND MEMORABILITY CANDIDATE INDEX";
   var DEFAULT_LIMIT = 100;
   var EXCERPT_WORD_LIMIT = 16;
   var EDITORIAL_VOTE_MIN = -5;
   var EDITORIAL_VOTE_MAX = 5;
+  var TOP_SLICE_POLICY = {
+    window: 25,
+    candidateHorizonMultiplier: 6,
+    maximumPerCategory: 4,
+    maximumExplicitBodyOrSexualLexical: 5,
+    maximumPreselectedCandidates: 8,
+    maximumPerSource: 2,
+    maximumNearDuplicateSimilarity: 0.72,
+    minimumReceiptCoherenceScore: 48
+  };
+  var RECEIPT_COHERENCE_POLICY = {
+    version: "receipt-coherence/v1",
+    minimumScore: 48,
+    structuralGateMinimumTokens: 8,
+    minimumDistinctContentTokens: 3,
+    maximumRepeatedTokenShare: 0.62,
+    maximumFillerTokenShare: 0.4,
+    languageNeutral: true,
+    interpretation:
+      "A deterministic caption-fragment check for showcase placement. It measures lexical variety, non-filler content, repetition, and bounded-context edges; profanity and sexual/gross language are not negative inputs."
+  };
   var CATEGORY_BASELINES = {
     "THE ROOM BREAKS": 100,
     "OUT OF POCKET": 99,
@@ -100,6 +121,47 @@
     /\bjason\b/i,
     /\bmichael myers\b/i
   ];
+  var EXPLICIT_BODY_OR_SEXUAL_PATTERNS = [
+    {
+      label: "sexual/anatomy",
+      pattern:
+        /\b(?:dick|cock|penis|jizz|splooge|cum|pussy|vagina|balls?|testicles?|tits?|boobs?)\w*\b/gi
+    },
+    {
+      label: "explicit-body",
+      pattern: /\b(?:butt\s*plug|butthole|asshole)\w*\b/gi
+    }
+  ];
+  var NEAR_DUPLICATE_STOPWORDS = new Set(
+    (
+      "a an and are as at be because been but by can did do does for from had has " +
+      "have he her here him his how i if in into is it its just like me my no not " +
+      "of oh on one or our out she so some that the their them then there they this " +
+      "to up was we were what when where which who why will with would yeah yes you your"
+    ).split(/\s+/)
+  );
+  var RECEIPT_COHERENCE_STOPWORDS = new Set(
+    (
+      "a an and are as at be because been being but by can cant can't could couldnt " +
+      "did didnt do does doesnt doing dont don't for from had has have he her here hers " +
+      "him his how i id ill im i'm if in into is isnt it its it's just me might my no " +
+      "not of on one or our ours she should so some than that the their them then there " +
+      "these they this those to too up us was we were what when where wheres where's " +
+      "which who why will with would wouldnt you your yours bleep"
+    ).split(/\s+/)
+  );
+  var RECEIPT_COHERENCE_FILLERS = new Set(
+    (
+      "ah alright anyways basically eh er hey hmm huh like literally look okay ok " +
+      "right so uh um well yeah yep yo"
+    ).split(/\s+/)
+  );
+  var RECEIPT_COHERENCE_CONNECTORS = new Set(
+    (
+      "a an and as at because but by for from i if in into like of on or she so " +
+      "that the they this to we what when where which who with you"
+    ).split(/\s+/)
+  );
 
   function array(value) {
     return Array.isArray(value) ? value : [];
@@ -116,6 +178,58 @@
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-z0-9]+/g, " ")
       .trim();
+  }
+
+  function explicitLexicalSignals(value) {
+    var text = clean(value).replace(/\bdick\s+(?:tracy|warlock)\b/gi, "proper name");
+    var families = {};
+    var count = 0;
+    EXPLICIT_BODY_OR_SEXUAL_PATTERNS.forEach(function (item) {
+      var matches = text.match(item.pattern);
+      if (!matches || !matches.length) return;
+      families[item.label] = matches.length;
+      count += matches.length;
+    });
+    return {
+      hit: count > 0,
+      count: count,
+      families: families
+    };
+  }
+
+  function nearDuplicateTokens(value) {
+    return unique(
+      normalized(value)
+        .split(/\s+/)
+        .filter(function (token) {
+          return (
+            token.length >= 3 &&
+            !NEAR_DUPLICATE_STOPWORDS.has(token) &&
+            token !== "bleep"
+          );
+        })
+    ).sort();
+  }
+
+  function tokenSimilarity(leftTokens, rightTokens) {
+    var left = array(leftTokens);
+    var right = array(rightTokens);
+    if (Math.min(left.length, right.length) < 4) return 0;
+    var rightSet = new Set(right);
+    var intersection = left.reduce(function (count, token) {
+      return count + (rightSet.has(token) ? 1 : 0);
+    }, 0);
+    if (intersection < 4) return 0;
+    var union = new Set(left.concat(right)).size;
+    var jaccard = intersection / Math.max(1, union);
+    var containment = intersection / Math.max(1, Math.min(left.length, right.length));
+    return round(Math.max(jaccard, containment * 0.9), 4);
+  }
+
+  function shortText(value, limit) {
+    var text = clean(value);
+    var maximum = Math.max(12, number(limit, 64));
+    return text.length > maximum ? text.slice(0, maximum - 1).trim() + "…" : text;
   }
 
   function number(value, fallback) {
@@ -180,6 +294,145 @@
 
   function countWords(value) {
     return clean(value).split(/\s+/).filter(Boolean).length;
+  }
+
+  function coherenceTokens(value) {
+    var matches = clean(value)
+      .toLowerCase()
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .match(/[a-z0-9]+(?:['\u2019][a-z0-9]+)*/g);
+    return array(matches).map(function (token) {
+      return token.replace(/\u2019/g, "'");
+    });
+  }
+
+  function receiptCoherence(value, excerpt) {
+    var text = clean(value);
+    var tokens = coherenceTokens(text);
+    var frequencies = {};
+    tokens.forEach(function (token) {
+      frequencies[token] = number(frequencies[token]) + 1;
+    });
+    var uniqueTokens = Object.keys(frequencies);
+    var fillerCount = tokens.filter(function (token) {
+      return RECEIPT_COHERENCE_FILLERS.has(token);
+    }).length;
+    var contentTokens = tokens.filter(function (token) {
+      return (
+        !RECEIPT_COHERENCE_STOPWORDS.has(token) &&
+        !RECEIPT_COHERENCE_FILLERS.has(token)
+      );
+    });
+    var distinctContentTokens = unique(contentTokens);
+    var repeatedTokenCount = Object.keys(frequencies).reduce(function (count, token) {
+      return count + (frequencies[token] > 1 ? frequencies[token] : 0);
+    }, 0);
+    var tokenCount = tokens.length;
+    var lexicalDiversity = tokenCount
+      ? (uniqueTokens.length / tokenCount) * 100
+      : 0;
+    var contentDensity = tokenCount
+      ? (contentTokens.length / tokenCount) * 100
+      : 0;
+    var repeatedTokenShare = tokenCount
+      ? repeatedTokenCount / tokenCount
+      : 1;
+    var fillerTokenShare = tokenCount ? fillerCount / tokenCount : 1;
+    var leadingFragment = /^(?:\u2026|\.{3})/.test(text);
+    var trailingFragment =
+      /(?:\u2026|\.{3})$/.test(text) ||
+      Boolean(excerpt && excerpt.truncated);
+    var finalToken = tokens[tokens.length - 1] || "";
+    var connectorEnding = RECEIPT_COHERENCE_CONNECTORS.has(finalToken);
+    var boundaryCompleteness = clamp(
+      100 -
+        (leadingFragment ? 20 : 0) -
+        (trailingFragment ? 25 : 0) -
+        (connectorEnding ? 20 : 0),
+      0,
+      100
+    );
+    var repetitionResistance = (1 - repeatedTokenShare) * 100;
+    var lengthSupport = Math.min(100, (tokenCount / 8) * 100);
+    var score = round(
+      lexicalDiversity * 0.25 +
+        contentDensity * 0.25 +
+        repetitionResistance * 0.25 +
+        boundaryCompleteness * 0.15 +
+        lengthSupport * 0.1,
+      2
+    );
+    var structuralGateApplies =
+      tokenCount >= RECEIPT_COHERENCE_POLICY.structuralGateMinimumTokens;
+    var boundarySignal =
+      leadingFragment || trailingFragment || connectorEnding;
+    var flags = [];
+    if (
+      structuralGateApplies &&
+      distinctContentTokens.length <
+        RECEIPT_COHERENCE_POLICY.minimumDistinctContentTokens &&
+      (
+        boundarySignal ||
+        fillerTokenShare >= 0.2
+      )
+    ) {
+      flags.push("thin-context");
+    }
+    if (
+      structuralGateApplies &&
+      repeatedTokenShare >
+        RECEIPT_COHERENCE_POLICY.maximumRepeatedTokenShare &&
+      (
+        boundarySignal ||
+        fillerTokenShare >= 0.2
+      )
+    ) {
+      flags.push("repetition-loop");
+    }
+    if (
+      structuralGateApplies &&
+      fillerTokenShare >
+        RECEIPT_COHERENCE_POLICY.maximumFillerTokenShare
+    ) {
+      flags.push("filler-heavy");
+    }
+    if (
+      structuralGateApplies &&
+      boundarySignal &&
+      distinctContentTokens.length <
+        RECEIPT_COHERENCE_POLICY.minimumDistinctContentTokens
+    ) {
+      flags.push("boundary-fragment");
+    }
+    var scorePass = score >= RECEIPT_COHERENCE_POLICY.minimumScore;
+    return {
+      policyVersion: RECEIPT_COHERENCE_POLICY.version,
+      score: score,
+      minimumScore: RECEIPT_COHERENCE_POLICY.minimumScore,
+      eligibleForTopSlice: scorePass && flags.length === 0,
+      languageNeutral: true,
+      lexicalTokenCount: tokenCount,
+      uniqueLexicalTokens: uniqueTokens.length,
+      distinctContentTokens: distinctContentTokens.length,
+      measures: {
+        lexicalDiversity: round(lexicalDiversity, 2),
+        contentDensity: round(contentDensity, 2),
+        repetitionResistance: round(repetitionResistance, 2),
+        repeatedTokenShare: round(repeatedTokenShare, 4),
+        fillerTokenShare: round(fillerTokenShare, 4),
+        boundaryCompleteness: round(boundaryCompleteness, 2),
+        lengthSupport: round(lengthSupport, 2)
+      },
+      boundary: {
+        leadingFragment: leadingFragment,
+        trailingFragment: trailingFragment,
+        connectorEnding: connectorEnding
+      },
+      flags: flags,
+      interpretation:
+        "Structural caption-receipt coherence only; not a claim about humor, taste, creator approval, or exact human-edited wording."
+    };
   }
 
   function boundedExcerpt(value) {
@@ -396,25 +649,41 @@
         source: source,
         contributions: [],
         curationLabels: [],
+        selectionSources: [],
+        preselectedCandidate: false,
         humanCurated: false,
         characterGrounded: false,
         lockedCharacterCandidate: false
       });
     }
     var candidate = candidateByKey.get(key);
+    var preselectedCandidate =
+      raw.preselectedCandidate === true || raw.humanCurated === true;
+    var selectionSource = clean(raw.selectionSource) || (
+      preselectedCandidate
+        ? raw.provider === "curated-up-in-ya"
+          ? "WWAM UP IN YA preselected candidate list"
+          : "character-performance preselected candidate list"
+        : ""
+    );
     candidate.contributions.push({
       provider: clean(raw.provider) || "archive",
       quote: quote,
       category: canonicalCategory(raw.category),
       intensity: clamp(raw.intensity, 0, 100),
       confidence: clamp(raw.confidence == null ? 0.82 : raw.confidence, 0, 1),
-      humanCurated: raw.humanCurated === true,
+      preselectedCandidate: preselectedCandidate,
+      humanCurated: preselectedCandidate,
+      selectionSource: selectionSource,
       characterGrounded: raw.characterGrounded === true,
       lockedCharacterCandidate: raw.lockedCharacterCandidate === true,
       originalId: clean(raw.originalId),
       sourceRank: number(raw.sourceRank, 0)
     });
-    candidate.humanCurated = candidate.humanCurated || raw.humanCurated === true;
+    candidate.preselectedCandidate =
+      candidate.preselectedCandidate || preselectedCandidate;
+    candidate.humanCurated = candidate.preselectedCandidate;
+    if (selectionSource) candidate.selectionSources.push(selectionSource);
     candidate.characterGrounded =
       candidate.characterGrounded || raw.characterGrounded === true;
     candidate.lockedCharacterCandidate =
@@ -470,7 +739,7 @@
     });
   }
 
-  function humanSelection(receipt) {
+  function preselectedSelection(receipt) {
     return normalized(
       receipt &&
       receipt.provenance &&
@@ -493,7 +762,8 @@
           intensity: 96,
           confidence: receipt.confidence,
           provider: "character-soundbyte",
-          humanCurated: humanSelection(receipt),
+          preselectedCandidate: preselectedSelection(receipt),
+          selectionSource: "character-performance preselected candidate list",
           characterGrounded: true,
           originalId: receipt.id
         });
@@ -511,7 +781,8 @@
           intensity: 88,
           confidence: receipt.confidence,
           provider: "character-context",
-          humanCurated: humanSelection(receipt),
+          preselectedCandidate: preselectedSelection(receipt),
+          selectionSource: "character-context preselected candidate list",
           characterGrounded: true,
           originalId: receipt.id
         });
@@ -531,7 +802,8 @@
           intensity: 82,
           confidence: receipt.confidence,
           provider: "character-soundbyte",
-          humanCurated: humanSelection(receipt),
+          preselectedCandidate: preselectedSelection(receipt),
+          selectionSource: "unverified-character preselected candidate list",
           characterGrounded: true,
           lockedCharacterCandidate: true,
           originalId: receipt.id
@@ -567,7 +839,9 @@
         return;
       }
       matched += 1;
+      candidate.preselectedCandidate = true;
       candidate.humanCurated = true;
+      candidate.selectionSources.push("WWAM UP IN YA preselected candidate list");
       candidate.curationLabels.push(clean(curated.label));
       candidate.contributions.push({
         provider: "curated-up-in-ya",
@@ -575,7 +849,9 @@
         category: "UP IN YA",
         intensity: 98,
         confidence: 0.96,
+        preselectedCandidate: true,
         humanCurated: true,
+        selectionSource: "WWAM UP IN YA preselected candidate list",
         characterGrounded: false,
         lockedCharacterCandidate: false,
         originalId: clean(curated.label),
@@ -736,12 +1012,15 @@
         return Math.max(maximum, number(contribution.confidence));
       }, 0);
       var language = languageRaw(primary.quote + " " + categories.join(" "), categories);
+      var explicitLexical = explicitLexicalSignals(excerpt.text);
+      var duplicateTokens = nearDuplicateTokens(excerpt.text);
+      var coherence = receiptCoherence(excerpt.text, excerpt);
       var evidenceRaw =
         64 +
         highestConfidence * 20 +
         Math.min(3, Math.max(0, providers.length - 1)) * 4 +
         (candidate.source.captioned === true ? 5 : 0) +
-        (candidate.humanCurated ? 3 : 0) -
+        (candidate.preselectedCandidate ? 3 : 0) -
         (candidate.lockedCharacterCandidate ? 13 : 0) -
         (/â€¦|�/.test(primary.quote) ? 4 : 0);
       var diversityRaw =
@@ -786,7 +1065,9 @@
         contributionCount: candidate.contributions.length,
         distinctContributionCount: providerIdentities.length,
         curationLabels: unique(candidate.curationLabels),
-        humanCurated: candidate.humanCurated,
+        selectionSources: unique(candidate.selectionSources),
+        preselectedCandidate: candidate.preselectedCandidate,
+        humanCurated: candidate.preselectedCandidate,
         characterGrounded: candidate.characterGrounded,
         lockedCharacterCandidate: candidate.lockedCharacterCandidate,
         editorialVoteKey: voteKey,
@@ -797,7 +1078,7 @@
           languageVoltage: language.raw,
           loreCallback: loreRaw(candidate, primary.quote, categories),
           humanCuration:
-            (candidate.humanCurated ? 10 : 0) +
+            (candidate.preselectedCandidate ? 10 : 0) +
             (candidate.curationLabels.length ? 4 : 0) +
             (candidate.characterGrounded ? 2 : 0),
           sourceDiversity: diversityRaw,
@@ -807,11 +1088,22 @@
             : 0
         },
         languageLanes: language.byLane,
+        diversitySignals: {
+          explicitBodyOrSexualLexical: explicitLexical.hit,
+          explicitBodyOrSexualLexicalCount: explicitLexical.count,
+          explicitBodyOrSexualFamilies: explicitLexical.families,
+          nearDuplicateTokens: duplicateTokens,
+          nearDuplicateSignature: fingerprint(duplicateTokens.join("|")),
+          receiptCoherence: coherence,
+          sourceCandidateCount: sourceCounts[candidate.sourceId],
+          laneCandidateCount: laneCounts[candidate.source.lane],
+          franchiseCandidateCount: franchiseCounts[candidate.source.franchise]
+        },
         tieBreaker: {
           contentFingerprint: fingerprint(tieMaterial),
           identityFingerprint: fingerprint(tieMaterial + "|" + fingerprint(candidate.sourceId)),
           policy:
-            "score → evidence → human curation → category → diversity → content fingerprint → opaque identity hash only for otherwise identical receipts"
+            "score → evidence → preselection signal → category → diversity → content fingerprint → opaque identity hash only for otherwise identical receipts"
         }
       });
     });
@@ -839,27 +1131,99 @@
     };
   }
 
-  function reasonFor(component, candidate) {
+  function languageLaneDetail(candidate) {
+    var labels = stableSort(
+      Object.keys(candidate.languageLanes || {}).map(function (lane) {
+        return {
+          lane: lane,
+          count: number(candidate.languageLanes[lane])
+        };
+      }),
+      function (left, right) {
+        return (
+          right.count - left.count ||
+          left.lane.localeCompare(right.lane)
+        );
+      }
+    );
+    return labels.map(function (item) {
+      return item.count + " " + item.lane + " hit" + (item.count === 1 ? "" : "s");
+    }).join(", ");
+  }
+
+  function reasonFor(component, candidate, scoredComponent) {
+    var raw = round(scoredComponent && scoredComponent.raw, 2);
+    var percentile = round(scoredComponent && scoredComponent.percentile, 2);
     if (component === "categoryIntensity") {
-      return candidate.category + " carries top-tier category intensity.";
+      return (
+        candidate.category +
+        " contributes a " +
+        raw +
+        "/100 intensity signal (" +
+        percentile +
+        "th percentile in this candidate pool)."
+      );
     }
     if (component === "roomBreak") {
-      return "The receipt contains a room-break or laughter-pattern signal.";
+      return (
+        "Room-reaction signal is " +
+        raw +
+        " (" +
+        percentile +
+        "th percentile), from bounded transcript wording and/or the " +
+        candidate.category +
+        " category prior."
+      );
     }
     if (component === "languageVoltage") {
-      return "Profanity, kill, gross-out, or nuclear-take language raises the voltage.";
+      var lanes = languageLaneDetail(candidate);
+      return lanes
+        ? "Bounded-text voltage includes " + lanes + "; scored raw " + raw + "."
+        : candidate.category +
+            " supplies the language-voltage prior; no explicit lexical hit is required.";
     }
     if (component === "loreCallback") {
       return candidate.characterGrounded
-        ? "A human-selected character receipt gives it recurring-bit and callback value."
-        : "Recurring horror names or lore categories give it callback value.";
+        ? "Character-candidate evidence supplies a " +
+            raw +
+            " callback signal; performer attribution still follows its separate provenance."
+        : "Horror-name/category callback signal is " + raw + " for this bounded receipt.";
     }
     if (component === "humanCuration") {
-      return candidate.curationLabels.length
-        ? "A human-curated WWAM UP IN YA selection backs the machine score."
-        : "A human-curated character soundbyte backs the machine score.";
+      var source =
+        candidate.selectionSources[0] || "a preselected candidate list";
+      var label = candidate.curationLabels[0]
+        ? ' (“' + shortText(candidate.curationLabels[0], 42) + '”)'
+        : "";
+      return (
+        "Preselection signal comes from " +
+        source +
+        label +
+        "; it is not an authenticated creator or editor vote."
+      );
     }
-    return "Its source is comparatively underrepresented in the candidate pool.";
+    return (
+      shortText(candidate.sourceTitle, 58) +
+      " contributes " +
+      candidate.diversitySignals.sourceCandidateCount +
+      " candidate receipts to the current pool; source scarcity scores " +
+      raw +
+      "."
+    );
+  }
+
+  function receiptAnchorReason(candidate) {
+    return (
+      "Receipt anchor: " +
+      shortText(candidate.sourceTitle, 54) +
+      " at " +
+      candidate.timecode +
+      ", backed by " +
+      candidate.providers.length +
+      " indexed provider" +
+      (candidate.providers.length === 1 ? "" : "s") +
+      "; speaker remains undiarized."
+    );
   }
 
   function scorePool(pool, input) {
@@ -927,7 +1291,7 @@
           return {
             signal: signal,
             points: scoreComponents[signal].points,
-            reason: reasonFor(signal, candidate)
+            reason: reasonFor(signal, candidate, scoreComponents[signal])
           };
         }),
         function (left, right) {
@@ -941,10 +1305,11 @@
         .filter(function (entry) {
           return entry.points > 0;
         })
-        .slice(0, 3)
+        .slice(0, 2)
         .map(function (entry) {
           return entry.reason;
         });
+      why.push(receiptAnchorReason(candidate));
       if (candidate.editorialVote) {
         why.push(
           "A supplied editorial vote applies a transparent " +
@@ -969,12 +1334,15 @@
         candidate.excerpt.truncated
           ? "Caption excerpt bounded to " + EXCERPT_WORD_LIMIT + " words"
           : "Caption excerpt within " + EXCERPT_WORD_LIMIT + "-word boundary",
+        "Receipt-coherence check " +
+          candidate.diversitySignals.receiptCoherence.score +
+          "/100; structural and language-neutral, not a comedy verdict",
         candidate.providers.length +
           " indexed evidence provider" +
           (candidate.providers.length === 1 ? "" : "s"),
-        candidate.humanCurated
-          ? "Human-curated selection present"
-          : "No human-curated selection claimed",
+        candidate.preselectedCandidate
+          ? "Preselected candidate input present; no authenticated creator/editor vote claimed"
+          : "No preselected-candidate input claimed",
         "Speaker not diarized; no host-authorship or true-origin claim"
       ];
       candidate.uncertainty = {
@@ -995,7 +1363,10 @@
               : "",
             candidate.sourceCaptioned === true
               ? ""
-              : "Caption availability is not affirmatively recorded on the source."
+              : "Caption availability is not affirmatively recorded on the source.",
+            candidate.diversitySignals.receiptCoherence.eligibleForTopSlice
+              ? ""
+              : "Bounded excerpt is playable but does not clear the machine receipt-coherence showcase gate."
           ].filter(Boolean)
         )
       };
@@ -1021,6 +1392,298 @@
         right.tieBreaker.identityFingerprint
       )
     );
+  }
+
+  function nearestSelectedDuplicate(candidate, selected) {
+    var best = null;
+    array(selected).forEach(function (other) {
+      var similarity = tokenSimilarity(
+        candidate.diversitySignals.nearDuplicateTokens,
+        other.diversitySignals.nearDuplicateTokens
+      );
+      if (similarity < TOP_SLICE_POLICY.maximumNearDuplicateSimilarity) return;
+      if (
+        !best ||
+        similarity > best.similarity ||
+        (
+          similarity === best.similarity &&
+          other.tieBreaker.contentFingerprint.localeCompare(
+            best.candidate.tieBreaker.contentFingerprint
+          ) < 0
+        )
+      ) {
+        best = { candidate: other, similarity: similarity };
+      }
+    });
+    return best;
+  }
+
+  function coherenceViolationReasons(candidate) {
+    var coherence = candidate.diversitySignals.receiptCoherence;
+    if (!coherence || coherence.eligibleForTopSlice) return [];
+    var reasons = [];
+    if (coherence.score < RECEIPT_COHERENCE_POLICY.minimumScore) {
+      reasons.push(
+        "receipt-coherence-score:" +
+        coherence.score.toFixed(2) +
+        "<" +
+        RECEIPT_COHERENCE_POLICY.minimumScore
+      );
+    }
+    coherence.flags.forEach(function (flag) {
+      reasons.push("receipt-coherence:" + flag);
+    });
+    return reasons;
+  }
+
+  function topSliceViolations(candidate, selected, counts, includeCoherence) {
+    var reasons = [];
+    if (includeCoherence !== false) {
+      reasons = reasons.concat(coherenceViolationReasons(candidate));
+    }
+    if (
+      number(counts.categories[candidate.category]) >=
+      TOP_SLICE_POLICY.maximumPerCategory
+    ) {
+      reasons.push("category-cap:" + candidate.category);
+    }
+    if (
+      candidate.diversitySignals.explicitBodyOrSexualLexical &&
+      counts.explicitBodyOrSexualLexical >=
+        TOP_SLICE_POLICY.maximumExplicitBodyOrSexualLexical
+    ) {
+      reasons.push("explicit-body-or-sexual-lexical-cap");
+    }
+    if (
+      candidate.preselectedCandidate &&
+      counts.preselectedCandidates >= TOP_SLICE_POLICY.maximumPreselectedCandidates
+    ) {
+      reasons.push("preselected-candidate-cap");
+    }
+    if (
+      number(counts.sources[candidate.sourceId]) >= TOP_SLICE_POLICY.maximumPerSource
+    ) {
+      reasons.push("source-cap:" + candidate.sourceId);
+    }
+    var duplicate = nearestSelectedDuplicate(candidate, selected);
+    if (duplicate) {
+      reasons.push(
+        "near-duplicate:" +
+        duplicate.candidate.tieBreaker.contentFingerprint +
+        ":" +
+        duplicate.similarity.toFixed(2)
+      );
+    }
+    return reasons;
+  }
+
+  function strictTopSliceSelection(rankedPool, target, horizon, includeCoherence) {
+    var selected = [];
+    var counts = {
+      categories: {},
+      sources: {},
+      explicitBodyOrSexualLexical: 0,
+      preselectedCandidates: 0
+    };
+    for (var index = 0; index < horizon && selected.length < target; index += 1) {
+      var candidate = rankedPool[index];
+      var violations = topSliceViolations(
+        candidate,
+        selected,
+        counts,
+        includeCoherence
+      );
+      if (violations.length) continue;
+      selected.push(candidate);
+      addTopSliceCount(candidate, counts);
+    }
+    return selected;
+  }
+
+  function coherenceSelectionSummary(candidates) {
+    var values = array(candidates);
+    var scores = values.map(function (candidate) {
+      return candidate.diversitySignals.receiptCoherence.score;
+    });
+    var failed = values.filter(function (candidate) {
+      return !candidate.diversitySignals.receiptCoherence.eligibleForTopSlice;
+    });
+    return {
+      candidates: values.length,
+      eligible: values.length - failed.length,
+      failed: failed.length,
+      meanScore: scores.length
+        ? round(
+            scores.reduce(function (total, score) {
+              return total + score;
+            }, 0) / scores.length,
+            2
+          )
+        : 0,
+      minimumScore: scores.length ? round(Math.min.apply(null, scores), 2) : 0,
+      failedReceipts: failed.map(function (candidate) {
+        return {
+          receiptKey: candidate.internalKey,
+          score: candidate.diversitySignals.receiptCoherence.score,
+          flags: candidate.diversitySignals.receiptCoherence.flags
+        };
+      })
+    };
+  }
+
+  function addTopSliceCount(candidate, counts) {
+    counts.categories[candidate.category] =
+      number(counts.categories[candidate.category]) + 1;
+    counts.sources[candidate.sourceId] =
+      number(counts.sources[candidate.sourceId]) + 1;
+    if (candidate.diversitySignals.explicitBodyOrSexualLexical) {
+      counts.explicitBodyOrSexualLexical += 1;
+    }
+    if (candidate.preselectedCandidate) counts.preselectedCandidates += 1;
+  }
+
+  function applyTopSliceDiversity(rankedPool, requestedLimit) {
+    var target = Math.min(
+      TOP_SLICE_POLICY.window,
+      Math.max(0, Math.floor(number(requestedLimit))),
+      rankedPool.length
+    );
+    var horizon = Math.min(
+      rankedPool.length,
+      Math.max(
+        target,
+        TOP_SLICE_POLICY.window * TOP_SLICE_POLICY.candidateHorizonMultiplier
+      )
+    );
+    var beforeCoherenceGate = strictTopSliceSelection(
+      rankedPool,
+      target,
+      horizon,
+      false
+    );
+    var selected = [];
+    var selectedKeys = new Set();
+    var deferredReasons = new Map();
+    var counts = {
+      categories: {},
+      sources: {},
+      explicitBodyOrSexualLexical: 0,
+      preselectedCandidates: 0
+    };
+
+    rankedPool.forEach(function (candidate, index) {
+      candidate.diversityControl = {
+        policyVersion: "top-slice-diversity/v2",
+        baselineRank: index + 1,
+        finalRank: null,
+        rankMovement: 0,
+        selectedInTopSlice: false,
+        strictPolicyPass: false,
+        constraintRelaxed: false,
+        deferredFromTopSlice: false,
+        deferralReasons: []
+      };
+    });
+
+    for (var index = 0; index < horizon && selected.length < target; index += 1) {
+      var candidate = rankedPool[index];
+      var violations = topSliceViolations(candidate, selected, counts);
+      if (violations.length) {
+        deferredReasons.set(candidate.internalKey, violations);
+        continue;
+      }
+      selected.push(candidate);
+      selectedKeys.add(candidate.internalKey);
+      addTopSliceCount(candidate, counts);
+      candidate.diversityControl.selectedInTopSlice = true;
+      candidate.diversityControl.strictPolicyPass = true;
+    }
+
+    if (selected.length < target) {
+      rankedPool.some(function (candidate) {
+        if (selected.length >= target) return true;
+        if (selectedKeys.has(candidate.internalKey)) return false;
+        var violations =
+          deferredReasons.get(candidate.internalKey) ||
+          topSliceViolations(candidate, selected, counts);
+        selected.push(candidate);
+        selectedKeys.add(candidate.internalKey);
+        addTopSliceCount(candidate, counts);
+        candidate.diversityControl.selectedInTopSlice = true;
+        candidate.diversityControl.constraintRelaxed = violations.length > 0;
+        candidate.diversityControl.deferralReasons = violations;
+        return false;
+      });
+    }
+
+    var ordered = selected.concat(
+      rankedPool.filter(function (candidate) {
+        return !selectedKeys.has(candidate.internalKey);
+      })
+    );
+    ordered.forEach(function (candidate, index) {
+      var control = candidate.diversityControl;
+      control.finalRank = index + 1;
+      control.rankMovement = control.baselineRank - control.finalRank;
+      if (
+        !control.selectedInTopSlice &&
+        deferredReasons.has(candidate.internalKey)
+      ) {
+        control.deferredFromTopSlice = true;
+        control.deferralReasons = deferredReasons.get(candidate.internalKey);
+      }
+    });
+
+    return {
+      ordered: ordered,
+      diagnostics: {
+        policyVersion: "top-slice-diversity/v2",
+        window: target,
+        candidateHorizon: horizon,
+        caps: serialCopy(TOP_SLICE_POLICY),
+        selectedUnderStrictPolicy: selected.filter(function (candidate) {
+          return candidate.diversityControl.strictPolicyPass;
+        }).length,
+        selectedAfterConstraintRelaxation: selected.filter(function (candidate) {
+          return candidate.diversityControl.constraintRelaxed;
+        }).length,
+        candidatesDeferredFromTopSlice: deferredReasons.size,
+        candidatesDeferredForReceiptCoherence: Array.from(
+          deferredReasons.values()
+        ).filter(function (reasons) {
+          return reasons.some(function (reason) {
+            return reason.indexOf("receipt-coherence") === 0;
+          });
+        }).length,
+        explicitBodyOrSexualLexicalCount:
+          counts.explicitBodyOrSexualLexical,
+        preselectedCandidateCount: counts.preselectedCandidates,
+        categoryDistribution: distribution(
+          selected.map(function (candidate) {
+            return candidate.category;
+          })
+        ),
+        uniqueCategories: new Set(
+          selected.map(function (candidate) {
+            return candidate.category;
+          })
+        ).size,
+        uniqueSources: new Set(
+          selected.map(function (candidate) {
+            return candidate.sourceId;
+          })
+        ).size,
+        receiptCoherence: {
+          policy: serialCopy(RECEIPT_COHERENCE_POLICY),
+          beforeGate: coherenceSelectionSummary(beforeCoherenceGate),
+          afterGate: coherenceSelectionSummary(selected),
+          interpretation:
+            "Before-gate is the same deterministic diversity selection with only the receipt-coherence check disabled. After-gate is the published Top-25 selection. This comparison measures caption-fragment fitness, not comedy quality."
+        },
+        interpretation:
+          "Raw machine scores are computed first. The first 25 candidate positions then use a deterministic receipt-coherence gate plus caps for category repetition, explicit body/sexual lexical repetition, preselected-candidate repetition, source repetition, and near-duplicate transcript wording. Deferred candidates remain eligible for ranks 26-100; constraints relax only when the archive cannot fill the window."
+      }
+    };
   }
 
   function publicRanking(candidate, rank) {
@@ -1059,14 +1722,56 @@
       uncertainty: candidate.uncertainty,
       editorialVoteKey: candidate.editorialVoteKey,
       editorialVote: candidate.editorialVote,
+      preselectedCandidate: candidate.preselectedCandidate,
       humanCurated: candidate.humanCurated,
-      humanCurationStatus: candidate.humanCurated
-        ? "HUMAN-CURATED RECEIPT"
-        : "NO HUMAN-CURATION CLAIM",
+      humanCurationStatus: candidate.preselectedCandidate
+        ? "PRESELECTED CANDIDATE · NOT AN AUTHENTICATED CREATOR/EDITOR VOTE"
+        : "NO PRESELECTED-CANDIDATE CLAIM",
+      selectionProvenance: {
+        status: candidate.preselectedCandidate
+          ? "owner/project candidate set"
+          : "machine candidate pool only",
+        sources: candidate.selectionSources,
+        authenticatedCreatorVote: false,
+        authenticatedEditorDecision: false,
+        legacyHumanCuratedCompatibilityFlag: candidate.humanCurated
+      },
+      creatorVoteClaim: false,
+      editorSelectionAuthenticated: false,
       characterLoreReceipt: candidate.characterGrounded,
       curationLabels: candidate.curationLabels,
       evidenceProviders: candidate.providers,
       evidenceContributionCount: candidate.contributionCount,
+      receiptCoherence: serialCopy(
+        candidate.diversitySignals.receiptCoherence
+      ),
+      diversityControl: {
+        policyVersion: candidate.diversityControl.policyVersion,
+        baselineRank: candidate.diversityControl.baselineRank,
+        finalRank: rank,
+        rankMovement: candidate.diversityControl.baselineRank - rank,
+        selectedInTopSlice: candidate.diversityControl.selectedInTopSlice,
+        strictPolicyPass: candidate.diversityControl.strictPolicyPass,
+        constraintRelaxed: candidate.diversityControl.constraintRelaxed,
+        deferredFromTopSlice: candidate.diversityControl.deferredFromTopSlice,
+        deferralReasons: candidate.diversityControl.deferralReasons,
+        explicitBodyOrSexualLexical:
+          candidate.diversitySignals.explicitBodyOrSexualLexical,
+        explicitBodyOrSexualLexicalCount:
+          candidate.diversitySignals.explicitBodyOrSexualLexicalCount,
+        explicitBodyOrSexualFamilies:
+          candidate.diversitySignals.explicitBodyOrSexualFamilies,
+        nearDuplicateSignature:
+          candidate.diversitySignals.nearDuplicateSignature,
+        receiptCoherenceScore:
+          candidate.diversitySignals.receiptCoherence.score,
+        receiptCoherenceEligibleForTopSlice:
+          candidate.diversitySignals.receiptCoherence.eligibleForTopSlice,
+        receiptCoherenceFlags:
+          candidate.diversitySignals.receiptCoherence.flags
+      },
+      rankInterpretation:
+        "Machine-scored candidate position after the deterministic Top-25 diversity and receipt-coherence pass; not a creator vote, comedy verdict, or authenticated editor ranking.",
       tieBreaker: candidate.tieBreaker,
       provenance: {
         evidenceType: "timestamped-caption-receipt",
@@ -1074,7 +1779,9 @@
         speakerStatus: "not-diarized",
         originClaim: false,
         hostAuthorshipClaim: false,
-        syntheticQuote: false
+        syntheticQuote: false,
+        authenticatedCreatorVote: false,
+        authenticatedEditorDecision: false
       },
       speaker: null,
       host: null,
@@ -1162,7 +1869,7 @@
       }, 0),
       rankKeyCollisions: rankKeys.length - new Set(rankKeys).size,
       tieBreakPolicy:
-        "Score, evidence percentile, human-curation percentile, category percentile, source-diversity percentile, then a content-derived fingerprint. An opaque identity hash is used only when every content key collides. Source-ID lexical order is never a ranking comparator.",
+        "Baseline order uses score, evidence percentile, preselection-signal percentile, category percentile, source-diversity percentile, then a content-derived fingerprint. The deterministic Top-25 diversity and receipt-coherence pass runs after this baseline order. An opaque identity hash is used only when every content key collides. Source-ID lexical order is never a ranking comparator.",
       tieGroups: ties
     };
   }
@@ -1232,18 +1939,26 @@
       buildPool(input, sourceById, candidateByKey),
       input
     );
-    var rankedPool = stableSort(pool, compareRank);
-    var requestedLimit = Math.min(input.limit, rankedPool.length);
+    var baselineRankedPool = stableSort(pool, compareRank);
+    var requestedLimit = Math.min(input.limit, baselineRankedPool.length);
+    var diversityPass = applyTopSliceDiversity(
+      baselineRankedPool,
+      requestedLimit
+    );
+    var rankedPool = diversityPass.ordered;
     var rankings = rankedPool.slice(0, requestedLimit).map(function (candidate, index) {
       return publicRanking(candidate, index + 1);
     });
     var diagnostics = {
       diversity: diversityDiagnostics(rankings, pool),
+      topSliceDiversity: diversityPass.diagnostics,
       collisions: collisionDiagnostics(candidateByKey, pool, rankings),
       curation: {
         supplied: array(input.curation.upInYa).length,
         matchedToPlayableReceipt: curation.matched,
-        unmatched: curation.unmatched
+        unmatched: curation.unmatched,
+        interpretation:
+          "These are preselected project candidate inputs. They are not authenticated Mike/J votes or authenticated editor decisions."
       },
       recency: {
         enabled: input.includeRecency,
@@ -1277,16 +1992,16 @@
       )
     );
     var methodology = {
-      name: "Red Band Memorability Index V2",
+      name: "Red Band Memorability Candidate Index V2.1",
       rankingLimit: DEFAULT_LIMIT,
       formula:
-        "Weighted percentile signals × evidence modifier + explicit editorial-vote adjustment + optional explicitly labeled recency adjustment.",
+        "Weighted percentile signals × evidence modifier + explicit editorial-vote adjustment + optional explicitly labeled recency adjustment, followed by the deterministic Top-25 diversity and receipt-coherence pass.",
       percentileSignals: serialCopy(SCORE_WEIGHTS),
       evidenceModifier: {
         minimum: 0.75,
         maximum: 1,
         inputs:
-          "caption/source status, confidence already present in the archive, human curation, multi-provider agreement, and explicit uncertainty penalties"
+          "caption/source status, confidence already present in the archive, preselected-candidate input, multi-provider agreement, and explicit uncertainty penalties"
       },
       editorialVoteHook: {
         key: "sourceId@roundedTimestamp",
@@ -1296,6 +2011,15 @@
       },
       recency:
         "Off by default. Set includeRecency: true to add a clearly labeled adjustment from -3 to +3 points.",
+      topSliceDiversity: {
+        policy: serialCopy(TOP_SLICE_POLICY),
+        receiptCoherence: serialCopy(RECEIPT_COHERENCE_POLICY),
+        order:
+          "Raw machine scores establish the baseline order. A greedy deterministic pass selects the first 25 from a bounded six-window horizon while enforcing a language-neutral caption-receipt coherence gate plus category, explicit body/sexual lexical, preselected-candidate, source, and near-duplicate caps. Deferred candidates remain in baseline order from rank 26 onward. If a small archive cannot fill the window, constraints relax in baseline order and every relaxation is labeled.",
+        creatorVoteClaim: false,
+        authenticatedEditorDecision: false,
+        comedyQualityClaim: false
+      },
       tieBreak:
         diagnostics.collisions.tieBreakPolicy
     };
@@ -1305,9 +2029,13 @@
       speakerStatus: "not-diarized",
       hostAuthorshipClaims: false,
       trueOriginClaims: false,
+      creatorVoteClaims: false,
+      authenticatedEditorDecisionClaims: false,
       syntheticQuotes: false,
+      receiptCoherence:
+        "Top-25 placement requires a deterministic structural caption-fragment check. Wild language is not penalized, and passing does not certify humor or human-edited wording.",
       note:
-        "A ranked item is a bounded timestamped caption receipt. Rank does not identify who said it or establish the true origin of a recurring bit."
+        "A ranked item is a bounded timestamped caption receipt and machine-ranked candidate. Rank does not identify who said it, establish the true origin of a recurring bit, or represent an authenticated creator/editor vote."
     };
     var metrics = {
       candidateContributions: diagnostics.collisions.ingestedContributions,
@@ -1389,6 +2117,8 @@
     DEFAULT_LIMIT: DEFAULT_LIMIT,
     EXCERPT_WORD_LIMIT: EXCERPT_WORD_LIMIT,
     SCORE_WEIGHTS: serialCopy(SCORE_WEIGHTS),
+    TOP_SLICE_POLICY: serialCopy(TOP_SLICE_POLICY),
+    RECEIPT_COHERENCE_POLICY: serialCopy(RECEIPT_COHERENCE_POLICY),
     EDITORIAL_VOTE_RANGE: [EDITORIAL_VOTE_MIN, EDITORIAL_VOTE_MAX],
     voteKey: receiptIdentity,
     create: create

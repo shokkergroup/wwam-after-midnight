@@ -250,6 +250,32 @@ The DNA pack is configuration, not proof. “Look for Loomis” does not prove a
 
 WWAM’s current pack is `public/demo/wwam-channel-dna.js`.
 
+### Executable ChannelPack conformance
+
+Channel DNA now passes through an executable portability boundary instead of
+remaining an architectural claim. `public/demo/channel-pack-contract.js`
+compiles DNA plus explicit operational policy into the downloadable
+`public/demo/channel-pack-spec.json` shape.
+
+The compiler validates eight domains: identity, source lanes and inclusion
+boundaries, taxonomy, evidence policy, update contract, storage namespace,
+surface vocabulary, and capabilities. It has no safety-relevant defaults. A
+pack fails closed if it can silently promote machine output, skip human review,
+guess a speaker, synthesize character audio, erase corrections, omit an
+inclusion boundary, mix storage namespaces, or claim an update cadence it did
+not declare.
+
+The compiled artifact is canonicalized and fingerprinted. Reordering semantic
+sets does not alter the result, but changing any public policy invalidates the
+fingerprint. `validatePortfolio()` additionally rejects duplicate channel IDs
+and storage namespaces, making product separation executable.
+
+The conformance suite runs the real WWAM DNA and a synthetic test-only racing
+fixture through the same compiler, then verifies that the neutral result leaks
+none of WWAM’s vocabulary. That fixture is not VRL data and is never loaded by
+the WWAM demo. See `docs/CHANNEL_PACK_CONTRACT.md` for the adapter shape,
+failure modes, and browser API.
+
 ## Showcase derivations
 
 ### Memory Graph

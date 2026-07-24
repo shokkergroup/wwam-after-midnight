@@ -20,19 +20,25 @@
   ];
 
   var QUERY_CUE_WORDS = [
-    "about", "again", "anything", "archive", "archived", "audience", "began", "begin", "best", "biggest",
+    "about", "again", "anything", "archive", "archived", "audience", "batch", "began", "begin", "best", "biggest",
     "bit", "broadcast", "broadcasts", "called", "caption", "captions", "change", "changed", "chapter",
     "clip", "commentaries", "commentary", "crazy", "criticize", "criticized", "deranged",
-    "cover", "covered", "coverage", "discuss", "discussed", "dislike", "disliked", "draw", "draws", "drew",
+    "cover", "covered", "coverage", "deep", "discuss", "discussed", "dislike", "disliked", "draw", "draws", "drew",
     "earliest", "episode", "episodes", "ever", "evidence", "favorite", "fewest",
     "first", "foundational", "fresh", "funniest", "funny", "garbage", "hate",
     "hated", "highest", "index", "indexed", "last", "latest", "laugh", "like",
     "liked", "live", "livestream", "livestreams", "love", "loved", "lowest", "mention",
     "mentioned", "moment", "most", "never", "newest", "oldest", "one", "ones",
     "opinion", "popular", "praise", "praised", "prove", "ranking", "receipt", "recent", "recently", "score",
-    "something", "soundbyte", "source", "start", "started", "stream", "streams", "talk", "talked", "tape",
-    "think", "topic", "trash", "unhinged", "upload", "uploads", "video", "videos",
+    "something", "soundbyte", "source", "start", "started", "stream", "streams", "talk", "talked", "talking", "tape",
+    "think", "topic", "topics", "discussing", "trash", "unhinged", "upload", "uploads", "video", "videos",
     "viewed", "views", "watchalong", "watchalongs", "watched", "wild", "worst",
+  ];
+
+  var SOURCE_TITLE_NOISE_WORDS = [
+    "find", "franchise", "franchises", "jump", "live", "livestream", "movie", "movies",
+    "open", "please", "show", "stream", "video", "watched", "we", "whats",
+    "wheres", "whos",
   ];
 
   var EXPANSIONS = {
@@ -84,11 +90,16 @@
     "TAKE GETS NUCLEAR",
   ];
 
-  var EVALUATIVE_TERMS = [
-    "love", "loved", "favorite", "amazing", "awesome", "beautiful", "perfect",
-    "great", "good", "excellent", "enjoy", "hate", "hated", "worst", "awful",
-    "terrible", "trash", "garbage", "sucks", "suck", "bad", "stupid", "dumb",
-    "ruined", "boring", "ugly", "not good", "dont like", "didnt like", "i like",
+  var NEGATIVE_EVALUATIVE_TERMS = [
+    "never watch", "couldnt stand", "didnt like", "dont like", "not good",
+    "hate", "hated", "worst", "awful", "terrible", "trash", "garbage",
+    "sucks", "suck", "bad", "stupid", "dumb", "ruined", "boring", "ugly",
+  ];
+
+  var POSITIVE_EVALUATIVE_TERMS = [
+    "really like", "i like", "love", "loved", "favorite", "best", "amazing",
+    "awesome", "beautiful", "perfect", "great", "good", "excellent",
+    "enjoy", "enjoyed",
   ];
 
   var TAKE_TARGET_TERMS = [
@@ -96,18 +107,23 @@
     "reboot", "scene", "sequence", "ending", "opening", "story", "plot", "script",
     "writing", "direction", "directing", "performance", "acting", "score", "music",
     "soundtrack", "shot", "cinematography", "mask", "part", "effect", "effects",
-    "dialogue", "pacing", "tone", "design", "edit", "editing",
+    "dialogue", "pacing", "tone", "design", "edit", "editing", "character",
+    "characters", "actor", "actors", "cast", "costume", "look",
   ];
 
+  var OPINION_PROXIMITY_WORDS = 8;
+  var SCREEN_REFERENT_TERMS = ["this", "that", "it", "its"];
+  var SCREEN_REFERENT_PROXIMITY_WORDS = 2;
+
   var QUERY_EXAMPLES = [
-    "Which commentary has the highest Unhinged Index?",
-    "What is the most-viewed Halloween livestream?",
-    "Which Scream commentary is newest?",
-    "When did Batman come up most recently?",
+    "What do they think of Halloween Ends?",
+    "What is funniest in the most-viewed livestream?",
     "Where is The Burp Defense?",
-    "Show me indexed Dr. Loomis character signals",
-    "What do they criticize in the Elm Street remake?",
-    "What is funniest in the newest livestream?",
+    "When did J first do Dr. Loomis?",
+    "What is funniest about an AI version of us in Archive Deep?",
+    "What is Red Band #25?",
+    "Which Friday the 13th movie do they hate most?",
+    "Which Halloween streams were uploaded in 2019?",
   ];
 
   function normalize(value) {
@@ -144,8 +160,17 @@
 
   function parseIntent(query) {
     var q = normalize(query);
+    var firstPerformanceGrammar =
+      /\bfirst (?:do|does|did|perform|performed|portray|portrayed|play|played|voice|voiced)\b/.test(q);
+    var firstAppearanceGrammar =
+      /\b(?:first|earliest)(?: indexed)? (?:appear|appears|appeared|appearance|show up|showed up|debut)\b/.test(q);
     var sourceExplicit = false;
     var source = "all";
+    var archiveRequested = includesAny(q, [
+      "archive deep", "deep archive", "archive batch", "batch 01", "batch 1",
+      "archived livestream", "archived live stream", "archive livestream",
+      "archive live stream",
+    ]);
     if (includesAny(q, [
       "commentary", "commentaries", "watchalong", "watchalongs", "watch along",
       "watch alongs", "tape autopsy",
@@ -160,7 +185,7 @@
       sourceExplicit = true;
     }
 
-    var temporal = includesAny(q, [
+    var temporal = firstPerformanceGrammar || firstAppearanceGrammar || includesAny(q, [
       "earliest", "oldest", "first indexed", "first time", "first livestream",
       "first live stream", "first live show", "first commentary", "first watchalong",
       "first upload", "first video",
@@ -183,7 +208,7 @@
     var originRequest = containsNormalizedPhrase(q, "origin") || includesAny(q, [
       "originate", "started", "start of", "began", "debut", "first ever",
       "first time", "earliest ever", "invented", "bit start", "bit begin",
-    ]) || (
+    ]) || firstPerformanceGrammar || firstAppearanceGrammar || (
       includesAny(q, ["earliest", "first"]) &&
       includesAny(q, ["appearance", "bit", "character", "impression", "performance", "portrayal", "signal", "show up"])
     );
@@ -197,8 +222,10 @@
       includesAny(q, ["change", "changed", "changing", "evolve", "evolved", "shift", "shifted"])
     );
     var neutralOpinion = includesAny(q, [
-      "think about", "thoughts about", "thoughts on", "opinion about", "opinion of",
-      "opinion on", "take about", "take on", "feel about", "feel on", "make of",
+      "think about", "think of", "thought about", "thought of", "thoughts about",
+      "thoughts on", "thoughts of", "opinion about", "opinion of", "opinion on",
+      "take about", "take on", "feel about", "feel on", "make of",
+      "do they like", "does he like", "does she like", "did they like",
     ]);
     var negativeExistence = includesAny(q, [
       "never cover", "never covered", "never discuss", "never discussed",
@@ -219,12 +246,24 @@
       )
     );
 
+    var topicOverviewRequest = source === "livestream" && includesAny(q, [
+      "what are they talking about", "what are they talking", "what do they talk about",
+      "what did they talk about", "what topics", "which topics", "topic rundown",
+      "topics are they discussing", "topics were they discussing",
+      "what is being discussed", "what was being discussed", "whats being discussed",
+    ]);
+    var comedyRequest = includesAny(q, [
+      "funny", "funniest", "laugh", "deranged", "wild", "crazy", "fucked", "soundbyte",
+    ]);
+    var compoundViewComedy = comedyRequest && viewSelector;
     var intent = "discovery";
     if (trajectory) intent = "trajectory";
-    else if (includesAny(q, ["highest", "lowest", "rank", "ranking", "most popular", "most unhinged",
-      "least unhinged", "most viewed", "most watched", "most views", "least viewed",
-      "fewest views", "biggest audience", "largest audience", "biggest stream",
-      "top stream", "foundational"]) || viewSelector) intent = "ranking";
+    else if (!compoundViewComedy && (
+      includesAny(q, ["highest", "lowest", "rank", "ranking", "most popular", "most unhinged",
+        "least unhinged", "most viewed", "most watched", "most views", "least viewed",
+        "fewest views", "biggest audience", "largest audience", "biggest stream",
+        "top stream", "foundational"]) || viewSelector
+    )) intent = "ranking";
     else if (includesAny(q, [
       "hate", "hated", "worst", "bad", "sucks", "trash", "garbage", "criticize",
       "criticized", "dislike", "disliked", "despise", "despised", "loathe",
@@ -235,10 +274,11 @@
       "praise", "praised", "enjoy", "enjoyed",
     ])) intent = "positive";
     else if (neutralOpinion) intent = "opinion";
-    else if (includesAny(q, ["funny", "funniest", "laugh", "deranged", "wild", "crazy", "fucked", "soundbyte"])) intent = "comedy";
+    else if (comedyRequest) intent = "comedy";
     else if (includesAny(q, ["theory", "predict", "prediction", "called it"])) intent = "theory";
     else if (includesAny(q, ["kill", "death", "murder", "stab"])) intent = "kills";
-    else if (includesAny(q, ["talk about", "talked about", "discuss", "mention", "topic", "jump to",
+    else if (topicOverviewRequest || includesAny(q, [
+      "talk about", "talked about", "talking about", "discuss", "mention", "topic", "jump to",
       "say about", "said about", "think about", "what did they say"])) intent = "topic";
 
     var namedHostAttribution = includesAny(q, [
@@ -284,13 +324,18 @@
     ]);
     var heatRequest = includesAny(q, ["hottest", "highest heat", "most chaotic"]);
     var viewMetricRequest = viewSelector || containsNormalizedPhrase(q, "views");
-    var metric = liveHeatRequest ? "live-heat" :
+    var metric = compoundViewComedy ? "heat" :
+      liveHeatRequest ? "live-heat" :
       unhingedRequest ? "unhinged" :
       viewMetricRequest || containsNormalizedPhrase(q, "popular") ? "views" :
         mentionsRequest ? "mentions" :
           heatRequest ? "heat" :
             temporal !== "all" ? "date" : "relevance";
     var direction = includesAny(q, ["lowest", "least", "earliest", "oldest"]) ? "ascending" : "descending";
+    var opinionComparison = includesAny(q, [
+      "hate most", "hated most", "like most", "liked most", "love most",
+      "loved most", "best", "worst", "favorite",
+    ]);
     var performanceRequested = includesAny(q, [
       "performance", "performed", "performing", "impression", "impersonation",
       "in character", "portrays", "portrayed", "portrayal", "voiced", "voicing",
@@ -300,11 +345,11 @@
       "do loomis", "does loomis", "doing challis", "doing dr challis",
       "doing doctor challis", "did challis", "do challis", "does challis",
       "doing slenderman", "doing slender man", "doing corey feldman",
-    ]) || (
+    ]) || firstPerformanceGrammar || firstAppearanceGrammar || (
       includesAny(q, ["verified", "real"]) &&
       includesAny(q, ["bit", "clip", "performance", "moment", "receipt"])
     );
-    var characterSignalRequested = includesAny(q, [
+    var characterSignalRequested = !firstAppearanceGrammar && includesAny(q, [
       "character signal", "character signals", "ordinary reference", "ordinary references",
       "character reference", "character references", "caption signal", "caption signals",
       "signal", "signals", "reference", "references", "mentioned", "mentions",
@@ -316,10 +361,13 @@
       name: intent,
       source: source,
       sourceExplicit: sourceExplicit,
+      archiveRequested: archiveRequested,
       temporal: temporal,
       temporalExplicit: temporal !== "all",
       popularity: popularity,
       popularityExplicit: popularity !== "all",
+      topicOverviewRequest: topicOverviewRequest,
+      firstAppearanceRequest: firstAppearanceGrammar,
       questionType: questionType,
       refusesSpeakerGuess: questionType === "speaker" && !mappingRequest,
       mappingRequest: mappingRequest,
@@ -331,8 +379,14 @@
       characterSignalRequested: characterSignalRequested,
       requestedYear: yearMatch ? Number(yearMatch[1]) : null,
       metric: metric,
-      metricExplicit: liveHeatRequest || unhingedRequest || viewMetricRequest || mentionsRequest || heatRequest,
+      metricExplicit: compoundViewComedy || liveHeatRequest || unhingedRequest ||
+        viewMetricRequest || mentionsRequest || heatRequest,
       direction: direction,
+      sourceSelector: compoundViewComedy ? {
+        metric: "views",
+        direction: direction,
+      } : null,
+      opinionComparison: opinionComparison,
       normalized: q,
       words: tokens(q),
     };
@@ -634,6 +688,225 @@
     });
   }
 
+  function sourceTitleTerms(value) {
+    return unique(normalize(romanVariant(value)).split(" ").filter(function (word) {
+      return (word.length > 1 || /^\d+$/.test(word)) &&
+        STOP_WORDS.indexOf(word) < 0 &&
+        QUERY_CUE_WORDS.indexOf(word) < 0 &&
+        SOURCE_TITLE_NOISE_WORDS.indexOf(word) < 0;
+    }));
+  }
+
+  function indexedSourceRecords(candidates) {
+    var records = {};
+    candidates.forEach(function (candidate) {
+      if (!candidate.sourceId || !candidate.sourceTitle) return;
+      var key = candidate.source + "|" + candidate.sourceId;
+      var record = records[key] || {
+        source: candidate.source,
+        sourceId: candidate.sourceId,
+        sourceTitle: candidate.sourceTitle,
+        date: candidate.date || "",
+        views: Number(candidate.views || 0),
+        lane: candidate.lane || null,
+        restrictedToTopicNavigation: false,
+      };
+      record.restrictedToTopicNavigation = record.restrictedToTopicNavigation ||
+        Boolean(candidate.restrictedToTopicNavigation);
+      records[key] = record;
+    });
+    return Object.keys(records).map(function (key) {
+      var record = records[key];
+      record.titleTerms = sourceTitleTerms(record.sourceTitle);
+      record.normalizedTitle = romanVariant(record.sourceTitle);
+      return record;
+    });
+  }
+
+  function sourceTitleTermMatch(queryTerms, titleTerms) {
+    var used = {};
+    var edits = 0;
+    var exact = 0;
+    for (var queryIndex = 0; queryIndex < queryTerms.length; queryIndex += 1) {
+      var queryTerm = queryTerms[queryIndex];
+      var exactIndex = -1;
+      for (var titleIndex = 0; titleIndex < titleTerms.length; titleIndex += 1) {
+        if (!used[titleIndex] && titleTerms[titleIndex] === queryTerm) {
+          exactIndex = titleIndex;
+          break;
+        }
+      }
+      if (exactIndex >= 0) {
+        used[exactIndex] = true;
+        exact += 1;
+        continue;
+      }
+      if (edits || /^\d+$/.test(queryTerm) || queryTerm.length < 5) return null;
+      var fuzzyIndex = -1;
+      for (var fuzzyCandidate = 0; fuzzyCandidate < titleTerms.length; fuzzyCandidate += 1) {
+        var titleTerm = titleTerms[fuzzyCandidate];
+        if (used[fuzzyCandidate] || /^\d+$/.test(titleTerm) ||
+          titleTerm.charAt(0) !== queryTerm.charAt(0)) continue;
+        if (editDistance(queryTerm, titleTerm) <= 1) {
+          fuzzyIndex = fuzzyCandidate;
+          break;
+        }
+      }
+      if (fuzzyIndex < 0) return null;
+      used[fuzzyIndex] = true;
+      edits += 1;
+    }
+    return {
+      edits: edits,
+      exact: exact,
+      residual: Math.max(0, titleTerms.length - queryTerms.length),
+    };
+  }
+
+  function entityResidualTitleTerms(intent, entity) {
+    if (!entity || !entity.matchedAlias) return [];
+    var remaining = sourceTitleTerms(intent.normalized);
+    sourceTitleTerms(entity.matchedAlias).forEach(function (aliasTerm) {
+      var index = remaining.indexOf(aliasTerm);
+      if (index >= 0) remaining.splice(index, 1);
+    });
+    return remaining;
+  }
+
+  /*
+   * Indexed source titles are a separate namespace from film/franchise aliases.
+   * A title may win over a broad franchise alias, but never over a complete film
+   * alias unless the query also names source-specific words such as "trailer
+   * breakdown". Numbers are exact-only so "Scream 8" cannot leak into Scream 1.
+   */
+  function selectIndexedSource(sourceIndex, intent, entity) {
+    if (intent.sourceSelector || (entity &&
+      entity.type !== "film" && entity.type !== "franchise")) return null;
+    var queryTerms = sourceTitleTerms(intent.normalized);
+    if (queryTerms.length < 2) return null;
+    var entityResidual = entityResidualTitleTerms(intent, entity);
+    if (entity && (entity.type === "film" || entity.type === "franchise") &&
+      !entityResidual.length) return null;
+
+    var matches = sourceIndex.filter(function (record) {
+      if (intent.source !== "all" && record.source !== intent.source) return false;
+      if (intent.archiveRequested && record.lane !== "archive") return false;
+      return true;
+    }).map(function (record) {
+      var match = sourceTitleTermMatch(queryTerms, record.titleTerms);
+      if (!match) return null;
+      return Object.assign({}, record, match, {
+        phraseExact: containsNormalizedPhrase(
+          record.titleTerms.join(" "),
+          queryTerms.join(" ")
+        ),
+      });
+    }).filter(Boolean).sort(function (a, b) {
+      return Number(b.phraseExact) - Number(a.phraseExact) ||
+        a.edits - b.edits ||
+        a.residual - b.residual ||
+        dateValue(b.date) - dateValue(a.date) ||
+        b.views - a.views ||
+        a.sourceId.localeCompare(b.sourceId);
+    });
+
+    if (!matches.length) {
+      var unresolvedNumber = entity && entity.type === "franchise" &&
+        entityResidual.some(function (term) { return /^\d+$/.test(term); });
+      return unresolvedNumber ? {
+        blocked: true,
+        reason: "unresolved-numbered-title",
+        queryTerms: queryTerms,
+        matches: [],
+      } : null;
+    }
+
+    var top = matches[0];
+    var sameQuality = matches.filter(function (match) {
+      return match.phraseExact === top.phraseExact &&
+        match.edits === top.edits &&
+        match.residual === top.residual;
+    });
+    var hasNumber = queryTerms.some(function (term) { return /^\d+$/.test(term); });
+    var duplicateTitle = sameQuality.some(function (match) {
+      return match.sourceId !== top.sourceId &&
+        match.normalizedTitle === top.normalizedTitle;
+    });
+    if (duplicateTitle || (sameQuality.length > 1 && !hasNumber && queryTerms.length < 3)) {
+      return {
+        blocked: true,
+        reason: duplicateTitle ? "duplicate-indexed-title" : "ambiguous-indexed-title",
+        queryTerms: queryTerms,
+        matches: sameQuality.slice(0, 5).map(function (match) {
+          return {
+            sourceId: match.sourceId,
+            sourceTitle: match.sourceTitle,
+            date: match.date,
+            lane: match.lane,
+          };
+        }),
+      };
+    }
+    return {
+      mode: "indexed-title",
+      source: top.source,
+      sourceId: top.sourceId,
+      sourceTitle: top.sourceTitle,
+      date: top.date,
+      views: top.views,
+      lane: top.lane,
+      restrictedToTopicNavigation: top.restrictedToTopicNavigation,
+      metric: "title-relevance",
+      direction: "descending",
+      titleMatchMode: top.edits ? "near-exact" : "exact",
+      matchedTerms: queryTerms,
+      alternativeCount: Math.max(0, sameQuality.length - 1),
+      tieBreak: sameQuality.length > 1 ? "latest-indexed-source" : null,
+    };
+  }
+
+  /*
+   * A generic "what are they talking about in the latest livestream?" query
+   * names a source selector, not a topic entity. Resolve that source first,
+   * then expose only its timestamped topic routes. This keeps the answer from
+   * blending identically titled weekly streams or treating query words such
+   * as "talking" as an archive subject.
+   */
+  function selectTopicOverviewSource(sourceIndex, intent) {
+    if (!intent.topicOverviewRequest || intent.source !== "livestream") return null;
+    if (["latest", "recent", "earliest"].indexOf(intent.temporal) < 0) return null;
+    var direction = intent.temporal === "earliest" ? "ascending" : "descending";
+    var records = sourceIndex.filter(function (record) {
+      if (record.source !== "livestream") return false;
+      if (intent.archiveRequested) return record.lane === "archive";
+      return record.lane !== "archive";
+    }).filter(function (record) {
+      return dateValue(record.date) != null;
+    }).sort(function (a, b) {
+      var dateDifference = dateValue(a.date) - dateValue(b.date);
+      if (dateDifference) return direction === "ascending" ? dateDifference : -dateDifference;
+      return b.views - a.views || a.sourceId.localeCompare(b.sourceId);
+    });
+    if (!records.length) return null;
+    var top = records[0];
+    return {
+      mode: "temporal-source",
+      source: top.source,
+      sourceId: top.sourceId,
+      sourceTitle: top.sourceTitle,
+      date: top.date,
+      views: top.views,
+      lane: top.lane,
+      restrictedToTopicNavigation: top.restrictedToTopicNavigation,
+      metric: "date",
+      direction: direction,
+      titleMatchMode: intent.temporal === "earliest" ?
+        "earliest-indexed-livestream" : "latest-indexed-livestream",
+      alternativeCount: 0,
+      tieBreak: "captured date, then views, then source ID",
+    };
+  }
+
   function commentaryCandidates(catalog, deep) {
     var tapeById = {};
     var hotRankById = {};
@@ -710,30 +983,41 @@
     (live.streams || []).forEach(function (stream, streamIndex) {
       var sourceSummary = stream.summary || stream.editorial || "Indexed livestream source.";
       var liveHeat = liveHeatScore(stream);
-      output.push({
-        key: "live-" + stream.id,
-        kind: "livestream",
-        source: "livestream",
-        sourceId: stream.id,
-        sourceTitle: stream.title,
-        title: stream.title,
-        subtitle: "WWAM LIVE",
-        franchise: "",
-        date: stream.date,
-        at: 0,
-        category: "LIVE MAP",
-        excerpt: sourceSummary,
-        url: stream.url,
-        streamRank: streamIndex,
-        lane: stream._lane || "fresh",
-        views: Number(stream.views || 0),
-        liveHeat: liveHeat,
-        duration: Number(stream.duration || 0),
-        captioned: Boolean(stream.captioned),
-        stream: stream,
-        evidenceType: "derived-source-summary",
-      });
+      var lane = stream._lane || "fresh";
+      var rightsPolicy = stream.rightsPolicy || {};
+      var restrictedToTopicNavigation = lane === "archive" &&
+        Boolean(rightsPolicy.restrictedToTopicNavigation);
+      if (!restrictedToTopicNavigation) {
+        output.push({
+          key: "live-" + stream.id,
+          kind: "livestream",
+          source: "livestream",
+          sourceId: stream.id,
+          sourceTitle: stream.title,
+          title: stream.title,
+          subtitle: lane === "archive" ? "ARCHIVE DEEP" : "WWAM LIVE",
+          franchise: "",
+          date: stream.date,
+          at: 0,
+          category: lane === "archive" ? "ARCHIVE DEEP MAP" : "LIVE MAP",
+          excerpt: sourceSummary,
+          url: stream.url,
+          streamRank: streamIndex,
+          lane: lane,
+          views: Number(stream.views || 0),
+          liveHeat: liveHeat,
+          duration: Number(stream.duration || 0),
+          captioned: Boolean(stream.captioned),
+          stream: stream,
+          reviewStatus: lane === "archive" ? "machine-candidate" : null,
+          originStatus: lane === "archive" ? "not-inferred" : null,
+          restrictedToTopicNavigation: false,
+          rightsMode: rightsPolicy.mode || null,
+          evidenceType: "derived-source-summary",
+        });
+      }
       (stream.topics || []).forEach(function (topic) {
+        var topicEvidence = topic.evidence || {};
         output.push({
           key: "topic-" + stream.id + "-" + normalize(topic.name),
           kind: "topic",
@@ -746,19 +1030,27 @@
           date: stream.date,
           at: Number(topic.peak || 0),
           category: "TOPIC CHAPTER",
-          excerpt: topic.receipt,
+          excerpt: topic.receipt || "",
           mentions: Number(topic.mentions || 0),
           url: stream.url + "&t=" + Number(topic.peak || 0) + "s",
           streamRank: streamIndex,
-          lane: stream._lane || "fresh",
+          lane: lane,
           views: Number(stream.views || 0),
           liveHeat: liveHeat,
           captioned: Boolean(stream.captioned),
           stream: stream,
-          evidenceType: "caption-topic-receipt",
+          reviewStatus: topicEvidence.reviewStatus ||
+            (lane === "archive" ? "machine-candidate" : null),
+          originStatus: topicEvidence.originStatus ||
+            (lane === "archive" ? "not-inferred" : null),
+          restrictedToTopicNavigation: restrictedToTopicNavigation,
+          rightsMode: rightsPolicy.mode || null,
+          evidence: topicEvidence,
+          evidenceType: topic.receipt ? "caption-topic-receipt" : "caption-topic-navigation",
         });
       });
       (stream.moments || []).forEach(function (moment, momentIndex) {
+        var momentEvidence = moment.evidence || {};
         output.push({
           key: "live-moment-" + stream.id + "-" + Number(moment.t || 0),
           kind: "moment",
@@ -766,25 +1058,33 @@
           sourceId: stream.id,
           sourceTitle: stream.title,
           title: stream.title,
-          subtitle: "FRESH FROM LIVE",
+          subtitle: lane === "archive" ? "ARCHIVE DEEP MACHINE CANDIDATE" : "FRESH FROM LIVE",
           franchise: "",
           date: stream.date,
           at: Number(moment.t || 0),
           category: moment.category,
-          excerpt: moment.quote,
+          excerpt: moment.quote || moment.excerpt || "",
           heat: Number(moment.heat || 0),
           url: stream.url + "&t=" + Number(moment.t || 0) + "s",
           streamRank: streamIndex,
-          lane: stream._lane || "fresh",
+          lane: lane,
           views: Number(stream.views || 0),
           liveHeat: liveHeat,
           captioned: Boolean(stream.captioned),
           momentRank: momentIndex,
           stream: stream,
+          reviewStatus: momentEvidence.reviewStatus ||
+            (lane === "archive" ? "machine-candidate" : null),
+          originStatus: momentEvidence.originStatus ||
+            (lane === "archive" ? "not-inferred" : null),
+          restrictedToTopicNavigation: restrictedToTopicNavigation,
+          rightsMode: rightsPolicy.mode || null,
+          evidence: momentEvidence,
           evidenceType: "caption-excerpt",
         });
       });
       (stream.characters || []).forEach(function (character, characterIndex) {
+        var characterEvidence = character.evidence || {};
         output.push({
           key: "character-" + stream.id + "-" + normalize(character.character) + "-" + characterIndex,
           kind: "character",
@@ -804,11 +1104,18 @@
           performanceCues: Number(character.performanceCues || 0),
           url: stream.url + "&t=" + Number(character.t || 0) + "s",
           streamRank: streamIndex,
-          lane: stream._lane || "popular",
+          lane: lane,
           views: Number(stream.views || 0),
           liveHeat: liveHeat,
           captioned: Boolean(stream.captioned),
           stream: stream,
+          reviewStatus: characterEvidence.reviewStatus ||
+            (lane === "archive" ? "machine-candidate" : null),
+          originStatus: characterEvidence.originStatus ||
+            (lane === "archive" ? "not-inferred" : null),
+          restrictedToTopicNavigation: restrictedToTopicNavigation,
+          rightsMode: rightsPolicy.mode || null,
+          evidence: characterEvidence,
           evidenceType: "caption-character-signal",
         });
       });
@@ -911,17 +1218,144 @@
     return matches >= required;
   }
 
-  function matchedVocabulary(candidate, vocabulary) {
-    var text = " " + normalize(candidate.excerpt) + " ";
-    return vocabulary.filter(function (term) {
-      return text.indexOf(" " + normalize(term) + " ") >= 0;
+  function phraseOccurrences(words, phrase) {
+    var phraseWords = normalize(phrase).split(" ").filter(Boolean);
+    var output = [];
+    if (!phraseWords.length) return output;
+    for (var start = 0; start <= words.length - phraseWords.length; start += 1) {
+      var matches = true;
+      for (var offset = 0; offset < phraseWords.length; offset += 1) {
+        if (words[start + offset] !== phraseWords[offset]) {
+          matches = false;
+          break;
+        }
+      }
+      if (matches) {
+        output.push({
+          term: phrase,
+          start: start,
+          end: start + phraseWords.length - 1,
+        });
+      }
+    }
+    return output;
+  }
+
+  function negatedOccurrence(words, occurrence) {
+    var normalizedTerm = normalize(occurrence.term);
+    if (beginsWithAny(normalizedTerm, ["not", "dont", "didnt", "couldnt", "never"])) {
+      return false;
+    }
+    var previous = words.slice(Math.max(0, occurrence.start - 4), occurrence.start);
+    return previous.some(function (word) {
+      return ["not", "no", "never", "dont", "doesnt", "didnt", "isnt", "wasnt", "without"].indexOf(word) >= 0;
     });
   }
 
-  function trajectoryEvidenceSupport(candidate) {
+  function occurrenceDistance(left, right) {
+    if (left.end < right.start) return right.start - left.end - 1;
+    if (right.end < left.start) return left.start - right.end - 1;
+    return 0;
+  }
+
+  function evaluativeStrength(term, polarity) {
+    var normalizedTerm = normalize(term);
+    if (["worst", "best", "favorite", "never watch"].indexOf(normalizedTerm) >= 0) return 7;
+    if (["hate", "hated", "love", "loved", "couldnt stand"].indexOf(normalizedTerm) >= 0) return 6;
+    if (["awful", "terrible", "trash", "garbage", "amazing", "awesome", "perfect"].indexOf(normalizedTerm) >= 0) return 5;
+    if (["dont like", "didnt like", "not good", "beautiful", "excellent", "really like"].indexOf(normalizedTerm) >= 0) return 4;
+    if (polarity === "negative" && ["sucks", "suck", "stupid", "dumb", "ruined", "boring", "ugly"].indexOf(normalizedTerm) >= 0) return 3;
+    return 2;
+  }
+
+  function proximityPairs(words, evaluativeTerms, targetHits, polarity, maximumDistance) {
+    var pairs = [];
+    var distanceLimit = Number.isFinite(Number(maximumDistance)) ?
+      Number(maximumDistance) : OPINION_PROXIMITY_WORDS;
+    evaluativeTerms.forEach(function (term) {
+      phraseOccurrences(words, term).forEach(function (evaluation) {
+        if (negatedOccurrence(words, evaluation)) return;
+        targetHits.forEach(function (target) {
+          var distance = occurrenceDistance(evaluation, target);
+          if (distance > distanceLimit) return;
+          pairs.push({
+            polarity: polarity,
+            evaluativeTerm: term,
+            targetTerm: target.term,
+            distance: distance,
+            strength: evaluativeStrength(term, polarity) +
+              Math.max(0, distanceLimit - distance) / 2,
+          });
+        });
+      });
+    });
+    return pairs;
+  }
+
+  function polaritySupport(pairs, polarity) {
+    var matching = pairs.filter(function (pair) { return pair.polarity === polarity; });
     return {
-      evaluativeTerms: matchedVocabulary(candidate, EVALUATIVE_TERMS),
-      targetTerms: matchedVocabulary(candidate, TAKE_TARGET_TERMS),
+      evaluativeTerms: unique(matching.map(function (pair) { return pair.evaluativeTerm; })),
+      targetTerms: unique(matching.map(function (pair) { return pair.targetTerm; })),
+      pairs: matching,
+      strength: matching.reduce(function (strongest, pair) {
+        return Math.max(strongest, pair.strength);
+      }, 0),
+    };
+  }
+
+  function opinionEvidenceSupport(candidate) {
+    var words = normalize(candidate.excerpt).split(" ").filter(Boolean);
+    var targetHits = [];
+    var referentHits = [];
+    TAKE_TARGET_TERMS.forEach(function (term) {
+      targetHits = targetHits.concat(phraseOccurrences(words, term));
+    });
+    SCREEN_REFERENT_TERMS.forEach(function (term) {
+      referentHits = referentHits.concat(phraseOccurrences(words, term));
+    });
+    var directPairs = proximityPairs(words, NEGATIVE_EVALUATIVE_TERMS, targetHits, "negative")
+      .concat(proximityPairs(words, POSITIVE_EVALUATIVE_TERMS, targetHits, "positive"));
+    var referentialPairs = proximityPairs(
+        words,
+        NEGATIVE_EVALUATIVE_TERMS,
+        referentHits,
+        "negative",
+        SCREEN_REFERENT_PROXIMITY_WORDS
+      )
+      .concat(proximityPairs(
+        words,
+        POSITIVE_EVALUATIVE_TERMS,
+        referentHits,
+        "positive",
+        SCREEN_REFERENT_PROXIMITY_WORDS
+      ));
+    var pairs = directPairs.concat(referentialPairs);
+    var negative = polaritySupport(pairs, "negative");
+    var positive = polaritySupport(pairs, "positive");
+    return {
+      evaluativeTerms: unique(negative.evaluativeTerms.concat(positive.evaluativeTerms)),
+      targetTerms: unique(negative.targetTerms.concat(positive.targetTerms)),
+      proximityPairs: pairs,
+      directProximityPairs: directPairs,
+      referentialPairs: referentialPairs,
+      maxDistance: OPINION_PROXIMITY_WORDS,
+      strength: Math.max(negative.strength, positive.strength),
+      negative: negative,
+      positive: positive,
+    };
+  }
+
+  function trajectoryEvidenceSupport(candidate) {
+    var support = opinionEvidenceSupport(candidate);
+    var directNegative = polaritySupport(support.directProximityPairs, "negative");
+    var directPositive = polaritySupport(support.directProximityPairs, "positive");
+    return {
+      evaluativeTerms: unique(directNegative.evaluativeTerms.concat(directPositive.evaluativeTerms)),
+      targetTerms: unique(directNegative.targetTerms.concat(directPositive.targetTerms)),
+      proximityPairs: support.directProximityPairs,
+      maxDistance: support.maxDistance,
+      strength: Math.max(directNegative.strength, directPositive.strength),
     };
   }
 
@@ -929,10 +1363,10 @@
     var support = trajectoryEvidenceSupport(candidate);
     return candidate.kind === "moment" &&
       candidate.evidenceType === "caption-excerpt" &&
+      candidate.reviewStatus !== "machine-candidate" &&
       !candidate.curatedRank &&
       TAKE_EVIDENCE_CATEGORIES.indexOf(candidate.category) >= 0 &&
-      support.evaluativeTerms.length > 0 &&
-      support.targetTerms.length > 0;
+      support.proximityPairs.length > 0;
   }
 
   function addScore(breakdown, points, reason, detail) {
@@ -950,6 +1384,8 @@
     var reasons = [];
     var matchedTerms = [];
     var matchedSubjectTerms = termMatches(candidate, subjectTerms);
+    var opinionSupport = ["negative", "positive", "opinion", "trajectory"].indexOf(intent.name) >= 0 ?
+      opinionEvidenceSupport(candidate) : null;
 
     if (entityMatches(candidate, entity)) {
       var entityPoints = entity.type === "bit" ? 190 :
@@ -986,6 +1422,20 @@
       addScore(breakdown, 44, candidate.source === "livestream" ? "live-source request" : "commentary-source request");
       reasons.push(candidate.source === "livestream" ? "live-source request" : "commentary-source request");
     }
+    if (intent.selectedSource && candidate.sourceId === intent.selectedSource.sourceId) {
+      addScore(
+        breakdown,
+        52,
+        "inside selected source",
+        intent.selectedSource.sourceTitle || intent.selectedSource.sourceId
+      );
+      reasons.push("inside selected source");
+    }
+    if (intent.anchorMode === "similar" && intent.resultAnchor &&
+      candidate.category === intent.resultAnchor.category) {
+      addScore(breakdown, 64, "same receipt category", candidate.category);
+      reasons.push("same receipt category");
+    }
 
     if (intent.temporal === "latest" || intent.temporal === "recent") {
       var temporalReason = intent.temporal === "latest" ?
@@ -1017,6 +1467,26 @@
     if ((intent.name === "trajectory" || intent.name === "opinion") && isTrajectoryEvidence(candidate)) {
       addScore(breakdown, 86, "evaluative take evidence", candidate.category);
       reasons.push("evaluative take evidence");
+    }
+    if (intent.name === "negative" && opinionSupport && opinionSupport.negative.pairs.length) {
+      addScore(
+        breakdown,
+        82 + opinionSupport.negative.strength * 5,
+        "target-proximate negative evidence",
+        opinionSupport.negative.evaluativeTerms.join(", ") + " → " +
+          opinionSupport.negative.targetTerms.join(", ")
+      );
+      reasons.push("target-proximate negative evidence");
+    }
+    if (intent.name === "positive" && opinionSupport && opinionSupport.positive.pairs.length) {
+      addScore(
+        breakdown,
+        82 + opinionSupport.positive.strength * 5,
+        "target-proximate positive evidence",
+        opinionSupport.positive.evaluativeTerms.join(", ") + " → " +
+          opinionSupport.positive.targetTerms.join(", ")
+      );
+      reasons.push("target-proximate positive evidence");
     }
     if (intent.name === "topic" && candidate.kind === "topic") {
       addScore(breakdown, 64, "topic chapter");
@@ -1075,49 +1545,61 @@
         Object.assign({ category: candidate.category }, trajectoryEvidenceSupport(candidate)) : null,
       trajectoryEvidence: intent.name === "trajectory" ?
         Object.assign({ category: candidate.category }, trajectoryEvidenceSupport(candidate)) : null,
+      opinionEvidence: intent.name === "negative" || intent.name === "positive" ?
+        Object.assign({ category: candidate.category }, opinionSupport) : null,
     };
   }
 
   function hasOpinionEvidence(candidate, intent) {
-    var categories = CATEGORY_INTENTS[intent.name] || [];
-    if (!categories.length) return true;
-    if (categories.indexOf(candidate.category) >= 0) return true;
-    var excerpt = normalize(candidate.excerpt);
+    if (candidate.kind !== "moment" || candidate.evidenceType !== "caption-excerpt") return false;
+    if (TAKE_EVIDENCE_CATEGORIES.indexOf(candidate.category) < 0) return false;
+    var support = opinionEvidenceSupport(candidate);
     if (intent.name === "negative") {
-      return includesAny(excerpt, ["hate", "worst", "trash", "garbage", "awful", "terrible", "sucks"]);
+      return CATEGORY_INTENTS.negative.indexOf(candidate.category) >= 0 &&
+        support.negative.pairs.length > 0;
     }
     if (intent.name === "positive") {
-      return includesAny(excerpt, ["love", "best", "favorite", "amazing", "great", "really good", "want to watch"]);
+      return CATEGORY_INTENTS.positive.indexOf(candidate.category) >= 0 &&
+        support.positive.pairs.length > 0;
     }
-    return true;
+    return support.proximityPairs.length > 0;
   }
 
   function candidateInScope(candidate, intent, entity, subjectTerms) {
     if (intent.source !== "all" && candidate.source !== intent.source) return false;
+    if (intent.archiveRequested && candidate.lane !== "archive") return false;
+    if (candidate.lane === "archive" && !intent.archiveRequested &&
+      (intent.metric !== "relevance" || intent.temporal !== "all")) return false;
     if (intent.requestedYear && entity && entity.type === "character" &&
       String(candidate.date || "").slice(0, 4) !== String(intent.requestedYear)) return false;
     if (entity && !entityMatches(candidate, entity)) return false;
     if (!entity && subjectTerms.length && !hasSubjectCoverage(candidate, subjectTerms)) return false;
+    if (intent.topicOverviewRequest && candidate.kind !== "topic") return false;
     if ((intent.name === "trajectory" || intent.name === "opinion") && !isTrajectoryEvidence(candidate)) return false;
     if (intent.name === "comedy" &&
       candidate.kind !== "character-performance" &&
       (candidate.kind !== "moment" || CATEGORY_INTENTS.comedy.indexOf(candidate.category) < 0)) return false;
-    if ((intent.name === "negative" || intent.name === "positive") && !hasOpinionEvidence(candidate, intent)) return false;
+    if ((intent.name === "negative" || intent.name === "positive") &&
+      !intent.refusesSpeakerGuess && !hasOpinionEvidence(candidate, intent)) return false;
     if (intent.metric === "unhinged" && candidate.kind !== "tape") return false;
     if (intent.metric === "live-heat" && candidate.kind !== "livestream") return false;
     if (intent.metric === "mentions" && candidate.kind !== "topic" && candidate.kind !== "character") return false;
     if (intent.metric === "views" && candidate.kind !== "tape" && candidate.kind !== "livestream" &&
       !(entity && (entity.type === "topic" || entity.type === "character"))) return false;
-    if ((intent.temporal === "latest" || intent.temporal === "earliest") &&
+    if (!intent.topicOverviewRequest &&
+      (intent.temporal === "latest" || intent.temporal === "earliest") &&
       !entity && intent.name !== "comedy" && candidate.kind !== "tape" && candidate.kind !== "livestream") return false;
     if (entity && entity.type === "character") {
-      var performanceMode = intent.performanceRequested || intent.mappingRequest ||
+      var appearanceSignalFallback = intent.firstAppearanceRequest &&
+        !intent.characterPerformanceArchiveAvailable;
+      var performanceMode = (intent.performanceRequested && !appearanceSignalFallback) ||
+        intent.mappingRequest ||
         (intent.characterPerformanceArchiveAvailable &&
           !intent.characterSignalRequested && !intent.originRequest &&
           (intent.name === "comedy" ||
             intent.temporal === "latest" || intent.temporal === "earliest" || intent.temporal === "recent"));
       var signalMode = intent.characterSignalRequested ||
-        (intent.originRequest && !intent.performanceRequested);
+        (intent.originRequest && (!intent.performanceRequested || appearanceSignalFallback));
       if (performanceMode && candidate.kind !== "character-performance") return false;
       if (signalMode && candidate.kind !== "character") return false;
     }
@@ -1175,6 +1657,18 @@
         return intent.temporal === "earliest" ? aDate - bDate : bDate - aDate;
       }
     }
+    if (intent.name === "negative" || intent.name === "positive") {
+      var polarity = intent.name;
+      var aOpinionStrength = Number(
+        a.opinionEvidence && a.opinionEvidence[polarity] &&
+        a.opinionEvidence[polarity].strength || 0
+      );
+      var bOpinionStrength = Number(
+        b.opinionEvidence && b.opinionEvidence[polarity] &&
+        b.opinionEvidence[polarity].strength || 0
+      );
+      if (aOpinionStrength !== bOpinionStrength) return bOpinionStrength - aOpinionStrength;
+    }
     if (intent.name === "comedy") {
       var aComedy = (CATEGORY_INTENTS.comedy.indexOf(a.category) >= 0 ? 1 : 0);
       var bComedy = (CATEGORY_INTENTS.comedy.indexOf(b.category) >= 0 ? 1 : 0);
@@ -1194,8 +1688,89 @@
       String(a.key).localeCompare(String(b.key));
   }
 
+  function isTimedReceipt(candidate) {
+    return candidate.kind !== "tape" && candidate.kind !== "livestream" &&
+      Number.isFinite(Number(candidate.at)) && Number(candidate.at) >= 0;
+  }
+
+  function exactAnchorMatch(candidate, anchor) {
+    if (!anchor || candidate.sourceId !== anchor.sourceId) return false;
+    if (anchor.key) return candidate.key === anchor.key;
+    return Number(candidate.at || 0) === Number(anchor.at || 0) &&
+      (!anchor.kind || candidate.kind === anchor.kind);
+  }
+
+  function anchorScopedCandidates(scoped, intent, anchor, mode) {
+    if (!anchor || !mode) return scoped;
+    var withinSource = scoped.filter(function (candidate) {
+      return candidate.sourceId === anchor.sourceId;
+    });
+    if (mode === "exact") {
+      return withinSource.filter(function (candidate) {
+        return exactAnchorMatch(candidate, anchor);
+      });
+    }
+    if (mode === "next") {
+      return withinSource.filter(function (candidate) {
+        return isTimedReceipt(candidate) && Number(candidate.at) > Number(anchor.at || 0);
+      });
+    }
+    if (mode === "similar") {
+      withinSource = withinSource.filter(function (candidate) {
+        return !exactAnchorMatch(candidate, anchor);
+      });
+    }
+    if (anchorWantsMoment(intent, mode)) {
+      var timed = withinSource.filter(isTimedReceipt);
+      if (timed.length) return timed;
+    }
+    return withinSource;
+  }
+
+  function selectCompoundSource(candidates, intent, entity, subjectTerms) {
+    if (!intent.sourceSelector) return null;
+    var sourceIntent = Object.assign({}, intent, {
+      name: "ranking",
+      metric: intent.sourceSelector.metric,
+      temporal: "all",
+      sourceSelector: null,
+      selectedSource: null,
+    });
+    var sourceCandidates = candidates.filter(function (candidate) {
+      return candidateInScope(candidate, sourceIntent, entity, subjectTerms);
+    }).map(function (candidate) {
+      return Object.assign(
+        {},
+        candidate,
+        scoreCandidate(candidate, sourceIntent, entity, expandedTerms(sourceIntent), subjectTerms)
+      );
+    }).sort(function (a, b) {
+      return compareCandidates(a, b, sourceIntent, entity);
+    });
+    if (!sourceCandidates.length) return null;
+    var top = sourceCandidates[0];
+    return {
+      source: top.source,
+      sourceId: top.sourceId,
+      sourceTitle: top.sourceTitle || top.title,
+      date: top.date,
+      views: Number(top.views || 0),
+      metric: intent.sourceSelector.metric,
+      direction: intent.sourceSelector.direction,
+    };
+  }
+
   function resultLabel(candidate) {
     if (candidate.kind === "character-performance") return "CURATED CHARACTER PERFORMANCE";
+    if (candidate.lane === "archive") {
+      if (candidate.kind === "topic" && candidate.restrictedToTopicNavigation) {
+        return "ARCHIVE TOPIC NAVIGATION";
+      }
+      if (candidate.kind === "topic") return "ARCHIVE DEEP TOPIC CANDIDATE";
+      if (candidate.kind === "character") return "ARCHIVE DEEP CHARACTER CANDIDATE";
+      if (candidate.kind === "moment") return "ARCHIVE DEEP MOMENT CANDIDATE";
+      return "ARCHIVE DEEP MAP";
+    }
     if (candidate.kind === "character") return "CHARACTER SIGNAL";
     if (candidate.curatedLabel) return "CURATED SOUNDBYTE";
     if (candidate.source === "livestream") {
@@ -1231,12 +1806,32 @@
 
   function buildNoEvidenceAnswer(intent, entity, subjectTerms) {
     var subject = entity ? entity.label : subjectTerms.join(" ");
+    if (intent.titleBoundary) {
+      if (intent.titleBoundary.reason === "unresolved-numbered-title") {
+        return "No indexed source title matches \"" +
+          intent.titleBoundary.queryTerms.join(" ") +
+          "\". The sequel number is being kept exact, so I will not substitute an older franchise entry.";
+      }
+      return "That wording matches more than one indexed source title, so I will not choose one arbitrarily. " +
+        "Add a date or a distinguishing title phrase such as trailer reaction, spoiler review, or breakdown.";
+    }
+    if (intent.selectedSource && intent.selectedSource.restrictedToTopicNavigation) {
+      return intent.selectedSource.sourceTitle +
+        " is available only as topic navigation under the source-audio firewall. " +
+        "This source cannot supply comedy excerpts, character clips, or soundbytes, and I will not substitute adjacent franchise content.";
+    }
     if (intent.refusesSpeakerGuess) {
       return "The available auto-captions are not speaker-diarized, so I cannot identify a host, and I found no defensible matching receipt to point to.";
     }
     if (intent.performanceRequested && entity && entity.type === "character") {
       return "I found no verified performance receipt for " + entity.label +
         " in this search index. Ordinary character mentions are not being promoted into impressions.";
+    }
+    if (intent.name === "negative" || intent.name === "positive" || intent.name === "opinion") {
+      return "No target-proximate evaluative receipt supports" +
+        (subject ? ' "' + subject + '"' : " that opinion question") +
+        " in the current index. Unrelated profanity, jokes, and isolated sentiment words were rejected. " +
+        "That is an archive gap, not proof the subject was never discussed.";
     }
     return "No defensible indexed receipt matches" + (subject ? ' "' + subject + '"' : " that question") +
       " in the current commentary and livestream scope. That is an archive gap, not proof it was never discussed.";
@@ -1251,6 +1846,46 @@
     if (intent.refusesSpeakerGuess) {
       return "The auto-captions do not identify speakers reliably, so I won't invent a name or host attribution. The strongest matching source jump is " +
         location + "; treat it as a receipt, not a speaker attribution.";
+    }
+    if (top.restrictedToTopicNavigation) {
+      return "Topic-only navigation inside " + (top.sourceTitle || top.title) +
+        " points to " + location +
+        ". Excerpts, comedy moments, character clips, and soundbytes remain withheld by the source-audio firewall.";
+    }
+    if (intent.anchorMode === "next" && intent.resultAnchor) {
+      return "The next indexed receipt in the same source after " +
+        formatTime(intent.resultAnchor.at) + " is " + location +
+        ". This is the next indexed highlight, not a claim about the literal next spoken line.";
+    }
+    if (intent.topicOverviewRequest && intent.selectedSource) {
+      var overviewLabel = intent.temporal === "earliest" ?
+        "Earliest" : "Newest";
+      var topicRoutes = ranked.filter(function (result) {
+        return result.kind === "topic";
+      }).map(function (result) {
+        return result.title + " at " + formatTime(result.at);
+      });
+      return overviewLabel + " indexed livestream in the current " +
+        (intent.archiveRequested ? "Archive Deep" : "promoted") + " scope: " +
+        intent.selectedSource.sourceTitle + " on " + intent.selectedSource.date +
+        ". Its source-scoped topic map includes " + topicRoutes.join("; ") +
+        ". These are indexed chapter receipts from that one source, not blended streams or invented dialogue; " +
+        "open a route to inspect the captured caption evidence.";
+    }
+    if (intent.name === "comedy" && intent.selectedSource) {
+      if (intent.selectedSource.mode === "indexed-title") {
+        return "Inside the " + intent.selectedSource.titleMatchMode +
+          " indexed source-title match " + intent.selectedSource.sourceTitle +
+          ", the strongest available comedy route is " + location +
+          ", filed as " + top.category + ".";
+      }
+      var sourceExtreme = intent.selectedSource.direction === "ascending" ?
+        "least-viewed" : "most-viewed";
+      return "Inside " + intent.selectedSource.sourceTitle + " — the " + sourceExtreme +
+        " indexed " + sourceNoun(intent.selectedSource.source) + " at " +
+        Number(intent.selectedSource.views || 0).toLocaleString("en-US") +
+        " official views — the strongest indexed comedy route is " + location +
+        ", filed as " + top.category + ".";
     }
     if (intent.originRequest) {
       if (entity && entity.type === "character") {
@@ -1378,12 +2013,14 @@
       return "The strongest indexed jump is " + location + ".";
     }
     if (intent.name === "negative") {
-      return "The closest indexed negative-language receipt for " + entityLabel + " is " + location +
-        ". It supports this moment only; it is not being promoted into a settled host opinion.";
+      return "The strongest target-proximate negative-language receipt for " + entityLabel + " is " + location +
+        ". It supports this moment only; it is not being promoted into a settled host opinion" +
+        (intent.opinionComparison ? " or authenticated “most hated” verdict." : ".");
     }
     if (intent.name === "positive") {
-      return "The closest indexed positive-language receipt for " + entityLabel + " is " + location +
-        ". It supports this moment only; it is not being promoted into a settled host opinion.";
+      return "The strongest target-proximate positive-language receipt for " + entityLabel + " is " + location +
+        ". It supports this moment only; it is not being promoted into a settled host opinion" +
+        (intent.opinionComparison ? " or authenticated “best” verdict." : ".");
     }
     if (entity && entity.type === "character") {
       if (top.kind === "character-performance") {
@@ -1412,14 +2049,18 @@
       ". Open the receipt to judge the caption context directly.";
   }
 
-  function combineLiveData(live, popular) {
+  function combineLiveData(live, popular, archiveDeep) {
+    archiveDeep = archiveDeep || { streams: [], topicIndex: [], characterIndex: [] };
     var streams = (live.streams || []).map(function (stream) {
       return Object.assign({}, stream, { _lane: "fresh" });
     }).concat((popular.streams || []).map(function (stream) {
       return Object.assign({}, stream, { _lane: "popular" });
+    })).concat((archiveDeep.streams || []).map(function (stream) {
+      return Object.assign({}, stream, { _lane: "archive" });
     }));
     var groupedTopics = {};
-    (live.topicIndex || []).concat(popular.topicIndex || []).forEach(function (topic) {
+    (live.topicIndex || []).concat(popular.topicIndex || [], archiveDeep.topicIndex || [])
+      .forEach(function (topic) {
       var key = normalize(topic.name);
       var record = groupedTopics[key] || { name: topic.name, mentions: 0, streams: [] };
       record.mentions += Number(topic.mentions || 0);
@@ -1431,7 +2072,10 @@
       groupedTopics[key] = record;
     });
     var groupedCharacters = {};
-    (live.characterIndex || []).concat(popular.characterIndex || []).forEach(function (character) {
+    (live.characterIndex || []).concat(
+      popular.characterIndex || [],
+      archiveDeep.characterIndex || []
+    ).forEach(function (character) {
       var key = normalize(character.character);
       var record = groupedCharacters[key] || {
         character: character.character,
@@ -1455,8 +2099,82 @@
     };
   }
 
+  function anchorMode(intent) {
+    var q = intent.normalized;
+    if (includesAny(q, [
+      "what happened next", "what happens next", "what came next",
+      "what was next", "and then what", "what happened after",
+      "what happens after", "what came after", "what was after",
+      "what is after", "next after",
+    ])) return "next";
+    if (includesAny(q, [
+      "same one", "same result", "show me that again", "show that again",
+      "who said that", "who said it", "who said this",
+      "was that mike", "was this mike", "was it mike",
+      "was that j", "was this j", "was it j",
+      "did mike say that", "did j say that",
+    ])) return "exact";
+    if (includesAny(q, [
+      "more like that", "another like that", "another one like that",
+      "something else like that",
+    ])) return "similar";
+    if (includesAny(q, [
+      "in that one", "in this one", "in it", "from that one", "from this one",
+      "from it", "about it", "about that one", "about this one",
+      "happens there", "happened there", "at that point",
+    ])) return "source";
+    return null;
+  }
+
+  function anchorRecord(candidate, fallbackSource) {
+    if (!candidate || !candidate.sourceId) return null;
+    return {
+      key: candidate.key || "",
+      source: candidate.source || fallbackSource || "all",
+      sourceId: candidate.sourceId,
+      sourceTitle: candidate.sourceTitle || candidate.title || "",
+      title: candidate.title || candidate.sourceTitle || "",
+      date: candidate.date || "",
+      at: Number(candidate.at || 0),
+      kind: candidate.kind || "",
+      category: candidate.category || "",
+      evidenceType: candidate.evidenceType || "",
+      lane: candidate.lane || null,
+    };
+  }
+
+  function resolveNamedResultAnchor(candidates, intent, entity) {
+    if (!entity || anchorMode(intent) !== "next") return null;
+    var matches = candidates.filter(function (candidate) {
+      if (intent.source !== "all" && candidate.source !== intent.source) return false;
+      if (intent.archiveRequested && candidate.lane !== "archive") return false;
+      if (!intent.archiveRequested && candidate.lane === "archive") return false;
+      return entityMatches(candidate, entity);
+    }).filter(isTimedReceipt);
+    if (matches.length !== 1) return null;
+    return anchorRecord(matches[0], matches[0].source);
+  }
+
+  function resultAnchor(previous) {
+    if (!previous) return null;
+    var candidate = previous.resultAnchor ||
+      (previous.context && previous.context.resultAnchor) ||
+      (previous.results && previous.results[0]) ||
+      previous.topResult;
+    return anchorRecord(candidate, previous.source);
+  }
+
+  function anchorWantsMoment(intent, mode) {
+    if (mode === "next" || mode === "similar" || intent.name === "comedy") return true;
+    return mode === "source" && includesAny(intent.normalized, [
+      "what did they say", "what was said", "what happened", "what happens",
+      "what was funniest", "what is funniest", "funniest", "funny",
+    ]);
+  }
+
   function isFollowup(intent) {
     var q = intent.normalized;
+    if (anchorMode(intent)) return true;
     if (beginsWithAny(q, ["what about", "how about", "where about"])) {
       return includesAny(" " + q + " ", [
         " it ", " that ", " this ", " them ", " those ", " one ", " ones ",
@@ -1485,10 +2203,19 @@
 
   function applyContext(intent, previous, aliases) {
     if (!previous || !isFollowup(intent)) {
-      return { intent: intent, entity: null, continuedFrom: false, contextUsed: [] };
+      return {
+        intent: intent,
+        entity: null,
+        resultAnchor: null,
+        anchorMode: null,
+        continuedFrom: false,
+        contextUsed: [],
+      };
     }
     var inherited = Object.assign({}, intent);
     var contextUsed = [];
+    var mode = anchorMode(intent);
+    var anchor = mode ? resultAnchor(previous) : null;
     var previousIntent = parseIntent(previous.query || "");
     var preferredSource = inherited.source !== "all" ? inherited.source : previous.source;
     var entity = contextualEntity(previous, aliases, inherited, preferredSource);
@@ -1497,7 +2224,7 @@
       inherited.source = previous.source;
       contextUsed.push("source");
     }
-    if (!inherited.temporalExplicit && !inherited.popularityExplicit &&
+    if (!anchor && !inherited.temporalExplicit && !inherited.popularityExplicit &&
       !inherited.metricExplicit && previousIntent.temporal !== "all") {
       inherited.temporal = previousIntent.temporal;
       inherited.metric = previousIntent.metric;
@@ -1508,9 +2235,12 @@
       inherited.name = previous.intent;
       contextUsed.push("intent");
     }
+    if (anchor) contextUsed.push("result");
     return {
       intent: inherited,
       entity: entity,
+      resultAnchor: anchor,
+      anchorMode: anchor ? mode : null,
       continuedFrom: contextUsed.length > 0,
       contextUsed: unique(contextUsed),
     };
@@ -1518,6 +2248,15 @@
 
   function evidenceWarnings(candidate) {
     var warnings = ["Speaker identity is not inferred from auto-captions."];
+    if (candidate.reviewStatus === "machine-candidate") {
+      warnings.push("Archive Deep marks this as a machine-candidate pending human review; it is not curated or Canon evidence.");
+    }
+    if (candidate.originStatus === "not-inferred") {
+      warnings.push("No quote, bit, character, or performance origin is inferred from this receipt.");
+    }
+    if (candidate.restrictedToTopicNavigation) {
+      warnings.push("This source is restricted to topic navigation; excerpts, moments, character signals, and heat claims are withheld.");
+    }
     if (!candidate.captioned) warnings.push("No transcript-derived receipt is available for this source.");
     if (candidate.evidenceType === "derived-source-summary") {
       warnings.push("This result is a derived source summary, not a verbatim quote.");
@@ -1539,7 +2278,11 @@
   }
 
   function enrichResult(candidate) {
-    var evidenceLevel = candidate.evidenceType === "curated-character-performance" ?
+    var evidenceLevel = candidate.reviewStatus === "machine-candidate" ?
+      (candidate.restrictedToTopicNavigation ?
+        "MACHINE-CANDIDATE TOPIC NAVIGATION" :
+        "TIMESTAMPED MACHINE-CANDIDATE RECEIPT") :
+      candidate.evidenceType === "curated-character-performance" ?
       "TIMESTAMPED CURATED PERFORMANCE RECEIPT" :
       candidate.evidenceType === "caption-excerpt" ||
       candidate.evidenceType === "caption-topic-receipt" ||
@@ -1547,8 +2290,13 @@
       candidate.captioned ? "SOURCE-LEVEL DERIVED SUMMARY" : "SOURCE METADATA ONLY";
     return Object.assign({}, candidate, {
       label: resultLabel(candidate),
+      laneLabel: candidate.lane === "archive" ? "ARCHIVE DEEP · MACHINE CANDIDATE" :
+        candidate.lane === "popular" ? "POPULAR 25" :
+          candidate.lane === "fresh" ? "FRESH FROM LIVE" : "",
       speaker: null,
       speakerStatus: "not-diarized",
+      originStatus: candidate.originStatus || "not-inferred",
+      originInferred: false,
       evidenceLevel: evidenceLevel,
       evidenceWarnings: evidenceWarnings(candidate),
       explanation: {
@@ -1559,6 +2307,7 @@
         evidenceType: candidate.evidenceType,
         takeEvidence: candidate.takeEvidence || null,
         trajectoryEvidence: candidate.trajectoryEvidence || null,
+        opinionEvidence: candidate.opinionEvidence || null,
       },
     });
   }
@@ -1697,18 +2446,20 @@
     return null;
   }
 
-  function create(catalog, deep, live, curated, popular, characterLore) {
+  function create(catalog, deep, live, curated, popular, characterLore, archiveDeep) {
     catalog = catalog || [];
     deep = deep || { tapes: [] };
     live = live || { streams: [], topicIndex: [] };
     popular = popular || { streams: [], topicIndex: [], characterIndex: [] };
     curated = curated || { upInYa: [] };
     characterLore = characterLore || { characters: [] };
+    archiveDeep = archiveDeep || { streams: [], topicIndex: [], characterIndex: [] };
 
-    var combinedLive = combineLiveData(live, popular);
+    var combinedLive = combineLiveData(live, popular, archiveDeep);
     var candidates = commentaryCandidates(catalog, deep)
       .concat(liveCandidates(combinedLive))
       .concat(characterPerformanceCandidates(characterLore));
+    var sourceIndex = indexedSourceRecords(candidates);
     var aliases = aliasDefinitions(catalog, combinedLive, curated, characterLore);
     var curatedByReceipt = {};
     (curated.upInYa || []).forEach(function (item, index) {
@@ -1731,8 +2482,26 @@
       var context = applyContext(originalIntent, previous, aliases);
       var intent = context.intent;
       var entity = directEntity || context.entity;
-      var continuedFrom = !directEntity && context.continuedFrom;
-      var contextUsed = !directEntity ? context.contextUsed : [];
+      var anchor = context.resultAnchor;
+      var activeAnchorMode = context.anchorMode;
+      var contextUsed = !directEntity || Boolean(anchor && activeAnchorMode) ?
+        context.contextUsed : [];
+      var namedResultAnchor = false;
+      if (!anchor && directEntity && anchorMode(intent) === "next") {
+        anchor = resolveNamedResultAnchor(candidates, intent, directEntity);
+        if (anchor) {
+          activeAnchorMode = "next";
+          namedResultAnchor = true;
+          contextUsed = unique(contextUsed.concat(["named-result"]));
+        }
+      }
+      var anchorActive = Boolean(anchor && activeAnchorMode);
+      var continuedFrom = context.continuedFrom && (!directEntity || anchorActive);
+      var titleSelection = anchorActive ? null :
+        selectIndexedSource(sourceIndex, intent, directEntity);
+      var titleBoundary = titleSelection && titleSelection.blocked ?
+        titleSelection : null;
+      if (titleBoundary) entity = null;
       if (entity && entity.type === "character" && entity.matchedAlias &&
         intent.name === "negative") {
         var residualQuery = (" " + intent.normalized + " ").replace(
@@ -1764,30 +2533,62 @@
       }
       intent = Object.assign({}, intent, {
         characterPerformanceArchiveAvailable: Boolean((characterLore.characters || []).length),
+        resultAnchor: anchorActive ? anchor : null,
+        anchorMode: anchorActive ? activeAnchorMode : null,
+        titleBoundary: titleBoundary,
       });
       var terms = expandedTerms(intent);
-      var subjectTerms = entity ? [] : querySubjectTerms(intent);
+      var subjectTerms = entity || anchorActive ? [] : querySubjectTerms(intent);
+      var topicOverviewSource = titleSelection || anchorActive ? null :
+        selectTopicOverviewSource(sourceIndex, intent);
+      var selectedSource = titleSelection && !titleSelection.blocked ?
+        titleSelection :
+        topicOverviewSource || selectCompoundSource(candidates, intent, entity, subjectTerms);
+      if (selectedSource) {
+        intent = Object.assign({}, intent, { selectedSource: selectedSource });
+      }
+      var orphanSpeakerFollowup = intent.refusesSpeakerGuess &&
+        !anchorActive && !entity && !subjectTerms.length;
+      var rankingEntity = selectedSource || anchorActive ? null : entity;
 
       var ranked = [];
-      if (normalize(query)) {
-        ranked = candidates.filter(function (candidate) {
-          return candidateInScope(candidate, intent, entity, subjectTerms);
-        }).map(function (candidate) {
-          return Object.assign({}, candidate, scoreCandidate(candidate, intent, entity, terms, subjectTerms));
+      if (!titleBoundary && !orphanSpeakerFollowup && normalize(query) &&
+        (!intent.sourceSelector || selectedSource)) {
+        var scoped = candidates.filter(function (candidate) {
+          if (selectedSource && candidate.sourceId !== selectedSource.sourceId) return false;
+          return candidateInScope(candidate, intent, rankingEntity, subjectTerms);
+        });
+        scoped = anchorScopedCandidates(scoped, intent, anchor, activeAnchorMode);
+        ranked = scoped.map(function (candidate) {
+          return Object.assign({}, candidate, scoreCandidate(
+            candidate,
+            intent,
+            rankingEntity,
+            terms,
+            subjectTerms
+          ));
         }).filter(function (candidate) {
-          if (entity) return entityMatches(candidate, entity);
+          if (rankingEntity) return entityMatches(candidate, rankingEntity);
           if (subjectTerms.length) {
             var requiredMatches = subjectTerms.length === 1 ? 1 : Math.ceil(subjectTerms.length * 0.67);
             return candidate.matchedSubjectTerms.length >= requiredMatches;
           }
-          return candidate.score > 0;
+          return anchorActive || Boolean(selectedSource) || candidate.score > 0;
         }).sort(function (a, b) {
-          return compareCandidates(a, b, intent, entity);
+          if (activeAnchorMode === "next") {
+            var nextDifference = Number(a.at || 0) - Number(b.at || 0);
+            if (nextDifference) return nextDifference;
+          }
+          if (intent.topicOverviewRequest) {
+            var topicTimeDifference = Number(a.at || 0) - Number(b.at || 0);
+            if (topicTimeDifference) return topicTimeDifference;
+          }
+          return compareCandidates(a, b, intent, rankingEntity);
         });
       }
 
       var fullRanked = ranked.slice();
-      var rawChain = evidenceChain(intent, entity, fullRanked);
+      var rawChain = evidenceChain(intent, rankingEntity, fullRanked);
       var chain = rawChain.map(function (entry) {
         return { role: entry.role, result: enrichResult(entry.result) };
       });
@@ -1815,8 +2616,10 @@
         }
       }
       var confidence = ownerMapping ? Math.round(ownerMapping.confidence * 100) :
-        confidenceFor(intent, entity, results);
+        confidenceFor(intent, rankingEntity, results);
       var status = ownerMapping ? "owner-mapped-character" :
+        selectedSource && selectedSource.restrictedToTopicNavigation && !results.length ?
+          "topic-only-boundary" :
         intent.refusesSpeakerGuess ? "speaker-unknown" :
         intent.name === "trajectory" || intent.name === "opinion" ? "archive-boundary" :
         !results.length ? "insufficient-evidence" : "supported";
@@ -1826,6 +2629,46 @@
           " is performed by " + ownerMapping.performer +
           ". This identifies the recurring character owner only; it does not verify who is speaking in any individual clip, so every result remains non-diarized.";
       }
+      var nextResultAnchor = anchorRecord(results[0], intent.source);
+      var conversationContext = {
+        query: query,
+        intent: intent.name,
+        source: intent.source,
+        temporal: intent.temporal,
+        popularity: intent.popularity,
+        metric: intent.metric,
+        entity: entity ? entity.label : null,
+        entityType: entity ? entity.type : null,
+        resultAnchor: nextResultAnchor,
+      };
+      var selectionPlan = selectedSource ? {
+        source: {
+          metric: selectedSource.metric,
+          direction: selectedSource.direction,
+          sourceId: selectedSource.sourceId,
+          sourceTitle: selectedSource.sourceTitle,
+          views: selectedSource.views,
+          lane: selectedSource.lane || null,
+          matchMode: selectedSource.titleMatchMode || null,
+          matchedTerms: selectedSource.matchedTerms || null,
+          alternativeCount: Number(selectedSource.alternativeCount || 0),
+          tieBreak: selectedSource.tieBreak || null,
+        },
+        withinSource: {
+          intent: intent.name,
+          metric: intent.metric,
+        },
+      } : titleBoundary ? {
+        sourceTitleBoundary: {
+          reason: titleBoundary.reason,
+          queryTerms: titleBoundary.queryTerms,
+          matches: titleBoundary.matches,
+        },
+      } : anchorActive ? {
+        anchor: anchor,
+        mode: activeAnchorMode,
+        resolvedFrom: namedResultAnchor ? "named-result" : "conversation-context",
+      } : null;
 
       return {
         query: query,
@@ -1841,6 +2684,9 @@
         ownerMapping: ownerMapping,
         continuedFrom: continuedFrom,
         contextUsed: contextUsed,
+        resultAnchor: nextResultAnchor,
+        context: conversationContext,
+        selectionPlan: selectionPlan,
         confidence: confidence,
         confidenceBasis: ownerMapping ? [
           "project-owner supplied recurring-character mapping",
@@ -1852,6 +2698,10 @@
           results[0].evidenceLevel.toLowerCase(),
         ] : intent.name === "opinion" ? [
           "receipt retrieval confidence; settled opinion not established",
+          entity ? "recognized archive entity" : "archive text match",
+          results[0].evidenceLevel.toLowerCase(),
+        ] : intent.name === "negative" || intent.name === "positive" ? [
+          "target-proximate evaluative receipt",
           entity ? "recognized archive entity" : "archive text match",
           results[0].evidenceLevel.toLowerCase(),
         ] : [
@@ -1875,9 +2725,21 @@
           entity && entity.type === "franchise" ?
             "Franchise-wide evaluative receipts may concern different films, scenes, or targets; they do not establish one settled host opinion." :
             "An evaluative receipt supports a specific moment, not one settled host opinion.",
+        ] : []).concat(intent.name === "negative" || intent.name === "positive" ? [
+          "Evaluative language must occur within eight caption words of a film, scene, craft, character, or other screen target.",
+          intent.opinionComparison ?
+            "Comparative wording ranks the current relevant receipts; it does not authenticate a host's overall favorite or most-hated title." :
+            "One relevant receipt does not establish a host's overall opinion.",
+        ] : []).concat(anchorActive && activeAnchorMode === "next" ? [
+          "“Next” means the next indexed highlight in this source, not the literal next caption line.",
         ] : [])),
         explanation: {
-          method: "entity scope, source scope, direct selector, caption evidence, editorial signals",
+          method: selectedSource ?
+            "source selector, within-source moment selector, caption evidence, editorial signals" :
+            anchorActive ?
+              (namedResultAnchor ? "named-result anchor" : "prior-result anchor") +
+                ", within-source retrieval, caption evidence, editorial signals" :
+              "entity scope, source scope, direct selector, caption evidence, editorial signals",
           subjectTerms: subjectTerms,
           topScore: results[0] ? results[0].score : 0,
           resultCountBeforeDisplayLimit: fullRanked.length,

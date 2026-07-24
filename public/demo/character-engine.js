@@ -12,7 +12,12 @@
   var SPEECH_ACT_TERMS = {
     opinion: ["what do you think", "how do you feel", "your opinion", "rate", "rank", "best", "worst", "better", "versus", "vs"],
     hypothetical: ["what if", "imagine", "suppose"],
-    advice: ["what should i do", "what should we do", "how do i", "how should i", "can you help", "give me advice", "advice", "help", "fix"],
+    advice: [
+      "what should i do", "what should we do", "what should i watch",
+      "what should we watch", "what movie should i", "what movie should we",
+      "how do i", "how should i", "can you help", "give me advice", "advice",
+      "help", "fix",
+    ],
   };
 
   var DOMAIN_TERMS = {
@@ -264,7 +269,14 @@
 
   function extractSubject(question) {
     var subject = String(question || "").trim().replace(/[?!.]+$/g, "");
-    subject = subject
+    var watchRequest = subject.match(
+      /^what\s+(?:(?:movie|film)\s+)?should\s+(?:i|we|you)\s+(?:watch|see)(?:\s+(.+))?$/i
+    );
+    if (watchRequest) {
+      var timing = String(watchRequest[1] || "").trim();
+      subject = !timing ? "the watchlist" :
+        /^tonight$/i.test(timing) ? "tonight's watchlist" : timing + " watchlist";
+    } else subject = subject
       .replace(/^(hey|okay|ok|please)\s+/i, "")
       .replace(/^and\s+/i, "")
       .replace(/^what\s+should\s+(we|i|you)\s+do\s+about\s+/i, "")

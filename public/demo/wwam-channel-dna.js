@@ -3,8 +3,9 @@
 
   /*
    * Channel DNA is editorial configuration, not evidence. It tells the Memory OS
-   * what to look for and how to present it. Every public claim still has to resolve
-   * to a timestamped receipt supplied to the showcase engine.
+   * what to look for and how to present it. Every public moment-level claim must
+   * resolve to a timestamped receipt. Source-level metadata and derived summaries
+   * must resolve to a labeled source record and must not masquerade as utterances.
    */
   root.WWAM_CHANNEL_DNA = Object.freeze({
     id: "wwam",
@@ -12,10 +13,20 @@
     label: "WWAM After Midnight",
     channel: "We Watched A Movie",
     promise: "The horror-comedy channel memory that can show its work.",
+    proofSnapshot: Object.freeze({
+      asOf: "2026-07-23",
+      sources: 84,
+      wordsAudited: 2175344,
+      captionHours: 194.89,
+      knownRuntimeHours: 201.15,
+      receipts: 872,
+      nodes: 168,
+      basis: "Audited output over the preserved commentary, Fresh 10, Popular 25, and Archive Deep Batch 01 inputs. The 42 new archive candidates remain outside the 872 promoted editorial receipts. The 168 nodes remain scoped to the 74-source promoted Showcase corpus."
+    }),
 
     sourceLanes: Object.freeze({
       commentary: {
-        label: "COMMENTARY CANON",
+        label: "COMMENTARY CATALOG",
         purpose: "Long-form franchise watchalongs and movie-specific riffs"
       },
       "fresh-live": {
@@ -24,7 +35,11 @@
       },
       "popular-live": {
         label: "POPULAR 25",
-        purpose: "Foundational livestreams selected by public audience response"
+        purpose: "Foundational livestreams selected by observed YouTube view count at the frozen snapshot"
+      },
+      "archive-deep-10": {
+        label: "ARCHIVE DEEP BATCH 01",
+        purpose: "The first frozen Atlas priority batch, caption-audited with machine candidates held outside canon"
       }
     }),
 

@@ -15,6 +15,7 @@ function load(files = [
   "catalog.js",
   "livestream-distill.js",
   "popular-live-distill.js",
+  "archive-deep-distill.js",
   "archive-atlas-data.js",
   "archive-atlas-engine.js",
 ]) {
@@ -101,18 +102,46 @@ test("reconciles the feed with current deep-source lanes without importing catal
   const catalogIds = new Set(window.WWAM_CATALOG.map((record) => record.id));
   const freshIds = window.WWAM_LIVESTREAMS.streams.map((record) => record.id);
   const popularIds = window.WWAM_POPULAR_LIVE.streams.map((record) => record.id);
+  const archiveDeepIds = window.WWAM_ARCHIVE_DEEP.streams.map((record) => record.id);
   const catalogIntersection = [...catalogIds].filter((id) => ids.has(id));
 
   assert.deepEqual(catalogIntersection, ["3wK00_-K-Y0"]);
   assert.ok(freshIds.every((id) => ids.has(id)));
   assert.ok(popularIds.every((id) => ids.has(id)));
+  assert.ok(archiveDeepIds.every((id) => ids.has(id)));
+  assert.ok(archiveDeepIds.every((id) => {
+    const record = data.records.find((candidate) => candidate.id === id);
+    return (
+      record.coverage === "deeply-indexed"
+      && record.lanes.includes("archive-deep-10")
+      && !record.lanes.includes("archive-metadata")
+    );
+  }));
   assert.deepEqual(data.stats.lanes, {
     "fresh-10": 10,
     "popular-25": 25,
+    "archive-deep-10": 10,
     "commentary-catalog": 1,
-    "archive-metadata": 436,
+    "archive-metadata": 426,
   });
   assert.equal(data.provenance.sourceLanes.popularFeedEntries, 472);
+  assert.equal(data.provenance.sourceLanes.archiveDeepSources, 10);
+  assert.equal(
+    data.provenance.sourceLanes.archiveDeepSchema,
+    "wwam-archive-deep-distill/v1",
+  );
+  assert.equal(
+    data.provenance.sourceLanes.archiveDeepPriorityVersion,
+    "archive-distill-priority/v1",
+  );
+  assert.match(
+    data.provenance.sourceLanes.archiveDeepSelectionSha256,
+    /^sha256:[a-f0-9]{64}$/,
+  );
+  assert.match(
+    data.provenance.sourceLanes.archiveDeepPublicFnv1a,
+    /^fnv1a32:[a-f0-9]{8}$/,
+  );
 });
 
 test("labels deep, metadata-only, caption-limited and unavailable states honestly", () => {
@@ -124,8 +153,8 @@ test("labels deep, metadata-only, caption-limited and unavailable states honestl
     "unavailable",
   ]);
   assert.deepEqual(data.stats.coverage, {
-    "deeply-indexed": 34,
-    "metadata-only": 430,
+    "deeply-indexed": 44,
+    "metadata-only": 420,
     "caption-limited": 8,
     unavailable: 0,
   });
@@ -133,13 +162,18 @@ test("labels deep, metadata-only, caption-limited and unavailable states honestl
   assert.equal(atlas.getRecord("x6tvsGRHgU0").coverage, "caption-limited");
   assert.equal(atlas.getRecord("cQAVmNFQmoI").coverage, "caption-limited");
   assert.equal(atlas.getRecord("LV2rmwEA0w4").coverage, "deeply-indexed");
+  assert.equal(atlas.getRecord("fpNtQMexZiw").coverage, "deeply-indexed");
+  assert.deepEqual(
+    plain(atlas.getRecord("fpNtQMexZiw").lanes),
+    ["archive-deep-10"],
+  );
   assert.equal(atlas.getRecord("FVuwRHM0kcc").coverage, "metadata-only");
 
   const coverage = atlas.getCoverage();
-  assert.equal(coverage.currentSourceLaneRecords, 36);
-  assert.equal(coverage.captionBackedDeepRecords, 34);
+  assert.equal(coverage.currentSourceLaneRecords, 46);
+  assert.equal(coverage.captionBackedDeepRecords, 44);
   assert.equal(coverage.selectedCaptionLimitedRecords, 2);
-  assert.equal(coverage.deepCoveragePercent, 7.2);
+  assert.equal(coverage.deepCoveragePercent, 9.3);
   assert.match(coverage.policy, /no transcript/i);
 });
 
@@ -240,9 +274,15 @@ test("browses by decade, year, month, coverage and source lane deterministically
 
   assert.equal(atlas.browse({ decade: "2010s" }).total, 25);
   assert.equal(atlas.browse({ year: 2026, month: 7 }).total, 3);
-  assert.equal(atlas.browse({ coverage: "metadata-only" }).total, 430);
+  assert.equal(atlas.browse({ coverage: "metadata-only" }).total, 420);
   assert.equal(atlas.browse({ coverage: ["caption-limited", "unavailable"] }).total, 8);
   assert.equal(atlas.browse({ lane: "popular-25" }).total, 25);
+  assert.equal(atlas.browse({ lane: "archive-deep-10" }).total, 10);
+  assert.ok(
+    atlas.getFilterOptions().lanes.some((lane) => (
+      lane.value === "archive-deep-10" && lane.label === "ARCHIVE DEEP 10"
+    )),
+  );
 
   const topViews = atlas.browse({ sort: "views", limit: 3 });
   assert.equal(topViews.records.length, 3);
@@ -298,12 +338,24 @@ test("search and browse return defensive copies instead of mutating archive stat
 test("ranks a reproducible distill-next queue with a fully exposed 50/30/20 formula", () => {
   const { atlas } = fixture();
   const queue = atlas.getDistillQueue({ limit: 25 });
+  const frozenBatch = new Set([
+    "fpNtQMexZiw",
+    "WKs1uPGMQvw",
+    "vq6mrfqOgZw",
+    "M3P4mMDpXUc",
+    "1j3F9vAWBo4",
+    "3iMZcaVcvTU",
+    "gR_64RyPhEM",
+    "5T1wWUjCGWk",
+    "KrBhfGxsJNM",
+    "hagePawEnC4",
+  ]);
 
-  assert.equal(queue.eligible, 430);
-  assert.equal(queue.matched, 430);
+  assert.equal(queue.eligible, 420);
+  assert.equal(queue.matched, 420);
   assert.equal(queue.records.length, 25);
   assert.deepEqual(plain(queue.excluded), {
-    deeplyIndexed: 34,
+    deeplyIndexed: 44,
     captionLimited: 8,
     unavailable: 0,
   });
@@ -321,8 +373,10 @@ test("ranks a reproducible distill-next queue with a fully exposed 50/30/20 form
       + record.priority.breakdown.franchise
     ) * 10) / 10
   )));
-  assert.equal(queue.records[0].title, "SCREAM 7 Trailer Reaction and Discussion LIVE!");
-  assert.equal(queue.records[0].priority.score, 96.4);
+  assert.ok(queue.records.every((record) => !frozenBatch.has(record.id)));
+  assert.equal(queue.records[0].id, "CFUHyfcJDTg");
+  assert.equal(queue.records[0].title, "Michael Myers VS Jason Voorhees Kill V Kill LIVE!");
+  assert.equal(queue.records[0].priority.score, 89.8);
   assert.equal(queue.records[0].priority.breakdown.franchise, 20);
 });
 

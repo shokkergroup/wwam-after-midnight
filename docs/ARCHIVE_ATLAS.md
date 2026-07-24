@@ -13,7 +13,7 @@ search engine.
 - Cached views at the snapshot: **5,674,608**
 - Source snapshot: **July 23, 2026**, day precision
 - Network calls during generation: **zero**
-- Public payload: approximately **170 KB**, below the 250 KB ceiling
+- Public payload: approximately **170.5 KB**, below the 250 KB ceiling
 
 The public artifact contains only ID, title, upload date, duration, cached view
 count, derived YouTube/thumbnail URLs, evidence coverage, source lane, and the
@@ -25,8 +25,8 @@ opinions.
 
 | Status | Count | Meaning |
 | --- | ---: | --- |
-| `deeply-indexed` | 34 | A current source lane has a usable caption-backed distill. |
-| `metadata-only` | 430 | Only cached title/date/duration/view metadata is searchable. |
+| `deeply-indexed` | 44 | A current source lane has a usable caption-backed distill. |
+| `metadata-only` | 420 | Only cached title/date/duration/view metadata is searchable. |
 | `caption-limited` | 8 | No usable caption path survived in the cache; no transcript claims are made. |
 | `unavailable` | 0 | Supported as a future fail-honest state, but no cached record currently needs it. |
 
@@ -34,12 +34,20 @@ The current feed-side source lanes are:
 
 - Fresh 10: **10** records, including one caption-limited source
 - Popular 25: **25** records, including one caption-limited source
+- Archive Deep 10: **10** caption-backed records from the first frozen
+  Distill Next batch
 - Commentary catalog overlap: **1** record (`3wK00_-K-Y0`)
-- Archive metadata lane: **436** records
+- Archive metadata lane: **426** records
 
 Those lanes describe current product coverage. They do not change what the
-metadata itself proves. The 36 records selected into a source lane contain 34
+metadata itself proves. The 46 records selected into a source lane contain 44
 usable caption distills and two disclosed caption gaps.
+
+The Archive Deep 10 is independently generated and fingerprinted by
+`pipeline/wwam_archive_deep_distill.py`. Atlas provenance records its schema,
+generation/observation time, priority version, selection SHA-256, and public
+FNV-1a fingerprint. The ten records carry only the `archive-deep-10` lane and
+are excluded from the next metadata-only queue.
 
 ## Why availability says `not-captured`
 
@@ -76,15 +84,17 @@ rank, formula version, and the evidence basis
 `cached title/date/views only`. No description, transcript topic, humor score,
 or host opinion is manufactured for an undistilled upload.
 
-At this snapshot the first queue item is **“SCREAM 7 Trailer Reaction and
-Discussion LIVE!”** at **96.4**:
+After integrating the first frozen ten-source batch, the next queue item is
+**“Michael Myers VS Jason Voorhees Kill V Kill LIVE!”** at **89.8**:
 
-- Popularity: 49.2
-- Recency: 27.2
+- Popularity: 46.6
+- Recency: 23.2
 - Core-franchise title signal: 20
 
-The exact numbers remain bound to the July 23 snapshot and will only change
-when the cached feed snapshot is intentionally refreshed and regenerated.
+The score changes when a completed deep batch leaves the eligible pool because
+popularity is normalized against the highest remaining eligible cached view
+count. The underlying titles, dates, and views remain bound to the July 23
+snapshot.
 
 ## Browser integration
 
@@ -155,8 +165,8 @@ Supported filters:
 - `year`: four-digit year
 - `month`: `"YYYY-MM"` or a month number when `year` is also present
 - `coverage`: one status or an array of statuses
-- `lane`: `fresh-10`, `popular-25`, `commentary-catalog`, or
-  `archive-metadata`
+- `lane`: `fresh-10`, `popular-25`, `archive-deep-10`,
+  `commentary-catalog`, or `archive-metadata`
 - `availability` / `liveStatus`
 - `minViews`
 - `franchise`: a configured title-alias group ID
@@ -198,14 +208,15 @@ and records with:
 ```js
 record.priority = {
   rank: 1,
-  score: 96.4,
+  score: 89.8,
   breakdown: {
-    popularity: 49.2,
-    recency: 27.2,
+    popularity: 46.6,
+    recency: 23.2,
     franchise: 20
   },
   signals: [
-    { id: "scream", label: "Scream", tier: "core" }
+    { id: "halloween", label: "Halloween", tier: "core" },
+    { id: "friday-the-13th", label: "Friday the 13th", tier: "core" }
   ],
   basis: "cached title/date/views only"
 };
@@ -224,10 +235,10 @@ python pipeline\wwam_archive_atlas.py
 python pipeline\wwam_archive_atlas.py --check
 ```
 
-It reads the local metadata cache plus the checked-in Fresh 10, Popular 25, and
-commentary catalog to classify the current source lanes. It asserts the
-reconciled 472-entry feed membership, validates every record, refuses a public
-artifact at or above 250 KB, and emits:
+It reads the local metadata cache plus the checked-in Fresh 10, Popular 25,
+Archive Deep 10, and commentary catalog to classify the current source lanes.
+It asserts the reconciled 472-entry feed membership, validates every record,
+refuses a public artifact at or above 250 KB, and emits:
 
 - a SHA-256 fingerprint over sorted feed IDs;
 - a SHA-256 fingerprint over canonical public metadata;
@@ -246,5 +257,7 @@ V1 deliberately does not add a visible section by itself. A UI can now build:
 - a title-only archive search;
 - an editorial Distill Next control room.
 
-Turning a metadata-only card into a topic map, quote, character receipt, comedy
-heat score, or host take requires a future caption distill and source review.
+Turning any remaining metadata-only card into a topic map, quote, character
+receipt, comedy heat score, or host take still requires a caption distill and
+source review. The first ten completed sources demonstrate that promotion
+without weakening the boundary for the remaining 420.

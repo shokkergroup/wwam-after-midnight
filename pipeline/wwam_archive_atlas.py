@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Build the metadata-only WWAM Archive Atlas from the local source cache.
+"""Build the WWAM Archive Atlas from the local source cache and deep lanes.
 
 No network access is used. The Atlas preserves the official Streams-feed
 membership captured on 2026-07-23, exposes only video metadata, and joins that
-metadata to the public Fresh 10, Popular 25, and commentary catalog solely to
-describe the current indexing lane. It never promotes an undistilled title into
-transcript knowledge.
+metadata to the public Fresh 10, Popular 25, Archive Deep 10, and commentary
+catalog solely to describe the current indexing lane. It never promotes an
+undistilled title into transcript knowledge.
 """
 
 from __future__ import annotations
@@ -26,9 +26,11 @@ OUTPUT = PUBLIC / "archive-atlas-data.js"
 CATALOG_PATH = PUBLIC / "catalog.js"
 FRESH_PATH = PUBLIC / "livestream-distill.js"
 POPULAR_PATH = PUBLIC / "popular-live-distill.js"
+ARCHIVE_DEEP_PATH = PUBLIC / "archive-deep-distill.js"
 
 SNAPSHOT_DATE = "2026-07-23"
 EXPECTED_FEED_ENTRIES = 472
+EXPECTED_ARCHIVE_DEEP_ENTRIES = 10
 MAX_PUBLIC_BYTES = 250_000
 
 # The official Streams snapshot and commentary catalog overlap once. The other
@@ -101,6 +103,16 @@ def coverage_maps() -> tuple[
     catalog = read_assignment(CATALOG_PATH, "WWAM_CATALOG")
     fresh = read_assignment(FRESH_PATH, "WWAM_LIVESTREAMS")
     popular = read_assignment(POPULAR_PATH, "WWAM_POPULAR_LIVE")
+    archive_deep = read_assignment(ARCHIVE_DEEP_PATH, "WWAM_ARCHIVE_DEEP")
+    archive_deep_streams = archive_deep.get("streams") or []
+    if archive_deep.get("schema") != "wwam-archive-deep-distill/v1":
+        raise RuntimeError("Archive Deep lane has an unsupported schema")
+    if (
+        len(archive_deep_streams) != EXPECTED_ARCHIVE_DEEP_ENTRIES
+        or len({item.get("id") for item in archive_deep_streams})
+        != EXPECTED_ARCHIVE_DEEP_ENTRIES
+    ):
+        raise RuntimeError("Archive Deep lane must contain ten unique sources")
 
     catalog_ids = {item["id"] for item in catalog}
     captioned: dict[str, bool] = {}
@@ -115,16 +127,36 @@ def coverage_maps() -> tuple[
     for item in popular.get("streams") or []:
         captioned[item["id"]] = bool(item.get("captioned"))
         lanes.setdefault(item["id"], []).append("popular-25")
+    for item in archive_deep_streams:
+        if not item.get("captioned"):
+            raise RuntimeError(
+                f"Archive Deep source {item.get('id')} lacks a caption-backed distill"
+            )
+        captioned[item["id"]] = True
+        lanes.setdefault(item["id"], []).append("archive-deep-10")
 
     provenance = {
         "catalogSources": len(catalog),
         "freshSources": len(fresh.get("streams") or []),
         "popularSources": len(popular.get("streams") or []),
+        "archiveDeepSources": len(archive_deep_streams),
         "popularFeedEntries": int(
             (popular.get("selection") or {}).get("officialFeedEntries") or 0
         ),
         "freshGenerated": fresh.get("generated"),
         "popularGenerated": popular.get("generated"),
+        "archiveDeepGenerated": archive_deep.get("generated"),
+        "archiveDeepObservedAt": archive_deep.get("observedAt"),
+        "archiveDeepSchema": archive_deep.get("schema"),
+        "archiveDeepPriorityVersion": (
+            archive_deep.get("selection") or {}
+        ).get("priorityVersion"),
+        "archiveDeepSelectionSha256": (
+            archive_deep.get("fingerprints") or {}
+        ).get("selectionSha256"),
+        "archiveDeepPublicFnv1a": (
+            archive_deep.get("fingerprints") or {}
+        ).get("publicFnv1a"),
     }
     return catalog_ids, captioned, lanes, provenance
 
@@ -228,6 +260,7 @@ def build_payload() -> dict[str, Any]:
         for lane in (
             "fresh-10",
             "popular-25",
+            "archive-deep-10",
             "commentary-catalog",
             "archive-metadata",
         )
@@ -250,7 +283,9 @@ def build_payload() -> dict[str, Any]:
         "provenance": {
             "generator": "pipeline/wwam_archive_atlas.py",
             "networkUsed": False,
-            "source": "source-cache/metadata",
+            "source": (
+                "source-cache/metadata plus checked-in public source-lane artifacts"
+            ),
             "snapshotPrecision": "day",
             "feedCatalogOverlap": sorted(FEED_CATALOG_OVERLAP),
             "fieldPolicy": (
@@ -305,6 +340,26 @@ def validate_payload(payload: dict[str, Any]) -> None:
     )
     assert sum(payload["stats"]["coverage"].values()) == len(records)
     assert payload["cutoff"]["officialFeedEntries"] == len(records)
+    archive_deep = [
+        record
+        for record in records
+        if "archive-deep-10" in record["lanes"]
+    ]
+    assert len(archive_deep) == EXPECTED_ARCHIVE_DEEP_ENTRIES
+    assert all(
+        record["coverage"] == "deeply-indexed"
+        and record["lanes"] == ["archive-deep-10"]
+        for record in archive_deep
+    )
+    assert payload["stats"]["lanes"]["archive-deep-10"] == len(archive_deep)
+    assert payload["provenance"]["sourceLanes"]["archiveDeepSources"] == len(
+        archive_deep
+    )
+    assert payload["provenance"]["sourceLanes"]["archiveDeepSchema"] == (
+        "wwam-archive-deep-distill/v1"
+    )
+    assert payload["provenance"]["sourceLanes"]["archiveDeepSelectionSha256"]
+    assert payload["provenance"]["sourceLanes"]["archiveDeepPublicFnv1a"]
 
     canonical = [canonical_record(record) for record in records]
     feed_ids = sorted(record["id"] for record in records)

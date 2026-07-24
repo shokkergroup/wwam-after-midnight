@@ -12,11 +12,12 @@ const app = fs.readFileSync(path.join(demo, "app.js"), "utf8");
 const styles = fs.readFileSync(path.join(demo, "styles.css"), "utf8");
 const atlasUi = fs.readFileSync(path.join(demo, "archive-atlas-ui.js"), "utf8");
 const redEngine = fs.readFileSync(path.join(demo, "red-band-ranking-v2.js"), "utf8");
+const redQuery = fs.readFileSync(path.join(demo, "red-band-query.js"), "utf8");
 const readme = fs.readFileSync(path.join(root, "README.md"), "utf8");
 const changelog = fs.readFileSync(path.join(root, "docs", "CHANGELOG.md"), "utf8");
 const packageJson = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
 
-test("V5.3 publishes both showcase surfaces without putting their ledgers on first load", () => {
+test("V5.4 publishes its showcase surfaces without putting deferred ledgers on first load", () => {
   for (const id of [
     "red100",
     "redMethod",
@@ -29,11 +30,17 @@ test("V5.3 publishes both showcase surfaces without putting their ledgers on fir
     assert.match(html, new RegExp(`id="${id}"`), `${id} is missing`);
   }
 
-  assert.doesNotMatch(html, /<script[^>]+(?:archive-atlas|red-band-ranking-v2)/i);
+  assert.doesNotMatch(
+    html,
+    /<script[^>]+(?:archive-(?:atlas|deep)|red-band-(?:ranking-v2|query))/i,
+  );
   assert.match(app, /loadDemoScript\("red-band-ranking-v2\.js"\)/);
+  assert.match(app, /loadDemoScript\("red-band-query\.js"\)/);
   assert.match(app, /loadDemoScript\("archive-atlas-data\.js"\)/);
   assert.match(app, /loadDemoScript\("archive-atlas-engine\.js"\)/);
   assert.match(app, /loadDemoScript\("archive-atlas-ui\.js"\)/);
+  assert.match(app, /loadDemoScript\("archive-deep-distill\.js"\)/);
+  assert.match(app, /loadDemoScript\("archive-deep-engine\.js"\)/);
 });
 
 test("Archive Atlas keeps metadata scope and incomplete coverage visible in static copy", () => {
@@ -51,10 +58,10 @@ test("the Red Band export and exact-rank Ask path expose the scoring boundary", 
   assert.match(html, /id="redExport"[^>]*>DOWNLOAD INDEX JSON/);
   assert.match(app, /engine\.exportSnapshot\(\)/);
   assert.match(app, /wwam-red-band-100-v2\.json/);
-  assert.match(app, /function redBandRankSelection\(query\)/);
-  assert.match(app, /redBandRankingEngine\.getByRank\(rank\)/);
+  assert.match(app, /redBandQueryEngine\.analyze\(query,\s*state\.askContext\)/);
+  assert.match(redQuery, /ranking\.getByRank\(rank\)/);
   assert.match(app, /MACHINE-RANKED, NOT A CREATOR VOTE/);
-  assert.match(app, /Speaker not diarized; the receipt makes no host-authorship or true-origin claim/);
+  assert.match(redQuery, /Speaker not diarized; the receipt makes no host-authorship or true-origin claim/);
   assert.match(redEngine, /RECENCY EXCLUDED/);
   assert.match(redEngine, /ZERO DEFAULT · NO EDITORIAL VOTE SUPPLIED/);
 });
@@ -76,11 +83,18 @@ test("Mike Mode has six coherent beats and opens Archive Atlas as live proof", (
   assert.match(app, /action\.kind === "archive"[\s\S]{0,240}loadArchiveAtlas\(\)/);
 });
 
-test("V5.3 release identity and headline proof remain synchronized", () => {
-  assert.equal(packageJson.version, "0.5.3");
-  assert.match(changelog, /## 0\.5\.3\b/);
+test("V5.4 release identity and headline proof remain synchronized", () => {
+  assert.equal(packageJson.version, "0.5.4");
+  assert.match(changelog, /## 0\.5\.4\b/);
   assert.match(changelog, /472 cached feed records/);
   assert.match(changelog, /100 unique ranked receipts/);
   assert.match(readme, /Archive Atlas/i);
   assert.match(readme, /Memorability Index V2/i);
+});
+
+test("the mobile header keeps every primary route in a dedicated scroll lane", () => {
+  assert.match(styles, /@media \(max-width: 600px\)[\s\S]*?grid-template-rows: 60px 42px/);
+  assert.match(styles, /\.nav-links[\s\S]*?grid-column: 1 \/ -1[\s\S]*?scroll-snap-type: x proximity/);
+  assert.match(styles, /\.nav-links a \{ min-height: 42px; scroll-snap-align: start; \}/);
+  assert.match(styles, /scroll-padding-top: 110px/);
 });

@@ -19,6 +19,7 @@ function load() {
     "character-lore.js",
     "wwam-channel-dna.js",
     "showcase-engine.js",
+    "correction-ripple-engine.js",
     "trust-engine.js"
   ].forEach((file) => {
     vm.runInContext(fs.readFileSync(path.join(demo, file), "utf8"), sandbox, {
@@ -58,7 +59,7 @@ test("Trust Desk is deterministic and reports the complete v4 evidence surface",
   const first = createCurrent(window).trust;
   const second = createCurrent(window).trust;
 
-  assert.equal(window.WWAMTrustEngine.VERSION, "1.0.0");
+  assert.equal(window.WWAMTrustEngine.VERSION, "1.1.0");
   assert.equal(first.engine, "WWAM TRUST / CANON DESK");
   assert.equal(first.snapshotDate, "2026-07-23");
   assert.deepEqual(plain(first.metrics), plain(second.metrics));
@@ -84,9 +85,41 @@ test("Trust Desk is deterministic and reports the complete v4 evidence surface",
   assert.equal(first.metrics.publicExcerptViolations, 362);
   assert.equal(first.metrics.reviewCandidates, 95);
   assert.equal(first.metrics.correctionPackets, 95);
+  assert.equal(first.metrics.rippleReadyPackets, 90);
+  assert.equal(first.metrics.rippleBlockedPackets, 5);
+  assert.equal(first.metrics.rippleExactReceiptRecords, 904);
+  assert.equal(first.metrics.rippleSourceOnlyRecords, 2403);
   assert.equal(first.metrics.contributionPackets, 4);
   assert.equal(first.policy.noSpeakerGuessing, true);
   assert.equal(first.policy.generatedCharacterAudioAllowed, false);
+  assert.equal(first.correctionRipple.registeredRecords, 1374);
+  assert.equal(first.correctionRipple.registeredSurfaces.length, 9);
+  assert.deepEqual(
+    plain(first.correctionRipple.registryHealth),
+    {
+      sources: 74,
+      receipts: 872,
+      duplicateSourceIds: [],
+      duplicateReceiptIds: [],
+    },
+  );
+  first.correctionPackets.forEach((packet) => {
+    assert.equal(packet.schema, "wwam.correction.v2");
+    assert.equal(packet.dryRunRipple.mode, "DRY_RUN");
+    assert.equal(packet.dryRunRipple.mutationPolicy.canonMutation, "NONE");
+  });
+  first.correctionPackets
+    .filter((packet) => !packet.dryRunRipple.analysisComplete)
+    .forEach((packet) => {
+      assert.equal(
+        packet.dryRunRipple.status,
+        "BLOCKED_UNRESOLVED_EVIDENCE",
+      );
+      assert.deepEqual(plain(packet.dryRunRipple.dependencies), {
+        exactReceipt: [],
+        sourceOnly: [],
+      });
+    });
 });
 
 test("source health separates valid archives from transcript-limited sources", () => {
@@ -309,9 +342,14 @@ test("confidence explanations and correction packets expose safe UI-ready contra
     )
   );
   assert.equal(packet.status, "DRAFT");
+  assert.equal(packet.schema, "wwam.correction.v2");
   assert.equal(packet.reviewer.decision, null);
   assert.equal("generatedAt" in packet, false);
   assert.match(packet.canonEffect, /No correction becomes canon/);
+  assert.equal(packet.dryRunRipple.mode, "DRY_RUN");
+  assert.equal(packet.dryRunRipple.mutationPolicy.canonMutation, "NONE");
+  assert.equal(packet.dryRunRipple.mutationPolicy.askEffectClaim, "NONE");
+  assert.equal(packet.dryRunRipple.mutationPolicy.clipLabEffectClaim, "NONE");
 
   assert.equal(trust.uiContract.deskLanes.length, 5);
   assert.match(trust.uiContract.confidenceLookup, /explainConfidence/);

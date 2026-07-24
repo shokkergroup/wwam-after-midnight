@@ -1,0 +1,305 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:shokker:youtube-wiki:channel-pack:1.0.0",
+  "title": "Shokker YouTube Wiki ChannelPack",
+  "description": "The portable, evidence-safe boundary between the universal Memory OS and one channel's identity. Machine discoveries remain quarantined until human review.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "contractVersion",
+    "fingerprint",
+    "identity",
+    "sourceLanes",
+    "taxonomy",
+    "evidencePolicy",
+    "updateContract",
+    "storage",
+    "surfaceVocabulary",
+    "capabilities",
+    "channelExtensions"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "channel-pack-spec.json"
+    },
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "contractVersion": {
+      "const": "1.0.0"
+    },
+    "fingerprint": {
+      "type": "string",
+      "pattern": "^cp1-[0-9a-f]{16}$",
+      "description": "Deterministic FNV-1a dual-seed fingerprint of the canonical payload. This is a change detector, not a cryptographic signature."
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "packVersion", "label", "channel", "promise"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/kebabId"
+        },
+        "packVersion": {
+          "$ref": "#/$defs/semver"
+        },
+        "label": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "channel": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "promise": {
+          "$ref": "#/$defs/nonEmpty"
+        }
+      }
+    },
+    "sourceLanes": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label", "purpose", "inclusion"],
+        "properties": {
+          "id": {
+            "$ref": "#/$defs/kebabId"
+          },
+          "label": {
+            "$ref": "#/$defs/nonEmpty"
+          },
+          "purpose": {
+            "$ref": "#/$defs/nonEmpty"
+          },
+          "inclusion": {
+            "$ref": "#/$defs/nonEmpty"
+          }
+        }
+      }
+    },
+    "taxonomy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["entityTypes", "receiptTypes", "relationships"],
+      "properties": {
+        "entityTypes": {
+          "$ref": "#/$defs/stringSet"
+        },
+        "receiptTypes": {
+          "$ref": "#/$defs/stringSet"
+        },
+        "relationships": {
+          "$ref": "#/$defs/stringSet"
+        }
+      }
+    },
+    "evidencePolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "publicExcerptWords",
+        "timestampRequired",
+        "sourceUrlRequired",
+        "noSpeakerGuessing",
+        "generatedCharacterAudioAllowed",
+        "machineOutputState",
+        "promotionRequiresHumanReview",
+        "corrections",
+        "preserveContradictions"
+      ],
+      "properties": {
+        "publicExcerptWords": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 25
+        },
+        "timestampRequired": {
+          "const": true
+        },
+        "sourceUrlRequired": {
+          "const": true
+        },
+        "noSpeakerGuessing": {
+          "const": true
+        },
+        "generatedCharacterAudioAllowed": {
+          "const": false
+        },
+        "machineOutputState": {
+          "const": "quarantine"
+        },
+        "promotionRequiresHumanReview": {
+          "const": true
+        },
+        "corrections": {
+          "const": "append-only"
+        },
+        "preserveContradictions": {
+          "const": true
+        }
+      }
+    },
+    "updateContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stages", "sourceOfTruth", "cadenceClaim", "removalPolicy"],
+      "properties": {
+        "stages": {
+          "type": "array",
+          "prefixItems": [
+            { "const": "discover" },
+            { "const": "quarantine" },
+            { "const": "review" },
+            { "const": "promote" }
+          ],
+          "items": false,
+          "minItems": 4,
+          "maxItems": 4
+        },
+        "sourceOfTruth": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "cadenceClaim": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "removalPolicy": {
+          "const": "tombstone"
+        }
+      }
+    },
+    "storage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["namespace", "partitionKeys", "exportPrefix"],
+      "properties": {
+        "namespace": {
+          "type": "string",
+          "pattern": "^shokker\\.youtube-wiki\\.[a-z0-9]+(?:-[a-z0-9]+)*\\.v[0-9]+$"
+        },
+        "partitionKeys": {
+          "type": "array",
+          "prefixItems": [
+            { "const": "channelId" }
+          ],
+          "contains": {
+            "const": "sourceId"
+          },
+          "minItems": 2,
+          "uniqueItems": true
+        },
+        "exportPrefix": {
+          "$ref": "#/$defs/kebabId"
+        }
+      }
+    },
+    "surfaceVocabulary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ask",
+        "receipt",
+        "source",
+        "unknown",
+        "quarantine",
+        "reviewed",
+        "certified",
+        "correction"
+      ],
+      "properties": {
+        "ask": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "receipt": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "source": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "unknown": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "quarantine": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "reviewed": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "certified": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "correction": {
+          "$ref": "#/$defs/nonEmpty"
+        }
+      }
+    },
+    "capabilities": {
+      "$ref": "#/$defs/stringSet"
+    },
+    "channelExtensions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["categorySignals", "characterIds", "bitIds", "proofLabels"],
+      "properties": {
+        "categorySignals": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "characterIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "bitIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "proofLabels": {
+          "type": "object"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "nonEmpty": {
+      "type": "string",
+      "minLength": 1
+    },
+    "kebabId": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "semver": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "stringSet": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "x-shokker-conformance": {
+    "compiler": "channel-pack-contract.js",
+    "compilerVersion": "1.0.0",
+    "fingerprintAlgorithm": "fnv1a32-utf16le-dual-seed-canonical-json-v1",
+    "failureMode": "closed",
+    "publicCanonRule": "Machine output enters quarantine; human review is required before promotion.",
+    "portfolioRule": "Channel IDs and storage namespaces must be unique across every installed pack."
+  }
+}
