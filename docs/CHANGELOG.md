@@ -3,6 +3,45 @@
 This changelog records product and evidence-contract changes. It does not by
 itself indicate that a build has been deployed.
 
+## 0.5.11 — V5.11 Ask the Tape: Answer Frame V2 — 2026-07-24
+
+### Added
+
+- **Answer Frame V2** compiles action, evidence scope, primary target,
+  secondary targets, request predicate, selector, and follow-up anchor before
+  retrieval.
+- Secondary target terms survive a film, source, franchise, or character
+  match. A candidate must provide semantic target coverage before archive heat
+  or curated priority can order it.
+- Source-first temporal routing selects the newest or oldest requested
+  commentary before retrieving its indexed moments, and labels the result as
+  an archive route rather than a movie plot summary.
+- Spelled limits, non-contiguous coverage negation, watch-along wording, play
+  commands, and character profile / performance / mention phrasing receive
+  separate answer contracts.
+- Exact result context now anchors next, previous, there, replay, and another
+  follow-ups to the selected source and second.
+- Global “craziest” requests continue to hand off to Red Band 100. Global
+  “funniest” or “laugh hardest” requests now hand off to the Comedy Black Box
+  instead of receiving an invented independent winner.
+
+### Accuracy and authority boundaries
+
+- A correct upload title is no longer accepted as a correct content answer.
+  The requested secondary target must be present in bounded indexed evidence.
+- Missing subtopics return an honest zero-receipt refusal instead of an
+  unrelated high-heat tangent.
+- Character profiles, broad caption signals, and timestamp-validated curated
+  performance candidates remain distinct evidence classes.
+- Query-frame concepts are channel-neutral; WWAM entities and presentation
+  still come from the checked-in ChannelPack and corpus.
+- The release passed **122/122 Ask/search subtests**, including the complete
+  **157-query adversarial corpus**, plus **8/8 focused V5.11 cases**. This is an
+  executable regression gate, not a claim that natural-language retrieval is
+  universally solved.
+- No change grants speaker diarization, true-origin proof, creator approval,
+  plot knowledge, or promotion authority to Ask.
+
 ## 0.5.10 — V5.10 Comedy Black Box — 2026-07-24
 
 ### Added

@@ -7,11 +7,11 @@ character archaeology, topic paths, and creator-side editorial opportunities.
 This is an unofficial fan prototype. It sends playback and source traffic back
 to the official WWAM uploads.
 
-Current documented release: **V5.10 / 0.5.10**.
+Current documented release: **V5.11 / 0.5.11**.
 
-## V5.10 current Archive Deep overlay
+## V5.11 current Archive Deep overlay
 
-V5.10 retains the three independently fingerprinted Archive Deep batches from
+V5.11 retains the three independently fingerprinted Archive Deep batches from
 V5.8 as one read-only portfolio:
 
 - 30 caption-audited sources;
@@ -48,7 +48,7 @@ All 30 Archive Deep sources are excluded from the next metadata-only queue.
 
 ## Immutable V5.4 proof — preserved release snapshot
 
-The following values are the frozen V5.4 proof, not the current V5.10 overlay:
+The following values are the frozen V5.4 proof, not the current V5.11 overlay:
 **84 inputs, 2,175,344 audited words, 194.9 caption-audited hours, 872 promoted
 receipts, 42 then-quarantined Batch 01 candidates, and 168 promoted core memory
 nodes**. The current thirty-source portfolio does not retroactively change
@@ -92,6 +92,30 @@ chapters. Its one uncaptioned source correctly contributes no fabricated map.
 The Lore Galaxy exposes 953 labeled graph receipt links. That broader count
 includes source entry points and context records; the 872 count is the
 editorial-moment inventory.
+
+## V5.11 Ask the Tape: Answer Frame V2
+
+Ask now compiles a channel-neutral answer frame before it ranks a receipt:
+action, evidence scope, primary target, **secondary targets**, request
+predicate, selector, and follow-up anchor. Finding the correct source title is
+no longer enough. A question about “the mask in Halloween 5” must first find
+the indexed commentary and then require **semantic target coverage** for the
+mask before comedy heat can break a tie. If that target is absent, Ask gives an
+**honest refusal** instead of substituting a hotter unrelated moment.
+
+Source-first temporal questions now select the newest or oldest requested
+source before retrieving its moments. Negated coverage, spelled list limits,
+play commands, character profile-versus-performance-versus-mention questions,
+and exact result navigation keep distinct answer contracts. **Follow-up
+memory** preserves the selected source and second for next, previous, there,
+replay, or another. An explicit new target overrides stale context.
+
+A global “craziest ever” request hands off to the Red Band 100, while a global
+“funniest” or “laugh hardest” request hands off to the Comedy Black Box. Ask
+does not manufacture a private #1 beside a published ranking. The V5.11 gate
+passed **122/122** Ask/search subtests, including the complete **157-query**
+adversarial corpus, plus 8/8 focused answer-first cases. See
+[Answer Frame V2](docs/ASK_ANSWER_FRAME_V2.md).
 
 ## V5.10 Comedy Black Box
 
@@ -148,7 +172,7 @@ manifest. Quarantined stops remain marked `promotionAllowed: false` with no
 speaker claim. The export omits transcripts, caption payloads, and full event
 ledgers. See [Archive Time Capsules](docs/ARCHIVE_TIME_CAPSULES.md).
 
-## V5.10 product map
+## V5.11 product map
 
 The hero offers three deliberate entry points:
 
@@ -246,6 +270,13 @@ latest livestream's topics, locate the earliest curated character performance
 in the current set, and move before, after, replay, or to another indexed
 same-source highlight. Context-bearing answer links preserve the exact source
 and timestamp across a reload.
+
+Answer Frame V2 additionally preserves the requested subject after a source or
+entity match. Semantic fit is now a retrieval gate before archive heat, so a
+direct answer cannot be buried beneath a merely popular receipt from the right
+upload. Missing subtopics abstain, temporal source-content questions choose the
+source before its moments, and query-plan explanations expose the action,
+scope, targets, predicate, selector, and anchor used.
 
 For Dr. Loomis, an unqualified “clips” or “how often” question returns the 7
 timestamp-validated human-curated performance candidates in the bounded set. Only an
@@ -397,7 +428,8 @@ artifacts contain derived measurements and short, timestamped fragments only.
 
 ## Documentation
 
-- [V5.10 product overview](docs/V5_OVERVIEW.md)
+- [V5.11 product overview](docs/V5_OVERVIEW.md)
+- [Ask the Tape: Answer Frame V2](docs/ASK_ANSWER_FRAME_V2.md)
 - [Comedy Black Box evidence contract](docs/RIFF_BLACK_BOX.md)
 - [Archive Time Capsules](docs/ARCHIVE_TIME_CAPSULES.md)
 - [Creator demo runbook](docs/CREATOR_DEMO_RUNBOOK.md)

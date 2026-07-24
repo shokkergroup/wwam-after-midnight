@@ -58,10 +58,10 @@ test("V5.9 release documentation pins the two-ledger and quarantine proofs", () 
   const changelog = read("docs/CHANGELOG.md");
   const runbook = read("docs/CREATOR_DEMO_RUNBOOK.md");
 
-  assert.equal(manifest.version, "0.5.10");
-  assert.equal(lock.version, "0.5.10");
-  assert.equal(lock.packages[""].version, "0.5.10");
-  assert.match(readme, /Current documented release: \*\*V5\.10 \/ 0\.5\.10\*\*/);
+  assert.equal(manifest.version, "0.5.11");
+  assert.equal(lock.version, "0.5.11");
+  assert.equal(lock.packages[""].version, "0.5.11");
+  assert.match(readme, /Current documented release: \*\*V5\.11 \/ 0\.5\.11\*\*/);
   assert.match(overview, /^# WWAM After Midnight V5\.10/m);
   assert.match(changelog, /^## 0\.5\.9 .*V5\.9 Archive Time Capsules/m);
   assert.match(runbook, /current V5\.10 build/);

@@ -1,4 +1,4 @@
-# WWAM After Midnight V5.10
+# WWAM After Midnight V5.11
 
 ## One-sentence product
 
@@ -15,7 +15,7 @@ masquerading as timestamped utterances.
 
 ## Audited snapshot
 
-V5.10 keeps a frozen release proof and a current Archive Deep overlay visibly
+V5.11 keeps a frozen release proof and a current Archive Deep overlay visibly
 separate. The **immutable V5.4 proof** remains:
 
 | Source lane | Coverage |
@@ -34,7 +34,7 @@ separate. The **immutable V5.4 proof** remains:
 The Popular 25 ranking is a time-stamped view-count snapshot, not a permanent
 popularity claim.
 
-The **current V5.10 Archive Deep Portfolio overlay**, retained from V5.8, is additive quarantine
+The **current V5.11 Archive Deep Portfolio overlay**, retained from V5.8, is additive quarantine
 inventory, not a retroactive rewrite of that proof:
 
 | Archive Deep Portfolio measurement | Current overlay |
@@ -88,6 +88,36 @@ The combined portfolio fingerprint is `fnv1a32:8e474ea8`. Batch 01, 02, and
 03 retain `fnv1a32:17045a51`, `fnv1a32:bcea5692`, and
 `fnv1a32:f79f2399`, respectively. These FNV values detect structural change;
 they do not authenticate the sources or an operator.
+
+## Answer Frame V2
+
+Ask the Tape now compiles an answer contract before it retrieves evidence.
+The frame separates the requested action, evidence scope, primary target,
+secondary targets, predicate, selector, and follow-up anchor. This closes the
+most damaging retrieval failure: finding the correct film or upload, consuming
+its title words, and then allowing an unrelated high-heat moment to bury the
+direct answer.
+
+Secondary targets now require semantic target coverage inside a candidate
+before heat or curation can order it. If the requested subject is absent, Ask
+returns an honest refusal with zero receipts. Newest-source content questions
+select the source before its moments and remain explicitly commentary maps,
+not plot summaries. Negated coverage, spelled limits, play commands, character
+profiles, performance candidates, caption mentions, and exact receipt
+follow-ups keep different answer contracts.
+
+Global rankings remain separate products. “Craziest ever” routes to the Red
+Band 100; “funniest ever” or “laugh hardest” routes to the Comedy Black Box.
+Ask does not invent a parallel #1. Follow-up memory keeps the exact source and
+second for next, previous, there, replay, and another until an explicit new
+target replaces it.
+
+The V5.11 release gate passed **122/122 Ask/search subtests**, including a
+**157-query adversarial corpus**, plus 8/8 focused Answer Frame V2 cases.
+Passing requires the requested evidence to rank first, irrelevant hot receipts
+to stay absent, and unsupported targets to abstain. It does not claim speaker
+diarization, plot knowledge, creator approval, or perfect coverage of every
+possible natural-language phrasing.
 
 ## The Years Have Teeth
 
@@ -235,14 +265,18 @@ The archive becomes something to play:
 
 The archive becomes navigable memory:
 
-- Ask WWAM's visible Query Plan V1 separates subjects from controls before
-  retrieval. It supports exact titles, unique-source counts and complete
+- Ask WWAM's Answer Frame V2 separates action, scope, primary and secondary
+  targets, predicates, selectors, and anchors before retrieval. Semantic target
+  fit gates archive heat, so a direct answer from the right source cannot be
+  buried by an unrelated popular receipt. It supports exact titles,
+  unique-source counts and complete
   source lists, year-scoped rankings, character rosters and profiles,
   human-curated performance-candidate counts versus broad caption mentions,
   curated top-N soundbytes,
   source-scoped latest-show maps, named-result replay/before/after/another
   navigation, and explicit handoffs when another ranked surface owns the
-  question. The frozen release gate now contains 37 executable cases.
+  question. The full Ask/search matrix passes 122/122 subtests, including its
+  157-query adversarial corpus.
 - Ask Review Queue V1 lets a user flag the rendered answer into a device-local,
   append-only proposal ledger. It can optionally name a better source, whole
   second, expected answer, or editor note. The packet performs no automatic

@@ -28,9 +28,9 @@ test("V5.7 release identity stays synchronized", () => {
   const packageLock = JSON.parse(read("package-lock.json"));
   const changelog = read("docs/CHANGELOG.md");
 
-  assert.equal(packageJson.version, "0.5.10");
-  assert.equal(packageLock.version, "0.5.10");
-  assert.equal(packageLock.packages[""].version, "0.5.10");
+  assert.equal(packageJson.version, "0.5.11");
+  assert.equal(packageLock.version, "0.5.11");
+  assert.equal(packageLock.packages[""].version, "0.5.11");
   assert.match(changelog, /^## 0\.5\.7\b/m);
   assert.match(changelog, /V5\.7 Archive Deep Portfolio/i);
 });

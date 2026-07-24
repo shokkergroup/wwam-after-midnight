@@ -29,8 +29,9 @@
     "first", "foundational", "fresh", "funniest", "funny", "garbage", "hate",
     "hated", "highest", "index", "indexed", "last", "latest", "laugh", "like",
     "liked", "live", "livestream", "livestreams", "love", "loved", "lowest",
-    "happen", "happened", "mention", "mentioned", "mentions", "moment", "moments", "most", "never",
+    "happen", "happened", "happens", "mention", "mentioned", "mentions", "moment", "moments", "most", "never",
     "newest", "oldest", "one", "ones",
+    "play", "played", "playing", "plays",
     "opinion", "popular", "praise", "praised", "prove", "ranking", "receipt", "recent", "recently", "score",
     "results", "second", "something", "soundbyte", "soundbytes", "source", "start", "started",
     "stream", "streams", "talk", "talked", "talking", "tape", "think", "topic",
@@ -74,8 +75,30 @@
 
   var SOURCE_TITLE_NOISE_WORDS = [
     "find", "franchise", "franchises", "jump", "live", "livestream", "movie", "movies",
-    "open", "please", "show", "stream", "video", "watched", "we", "whats",
+    "along", "open", "play", "played", "playing", "plays", "please", "show", "stream",
+    "video", "watch", "watched", "we", "whats",
     "wheres", "whos",
+  ];
+
+  /*
+   * These are request predicates and navigation words, not archive subjects.
+   * Keeping this vocabulary channel-neutral prevents commands such as
+   * "play", "what happens", or "is it bad" from being mistaken for title
+   * fragments or receipt targets.
+   */
+  var SUBJECT_PREDICATE_WORDS = [
+    "appear", "appeared", "appears", "appearance", "bad", "bring", "came",
+    "change", "changed", "come", "create", "created", "doing", "done", "evolve",
+    "evolved", "exact", "feel", "filler", "find", "franchise", "franchises",
+    "get", "go", "good", "got", "hates", "likes", "loves",
+    "guarantee", "hardest", "happen", "happened", "happens", "indexed",
+    "invent", "invented", "made", "mind", "not", "open", "originate",
+    "originated", "owns", "perform",
+    "performed", "performing", "performance", "performances", "performs",
+    "play", "played", "playing", "plays", "please",
+    "portray", "portrayed", "portrayal", "portrays", "profile", "pull", "real",
+    "settled", "signal", "signals", "take", "takes", "there", "time", "up",
+    "verified", "voice", "voiced", "voices",
   ];
 
   var EXPANSIONS = {
@@ -191,12 +214,17 @@
       var commandBeforeNumber = ["show", "give", "list", "find"].indexOf(previous) >= 0 ||
         (previous === "me" &&
           ["show", "give", "list", "find"].indexOf(beforePrevious) >= 0);
+      var commandNearNumber = queryWords
+        .slice(Math.max(0, index - 4), index)
+        .some(function (candidate) {
+          return ["show", "give", "list", "find", "top", "rank"].indexOf(candidate) >= 0;
+        });
       var outputNounAhead = queryWords.slice(index + 1, index + 5).some(function (candidate) {
         return ["soundbytes", "moments", "clips", "commentaries", "watchalongs",
           "livestreams", "streams", "uploads", "videos"].indexOf(candidate) >= 0;
       });
       var localLimitNumber = ["top", "rank", "number"].indexOf(previous) >= 0 ||
-        (commandBeforeNumber && outputNounAhead);
+        ((commandBeforeNumber || commandNearNumber) && outputNounAhead);
       if (NUMBER_WORDS[word] && (localSequelNumber || localLimitNumber)) {
         return NUMBER_WORDS[word];
       }
@@ -263,12 +291,14 @@
       sourceExplicit = true;
     }
 
+    var latestReceiptGrammar =
+      /\blast(?: indexed)?(?: [a-z0-9]+){0,4} (?:bit|clip|moment|performance|appearance|mention|receipt)\b/.test(q);
     var temporal = firstPerformanceGrammar || firstAppearanceGrammar || includesAny(q, [
       "earliest", "oldest", "first indexed", "first time", "first livestream",
       "first live stream", "first live show", "first commentary", "first watchalong",
       "first upload", "first video",
     ]) ? "earliest" :
-      includesAny(q, [
+      latestReceiptGrammar || includesAny(q, [
         "latest", "newest", "most recent", "last time", "last livestream",
         "last live stream", "last stream", "last live show", "last commentary", "last watchalong",
         "last upload", "last video", "today", "last night", "last nights",
@@ -312,7 +342,7 @@
       "did not cover", "didnt cover", "did not discuss", "didnt discuss",
       "did not mention", "didnt mention", "have not covered", "havent covered",
       "has not covered", "hasnt covered",
-    ]);
+    ]) || /\b(?:did|do|does|have|has) (?:they |he |she )?not (?:ever )?(?:cover|covered|discuss|discussed|mention|mentioned|talk about|talked about)\b/.test(q);
     var coverageLanguage = includesAny(q, [
       "cover", "covered", "discuss", "discussed", "talk about", "talked about",
       "mention", "mentioned", "indexed for", "anything indexed", "do you have",
@@ -438,7 +468,9 @@
       "character signal", "character signals", "ordinary reference", "ordinary references",
       "character reference", "character references", "caption signal", "caption signals",
       "signal", "signals", "reference", "references", "mentioned", "mentions",
-      "show up", "showed up", "came up",
+      "show up", "showed up", "came up", "what did they say about",
+      "what do they say about", "talk about", "talked about", "discuss",
+      "discussed",
     ]);
     var yearMatch = q.match(/(?:^| )((?:19|20)\d{2})(?: |$)/);
     var visualResultRequest = includesAny(q, [
@@ -527,11 +559,20 @@
       "characters do they play", "characters do they portray",
       "who do they impersonate",
     ]);
+    var simpleCharacterIdentity = /^(?:who|what) is .+\??$/.test(q) &&
+      !includesAny(q, [
+        "latest", "newest", "earliest", "oldest", "indexed", "signal",
+        "signals", "performance", "performances", "clip", "clips",
+        "mention", "mentions", "where", "when", "funniest", "funny",
+        "best", "worst", "bad", "good",
+      ]);
     var characterProfileLanguage = includesAny(q, [
       "running gag", "recurring joke", "recurring jokes", "character profile",
       "what is the bit like", "what is the character like", "why is the",
       "tell me about the character",
     ]) || /\bwhat is .+ like\b/.test(q) ||
+      simpleCharacterIdentity ||
+      /^tell me about .+(?: bit| character)\??$/.test(q) ||
       /\brecurring\b.*\b(?:joke|jokes|bit|bits|gag|gags)\b/.test(q);
     var verifiedCharacterCountLanguage = countRequested && includesAny(q, [
       "verified", "performance", "performances", "soundbyte", "soundbytes",
@@ -558,8 +599,21 @@
       ]) ||
       /\btop\s+\d+\s+(?:craziest|wildest|most deranged|most fucked up)\s+(?:things?|moments?|clips?)\b/.test(q)
     );
+    var globalComedySuperlative = !requestedLimit && (
+      /\b(?:their|the|overall) funniest (?:moment|bit|clip|thing)\b/.test(q) ||
+      /\b(?:what|which|where).*\b(?:made them laugh|laugh(?:ed)? hardest)\b/.test(q) ||
+      /\bfunniest (?:moment|bit|clip|thing) overall\b/.test(q)
+    );
+    var hasSurfaceHandoff =
+      broadMemorabilitySuperlative || globalComedySuperlative;
+    var temporalSourceContent = parsedIntent.sourceExplicit &&
+      parsedIntent.temporal !== "all" &&
+      includesAny(q, [
+        "what happens in", "what happened in", "what did they say in",
+        "what do they say in", "whats in", "what is in",
+      ]);
     var outputShape = "single";
-    if (broadMemorabilitySuperlative) outputShape = "surface-handoff";
+    if (hasSurfaceHandoff) outputShape = "surface-handoff";
     else if (recurringCharacterRoster) outputShape = "character-roster";
     else if (curatedSoundbytes) outputShape = "curated-soundbytes";
     else if (characterMentionCountLanguage) outputShape = "character-mention-count";
@@ -590,8 +644,24 @@
         requestedLimit: requestedLimit,
         navigation: null,
       },
+      concepts: {
+        action: parsedIntent.questionType === "count" ? "count" :
+          listRequested ? "list" :
+            /\b(?:play|replay|open|jump)\b/.test(q) ? "play" :
+              characterProfileLanguage ? "profile" : "find",
+        scope: parsedIntent.source,
+        primaryTarget: null,
+        secondaryTargets: [],
+        sourceQualifiers: [],
+        predicate: unique(tokens(q).filter(function (word) {
+          return SUBJECT_PREDICATE_WORDS.indexOf(word) >= 0;
+        })),
+        selector: parsedIntent.metric,
+        anchor: null,
+      },
       outputShape: outputShape,
       recurringCharacterRoster: recurringCharacterRoster,
+      temporalSourceContent: temporalSourceContent,
       characterProfileLanguage: characterProfileLanguage,
       verifiedCharacterCountLanguage: verifiedCharacterCountLanguage,
       curatedCharacterCountLanguage: curatedCharacterCountLanguage,
@@ -604,6 +674,11 @@
         href: "#red100",
         label: "Memorability Candidate Index V2.1",
         reason: "A global chaos superlative belongs to the published ranking engine, not unranked Ask retrieval.",
+      } : globalComedySuperlative ? {
+        id: "riff-black-box",
+        href: "#memory",
+        label: "Comedy Black Box / Riff Autopsy",
+        reason: "A global funniest-or-laugh-hardest question belongs to the published six-factor comedy ranking surface, not unranked Ask retrieval.",
       } : null,
     };
   }
@@ -938,6 +1013,10 @@
     return intent.words.filter(function (word) {
       if (QUERY_CUE_WORDS.indexOf(word) >= 0) return false;
       if (QUERY_CONTROL_WORDS.indexOf(word) >= 0) return false;
+      if (SUBJECT_PREDICATE_WORDS.indexOf(word) >= 0) return false;
+      if (intent.source === "commentary" &&
+        (word === "watch" || word === "along" || word === "watchalong" ||
+          word === "watchalongs")) return false;
       if (intent.archiveBatchSequence && /^(?:batch)?(?:0?[123]|first|second|third)$/.test(word)) return false;
       if (intent.yearFilter && String(intent.requestedYear) === word) return false;
       if (intent.queryPlan && intent.queryPlan.controls.requestedLimit != null &&
@@ -946,10 +1025,59 @@
     });
   }
 
+  function secondarySubjectTerms(intent, entity) {
+    var remaining = querySubjectTerms(intent);
+    if (!entity) return remaining;
+    var primaryTerms = tokens(entity.matchedAlias || entity.label || "");
+    if (entity.type === "character") {
+      primaryTerms = unique(primaryTerms.concat(tokens(entity.label || "")));
+    }
+    primaryTerms.forEach(function (primaryTerm) {
+      var index = remaining.indexOf(primaryTerm);
+      if (index >= 0) remaining.splice(index, 1);
+    });
+    if (entity.matchMode === "conservative-typo") {
+      remaining = remaining.filter(function (term) {
+        return !primaryTerms.some(function (primaryTerm) {
+          return term.charAt(0) === primaryTerm.charAt(0) &&
+            editDistance(term, primaryTerm) <=
+              (primaryTerm.length >= 7 ? 2 : 1);
+        });
+      });
+    }
+    if (entity.type === "character") {
+      remaining = remaining.filter(function (term) {
+        return ["character", "characters", "doctor"].indexOf(term) < 0;
+      });
+    }
+    if (intent.questionType === "speaker") {
+      remaining = remaining.filter(function (term) {
+        return ["host", "j", "js", "mike", "mikes", "owner"].indexOf(term) < 0;
+      });
+    }
+    return remaining;
+  }
+
+  function consumeSelectedSourceTerms(subjectTerms, selectedSource) {
+    if (!selectedSource || !subjectTerms.length) return subjectTerms.slice();
+    var remaining = subjectTerms.slice();
+    var sourceTerms = unique(
+      tokens(selectedSource.sourceTitle || "")
+        .concat(sourceTitleTerms(selectedSource.sourceTitle || ""))
+        .concat(selectedSource.matchedTerms || [])
+    );
+    sourceTerms.forEach(function (sourceTerm) {
+      var index = remaining.indexOf(sourceTerm);
+      if (index >= 0) remaining.splice(index, 1);
+    });
+    return remaining;
+  }
+
   function sourceTitleTerms(value) {
     return unique(normalize(romanVariant(value)).split(" ").filter(function (word) {
       return (word.length > 1 || /^\d+$/.test(word)) &&
         STOP_WORDS.indexOf(word) < 0 &&
+        SUBJECT_PREDICATE_WORDS.indexOf(word) < 0 &&
         (QUERY_CUE_WORDS.indexOf(word) < 0 ||
           word === "watchalong" || word === "watchalongs") &&
         SOURCE_TITLE_NOISE_WORDS.indexOf(word) < 0;
@@ -1202,6 +1330,44 @@
       direction: direction,
       titleMatchMode: intent.temporal === "earliest" ?
         "earliest-indexed-livestream" : "latest-indexed-livestream",
+      alternativeCount: 0,
+      tieBreak: "captured date, then views, then source ID",
+    };
+  }
+
+  function selectTemporalContentSource(sourceIndex, intent) {
+    if (!intent.queryPlan || !intent.queryPlan.temporalSourceContent) return null;
+    if (["latest", "recent", "earliest"].indexOf(intent.temporal) < 0) return null;
+    var direction = intent.temporal === "earliest" ? "ascending" : "descending";
+    var records = sourceIndex.filter(function (record) {
+      if (intent.source !== "all" && record.source !== intent.source) return false;
+      if (intent.archiveRequested) return record.lane === "archive";
+      return record.lane !== "archive";
+    }).filter(function (record) {
+      return dateValue(record.date) != null;
+    }).sort(function (a, b) {
+      var dateDifference = dateValue(a.date) - dateValue(b.date);
+      if (dateDifference) return direction === "ascending" ?
+        dateDifference : -dateDifference;
+      return b.views - a.views || a.sourceId.localeCompare(b.sourceId);
+    });
+    if (!records.length) return null;
+    var top = records[0];
+    return {
+      mode: "temporal-content-source",
+      source: top.source,
+      sourceId: top.sourceId,
+      sourceTitle: top.sourceTitle,
+      date: top.date,
+      views: top.views,
+      lane: top.lane,
+      restrictedToTopicNavigation: top.restrictedToTopicNavigation,
+      rightsMode: top.rightsMode,
+      visualContextVerified: top.visualContextVerified,
+      metric: "date",
+      direction: direction,
+      titleMatchMode: intent.temporal === "earliest" ?
+        "earliest-indexed-source-content" : "latest-indexed-source-content",
       alternativeCount: 0,
       tieBreak: "captured date, then views, then source ID",
     };
@@ -1539,9 +1705,32 @@
     });
   }
 
-  function hasSubjectCoverage(candidate, subjectTerms) {
+  function semanticTargetText(candidate) {
+    var indexedLabel = candidate.kind === "topic" || candidate.kind === "character" ?
+      candidate.title : "";
+    return normalize([
+      indexedLabel,
+      candidate.excerpt,
+      candidate.curatedLabel,
+      candidate.characterStatus,
+      candidate.trigger,
+      candidate.note,
+    ].join(" "));
+  }
+
+  function semanticTargetMatches(candidate, terms) {
+    var text = semanticTargetText(candidate);
+    return terms.filter(function (term) {
+      return containsNormalizedPhrase(text, normalize(term));
+    });
+  }
+
+  function hasSubjectCoverage(candidate, subjectTerms, semanticOnly) {
     if (!subjectTerms.length) return true;
-    var matches = termMatches(candidate, subjectTerms).length;
+    var matches = (semanticOnly ? semanticTargetMatches : termMatches)(
+      candidate,
+      subjectTerms
+    ).length;
     var required = subjectTerms.length === 1 ? 1 : Math.ceil(subjectTerms.length * 0.67);
     return matches >= required;
   }
@@ -1711,7 +1900,10 @@
     var breakdown = [];
     var reasons = [];
     var matchedTerms = [];
-    var matchedSubjectTerms = termMatches(candidate, subjectTerms);
+    var matchedSubjectTerms = intent.secondaryTargetTerms &&
+      intent.secondaryTargetTerms.length ?
+      semanticTargetMatches(candidate, subjectTerms) :
+      termMatches(candidate, subjectTerms);
     var opinionSupport = ["negative", "positive", "opinion", "trajectory"].indexOf(intent.name) >= 0 ?
       opinionEvidenceSupport(candidate) : null;
 
@@ -1908,12 +2100,18 @@
     if (["source-count", "source-list", "source-ranking"].indexOf(outputShape) >= 0 &&
       candidate.kind !== "tape" && candidate.kind !== "livestream") return false;
     if (outputShape === "curated-soundbytes" && !candidate.curatedRank) return false;
+    if (intent.queryPlan && intent.queryPlan.temporalSourceContent &&
+      (candidate.kind === "tape" || candidate.kind === "livestream")) return false;
     if ((outputShape === "character-soundbyte-count" ||
       outputShape === "character-profile" ||
       outputShape === "character-roster") &&
       candidate.kind !== "character-performance") return false;
     if (entity && !entityMatches(candidate, entity)) return false;
-    if (!entity && subjectTerms.length && !hasSubjectCoverage(candidate, subjectTerms)) return false;
+    if (subjectTerms.length && !hasSubjectCoverage(
+      candidate,
+      subjectTerms,
+      Boolean(intent.secondaryTargetTerms && intent.secondaryTargetTerms.length)
+    )) return false;
     if (intent.topicOverviewRequest && candidate.kind !== "topic") return false;
     if ((intent.name === "trajectory" || intent.name === "opinion") && !isTrajectoryEvidence(candidate)) return false;
     if (intent.name === "comedy" &&
@@ -1931,6 +2129,7 @@
       !(entity && (entity.type === "topic" || entity.type === "character"))) return false;
     if (!intent.topicOverviewRequest &&
       (intent.temporal === "latest" || intent.temporal === "earliest") &&
+      !(intent.queryPlan && intent.queryPlan.temporalSourceContent) &&
       !entity && intent.name !== "comedy" && candidate.kind !== "tape" && candidate.kind !== "livestream") return false;
     if (entity && entity.type === "character") {
       var appearanceSignalFallback = intent.firstAppearanceRequest &&
@@ -1996,13 +2195,23 @@
       var heatDifference = Number(a.heat || 0) - Number(b.heat || 0);
       if (heatDifference) return heatDifference * direction;
     }
-    if (intent.temporal === "latest" || intent.temporal === "recent" || intent.temporal === "earliest") {
+    if ((intent.temporal === "latest" || intent.temporal === "recent" ||
+      intent.temporal === "earliest") &&
+      !(intent.queryPlan && intent.queryPlan.temporalSourceContent)) {
       var aDate = dateValue(a.date);
       var bDate = dateValue(b.date);
       if (aDate == null && bDate != null) return 1;
       if (bDate == null && aDate != null) return -1;
       if (aDate != null && bDate != null && aDate !== bDate) {
         return intent.temporal === "earliest" ? aDate - bDate : bDate - aDate;
+      }
+      if (aDate != null && bDate != null &&
+        Number(a.at || 0) !== Number(b.at || 0) &&
+        a.kind !== "tape" && a.kind !== "livestream" &&
+        b.kind !== "tape" && b.kind !== "livestream") {
+        return intent.temporal === "earliest" ?
+          Number(a.at || 0) - Number(b.at || 0) :
+          Number(b.at || 0) - Number(a.at || 0);
       }
     }
     if (intent.name === "negative" || intent.name === "positive") {
@@ -2160,7 +2369,11 @@
   }
 
   function buildNoEvidenceAnswer(intent, entity, subjectTerms) {
-    var subject = entity ? entity.label : subjectTerms.join(" ");
+    var subject = entity ?
+      (subjectTerms.length ?
+        subjectTerms.join(" ") + " in " + entity.label :
+        entity.label) :
+      subjectTerms.join(" ");
     if (intent.visualContextRefusal && intent.selectedSource) {
       return "The captions can route you inside " + intent.selectedSource.sourceTitle +
         ", but they cannot verify which on-screen kill or death won the visual ranking. " +
@@ -2310,6 +2523,17 @@
         ". These are indexed chapter receipts from that one source, not blended streams or invented dialogue; " +
         "open a route to inspect the captured caption evidence.";
     }
+    if (intent.queryPlan && intent.queryPlan.temporalSourceContent &&
+      intent.selectedSource) {
+      var temporalContentLabel = intent.temporal === "earliest" ?
+        "earliest" : "newest";
+      return "Inside the " + temporalContentLabel + " indexed " +
+        sourceNoun(intent.selectedSource.source) + ", " +
+        intent.selectedSource.sourceTitle + " on " + intent.selectedSource.date +
+        ", the strongest available timestamped receipt is " + location +
+        ", filed as " + top.category +
+        ". This is a source-scoped archive route, not an invented plot summary.";
+    }
     if (intent.name === "comedy" && intent.selectedSource) {
       if (intent.selectedSource.mode === "indexed-title") {
         return "Inside the " + intent.selectedSource.titleMatchMode +
@@ -2375,9 +2599,9 @@
     }
     if (intent.existenceRequest) {
       if (intent.negativeExistence) {
-        return "No — the current bounded index contains a defensible " + entityLabel +
-          " receipt at " + location +
-          ". That answers the archive-level “never” claim; it is not an exhaustive claim about every broadcast.";
+        return "No — they did cover it. The current bounded index contains a defensible " +
+          entityLabel + " receipt at " + location +
+          ". That resolves the negated coverage question inside this archive; it is not an exhaustive claim about every broadcast.";
       }
       return "Yes — the current bounded index contains a defensible " + entityLabel +
         " receipt at " + location + ".";
@@ -2542,13 +2766,15 @@
     if (includesAny(q, [
       "what happened before", "what happens before", "what came before",
       "what was before", "what is before", "before that", "before this",
-      "previous highlight", "previous one", "one before",
+      "before it", "previous highlight", "previous one", "previous bit",
+      "previous moment", "one before",
     ])) return "previous";
     if (includesAny(q, [
       "what happened next", "what happens next", "what came next",
       "what was next", "and then what", "what happened after",
       "what happens after", "what came after", "what was after",
-      "what is after", "next after",
+      "what is after", "next after", "next one", "next bit", "next moment",
+      "next clip", "next receipt",
     ])) return "next";
     if (includesAny(q, [
       "same one", "same result", "show me that again", "show that again",
@@ -2558,17 +2784,20 @@
       "was that mike", "was this mike", "was it mike",
       "was that j", "was this j", "was it j",
       "did mike say that", "did j say that",
+      "said there", "say there", "what was said there",
     ])) return "exact";
     if (includesAny(q, [
       "more like that", "another like that", "another one like that",
       "something else like that", "give me another one", "show me another one",
-      "give me another", "show another", "another one",
+      "give me another", "show another", "another one", "another moment",
+      "another bit", "another clip", "another receipt",
     ])) return "similar";
     if (includesAny(q, [
       "in that one", "in this one", "in it", "from that one", "from this one",
       "from it", "about it", "about that one", "about this one",
       "happens there", "happened there", "at that point",
     ])) return "source";
+    if (q === "another" || q === "play another") return "similar";
     return null;
   }
 
@@ -2977,15 +3206,24 @@
         queryPlan.controls.relativeDate = latestIndexedDate || null;
       }
       var originalIntent = applyQueryPlan(parsedIntent, queryPlan);
-      if (queryPlan.surfaceHandoff) {
+      var directEntity = identifyEntity(queryPlan.canonicalQuery, aliases, originalIntent);
+      var eligibleSurfaceHandoff = queryPlan.surfaceHandoff &&
+        !directEntity && !originalIntent.sourceExplicit;
+      if (queryPlan.surfaceHandoff && !eligibleSurfaceHandoff) {
+        queryPlan.surfaceHandoff = null;
+        queryPlan.outputShape = "single";
+      }
+      if (eligibleSurfaceHandoff) {
+        var handoffIsComedy = queryPlan.surfaceHandoff.id === "riff-black-box";
         return {
           query: query,
           intent: "surface-handoff",
-          questionType: "global memorability superlative",
+          questionType: handoffIsComedy ?
+            "global comedy superlative" : "global memorability superlative",
           source: "all",
           temporal: originalIntent.temporal,
           popularity: originalIntent.popularity,
-          metric: "memorability-candidate-index-v2.1",
+          metric: queryPlan.surfaceHandoff.id,
           requestedYear: originalIntent.requestedYear,
           entity: null,
           entityType: null,
@@ -2999,7 +3237,7 @@
             source: "all",
             temporal: originalIntent.temporal,
             popularity: originalIntent.popularity,
-            metric: "memorability-candidate-index-v2.1",
+            metric: queryPlan.surfaceHandoff.id,
             entity: null,
             entityType: null,
             resultAnchor: null,
@@ -3013,10 +3251,14 @@
             "Unranked retrieval refused to manufacture its own winner",
           ],
           status: "surface-handoff",
-          answer: "This asks for a global chaos winner. Ask WWAM will not invent a separate #1; open the published Memorability Candidate Index V2.1 for the deterministic ranked answer.",
+          answer: "This asks for a global " +
+            (handoffIsComedy ? "comedy" : "chaos") +
+            " winner. Ask WWAM will not invent a separate #1; open the published " +
+            queryPlan.surfaceHandoff.label + " for the deterministic ranked answer.",
           limitations: [
             "No receipt is returned here because the separate ranking engine owns global candidate order.",
-            "The Memorability Candidate Index is machine-ranked, not a creator vote or objective comedy verdict.",
+            (handoffIsComedy ? "The Comedy Black Box" : "The Memorability Candidate Index") +
+              " is machine-ranked, not a creator vote or objective comedy verdict.",
           ],
           explanation: {
             method: "query-plan surface handoff",
@@ -3035,7 +3277,6 @@
           recommendedSurface: queryPlan.surfaceHandoff,
         };
       }
-      var directEntity = identifyEntity(queryPlan.canonicalQuery, aliases, originalIntent);
       if (directEntity && directEntity.type === "film" &&
         ["source-count", "source-list"].indexOf(queryPlan.outputShape) >= 0 &&
         queryPlan.controls.yearFilter) {
@@ -3072,7 +3313,8 @@
         queryPlan: queryPlan,
         yearFilter: queryPlan.controls.yearFilter,
         characterProfile: characterProfile,
-        refusesSpeakerGuess: queryPlan.outputShape === "character-roster" ?
+        refusesSpeakerGuess: ["character-roster", "character-profile"]
+          .indexOf(queryPlan.outputShape) >= 0 ?
           false : intent.refusesSpeakerGuess,
       });
       var anchor = context.resultAnchor;
@@ -3140,16 +3382,63 @@
         titleBoundary: titleBoundary,
       });
       var terms = expandedTerms(intent);
-      var subjectTerms = entity || anchorActive ||
-        ["character-roster", "curated-soundbytes"].indexOf(queryPlan.outputShape) >= 0 ?
-        [] : querySubjectTerms(intent);
+      var subjectTerms = anchorActive ||
+        [
+          "character-roster",
+          "character-profile",
+          "character-soundbyte-count",
+          "character-mention-count",
+          "curated-soundbytes",
+        ].indexOf(queryPlan.outputShape) >= 0 ?
+        [] : secondarySubjectTerms(intent, entity);
+      intent = Object.assign({}, intent, {
+        secondaryTargetTerms: entity ? subjectTerms.slice() : [],
+      });
       queryPlan.subjectTerms = subjectTerms.slice();
+      queryPlan.concepts.primaryTarget = entity ? {
+        type: entity.type,
+        label: entity.label,
+      } : null;
+      queryPlan.concepts.secondaryTargets = unique(subjectTerms.concat(
+        entityResidualTitleTerms(intent, entity)
+      ));
+      queryPlan.concepts.anchor = activeAnchorMode || null;
       var topicOverviewSource = titleSelection || anchorActive ? null :
         selectTopicOverviewSource(sourceIndex, intent);
+      var temporalContentSource = titleSelection || anchorActive ||
+        topicOverviewSource ? null :
+        selectTemporalContentSource(sourceIndex, intent);
       var selectedSource = titleSelection && !titleSelection.blocked ?
         titleSelection :
-        topicOverviewSource || selectCompoundSource(candidates, intent, entity, subjectTerms);
+        topicOverviewSource || temporalContentSource ||
+          selectCompoundSource(candidates, intent, entity, subjectTerms);
       if (selectedSource) {
+        var plannedSecondaryTargets = unique(subjectTerms.concat(
+          entityResidualTitleTerms(intent, entity)
+        ));
+        subjectTerms = consumeSelectedSourceTerms(subjectTerms, selectedSource);
+        queryPlan.subjectTerms = subjectTerms.slice();
+        queryPlan.concepts.secondaryTargets = unique(subjectTerms.concat(
+          entityResidualTitleTerms(intent, entity).filter(function (term) {
+            return sourceTitleTerms(selectedSource.sourceTitle || "")
+              .indexOf(term) < 0;
+          })
+        ));
+        queryPlan.concepts.sourceQualifiers = plannedSecondaryTargets.filter(
+          function (term) {
+            return queryPlan.concepts.secondaryTargets.indexOf(term) < 0;
+          }
+        );
+        intent = Object.assign({}, intent, {
+          secondaryTargetTerms: entity ? subjectTerms.slice() : [],
+        });
+        if (!queryPlan.concepts.primaryTarget) {
+          queryPlan.concepts.primaryTarget = {
+            type: "source",
+            label: selectedSource.sourceTitle,
+            sourceId: selectedSource.sourceId,
+          };
+        }
         intent = Object.assign({}, intent, {
           selectedSource: selectedSource,
           source: selectedSource.source,

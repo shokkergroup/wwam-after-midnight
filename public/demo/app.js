@@ -2228,7 +2228,7 @@
     var collectionStatus = askCollectionStatus(analysis);
     var isSurfaceHandoff = analysis.status === "surface-handoff";
     statusNode.textContent =
-      isSurfaceHandoff ? "GLOBAL RANKING HANDOFF // OPEN THE RED BAND 100" :
+      isSurfaceHandoff ? "GLOBAL RANKING HANDOFF // OPEN THE SOURCE RANKING" :
       analysis.status === "out-of-range" ?
         "RED BAND 100 // RANK OUT OF RANGE // NO SILENT CLAMPING" :
         analysis.status === "machine-ranked" && results.length ?

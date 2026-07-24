@@ -21,9 +21,9 @@ const html = read("public/demo/index.html");
 const batch3 = read("public/demo/archive-deep-batch3.js");
 
 test("release identity stays synchronized after the V5.8 evidence pass", () => {
-  assert.equal(packageJson.version, "0.5.10");
-  assert.equal(packageLock.version, "0.5.10");
-  assert.equal(packageLock.packages[""].version, "0.5.10");
+  assert.equal(packageJson.version, "0.5.11");
+  assert.equal(packageLock.version, "0.5.11");
+  assert.equal(packageLock.packages[""].version, "0.5.11");
   for (const document of [readme, overview, changelog, runbook]) {
     assert.match(document, /V5\.8/i);
   }

@@ -11,7 +11,7 @@ three things quickly:
 
 ## Before the call
 
-- Open the current V5.10 build or its confirmed deployment and choose either
+- Open the current V5.11 build or its confirmed deployment and choose either
   content-advisory mode.
 - Confirm YouTube playback is available in the browser.
 - Start at the hero, not halfway down the page.
@@ -121,15 +121,25 @@ Return to the hero and choose **Follow the Lore**.
 
 - Use the top navigation to open Ask WWAM and ask:
 
-> What is the most-viewed foundational livestream?
+> What did they say about the mask in Halloween 5?
 
 Follow with:
 
-> What did they talk about in it?
+> What did they say about the ending in Scream 3?
 
-Point out that the first answer is grounded in source metadata and the dated
-view snapshot. The follow-up can return source-level topic context or a
-timestamped caption receipt; the badge says which one it is.
+The first answer must put the direct mask receipt at 22:07 first and exclude
+unrelated high-heat moments from the same upload. The second must refuse with
+zero receipts because the requested ending evidence is absent. Explain the
+Answer Frame: source and subject are separate targets, semantic fit gates
+archive heat, and an honest refusal is a working result.
+
+Then ask:
+
+> What made them laugh hardest?
+
+The status must say **OPEN THE SOURCE RANKING** and hand off to the Comedy
+Black Box instead of inventing an independent funniest-ever winner. Open one
+Riff Autopsy and show the six reproducible dimensions.
 
 For one concise accuracy proof, click **Flag This Answer**, choose an issue,
 and show that the device-local append-only proposal preserves the exact query
@@ -144,8 +154,9 @@ comedy.”
 
 What it proves:
 
-- entity-aware discovery;
-- follow-up context;
+- direct-answer retrieval instead of correct-source / wrong-moment matching;
+- exact follow-up context anchored to a source and second;
+- honest abstention when the requested subtopic is not indexed;
 - source-level and moment-level evidence that remains visibly distinct;
 - a portable human-review proposal without an invisible corpus mutation;
 - a growing channel-specific knowledge graph;
@@ -386,7 +397,10 @@ Use only the branch the audience cares about:
   not a measurement of audience sentiment. The playback UI's snapshot-safe and
   crossed-event path keeps future event text sealed until its timestamp is
   crossed; the full compiled timeline is an audit API.”
-- “Ask WWAM's current release gate contains 37 executable, bounded cases.”
+- “Ask WWAM's V5.11 release gate passes 122/122 Ask/search subtests,
+  including its complete 157-query adversarial corpus, plus 8/8 focused
+  answer-first cases. That is regression coverage, not a claim that every
+  possible phrasing is solved.”
 - “A plain Dr. Loomis clips/how-often question returns 7 timestamp-validated
   human-curated performance candidates; explicit caption-mention wording
   returns 696 broad matches across 59 sources, and neither lane contains an
