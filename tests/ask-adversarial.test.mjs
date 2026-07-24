@@ -528,7 +528,8 @@ const cases = [
     status: "speaker-unknown", entity: "Corey Feldman", speakerBoundary: true, empty: true,
   }),
   scenario("unsupported", "loomis-performance-date", "Was the Dr. Loomis performance in 2018?", {
-    entity: "Dr. Loomis", empty: true, answerPattern: /no verified performance receipt/i,
+    entity: "Dr. Loomis", empty: true,
+    answerPattern: /no timestamped curated performance candidate/i,
   }),
   scenario("unsupported", "burp-origin", "Where did The Burp Defense originate?", {
     entityType: "bit", originBoundary: true, topId: "BIbyzMlstmM",

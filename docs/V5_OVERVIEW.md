@@ -1,4 +1,4 @@
-# WWAM After Midnight V5.4
+# WWAM After Midnight V5.5
 
 ## One-sentence product
 
@@ -15,8 +15,9 @@ masquerading as timestamped utterances.
 
 ## Audited snapshot
 
-The V5.4 release reports a preserved July 23 source snapshot, with Archive Deep
-Batch 01 audited on July 24:
+The V5.5 release preserves the July 23 source snapshot and July 24 Archive Deep
+Batch 01 audit while adding synchronized playback, retrieval-planning, and
+local creator-taste contracts:
 
 | Source lane | Coverage |
 | --- | ---: |
@@ -50,19 +51,21 @@ to the promoted 872, Canon, Red Band, or WWAM UP IN YA.
 
 ## How to read the proof
 
-The build deliberately separates five evidence states:
+The build deliberately separates six evidence states:
 
 | Public label | What has actually been established | What has not |
 | --- | --- | --- |
 | Source metadata | The official upload, title, date, duration, observed views, or caption availability | A quote, topic claim, or speaker |
 | Source-level derived summary | A deterministic synopsis or editorial description attached to the whole source | That a host spoke the summary at a particular second |
 | Machine-surfaced timestamped receipt | The source URL matches its indexed source ID, the timestamp is in range, and a bounded auto-caption fragment exists there | Continuous network availability; human-confirmed wording, category, target, intent, or speaker |
-| Editor-verified performance event | A human checked the source, timestamp, and immediate performance context | Clip-level speaker identity when the caption track is not diarized |
+| Timestamp-validated human-curated candidate | A human selected the character-performance candidate and its source, timestamp, caption event, and excerpt pass deterministic validation | Authenticated editor review, surrounding-context approval, or clip-level speaker identity |
+| Authenticated editor-verified performance event | An authenticated editor checked the source, timestamp, and immediate performance context | Clip-level speaker identity when the caption track is not diarized |
 | Creator-certified claim | An authorized creator approved the specific claim | Anything beyond the scope of that approval |
 
-The promoted corpus contains 847 machine-level receipts and 25 human-curated
-character-performance candidates, but no authenticated editor-verified or
-creator-certified receipts. “Zero out-of-range indexed timestamps” means
+The promoted corpus contains 847 machine-level receipts and 25
+timestamp-validated human-curated character-performance candidates, but no
+authenticated editor-verified or creator-certified receipts. “Zero
+out-of-range indexed timestamps” means
 the indexed source/time pairs sit within the known source duration. It does not
 establish continuous network availability or mean a human has certified all
 872 excerpts and the claims derived from them.
@@ -74,8 +77,8 @@ origin, intent, or visual context.
 
 The owner-supplied Mike/J mappings describe who performs each recurring
 character generally. They do not turn an individual auto-caption event into a
-speaker-diarized clip. That second claim remains locked until clip-level human
-or creator verification exists.
+speaker-diarized clip. That second claim remains locked until a specific,
+authenticated clip-level attribution decision exists.
 
 ## The three front doors
 
@@ -89,6 +92,13 @@ The archive becomes something to play:
   route against the same archive fingerprint.
 - Tape Trivia builds deterministic five- or ten-round games from 872 playable
   receipts and never asks the player to identify an undiarized speaker.
+- Tape Companion turns the official YouTube player into a synchronized second
+  screen without copying media or exposing future event text. Across the
+  promoted corpus, 71 sources are companion-ready and the 3 disclosed caption
+  gaps remain source-only. Its 872 exact receipt members compile into 869
+  conservative incidents, 1,294 derived heat windows, 96 Red Band annotations,
+  25 UP IN YA annotations, 25 recurring-character annotations, and 2,967
+  receipt-backed Lore connections.
 - The Evidence Bag saves moments on the device and exports a source manifest.
 - The Red Band Memorability Candidate Index V2.1 compares 567 deduplicated
   playable receipts and publishes exactly 100 unique ranks across 53 sources.
@@ -112,14 +122,22 @@ The archive becomes something to play:
 
 The archive becomes navigable memory:
 
-- Ask WWAM scopes questions to exact titles, topics, source lanes, popularity,
-  source-scoped latest-show maps, bounded earliest performances, named-result
-  sequencing, and shareable follow-up context, then explains its evidence
-  boundary.
+- Ask WWAM's visible Query Plan V1 separates subjects from controls before
+  retrieval. It supports exact titles, unique-source counts and complete
+  source lists, year-scoped rankings, character rosters and profiles,
+  human-curated performance-candidate counts versus broad caption mentions,
+  curated top-N soundbytes,
+  source-scoped latest-show maps, named-result replay/before/after/another
+  navigation, and explicit handoffs when another ranked surface owns the
+  question. The frozen release gate now contains 37 executable cases.
+- An unqualified Dr. Loomis “clips” or “how often” question returns 7
+  timestamped human-curated performance candidates. Only explicit
+  mention/reference wording opens the 696 broad caption matches across 59
+  sources. The current set contains 0 authenticated editor-verified decisions.
 - Character Intelligence V2 adds 25 curated performance receipts as a distinct
   Ask lane. It separates recurring performer mapping, clip-level speaker
   attribution, and true origin; only the first can use owner-supplied context.
-- Lore Galaxy organizes 177 field-guide entries into 821 receipt-backed edges,
+- Lore Galaxy organizes 177 field-guide entries into 822 receipt-backed edges,
   19 constellations, and 51 indexed lineages.
 - Take Time Machine and WWAM Court expose chronological signals and competing
   receipts without silently turning an inference into canon.
@@ -176,6 +194,16 @@ The archive becomes reviewable production inventory:
   + Member Experience, or Recurring Lore System into a draft with current
   proof, acceptance checks, decisions requiring authenticated human approval,
   and measurements that begin unobserved.
+- Creator Taste Calibration presents 10 deterministic source-diverse matchups
+  plus 2 side-reversed repeat checks. With a `MEDIUM` risk cap, 248
+  exact-ledger candidates across 54 sources are eligible from the 560-item
+  Clip Lab pool; the frozen demonstration sample spans 20 sources. At least 6
+  non-repeat A/B choices are required. `NEITHER` and `NEEDS_CONTEXT` add no
+  preference weight, the modifier is capped at ±6, and baseline score, rank,
+  source evidence, risk, HOLD, approval, canon, speaker, and rights state stay
+  unchanged. Every emitted shortlist card is checked against a fresh protected
+  projection of its bound eligible candidate; artifact creation fails closed
+  on any mismatch.
 
 No feature downloads media, publishes a clip, clears rights, or guarantees
 performance. It shortens discovery and editorial preparation; a creator or
@@ -202,7 +230,9 @@ Mike Mode is the shortest route through the commercial argument:
    checks, and keep every business outcome at `MEASURE DURING PILOT`.
 
 The pitch is credible because every slide can leave the slideshow and open a
-working surface.
+working surface. For a longer buyer session, Tape Companion proves fan utility
+on the official upload and The Cut Test proves that channel-specific local
+choices can alter only a bounded editorial ordering, not the underlying truth.
 
 ## The defensible layer
 
@@ -215,6 +245,7 @@ official source
   → channel-specific entity and relationship
   → transparent derivation
   → human review or correction
+  → optional fingerprint-bound local preference
   → better future search, lore, games, and edit inventory
 ```
 
@@ -242,11 +273,17 @@ not silently absorb Archive Deep Batch 01:
 - 12 ordinary character mentions kept out of the performance set;
 - 49 take timelines and 14 Court boards, with 0 currently passing the strict
   creator-canon gate.
+- Tape Companion's three limited records are the same disclosed promoted-corpus
+  caption gaps; synchronization does not manufacture timed claims for them.
+- Creator Taste sessions label the operator `UNAUTHENTICATED LOCAL OPERATOR`.
+  A checksum detects drift but is not a signature or creator authorization.
 
 Separately, the full proof snapshot contains 84 source inputs: 81
 caption-audited and 3 sealed or limited. Archive Deep contributes the ten-source
 difference, but its 42 machine candidates remain outside the promoted 872,
-Canon, Red Band, and WWAM UP IN YA until playback review.
+Canon, Red Band, and WWAM UP IN YA. Playback review alone does not promote a
+candidate across those separate lanes; each applies its own evidence policy and
+authenticated decision requirements.
 
 The release also runs a deterministic cross-engine Canon Integrity audit. The
 current fingerprinted report passes with zero hard errors across source IDs,
@@ -267,8 +304,10 @@ consistently shortened at render time.
 | Static, source-linked fan experience | Official branding and approval |
 | Deterministic browser engines | Authenticated accounts and server storage |
 | Exact YouTube timestamp jumps | Licensed media editing or hosting |
+| Source-synchronized companion rail with manual fallback | Guaranteed player API availability or owned playback |
 | Local Evidence Bag, Human Review Session, and JSON exports | Shared accounts, remote queues, and owner-controlled approval |
-| Machine/editor evidence labels | Creator certification and diarization |
+| Local, bounded taste calibration | Authenticated creator identity or shared preference profiles |
+| Machine and timestamp-validated human-curated candidate labels | Any authenticated editor-verified or creator-certified receipts; clip-level diarization |
 | Candidate edit plans | Human final cuts, rights, and platform review |
 | Current source snapshot | Scheduled ingest and monitoring |
 | Commercial surface concepts | Pricing, conversion, sponsor, and revenue data |
@@ -283,3 +322,14 @@ dark-comedy categories, commentaries, and livestreams. For a racing league,
 they become seasons, races, drivers, lead changes, close finishes, booth
 intensity, and recurring broadcast moments. The system is portable; the
 personality and proof are not generic.
+
+Two V5.5 patterns make that portability executable:
+
+- **Synchronized evidence:** a source adapter supplies official playback,
+  exact receipt markers, derived heat windows, entity annotations, and
+  receipt-backed connections. Share and resume state bind to channel, archive,
+  source, and second; future event text remains sealed.
+- **Bounded taste:** a channel adapter supplies labels and feature dimensions.
+  Explicit local choices may add only a capped ranking modifier, while
+  ChannelPack, Clip Lab, inventory, goal, and decision ledgers remain
+  fingerprint-bound. Preference never becomes evidence or approval.

@@ -1,10 +1,19 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.0.0";
+  var VERSION = "1.1.1";
   var DEFAULT_PUBLIC_EXCERPT_WORDS = 16;
-  var ALLOWED_EVIDENCE_LEVELS = new Set(["machine", "editor", "creator"]);
-  var HUMAN_EVIDENCE_LEVELS = new Set(["editor", "creator"]);
+  var ALLOWED_EVIDENCE_LEVELS = new Set([
+    "machine",
+    "curated-candidate",
+    "editor",
+    "creator"
+  ]);
+  var CHARACTER_PATTERN_LEVELS = new Set([
+    "curated-candidate",
+    "editor",
+    "creator"
+  ]);
   var SUPPORTED_CHARACTER_ATTRIBUTIONS = new Set([
     "user-supplied",
     "owner-supplied",
@@ -98,6 +107,25 @@
     return clean(value).toLowerCase();
   }
 
+  function certifiedSpeakerName(receipt) {
+    return clean(object(receipt).certifiedSpeaker);
+  }
+
+  function speakerClaimsMatchCertification(
+    receipt,
+    speakerDisplay,
+    speakerCredit
+  ) {
+    var certifiedSpeaker = certifiedSpeakerName(receipt);
+    if (!certifiedSpeaker) return false;
+    return [speakerDisplay, speakerCredit]
+      .map(clean)
+      .filter(Boolean)
+      .every(function (claim) {
+        return lower(claim) === lower(certifiedSpeaker);
+      });
+  }
+
   function words(value) {
     var body = clean(value);
     return body ? body.split(/\s+/).length : 0;
@@ -167,6 +195,7 @@
       deep: options.deep,
       live: options.live,
       popular: options.popular,
+      dna: options.dna,
       characters: options.characters,
       showcase: options.showcase,
       lore: options.lore,
@@ -561,20 +590,44 @@
     }
     if (
       receipt.type === "character-performance" &&
-      !HUMAN_EVIDENCE_LEVELS.has(level)
+      !CHARACTER_PATTERN_LEVELS.has(level)
     ) {
       collector.error(
         "EVIDENCE_LEVEL_CONTRADICTION",
         domain,
         path + ".evidenceLevel",
         id,
-        "Character-performance canon requires editor or creator evidence.",
+        "Character-performance pattern evidence requires a curated-candidate, editor, or creator tier.",
         { evidenceLevel: level }
       );
     }
   }
 
   function checkShowcaseReceipts(options, collector, maps) {
+    var mappedPerformers = new Map();
+    function addMappedPerformer(character, performerValue) {
+      var rawId = clean(character && character.id);
+      var id =
+        rawId.indexOf("character:") === 0
+          ? "character:" + slug(rawId.slice("character:".length))
+          : "character:" + slug(rawId);
+      var performer = clean(performerValue);
+      if (!id || id === "character:" || !performer) return;
+      var existing = mappedPerformers.get(id);
+      mappedPerformers.set(
+        id,
+        existing && lower(existing) !== lower(performer) ? "" : performer
+      );
+    }
+    array(object(options.characters).characters).forEach(function (character) {
+      addMappedPerformer(character, character && character.performedBy);
+    });
+    array(object(options.dna).characters).forEach(function (character) {
+      addMappedPerformer(
+        character,
+        character && (character.performer || character.performedBy)
+      );
+    });
     array(object(options.showcase).receipts).forEach(function (receipt, index) {
       var id = recordId(receipt);
       var path = "showcase.receipts[" + index + "]";
@@ -615,23 +668,56 @@
       }
 
       var performer = clean(receipt.performer || receipt.speaker);
+      var mappedPerformer = mappedPerformers.get(clean(receipt.characterId));
       if (performer) {
         collector.scan("SPEAKER_CLAIM_UNSUPPORTED");
         if (
           receipt.type !== "character-performance" ||
-          !HUMAN_EVIDENCE_LEVELS.has(lower(receipt.evidenceLevel)) ||
-          !clean(receipt.characterId)
+          !CHARACTER_PATTERN_LEVELS.has(lower(receipt.evidenceLevel)) ||
+          !mappedPerformer ||
+          lower(mappedPerformer) !== lower(performer)
         ) {
           collector.error(
             "SPEAKER_CLAIM_UNSUPPORTED",
             "showcase",
             path + ".performer",
             id,
-            "Named performer is not backed by a human-grounded character-performance receipt.",
+            "Recurring performer mapping is not backed by the matching curated character profile.",
             {
               performer: performer,
+              mappedPerformer: mappedPerformer || "",
               receiptType: clean(receipt.type),
               evidenceLevel: clean(receipt.evidenceLevel)
+            }
+          );
+        }
+      }
+
+      var certifiedSpeaker = certifiedSpeakerName(receipt);
+      if (certifiedSpeaker) {
+        collector.scan("SPEAKER_CLAIM_UNSUPPORTED");
+        if (
+          receipt.type !== "character-performance" ||
+          lower(receipt.evidenceLevel) !== "creator" ||
+          receipt.authenticatedCreatorCertified !== true ||
+          !performer ||
+          lower(performer) !== lower(certifiedSpeaker) ||
+          !mappedPerformer ||
+          lower(mappedPerformer) !== lower(certifiedSpeaker)
+        ) {
+          collector.error(
+            "SPEAKER_CLAIM_UNSUPPORTED",
+            "showcase",
+            path + ".certifiedSpeaker",
+            id,
+            "Receipt-level speaker certification is not bound to the authenticated creator decision and matching character performer.",
+            {
+              certifiedSpeaker: certifiedSpeaker,
+              performer: performer,
+              mappedPerformer: mappedPerformer || "",
+              evidenceLevel: clean(receipt.evidenceLevel),
+              authenticatedCreatorCertified:
+                receipt.authenticatedCreatorCertified === true
             }
           );
         }
@@ -1049,7 +1135,10 @@
     }
 
     var speaker = object(candidate.speaker);
-    var speakerName = clean(speaker.display);
+    var speakerDisplay = clean(speaker.display);
+    var speakerCredit = clean(candidate.speakerCredit);
+    var speakerName = speakerDisplay || speakerCredit;
+    var certifiedSpeaker = certifiedSpeakerName(receipt);
     collector.scan("SPEAKER_CLAIM_UNSUPPORTED");
     if (!speakerName && speaker.creditAllowed === true) {
       collector.error(
@@ -1067,9 +1156,16 @@
         !/speaker-diarized|specific speaker verified/i.test(basis);
       if (
         speaker.creditAllowed !== true ||
+        speaker.clipAttributionCertified !== true ||
         !receipt ||
         receipt.type !== "character-performance" ||
-        !HUMAN_EVIDENCE_LEVELS.has(receiptLevel) ||
+        receiptLevel !== "creator" ||
+        receipt.authenticatedCreatorCertified !== true ||
+        !speakerClaimsMatchCertification(
+          receipt,
+          speakerDisplay,
+          speakerCredit
+        ) ||
         !supportedBasis
       ) {
         collector.error(
@@ -1083,6 +1179,7 @@
             creditAllowed: speaker.creditAllowed === true,
             receiptType: clean(receipt && receipt.type),
             evidenceLevel: receiptLevel,
+            certifiedSpeaker: certifiedSpeaker,
             basis: basis
           }
         );
@@ -1279,15 +1376,25 @@
       );
 
       var speaker = object(clip.speaker);
-      var speakerName = clean(speaker.display || clip.speakerCredit);
+      var speakerDisplay = clean(speaker.display);
+      var speakerCredit = clean(clip.speakerCredit);
+      var speakerName = speakerDisplay || speakerCredit;
+      var certifiedSpeaker = certifiedSpeakerName(receipt);
       collector.scan("SPEAKER_CLAIM_UNSUPPORTED");
       if (speakerName) {
         var speakerBasis = clean(speaker.basis);
         if (
           speaker.creditAllowed !== true ||
+          speaker.clipAttributionCertified !== true ||
           !receipt ||
           receipt.type !== "character-performance" ||
-          !HUMAN_EVIDENCE_LEVELS.has(lower(receipt.evidenceLevel)) ||
+          lower(receipt.evidenceLevel) !== "creator" ||
+          receipt.authenticatedCreatorCertified !== true ||
+          !speakerClaimsMatchCertification(
+            receipt,
+            speakerDisplay,
+            speakerCredit
+          ) ||
           !/owner|creator|project-owner|user-supplied/i.test(speakerBasis) ||
           /speaker-diarized|specific speaker verified/i.test(speakerBasis)
         ) {
@@ -1302,6 +1409,7 @@
               creditAllowed: speaker.creditAllowed === true,
               receiptType: clean(receipt && receipt.type),
               evidenceLevel: clean(receipt && receipt.evidenceLevel),
+              certifiedSpeaker: certifiedSpeaker,
               basis: speakerBasis
             }
           );
@@ -1935,7 +2043,7 @@
         publicExcerptWordLimit: options.publicExcerptWordLimit,
         rawReceiptExcerptsAreInternal: true,
         speakerRule:
-          "No named clip speaker without a human-grounded character mapping; that mapping does not claim transcript diarization.",
+          "No named clip speaker without an authenticated creator decision that certifies that exact speaker on the owning receipt; a character-owner mapping alone does not claim clip diarization.",
         publicCopyRule:
           "Raw showcase receipts and Clip Lab candidates remain internal. Explicit publicCopy plus creator and Cold Open export manifests must stay within the public excerpt ceiling."
       },

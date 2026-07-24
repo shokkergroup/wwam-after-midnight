@@ -107,6 +107,9 @@
         "noSpeakerGuessing",
         "generatedCharacterAudioAllowed",
         "machineOutputState",
+        "curatedCandidateState",
+        "curatedCandidateAuthenticated",
+        "editorVerificationRequiresAuthentication",
         "promotionRequiresHumanReview",
         "corrections",
         "preserveContradictions"
@@ -131,6 +134,15 @@
         },
         "machineOutputState": {
           "const": "quarantine"
+        },
+        "curatedCandidateState": {
+          "const": "timestamp-validated-human-curated-candidate"
+        },
+        "curatedCandidateAuthenticated": {
+          "const": false
+        },
+        "editorVerificationRequiresAuthentication": {
+          "const": true
         },
         "promotionRequiresHumanReview": {
           "const": true
@@ -205,6 +217,7 @@
         "source",
         "unknown",
         "quarantine",
+        "curatedCandidate",
         "reviewed",
         "certified",
         "correction"
@@ -225,6 +238,9 @@
         "quarantine": {
           "$ref": "#/$defs/nonEmpty"
         },
+        "curatedCandidate": {
+          "$ref": "#/$defs/nonEmpty"
+        },
         "reviewed": {
           "$ref": "#/$defs/nonEmpty"
         },
@@ -237,7 +253,19 @@
       }
     },
     "capabilities": {
-      "$ref": "#/$defs/stringSet"
+      "description": "Runtime capability IDs the channel product actually implements. Declaration does not create evidence, authorization, or creator approval.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/stringSet"
+        }
+      ],
+      "examples": [
+        [
+          "ask-the-tape",
+          "creator-taste-calibration",
+          "tape-companion"
+        ]
+      ]
     },
     "channelExtensions": {
       "type": "object",
@@ -266,7 +294,26 @@
           "uniqueItems": true
         },
         "proofLabels": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["machine", "curatedCandidate", "editor", "creator", "inference"],
+          "properties": {
+            "machine": {
+              "$ref": "#/$defs/nonEmpty"
+            },
+            "curatedCandidate": {
+              "$ref": "#/$defs/nonEmpty"
+            },
+            "editor": {
+              "$ref": "#/$defs/nonEmpty"
+            },
+            "creator": {
+              "$ref": "#/$defs/nonEmpty"
+            },
+            "inference": {
+              "$ref": "#/$defs/nonEmpty"
+            }
+          }
         }
       }
     }
@@ -300,6 +347,7 @@
     "fingerprintAlgorithm": "fnv1a32-utf16le-dual-seed-canonical-json-v1",
     "failureMode": "closed",
     "publicCanonRule": "Machine output enters quarantine; human review is required before promotion.",
-    "portfolioRule": "Channel IDs and storage namespaces must be unique across every installed pack."
+    "portfolioRule": "Channel IDs and storage namespaces must be unique across every installed pack.",
+    "capabilityRule": "A capability declaration must correspond to a separately tested runtime contract; it does not establish evidence, authorization, identity, or creator approval."
   }
 }

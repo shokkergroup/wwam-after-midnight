@@ -132,7 +132,7 @@
           "absolute certainty",
           "escalation from concern to apocalyptic alarm"
         ],
-        minimumVerifiedReceiptsForAsk: 3
+        minimumCuratedCandidatesForAsk: 3
       },
       {
         id: "character:challis",
@@ -154,7 +154,7 @@
           "commercial-countdown panic",
           "barely controlled incredulity"
         ],
-        minimumVerifiedReceiptsForAsk: 3
+        minimumCuratedCandidatesForAsk: 3
       },
       {
         id: "character:slenderman",
@@ -169,7 +169,7 @@
           "mundane concern inside supernatural menace",
           "long-pause escalation"
         ],
-        minimumVerifiedReceiptsForAsk: 3
+        minimumCuratedCandidatesForAsk: 3
       },
       {
         id: "character:corey-feldman",
@@ -184,7 +184,7 @@
           "grand pronouncement",
           "self-mythologizing escalation"
         ],
-        minimumVerifiedReceiptsForAsk: 3
+        minimumCuratedCandidatesForAsk: 3
       }
     ]),
 
@@ -252,14 +252,14 @@
     askCharacterPolicy: Object.freeze({
       modeLabel: "PARODY RECONSTRUCTION",
       disclosure:
-        "An original, clearly labeled parody assembled from verified performance patterns. It is not a real quote from Mike or J.",
+        "An original, clearly labeled parody assembled from timestamp-validated curated performance candidates. It is not a real quote from Mike or J, an authenticated editor decision, or proof of a clip speaker.",
       evidenceMinimum: 3,
       requirePerformerConfirmation: true,
       responseRules: [
         "Never present generated dialogue as archival audio or a real quotation.",
         "Show the source receipts that taught the system the recurring performance pattern.",
         "Keep real soundbyte playback separate from generated text.",
-        "Do not clone or synthesize a host's voice; play only verified original source audio.",
+        "Do not clone or synthesize a host's voice; play only the linked original source at its validated timestamp.",
         "If the evidence minimum is not met, return a dossier-in-progress state instead of inventing the character."
       ]
     }),
@@ -283,6 +283,7 @@
       ],
       proofLabels: {
         machine: "MACHINE SURFACED",
+        curatedCandidate: "TIMESTAMP-VALIDATED HUMAN-CURATED CANDIDATE",
         editor: "EDITOR VERIFIED",
         creator: "CREATOR CERTIFIED",
         inference: "EVIDENCE-BASED INFERENCE"

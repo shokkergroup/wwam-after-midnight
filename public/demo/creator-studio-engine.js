@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.0.0";
+  var VERSION = "1.1.0";
   var EDITORIAL_LABEL = "SUGGESTED EDITORIAL COPY — NOT AN ARCHIVAL QUOTE";
   var EXCERPT_LABEL = "ARCHIVAL CAPTION EXCERPT — VERIFY IN SOURCE BEFORE PUBLISHING";
   var BOUNDARY_LABEL = "EDITORIAL WINDOW — IN/OUT POINTS REQUIRE CONTEXT REVIEW";
@@ -273,7 +273,14 @@
 
   function assessEvidence(receipt, source) {
     var level = clean(receipt.evidenceLevel || "machine").toLowerCase();
-    var score = level === "creator" ? 96 : level === "editor" ? 90 : 68;
+    var score =
+      level === "creator"
+        ? 96
+        : level === "editor"
+          ? 90
+          : level === "curated-candidate"
+            ? 78
+            : 68;
     var reasons = [];
     if (!clean(receipt.sourceId) || !clean(receipt.url)) {
       score -= 50;
@@ -317,7 +324,9 @@
           ? "Creator-certified receipt metadata"
           : level === "editor"
             ? "Editor-verified receipt metadata"
-            : "Machine-surfaced transcript receipt; context has not been human-certified",
+            : level === "curated-candidate"
+              ? "Timestamp-validated human-curated candidate; surrounding context, editor identity, and clip speaker remain unverified"
+              : "Machine-surfaced transcript receipt; context has not been human-certified",
       caveats: reasons
     };
   }
@@ -330,6 +339,10 @@
     if (evidence.evidenceLevel === "machine") {
       score += 20;
       reasons.push("machine-surfaced-context-review-required");
+    }
+    if (evidence.evidenceLevel === "curated-candidate") {
+      score += 8;
+      reasons.push("curated-candidate-context-review-required");
     }
     if (source && source.captioned === false) {
       score += 45;
@@ -386,27 +399,33 @@
     if (receipt.type !== "character-performance") {
       return {
         display: null,
+        mappedPerformer: null,
         status: "NOT IDENTIFIED",
         creditAllowed: false,
+        clipAttributionCertified: false,
         basis: "YouTube auto-captions are not speaker-diarized. No host is inferred."
       };
     }
     if (!clean(receipt.performer)) {
       return {
         display: null,
+        mappedPerformer: null,
         character: clean(character && character.label),
         status: "CHARACTER FOUND / PERFORMER UNVERIFIED",
         creditAllowed: false,
+        clipAttributionCertified: false,
         basis: "The performance receipt does not contain an approved performer mapping."
       };
     }
     return {
-      display: clean(receipt.performer),
+      display: null,
+      mappedPerformer: clean(receipt.performer),
       character: clean(character && character.label),
-      status: "OWNER-SUPPLIED CHARACTER MAPPING",
-      creditAllowed: true,
+      status: "OWNER-MAPPED CHARACTER / CLIP SPEAKER NOT DIARIZED",
+      creditAllowed: false,
+      clipAttributionCertified: false,
       basis:
-        "Credit comes from project-owner mapping attached to an editor-verified character receipt, not from auto-caption diarization."
+        "The project-owner mapping identifies the recurring character performer generally. Auto-captions do not establish who speaks in this individual clip."
     };
   }
 
@@ -531,9 +550,9 @@
         evidenceConfidence: evidence.score,
         archiveReachIndex: Math.round(reach * 100),
         contextRiskPenalty: Math.round(risk.score * 0.18),
-        characterReceiptBonus: receipt.type === "character-performance" ? 6 : 0,
+        curatedCharacterCandidateBonus: receipt.type === "character-performance" ? 6 : 0,
         formula:
-          "58% receipt strength + 24% evidence confidence + 12% reach + verified-character bonus - 18% context-risk penalty"
+          "58% receipt strength + 24% evidence confidence + 12% reach + curated-character-candidate bonus - 18% context-risk penalty"
       },
       approval: {
         status: approvalStatus,
@@ -544,7 +563,7 @@
             "Confirm the edit does not reverse the meaning of the full exchange.",
             "Confirm platform language/brand-safety treatment.",
             receipt.type === "character-performance"
-              ? "Use only the approved character mapping; do not infer any other speaker."
+              ? "Treat the owner mapping as recurring-character context only; do not use it as clip-level speaker credit."
               : "Do not add a host name unless a human verifies the speaker."
           ].concat(risk.reasons)
         )
@@ -581,7 +600,7 @@
       groups.get(key).candidates.push(candidate);
     }
     shorts.forEach(function (candidate) {
-      if (candidate.speaker.creditAllowed) {
+      if (candidate.speaker.mappedPerformer && candidate.characters.length) {
         candidate.characters.forEach(function (character) {
           add("character", character.id, character.label, candidate);
         });
@@ -1438,7 +1457,7 @@
         archivalExcerptLabel: EXCERPT_LABEL,
         editBoundaryLabel: BOUNDARY_LABEL,
         speakerPolicy:
-          "Never infer a host from auto-captions. Only approved character-performance mappings may display a performer, and the mapping basis travels with the clip.",
+          "Never infer a clip speaker from auto-captions. Owner-mapped recurring performers travel as separate context and never authorize on-screen speaker credit.",
         originPolicy:
           "Earliest indexed receipt is not advertised as first-ever without creator certification.",
         rightsPolicy:

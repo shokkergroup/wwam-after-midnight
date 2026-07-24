@@ -103,7 +103,7 @@ test("first appearance means earliest curated performance in the bounded current
     );
     assert.equal(answer.results[0].archiveBoundary.trueOriginClaim, false, query);
     assert.ok(answer.results.every((result) => result.speaker === null), query);
-    assert.match(answer.answer, /current verified set/i, query);
+    assert.match(answer.answer, /current bounded set/i, query);
     assert.match(answer.answer, /not a claim.*originated/i, query);
     assert.match(answer.limitations.join(" "), /not a claim of true origin/i, query);
   }

@@ -344,7 +344,7 @@
         "character-readiness",
         clean(character && character.characterId),
         array(character && character.receiptIds).concat(
-          array(character && character.verifiedReceiptIds)
+          array(character && character.curatedCandidateReceiptIds)
         ),
         [],
         "readiness threshold evidence"

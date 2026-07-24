@@ -43,7 +43,7 @@ after it exposes a correction-bound receipt/source dependency ledger.
 The Trust Desk may copy the packet for a human reviewer. Copying it does not
 apply the proposed correction, certify a claim, or rewrite any stored canon.
 
-## V5.4 measured snapshot
+## Current V5.5 measured snapshot
 
 For the promoted 74-source / 872-receipt Showcase snapshot:
 

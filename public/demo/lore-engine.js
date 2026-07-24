@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.0.0";
+  var VERSION = "1.1.0";
   var ORIGIN_DISCLAIMER =
     "Earliest in the currently indexed WWAM archive is not a claim about the bit's true channel or real-world origin.";
 
@@ -128,6 +128,17 @@
       })
       .slice()
       .sort(compareEvidence)[0] || null;
+  }
+
+  function isTimestampValidatedPerformanceCandidate(soundbyte) {
+    var provenance = (soundbyte && soundbyte.provenance) || {};
+    var selection = clean(provenance.selection)
+      .toLowerCase()
+      .replace(/[-_]+/g, " ");
+    return (
+      clean(provenance.timestampStatus) === "exact-caption-event" &&
+      selection.indexOf("human curated") >= 0
+    );
   }
 
   function selectLineageReceipts(receipts, limit) {
@@ -393,11 +404,13 @@
       addStreamEvidence(stream, "popular-livestream");
     });
 
-    var characterReceiptLookup = new Map();
+    var characterPerformanceReceiptLookup = new Map();
+    var characterContextReceiptLookup = new Map();
     array(characterLore.characters)
       .concat(array(characterLore.lockedCandidates))
       .forEach(function (character) {
         array(character.soundbytes).forEach(function (soundbyte) {
+          if (!isTimestampValidatedPerformanceCandidate(soundbyte)) return;
           var receipt = addReceipt({
             kind:
               character.status === "candidate-needs-human-verification"
@@ -418,7 +431,7 @@
             confidence: soundbyte.confidence,
             provenance: soundbyte.provenance
           });
-          characterReceiptLookup.set(soundbyte.id, receipt.id);
+          characterPerformanceReceiptLookup.set(soundbyte.id, receipt.id);
         });
         array(character.creatorContext).forEach(function (context) {
           var receipt = addReceipt({
@@ -438,7 +451,7 @@
             confidence: context.confidence,
             provenance: context.provenance
           });
-          characterReceiptLookup.set(context.id, receipt.id);
+          characterContextReceiptLookup.set(context.id, receipt.id);
         });
       });
 
@@ -486,10 +499,18 @@
       var receiptIds = unique(raw.receiptIds).filter(function (id) {
         return receiptMap.has(id);
       });
+      var performanceReceiptIds = unique(raw.performanceReceiptIds).filter(function (id) {
+        return receiptMap.has(id);
+      });
+      var contextReceiptIds = unique(raw.contextReceiptIds).filter(function (id) {
+        return receiptMap.has(id);
+      });
       var entryReceipts = receiptIds.map(function (id) {
         return receiptMap.get(id);
       });
-      var first = raw.archiveFirst || firstKnown(entryReceipts);
+      var first = Object.prototype.hasOwnProperty.call(raw, "archiveFirst")
+        ? raw.archiveFirst
+        : firstKnown(entryReceipts);
       var sourceCount = new Set(
         entryReceipts.map(function (receipt) {
           return receipt.sourceId;
@@ -527,6 +548,8 @@
             }
           : null,
         receiptIds: receiptIds,
+        performanceReceiptIds: performanceReceiptIds,
+        contextReceiptIds: contextReceiptIds,
         metrics: Object.assign(
           {
             receipts: receiptIds.length,
@@ -826,13 +849,14 @@
       .forEach(function (character) {
         var isLocked = character.status === "candidate-needs-human-verification";
         var soundbyteReceiptIds = array(character.soundbytes)
+          .filter(isTimestampValidatedPerformanceCandidate)
           .map(function (soundbyte) {
-            return characterReceiptLookup.get(soundbyte.id);
+            return characterPerformanceReceiptLookup.get(soundbyte.id);
           })
           .filter(Boolean);
         var contextReceiptIds = array(character.creatorContext)
           .map(function (context) {
-            return characterReceiptLookup.get(context.id);
+            return characterContextReceiptLookup.get(context.id);
           })
           .filter(Boolean);
         var characterEntry = addEntry({
@@ -843,12 +867,19 @@
           summary: character.profile,
           editorialFlavor: isLocked
             ? "The receipts exist. The speaker label does not. The velvet rope stays up."
-            : "A recurring performance with the timestamp trail to prove it.",
+            : "A recurring performance candidate with a timestamp trail to inspect.",
           status: isLocked ? "locked-needs-human-verification" : "grounded",
           aliases: character.aliases,
           tags: unique(["character", character.performedBy, character.lineage]),
           confidence: isLocked ? 0 : character.confidence,
           receiptIds: soundbyteReceiptIds.concat(contextReceiptIds),
+          performanceReceiptIds: soundbyteReceiptIds,
+          contextReceiptIds: contextReceiptIds,
+          archiveFirst: firstKnown(
+            soundbyteReceiptIds.map(function (receiptId) {
+              return receiptMap.get(receiptId);
+            })
+          ),
           metrics: {
             sources: new Set(
               soundbyteReceiptIds.map(function (receiptId) {
@@ -856,7 +887,7 @@
               })
             ).size,
             receipts: soundbyteReceiptIds.length + contextReceiptIds.length,
-            verifiedPerformances: soundbyteReceiptIds.length,
+            curatedPerformanceCandidates: soundbyteReceiptIds.length,
             creatorContext: contextReceiptIds.length,
             archiveMentions: number(character.metrics && character.metrics.archiveMentions, 0)
           },
@@ -878,7 +909,7 @@
         array(character.behaviorPatterns).forEach(function (pattern) {
           var patternReceiptIds = array(pattern.evidence)
             .map(function (evidenceId) {
-              return characterReceiptLookup.get(evidenceId);
+              return characterPerformanceReceiptLookup.get(evidenceId);
             })
             .filter(Boolean);
           var bitId = "bit:" + character.id + ":" + slug(pattern.label);
@@ -921,7 +952,7 @@
               return soundbyte.trigger === signal.label;
             })
             .map(function (soundbyte) {
-              return characterReceiptLookup.get(soundbyte.id);
+              return characterPerformanceReceiptLookup.get(soundbyte.id);
             })
             .filter(Boolean);
           var motifId = "motif:" + character.id + ":" + slug(signal.label);
@@ -934,7 +965,7 @@
               formatCount(signal.hits) +
               " indexed trigger matches; " +
               formatCount(signalReceiptIds.length) +
-              " manually verified performance receipts.",
+              " timestamp-validated human-curated performance candidates.",
             editorialFlavor: "Say the magic words. See which version of the problem walks through the door.",
             status: signalReceiptIds.length ? "grounded" : "index-signal-only",
             tags: ["motif", character.name, character.id],
@@ -950,7 +981,7 @@
               indexedHits: number(signal.hits, 0)
             },
             evidenceBasis:
-              "Trigger hit count comes from caption matching; only linked curated soundbytes count as verified performances.",
+              "Trigger hit count comes from caption matching; only linked timestamp-validated curated soundbytes count as performance candidates.",
             details: {
               characterEntryId: characterEntry.id,
               characterId: character.id
@@ -1090,21 +1121,35 @@
       });
 
       characterEntries.forEach(function (characterEntry) {
-        var matches = characterEntry.receiptIds.filter(function (receiptId) {
+        var performanceMatches = characterEntry.performanceReceiptIds.filter(function (receiptId) {
           return receiptMap.get(receiptId).sourceId === sourceId;
         });
-        if (matches.length) {
+        if (performanceMatches.length) {
           addEdge(
             characterEntry.id,
             sourceEntry.id,
             characterEntry.kind === "candidate-character"
               ? "candidate-performance-in"
               : "performed-in",
-            matches,
-            matches.length * 3,
+            performanceMatches,
+            performanceMatches.length * 3,
             characterEntry.kind === "candidate-character"
               ? "Performance receipt exists; performer identity is not verified."
-              : "Manually curated character-performance receipts."
+              : "Timestamp-validated human-curated character-performance candidates."
+          );
+        }
+
+        var contextMatches = characterEntry.contextReceiptIds.filter(function (receiptId) {
+          return receiptMap.get(receiptId).sourceId === sourceId;
+        });
+        if (contextMatches.length) {
+          addEdge(
+            characterEntry.id,
+            sourceEntry.id,
+            "creator-context-in",
+            contextMatches,
+            contextMatches.length * 2,
+            "Creator-context receipts discuss the character or its performance process; they are not performance candidates."
           );
         }
       });
@@ -1165,7 +1210,7 @@
             return receiptMap.get(receiptId).sourceId === sourceId;
           }),
           3,
-          "Verified performance receipt carrying this motif."
+          "Timestamp-validated curated performance candidate carrying this motif."
         );
       });
     });
@@ -1219,7 +1264,12 @@
     }
 
     characterEntries.forEach(function (entry) {
-      addLineage(entry, 20);
+      addLineage(
+        Object.assign({}, entry, {
+          receiptIds: entry.performanceReceiptIds
+        }),
+        20
+      );
     });
     bitEntries.forEach(function (entry) {
       addLineage(entry, 12);
@@ -1577,7 +1627,7 @@
         trueOriginClaimsMade: 0,
         disclaimer: ORIGIN_DISCLAIMER,
         performanceRule:
-          "Only curated soundbytes are character performances; ordinary caption mentions are not.",
+          "Only timestamp-validated human-curated soundbytes are character-performance candidates; creator-context receipts and ordinary caption mentions remain separate.",
         lockedCandidateRule:
           "A recurring candidate stays locked when the archive cannot verify the performer."
       },

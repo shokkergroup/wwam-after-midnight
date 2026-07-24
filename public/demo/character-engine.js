@@ -318,13 +318,26 @@
     return profile.id || normalize(profile.name).replace(/\s+/g, "-");
   }
 
+  function sourceIdFromUrl(value) {
+    var source = String(value || "");
+    var match =
+      source.match(/^https:\/\/(?:www\.)?youtube\.com\/watch\?[^#]*\bv=([A-Za-z0-9_-]{11})(?:[&#]|$)/i) ||
+      source.match(/^https:\/\/youtu\.be\/([A-Za-z0-9_-]{11})(?:[?#/]|$)/i);
+    return match ? match[1] : "";
+  }
+
   function validReceipt(receipt) {
+    var provenance = receipt && receipt.provenance || {};
+    var at = Number(receipt && receipt.t);
+    var start = Number(receipt && receipt.playback && receipt.playback.start);
+    var end = Number(receipt && receipt.playback && receipt.playback.end);
     return Boolean(receipt && receipt.id && receipt.sourceId && receipt.url &&
-      Number.isFinite(Number(receipt.t)) && Number(receipt.t) >= 0 &&
-      receipt.playback && Number.isFinite(Number(receipt.playback.start)) &&
-      Number.isFinite(Number(receipt.playback.end)) &&
-      Number(receipt.playback.end) > Number(receipt.playback.start) &&
-      receipt.provenance && receipt.provenance.timestampStatus);
+      sourceIdFromUrl(receipt.url) === receipt.sourceId &&
+      Number.isFinite(at) && at >= 0 &&
+      Number.isFinite(start) && Number.isFinite(end) &&
+      start <= at && end > at &&
+      provenance.timestampStatus === "exact-caption-event" &&
+      normalize(provenance.selection).indexOf("human curated") >= 0);
   }
 
   function meaningfulQuestionTerms(question) {
@@ -477,15 +490,21 @@
           return {
             ok: false,
             status: "unsupported-character",
-            error: "This character has no reviewed response bank, so the engine will not borrow another character's voice.",
+            error: "This character has no configured response bank, so the engine will not borrow another character's voice.",
           };
         }
         var receipts = (profile.soundbytes || []).filter(validReceipt);
-        if (!receipts.length) {
+        var minimum = Math.max(
+          1,
+          Math.floor(Number(profile.minimumCuratedCandidatesForAsk || 3))
+        );
+        if (receipts.length < minimum) {
           return {
             ok: false,
             status: "insufficient-grounding",
-            error: "This character has no timestamp-validated performance receipts available for a grounded riff.",
+            error:
+              "This character needs at least " + minimum +
+              " timestamp-validated human-curated performance candidates before a grounded riff can be generated.",
           };
         }
         var analysis = analyzeIntent(cleaned);
@@ -518,8 +537,9 @@
             reasons: receiptMatch.reasons,
           } : null,
           readiness: {
-            verifiedSoundbytes: receipts.length,
             timestampValidatedReceipts: receipts.length,
+            minimumCuratedCandidates: minimum,
+            authenticatedEditorVerifiedDecisions: 0,
             clipSpeakersDiarized: false,
             confidence: Math.min(98, 68 + receipts.length * 4),
             basis: "Owner-supplied recurring-character mapping plus timestamp-validated curated receipts; clip speakers are not diarized.",

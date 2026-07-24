@@ -19,6 +19,9 @@
     }),
     evidencePolicy: Object.freeze({
       machineOutputState: "quarantine",
+      curatedCandidateState: "timestamp-validated-human-curated-candidate",
+      curatedCandidateAuthenticated: false,
+      editorVerificationRequiresAuthentication: true,
       promotionRequiresHumanReview: true,
       corrections: "append-only",
       preserveContradictions: true
@@ -41,6 +44,7 @@
       source: "SOURCE TAPE",
       unknown: "THE TAPE DOESN'T KNOW",
       quarantine: "MACHINE SURFACED",
+      curatedCandidate: "TIMESTAMP-VALIDATED HUMAN-CURATED CANDIDATE",
       reviewed: "EDITOR VERIFIED",
       certified: "CREATOR CERTIFIED",
       correction: "CORRECTION RIPPLE"
@@ -49,8 +53,10 @@
       "ask-the-tape",
       "character-studio",
       "creator-clip-lab",
+      "creator-taste-calibration",
       "memory-graph",
-      "red-band-candidate-index"
+      "red-band-candidate-index",
+      "tape-companion"
     ])
   });
 })(typeof window !== "undefined" ? window : globalThis);

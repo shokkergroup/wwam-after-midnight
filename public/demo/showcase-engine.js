@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.0.0";
+  var VERSION = "1.1.0";
   var POSITIVE_WORDS = [
     "love",
     "loved",
@@ -326,6 +326,10 @@
       ).forEach(
         function (receipt) {
           var rawCharacterId = clean(character.id || character.slug);
+          var provenance = receipt.provenance || {};
+          var timestampValidatedCandidate =
+            clean(provenance.timestampStatus) === "exact-caption-event" &&
+            normalized(provenance.selection).indexOf("human curated") >= 0;
           results.push(
             Object.assign(
               {
@@ -336,7 +340,12 @@
                 performer: character.performer || character.performedBy,
                 evidenceLevel:
                   receipt.evidenceLevel ||
-                  (character.status === "grounded" ? "editor" : "")
+                  (timestampValidatedCandidate ? "curated-candidate" : "machine"),
+                curationStatus:
+                  receipt.curationStatus ||
+                  (timestampValidatedCandidate
+                    ? "timestamp-validated-human-curated-candidate"
+                    : "unreviewed-candidate")
               },
               receipt
             )
@@ -508,9 +517,9 @@
         score: clamp(item.score || item.heat || 72, 0, 100),
         sentiment: "neutral",
         sentimentConfidence: 0,
-        evidenceLevel: clean(
-          item.evidenceLevel || item.status || (item.certified ? "creator" : item.verified ? "editor" : "machine")
-        ),
+        evidenceLevel: clean(item.evidenceLevel || "machine"),
+        curationStatus: clean(item.curationStatus),
+        authenticatedEditorVerified: item.authenticatedEditorVerified === true,
         characterId: characterId,
         bitId: bitId,
         performer: clean(item.performer),
@@ -883,7 +892,11 @@
                 sourceId: receipt.sourceId,
                 date: receipt.date,
                 t: receipt.t,
-                url: receipt.url
+                url: receipt.url,
+                evidenceLevel: receipt.evidenceLevel,
+                curationStatus: receipt.curationStatus || "",
+                authenticatedEditorVerified:
+                  receipt.authenticatedEditorVerified === true
               };
             }),
             latestReceiptId: matches[matches.length - 1].id,
@@ -892,11 +905,18 @@
                 return receipt.evidenceLevel === "creator";
               }).length > 0
                 ? "creator"
-                : matches.filter(function (receipt) {
-                      return receipt.evidenceLevel === "editor";
+                  : matches.filter(function (receipt) {
+                      return (
+                        receipt.evidenceLevel === "editor" &&
+                        receipt.authenticatedEditorVerified === true
+                      );
                     }).length > 0
                   ? "editor"
-                  : "machine",
+                  : matches.filter(function (receipt) {
+                        return receipt.evidenceLevel === "curated-candidate";
+                      }).length > 0
+                    ? "curated-candidate"
+                    : "machine",
             caution:
               "Origin means earliest known receipt in the indexed corpus, not necessarily the first time the bit was ever performed."
           };
@@ -1598,11 +1618,17 @@
       var matches = receipts.filter(function (receipt) {
         return receipt.entityIds.indexOf(character.id) >= 0;
       });
-      var verified = matches.filter(function (receipt) {
-        return receipt.evidenceLevel === "editor" || receipt.evidenceLevel === "creator";
+      var curatedCandidates = matches.filter(function (receipt) {
+        return ["curated-candidate", "editor", "creator"].indexOf(receipt.evidenceLevel) >= 0;
+      });
+      var authenticatedEditorVerified = matches.filter(function (receipt) {
+        return (
+          receipt.authenticatedEditorVerified === true &&
+          (receipt.evidenceLevel === "editor" || receipt.evidenceLevel === "creator")
+        );
       });
       var minimum = number(
-        character.minimumVerifiedReceiptsForAsk || policy.evidenceMinimum || 3,
+        character.minimumCuratedCandidatesForAsk || policy.evidenceMinimum || 3,
         3
       );
       return {
@@ -1613,13 +1639,16 @@
         receiptIds: matches.map(function (receipt) {
           return receipt.id;
         }),
-        verifiedReceiptIds: verified.map(function (receipt) {
+        curatedCandidateReceiptIds: curatedCandidates.map(function (receipt) {
           return receipt.id;
         }),
-        minimumVerifiedReceipts: minimum,
-        readyForAskCharacter: verified.length >= minimum,
+        authenticatedEditorVerifiedReceiptIds: authenticatedEditorVerified.map(function (receipt) {
+          return receipt.id;
+        }),
+        minimumCuratedCandidates: minimum,
+        readyForAskCharacter: curatedCandidates.length >= minimum,
         status:
-          verified.length >= minimum
+          curatedCandidates.length >= minimum
             ? "READY FOR LABELED PARODY RECONSTRUCTION"
             : "DOSSIER IN PROGRESS — DO NOT GENERATE",
         disclosure: clean(policy.disclosure)
@@ -1709,12 +1738,12 @@
           id: "queue:character:" + slug(character.characterId),
           priority: 88,
           lane: "CHARACTER STUDIO",
-          action: "VERIFY " + character.minimumVerifiedReceipts + " PERFORMANCE RECEIPTS",
+          action: "CURATE " + character.minimumCuratedCandidates + " TIMESTAMPED PERFORMANCE CANDIDATES",
           sourceId: "",
           receiptIds: character.receiptIds.slice(0, 8),
           reason:
             character.character +
-            " stays locked until enough real performances teach the parody pattern."
+            " stays locked until enough timestamped curated candidates support the parody pattern."
         });
       });
 
@@ -1840,6 +1869,12 @@
           id: "machine",
           label: "MACHINE SURFACED",
           meaning: "Candidate found by deterministic transcript rules"
+        },
+        {
+          id: "curated-candidate",
+          label: "TIMESTAMP-VALIDATED HUMAN-CURATED CANDIDATE",
+          meaning:
+            "A human selected a structurally valid source/timestamp candidate; no authenticated editor decision or clip-speaker diarization is implied"
         },
         {
           id: "editor",
@@ -1987,7 +2022,7 @@
           name: lineage.label,
           bit: lineage.label,
           description:
-            "Earliest-known indexed performance through its latest verified callback.",
+            "Earliest-known indexed performance through its latest timestamped curated callback.",
           events: events,
           receipts: events,
           receiptIds: lineage.performances.map(function (performance) {

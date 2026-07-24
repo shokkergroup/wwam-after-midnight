@@ -41,13 +41,23 @@ Every clip candidate contains:
 - evidence confidence, contextual risk, approval status, and the factors behind the score;
 - a speaker policy that refuses to name anyone from auto-captions.
 
-Character performance receipts can carry the owner-supplied Mike/J mapping. The export says that explicitly. All other speaker credits remain blank until a person checks the source.
+The current promoted 74-source / 71-captioned corpus supplies 25
+timestamp-validated human-curated character-performance candidates and 0
+authenticated editor-verified decisions. Their clip speakers are not diarized.
+Candidates can carry the owner-supplied Mike/J performer mapping, but that
+mapping does not identify the speaker in an individual clip. A future
+production `editor verified` tier would require a separate authenticated
+surrounding-context decision.
 
 ## Defensible packages
 
-Shorts candidates rank editorial usefulness, not predicted virality. The transparent formula weighs the existing receipt strength, evidence confidence, source reach, character verification, and contextual risk.
+Shorts candidates rank editorial usefulness, not predicted virality. The transparent formula weighs the existing receipt strength, evidence confidence, source reach, timestamp-validated curated-candidate status, and contextual risk.
 
-Supercuts require at least three receipts across at least two sources. Character-anchored supercuts use only approved performance receipts, not ordinary mentions of the character. Their "origin" is labeled as the earliest receipt in that package, never the first-ever bit.
+Supercuts require at least three receipts across at least two sources.
+Character-anchored supercuts use only timestamp-validated human-curated
+performance candidates, not ordinary mentions of the character. Their
+“origin” is labeled as the earliest receipt in that package, never the
+first-ever bit.
 
 Resurfacing pairs an older and newer receipt that share an indexed topic or character. The package explicitly does not claim that an opinion changed, a prediction came true, or the earlier receipt is the true origin.
 

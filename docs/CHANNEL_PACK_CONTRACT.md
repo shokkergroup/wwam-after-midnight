@@ -18,6 +18,10 @@ title, transcript fragment, or machine candidate into evidence.
 - `public/demo/wwam-channel-dna.js` remains WWAM's identity input.
 - `public/demo/wwam-channel-pack-adapter.js` declares WWAM's operational
   evidence, update, storage, and surface-language policy.
+- `public/demo/tape-companion-engine.js` implements the portable synchronized
+  evidence contract documented in `docs/TAPE_COMPANION.md`.
+- `public/demo/creator-taste-engine.js` implements the portable bounded
+  preference contract documented in `docs/CREATOR_TASTE_CALIBRATION.md`.
 - `tests/fixtures/channel-pack-neutral-racing.mjs` is a synthetic, test-only
   portability fixture. It is not VRL data and is never loaded by the WWAM
   public demo.
@@ -32,15 +36,18 @@ inspect or download the contract without making the fan experience heavier.
 | Identity | Stable channel ID, pack version, public label, source channel, promise | Missing identity, free-form IDs, invalid versions |
 | Source lanes | Label, purpose, and an explicit inclusion boundary for every lane | Inferred boundaries, orphan rules, empty lanes |
 | Taxonomy | Entity, receipt, and relationship types | A taxonomy without the universal `source` entity or duplicate types |
-| Evidence policy | Excerpt ceiling, source/timestamp requirements, speaker restraint, review state | Speaker guessing, synthetic character audio, machine-to-public promotion |
+| Evidence policy | Excerpt ceiling, source/timestamp requirements, speaker restraint, and distinct machine, curated-candidate, editor, and creator states | Speaker guessing, synthetic character audio, machine-to-public promotion, or treating curation as authenticated review |
 | Update contract | `discover → quarantine → review → promote`, official source, honest cadence | Skipped review, implied automation, silent source removal |
 | Storage | Channel-scoped namespace, channel-first partitioning, source partition, export prefix | Namespace mismatch or storage that can mix channels |
-| Surface vocabulary | Eight channel-native labels for ask, receipt, source, unknown, quarantine, review, certification, and correction | Generic missing states or duplicate labels |
+| Surface vocabulary | Nine channel-native labels for ask, receipt, source, unknown, quarantine, curated candidate, review, certification, and correction | Generic missing states, collapsed evidence tiers, or duplicate labels |
 | Capabilities | The product surfaces this channel actually enables | An empty capability claim |
 
-Machine output must enter `quarantine`; public promotion requires human review.
-Corrections are append-only, contradictory evidence survives certification,
-and removed sources leave tombstones.
+Machine output must enter `quarantine`. A `curatedCandidate` is a distinct
+timestamp-validated, human-curated, non-authenticated tier between machine and
+editor; it cannot silently become `EDITOR VERIFIED`. Public promotion requires
+human review, and editor verification requires authentication. Corrections are
+append-only, contradictory evidence survives certification, and removed
+sources leave tombstones.
 
 ## Compiler API
 
@@ -74,6 +81,9 @@ The adapter must explicitly provide:
   },
   evidencePolicy: {
     machineOutputState: "quarantine",
+    curatedCandidateState: "timestamp-validated-human-curated-candidate",
+    curatedCandidateAuthenticated: false,
+    editorVerificationRequiresAuthentication: true,
     promotionRequiresHumanReview: true,
     corrections: "append-only",
     preserveContradictions: true
@@ -95,17 +105,30 @@ The adapter must explicitly provide:
     source: "A CHANNEL-NATIVE SOURCE LABEL",
     unknown: "AN HONEST UNKNOWN LABEL",
     quarantine: "A MACHINE-CANDIDATE LABEL",
+    curatedCandidate: "A TIMESTAMP-VALIDATED HUMAN-CURATED CANDIDATE LABEL",
     reviewed: "A HUMAN-REVIEW LABEL",
     certified: "AN OWNER-CERTIFIED LABEL",
     correction: "A CORRECTION LABEL"
   },
-  capabilities: ["receipt-search"]
+  capabilities: [
+    "receipt-search",
+    "tape-companion",
+    "creator-taste-calibration"
+  ]
 }
 ```
 
 There are no safety-relevant defaults. A missing policy produces a
 `ChannelPackValidationError` with structured `path`, `code`, and `message`
 issues.
+
+Channel DNA must likewise declare `voice.proofLabels.curatedCandidate`
+separately from its machine, editor, creator, and inference labels.
+
+A capability is a declared runtime contract, not evidence that a feature is
+correct or authorized. ChannelPack validates the declaration and isolates its
+configuration. Feature-level regression suites must still prove the engine's
+behavior against real and neutral inputs.
 
 ## Determinism and isolation
 
@@ -114,6 +137,10 @@ source-lane maps, taxonomies, and capability sets produce the same canonical
 JSON and `cp1-…` fingerprint even if their input order differs. The
 fingerprint is a reproducible change detector, not a cryptographic signature.
 Any post-compile mutation invalidates it.
+
+The current WWAM V5.5 artifact is `cp1-59e4817559149f96`. This value is a
+dated change detector for the compiled policy, not a permanent ID; adding the
+two V5.5 capability declarations intentionally changed it.
 
 Multiple products can be checked together:
 
@@ -127,6 +154,32 @@ const report = window.ShokkerChannelPack.validatePortfolio([
 The portfolio validator rejects duplicate channel IDs and storage namespaces.
 That makes "same engine, separate products" an executable rule instead of a
 folder-naming convention.
+
+## V5.5 portable capability patterns
+
+### Tape Companion
+
+The companion consumes channel labels plus generic source, receipt, heat,
+entity, and relationship records. Its share state binds the channel ID and
+derived channel fingerprint, archive fingerprint, source fingerprint, and
+playback position. A valid binding can restore a view; it cannot promote
+evidence or prove who operated it. Playback APIs return only snapshot-safe and
+already-crossed events, while a manual rail and official timestamp link
+preserve utility when the embedded player API is unavailable.
+
+### Creator Taste Calibration
+
+The calibration engine consumes adapter-defined labels and candidate feature
+dimensions. Its artifact binds the channel, ChannelPack, Clip Lab snapshot,
+eligible inventory, declared goal, risk ceiling, round blueprint, and exact
+decision ledger. Local preference may change only a bounded derived modifier
+and ordering. It cannot become evidence, canon, identity, rights clearance, or
+creator approval.
+
+These patterns are deliberately separate from channel voice. A horror channel
+can synchronize recurring-character callbacks and calibrate dark-comedy edit
+inventory; a racing channel can synchronize lead changes and cautions and
+calibrate close-finish or booth-intensity inventory through the same contracts.
 
 ## Portability proof
 
@@ -143,8 +196,13 @@ machine promotion, skipped review, foreign namespaces, speaker guessing,
 missing vocabulary, artifact tampering, and portfolio collisions all fail
 closed.
 
-Run the proof:
+The Tape Companion and Creator Taste suites separately compile neutral racing
+inputs and reject WWAM or horror vocabulary leakage.
+
+Run the proofs:
 
 ```bash
-node --test tests/channel-pack-contract.test.mjs
+node --test tests/channel-pack-contract.test.mjs \
+  tests/tape-companion-engine.test.mjs \
+  tests/creator-taste-engine.test.mjs
 ```

@@ -84,12 +84,46 @@ test("verified and real character requests retrieve only curated performance rec
   }
 });
 
+test("Ask rejects inexact, non-human-curated, and source-mismatched character candidates", () => {
+  const lore = plain(window.WWAM_CHARACTER_LORE);
+  const loomis = lore.characters.find((profile) => profile.id === "loomis");
+  loomis.soundbytes = loomis.soundbytes.slice(0, 3);
+  loomis.soundbytes[0].provenance.timestampStatus = "estimated";
+  loomis.soundbytes[1].provenance.selection = "machine-curated candidate";
+  loomis.soundbytes[2].url = loomis.soundbytes[2].url.replace(
+    loomis.soundbytes[2].sourceId,
+    "AAAAAAAAAAA",
+  );
+
+  const unsafeSearch = window.WWAMSearchEngine.create(
+    window.WWAM_CATALOG,
+    window.WWAM_DEEP_DISTILL,
+    window.WWAM_LIVESTREAMS,
+    window.WWAM_CURATED,
+    window.WWAM_POPULAR_LIVE,
+    lore,
+  );
+  const count = plain(
+    unsafeSearch.ask("How many verified Dr. Loomis clips are there?"),
+  );
+  assert.equal(count.status, "insufficient-evidence");
+  assert.equal(count.collection.total, 0);
+  assert.equal(count.collection.authenticatedEditorVerified, 0);
+  assert.deepEqual(count.results, []);
+
+  const roster = plain(unsafeSearch.ask("What are their recurring characters?"));
+  assert.equal(roster.collection.total, 3);
+  assert.ok(
+    roster.results.every((result) => result.character !== "Dr. Loomis"),
+  );
+});
+
 test("latest and funniest character routes stay honest about the bounded archive", () => {
   for (const character of ["Dr. Loomis", "Dr. Challis", "Slenderman", "Corey Feldman"]) {
     const latest = plain(modernSearch.ask(`latest ${character} performance`));
     assert.equal(latest.results[0].kind, "character-performance", character);
     assert.equal(latest.results[0].date, "2026-07-23", character);
-    assert.match(latest.answer, /current verified set/i, character);
+    assert.match(latest.answer, /current bounded set/i, character);
 
     const funniest = plain(modernSearch.ask(`funniest ${character} bit`));
     assert.equal(funniest.results[0].kind, "character-performance", character);

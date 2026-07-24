@@ -33,10 +33,18 @@ from wwam_deep_distill import (
 
 
 OUTPUT = PUBLIC / "character-lore.js"
+CATALOG_OUTPUT = PUBLIC / "catalog.js"
+FRESH_OUTPUT = PUBLIC / "livestream-distill.js"
+POPULAR_OUTPUT = PUBLIC / "popular-live-distill.js"
 OFFICIAL_CHANNEL_ID = "UC6ieEOZW4iXV8TcILJI8k5g"
 ATTRIBUTION_BASIS = (
     "The project owner explicitly identified this host-to-character mapping "
     "in the WWAM build brief dated 2026-07-23."
+)
+LOCKED_CANDIDATE_SPEAKER_BASIS = (
+    "YouTube automatic captions are not speaker-diarized. Both the clip speaker "
+    "and the recurring-character performer remain unknown; no owner-supplied "
+    "performer mapping exists for this locked candidate."
 )
 
 PUBLIC_REJECT = re.compile(
@@ -890,8 +898,9 @@ BONUS_CANDIDATES: list[dict[str, Any]] = [
             "status": "not-diarized",
             "confidence": 0.0,
             "basis": (
-                "Auto-captions verify repeated performances but do not reliably identify "
-                "which host is speaking. The candidate remains locked until reviewed."
+                "Timestamped captions support repeated performance candidates but do not "
+                "reliably identify which host is speaking. The candidate remains locked "
+                "until reviewed."
             ),
         },
         "profile": (
@@ -902,7 +911,7 @@ BONUS_CANDIDATES: list[dict[str, Any]] = [
         "askEnabled": False,
         "whyLocked": (
             "Three strong performance receipts exist, but the performer identity has not "
-            "been supplied by the owner or verified from a speaker-labeled source."
+            "been supplied by the owner or established from a speaker-labeled source."
         ),
         "soundbyteSeeds": [
             {
@@ -944,7 +953,7 @@ GLOBAL_GUARDRAILS = {
     "generatedRiffLabelRequired": True,
     "requiredLabel": "GENERATED CHARACTER RIFF — NOT A REAL WWAM QUOTE",
     "archiveAudioPolicy": (
-        "Audio playback may use only the linked source at the verified timestamp. "
+        "Audio playback may use only the linked source at the validated timestamp. "
         "Generated responses remain text-only."
     ),
     "voiceCloning": "disabled",
@@ -969,10 +978,40 @@ def read_metadata() -> dict[str, dict[str, Any]]:
     return output
 
 
-def read_captions() -> dict[str, list[dict[str, Any]]]:
+def read_js_assignment(path: Path, variable: str) -> Any:
+    prefix = f"window.{variable} = "
+    text = path.read_text(encoding="utf-8").strip()
+    if not text.startswith(prefix) or not text.endswith(";"):
+        raise RuntimeError(f"Unexpected generated artifact wrapper: {path}")
+    return json.loads(text[len(prefix) : -1])
+
+
+def promoted_source_ids() -> set[str]:
+    catalog = read_js_assignment(CATALOG_OUTPUT, "WWAM_CATALOG")
+    fresh = read_js_assignment(FRESH_OUTPUT, "WWAM_LIVESTREAMS")
+    popular = read_js_assignment(POPULAR_OUTPUT, "WWAM_POPULAR_LIVE")
+    source_ids = {
+        str(item.get("id") or "")
+        for item in [
+            *catalog,
+            *(fresh.get("streams") or []),
+            *(popular.get("streams") or []),
+        ]
+        if item.get("id")
+    }
+    if len(source_ids) != 74:
+        raise RuntimeError(
+            f"Expected the promoted 74-source corpus, found {len(source_ids)} sources."
+        )
+    return source_ids
+
+
+def read_captions(source_ids: set[str]) -> dict[str, list[dict[str, Any]]]:
     output: dict[str, list[dict[str, Any]]] = {}
     caption_dir = CACHE / "captions"
     for path in sorted(caption_dir.glob("*.json")):
+        if path.stem not in source_ids:
+            continue
         try:
             payload = json.loads(path.read_text(encoding="utf-8"))
         except (json.JSONDecodeError, OSError) as error:
@@ -1193,8 +1232,8 @@ def build_character(
     definition["askEnabled"] = True
     definition["metrics"] = {
         **mention_metrics(definition.pop("mentionPattern"), captions, metadata),
-        "verifiedSoundbytes": len(soundbytes),
-        "verifiedSources": source_count,
+        "curatedPerformanceCandidates": len(soundbytes),
+        "curatedCandidateSources": source_count,
         "livestreamReceipts": sum(
             item["sourceType"] == "livestream" for item in soundbytes
         ),
@@ -1234,6 +1273,7 @@ def build_bonus(
                 **seed,
                 "character": definition["id"],
                 "trigger": "Candidate performance",
+                "speakerBasis": LOCKED_CANDIDATE_SPEAKER_BASIS,
             },
             captions,
             metadata,
@@ -1242,8 +1282,8 @@ def build_bonus(
     dated_receipts = [item["date"] for item in soundbytes if item.get("date")]
     definition["soundbytes"] = soundbytes
     definition["metrics"] = {
-        "verifiedSoundbytes": len(soundbytes),
-        "verifiedSources": len({item["sourceId"] for item in soundbytes}),
+        "lockedPerformanceCandidates": len(soundbytes),
+        "candidateSources": len({item["sourceId"] for item in soundbytes}),
         "evidenceEra": {
             "earliestReceiptInCurrentSet": min(dated_receipts)
             if dated_receipts
@@ -1270,7 +1310,8 @@ def validate_behavior_links(characters: list[dict[str, Any]]) -> None:
 
 def build_payload() -> dict[str, Any]:
     metadata = read_metadata()
-    captions = read_captions()
+    source_ids = promoted_source_ids()
+    captions = read_captions(source_ids)
     if not captions:
         raise RuntimeError("No cached captions found; run the WWAM distill pipelines first.")
     characters = [
@@ -1296,15 +1337,22 @@ def build_payload() -> dict[str, Any]:
         item["sourceId"] for item in all_receipts + creator_context_receipts
     }
     return {
-        "version": "1.0.0",
+        "version": "1.1.0",
         "scope": {
             "captionFilesScanned": len(captions),
+            "promotedSources": len(source_ids),
             "metadataFilesScanned": len(metadata),
             "captionEventsScanned": sum(len(lines) for lines in captions.values()),
             "groundedCharacters": len(characters),
             "lockedCandidates": len(bonus),
-            "verifiedSoundbytes": len(all_receipts),
-            "verifiedCreatorContext": len(creator_context_receipts),
+            "curatedPerformanceCandidates": len(all_receipts)
+            - sum(len(candidate["soundbytes"]) for candidate in bonus),
+            "lockedPerformanceCandidates": sum(
+                len(candidate["soundbytes"]) for candidate in bonus
+            ),
+            "timestampValidatedCandidates": len(all_receipts),
+            "curatedContextReceipts": len(creator_context_receipts),
+            "authenticatedEditorVerifiedDecisions": 0,
             "uniqueEvidenceSources": len(unique_receipt_sources),
         },
         "methodology": [
@@ -1317,7 +1365,7 @@ def build_payload() -> dict[str, Any]:
                 "speaker diarization from auto-captions."
             ),
             (
-                "Human-select candidate performances, then deterministically verify "
+                "Human-select candidate performances, then deterministically validate "
                 "the caption event, cue text, source duration, and public excerpt limit."
             ),
             (
@@ -1375,7 +1423,8 @@ def main() -> int:
         print(
             f"{action} {OUTPUT}: {scope['groundedCharacters']} grounded characters, "
             f"{scope['lockedCandidates']} locked candidate, "
-            f"{scope['verifiedSoundbytes']} timestamp-verified soundbytes across "
+            f"{scope['curatedPerformanceCandidates']} curated performance candidates, "
+            f"{scope['lockedPerformanceCandidates']} locked candidates across "
             f"{scope['uniqueEvidenceSources']} sources.",
             flush=True,
         )

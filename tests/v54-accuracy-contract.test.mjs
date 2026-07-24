@@ -104,7 +104,12 @@ test("Archive Deep Batch 01 lazy-loads into internal Atlas dossiers without beco
   assert.match(app, /restrictedToTopicNavigation/);
   assert.match(html, /id="archiveBatch" hidden/);
   assert.match(atlasUi, /TEN BLIND SPOTS BECAME CAPTION-BACKED MAPS/);
-  assert.match(atlasUi, /remain outside canon and Red Band until playback review/);
+  assert.match(atlasUi, /42 short machine candidates remain quarantined/);
+  assert.match(atlasUi, /Playback review may establish context/);
+  assert.match(
+    atlasUi,
+    /requires its own policy-compliant decision by an authenticated, authorized reviewer/
+  );
 });
 
 test("the buyer room proves universal infrastructure without erasing WWAM's channel DNA", () => {

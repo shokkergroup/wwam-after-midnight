@@ -59,7 +59,7 @@ test("Trust Desk is deterministic and reports the complete v4 evidence surface",
   const first = createCurrent(window).trust;
   const second = createCurrent(window).trust;
 
-  assert.equal(window.WWAMTrustEngine.VERSION, "1.1.0");
+  assert.equal(window.WWAMTrustEngine.VERSION, "1.2.0");
   assert.equal(first.engine, "WWAM TRUST / CANON DESK");
   assert.equal(first.snapshotDate, "2026-07-23");
   assert.deepEqual(plain(first.metrics), plain(second.metrics));
@@ -80,7 +80,8 @@ test("Trust Desk is deterministic and reports the complete v4 evidence surface",
   assert.equal(first.metrics.brokenSourceLinks, 0);
   assert.equal(first.metrics.invalidTimestamps, 0);
   assert.equal(first.metrics.machineReceipts, 847);
-  assert.equal(first.metrics.editorReceipts, 25);
+  assert.equal(first.metrics.curatedCandidateReceipts, 25);
+  assert.equal(first.metrics.editorReceipts, 0);
   assert.equal(first.metrics.creatorReceipts, 0);
   assert.equal(first.metrics.publicExcerptViolations, 362);
   assert.equal(first.metrics.reviewCandidates, 95);
@@ -166,18 +167,19 @@ test("the character firewall counts only curated performances and never guesses 
   const characters = trust.characterAudits.grounded;
 
   assert.equal(characters.length, 4);
-  assert.equal(trust.metrics.verifiedCuratedPerformances, 25);
+  assert.equal(trust.metrics.timestampValidatedCuratedPerformances, 25);
+  assert.equal(trust.metrics.authenticatedEditorVerifiedPerformances, 0);
   assert.equal(trust.metrics.ordinaryCharacterMentionsQuarantined, 12);
   assert.equal(trust.metrics.aliasCollisions, 2);
 
-  const allVerified = new Set(
-    characters.flatMap((character) => character.verifiedPerformanceIds)
+  const allValidated = new Set(
+    characters.flatMap((character) => character.timestampValidatedPerformanceIds)
   );
   const allOrdinary = new Set(
     characters.flatMap((character) => character.ordinaryMentionReceiptIds)
   );
   assert.equal(
-    [...allVerified].some((receiptId) => allOrdinary.has(receiptId)),
+    [...allValidated].some((receiptId) => allOrdinary.has(receiptId)),
     false
   );
 
@@ -185,9 +187,11 @@ test("the character firewall counts only curated performances and never guesses 
     assert.equal(character.canGenerateLabeledTextParody, true);
     assert.equal(character.canGenerateCharacterAudio, false);
     assert.equal(character.canClaimSpecificHostSpokeInEachClip, false);
-    assert.ok(character.verifiedPerformanceIds.length >= 3);
+    assert.ok(character.timestampValidatedPerformanceIds.length >= 3);
+    assert.deepEqual(plain(character.authenticatedEditorVerifiedPerformanceIds), []);
     character.soundbytes.forEach((soundbyte) => {
-      assert.equal(soundbyte.performanceVerified, true);
+      assert.equal(soundbyte.timestampValidatedCuratedCandidate, true);
+      assert.equal(soundbyte.authenticatedEditorVerified, false);
       assert.equal(soundbyte.specificSpeakerVerified, false);
       assert.match(
         soundbyte.attributionMode,
@@ -276,6 +280,161 @@ test("opinion timelines and courts remain inference until target and human revie
   );
 });
 
+test("bare editor or creator labels cannot authenticate Time Machine or Court canon", () => {
+  const window = load();
+  const source = {
+    id: "authproof01",
+    type: "commentary",
+    lane: "commentary",
+    lanes: ["commentary"],
+    title: "Authentication proof fixture",
+    date: "2026-01-01",
+    duration: 600,
+    url: "https://www.youtube.com/watch?v=authproof01",
+    captioned: true,
+    wordsAudited: 1000
+  };
+  const makeReceipt = (id, t, excerpt, sentiment, evidenceLevel) => ({
+    id,
+    sourceId: source.id,
+    sourceType: "commentary",
+    sourceLane: "commentary",
+    sourceLanes: ["commentary"],
+    sourceTitle: source.title,
+    date: source.date,
+    t,
+    url: `${source.url}&t=${t}s`,
+    type: "moment",
+    category: "TAKE GETS NUCLEAR",
+    excerpt,
+    score: 90,
+    sentiment,
+    sentimentConfidence: 0.99,
+    evidenceLevel,
+    entityIds: ["film:synthetic-movie"]
+  });
+  const receipts = [
+    makeReceipt(
+      "positive-editor",
+      10,
+      "Synthetic Movie is an amazing film.",
+      "positive",
+      "editor"
+    ),
+    makeReceipt(
+      "positive-creator",
+      20,
+      "I love Synthetic Movie.",
+      "positive",
+      "creator"
+    ),
+    makeReceipt(
+      "negative-editor",
+      30,
+      "Synthetic Movie is a terrible film.",
+      "negative",
+      "editor"
+    ),
+    makeReceipt(
+      "negative-creator",
+      40,
+      "I hate Synthetic Movie.",
+      "negative",
+      "creator"
+    )
+  ];
+  const makeShowcase = (values) => ({
+    snapshotDate: "2026-01-01",
+    inputFingerprint: "authproof",
+    sources: [source],
+    receipts: values,
+    memoryGraph: {
+      nodes: [{ id: "film:synthetic-movie", type: "film", label: "Synthetic Movie" }],
+      edges: []
+    },
+    takeTimeMachines: [
+      {
+        id: "timeline:authentication-proof",
+        subjectId: "film:synthetic-movie",
+        subject: "Synthetic Movie",
+        subjectType: "film",
+        receipts: values.map((receipt) => receipt.id),
+        movements: [
+          {
+            from: "negative",
+            to: "positive",
+            beforeReceiptId: "negative-editor",
+            afterReceiptId: "positive-editor"
+          }
+        ]
+      }
+    ],
+    courtCandidates: [
+      {
+        id: "court:authentication-proof",
+        title: "Synthetic Movie Court",
+        subjectId: "film:synthetic-movie",
+        subject: "Synthetic Movie",
+        prosecution: [
+          { receiptId: "negative-editor" },
+          { receiptId: "negative-creator" }
+        ],
+        defense: [
+          { receiptId: "positive-editor" },
+          { receiptId: "positive-creator" }
+        ]
+      }
+    ]
+  });
+  const createTrust = (values) =>
+    window.WWAMTrustEngine.create({
+      catalog: [source],
+      deep: { generated: "2026-01-01", method: "Synthetic authentication fixture." },
+      live: {},
+      popular: {},
+      characters: { characters: [], lockedCandidates: [] },
+      dna: { qualityGates: { publicExcerptWords: 16 } },
+      showcase: makeShowcase(values)
+    });
+
+  const bareLabels = createTrust(receipts);
+  const timeline = bareLabels.timelineAudits[0];
+  const court = bareLabels.courtAudits[0];
+  assert.equal(timeline.directOpinionReceiptIds.length, 4);
+  assert.equal(timeline.movementAudits[0].semanticSupport, true);
+  assert.equal(timeline.movementAudits[0].humanVerified, false);
+  assert.equal(timeline.movementAudits[0].canonEligible, false);
+  assert.equal(timeline.canonEligible, false);
+  assert.equal(court.argumentBoardEligible, true);
+  assert.equal(court.canonEligible, false);
+  assert.ok(
+    court.prosecution
+      .concat(court.defense)
+      .every((item) => item.authenticatedEditorialDecision === false)
+  );
+
+  const highScoringCreator = bareLabels.explainConfidence({
+    kind: "receipt",
+    id: "positive-creator"
+  });
+  assert.equal(highScoringCreator.band, "HIGH");
+  assert.equal(highScoringCreator.capabilities.canonEligible, false);
+
+  const authenticated = receipts.map((receipt) => ({
+    ...receipt,
+    ...(receipt.evidenceLevel === "editor"
+      ? { authenticatedEditorVerified: true }
+      : { authenticatedCreatorCertified: true })
+  }));
+  const authenticatedTrust = createTrust(authenticated);
+  assert.equal(
+    authenticatedTrust.timelineAudits[0].movementAudits[0].humanVerified,
+    true
+  );
+  assert.equal(authenticatedTrust.timelineAudits[0].canonEligible, true);
+  assert.equal(authenticatedTrust.courtAudits[0].canonEligible, true);
+});
+
 test("Popular 25 ranking is healthy while performance wording is quarantined", () => {
   const window = load();
   const { trust } = createCurrent(window);
@@ -316,7 +475,8 @@ test("confidence explanations and correction packets expose safe UI-ready contra
     kind: "receipt",
     id: "character-receipt:loomis-wolverine"
   });
-  assert.equal(performance.capabilities.performanceEventVerified, true);
+  assert.equal(performance.capabilities.timestampValidatedCuratedCandidate, true);
+  assert.equal(performance.capabilities.authenticatedEditorVerified, false);
   assert.equal(performance.capabilities.specificSpeakerVerified, false);
   assert.ok(performance.limits.some((limit) => /does not identify which host/.test(limit)));
 
@@ -419,7 +579,7 @@ test("strict synthetic cases reject ordinary mentions, guessed speakers, and sce
     excerpt: "Michael has escaped again.",
     sentiment: "neutral",
     sentimentConfidence: 0,
-    evidenceLevel: "editor",
+    evidenceLevel: "curated-candidate",
     characterId: "character:loomis",
     bitId: "bit:loomis-alert",
     performer: "J",
@@ -495,7 +655,7 @@ test("strict synthetic cases reject ordinary mentions, guessed speakers, and sce
         id: "character:loomis",
         label: "Dr. Loomis",
         performer: "J",
-        minimumVerifiedReceiptsForAsk: 1
+        minimumCuratedCandidatesForAsk: 1
       }
     ],
     askCharacterPolicy: { evidenceMinimum: 1 },
@@ -515,12 +675,14 @@ test("strict synthetic cases reject ordinary mentions, guessed speakers, and sce
   });
 
   const loomis = trust.characterAudits.grounded[0];
-  assert.deepEqual(plain(loomis.verifiedPerformanceIds), [
+  assert.deepEqual(plain(loomis.timestampValidatedPerformanceIds), [
     "character-receipt:loomis-test"
   ]);
+  assert.deepEqual(plain(loomis.authenticatedEditorVerifiedPerformanceIds), []);
   assert.deepEqual(plain(loomis.ordinaryMentionReceiptIds), ["ordinary-loomis"]);
   assert.deepEqual(plain(loomis.aliasCollisionReceiptIds), ["ordinary-loomis"]);
-  assert.equal(loomis.soundbytes[0].performanceVerified, true);
+  assert.equal(loomis.soundbytes[0].timestampValidatedCuratedCandidate, true);
+  assert.equal(loomis.soundbytes[0].authenticatedEditorVerified, false);
   assert.equal(loomis.soundbytes[0].specificSpeakerVerified, false);
   assert.equal(loomis.canClaimSpecificHostSpokeInEachClip, false);
 

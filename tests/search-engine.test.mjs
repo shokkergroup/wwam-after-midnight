@@ -114,7 +114,7 @@ test("exact film, franchise, topic, character, and curated-bit entities stay in 
   assert.equal(halloweenTakes.results[0].category, "LOVE LETTER");
 });
 
-test("unknown subjects and unverified performances fail closed instead of returning collateral", async () => {
+test("unknown subjects and missing curated performances fail closed instead of returning collateral", async () => {
   const engine = await createEngine();
 
   const unknown = plain(engine.ask("Did they hate Zzyzx Moon Quasar?"));
@@ -134,7 +134,7 @@ test("unknown subjects and unverified performances fail closed instead of return
   assert.equal(performance.results.length, 0);
   assert.equal(performance.confidence, 0);
   assert.equal(performance.recommendedSurface.href, "#lore");
-  assert.match(performance.answer, /no verified performance receipt/i);
+  assert.match(performance.answer, /no timestamped curated performance candidate/i);
   assert.match(performance.answer, /not being promoted into impressions/i);
 });
 
@@ -157,7 +157,7 @@ test("origin and change questions use bounded timeline language", async () => {
   assert.match(origin.answer, /earliest machine-indexed Dr\. Loomis character signal/i);
   assert.match(
     origin.answer,
-    /not the same as Lore's curated verified-performance archive-first receipt for the current verified set/i,
+    /not the same as Lore's timestamped human-curated performance candidate for the current bounded set/i,
   );
   assert.match(origin.answer, /not a claim.*originated/i);
   assert.equal(origin.recommendedSurface.href, "#lore");

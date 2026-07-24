@@ -379,7 +379,7 @@ test("Character Lore enables four grounded voices and locks unverifiable attribu
   assert.equal(lore.guardrails.fabricatedQuotes, "forbidden");
   assert.equal(lore.guardrails.speakerGuessing, "forbidden");
   assert.equal(lore.guardrails.realPersonAllegations, "forbidden");
-  assert.match(lore.guardrails.archiveAudioPolicy, /linked source at the verified timestamp/);
+  assert.match(lore.guardrails.archiveAudioPolicy, /linked source at the validated timestamp/);
   assert.match(lore.guardrails.archiveAudioPolicy, /Generated responses remain text-only/);
 
   for (const character of lore.characters) {
@@ -389,7 +389,10 @@ test("Character Lore enables four grounded voices and locks unverifiable attribu
     assert.equal(character.hostAttribution.status, "user-supplied");
     assert.equal(character.hostAttribution.confidence, 1);
     assert.equal(character.soundbytes.length, expectedByteCounts[character.id]);
-    assert.equal(character.metrics.verifiedSoundbytes, expectedByteCounts[character.id]);
+    assert.equal(
+      character.metrics.curatedPerformanceCandidates,
+      expectedByteCounts[character.id],
+    );
     assert.equal(character.responseKit.enabled, true);
     assert.equal(character.responseKit.mode, "grounded-text-riff");
     assert.equal(character.responseKit.label, lore.guardrails.requiredLabel);
@@ -412,7 +415,7 @@ test("Character Lore enables four grounded voices and locks unverifiable attribu
   assert.equal(locked.askEnabled, false);
   assert.equal(locked.hostAttribution.status, "not-diarized");
   assert.equal(locked.soundbytes.length, 3);
-  assert.equal(locked.metrics.verifiedSoundbytes, 3);
+  assert.equal(locked.metrics.lockedPerformanceCandidates, 3);
   assert.match(locked.whyLocked, /performer identity has not been supplied/i);
   locked.soundbytes.forEach(assertBoundedPlayback);
 });
@@ -491,7 +494,9 @@ test("Ask understands evidence chains, Popular 25, follow-ups, recency, and unce
   assert.match(speaker.answer, /won't invent a name/);
 
   const deranged = plain(engine.ask("Show me the most deranged thing they said"));
-  assert.match(deranged.results[0].reasons.join(" "), /human-curated soundbyte/);
+  assert.equal(deranged.status, "surface-handoff");
+  assert.deepEqual(deranged.results, []);
+  assert.equal(deranged.recommendedSurface.href, "#red100");
 });
 
 test("Showcase Engine unifies all 74 non-overlapping sources into playable memory", async () => {
@@ -533,7 +538,8 @@ test("Showcase Engine unifies all 74 non-overlapping sources into playable memor
   plain(showcase.characterReadiness).forEach((character) => {
     assert.equal(character.performerStatus, "owner-confirmed");
     assert.equal(character.readyForAskCharacter, true);
-    assert.ok(character.verifiedReceiptIds.length >= 5);
+    assert.ok(character.curatedCandidateReceiptIds.length >= 5);
+    assert.equal(character.authenticatedEditorVerifiedReceiptIds.length, 0);
     assert.match(character.disclosure, /not a real quote/i);
   });
   plain(showcase.getBitLineages()).forEach((lineage) => {

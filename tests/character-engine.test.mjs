@@ -26,11 +26,9 @@ test("routes questions through character-specific grounded behavior", () => {
     assert.ok(result.ingredients.length >= 2);
     assert.ok(result.receipt?.sourceId);
     assert.equal(result.receipt.playback.clipSeconds, 14);
-    assert.ok(result.readiness.verifiedSoundbytes >= 5);
-    assert.equal(
-      result.readiness.timestampValidatedReceipts,
-      result.readiness.verifiedSoundbytes,
-    );
+    assert.ok(result.readiness.timestampValidatedReceipts >= 5);
+    assert.equal(result.readiness.authenticatedEditorVerifiedDecisions, 0);
+    assert.equal("verifiedSoundbytes" in result.readiness, false);
     assert.equal(result.readiness.clipSpeakersDiarized, false);
     assert.match(result.readiness.basis, /clip speakers are not diarized/i);
   }
@@ -59,6 +57,53 @@ test("does not enable unverifiable locked candidates", () => {
   const result = engine.answer("marky-mark", "What is your workout?");
   assert.equal(result.ok, false);
   assert.match(result.error, /locked/i);
+});
+
+test("grounding rejects truthy-but-inexact provenance and enforces the candidate minimum", () => {
+  const original = sandbox.window.WWAM_CHARACTER_LORE.characters.find(
+    (profile) => profile.id === "loomis"
+  );
+  const invalidProvenance = [
+    { timestampStatus: "estimated" },
+    {
+      timestampStatus: "exact-caption-event",
+      selection: "machine-curated candidate"
+    },
+    { timestampStatus: "reviewed" }
+  ];
+  const unsafeLore = {
+    guardrails: sandbox.window.WWAM_CHARACTER_LORE.guardrails,
+    characters: [
+      {
+        ...original,
+        soundbytes: invalidProvenance.map((override, index) => ({
+          ...original.soundbytes[index],
+          provenance: {
+            ...original.soundbytes[index].provenance,
+            ...override
+          }
+        }))
+      }
+    ]
+  };
+  const unsafe = sandbox.window.WWAMCharacterEngine.create(unsafeLore);
+  const rejected = unsafe.answer("loomis", "What about the front door?");
+  assert.equal(rejected.ok, false);
+  assert.equal(rejected.status, "insufficient-grounding");
+
+  const tooSmallLore = {
+    guardrails: sandbox.window.WWAM_CHARACTER_LORE.guardrails,
+    characters: [
+      {
+        ...original,
+        soundbytes: original.soundbytes.slice(0, 2)
+      }
+    ]
+  };
+  const tooSmall = sandbox.window.WWAMCharacterEngine.create(tooSmallLore);
+  const held = tooSmall.answer("loomis", "What about the front door?");
+  assert.equal(held.ok, false);
+  assert.match(held.error, /at least 3/i);
 });
 
 test("intent and subject parsing are deterministic", () => {

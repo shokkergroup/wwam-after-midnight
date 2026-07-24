@@ -40,6 +40,7 @@
       <i>W</i><span>WWAM<b>AFTER MIDNIGHT</b></span>
     </a>
     <div class="nav-links">
+      <a href="#companion">TAPE COMPANION</a>
       <a href="#archive">ARCHIVE ATLAS</a>
       <a href="#characters">CHARACTERS</a>
       <a href="#lore">LORE GALAXY</a>
@@ -60,6 +61,7 @@
         <p class="hero-dek">Popular livestreams. Fresh damage. Evolving takes. Recurring characters. Playable lore. A living brain built from WWAM's actual source history—not a chatbot wearing a horror T-shirt.</p>
         <div class="hero-actions">
           <a class="primary" href="#memory">ENTER THE MEMORY OS</a>
+          <a href="#companion">WATCH WITH MEMORY <span>→</span></a>
           <button id="rouletteButton">RED BAND ROULETTE <span>↗</span></button>
         </div>
         <div class="hero-doorways" aria-label="Choose a WWAM experience">
@@ -132,6 +134,66 @@
       </div>
     </section>
 
+    <section class="tape-companion" id="companion" aria-busy="true"
+      data-feature-scripts="red-band-ranking-v2.js,tape-companion-engine.js,tape-companion-ui.js">
+      <header class="section-head">
+        <div>
+          <p class="kicker">SYNCHRONIZED SECOND SCREEN // THE OFFICIAL TAPE STAYS IN CONTROL</p>
+          <h2>THE TAPE<br><em>KNOWS.</em></h2>
+        </div>
+        <p>Press play on an official WWAM upload and the indexed memory wakes up at the right second: topic signals, heat shifts, Red Band candidates, recurring-character receipts, and older lore—with every claim still attached to its evidence boundary.</p>
+      </header>
+      <div class="companion-proof" id="companionProof">
+        <article><span>COMPANION ENGINE</span><b>LOADING THE MEMORY RAIL</b><p>The playback UI reveals exact-receipt text only through snapshot-safe and crossed-event calls.</p></article>
+      </div>
+      <div class="companion-shell">
+        <aside class="companion-picker" aria-labelledby="companionPickerTitle">
+          <div>
+            <span>CHOOSE THE TAPE</span>
+            <h3 id="companionPickerTitle">WHAT ARE WE WATCHING?</h3>
+          </div>
+          <label><span>SEARCH COMPANION-READY SOURCES</span><input id="companionSourceSearch"
+            type="search" autocomplete="off" placeholder="Latest live, Halloween, Scream…"></label>
+          <button id="companionLatest" type="button">LOAD THE JULY 23 LIVE →</button>
+          <button id="companionResume" type="button">RESUME LAST TAPE</button>
+          <div class="companion-source-list" id="companionSourceList" role="listbox"
+            aria-label="Companion sources"></div>
+        </aside>
+        <div class="companion-theatre">
+          <div class="companion-screen" id="companionPlayer">
+            <div><i></i><span>OFFICIAL YOUTUBE PLAYBACK</span><b>SELECT A SOURCE TO WAKE THE ARCHIVE</b></div>
+          </div>
+          <div class="companion-transport">
+            <div><span id="companionClock">00:00:00</span><b id="companionStatus" role="status" aria-live="polite">WAITING FOR A TAPE</b></div>
+            <label><span>MANUAL SYNC FALLBACK</span><input id="companionManualTime" type="range"
+              min="0" max="1" value="0" disabled></label>
+          </div>
+          <div class="companion-links">
+            <a id="companionOfficial" href="https://www.youtube.com/@WeWatchedAMovie"
+              target="_blank" rel="noopener">OPEN OFFICIAL SOURCE ↗</a>
+            <button id="companionShare" type="button" disabled>COPY THIS SECOND</button>
+          </div>
+          <p class="companion-fallback" id="companionFallback">If embedded playback is unavailable, the nearest whole YouTube second opens on the official WWAM upload.</p>
+        </div>
+        <aside class="companion-memory" aria-labelledby="companionMemoryTitle">
+          <div class="companion-memory-head">
+            <span>LIVE MEMORY RAIL</span>
+            <h3 id="companionMemoryTitle">NOTHING CROSSED YET.</h3>
+          </div>
+          <div class="companion-heat" id="companionHeat">
+            <span>DERIVED HEAT WINDOW</span><b>—</b><i style="--companion-heat:0%"></i>
+          </div>
+          <div class="companion-now" id="companionNow">
+            <span>CURRENT INDEXED STATE</span><p>Future receipts stay sealed until playback reaches them.</p>
+          </div>
+          <div class="companion-next" id="companionNext">
+            <span>NEXT INDEXED DISTURBANCE</span><b>WAITING FOR SOURCE</b>
+          </div>
+          <ol class="companion-history" id="companionHistory" aria-label="Crossed companion memories"></ol>
+        </aside>
+      </div>
+    </section>
+
     <section class="character-room" id="characters">
       <div class="character-static"></div>
       <header class="section-head">
@@ -156,7 +218,7 @@
           </div>
         </section>
         <aside class="character-receipts">
-          <div><span>THE VOICEPRINT</span><b id="characterReceiptLabel">SOURCE PERFORMANCES WILL APPEAR HERE</b></div>
+          <div><span>THE PATTERN DOSSIER</span><b id="characterReceiptLabel">TIMESTAMP-VALIDATED CANDIDATES APPEAR HERE</b></div>
           <div id="characterReceipts"></div>
         </aside>
       </div>
@@ -477,6 +539,42 @@
       </div>
     </section>
 
+    <section class="cut-test" id="cut-test" aria-busy="true"
+      data-feature-scripts="channel-pack-contract.js,wwam-channel-pack-adapter.js,creator-taste-engine.js,creator-taste-ui.js">
+      <header class="section-head">
+        <div>
+          <p class="kicker">CREATOR TASTE CALIBRATION // PREFERENCE NEVER OVERRIDES PROOF</p>
+          <h2>THE CUT<br><em>TEST.</em></h2>
+        </div>
+        <p>Ten source-backed, priority-blind learning matchups build a local taste sample; two side-reversed, non-learning repeats check consistency. The untouched machine shortlist stays beside the calibrated cut; risk, evidence, HOLD status, speaker policy, and canon never move.</p>
+      </header>
+      <div class="cut-test-proof" id="cutTestProof" aria-live="polite">
+        <article><span>CALIBRATION ENGINE</span><b>PREPARING PRIORITY-BLIND MATCHUPS</b><p>No creator preference is inferred before explicit local choices exist.</p></article>
+      </div>
+      <div class="cut-test-launch" id="cutTestLaunch">
+        <div>
+          <span>PREDECLARE THE TEST</span>
+          <h3>WOULD YOU ACTUALLY CLIP THIS?</h3>
+          <p>The operator label is always <b>UNAUTHENTICATED LOCAL OPERATOR</b>. This is taste calibration—not creator approval, truth, humor canon, or permission to publish.</p>
+          <p>The declared goal labels the session and binds its fingerprint. V1 does not silently filter the candidate inventory.</p>
+          <p><b>DEVICE-ONLY STATE:</b> in-progress choices stay in this browser. Nothing is sent to WWAM, a creator account, or a remote approval system.</p>
+        </div>
+        <label><span>CALIBRATION GOAL</span><select id="cutTestGoal">
+          <option value="shorts">SHORTS EDITORIAL TASTE</option>
+          <option value="character">CHARACTER-CUT TASTE</option>
+          <option value="archive">ARCHIVE-RESURFACING TASTE</option>
+        </select></label>
+        <label><span>MAXIMUM INPUT RISK</span><select id="cutTestRisk">
+          <option value="MEDIUM">MEDIUM</option>
+          <option value="LOW">LOW</option>
+          <option value="HIGH">HIGH</option>
+        </select></label>
+        <button id="cutTestStart" type="button">START THE 12-ROUND CUT TEST →</button>
+      </div>
+      <div class="cut-test-stage" id="cutTestStage"></div>
+      <div class="cut-test-results" id="cutTestResults"></div>
+    </section>
+
     <section class="canon-desk" id="canon">
       <header class="section-head">
         <div>
@@ -506,7 +604,7 @@
         <li><b>01 // DEFINE EACH SOURCE LANE</b><span>Complete watchalong paths, the rolling Fresh 10, the foundational Popular 25, and the Archive Deep quarantine remain distinct while feeding one evidence graph.</span></li>
         <li><b>02 // AUDIT EVERY AVAILABLE WORD</b><span>Available caption tracks are processed end to end. Gated or uncaptioned sources stay visible without counterfeit analysis.</span></li>
         <li><b>03 // CONNECT MEMORY, NOT KEYWORDS</b><span>Films, topics, take signals, possible reversals, bits, characters, and livestreams become reviewable relationships whose source can always be reopened.</span></li>
-        <li><b>04 // KEEP HUMANS ABOVE THE MACHINE</b><span>Machines surface candidates. Editors verify. Creators can certify canon. Generated character riffs are never presented as archival quotes.</span></li>
+        <li><b>04 // KEEP HUMANS ABOVE THE MACHINE</b><span>Machines surface candidates. The current character tier is timestamp-validated and human-curated—not editor verified—and clip speakers are not diarized. A future authenticated editor can verify context; creators can certify canon.</span></li>
       </ol>
     </section>
 
@@ -531,9 +629,9 @@
           <h3>THE SYSTEM TRAVELS.<br>THE PERSONALITY DOESN'T GET GENERIC.</h3>
         </header>
         <div>
-          <article><span>UNIVERSAL CORE</span><h4>THE PART EVERY CHANNEL NEEDS.</h4><ul><li>Versioned source ledger</li><li>Timestamped evidence receipts</li><li>Context-aware retrieval</li><li>Uncertainty and review gates</li><li>Portable editorial exports</li></ul><a class="truth-set-link" href="ask-truth-set.json" download>DOWNLOAD THE 22-CASE FROZEN ASK TRUTH SET &rarr;</a> <a class="truth-set-link" href="channel-pack-spec.json" download>DOWNLOAD THE CHANNELPACK V1 SPEC &rarr;</a> <a class="truth-set-link" href="channel-pack-contract.js" download>DOWNLOAD THE FAIL-CLOSED COMPILER &rarr;</a></article>
+          <article><span>UNIVERSAL CORE</span><h4>THE PART EVERY CHANNEL NEEDS.</h4><ul><li>Versioned source ledger</li><li>Timestamped evidence receipts</li><li>Context-aware retrieval</li><li>Uncertainty and review gates</li><li>Portable editorial exports</li></ul><a class="truth-set-link" href="ask-truth-set.json" download>DOWNLOAD THE 37-CASE FROZEN ASK TRUTH SET &rarr;</a> <a class="truth-set-link" href="channel-pack-spec.json" download>DOWNLOAD THE CHANNELPACK V1 SPEC &rarr;</a> <a class="truth-set-link" href="channel-pack-contract.js" download>DOWNLOAD THE FAIL-CLOSED COMPILER &rarr;</a></article>
           <article><span>WWAM CHANNEL DNA</span><h4>THE PART NOBODY CAN COPY-PASTE.</h4><ul><li>Horror-franchise ontology</li><li>Recurring-character firewalls</li><li>UP IN YA and Red Band signals</li><li>Room-break and dark-comedy grammar</li><li>WWAM-native art direction and voice</li></ul></article>
-          <article><span>LIVING UPDATE CONTRACT</span><h4>DISCOVER → QUARANTINE → REVIEW → PROMOTE.</h4><ul><li>Diff the official feed</li><li>Recheck captions and availability</li><li>Distill into a candidate quarantine</li><li>Let a human certify public canon</li></ul><p>This static prototype was manually refreshed through the July 23 snapshot and July 24 Batch 01. No unattended scheduler is claimed; cadence is a production-pilot decision.</p></article>
+          <article><span>LIVING UPDATE CONTRACT</span><h4>DISCOVER → QUARANTINE → REVIEW → PROMOTE.</h4><ul><li>Diff the official feed</li><li>Recheck captions and availability</li><li>Distill into a candidate quarantine</li><li>Require an authenticated, authorized editor or creator decision for public canon</li></ul><p>This static prototype was manually refreshed through the July 23 snapshot and July 24 Batch 01. No unattended scheduler is claimed; cadence is a production-pilot decision.</p></article>
         </div>
       </div>
       <div class="pilot-builder" id="pilotBuilder" aria-live="polite">
@@ -601,5 +699,6 @@
   <script src="search-engine.js"></script>
   <script src="ask-share.js"></script>
   <script src="app.js"></script>
+  <script src="feature-loader.js"></script>
 </body>
 </html>

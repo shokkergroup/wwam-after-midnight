@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.1.0";
+  var VERSION = "1.2.0";
   var YOUTUBE_WATCH = /^https:\/\/(?:www\.)?youtube\.com\/watch\?[^#]*\bv=([^&#]+)/i;
   var YOUTUBE_SHORT = /^https:\/\/youtu\.be\/([^?&#/]+)/i;
   var ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -36,6 +36,23 @@
       mayNotSupport: [
         "speaker identity when captions are not diarized",
         "a host's private or durable opinion"
+      ]
+    }),
+    Object.freeze({
+      id: "curated-candidate",
+      label: "TIMESTAMP-VALIDATED CURATED CANDIDATE",
+      confidenceRange: "60–85",
+      meaning:
+        "A human-curated candidate passed deterministic source, timestamp, caption-event, and excerpt checks; no authenticated editor decision is implied.",
+      maySupport: [
+        "labeled parody-pattern grounding",
+        "a playable candidate route",
+        "editorial review"
+      ],
+      mayNotSupport: [
+        "authenticated editor verification",
+        "clip-level speaker identity",
+        "creator certification"
       ]
     }),
     Object.freeze({
@@ -169,10 +186,31 @@
 
   function confidenceBand(score) {
     var value = clamp(Math.round(score), 0, 100);
-    if (value >= 95) return "CERTIFIED";
+    if (value >= 95) return "HIGH";
     if (value >= 78) return "SUPPORTED";
     if (value >= 40) return "PROVISIONAL";
     return "BLOCKED";
+  }
+
+  function authenticatedEditorialDecision(receipt) {
+    var value = receipt && typeof receipt === "object" ? receipt : {};
+    var provenance =
+      value.provenance && typeof value.provenance === "object"
+        ? value.provenance
+        : {};
+    var level = clean(value.evidenceLevel).toLowerCase();
+    if (!VERIFIED_LEVELS.has(level)) return false;
+    if (level === "editor") {
+      return (
+        value.authenticatedEditorVerified === true ||
+        provenance.editorDecisionAuthenticated === true
+      );
+    }
+    return (
+      value.authenticatedCreatorCertified === true ||
+      provenance.creatorDecisionAuthenticated === true ||
+      provenance.creatorCertificationAuthenticated === true
+    );
   }
 
   function makeConfidence(kind, id, score, factors, limits, capabilities) {
@@ -554,9 +592,17 @@
     return stableSort(
       array(showcase.receipts).map(function (receipt) {
         var level = clean(receipt.evidenceLevel || "machine").toLowerCase();
-        var score = level === "creator" ? 96 : level === "editor" ? 84 : 58;
+        var score =
+          level === "creator"
+            ? 96
+            : level === "editor"
+              ? 84
+              : level === "curated-candidate"
+                ? 74
+                : 58;
         var source = healthById.get(receipt.sourceId);
         var rawPerformance = soundbytes.byReceiptId.get(receipt.id);
+        var authenticatedDecision = authenticatedEditorialDecision(receipt);
         var longExcerpt = words(receipt.excerpt) > publicWordLimit;
         var truncated = /…|\.\.\.$/.test(clean(receipt.excerpt));
         var factors = [];
@@ -575,7 +621,7 @@
           );
           factors.push("A human-curated character soundbyte carries exact-event provenance.");
           limits.push(
-            "The performance event is verified, but the auto-caption track does not identify which host is speaking."
+            "This is a timestamp-validated curated candidate, not an authenticated editor decision; the auto-caption track does not identify which host is speaking."
           );
         } else if (receipt.type === "character-performance") {
           score -= 35;
@@ -606,8 +652,9 @@
           {
             searchable: Boolean(source && source.status !== "BLOCKED"),
             displayableWithLabel: Boolean(source && source.status !== "BLOCKED"),
-            canonEligible: level === "creator",
-            performanceEventVerified: Boolean(rawPerformance),
+            canonEligible: level === "creator" && authenticatedDecision,
+            timestampValidatedCuratedCandidate: Boolean(rawPerformance),
+            authenticatedEditorVerified: authenticatedDecision,
             specificSpeakerVerified: false,
             wholeWorkOpinionVerified: false
           }
@@ -673,8 +720,12 @@
             clean(provenance.timestampStatus) === "exact-caption-event";
           var humanCurated =
             normalized(provenance.selection).indexOf("human curated") >= 0;
+          var authenticatedEditorVerified =
+            Boolean(receipt) &&
+            VERIFIED_LEVELS.has(clean(receipt.evidenceLevel).toLowerCase()) &&
+            provenance.editorDecisionAuthenticated === true;
           var shortExcerpt = words(soundbyte.excerpt) <= publicWordLimit;
-          var performanceVerified =
+          var timestampValidatedCuratedCandidate =
             Boolean(receipt) &&
             sourceResolved &&
             timestampValid &&
@@ -699,7 +750,8 @@
             exactCaptionEvent: exactCaption,
             humanCurated: humanCurated,
             publicExcerptReady: shortExcerpt,
-            performanceVerified: performanceVerified,
+            timestampValidatedCuratedCandidate: timestampValidatedCuratedCandidate,
+            authenticatedEditorVerified: authenticatedEditorVerified,
             specificSpeakerVerified: speakerVerified,
             attributionMode: speakerVerified
               ? "speaker-certified"
@@ -723,7 +775,7 @@
           );
         });
         var minimum = number(
-          dna && dna.minimumVerifiedReceiptsForAsk,
+          dna && dna.minimumCuratedCandidatesForAsk,
           number(
             input.dna &&
               input.dna.askCharacterPolicy &&
@@ -731,8 +783,8 @@
             3
           )
         );
-        var verified = soundbyteAudits.filter(function (item) {
-          return item.performanceVerified;
+        var validatedCandidates = soundbyteAudits.filter(function (item) {
+          return item.timestampValidatedCuratedCandidate;
         });
         var speakerVerifiedCount = soundbyteAudits.filter(function (item) {
           return item.specificSpeakerVerified;
@@ -744,10 +796,10 @@
           character.status === "grounded" &&
           ownerMapped &&
           performerMatchesDNA &&
-          verified.length >= minimum;
+          validatedCandidates.length >= minimum;
         var confidence = clamp(
           number(character.confidence, 0.75) * 72 +
-            Math.min(verified.length, minimum) * 5 +
+            Math.min(validatedCandidates.length, minimum) * 5 +
             (ownerMapped ? 8 : 0),
           0,
           94
@@ -762,11 +814,18 @@
           performerMatchesDNA: performerMatchesDNA,
           status: clean(character.status),
           askEnabled: character.askEnabled !== false,
-          minimumVerifiedPerformances: minimum,
+          minimumCuratedCandidates: minimum,
           curatedPerformances: soundbyteAudits.length,
-          verifiedPerformanceIds: verified.map(function (item) {
+          timestampValidatedPerformanceIds: validatedCandidates.map(function (item) {
             return item.receiptId;
           }),
+          authenticatedEditorVerifiedPerformanceIds: soundbyteAudits
+            .filter(function (item) {
+              return item.authenticatedEditorVerified;
+            })
+            .map(function (item) {
+              return item.receiptId;
+            }),
           speakerVerifiedPerformanceIds: soundbyteAudits
             .filter(function (item) {
               return item.specificSpeakerVerified;
@@ -792,8 +851,8 @@
             id,
             confidence,
             [
-              verified.length +
-                " human-curated performance events resolve to source timestamps.",
+              validatedCandidates.length +
+                " human-curated performance candidates pass source and timestamp validation.",
               ownerMapped
                 ? "The project owner supplied the recurring host-to-character mapping."
                 : ""
@@ -913,7 +972,7 @@
           return item.receipt.sentiment === "negative";
         });
         var verifiedDirect = direct.filter(function (item) {
-          return VERIFIED_LEVELS.has(item.receipt.evidenceLevel);
+          return authenticatedEditorialDecision(item.receipt);
         });
         var movementAudits = array(timeline.movements).map(function (movement, index) {
           var before = receiptById.get(movement.beforeReceiptId);
@@ -932,8 +991,8 @@
           var humanVerified =
             Boolean(before) &&
             Boolean(after) &&
-            VERIFIED_LEVELS.has(before.evidenceLevel) &&
-            VERIFIED_LEVELS.has(after.evidenceLevel);
+            authenticatedEditorialDecision(before) &&
+            authenticatedEditorialDecision(after);
           return {
             id: timeline.id + ":movement:" + index,
             from: movement.from,
@@ -1067,6 +1126,9 @@
               url: receipt ? receipt.url : clean(item.url),
               excerpt: receipt ? receipt.excerpt : clean(item.excerpt),
               evidenceLevel: receipt ? receipt.evidenceLevel : "machine",
+              authenticatedEditorialDecision: Boolean(
+                receipt && authenticatedEditorialDecision(receipt)
+              ),
               directOpinion: assessment.direct,
               polarityContradiction: assessment.contradiction,
               reason: assessment.reason
@@ -1085,7 +1147,7 @@
         var allDirectVerified = directProsecution
           .concat(directDefense)
           .every(function (item) {
-            return VERIFIED_LEVELS.has(item.evidenceLevel);
+            return item.authenticatedEditorialDecision === true;
           });
         var canonEligible =
           directProsecution.length >= 2 &&
@@ -1178,7 +1240,7 @@
         return number(character.performanceCues) > 0;
       });
       var curated = array(soundbytes.bySourceId.get(stream.id));
-      var verifiedNearby = [];
+      var curatedNearby = [];
       characterCues.forEach(function (cue) {
         curated.forEach(function (item) {
           var sameCharacter =
@@ -1187,7 +1249,7 @@
             sameCharacter &&
             Math.abs(number(cue.t) - number(item.soundbyte.t)) <= 45
           ) {
-            verifiedNearby.push(item.receiptId);
+            curatedNearby.push(item.receiptId);
           }
         });
       });
@@ -1200,13 +1262,13 @@
         machineCueCount: characterCues.reduce(function (sum, cue) {
           return sum + number(cue.performanceCues);
         }, 0),
-        curatedNearbyReceiptIds: unique(verifiedNearby),
+        curatedNearbyReceiptIds: unique(curatedNearby),
         canonEligible: false,
         currentWordingRisk:
           "A lexical persona cue or prompt is not proof that a performance occurred.",
         recommendedWording:
-          verifiedNearby.length > 0
-            ? "A machine-detected persona cue appears near an editor-verified performance receipt."
+          curatedNearby.length > 0
+            ? "A machine-detected persona cue appears near a timestamp-validated human-curated performance candidate."
             : "The captions contain a machine-detected persona prompt or performance discussion.",
         evidence: characterCues.slice(0, 4).map(function (cue) {
           return {
@@ -1221,12 +1283,12 @@
         confidence: makeConfidence(
           "editorial-claim",
           "editorial-performance-wording:" + stream.id,
-          verifiedNearby.length ? 58 : 28,
+          curatedNearby.length ? 58 : 28,
           [
             characterCues.length +
               " character cue groups were detected in the source captions.",
-            verifiedNearby.length
-              ? verifiedNearby.length + " curated performance receipt is nearby."
+            curatedNearby.length
+              ? curatedNearby.length + " curated performance candidate is nearby."
               : ""
           ],
           [
@@ -1857,8 +1919,14 @@
     var aliasCollisions = characterAudits.grounded.reduce(function (sum, item) {
       return sum + item.aliasCollisionReceiptIds.length;
     }, 0);
-    var verifiedPerformances = characterAudits.grounded.reduce(function (sum, item) {
-      return sum + item.verifiedPerformanceIds.length;
+    var timestampValidatedPerformances = characterAudits.grounded.reduce(function (sum, item) {
+      return sum + item.timestampValidatedPerformanceIds.length;
+    }, 0);
+    var authenticatedEditorVerifiedPerformances = characterAudits.grounded.reduce(function (
+      sum,
+      item
+    ) {
+      return sum + item.authenticatedEditorVerifiedPerformanceIds.length;
     }, 0);
     var publicExcerptViolations = array(showcase.receipts).filter(function (receipt) {
       return words(receipt.excerpt) > publicWordLimit;
@@ -1912,6 +1980,9 @@
         machineReceipts: array(showcase.receipts).filter(function (item) {
           return item.evidenceLevel === "machine";
         }).length,
+        curatedCandidateReceipts: array(showcase.receipts).filter(function (item) {
+          return item.evidenceLevel === "curated-candidate";
+        }).length,
         editorReceipts: array(showcase.receipts).filter(function (item) {
           return item.evidenceLevel === "editor";
         }).length,
@@ -1921,7 +1992,8 @@
         publicExcerptViolations: publicExcerptViolations,
         groundedCharacters: characterAudits.grounded.length,
         lockedCharacters: characterAudits.locked.length,
-        verifiedCuratedPerformances: verifiedPerformances,
+        timestampValidatedCuratedPerformances: timestampValidatedPerformances,
+        authenticatedEditorVerifiedPerformances: authenticatedEditorVerifiedPerformances,
         ordinaryCharacterMentionsQuarantined: ordinaryMentions,
         aliasCollisions: aliasCollisions,
         timelines: timelineAudits.length,
@@ -1979,7 +2051,7 @@
           "healthySources",
           "limitedSources",
           "reviewCandidates",
-          "verifiedCuratedPerformances",
+          "timestampValidatedCuratedPerformances",
           "ordinaryCharacterMentionsQuarantined"
         ],
         deskLanes: [

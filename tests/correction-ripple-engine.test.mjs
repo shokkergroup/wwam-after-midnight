@@ -154,7 +154,7 @@ function fixture() {
       {
         characterId: "character:one",
         receiptIds: ["receipt-1", "receipt-2"],
-        verifiedReceiptIds: ["receipt-1"],
+        curatedCandidateReceiptIds: ["receipt-1"],
       },
     ],
     creatorControlRoom: {

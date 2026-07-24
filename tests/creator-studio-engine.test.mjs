@@ -63,7 +63,7 @@ test("Creator Clip Lab builds a substantial deterministic editorial inventory", 
   const first = build(window);
   const second = build(window);
 
-  assert.equal(window.WWAMCreatorClipLab.VERSION, "1.0.0");
+  assert.equal(window.WWAMCreatorClipLab.VERSION, "1.1.0");
   assert.ok(first.lab.metrics.shortCandidates > 400);
   assert.ok(first.lab.metrics.supercutBundles > 20);
   assert.ok(first.lab.metrics.resurfacingOpportunities > 10);
@@ -102,7 +102,7 @@ test("every Short candidate keeps archival evidence separate from suggested copy
   });
 });
 
-test("unknown speakers are never named and character credits carry their attribution basis", () => {
+test("no clip speaker is named and character mappings remain separate context", () => {
   const window = load();
   const { lab } = build(window);
   const ordinary = lab.shorts.filter(
@@ -122,10 +122,16 @@ test("unknown speakers are never named and character credits carry their attribu
 
   assert.ok(characters.length >= 3);
   characters.forEach((candidate) => {
-    assert.equal(candidate.speaker.display, "J");
-    assert.equal(candidate.speaker.creditAllowed, true);
-    assert.equal(candidate.speaker.status, "OWNER-SUPPLIED CHARACTER MAPPING");
+    assert.equal(candidate.speaker.display, null);
+    assert.equal(candidate.speaker.mappedPerformer, "J");
+    assert.equal(candidate.speaker.creditAllowed, false);
+    assert.equal(candidate.speaker.clipAttributionCertified, false);
+    assert.equal(
+      candidate.speaker.status,
+      "OWNER-MAPPED CHARACTER / CLIP SPEAKER NOT DIARIZED"
+    );
     assert.match(candidate.speaker.basis, /project-owner mapping/i);
+    assert.match(candidate.speaker.basis, /individual clip/i);
   });
 });
 
@@ -219,7 +225,9 @@ test("supercut bundles are source-diverse stories with no false origin claim", (
   assert.ok(characterBundles.length > 0);
   characterBundles.forEach((bundle) => {
     bundle.segments.forEach((segment) => {
-      assert.equal(segment.speaker.creditAllowed, true);
+      assert.equal(segment.speaker.display, null);
+      assert.equal(segment.speaker.mappedPerformer, "J");
+      assert.equal(segment.speaker.creditAllowed, false);
       assert.equal(segment.category, "CHARACTER PERFORMANCE");
       assert.ok(
         segment.characters.some((character) =>
@@ -273,7 +281,9 @@ test("campaign packets and clip manifests are deterministic, exportable, and app
   assert.ok(first.assets.shorts.length <= 3);
   first.assets.supercuts.forEach((bundle) => {
     bundle.segments.forEach((segment) => {
-      assert.equal(segment.speaker.creditAllowed, true);
+      assert.equal(segment.speaker.display, null);
+      assert.equal(segment.speaker.mappedPerformer, "J");
+      assert.equal(segment.speaker.creditAllowed, false);
       assert.ok(
         segment.characters.some((character) =>
           character.label.toLowerCase().includes("loomis")
@@ -283,7 +293,9 @@ test("campaign packets and clip manifests are deterministic, exportable, and app
   });
   first.assets.resurfacing.forEach((item) => {
     [item.archive, item.current].forEach((segment) => {
-      assert.equal(segment.speaker.creditAllowed, true);
+      assert.equal(segment.speaker.display, null);
+      assert.equal(segment.speaker.mappedPerformer, "J");
+      assert.equal(segment.speaker.creditAllowed, false);
       assert.ok(
         segment.characters.some((character) =>
           character.label.toLowerCase().includes("loomis")

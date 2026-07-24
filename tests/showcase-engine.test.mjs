@@ -44,7 +44,7 @@ test("showcase engine exposes the integration contract and tolerates optional in
   const first = createBase(window);
   const second = createBase(window);
 
-  assert.equal(window.WWAMShowcaseEngine.VERSION, "1.0.0");
+  assert.equal(window.WWAMShowcaseEngine.VERSION, "1.1.0");
   assert.equal(first.metrics.sources, 49);
   assert.equal(first.metrics.commentaries, 39);
   assert.equal(first.metrics.livestreams, 10);
@@ -126,7 +126,7 @@ test("all graph and showcase artifacts resolve to timestamped source receipts", 
   });
 });
 
-test("Popular 25 and verified character performances extend the model without special cases", () => {
+test("Popular 25 and curated character-performance candidates extend the model without special cases", () => {
   const window = load();
   const popular = {
     streams: [
@@ -170,21 +170,24 @@ test("Popular 25 and verified character performances extend the model without sp
             t: 930,
             quote: "Dr Loomis warned you that Michael is evil and escaped again.",
             bitId: "bit:loomis-alert",
-            verified: true
+            evidenceLevel: "curated-candidate",
+            curationStatus: "timestamp-validated-human-curated-candidate"
           },
           {
             sourceId: "6VXSBDZ-3WE",
             t: 1200,
             quote: "As Loomis, Michael is evil and the town was warned.",
             bitId: "bit:loomis-alert",
-            verified: true
+            evidenceLevel: "curated-candidate",
+            curationStatus: "timestamp-validated-human-curated-candidate"
           },
           {
             sourceId: "ThPjds8iI9U",
             t: 1600,
             quote: "Doctor Loomis says Michael escaped into the night.",
             bitId: "bit:loomis-alert",
-            certified: true
+            evidenceLevel: "creator",
+            authenticatedEditorVerified: true
           }
         ]
       }
@@ -208,18 +211,96 @@ test("Popular 25 and verified character performances extend the model without sp
     (character) => character.characterId === "character:loomis"
   );
   assert.equal(loomis.readyForAskCharacter, true);
-  assert.equal(loomis.verifiedReceiptIds.length, 3);
+  assert.equal(loomis.curatedCandidateReceiptIds.length, 3);
+  assert.equal(loomis.authenticatedEditorVerifiedReceiptIds.length, 1);
 
   const lineage = showcase
     .getBitLineages()
     .find((item) => item.bitId === "bit:loomis-alert");
   assert.ok(lineage);
   assert.ok(lineage.performances.length >= 3);
+  assert.ok(
+    lineage.performances.some(
+      (performance) => performance.evidenceLevel === "curated-candidate",
+    ),
+  );
   lineage.performances.forEach((performance) => {
     assert.ok(performance.sourceId);
     assert.ok(Number.isFinite(performance.t));
     assert.match(performance.url, /[?&]t=\d+s$/);
   });
+  assert.deepEqual(
+    serializable(showcase.creatorControlRoom.evidenceLevels.map((level) => level.id)),
+    ["machine", "curated-candidate", "editor", "creator"],
+  );
+  assert.match(
+    showcase.creatorControlRoom.evidenceLevels[1].meaning,
+    /no authenticated editor decision/i,
+  );
+});
+
+test("legacy confidence flags cannot promote character evidence into curated or authenticated tiers", () => {
+  const window = load();
+  const characters = {
+    characters: [
+      {
+        id: "character:loomis",
+        label: "Dr. Loomis",
+        performer: "J",
+        status: "grounded",
+        receipts: [
+          {
+            sourceId: "6VXSBDZ-3WE",
+            t: 900,
+            quote: "A legacy verified flag is not an editorial decision.",
+            verified: true
+          },
+          {
+            sourceId: "ThPjds8iI9U",
+            t: 1200,
+            quote: "A legacy certified flag is not an editorial decision.",
+            certified: true
+          },
+          {
+            sourceId: "6VXSBDZ-3WE",
+            t: 1500,
+            quote: "An editor label alone still requires an authenticated decision.",
+            evidenceLevel: "editor"
+          },
+          {
+            sourceId: "ThPjds8iI9U",
+            t: 1800,
+            quote: "An authentication flag cannot replace a defined evidence tier.",
+            authenticatedEditorVerified: true
+          }
+        ]
+      }
+    ]
+  };
+
+  const showcase = window.WWAMShowcaseEngine.create({
+    catalog: window.WWAM_CATALOG,
+    deep: window.WWAM_DEEP_DISTILL,
+    live: window.WWAM_LIVESTREAMS,
+    popular: window.WWAM_POPULAR_LIVE,
+    characters,
+    dna: window.WWAM_CHANNEL_DNA
+  });
+
+  const loomis = showcase.characterReadiness.find(
+    (character) => character.characterId === "character:loomis"
+  );
+  const receipts = showcase.receipts.filter(
+    (receipt) => receipt.characterId === "character:loomis"
+  );
+
+  assert.deepEqual(
+    serializable(receipts.map((receipt) => receipt.evidenceLevel).sort()),
+    ["editor", "machine", "machine", "machine"]
+  );
+  assert.equal(loomis.curatedCandidateReceiptIds.length, 1);
+  assert.deepEqual(serializable(loomis.authenticatedEditorVerifiedReceiptIds), []);
+  assert.equal(loomis.readyForAskCharacter, false);
 });
 
 test("Personalized Descent is deterministic, playable, and source-diverse", () => {
@@ -266,7 +347,8 @@ test("current Popular 25 and Character Lore artifacts satisfy the live integrati
 
   showcase.characterReadiness.forEach((character) => {
     assert.equal(character.readyForAskCharacter, true, character.character);
-    assert.ok(character.verifiedReceiptIds.length >= 3, character.character);
+    assert.ok(character.curatedCandidateReceiptIds.length >= 3, character.character);
+    assert.equal(character.authenticatedEditorVerifiedReceiptIds.length, 0);
   });
   showcase.getBitLineages().forEach((lineage) => {
     assert.ok(lineage.performances.length >= 3, lineage.label);

@@ -15,6 +15,7 @@
     "source",
     "unknown",
     "quarantine",
+    "curatedCandidate",
     "reviewed",
     "certified",
     "correction"
@@ -24,6 +25,13 @@
     "quarantine",
     "review",
     "promote"
+  ]);
+  const REQUIRED_PROOF_LABELS = Object.freeze([
+    "machine",
+    "curatedCandidate",
+    "editor",
+    "creator",
+    "inference"
   ]);
   const ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
   const VERSION_PATTERN = /^\d+\.\d+\.\d+$/;
@@ -269,6 +277,9 @@
     } else {
       rejectUnknownKeys(issues, evidence, "adapter.evidencePolicy", [
         "machineOutputState",
+        "curatedCandidateState",
+        "curatedCandidateAuthenticated",
+        "editorVerificationRequiresAuthentication",
         "promotionRequiresHumanReview",
         "corrections",
         "preserveContradictions"
@@ -279,6 +290,16 @@
           "adapter.evidencePolicy.machineOutputState",
           "unsafe-machine-state",
           'Machine output must enter "quarantine".'
+        );
+      }
+      if (evidence.curatedCandidateState !== "timestamp-validated-human-curated-candidate" ||
+          evidence.curatedCandidateAuthenticated !== false ||
+          evidence.editorVerificationRequiresAuthentication !== true) {
+        issue(
+          issues,
+          "adapter.evidencePolicy",
+          "unsafe-curated-candidate-tier",
+          "Curated candidates must remain a timestamp-validated, human-curated, non-authenticated tier below editor verification."
         );
       }
       if (evidence.promotionRequiresHumanReview !== true) {
@@ -418,6 +439,15 @@
       }
     }
 
+    const proofLabels = isRecord(dna.voice) && dna.voice.proofLabels;
+    if (!isRecord(proofLabels)) {
+      issue(issues, "dna.voice.proofLabels", "required-object", "dna.voice.proofLabels must be an object.");
+    } else {
+      REQUIRED_PROOF_LABELS.forEach((key) =>
+        requireString(issues, proofLabels[key], `dna.voice.proofLabels.${key}`, { max: 100 })
+      );
+    }
+
     requireUniqueStrings(issues, adapter.capabilities, "adapter.capabilities");
     return issues;
   }
@@ -467,6 +497,9 @@
         noSpeakerGuessing: true,
         generatedCharacterAudioAllowed: false,
         machineOutputState: "quarantine",
+        curatedCandidateState: "timestamp-validated-human-curated-candidate",
+        curatedCandidateAuthenticated: false,
+        editorVerificationRequiresAuthentication: true,
         promotionRequiresHumanReview: true,
         corrections: "append-only",
         preserveContradictions: true
@@ -597,6 +630,9 @@
         "noSpeakerGuessing",
         "generatedCharacterAudioAllowed",
         "machineOutputState",
+        "curatedCandidateState",
+        "curatedCandidateAuthenticated",
+        "editorVerificationRequiresAuthentication",
         "promotionRequiresHumanReview",
         "corrections",
         "preserveContradictions"
@@ -611,6 +647,9 @@
         evidence.noSpeakerGuessing !== true ||
         evidence.generatedCharacterAudioAllowed !== false ||
         evidence.machineOutputState !== "quarantine" ||
+        evidence.curatedCandidateState !== "timestamp-validated-human-curated-candidate" ||
+        evidence.curatedCandidateAuthenticated !== false ||
+        evidence.editorVerificationRequiresAuthentication !== true ||
         evidence.promotionRequiresHumanReview !== true ||
         evidence.corrections !== "append-only" ||
         evidence.preserveContradictions !== true) {
@@ -725,6 +764,15 @@
           "channelExtensions.proofLabels",
           "required-object",
           "channelExtensions.proofLabels must be an object."
+        );
+      } else {
+        REQUIRED_PROOF_LABELS.forEach((key) =>
+          requireString(
+            issues,
+            pack.channelExtensions.proofLabels[key],
+            `channelExtensions.proofLabels.${key}`,
+            { max: 100 }
+          )
         );
       }
     }

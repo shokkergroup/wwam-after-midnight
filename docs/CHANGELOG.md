@@ -3,6 +3,102 @@
 This changelog records product and evidence-contract changes. It does not by
 itself indicate that a build has been deployed.
 
+## 0.5.5 — V5.5 synchronized memory and creator-taste pass — 2026-07-24
+
+### Added
+
+- **Tape Companion V1** adds a synchronized memory rail beside the official
+  YouTube player. Its playback UI exposes only crossed receipts through
+  snapshot-safe and crossed-event APIs, supports share/restore state bound to
+  the core archive and source ledgers, and retains manual sync plus official timestamp
+  links when the player API is unavailable. The full compiled timeline remains
+  an audit API rather than a playback feed.
+- **Creator Taste Calibration V1 / The Cut Test** presents ten deterministic
+  source-diverse matchups plus two side-reversed repeat checks. It learns only
+  from explicit local A/B decisions, keeps the untouched machine shortlist
+  visible, and caps every derived preference modifier at ±6.
+- Ask WWAM's visible **Query Plan V1** separates subjects from controls and
+  adds bounded collection counts/lists, year-scoped rankings, character
+  roster/profile distinctions, curated performance-candidate versus broad
+  mention counts,
+  curated soundbyte limits, named navigation, and explicit surface handoffs.
+  The frozen release gate expands from the historical V5.4 set to 37
+  executable cases.
+- The new fan and creator surfaces load through two declared feature chains
+  after the main application. Their engines and UI adapters remain independent
+  of the initial script bundle.
+- ChannelPack now declares `tape-companion` and
+  `creator-taste-calibration` as implemented WWAM capabilities. The resulting
+  V5.5 pack fingerprint is `cp1-59e4817559149f96`.
+- Character evidence now has a distinct **timestamp-validated human-curated
+  candidate** tier: 25 current candidates, 0 authenticated editor-verified
+  decisions, and no clip-level speaker diarization. “Editor verified” remains
+  an explicit future production threshold requiring an authenticated
+  surrounding-context decision.
+- The Character pipeline is sealed to the promoted 74-source corpus and its 71
+  available caption files; Archive Deep candidates cannot silently enter the
+  current character set.
+
+### Accuracy and product boundaries
+
+- Tape Companion does not copy media or infer audience sentiment, and its
+  player keeps autoplay off. The playback UI's snapshot-safe and crossed-event
+  calls do not disclose a future event's label, excerpt, or annotations before
+  its indexed second is crossed.
+- The promoted corpus has 71 companion-ready sources and three disclosed
+  source-only gaps. Compatible events may fuse into an incident, but every
+  exact member and timestamp remains preserved.
+- Creator Taste Calibration labels the operator unauthenticated. `NEITHER` and
+  `NEEDS_CONTEXT` add no preference weight, at least six non-repeat A/B choices
+  are required, and the model cannot mutate evidence, risk, HOLD, approval,
+  canon, speaker, rights, or creator-approval state. Each emitted shortlist
+  card is compared with a fresh protected projection and artifact creation
+  fails closed on any mismatch.
+- The declared calibration goal is visible and fingerprint-bound but
+  descriptive in V1. It does not silently filter or widen the inventory.
+- Companion core-ledger fingerprints and calibration fingerprints/checksums are
+  deterministic consistency bindings, not signatures, identity authentication,
+  or proof of creator approval. Optional companion display decorations are not
+  part of its core share binding.
+- Questions owned by a ranked or specialized surface return an explicit
+  handoff instead of fabricating a competing global answer.
+- Clip Lab keeps the owner-mapped recurring performer in a separate
+  `mappedPerformer` field while leaving clip-level `speaker.display` null and
+  speaker credit disabled. Canon Integrity V1.1 rejects mismatched performer
+  mappings and requires both authenticated creator certification and an
+  explicit clip-attribution certification before any named clip credit can pass.
+
+### Current deterministic derivations
+
+These figures reproduce from the named V5.5 snapshot. The regression suite
+directly pins the companion corpus/readiness, receipt-member, heat-window, and
+annotation totals plus the 37-case Ask gate; incident fusion, Lore-link, July
+subgroup, and real-WWAM calibration totals are current derivations rather than
+separate numeric release assertions.
+
+- Tape Companion compiles 872 exact receipt members into 869 conservative
+  incidents, including three fused incidents, across the promoted 74-source
+  corpus. It derives 1,294 heat windows, 96 Red Band annotations, 25 WWAM UP IN
+  YA annotations, 25 recurring-character annotations, and 2,967
+  receipt-backed Lore connections.
+- The July 23, 2026 showcase source contains 21 exact receipt members, 30 heat
+  windows, eight topic signals, seven Red Band candidates, and six
+  recurring-character annotations. At `2:30:43`, the separate `FULL SEND`
+  event at `2:30:46` remains sealed.
+- With the `MEDIUM` maximum-risk gate, Creator Taste Calibration finds 248
+  exact-ledger eligible candidates across 54 sources from the 560-candidate
+  Clip Lab pool. Its 10 learning matchups plus 2 non-learning repeat checks
+  currently sample 20 unique sources.
+- The current Ask release gate contains 37 executable cases. Unqualified Dr.
+  Loomis clip/how-often questions return 7 timestamped human-curated
+  performance candidates; explicit mention wording returns 696 broad caption
+  matches across 59 sources. The current set contains 0 authenticated
+  editor-verified decisions.
+- Lore Galaxy now exposes 177 field-guide entries, 822 receipt-backed graph
+  edges, 19 constellations, and 51 indexed lineages. Character-performance
+  receipts and source/context receipts are separate relationships; only the
+  former can establish an archive-first performance candidate.
+
 ## 0.5.4 — V5.4 archive-deep, retrieval, and creator-pilot pass — 2026-07-24
 
 ### Added
@@ -63,9 +159,11 @@ itself indicate that a build has been deployed.
   character candidates, or heatmaps that could misattribute source audio as
   host speech.
 - All 42 Archive Deep machine candidates remain outside the promoted 872,
-  Canon, Red Band, and WWAM UP IN YA until playback review. Automatic captions
-  do not establish the speaker, host-versus-source-audio origin, intent, or
-  visual context.
+  Canon, Red Band, and WWAM UP IN YA. Playback review can establish context but
+  does not promote one candidate across those separate lanes; each applies its
+  own evidence policy and authenticated decision requirements. Automatic
+  captions do not establish the speaker, host-versus-source-audio origin,
+  intent, or visual context.
 - The Trust Desk's 71 healthy and 3 gap counts remain explicitly scoped to the
   74-source promoted corpus. Archive Deep is reported separately rather than
   being silently merged into the legacy Trust/Canon contract.

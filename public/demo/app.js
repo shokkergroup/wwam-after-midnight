@@ -656,29 +656,29 @@
   };
   var tourSlides = [
     { number: "01", eyebrow: "THE PROBLEM", title: "THOUSANDS OF HOURS.<br>NO MEMORY LAYER.",
-      body: "YouTube remembers titles, not where a bit surfaced, takes diverged, audiences peaked, or the exact second worth resurfacing.",
-      proof: "THE BACK CATALOG IS VALUABLE—BUT MOST OF ITS VALUE IS BURIED.",
+      body: "YouTube remembers titles—not the bits, takes, room breaks, or exact seconds worth reviving.",
+      proof: "THE BACK CATALOG HAS VALUE. MOST OF IT IS BURIED.",
       action: { kind: "night", label: "RUN TONIGHT'S SOURCE-GROUNDED SHIFT" } },
     { number: "02", eyebrow: "THE RECEIPT", title: "2,175,344 WORDS.<br>84 SOURCES. PROVE IT.",
-      body: "Available captions across 39 commentaries, Fresh 10, Popular 25, and Batch 01 are audited; 42 new candidates stay outside 872 promoted receipts.",
+      body: "Audited: 39 commentaries, Fresh 10, Popular 25, Batch 01. Forty-two candidates stay outside 872 receipts.",
       proof: "84 INPUTS = 74 PROMOTED + 10 ARCHIVE DEEP QUARANTINE. 872 RECEIPTS + 42 REVIEW CANDIDATES.",
       action: { kind: "ask", label: "ASK FOR THE MOST-VIEWED LIVE", query: "What is the most-viewed foundational livestream?" } },
     { number: "03", eyebrow: "THE MAP", title: "472 STREAMS.<br>EVERY BLIND SPOT VISIBLE.",
-      body: "The cached 2018–2026 feed maps 44 deep, 420 metadata-only, and eight caption-limited records without pretending titles are knowledge.",
-      proof: "1,197 CACHED HOURS MAPPED — COVERAGE DEPTH, SOURCE BOUNDARIES, AND THE NEXT-DISTILL QUEUE STAY VISIBLE.",
+      body: "The 2018–2026 feed maps 44 deep, 420 metadata-only, 8 caption-limited records. Titles are not knowledge.",
+      proof: "1,197 CACHED HOURS. DEPTH, BOUNDARIES, NEXT-DISTILL QUEUE: VISIBLE.",
       action: { kind: "archive", label: "OPEN THE ARCHIVE ATLAS" } },
     { number: "04", eyebrow: "THE MOAT", title: "THE CHANNEL<br>REMEMBERS ITSELF.",
-      body: "Time Machines surface take signals. Bit Ancestry tracks characters. Riffs sit beside proof. WWAM Court stays open pending review.",
-      proof: "CONNECTED MEMORY WITH A VISIBLE TRUST FIREWALL — DISCOVERY IS NOT QUIETLY UPGRADED INTO CANON.",
+      body: "Time Machines track takes; Bit Ancestry tracks characters; Court awaits review.",
+      proof: "CONNECTED MEMORY. TRUST FIREWALL. DISCOVERY NEVER BECOMES CANON BY ACCIDENT.",
       action: { kind: "lore", label: "OPEN THE LOOMIS CONSTELLATION", entry: "character:loomis" } },
     { number: "05", eyebrow: "THE MONEY", title: "MEMORY CREATES<br>NEW INVENTORY.",
-      body: "One receipt inventory produces Shorts, supercut spines, callbacks, and 117 timed cold opens with source ledgers and human-approval gates.",
-      proof: "ARCHIVE MEMORY → REVIEWABLE EDIT PLAN → EXACT SOURCE LEDGER → CREATOR DECISION.",
+      body: "One inventory yields Shorts, supercuts, callbacks, 117 cold opens—with ledgers and approval.",
+      proof: "ARCHIVE MEMORY → EDIT PLAN → SOURCE LEDGER → CREATOR DECISION.",
       action: { kind: "clip", mode: "cold-open", duration: 30,
         label: "BUILD A 30-SECOND LOOMIS COLD OPEN", query: "Dr. Loomis" } },
     { number: "06", eyebrow: "THE PILOT", title: "DON'T BUY THE DREAM.<br>TEST THE MACHINE.",
-      body: "Choose one creator job, six receipts, a measurement contract, and a stop condition. Test the archive before drawing business conclusions.",
-      proof: "ONE CHANNEL-SPECIFIC PILOT. VISIBLE INPUTS. REVIEWABLE OUTPUTS. A REAL YES / NO DECISION.",
+      body: "Choose one job, six receipts, a measurement contract, and a stop condition. Test it.",
+      proof: "ONE CHANNEL PILOT. VISIBLE INPUTS. REVIEWABLE OUTPUTS. A REAL YES / NO.",
       action: { kind: "pilot", label: "BUILD THE ARCHIVE-DISCOVERY PILOT", goal: "archive-discovery" } },
   ];
 
@@ -763,35 +763,31 @@
     });
   }
 
+  function evidenceBoundary(item) {
+    return Object.fromEntries("evidenceLevel evidenceType receiptKind type kind speakerStatus authenticatedEditorVerified warnings evidenceWarnings"
+      .split(" ").map(function (key) { return [key, item[key]]; }));
+  }
+
   function bagButton(item, label) {
-    var normalizedItem = normalizeEvidenceItem(item);
-    var source = normalizedItem.source || (itemById[normalizedItem.id] ? "commentary" : "livestream");
-    var id = normalizedItem.id;
-    if (!id) return "";
-    var at = normalizedItem.at;
-    var title = normalizedItem.title;
-    var category = normalizedItem.category;
-    var excerpt = normalizedItem.excerpt;
+    var bagItem = normalizeEvidenceItem(item);
+    if (!bagItem.id) return "";
     var buttonLabel = label || "BAG THIS RECEIPT";
+    var data = Object.assign(evidenceBoundary(bagItem), {
+      source: bagItem.source, id: bagItem.id, at: bagItem.at,
+      title: bagItem.title, category: bagItem.category, excerpt: bagItem.excerpt,
+    });
     return '<button class="bag-add" data-bag-add data-default-label="' + esc(buttonLabel + " +") +
-      '" data-source="' + esc(source) + '" data-id="' + esc(id) +
-      '" data-time="' + at + '" data-title="' + esc(title) + '" data-category="' + esc(category) +
-      '" data-excerpt="' + esc(excerpt) + '" data-evidence-level="' + esc(normalizedItem.evidenceLevel) +
-      '" data-evidence-type="' + esc(normalizedItem.evidenceType) + '">' + esc(buttonLabel) + ' +</button>';
+      '" data-bag-item="' + esc(JSON.stringify(data)) + '">' + esc(buttonLabel) + ' +</button>';
   }
 
   function readBagButton(button) {
-    return normalizeEvidenceItem({
-      source: button.getAttribute("data-source") || "livestream",
-      id: button.getAttribute("data-id"),
-      at: Number(button.getAttribute("data-time") || 0),
-      title: button.getAttribute("data-title") || "WWAM SOURCE",
-      category: button.getAttribute("data-category") || "SOURCE RECEIPT",
-      excerpt: button.getAttribute("data-excerpt") || "",
-      evidenceLevel: button.getAttribute("data-evidence-level") || "",
-      evidenceType: button.getAttribute("data-evidence-type") || "",
-      savedAt: new Date().toISOString(),
-    });
+    try {
+      var item = JSON.parse(button.getAttribute("data-bag-item") || "{}");
+      item.savedAt = new Date().toISOString();
+      return normalizeEvidenceItem(item);
+    } catch {
+      return normalizeEvidenceItem({});
+    }
   }
 
   function saveEvidenceBag() {
@@ -859,11 +855,14 @@
       var evidenceCopy = displayQuote(item.excerpt || "Open the original source receipt.");
       return '<article><div><span>' + String(index + 1).padStart(2, "0") + ' // ' +
         esc(displayUiText(item.category)) + '</span><b>' + timestamp(item.at) + '</b></div><h3>' +
-        esc(displayUiText(item.title)) + '</h3><p><small>' + esc(displayUiText(item.evidenceLevel)) + '</small>' +
+        esc(displayUiText(item.title)) + '</h3><p><small>' + esc(displayUiText([
+          item.evidenceLevel, item.speakerStatus || "SPEAKER NOT PROVIDED",
+          item.authenticatedEditorVerified ? "EDITOR AUTH" : "NO EDITOR AUTH"
+        ].join(" // "))) + '</small>' +
         (isCaptionReceipt ? '“' + esc(evidenceCopy) + '”' : esc(evidenceCopy)) +
         '</p><footer><button data-bag-play="' + esc(bagKey(item)) + '">PLAY RECEIPT →</button><button data-bag-remove="' +
         esc(bagKey(item)) + '">REMOVE</button></footer></article>';
-    }).join("") : '<div class="evidence-bag-empty"><b>THE BAG IS EMPTY.</b><span>Add receipts from Ask WWAM, the Memory OS, character archaeology, and the creator tools.</span></div>';
+    }).join("") : '<div class="evidence-bag-empty"><b>THE BAG IS EMPTY.</b><span>Bag receipts from Ask, Memory OS, Lore, or creator tools.</span></div>';
     Array.prototype.forEach.call(document.querySelectorAll("[data-bag-play]"), function (button) {
       button.onclick = function () {
         var item = state.evidenceBag.filter(function (candidate) {
@@ -882,10 +881,10 @@
   function evidenceManifest() {
     return {
       product: "WWAM After Midnight",
-      schemaVersion: 2,
+      schemaVersion: 3,
       exportedAt: new Date().toISOString(),
       excerptWordLimit: 16,
-      disclaimer: "Bounded source-linked navigation receipts. Caption text requires source verification; derived summaries are labeled and are not quotations.",
+      disclaimer: "Source-linked navigation; verify captions. Summaries are labeled, not quotes.",
       clips: state.evidenceBag.map(function (item, index) {
         return {
           order: index + 1,
@@ -895,6 +894,12 @@
           category: item.category,
           evidenceLevel: item.evidenceLevel,
           evidenceType: item.evidenceType,
+          receiptKind: item.receiptKind || item.kind || item.type,
+          type: item.type || item.receiptKind || item.kind,
+          speakerStatus: item.speakerStatus || "not-provided",
+          authenticatedEditorVerified: item.authenticatedEditorVerified === true,
+          warnings: item.warnings,
+          evidenceWarnings: item.evidenceWarnings,
           start: Math.round(item.at),
           url: "https://www.youtube.com/watch?v=" + item.id + "&t=" + Math.round(item.at) + "s",
           excerpt: boundedExcerpt(item.excerpt),
@@ -905,23 +910,19 @@
 
   function copyEvidenceManifest() {
     var manifest = evidenceManifest();
-    var lines = ["WWAM EVIDENCE BAG // " + manifest.clips.length + " RECEIPTS"].concat(manifest.clips.map(function (clip) {
+    var lines = ["WWAM EVIDENCE BAG // " + manifest.clips.length + " RECEIPTS",
+      "DISCLAIMER // " + manifest.disclaimer].concat(manifest.clips.map(function (clip) {
       return String(clip.order).padStart(2, "0") + ". " + clip.title + " // " + clip.category +
-        " // " + timestamp(clip.start) + " // " + clip.url;
+        " // " + timestamp(clip.start) + " // TIER: " + clip.evidenceLevel +
+        " // SPEAKER: " + clip.speakerStatus + " // EDITOR-AUTH: " +
+        (clip.authenticatedEditorVerified ? "YES" : "NO") + " // " + clip.url;
     }));
-    copy(lines.join("\n"));
+    copy(lines.join("\n"), "EVIDENCE MANIFEST COPIED");
   }
 
   function downloadEvidenceManifest() {
-    var blob = new Blob([JSON.stringify(evidenceManifest(), null, 2)], { type: "application/json" });
-    var url = URL.createObjectURL(blob);
-    var link = document.createElement("a");
-    link.href = url;
-    link.download = "wwam-evidence-bag.json";
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
+    downloadJson("wwam-evidence-bag.json", evidenceManifest());
+    showToast("EVIDENCE MANIFEST DOWNLOADED");
   }
 
   function fmt(value) {
@@ -1173,7 +1174,7 @@
   function renderRedMethod() {
     var root = document.getElementById("redMethod");
     if (!redBandRankingEngine) {
-      root.innerHTML = '<article class="red-method-verdict"><span>MEMORABILITY CANDIDATE INDEX V2.1</span><b>CALIBRATING</b><p>The receipt wall remains playable while the transparent cross-archive candidate ranker loads.</p></article>' +
+      root.innerHTML = '<article class="red-method-verdict"><span>MEMORABILITY CANDIDATE INDEX V2.1</span><b>CALIBRATING</b><p>Receipts stay playable while the transparent ranker loads.</p></article>' +
         '<article><span>RANK CONTRACT</span><b>100</b><p>Exact target; no duplicate rank keys.</p></article>' +
         '<article><span>EDITORIAL VOTES</span><b>ZERO DEFAULT</b><p>No human preference is invented.</p></article>' +
         '<article><span>SPEAKER POLICY</span><b>NOT DIARIZED</b><p>A great line is not assigned to a host.</p></article>' +
@@ -1341,7 +1342,7 @@
         id: id,
         name: profile.name || "UNKNOWN WITNESS",
         performer: profile.performer || profile.performedBy || "WWAM recurring performance",
-        description: profile.description || profile.summary || profile.profile || "A recurring WWAM character bit reconstructed from source performances.",
+        description: profile.description || profile.summary || profile.profile || "A recurring bit reconstructed from source receipts.",
         behaviors: profile.behaviors || profile.patterns || profile.behaviorPatterns || [],
         triggers: profile.triggers || profile.triggerSignals || [],
         soundbytes: profile.soundbytes || profile.receipts || profile.evidence || [],
@@ -1354,18 +1355,18 @@
   function characterFallback(profile, topic) {
     var id = String(profile.id || "").toLowerCase();
     if (id.indexOf("loomis") >= 0) {
-      return "I've spent years trying to warn you about " + topic + ". You want an explanation. I am telling you there is no explanation. There is only evil—and apparently nobody thought to lock the door.";
+      return "I've spent years warning you about " + topic + ". There is no explanation. There is only evil—and nobody locked the door.";
     }
     if (id.indexOf("challis") >= 0) {
-      return "Wait a minute. " + topic + "? Turn off the television, get away from the mask, and somebody please tell me why no one is listening until eight seconds before disaster.";
+      return "Wait a minute. " + topic + "? Get away from the mask. Why does nobody listen until eight seconds before disaster?";
     }
     if (id.indexOf("slender") >= 0) {
-      return "You asked about " + topic + ". The trees have already answered. Please stop looking behind you. It is making this unnecessarily awkward.";
+      return "You asked about " + topic + ". The trees answered. Stop looking behind you; this is getting awkward.";
     }
     if (id.indexOf("feldman") >= 0) {
-      return topic + " needs commitment, choreography, and the absolute confidence to keep performing after everyone else has realized this became a completely different scene.";
+      return topic + " needs commitment, choreography, and confidence after everyone realizes this became a different scene.";
     }
-    return "The recurring bit has reviewed " + topic + " and reached a conclusion no responsible witness is prepared to place on the record.";
+    return "The bit reviewed " + topic + " and reached a conclusion no witness will put on the record.";
   }
 
   function fillCharacterTemplate(template, topic, profile) {
@@ -1412,27 +1413,32 @@
 
   function normalizeCharacterReceipt(receipt) {
     var playback = receipt.playback || {};
-    return {
+    return Object.assign({}, receipt, {
       source: receipt.source || receipt.sourceType || (itemById[receipt.id || receipt.sourceId] ? "commentary" : "livestream"),
       id: receipt.sourceId || receipt.videoId || receipt.id,
       t: Number(playback.start != null ? playback.start :
         receipt.t != null ? receipt.t : receipt.time || receipt.timestamp || 0),
       end: Number(playback.end != null ? playback.end : 0),
       clipSeconds: Number(playback.clipSeconds != null ? playback.clipSeconds : 0),
-      title: receipt.sourceTitle || receipt.title || receipt.label || "WWAM CHARACTER PERFORMANCE",
-      category: receipt.trigger || "CHARACTER PERFORMANCE",
-      quote: receipt.quote || receipt.excerpt || receipt.text || "Open the source performance.",
-      label: receipt.label || receipt.title || receipt.note || receipt.context || "SOURCE PERFORMANCE",
+      title: receipt.sourceTitle || receipt.title || receipt.label || "CHARACTER CANDIDATE",
+      category: receipt.trigger || "PERFORMANCE CANDIDATE",
+      quote: receipt.quote || receipt.excerpt || receipt.text || "Open the source context.",
+      label: receipt.label || receipt.title || receipt.note || receipt.context || "PERFORMANCE CANDIDATE",
       confidence: receipt.confidence != null ? Math.round(Number(receipt.confidence) * 100) + "% CURATION CONFIDENCE" :
         receipt.attributionConfidence || "SOURCE-LINKED",
-    };
+      evidenceLevel: receipt.evidenceLevel || "curated-candidate",
+      receiptKind: receipt.receiptKind || receipt.kind || "candidate-performance",
+      type: receipt.type || "candidate-performance",
+      speakerStatus: receipt.speakerStatus || "not-diarized",
+      authenticatedEditorVerified: receipt.authenticatedEditorVerified === true,
+    });
   }
 
   function renderCharacterRoster() {
     var profiles = characterProfiles();
     var locked = characterLore.lockedCandidates || [];
     if (!profiles.length) {
-      document.getElementById("characterRoster").innerHTML = '<p class="character-empty">CHARACTER ARCHAEOLOGY IS STILL PROCESSING.</p>';
+      document.getElementById("characterRoster").innerHTML = '<p class="character-empty">CHARACTER ARCHIVE IS LOADING.</p>';
       return;
     }
     if (!state.character || !profiles.some(function (profile) { return profile.id === state.character; })) {
@@ -1484,18 +1490,18 @@
       }).join(" // ") : "ARCHIVE-DERIVED PROMPTS") +
       '</b></footer>';
     document.getElementById("characterReceiptLabel").textContent = "SHOWING " + receipts.length + " OF " +
-      allReceipts.length + " TIMESTAMP-VALIDATED CHARACTER RECEIPTS";
+      allReceipts.length + " VALIDATED CHARACTER CANDIDATES";
     document.getElementById("characterReceipts").innerHTML = receipts.length ? receipts.map(function (receipt, index) {
-      return '<article><div><span>VOICEPRINT 0' + (index + 1) + '</span><b>' + timestamp(receipt.t) +
+      return '<article><div><span>PATTERN RECEIPT 0' + (index + 1) + '</span><b>' + timestamp(receipt.t) +
         '</b></div><h3>' + esc(displayUiText(receipt.label)) + '</h3><p>“' + esc(displayQuote(receipt.quote)) +
         '”</p><footer><span>' + esc(String(receipt.confidence).toUpperCase()) +
         ' // CLIP SPEAKER NOT DIARIZED' +
         '</span><button data-character-source="' + esc(receipt.source) + '" data-id="' + esc(receipt.id) +
         '" data-time="' + receipt.t + '" data-end="' + receipt.end + '" data-label="' +
-        esc(displayUiText(receipt.label)) + '">HEAR ' +
-        (receipt.clipSeconds ? receipt.clipSeconds + ' SEC' : 'THE') + ' REAL BIT →</button>' +
+        esc(displayUiText(receipt.label)) + '">PLAY ' +
+        (receipt.clipSeconds ? receipt.clipSeconds + '-SEC' : 'THE') + ' SOURCE CANDIDATE →</button>' +
         bagButton(receipt, "BAG THE BIT") + '</footer></article>';
-    }).join("") : '<p class="character-empty">No defensible public soundbyte has cleared attribution yet. The profile remains visible; the archive does not counterfeit proof.</p>';
+    }).join("") : '<p class="character-empty">No public candidate yet; the archive will not counterfeit proof.</p>';
     bindCharacterReceipts();
     syncBagButtons();
   }
@@ -1538,12 +1544,12 @@
         esc(displayUiText(response.continuedFrom ? "FOLLOW-UP MEMORY KEPT THE SAME SUBJECT" :
           "SUBJECT // " + response.subject.toUpperCase())) + '</b><i>' +
         response.readiness.confidence + '% CHARACTER-READINESS // ' +
-        (response.readiness.timestampValidatedReceipts || response.readiness.verifiedSoundbytes) +
-        ' TIMESTAMP-VALIDATED CHARACTER RECEIPTS // CLIP SPEAKERS NOT DIARIZED</i></div>' +
+        response.readiness.timestampValidatedReceipts +
+        ' VALIDATED CHARACTER CANDIDATES // SPEAKERS NOT DIARIZED</i></div>' +
         (receipt ? '<button data-character-source="' + esc(receipt.source) +
         '" data-id="' + esc(receipt.id) + '" data-time="' + receipt.t + '" data-end="' + receipt.end +
         '" data-label="' + esc(displayUiText(receipt.label)) +
-        '">HEAR THE MATCHED REAL BIT →</button>' : '') +
+        '">PLAY MATCHED SOURCE CANDIDATE →</button>' : '') +
         '</section>' : '');
     bindCharacterReceipts();
   }
@@ -1880,7 +1886,7 @@
 
   function momentsMarkup(tape, item) {
     if (!tape.moments.length) {
-      return '<p class="sealed-copy">YouTube requires an age-confirmed session for this upload. The prototype refuses to invent a transcript or a score. Open the original tape to continue.</p>';
+      return '<p class="sealed-copy">This upload requires an age-confirmed YouTube session. No transcript or score is invented; open the tape.</p>';
     }
     return tape.moments.map(function (moment) {
       return '<article><div><span>' + esc(moment.category) + '</span><b>' + timestamp(moment.t) + '</b></div>' +
@@ -1929,9 +1935,9 @@
   function liveHeatMarkup(stream) {
     if (!stream.heatmap.length) {
       if (stream.rightsPolicy && stream.rightsPolicy.restrictedToTopicNavigation) {
-        return '<p class="sealed-copy">Captions were audited end to end, but this trailer, script, or watch-party source is deliberately topic-navigation-only. Comedy heat and excerpts are withheld because automatic captions cannot prove which words belong to the hosts.</p>';
+        return '<p class="sealed-copy">Captions were audited, but this source is topic-navigation-only. Comedy heat and excerpts stay withheld because captions cannot prove host speech.</p>';
       }
-      return '<p class="sealed-copy">YouTube supplies no caption track for this stream, so comedy scoring and topic chapters are deliberately unavailable. The original upload remains playable.</p>';
+      return '<p class="sealed-copy">YouTube supplies no captions, so scoring and topic chapters stay unavailable. The upload remains playable.</p>';
     }
     return stream.heatmap.map(function (bin, index) {
       return '<button style="--heat:' + bin.heat + '" data-live-play="' + stream.id + '" data-time="' + bin.from +
@@ -1952,7 +1958,7 @@
   function liveMomentsMarkup(stream) {
     if (!stream.moments.length) {
       if (stream.rightsPolicy && stream.rightsPolicy.restrictedToTopicNavigation) {
-        return '<p class="sealed-copy">No public joke or character receipts are exposed from this source. Topic timestamps remain available; candidate excerpts stay withheld until a human can separate host speech from source audio.</p>';
+        return '<p class="sealed-copy">No public joke or character receipts are exposed from this source. Topic times remain; excerpts await human speaker separation.</p>';
       }
       return '<p class="sealed-copy">No caption-derived comedy receipts are published for this stream. Open the original source to watch it in full.</p>';
     }
@@ -2026,10 +2032,10 @@
     var modal = document.getElementById("tapeModal");
     document.getElementById("modalContent").innerHTML =
       '<div class="modal-hero live-modal-hero" style="--accent:var(--pink)"><img src="https://i.ytimg.com/vi/' +
-      encodeURIComponent(id) + '/maxresdefault.jpg" alt=""><div><p>CHARACTER ARCHAEOLOGY // SOURCE PERFORMANCE</p><h2>' +
+      encodeURIComponent(id) + '/maxresdefault.jpg" alt=""><div><p>CHARACTER ARCHAEOLOGY // PERFORMANCE CANDIDATE</p><h2>' +
       esc(label || "WWAM SOURCE RECEIPT") + '</h2><span>' +
       (clipSeconds ? "BOUNDED " + clipSeconds + "-SECOND SOURCE CLIP" : "PLAYABLE ORIGINAL") + " // " + timestamp(at) +
-      '</span></div></div><section class="receipt-section loose-source"><div><p class="kicker">THE ORIGINAL PERFORMANCE</p>' +
+      '</span></div></div><section class="receipt-section loose-source"><div><p class="kicker">ORIGINAL SOURCE CONTEXT</p>' +
       '<span>THIS AUDIO IS WWAM’S SOURCE UPLOAD // THE GENERATED RIFF IS NOT' +
       (clipSeconds ? " // CLIP STOPS AFTER " + clipSeconds + " SECONDS" : "") +
       '</span></div><div class="modal-player" id="modalPlayer"></div>' +
@@ -2190,6 +2196,16 @@
     return result.subtitle || "Open the indexed source to inspect the evidence behind this result.";
   }
 
+  function askCollectionStatus(analysis) {
+    var c = analysis.collection;
+    if (!c || c.total == null) return "";
+    var unit = String(c.unit || "RESULTS").toUpperCase();
+    var text = c.total + " " + unit;
+    if (c.sourceTotal != null) text += " // " + c.sourceTotal + " SOURCES";
+    if (c.displayed < c.total) text += " // " + c.displayed + " SHOWN";
+    return text + " // " + analysis.confidence + "% CONFIDENCE";
+  }
+
   function askShareUrl(query) {
     return window.WWAMAskShare.build(location.href, query, state.askContext);
   }
@@ -2202,11 +2218,13 @@
   }
 
   function ask(query, preservedAnalysis) {
+    var statusNode = document.getElementById("askStatus");
+    var resultsNode = document.getElementById("askResults");
     var redBandIntent = isRedBandRankQuery(query);
     if (redBandIntent && !redBandQueryEngine) {
       state.lastAskQuery = query;
-      document.getElementById("askStatus").textContent = "OPENING MEMORABILITY INDEX V2.1…";
-      document.getElementById("askResults").replaceChildren();
+      statusNode.textContent = "OPENING MEMORABILITY INDEX V2.1…";
+      resultsNode.replaceChildren();
       loadRedBandRanking().then(function (engine) {
         if (engine && state.lastAskQuery === query) ask(query);
       });
@@ -2214,13 +2232,13 @@
     }
     if (!redBandIntent && !archiveDeepEngine && /\barchive\s+deep\b/i.test(query)) {
       state.lastAskQuery = query;
-      document.getElementById("askStatus").textContent = "OPENING ARCHIVE DEEP // 10 CAPTION AUDITS";
-      document.getElementById("askResults").innerHTML =
+      statusNode.textContent = "OPENING ARCHIVE DEEP // 10 CAPTION AUDITS";
+      resultsNode.innerHTML =
         '<div class="ask-no-match"><b>SEARCHING THE QUARANTINED EVIDENCE LANE…</b>' +
         '<p>Machine candidates will stay visibly outside Canon while the batch loads.</p></div>';
       loadArchiveDeep().then(function (engine) {
         if (engine && state.lastAskQuery === query) ask(query);
-        else document.getElementById("askStatus").textContent = "ARCHIVE DEEP LOAD FAILED";
+        else statusNode.textContent = "ARCHIVE DEEP LOAD FAILED";
       });
       return;
     }
@@ -2230,8 +2248,8 @@
     if (!redBandIntent && !archiveDeepEngine && analysis.selectionPlan &&
         analysis.selectionPlan.sourceTitleBoundary) {
       state.lastAskQuery = query;
-      document.getElementById("askStatus").textContent = "CHECKING ARCHIVE DEEP // EXACT TITLE HELD";
-      document.getElementById("askResults").replaceChildren();
+      statusNode.textContent = "CHECKING ARCHIVE DEEP // EXACT TITLE HELD";
+      resultsNode.replaceChildren();
       loadArchiveDeep().then(function (engine) {
         if (engine && state.lastAskQuery === query) ask(query);
       });
@@ -2263,9 +2281,9 @@
     state.lastAskQuery = query;
     state.lastAskAnalysis = analysis;
     if (archiveFallback) {
-      document.getElementById("askStatus").textContent =
+      statusNode.textContent =
         "TITLE-METADATA DISCOVERY // REQUESTED ORDER APPLIED // NO CONTENT CLAIM";
-      document.getElementById("askResults").innerHTML =
+      resultsNode.innerHTML =
         '<section class="answer-brief"><div><span>INTENT // SOURCE DISCOVERY</span>' +
         '<b>ENTITY // CACHED STREAMS FEED</b><i>TITLE METADATA ONLY</i>' +
         '<button class="ask-share" type="button" data-copy-ask>COPY ANSWER LINK</button></div>' +
@@ -2280,13 +2298,17 @@
       }
       return;
     }
-    document.getElementById("askStatus").textContent =
+    var collectionStatus = askCollectionStatus(analysis);
+    var isSurfaceHandoff = analysis.status === "surface-handoff";
+    statusNode.textContent =
+      isSurfaceHandoff ? "GLOBAL RANKING HANDOFF // OPEN THE RED BAND 100" :
       analysis.status === "out-of-range" ?
         "RED BAND 100 // RANK OUT OF RANGE // NO SILENT CLAMPING" :
         analysis.status === "machine-ranked" && results.length ?
         "MEMORABILITY CANDIDATE INDEX V2.1 // EXACT RANK KEY // MACHINE-RANKED, NOT A CREATOR VOTE" :
+        collectionStatus ? collectionStatus :
         results.length ?
-          (analysis.evidenceChain || []).length + " RECEIPT CHAIN // " + analysis.confidence +
+          results.length + (results.length === 1 ? " RECEIPT" : " RECEIPTS") + " // " + analysis.confidence +
           (analysis.status === "archive-boundary" ? "% RETRIEVAL // CLAIM NOT ESTABLISHED" : "% CONFIDENCE") :
           "NO DEFENSIBLE RECEIPT";
     var boundary = '<section class="ask-boundary ' + esc(analysis.status || "unknown") +
@@ -2303,21 +2325,26 @@
         '<a href="' + esc(analysis.recommendedSurface.href === "#canon-desk" ? "#canon" : analysis.recommendedSurface.href) +
         '"><b>' + esc(displayUiText(analysis.recommendedSurface.label)) + ' →</b><span>' +
         esc(displayUiText(analysis.recommendedSurface.reason)) + '</span></a>' : "") + '</section>';
-    var noMatchHeadline = analysis.status === "out-of-range" ?
-      "THAT RANK DOES NOT EXIST." : "THE ARCHIVE REFUSED TO MAKE SOMETHING UP.";
-    var noMatchBody = analysis.status === "out-of-range" ?
+    var noMatchHeadline = isSurfaceHandoff ? "GLOBAL RANKING HANDOFF" :
+      analysis.status === "out-of-range" ? "THAT RANK DOES NOT EXIST." :
+        "THE ARCHIVE REFUSED TO MAKE SOMETHING UP.";
+    var noMatchBody = isSurfaceHandoff ? analysis.answer : analysis.status === "out-of-range" ?
       "Choose #001 through #100; the engine will not swap your request for a different rank." :
       "No confident match in the current source scope.";
-    document.getElementById("askResults").innerHTML =
+    resultsNode.innerHTML =
       '<section class="answer-brief"><div><span>INTENT // ' + esc(analysis.intent.toUpperCase()) + '</span><b>' +
       (analysis.entity ? 'ENTITY // ' + esc(displayUiText(analysis.entity.toUpperCase())) : 'ENTITY // OPEN') + '</b><i>' +
       esc((analysis.source === "all" ? "ALL SOURCES" : analysis.source).toUpperCase()) +
       (analysis.continuedFrom ? ' // FOLLOW-UP MEMORY' : '') +
-      '</i><button class="ask-share" type="button" data-copy-ask>COPY ANSWER LINK</button></div><h3>' +
-      esc(displayUiText(analysis.answer)) + '</h3><div class="confidence-track"><i style="width:' + analysis.confidence +
+      '</i><button class="ask-share" type="button" data-copy-ask>COPY ANSWER LINK</button></div>' +
+      '<div class="derived-answer-copy">' + esc(displayUiText(analysis.answer)) +
+      '</div><div class="confidence-track"><i style="width:' + analysis.confidence +
       '%"></i></div></section>' + boundary +
       (results.length ? results.map(function (result, index) {
-        var role = roleByKey[result.key] || (index === 0 ? "DIRECT HIT" : result.label);
+        var role = result.curatedRank == null ?
+          roleByKey[result.key] || (index === 0 ? "DIRECT HIT" : result.label) :
+          "WWAM UP IN YA // #" + String(result.curatedRank).padStart(2, "0") + " // " +
+            (result.curatedLabel || "CURATED SOUNDBYTE");
         var excerpt = askExcerpt(result);
         var isCaptionReceipt = String(result.evidenceType || "").indexOf("caption") >= 0 ||
           result.evidenceLevel === "TIMESTAMPED CAPTION RECEIPT" ||
@@ -2342,15 +2369,18 @@
             esc(displayUiText((result.trajectoryEvidence.evaluativeTerms || []).join(" + ").toUpperCase())) +
             ' // TARGET: ' +
             esc(displayUiText((result.trajectoryEvidence.targetTerms || []).join(" + ").toUpperCase())) +
-            '</b><i>NOT A HOST-LEVEL OPINION CLAIM</i></div>' : "") +
+          '</b><i>NOT A HOST-LEVEL OPINION CLAIM</i></div>' : "") +
           '<footer><span>' + esc(displayUiText(result.category)) + ' // ' +
-          timestamp(result.at || 0) + ' // SPEAKER ' + (result.speaker ? "VERIFIED" : "NOT DIARIZED") +
+          timestamp(result.at || 0) + ' // ' + (result.kind === "character-performance" ?
+            "TIMESTAMP-VALIDATED CURATED PERFORMANCE CANDIDATE // SPEAKER NOT DIARIZED" :
+            (result.speakerCertification === true && result.speaker ?
+              "SPEAKER VERIFIED" : "SPEAKER NOT DIARIZED")) +
           '</span><button data-ask-source="' + esc(result.source) + '" data-id="' + esc(result.sourceId) +
           '" data-time="' + Number(result.at || 0) + '">SHOW ME →</button>' +
           bagButton(Object.assign({}, result, { excerpt: excerpt }), "BAG IT") +
           '</footer></article>';
       }).join("") : '<div class="ask-no-match"><b>' + noMatchHeadline + '</b><p>' + noMatchBody + '</p>' +
-        (analysis.suggestions || []).map(function (suggestion) {
+        (isSurfaceHandoff ? [] : analysis.suggestions || []).map(function (suggestion) {
           return '<button data-ask-suggestion="' + esc(suggestion) + '">' +
             esc(displayUiText(suggestion)) + '</button>';
         }).join("") + '</div>');
@@ -2545,7 +2575,7 @@
   function renderTimeMachine() {
     var machines = showcaseCall("getTimeMachines", fallbackTimeMachines);
     if (!Array.isArray(machines)) machines = machines.items || machines.timelines || [];
-    if (!machines.length) return '<p class="memory-empty">THE TIME MACHINE NEEDS MORE VERIFIED EVENTS.</p>';
+    if (!machines.length) return '<p class="memory-empty">THE TIME MACHINE NEEDS MORE TIMESTAMPED EVENTS.</p>';
     var selected = machines.filter(function (machine) {
       return (machine.name || machine.entity || machine.title || machine.subject) === state.memoryEntity;
     })[0] || machines[0];
@@ -2556,8 +2586,8 @@
       return '<button class="' + (name === state.memoryEntity ? "on" : "") + '" data-memory-entity="' + esc(name) +
         '">' + esc(name) + '</button>';
     }).join("") + '</div><div class="time-machine"><div class="time-intro"><span>TAKE TIME MACHINE</span><h3>' +
-      esc(state.memoryEntity) + '</h3><p>Follow a machine-surfaced chronological receipt trail. These stops suggest where a take may deserve review; they do not prove a host changed their final opinion.</p><b>' +
-      events.length + ' TIMESTAMP-VERIFIED STOPS // TAKE INFERENCE</b></div><div class="time-track">' + events.slice(0, 10).map(function (event) {
+      esc(state.memoryEntity) + '</h3><p>Follow a chronological receipt trail. It suggests review points, not a host-opinion change.</p><b>' +
+      events.length + ' TIMESTAMPED STOPS // TAKE INFERENCE</b></div><div class="time-track">' + events.slice(0, 10).map(function (event) {
         return '<article><i></i><div><span>' + esc(event.date ? shortDate(event.date) : "DATE IN SOURCE") + ' // ' +
           esc(event.category || "RECEIPT") + '</span><h4>' + esc(event.title || state.memoryEntity) + '</h4><p>“' +
           esc(displayQuote(event.excerpt || event.quote || "")) + '”</p>' + evidenceButton(event, "ENTER THIS MOMENT") +
@@ -2568,7 +2598,7 @@
   function renderBitAncestry() {
     var lineages = showcaseCall("getBitLineages", fallbackBitLineages);
     if (!Array.isArray(lineages)) lineages = lineages.items || lineages.bits || [];
-    if (!lineages.length) return '<p class="memory-empty">NO RECURRING BIT HAS ENOUGH VERIFIED SIGHTINGS YET.</p>';
+    if (!lineages.length) return '<p class="memory-empty">NO RECURRING BIT HAS ENOUGH CURATED INDEXED SIGHTINGS YET.</p>';
     var selected = lineages[0];
     var events = (selected.events || selected.performances || selected.receipts || selected.sightings || []).map(enrichEvidence);
     return '<div class="bit-intro"><span>BIT ANCESTRY // EARLIEST INDEXED TO LATEST SIGHTING</span><h3>' +
@@ -2599,7 +2629,7 @@
         roomBreaks: entry.roomBreaks || (entry.dimensions && entry.dimensions.roomBreak),
       });
     });
-    return '<div class="chemistry-head"><span>RIFF VELOCITY IS NOT A PROFANITY COUNTER</span><p>Escalation, room-break signals, callbacks, character sightings, and the speed at which one remark infects the whole conversation.</p></div><div class="chemistry-grid">' +
+    return '<div class="chemistry-head"><span>RIFF VELOCITY IS NOT A PROFANITY COUNTER</span><p>Escalation, room breaks, callbacks, character sightings, and how fast one remark infects the room.</p></div><div class="chemistry-grid">' +
       entries.slice(0, 8).map(function (entry, index) {
         var peak = entry.peak || {};
         return '<article><div><b>#' + String(index + 1).padStart(2, "0") + '</b><i>' +
@@ -2623,7 +2653,7 @@
     var prosecution = (court.prosecution || court.negative || []).map(enrichEvidence);
     var defense = (court.defense || court.positive || []).map(enrichEvidence);
     return '<div class="court-title"><span>MACHINE-SURFACED ARGUMENT BOARD // VERDICT OPEN</span><h3>' +
-      esc(court.title || court.caseName || "THE PEOPLE VS. THE FRANCHISE") + '</h3><p>These category signals have not passed strict whole-work opinion review. The board keeps contradictory candidates together so an editor or creator can inspect both sides; it does not declare a host verdict.</p></div><div class="court-grid"><section><header>PROSECUTION CANDIDATES</header>' +
+      esc(court.title || court.caseName || "THE PEOPLE VS. THE FRANCHISE") + '</h3><p>These signals have not passed whole-work review. Contradictory receipts stay together; no host verdict is declared.</p></div><div class="court-grid"><section><header>PROSECUTION CANDIDATES</header>' +
       prosecution.slice(0, 3).map(memoryReceipt).join("") + '</section><div class="court-vs">VS</div><section><header>THE DEFENSE</header>' +
       defense.slice(0, 3).map(memoryReceipt).join("") + '</section></div>';
   }
@@ -2749,7 +2779,7 @@
         summary.receipts.slice(0, 2).map(memoryReceipt).join("") + '</div></section>';
     };
     return '<div class="battle-title"><span>TAKE BATTLE // THE INDEXED ARCHIVE ENTERS THE RING</span><h3>' +
-      esc(result.winner) + '</h3><p>This is an archive scoreboard, not a claim about the hosts’ final opinion. It compares the categories and intensity of the receipts that survived the current 39-tape distill.</p><button data-copy-battle>STEAL THE SCORECARD →</button></div><div class="battle-ring">' +
+      esc(result.winner) + '</h3><p>An archive scoreboard, not a host-opinion claim. It compares surviving 39-tape receipt signals.</p><button data-copy-battle>STEAL THE SCORECARD →</button></div><div class="battle-ring">' +
       contender(left, "left") + '<div class="battle-score"><span>ARCHIVE EDGE</span><b>' +
       result.leftPoints + '<i>—</i>' + result.rightPoints + '</b><ol>' +
       result.metrics.map(function (metric) {
@@ -2821,7 +2851,10 @@
 
   function loreReceiptItem(receipt) {
     if (!receipt) return null;
-    return {
+    var kind = receipt.receiptKind || receipt.kind || "lore-receipt";
+    var contextOnly = kind === "creator-context";
+    var performance = /character-performance|candidate-performance/.test(kind);
+    return Object.assign({}, receipt, {
       id: receipt.sourceId,
       sourceId: receipt.sourceId,
       source: receipt.lane === "commentary" ? "commentary" : "livestream",
@@ -2829,10 +2862,17 @@
       t: Number(receipt.t || 0),
       end: Number(receipt.end || 0),
       title: receipt.sourceTitle || receipt.label || "WWAM SOURCE",
-      category: receipt.label || receipt.kind || "LORE RECEIPT",
+      category: contextOnly ? "CREATOR CONTEXT // NOT PERFORMANCE" :
+        receipt.label || kind.toUpperCase(),
       excerpt: receipt.quote || "",
       date: receipt.date,
-    };
+      evidenceLevel: receipt.evidenceLevel || (contextOnly ? "CONTEXT ONLY" :
+        performance ? "curated-candidate" : ""),
+      receiptKind: kind,
+      type: receipt.type || kind,
+      speakerStatus: receipt.speakerStatus || "not-diarized",
+      authenticatedEditorVerified: receipt.authenticatedEditorVerified === true,
+    });
   }
 
   function loreEntries() {
@@ -2870,6 +2910,7 @@
     }).filter(Boolean).slice(0, 5);
     var metricEntries = Object.entries(entry.metrics || {}).slice(0, 5);
     var first = entry.archiveFirst;
+    var firstItem = first && loreReceiptItem(loreEngine.getReceipt(first.receiptId));
     document.getElementById("loreDossier").innerHTML =
       '<div class="lore-dossier-top"><div><span>' + esc(entry.kicker || loreKindLabel(entry.kind)) +
       '</span><b>' + esc(loreKindLabel(entry.kind)) + ' // ' + esc(entry.status || "INDEXED") +
@@ -2884,28 +2925,14 @@
       '<div class="lore-basis"><span>WHY THIS IS ALLOWED IN THE GUIDE</span><p>' +
       esc(entry.evidenceBasis || "This entry resolves to indexed source evidence.") + '</p></div>' +
       (first ? '<article class="archive-first"><div><span>' +
-        esc(entry.kind === "character" ? "EARLIEST VERIFIED CURRENT-SET RECEIPT" :
+        esc(entry.kind === "character" ? "EARLIEST TIMESTAMP-VALIDATED CURATED PERFORMANCE RECEIPT" :
           ((entry.originLanguage && entry.originLanguage.label) || "EARLIEST IN INDEXED ARCHIVE")) +
-        '</span><b>NOT A TRUE-ORIGIN CLAIM</b></div><h4>' + esc(first.sourceTitle) +
+        '</span><b>' + esc(first.date) + ' // NOT TRUE ORIGIN</b></div><h4>' + esc(first.sourceTitle) +
         '</h4><p>“' + esc(displayQuote(first.quote)) + '”</p><div>' +
-        evidenceButton(loreReceiptItem({
-          sourceId: first.sourceId,
-          lane: itemById[first.sourceId] ? "commentary" : "livestream",
-          t: first.t,
-          sourceTitle: first.sourceTitle,
-          label: "EARLIEST INDEXED RECEIPT",
-          quote: first.quote,
-        }), "OPEN ARCHIVE-FIRST RECEIPT") +
-        bagButton(loreReceiptItem({
-          sourceId: first.sourceId,
-          lane: itemById[first.sourceId] ? "commentary" : "livestream",
-          t: first.t,
-          sourceTitle: first.sourceTitle,
-          label: "EARLIEST INDEXED RECEIPT",
-          quote: first.quote,
-        }), "BAG IT") + '</div><small>' +
+        evidenceButton(firstItem, "OPEN ARCHIVE-FIRST RECEIPT") +
+        bagButton(firstItem, "BAG IT") + '</div><small>' +
         esc(entry.kind === "character" ?
-          "This curated performance and creator-context set is narrower than Ask WWAM's machine-indexed character signals. Neither is proof of the bit's true origin." :
+          "Archive-first uses curated performance candidates only. Labeled context below does not prove origin." :
           ((entry.originLanguage && entry.originLanguage.disclaimer) || "Earliest indexed is not proof of first-ever.")) +
         '</small></article>' : "") +
       '<div class="lore-receipts"><div><span>PLAYABLE LORE RECEIPTS</span><b>' +
@@ -3081,7 +3108,7 @@
       '</h3><div><article><b>' + summary.score + '</b><span>POINTS</span></article><article><b>' +
       summary.accuracy + '%</b><span>ACCURACY</span></article><article><b>' + summary.correct +
       '/' + summary.total + '</b><span>SURVIVED</span></article><article><b>' + summary.bestStreak +
-      '</b><span>BEST STREAK</span></article></div><p>You were tested on indexed source metadata and bounded caption receipts. No round guessed a speaker or invented a quote.</p><footer><button data-trivia-export>DOWNLOAD SESSION RECEIPTS</button><button data-trivia-restart>PLAY ANOTHER TRIVIA RUN →</button></footer></div>';
+      '</b><span>BEST STREAK</span></article></div><p>Indexed metadata and bounded captions only—no guessed speakers or quotes.</p><footer><button data-trivia-export>DOWNLOAD SESSION RECEIPTS</button><button data-trivia-restart>PLAY ANOTHER TRIVIA RUN →</button></footer></div>';
   }
 
   function bindTrivia() {
@@ -3826,7 +3853,7 @@
     };
     return '<div class="canon-lane-head"><div><span>STRUCTURAL SOURCE AUDIT</span><h3>' +
       trustEngine.metrics.healthySources + ' OF ' + trustEngine.metrics.sources +
-      ' SOURCES ARE ARCHIVE-READY.</h3></div><div class="freshness-summary"><p>Structurally invalid or source-ID-mismatched URLs: 0. Invalid indexed timestamps: 0. Limited sources stay visible instead of receiving counterfeit analysis.</p>' +
+      ' SOURCES ARE ARCHIVE-READY.</h3></div><div class="freshness-summary"><p>Bad or source-mismatched URLs: 0. Invalid times: 0. Limited sources stay visible, never counterfeit.</p>' +
       '<dl class="freshness-ledger ' + esc(freshness.status.toLowerCase().replace(/\s+/g, "-")) +
       '"><div><dt>INDEX SNAPSHOT</dt><dd>' + esc(shortDate(freshness.snapshotDate)) +
       '</dd></div><div><dt>NEWEST SOURCE</dt><dd>' + esc(shortDate(freshness.latestSourceDate)) +
@@ -3843,7 +3870,7 @@
   function renderReviewQueue() {
     var queue = trustEngine.getReviewQueue({ limit: 16 });
     return '<div class="canon-lane-head"><div><span>THE MACHINE MAY SURFACE // ONLY A HUMAN MAY CERTIFY</span><h3>' +
-      queue.length + ' OF ' + trustEngine.metrics.reviewCandidates + ' PRIORITY REVIEWS.</h3></div><p>Every packet includes its evidence, reviewer gate, and a deterministic dry-run dependency ripple.</p></div>' +
+      queue.length + ' OF ' + trustEngine.metrics.reviewCandidates + ' PRIORITY REVIEWS.</h3></div><p>Each packet carries evidence, its review gate, and a dry-run ripple.</p></div>' +
       '<div class="review-queue">' + queue.map(function (item, index) {
         var evidence = item.evidence && item.evidence[0];
         return '<article><header><b>#' + String(index + 1).padStart(2, "0") + ' // ' +
@@ -3859,8 +3886,8 @@
     var grounded = trustEngine.characterAudits.grounded || [];
     var locked = trustEngine.characterAudits.locked || [];
     return '<div class="canon-lane-head"><div><span>PERSONA MENTION ≠ CHARACTER PERFORMANCE</span><h3>' +
-      trustEngine.metrics.verifiedCuratedPerformances + ' CURATED PERFORMANCES. ' +
-      trustEngine.metrics.ordinaryCharacterMentionsQuarantined + ' ORDINARY MENTIONS QUARANTINED.</h3></div><p>Character text parody may be generated with a label. Character audio may not. Individual clip speakers remain unverified unless a human diarizes them.</p></div>' +
+      trustEngine.metrics.timestampValidatedCuratedPerformances + ' CURATED CANDIDATES. ' +
+      trustEngine.metrics.ordinaryCharacterMentionsQuarantined + ' ORDINARY MENTIONS QUARANTINED.</h3></div><p>Labeled character-text parody is allowed; audio is not. Clip speakers remain undiarized.</p></div>' +
       '<div class="firewall-grid">' + grounded.map(function (character) {
         var first = character.soundbytes && character.soundbytes[0];
         return '<article><header><span>GROUNDED CHARACTER</span><b>' +
@@ -3868,7 +3895,7 @@
           esc(character.name) + '</h3><p>Owner-mapped performer: <b>' + esc(character.performedBy || "UNSET") +
           '</b>. Exact clips are not speaker-diarized.</p><ul><li class="yes">LABELED TEXT PARODY ALLOWED</li>' +
           '<li class="no">GENERATED CHARACTER AUDIO BLOCKED</li><li class="no">UNVERIFIED SPEAKER CREDIT BLOCKED</li></ul>' +
-          '<div><b>' + character.verifiedPerformanceIds.length + '</b><span>VERIFIED PERFORMANCE RECEIPTS</span><b>' +
+          '<div><b>' + character.timestampValidatedPerformanceIds.length + '</b><span>TIMESTAMP-VALIDATED CURATED PERFORMANCE CANDIDATES</span><b>' +
           character.ordinaryMentionReceiptIds.length + '</b><span>MENTIONS KEPT OUT</span></div>' +
           (first ? canonEvidenceButton(first, "PLAY A CURATED RECEIPT") : "") + '</article>';
       }).join("") + locked.map(function (character) {
@@ -3885,7 +3912,7 @@
       return b.projectedOrAmbiguousReceiptIds.length - a.projectedOrAmbiguousReceiptIds.length;
     }).slice(0, 8);
     var courts = trustEngine.courtAudits.slice(0, 6);
-    return '<div class="canon-lane-head warning"><div><span>DISCOVERY CANDIDATES // NOT CREATOR-CERTIFIED CANON</span><h3>0 TAKE TIMELINES AND 0 COURTS CURRENTLY PASS THE STRICT CANON GATE.</h3></div><p>The public Memory OS now describes these as chronological receipt trails and machine-surfaced argument boards. It does not claim a host changed their mind or issue a verdict.</p></div>' +
+    return '<div class="canon-lane-head warning"><div><span>DISCOVERY CANDIDATES // NOT CREATOR-CERTIFIED CANON</span><h3>0 TAKE TIMELINES AND 0 COURTS CURRENTLY PASS THE STRICT CANON GATE.</h3></div><p>Receipt trails and machine-surfaced argument boards—not host-change claims or verdicts.</p></div>' +
       '<div class="claim-audit"><section><header><span>TAKE TIMELINE AUDIT</span><b>' +
       trustEngine.metrics.timelines + ' REVIEWED</b></header>' + timelines.map(function (timeline) {
         return '<article><div><h4>' + esc(timeline.subject) + '</h4><b>' +
@@ -3902,7 +3929,7 @@
   }
 
   function contributionPreview(packet) {
-    if (!packet) return '<div class="contribution-empty"><b>NO PACKET YET.</b><span>Submit a source and timestamp. The desk will package a proposal, not silently rewrite canon.</span></div>';
+    if (!packet) return '<div class="contribution-empty"><b>NO PACKET YET.</b><span>Submit a source and time; the desk proposes, never rewrites canon.</span></div>';
     return '<article class="contribution-preview"><header><span>' + esc(packet.schema) +
       '</span><b>' + esc(packet.status) + '</b></header><h3>' + esc(packet.kind.replace(/-/g, " ").toUpperCase()) +
       '</h3><dl><div><dt>TARGET</dt><dd>' + esc(packet.target.type + " // " + packet.target.id) +
@@ -3916,7 +3943,7 @@
     var missing = trustEngine.contributionPackets.filter(function (packet) {
       return packet.kind === "transcript-or-human-notes";
     });
-    return '<div class="canon-lane-head"><div><span>COMMUNITY MEMORY // PROPOSE, NEVER SELF-CERTIFY</span><h3>HELP THE ARCHIVE REMEMBER WHAT THE MACHINE CANNOT.</h3></div><p>A viewer can point to a source, timestamp, and context. The packet remains unreviewed until an editor, owner, or creator makes the required decision.</p></div>' +
+    return '<div class="canon-lane-head"><div><span>COMMUNITY MEMORY // PROPOSE, NEVER SELF-CERTIFY</span><h3>HELP THE ARCHIVE REMEMBER WHAT THE MACHINE CANNOT.</h3></div><p>Viewers propose a source, time, and context. It stays unreviewed until a human decides.</p></div>' +
       '<div class="contribution-grid"><form id="contributionForm"><label><span>WHAT ARE YOU ADDING?</span><select id="contributionKind"><option value="new-receipt">NEW RECEIPT</option><option value="context-correction">CONTEXT CORRECTION</option><option value="transcript-or-human-notes">TRANSCRIPT / HUMAN NOTES</option><option value="performer-verification">PERFORMER VERIFICATION</option></select></label>' +
       '<label><span>TARGET ID OR NAME</span><input id="contributionTarget" required placeholder="character:marky-mark or Halloween"></label>' +
       '<label><span>YOUTUBE VIDEO ID</span><input id="contributionSource" required maxlength="20" placeholder="5HfhwoDSQ0E"></label>' +
@@ -4031,7 +4058,7 @@
 
     return '<div class="canon-lane-head"><div><span>LOCAL REVIEW ROUTING // CALLER-ATTESTED, CORPUS-BOUND, ZERO SELF-CERTIFICATION</span>' +
       '<h3>' + metrics.candidates + ' FINDINGS. ' + metrics.decisions +
-      ' CALLER-ATTESTED DECISIONS. 0 CANON MUTATIONS.</h3></div><p>Identity is not authenticated in this local prototype. Decisions remain local routing records; incompatible saved ledgers are quarantined for export instead of silently deleted.</p></div>' +
+      ' CALLER-ATTESTED DECISIONS. 0 CANON MUTATIONS.</h3></div><p>Identity is not authenticated. Decisions stay local; incompatible ledgers are quarantined for export.</p></div>' +
       '<div class="review-session-metrics">' + [
         [metrics.unreviewed, "UNREVIEWED"],
         [metrics.needsContext, "NEEDS CONTEXT"],

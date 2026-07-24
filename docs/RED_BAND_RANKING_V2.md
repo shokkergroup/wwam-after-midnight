@@ -19,7 +19,7 @@ The engine percentile-normalizes six independent archive signals:
 | Category intensity | 25% | The existing moment category and its existing heat/score |
 | Room break | 16% | `THE ROOM BREAKS`, `BREAKDOWN`, laughter, “lost it,” and equivalent caption markers |
 | Language voltage | 16% | Profanity, kill language, gross-out language, and nuclear-take language already present in the excerpt/category |
-| Lore/callback value | 17% | Grounded character soundbytes, recurring names, and lore/bit categories |
+| Lore/callback value | 17% | Timestamp-validated human-curated character candidates, recurring names, and lore/bit categories |
 | Preselected-candidate input | 16% | Membership in the project’s UP IN YA or character-performance candidate sets; the compatibility component key remains `humanCuration` |
 | Source diversity | 10% | An inverse-density signal that rewards strong receipts from less-saturated tapes, lanes, and franchises |
 

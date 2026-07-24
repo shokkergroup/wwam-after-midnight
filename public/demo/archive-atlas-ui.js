@@ -445,7 +445,8 @@
         '<h3>TEN BLIND SPOTS BECAME CAPTION-BACKED MAPS.</h3></div><p>' +
         escapeHtml(formatNumber(meta.wordsAudited || 0)) + " words across " +
         escapeHtml(meta.hours || 0) + " hours. " +
-        "The 42 short machine candidates remain outside canon and Red Band until playback review.</p></header>" +
+        "The 42 short machine candidates remain quarantined. Playback review may establish context; " +
+        "Canon, Red Band, or any other product lane requires its own policy-compliant decision by an authenticated, authorized reviewer.</p></header>" +
         '<div class="archive-batch-metrics"><div><b>' + Number(meta.streams || 0) +
         '</b><span>SOURCES DISTILLED</span></div><div><b>' +
         escapeHtml(formatNumber(meta.captionEvents || 0)) +

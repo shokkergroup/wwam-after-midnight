@@ -15,7 +15,7 @@ The Memory OS turns every indexed upload into:
 - creator tools that can turn old material into new programming;
 - a channel-specific knowledge pack that transfers the system without flattening the channel’s identity.
 
-The defensible product is not “AI made a website.” It is a source-backed memory graph plus human editorial judgment. Every new upload adds evidence, relationships, and known vocabulary. A copycat can generate another summary; it cannot instantly recreate years of verified lore.
+The defensible product is not “AI made a website.” It is a source-backed memory graph plus human editorial judgment. Every new upload adds evidence, relationships, and known vocabulary. A copycat can generate another summary; it cannot instantly recreate years of source-linked, indexed lore and corrections.
 
 ## Non-negotiable rules
 
@@ -213,9 +213,12 @@ Not allowed:
 - creator-canon status;
 - an unlabeled generated character answer.
 
-### 2. Editor verified
+### 2. Timestamp-validated human-curated candidate
 
-An editor checked the source at the timestamp and confirmed the excerpt and immediate context.
+This is the current WWAM character tier. A human selected a candidate whose
+source and second pass structural validation. It preserves provenance without
+claiming authenticated surrounding-context review or clip-level speaker
+identity.
 
 Additional allowed uses:
 
@@ -224,7 +227,17 @@ Additional allowed uses:
 - editorial collections;
 - character-pattern training evidence.
 
-### 3. Creator certified
+The current snapshot contains 25 such character-performance candidates, 0
+authenticated editor-verified decisions, and no diarized clip speakers.
+
+### 3. Editor verified — future production threshold
+
+An authenticated editor checked the source at the timestamp, reviewed the
+immediate context, and recorded the decision. Structural timestamp validation
+or human curation alone must never populate this tier. Editor verification
+still does not identify a speaker in undiarized audio.
+
+### 4. Creator certified
 
 The channel owner confirms a speaker, recurring bit, intended meaning, lore connection, or canonical label.
 
@@ -276,6 +289,14 @@ none of WWAM’s vocabulary. That fixture is not VRL data and is never loaded by
 the WWAM demo. See `docs/CHANNEL_PACK_CONTRACT.md` for the adapter shape,
 failure modes, and browser API.
 
+V5.5 adds `tape-companion` and `creator-taste-calibration` to WWAM’s compiled
+capability set. The declaration says those runtime contracts are enabled; it
+does not prove their outputs or authorize an operator. The current WWAM and
+generic synthetic suites cover determinism, tamper, restore, and protected
+state. Separate neutral racing fixtures demonstrate adapter-driven vocabulary
+without WWAM leakage; they do not rerun every generic invariant on neutral
+data.
+
 ## Showcase derivations
 
 ### Memory Graph
@@ -306,14 +327,19 @@ Forbidden language without certification:
 
 ### Bit Ancestry
 
-Tracks the earliest known receipt, later callbacks, sources, mutations, and verified performers for a recurring bit.
+Tracks the earliest known receipt, later callbacks, sources, mutations, and
+timestamp-validated human-curated performance candidates for a recurring bit.
 
-The ancestry only becomes strong when it has:
+The current prototype marks the ancestry strong only when it has:
 
-1. at least three verified performance receipts;
+1. at least three timestamp-validated human-curated performance candidates;
 2. at least two separate sources;
 3. a human-confirmed bit label;
 4. a checked earliest-known receipt.
+
+A future production policy may additionally require authenticated
+editor-verified decisions, but that threshold is distinct from the current
+candidate tier.
 
 ### Riff Chemistry
 
@@ -345,11 +371,68 @@ Builds a playable path across receipts. Useful modes:
 - instant maximum intensity;
 - chronological lore path;
 - one topic or franchise;
-- one verified character;
+- one owner-mapped character with sufficient timestamp-validated curated
+  candidates;
 - fresh livestreams only;
 - a creator-defined runtime.
 
 The route must diversify sources and return exact timestamps.
+
+### Synchronized Tape Companion
+
+Turns official playback into a second-screen memory route without copying the
+media. The portable input is a channel-scoped set of sources, receipts, heat
+windows, entities, relationships, annotations, and channel-native labels.
+
+Required behavior:
+
+- autoplay stays off and playback remains on the official source;
+- the playback UI exposes event text only through snapshot-safe and
+  crossed-event APIs after the exact timestamp has been crossed;
+- a future marker may expose time remaining, but not its label, excerpt, or
+  annotations;
+- compatible-event fusion preserves every exact member and timestamp;
+- heat is labeled deterministic navigation, never audience sentiment;
+- reverse, stationary, or large seeks replace the snapshot instead of firing
+  a parade of skipped moments;
+- companion-limited sources remain honest source-only records;
+- manual sync and official timestamp links remain usable when the player API
+  is unavailable; and
+- shared state binds channel plus the core archive/source ledgers and playback
+  second.
+
+A checksum proves deterministic consistency only. It does not prove identity,
+authorship, approval, or source availability.
+
+The public `compileTimeline` audit API returns the complete compiled timeline.
+Playback code must not use it as a live feed. Optional display labels, excerpts,
+and annotations are not part of the companion's core share fingerprint.
+
+### Creator Taste Calibration
+
+Learns a bounded local ordering from 10 priority-blind, exact-ledger learning
+matchups. Channel adapters supply labels and feature dimensions; the engine
+adds 2 side-reversed non-learning consistency checks, sparse-weight shrinkage,
+artifact binding, and fail-closed restore.
+
+Required behavior:
+
+- the operator is labeled unauthenticated;
+- machine priority and baseline rank remain hidden during a choice;
+- `NEITHER` and `NEEDS_CONTEXT` record local workflow decisions but add zero
+  preference weight and do not route work to an external review system;
+- too few non-repeat A/B choices produce no profile;
+- a visible maximum risk is an input gate, never a learned override;
+- every preference modifier is bounded and the untouched baseline remains
+  recoverable;
+- source, receipt, timestamp, excerpt, evidence, risk, HOLD, approval, canon,
+  speaker, rights, and creator-approval state are immutable; and
+- export/restore binds channel, ChannelPack, candidate snapshot, full and
+  eligible inventory, goal, risk ceiling, round blueprint, and exact decision
+  ledger.
+
+Preference can help order an editorial review queue. It cannot become proof,
+canon, identity authentication, rights clearance, or creator approval.
 
 ### WWAM Court
 
@@ -385,17 +468,19 @@ The system’s honesty dashboard. Queues include:
 
 ### Two deliberately separate outputs
 
-**The real performance**
+**The real performance candidate**
 
 - plays source audio only;
-- includes video, timestamp, performer status, and certification level;
+- includes video, timestamp, performer status, curation tier, and any separate
+  certification level;
 - never uses generated or cloned host audio.
 
 **The parody reconstruction**
 
 - returns new text;
 - is visibly labeled `PARODY RECONSTRUCTION — NOT AN ACTUAL QUOTE`;
-- cites at least three verified performance receipts;
+- cites at least three timestamp-validated human-curated performance candidates
+  in the current prototype;
 - explains the performance ingredients it used;
 - becomes unavailable when the dossier is below threshold.
 
@@ -406,7 +491,9 @@ The system’s honesty dashboard. Queues include:
   "characterId": "character:loomis",
   "performer": "J",
   "performerStatus": "owner-confirmed",
-  "verifiedReceiptIds": ["a", "b", "c"],
+  "curatedCandidateReceiptIds": ["a", "b", "c"],
+  "authenticatedEditorVerifiedReceiptIds": [],
+  "clipSpeakersDiarized": false,
   "performanceShape": [
     "urgent public-safety warning",
     "absolute certainty",
@@ -416,7 +503,12 @@ The system’s honesty dashboard. Queues include:
 }
 ```
 
-Do not “learn a voice” from a fictional description. Learn repeatable writing patterns from verified performances. A generated answer should cite those patterns and receipts. This produces a better joke and a more defensible product.
+Do not “learn a voice” from a fictional description. Learn repeatable writing
+patterns from timestamp-validated human-curated performance candidates. A
+generated answer should cite those patterns and receipts. The current 25
+candidates are not authenticated editor decisions, and their clip speakers are
+not diarized. A future production `editor verified` tier must require a separate
+authenticated context-review decision.
 
 ## Update workflow
 
@@ -452,9 +544,12 @@ Do not “learn a voice” from a fictional description. Learn repeatable writin
 ### 5. Review
 
 - Prioritize missing captions and high-impact moments.
-- Check source context.
+- Use source playback to establish context.
 - Confirm speakers only when evidence permits.
-- Promote machine findings to editor verified.
+- Never treat playback review alone as editor verification or cross-lane
+  promotion.
+- Record a separate policy-compliant decision for every destination lane
+  through an authenticated, authorized editor or creator.
 - Request creator certification for lore and character identity.
 
 ### 6. Publish
@@ -470,6 +565,12 @@ Do not “learn a voice” from a fictional description. Learn repeatable writin
 - Add confirmed aliases and bit names to channel DNA.
 - Add failed searches to the regression suite.
 - Record corrections and false-positive patterns.
+- Record synchronization failures such as future-text leaks, stale source
+  bindings, and unsafe seek behavior.
+- Keep local preference artifacts separate from certified memory, and bind
+  them to the exact pack, inventory, goal, and decision blueprint they used.
+- Learn taste only from explicit eligible A/B choices; do not reinterpret
+  abstentions or context requests as hidden preference.
 - Version scoring changes.
 - Never tune a metric silently after publication.
 
@@ -481,6 +582,8 @@ Each YouTube Wiki should retain:
 knowledge/
 ├── UNIVERSAL_SCHEMA.md
 ├── EDITORIAL_POLICY.md
+├── ARTIFACT_BINDINGS.md
+├── PREFERENCE_POLICY.md
 ├── EVALUATION_QUERIES.json
 ├── METHOD_CHANGELOG.md
 ├── FAILURE_PATTERNS.md
@@ -488,16 +591,23 @@ knowledge/
     ├── wwam/
     │   ├── channel-dna.js
     │   ├── aliases.json
+    │   ├── companion-labels.json
+    │   ├── taste-dimensions.json
     │   ├── certified-lore.json
     │   └── corrections.json
     └── vrl/
         ├── channel-dna.js
         ├── driver-identities.json
         ├── season-rules.json
+        ├── companion-labels.json
+        ├── taste-dimensions.json
         └── corrections.json
 ```
 
-This is the compounding memory. Prompts are replaceable; verified data, corrections, vocabulary, and evaluation history are not.
+This tree is the portable project convention, not a claim that every file
+already exists in every prototype. It keeps preference policy and share-state
+bindings beside—but separate from—certified memory. Prompts are replaceable;
+verified data, corrections, vocabulary, and evaluation history are not.
 
 ## Anti-AI-slop criteria
 
@@ -564,12 +674,40 @@ Score:
 
 ### Character Studio
 
-- stays locked below the verified-receipt threshold;
+- stays locked below the timestamp-validated curated-candidate threshold;
 - labels generated text as parody;
-- cites at least three verified performances;
+- cites at least three timestamp-validated human-curated candidates;
 - never labels generated dialogue as a quote;
 - never produces cloned host audio;
 - links every real soundbyte to a source.
+
+### Synchronization
+
+- The playback UI's snapshot-safe and crossed-event path keeps future event
+  text unavailable before the indexed second is crossed; the full timeline
+  remains an explicit audit API.
+- Compatible fusion never drops exact receipt IDs or timestamps.
+- Reverse and large seeks produce replacement snapshots, not skipped-event
+  notifications.
+- Share restore rejects foreign channels, changed channel/archive bindings, stale source
+  fingerprints, unknown sources, out-of-range seconds, and tampering.
+- A blocked player API leaves a working manual rail and official timestamp
+  fallback.
+- Neutral fixtures contain no source-channel vocabulary leakage; this check is
+  narrower than the generic determinism/restore/tamper suite.
+
+### Creator taste calibration
+
+- Identical bound inputs produce the same matchup blueprint and shortlist.
+- Repeat checks reverse sides without changing candidate identity.
+- Abstention and context choices add zero preference weight.
+- Insufficient A/B evidence fails closed.
+- Every modifier stays inside its declared bound.
+- A computed protected-projection audit remains at zero and artifact creation
+  fails closed if any protected mutation is detected.
+- Restore rejects foreign channels, packs, candidate snapshots, inventories,
+  goals, risk gates, blueprints, ledgers, and tampering.
+- Neutral fixtures retain their own labels and dimensions.
 
 ### Editorial quality
 
@@ -608,6 +746,10 @@ Channel-specific DNA:
 - WWAM Court;
 - Dr. Loomis, Dr. Challis, Slenderman, and Corey Feldman performance dossiers;
 - Fresh 10 and Popular 25 lanes.
+- companion labels for topics, heat, ranked candidates, editorial selections,
+  and recurring-character callbacks;
+- taste dimensions for signal/category, movie/topic, recurring entity, edit
+  runtime, and source lane.
 
 ### Vigilante Racing League
 
@@ -623,6 +765,10 @@ VRL DNA:
 - Announcer’s Curse, Great Carnac, Upside Down;
 - driver identity reconciliation;
 - excitement score and Hot 100 moments.
+- a race companion that can wake up lead changes, cautions, incidents, booth
+  calls, and driver-history connections as the official broadcast plays;
+- taste dimensions for finish type, track, driver story, booth intensity,
+  incident stakes, and proposed clip runtime.
 
 The engine is the same. The taxonomy, evidence extractors, and metrics change.
 
@@ -678,9 +824,53 @@ showcase.getControlRoom();
 
 Both Popular 25 and character data are optional. The engine still returns a complete, deterministic model and honest readiness states when they are absent.
 
+Create a portable synchronized companion from channel-shaped inputs:
+
+```js
+const companion = window.YouTubeWikiTapeCompanionEngine.create(
+  {
+    channelId,
+    snapshotDate,
+    sources,
+    receipts,
+    heatWindows,
+    rankedCandidates,
+    curation,
+    characters,
+    lore
+  },
+  {
+    labels: channelCompanionAdapter.labels,
+    archiveFingerprint: archiveFingerprint
+  }
+);
+
+companion.compileTimeline(sourceId);
+companion.snapshotAt(sourceId, playbackSecond);
+companion.crossedEvents(sourceId, previousSecond, playbackSecond);
+```
+
+Create a bounded local taste session from a compiled pack and an exact-ledger
+candidate inventory:
+
+```js
+const calibration = window.ShokkerCreatorTasteCalibration.create({
+  channelPack,
+  clipLab,
+  goal: "shorts-calibration",
+  maxRisk: "MEDIUM",
+  adapter: channelTasteAdapter
+});
+
+const session = calibration.start();
+const round = session.getCurrentRound();
+session.decide(round.id, "A");
+```
+
 ## Current implementation boundary
 
-`public/demo/showcase-engine.js` is intentionally a pure browser engine:
+`public/demo/showcase-engine.js`, `public/demo/tape-companion-engine.js`, and
+`public/demo/creator-taste-engine.js` are intentionally pure browser engines:
 
 - no network calls;
 - no clock reads;
@@ -691,3 +881,8 @@ Both Popular 25 and character data are optional. The engine still returns a comp
 - source IDs and timestamps retained in every derived artifact.
 
 It is a presentation-independent foundation. WWAM can render it as a horror evidence room; VRL can render the same contracts as a race-control archive.
+
+The current companion UI stores core archive/source-ledger-bound local state;
+optional display decorations are outside that binding. Calibration stores
+input-bound local state. Neither UI authenticates an operator, writes public
+canon, publishes media, or provides a server-side collaboration workflow.

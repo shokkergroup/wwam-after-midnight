@@ -1,8 +1,8 @@
 {
   "schema": "shokker.ask-truth-set/v1",
   "frozen": "2026-07-24",
-  "scope": "Release-gate questions for Ask WWAM, Archive Deep machine candidates, exact Memorability Candidate Index ranks, and Archive Atlas title-metadata discovery.",
-  "policy": "Expected source IDs, result kinds, abstentions, and context behavior must remain stable unless the evidence ledger or an explicitly reviewed expectation changes.",
+  "scope": "Release-gate questions for Ask WWAM Query Plan V1, Archive Deep machine candidates, exact Memorability Candidate Index ranks, and Archive Atlas title-metadata discovery.",
+  "policy": "Expected query controls, collection totals, source IDs, result kinds, abstentions, and context behavior must remain stable unless the evidence ledger or an explicitly reviewed expectation changes.",
   "cases": [
     {
       "id": "most-viewed-halloween-live",
@@ -235,6 +235,235 @@
         "kind": "character",
         "lane": "archive",
         "reviewStatus": "machine-candidate"
+      }
+    },
+    {
+      "id": "last-night-topic-map",
+      "surface": "ask",
+      "query": "What did they talk about last night?",
+      "expect": {
+        "intent": "topic",
+        "status": "supported",
+        "sourceId": "LV2rmwEA0w4",
+        "kind": "topic",
+        "selectionSourceId": "LV2rmwEA0w4",
+        "selectionMatchMode": "latest-indexed-livestream",
+        "queryPlanOutputShape": "single",
+        "relativeTime": "latest-indexed-stream",
+        "allResultsSameSource": true
+      }
+    },
+    {
+      "id": "yesterday-topic-map",
+      "surface": "ask",
+      "query": "What did they talk about yesterday?",
+      "expect": {
+        "intent": "topic",
+        "status": "supported",
+        "sourceId": "LV2rmwEA0w4",
+        "kind": "topic",
+        "selectionSourceId": "LV2rmwEA0w4",
+        "selectionMatchMode": "latest-indexed-livestream",
+        "queryPlanOutputShape": "single",
+        "relativeTime": "latest-indexed-stream",
+        "allResultsSameSource": true
+      }
+    },
+    {
+      "id": "halloween-commentary-source-count",
+      "surface": "ask",
+      "query": "How many Halloween commentaries are there?",
+      "expect": {
+        "status": "supported",
+        "sourceId": "6VXSBDZ-3WE",
+        "kind": "tape",
+        "queryPlanOutputShape": "source-count",
+        "collectionTotal": 13,
+        "collectionUnit": "commentaries",
+        "allResultsKind": "tape",
+        "answerIncludes": "13 unique indexed commentaries"
+      }
+    },
+    {
+      "id": "most-viewed-commentary-in-2018",
+      "surface": "ask",
+      "query": "What was the most viewed commentary in 2018?",
+      "expect": {
+        "intent": "ranking",
+        "status": "supported",
+        "sourceId": "Q6SN-Om1gIo",
+        "kind": "tape",
+        "requestedYear": 2018,
+        "views": 54551,
+        "queryPlanOutputShape": "source-ranking",
+        "collectionTotal": 8,
+        "allResultsDatePrefix": "2018"
+      }
+    },
+    {
+      "id": "newest-commentary-in-2020",
+      "surface": "ask",
+      "query": "What was the newest commentary in 2020?",
+      "expect": {
+        "status": "supported",
+        "sourceId": "qTQdWKcwn4A",
+        "kind": "tape",
+        "requestedYear": 2020,
+        "queryPlanOutputShape": "source-ranking",
+        "collectionTotal": 9,
+        "allResultsDatePrefix": "2020"
+      }
+    },
+    {
+      "id": "least-viewed-promoted-livestream",
+      "surface": "ask",
+      "query": "Which was the least viewed livestream?",
+      "expect": {
+        "intent": "ranking",
+        "status": "supported",
+        "sourceId": "LV2rmwEA0w4",
+        "kind": "livestream",
+        "views": 5067,
+        "direction": "ascending",
+        "queryPlanOutputShape": "source-ranking",
+        "answerIncludes": "least-viewed indexed livestream"
+      }
+    },
+    {
+      "id": "least-favorite-friday-negative",
+      "surface": "ask",
+      "query": "What is their least favorite Friday the 13th movie?",
+      "expect": {
+        "intent": "negative",
+        "status": "supported",
+        "sourceId": "G2m0effDrwI",
+        "kind": "moment",
+        "targetProximityRequired": true
+      }
+    },
+    {
+      "id": "roman-rz-halloween-two",
+      "surface": "ask",
+      "query": "Play the RZ Halloween II commentary",
+      "expect": {
+        "status": "supported",
+        "sourceId": "AzrcgoyE7C4",
+        "kind": "tape",
+        "answerIncludes": "Rob Zombie's Halloween II"
+      }
+    },
+    {
+      "id": "recurring-character-roster",
+      "surface": "ask",
+      "query": "What are their recurring characters?",
+      "expect": {
+        "status": "supported",
+        "resultCount": 4,
+        "kind": "character-performance",
+        "queryPlanOutputShape": "character-roster",
+        "collectionTotal": 4,
+        "rosterNames": [
+          "Dr. Loomis",
+          "Dr. Challis",
+          "Slenderman",
+          "Corey Feldman"
+        ],
+        "answerIncludes": "grounded recurring-character roster"
+      }
+    },
+    {
+      "id": "curated-loomis-performance-count",
+      "surface": "ask",
+      "query": "How many verified Dr. Loomis clips are there?",
+      "expect": {
+        "status": "supported",
+        "resultCount": 7,
+        "kind": "character-performance",
+        "queryPlanOutputShape": "character-soundbyte-count",
+        "collectionTotal": 7,
+        "collectionUnit": "curated performance candidates",
+        "allResultsKind": "character-performance",
+        "answerIncludes": "None is being presented as an authenticated editor-verification decision"
+      }
+    },
+    {
+      "id": "loomis-how-often-defaults-to-curated-performances",
+      "surface": "ask",
+      "query": "How often do they do Dr. Loomis?",
+      "expect": {
+        "status": "supported",
+        "resultCount": 7,
+        "kind": "character-performance",
+        "queryPlanOutputShape": "character-soundbyte-count",
+        "collectionTotal": 7,
+        "collectionUnit": "curated performance candidates",
+        "allResultsKind": "character-performance",
+        "answerIncludes": "timestamped human-curated Dr. Loomis performance candidates"
+      }
+    },
+    {
+      "id": "explicit-loomis-caption-mention-count",
+      "surface": "ask",
+      "query": "How many times do captions mention Dr. Loomis?",
+      "expect": {
+        "status": "supported",
+        "resultCount": 7,
+        "kind": "character",
+        "queryPlanOutputShape": "character-mention-count",
+        "collectionTotal": 696,
+        "collectionUnit": "caption mention matches",
+        "allResultsKind": "character",
+        "answerIncludes": "mention matches across 59 sources"
+      }
+    },
+    {
+      "id": "up-in-ya-top-five",
+      "surface": "ask",
+      "query": "Show me the top 5 WWAM Up In Ya soundbytes",
+      "expect": {
+        "intent": "comedy",
+        "status": "supported",
+        "resultCount": 5,
+        "sourceId": "4UokRLETypU",
+        "kind": "moment",
+        "at": 809,
+        "queryPlanOutputShape": "curated-soundbytes",
+        "collectionTotal": 25,
+        "resultRanks": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "id": "named-bit-previous-highlight",
+      "surface": "ask",
+      "query": "What happened before The Burp Defense?",
+      "expect": {
+        "status": "supported",
+        "sourceId": "BIbyzMlstmM",
+        "kind": "moment",
+        "at": 1090,
+        "selectionMode": "previous",
+        "selectionResolvedFrom": "named-result",
+        "answerIncludes": "previous indexed highlight"
+      }
+    },
+    {
+      "id": "global-deranged-surface-handoff",
+      "surface": "ask",
+      "query": "What is the most deranged thing they ever said?",
+      "expect": {
+        "intent": "surface-handoff",
+        "status": "surface-handoff",
+        "resultCount": 0,
+        "confidence": 100,
+        "queryPlanOutputShape": "surface-handoff",
+        "surfaceHandoffId": "memorability-candidate-index-v2.1",
+        "answerIncludes": "will not invent a separate #1"
       }
     },
     {

@@ -100,8 +100,10 @@ prove what words survived; it cannot prove which poster, prop, or tier was on
 screen.
 
 The 42 public moments are machine candidates, not creator votes, confirmed
-soundbytes, Red Band placements, or canonical “UP IN YA” selections. They need
-source playback review before promotion.
+soundbytes, Red Band placements, or canonical “UP IN YA” selections. Source
+playback review may establish context; it does not promote a candidate into any
+downstream product lane. Each lane requires its own policy-compliant decision
+by an authenticated, authorized reviewer.
 
 ## Public shape
 
@@ -235,9 +237,11 @@ FNV-1a fingerprint. Both pipelines retain byte-identical `--check` paths.
    Distill Next queue. Store the frozen original priority rank even though the
    remaining queue will rerank.
 4. Do not send the 42 machine moments into Red Band, UP IN YA, character voice,
-   or creator-facing exports until a playback reviewer promotes them. Restricted
-   sources stay excluded by construction.
+   or creator-facing exports on playback review alone. Playback may establish
+   context; each destination lane requires its own policy-compliant decision by
+   an authenticated, authorized reviewer. Restricted sources stay excluded by
+   construction.
 
 This sequence provides a real ten-source coverage gain first. Cross-product
-promotion remains a separate human-review step instead of silently turning
-automatic captions into canon.
+promotion remains a set of separately scoped, authenticated and authorized
+lane decisions instead of silently turning automatic captions into canon.

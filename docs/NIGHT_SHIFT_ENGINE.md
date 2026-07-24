@@ -108,7 +108,8 @@ archive callback.
 
 `lore`
 
-: Uses a playable, older receipt attached to a verified Lore Field Guide
+: Uses a playable, older receipt attached to an eligible, source-backed Lore
+  Field Guide
   `bit`, `topic`, or `motif`. Lore receipt kinds that are context-only,
   source-level, or awaiting human verification are excluded. The callback is
   explicitly labeled as an archive callback, not a true-origin claim.

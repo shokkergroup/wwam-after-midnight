@@ -102,7 +102,12 @@ test("Archive Deep lane counts, dossier adaptation, and restricted surfaces stay
     }
   }
 
-  assert.match(atlasUi, /42 short machine candidates remain outside canon and Red Band/);
+  assert.match(atlasUi, /42 short machine candidates remain quarantined/);
+  assert.match(atlasUi, /Playback review may establish context/);
+  assert.match(
+    atlasUi,
+    /requires its own policy-compliant decision by an authenticated, authorized reviewer/
+  );
   assert.match(app, /SOURCE-AUDIO FIREWALL \/\/ TOPIC NAVIGATION ONLY/);
   assert.match(app, /No public joke or character receipts are exposed from this source/);
   assert.match(app, /SPEAKER NOT DIARIZED \/\/ VERIFY AGAINST ORIGINAL/);

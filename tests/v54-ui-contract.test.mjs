@@ -83,8 +83,9 @@ test("Mike Mode has six coherent beats and opens Archive Atlas as live proof", (
   assert.match(app, /action\.kind === "archive"[\s\S]{0,240}loadArchiveAtlas\(\)/);
 });
 
-test("V5.4 release identity and headline proof remain synchronized", () => {
-  assert.equal(packageJson.version, "0.5.4");
+test("the current release identity preserves V5.4 headline proof", () => {
+  assert.equal(packageJson.version, "0.5.5");
+  assert.match(changelog, /## 0\.5\.5\b/);
   assert.match(changelog, /## 0\.5\.4\b/);
   assert.match(changelog, /472 cached feed records/);
   assert.match(changelog, /100 unique ranked receipts/);

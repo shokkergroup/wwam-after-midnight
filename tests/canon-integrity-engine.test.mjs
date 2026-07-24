@@ -290,7 +290,7 @@ test("current corpus passes canon integrity with deterministic internal-only war
   const first = window.WWAMCanonIntegrity.audit(input);
   const second = window.WWAMCanonIntegrity.audit(input);
 
-  assert.equal(window.WWAMCanonIntegrity.VERSION, "1.0.0");
+  assert.equal(window.WWAMCanonIntegrity.VERSION, "1.1.1");
   assert.equal(first.engine, "SHOKKER CANON INTEGRITY AUDIT");
   assert.equal(first.snapshotDate, "2026-07-23");
   assert.equal(first.ok, true);
@@ -301,7 +301,7 @@ test("current corpus passes canon integrity with deterministic internal-only war
   assert.equal(first.metrics.showcaseReceipts, 872);
   assert.equal(first.metrics.loreReceipts, 953);
   assert.equal(first.metrics.loreGraphNodes, 177);
-  assert.equal(first.metrics.loreGraphEdges, 821);
+  assert.equal(first.metrics.loreGraphEdges, 822);
   assert.equal(first.metrics.clipShorts, 560);
   assert.equal(first.metrics.clipSupercuts, 32);
   assert.equal(first.metrics.clipResurfacing, 21);
@@ -340,6 +340,147 @@ test("a compact valid fixture passes every hard contract", () => {
   assert.equal(report.summary.warnings, 0);
   assert.equal(report.violations.length, 0);
   report.checks.forEach((check) => assert.equal(check.status, "PASS"));
+});
+
+test("clip-level speaker credit binds to the exact receipt-certified speaker", () => {
+  const window = load();
+  const fixture = validFixture();
+  const characterReceipt = fixture.showcase.receipts[1];
+  const short = fixture.clip.shorts[0];
+  const campaign = fixture.campaigns[0];
+  const manifestClip = campaign.manifest.clips[0];
+
+  characterReceipt.performer = "Mike";
+  const mismatchedMapping = window.WWAMCanonIntegrity.audit(fixture);
+  assert.equal(mismatchedMapping.ok, false);
+  assert.ok(
+    mismatchedMapping.violations.some(
+      (violation) =>
+        violation.code === "SPEAKER_CLAIM_UNSUPPORTED" &&
+        violation.path === "showcase.receipts[1].performer"
+    )
+  );
+  characterReceipt.performer = "J";
+
+  Object.assign(short, {
+    receiptId: characterReceipt.id,
+    receiptAt: characterReceipt.t,
+    archivalExcerpt: characterReceipt.excerpt,
+    editWindow: { in: 18, out: 24 },
+    evidence: { evidenceLevel: "editor" },
+    provenance: { evidenceLevel: "editor" },
+    speaker: {
+      display: "J",
+      creditAllowed: true,
+      clipAttributionCertified: true,
+      basis: "Project-owner mapping plus a specific clip review."
+    }
+  });
+  campaign.releasePlan[0].proofReceiptId = characterReceipt.id;
+  campaign.proofLedger.receiptIds = [characterReceipt.id];
+  campaign.manifest.receiptIds = [characterReceipt.id];
+  Object.assign(manifestClip, {
+    receiptId: characterReceipt.id,
+    receiptAt: characterReceipt.t,
+    archivalExcerpt: characterReceipt.excerpt
+  });
+
+  const unauthenticated = window.WWAMCanonIntegrity.audit(fixture);
+  assert.equal(unauthenticated.ok, false);
+  assert.ok(
+    unauthenticated.violations.some(
+      (violation) => violation.code === "SPEAKER_CLAIM_UNSUPPORTED"
+    )
+  );
+
+  characterReceipt.authenticatedEditorVerified = true;
+  const contextVerifiedOnly = window.WWAMCanonIntegrity.audit(fixture);
+  assert.equal(contextVerifiedOnly.ok, false);
+  assert.ok(
+    contextVerifiedOnly.violations.some(
+      (violation) => violation.code === "SPEAKER_CLAIM_UNSUPPORTED"
+    )
+  );
+
+  characterReceipt.certifiedSpeaker = "J";
+  const editorWithExactSpeaker = window.WWAMCanonIntegrity.audit(fixture);
+  assert.equal(editorWithExactSpeaker.ok, false);
+  assert.ok(
+    editorWithExactSpeaker.violations.some(
+      (violation) =>
+        violation.code === "SPEAKER_CLAIM_UNSUPPORTED" &&
+        violation.path === "showcase.receipts[1].certifiedSpeaker"
+    )
+  );
+  delete characterReceipt.certifiedSpeaker;
+
+  characterReceipt.evidenceLevel = "creator";
+  characterReceipt.authenticatedCreatorCertified = true;
+  short.evidence.evidenceLevel = "creator";
+  short.provenance.evidenceLevel = "creator";
+  const creatorAuthWithoutSpeakerCertification =
+    window.WWAMCanonIntegrity.audit(fixture);
+  assert.equal(creatorAuthWithoutSpeakerCertification.ok, false);
+  assert.ok(
+    creatorAuthWithoutSpeakerCertification.violations.some(
+      (violation) =>
+        violation.code === "SPEAKER_CLAIM_UNSUPPORTED" &&
+        violation.path === "clip.shorts[0].speaker"
+    )
+  );
+
+  characterReceipt.certifiedSpeaker = "J";
+  short.speaker.display = "Mike";
+  const mismatchedCertifiedSpeaker =
+    window.WWAMCanonIntegrity.audit(fixture);
+  assert.equal(mismatchedCertifiedSpeaker.ok, false);
+  assert.ok(
+    mismatchedCertifiedSpeaker.violations.some(
+      (violation) =>
+        violation.code === "SPEAKER_CLAIM_UNSUPPORTED" &&
+        violation.path === "clip.shorts[0].speaker" &&
+        violation.details.certifiedSpeaker === "J"
+    )
+  );
+
+  short.speaker.display = "An Arbitrary Host";
+  const arbitrarySpeaker = window.WWAMCanonIntegrity.audit(fixture);
+  assert.equal(arbitrarySpeaker.ok, false);
+  assert.ok(
+    arbitrarySpeaker.violations.some(
+      (violation) =>
+        violation.code === "SPEAKER_CLAIM_UNSUPPORTED" &&
+        violation.path === "clip.shorts[0].speaker"
+    )
+  );
+
+  short.speaker.display = "J";
+  const explicitlyCertified = window.WWAMCanonIntegrity.audit(fixture);
+  assert.equal(explicitlyCertified.ok, true);
+  assert.equal(explicitlyCertified.summary.errors, 0);
+
+  manifestClip.speaker = {
+    display: null,
+    creditAllowed: true,
+    clipAttributionCertified: true,
+    basis: "Project-owner mapping plus a creator-certified clip review."
+  };
+  manifestClip.speakerCredit = "Mike";
+  const mismatchedLegacyCredit = window.WWAMCanonIntegrity.audit(fixture);
+  assert.equal(mismatchedLegacyCredit.ok, false);
+  assert.ok(
+    mismatchedLegacyCredit.violations.some(
+      (violation) =>
+        violation.code === "SPEAKER_CLAIM_UNSUPPORTED" &&
+        violation.path === "campaigns[0].manifest.clips[0].speaker" &&
+        violation.details.certifiedSpeaker === "J"
+    )
+  );
+
+  manifestClip.speakerCredit = "J";
+  const exactLegacyCredit = window.WWAMCanonIntegrity.audit(fixture);
+  assert.equal(exactLegacyCredit.ok, true);
+  assert.equal(exactLegacyCredit.summary.errors, 0);
 });
 
 test("synthetic corruption trips every required canon-integrity category", () => {

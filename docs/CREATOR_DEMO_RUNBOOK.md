@@ -11,7 +11,7 @@ three things quickly:
 
 ## Before the call
 
-- Open the current V5.4 build or its confirmed deployment and choose either
+- Open the current V5.5 build or its confirmed deployment and choose either
   content-advisory mode.
 - Confirm YouTube playback is available in the browser.
 - Start at the hero, not halfway down the page.
@@ -31,8 +31,12 @@ Use this evidence vocabulary consistently:
 - **Timestamped machine receipt** proves where the indexed caption fragment
   lives. It does not by itself prove the exact wording, speaker, target, or
   intent.
-- **Editor-verified performance event** means the timestamp and immediate
-  performance context were checked.
+- **Timestamp-validated human-curated candidate** is the current character
+  tier: its source and second pass structural validation, and a human selected
+  it as a performance candidate. It is not an authenticated editor decision.
+- **Editor verified** is a future production threshold requiring an
+  authenticated editor to check the source, timestamp, and immediate context
+  and record that decision.
 - **Owner-mapped character** means the project owner supplied the recurring
   Mike/J-to-character mapping. The individual clip still is not
   speaker-diarized.
@@ -166,8 +170,9 @@ Open **Canon Desk**.
 - Show Source Health: 71 healthy sources, 3 disclosed gaps, 0 structurally
   invalid or source-ID-mismatched URLs, and 0 out-of-range indexed timestamps.
 - Show Character Firewall: ordinary mentions are quarantined from curated
-  performance receipts, and owner-mapped characters remain distinct from
-  undiarized clip speakers.
+  performance candidates. The current promoted 74-source / 71-captioned corpus
+  has 25 timestamp-validated human-curated candidates, 0 authenticated
+  editor-verified decisions, and no clip-level speaker diarization.
 - Say that 49 timelines and 14 argument boards currently produce zero
   creator-canon claims. Open Takes + Court only if time remains.
 
@@ -204,16 +209,67 @@ Then ask:
 That question tests product fit without claiming a price, saved hours, or
 outcome the prototype has not measured.
 
+## V5.5 two-minute proof branch
+
+Use this after the close when the buyer asks what is difficult to reproduce.
+
+### Watch With Memory — 45 seconds
+
+- Open **Tape Companion** on the July 23 livestream.
+- Keep autoplay off and move the manual rail to `2:30:43`.
+- Point out that the crossed Loomis funding receipt is visible while the later
+  `FULL SEND` event text remains sealed until `2:30:46`.
+- Open the official timestamp and copy the core archive/source-ledger-bound
+  companion link.
+
+Say: “The video stays on the official channel. This layer knows which indexed
+receipts have actually been crossed, what they connect to, and what it is still
+too early to reveal.”
+
+What it proves:
+
+- 71 companion-ready promoted sources and 3 honest source-only gaps;
+- 872 exact receipt members preserved inside 869 conservative incidents;
+- manual sync and official timestamp fallback when the player API is blocked;
+- no copied media or autoplay, and no future-event text leak through the
+  playback UI's snapshot-safe/crossed-event path.
+
+### The Cut Test — 75 seconds
+
+- Open **Creator Taste Calibration** with goal `SHORTS CALIBRATION` and risk
+  ceiling `MEDIUM`.
+- Show one priority-blind pair. Point out that rank and priority are hidden
+  while exact source, evidence, and risk remain visible.
+- Open a source, then choose A, B, `NEITHER`, or `NEEDS_CONTEXT`.
+- Explain that a complete run is 10 unique learning pairs plus 2 reversed,
+  non-learning consistency checks; do not fake a finished profile during a
+  short demo.
+- If a completed local demo artifact exists, show the untouched Machine 12
+  beside the bounded local Cut 12 and its computed zero-mutation audit.
+
+Say: “Anyone can prompt an AI. This records what this local operator explicitly
+chooses from the channel's inventory, but it cannot turn preference into
+evidence, canon, or creator approval.”
+
+What it proves:
+
+- the current deterministic WWAM derivation finds 248 exact-ledger LOW/MEDIUM
+  candidates across 54 sources;
+- at least 6 non-repeat A/B choices are required;
+- `NEITHER` and `NEEDS_CONTEXT` add zero preference weight;
+- preference is capped at ±6 and cannot override risk, HOLD, evidence, canon,
+  speaker, rights, or approval state.
+
 ## Optional ten-minute branches
 
 Use only the branch the audience cares about:
 
-- **Fan community:** Night Shift, Red Band 100, WWAM UP IN YA, Personalized
-  Descent, Evidence Bag, Trivia.
+- **Fan community:** Tape Companion, Night Shift, Red Band 100, WWAM UP IN YA,
+  Personalized Descent, Evidence Bag, Trivia.
 - **Back-catalog discovery:** Ask WWAM, Popular 25, Fresh 10, franchise reports,
   Lore Galaxy, and Archive Atlas's Autopsied Batch 01.
-- **Editorial operations:** Clip Lab, Live Aftermath, Control Room, Human
-  Review Session, and correction packets.
+- **Editorial operations:** Clip Lab, Creator Taste Calibration, Live
+  Aftermath, Control Room, Human Review Session, and correction packets.
 - **Recurring characters:** Ask the Character, then immediately show the
   performance receipts and Character Firewall.
 - **Platform strategy:** explain the universal evidence schema and how a
@@ -234,7 +290,8 @@ Use only the branch the audience cares about:
   and 12 character signals.”
 - “Four Archive Deep sources are topic-navigation-only; all 42 machine
   candidates remain outside the promoted 872, Canon, Red Band, and WWAM UP IN
-  YA until playback review.”
+  YA. Playback review may establish context, but each destination lane requires
+  its own policy-compliant decision by an authenticated, authorized reviewer.”
 - “The Trust Desk's 71 healthy and three gap counts cover the promoted
   74-source corpus; Archive Deep is disclosed separately.”
 - “Archive Atlas currently maps 472 records: 44 deeply indexed, 420
@@ -251,6 +308,20 @@ Use only the branch the audience cares about:
 - “The owner mapping identifies the recurring performer; individual
   auto-caption clips remain not speaker-diarized.”
 - “The Popular 25 is ranked by observed views at the snapshot date.”
+- “Tape Companion preserves 872 exact receipt members across 71
+  companion-ready sources; three disclosed gaps remain source-only.”
+- “Companion heat is deterministic navigation derived from indexed evidence,
+  not a measurement of audience sentiment. The playback UI's snapshot-safe and
+  crossed-event path keeps future event text sealed until its timestamp is
+  crossed; the full compiled timeline is an audit API.”
+- “Ask WWAM's current release gate contains 37 executable, bounded cases.”
+- “A plain Dr. Loomis clips/how-often question returns 7 timestamp-validated
+  human-curated performance candidates; explicit caption-mention wording
+  returns 696 broad matches across 59 sources, and neither lane contains an
+  authenticated editor-verified decision. Clip speakers are not diarized.”
+- “The Cut Test is an unauthenticated local preference aid. It can move a
+  candidate by at most ±6 and cannot alter evidence, risk, HOLD, canon,
+  speaker, rights, or approval state.”
 
 ## Claims to avoid
 
@@ -267,6 +338,10 @@ Use only the branch the audience cares about:
 - “All WWAM uploads are indexed.”
 - “The creator has approved this.”
 - “This is already making money.”
+- “The companion knows how the audience felt.”
+- “Mike trained or approved this taste profile.”
+- “A repeated choice authenticates the operator.”
+- “The checksum proves authorship or creator approval.”
 
 Use instead:
 
@@ -285,9 +360,12 @@ Use instead:
 The prototype demonstrates product leverage, not financial results:
 
 - one receipt can power search, lore, a game reveal, an Evidence Bag entry, and
-  an edit candidate;
+  an edit candidate, then become a crossed marker in the synchronized
+  companion;
 - a new indexed livestream can reconnect older catalog material;
 - editorial candidates preserve exact sources, risk, and approval state;
+- a local preference artifact can reorder eligible review inventory while the
+  baseline and every protected evidence field remain recoverable;
 - fan features can route attention back to old official uploads;
 - the same schema can support premium vaults, member programs, sponsors, merch
   callbacks, or annual packages after the creator chooses a business model.
@@ -302,7 +380,8 @@ the evidence level, and use the Trust Desk workflow:
 
 1. preserve the original receipt;
 2. export a correction or contribution packet;
-3. have an editor or creator verify the context;
-4. promote the claim only to the level the evidence supports.
+3. use source playback to establish context;
+4. record a separately scoped, policy-compliant decision for each destination
+   lane through an authenticated, authorized editor or creator.
 
 That response is part of the product demonstration.

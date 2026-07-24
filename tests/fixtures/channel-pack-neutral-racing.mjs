@@ -45,6 +45,15 @@ export const NEUTRAL_RACING_DNA = Object.freeze({
     timestampRequired: true,
     sourceUrlRequired: true,
     generatedCharacterAudioAllowed: false
+  }),
+  voice: Object.freeze({
+    proofLabels: Object.freeze({
+      machine: "REPLAY UNDER REVIEW",
+      curatedCandidate: "TIMESTAMP-VALIDATED HUMAN-CURATED RACE CANDIDATE",
+      editor: "STEWARD CHECKED",
+      creator: "LEAGUE CERTIFIED",
+      inference: "TIMING-BASED INFERENCE"
+    })
   })
 });
 
@@ -55,6 +64,9 @@ export const NEUTRAL_RACING_ADAPTER = Object.freeze({
   }),
   evidencePolicy: Object.freeze({
     machineOutputState: "quarantine",
+    curatedCandidateState: "timestamp-validated-human-curated-candidate",
+    curatedCandidateAuthenticated: false,
+    editorVerificationRequiresAuthentication: true,
     promotionRequiresHumanReview: true,
     corrections: "append-only",
     preserveContradictions: true
@@ -76,6 +88,7 @@ export const NEUTRAL_RACING_ADAPTER = Object.freeze({
     source: "OFFICIAL BROADCAST",
     unknown: "NOT ON THE TIMING SHEET",
     quarantine: "REPLAY UNDER REVIEW",
+    curatedCandidate: "TIMESTAMP-VALIDATED HUMAN-CURATED RACE CANDIDATE",
     reviewed: "STEWARD CHECKED",
     certified: "LEAGUE CERTIFIED",
     correction: "SCORING CORRECTION"

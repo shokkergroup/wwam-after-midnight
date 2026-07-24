@@ -55,9 +55,32 @@ test("the WWAM DNA compiles into a deterministic, fingerprinted ChannelPack", ()
     ["archive-deep-10", "commentary", "fresh-live", "popular-live"]
   );
   assert.equal(first.evidencePolicy.machineOutputState, "quarantine");
+  assert.equal(
+    first.evidencePolicy.curatedCandidateState,
+    "timestamp-validated-human-curated-candidate",
+  );
+  assert.equal(first.evidencePolicy.curatedCandidateAuthenticated, false);
+  assert.equal(first.evidencePolicy.editorVerificationRequiresAuthentication, true);
   assert.equal(first.evidencePolicy.promotionRequiresHumanReview, true);
+  assert.equal(
+    first.surfaceVocabulary.curatedCandidate,
+    "TIMESTAMP-VALIDATED HUMAN-CURATED CANDIDATE",
+  );
+  assert.equal(
+    first.channelExtensions.proofLabels.curatedCandidate,
+    "TIMESTAMP-VALIDATED HUMAN-CURATED CANDIDATE",
+  );
   assert.equal(first.storage.namespace, "shokker.youtube-wiki.wwam.v1");
-  assert.equal(first.fingerprint, "cp1-b38acf5451a0036f");
+  assert.deepEqual(plain(first.capabilities), [
+    "ask-the-tape",
+    "character-studio",
+    "creator-clip-lab",
+    "creator-taste-calibration",
+    "memory-graph",
+    "red-band-candidate-index",
+    "tape-companion"
+  ]);
+  assert.equal(first.fingerprint, "cp1-59e4817559149f96");
   assert.equal(first.fingerprint, second.fingerprint);
   assert.deepEqual(plain(first), plain(second));
   assert.deepEqual(plain(report), {
@@ -100,10 +123,25 @@ test("a synthetic racing channel passes through the same compiler without WWAM i
     window.WWAM_CHANNEL_DNA,
     window.WWAM_CHANNEL_PACK_ADAPTER
   );
-  const racing = window.ShokkerChannelPack.compile(
-    NEUTRAL_RACING_DNA,
-    NEUTRAL_RACING_ADAPTER
-  );
+  const racingDna = clone(NEUTRAL_RACING_DNA);
+  racingDna.voice = {
+    proofLabels: {
+      machine: "REPLAY UNDER REVIEW",
+      curatedCandidate: "TIMESTAMP-VALIDATED HUMAN-CURATED RACE CANDIDATE",
+      editor: "STEWARD CHECKED",
+      creator: "LEAGUE CERTIFIED",
+      inference: "TIMING-BASED INFERENCE"
+    }
+  };
+  const racingAdapter = clone(NEUTRAL_RACING_ADAPTER);
+  Object.assign(racingAdapter.evidencePolicy, {
+    curatedCandidateState: "timestamp-validated-human-curated-candidate",
+    curatedCandidateAuthenticated: false,
+    editorVerificationRequiresAuthentication: true
+  });
+  racingAdapter.surfaceVocabulary.curatedCandidate =
+    "TIMESTAMP-VALIDATED HUMAN-CURATED RACE CANDIDATE";
+  const racing = window.ShokkerChannelPack.compile(racingDna, racingAdapter);
   const portfolio = window.ShokkerChannelPack.validatePortfolio([wwam, racing]);
   const serialized = window.ShokkerChannelPack.serialize(racing);
 
@@ -133,6 +171,27 @@ test("the compiler fails closed instead of inventing missing editorial policy", 
         adapter.evidencePolicy.machineOutputState = "public";
       },
       code: "unsafe-machine-state"
+    },
+    {
+      label: "curated candidate tier authenticated",
+      mutate(dna, adapter) {
+        adapter.evidencePolicy.curatedCandidateAuthenticated = true;
+      },
+      code: "unsafe-curated-candidate-tier"
+    },
+    {
+      label: "curated candidate vocabulary omitted",
+      mutate(dna, adapter) {
+        delete adapter.surfaceVocabulary.curatedCandidate;
+      },
+      code: "required-string"
+    },
+    {
+      label: "curated candidate DNA label omitted",
+      mutate(dna) {
+        delete dna.voice.proofLabels.curatedCandidate;
+      },
+      code: "required-string"
     },
     {
       label: "human review skipped",
@@ -242,10 +301,39 @@ test("the downloadable JSON Schema and executable compiler describe the same saf
   ]);
   assert.equal(spec.properties.evidencePolicy.properties.machineOutputState.const, "quarantine");
   assert.equal(
+    spec.properties.evidencePolicy.properties.curatedCandidateState.const,
+    "timestamp-validated-human-curated-candidate",
+  );
+  assert.equal(
+    spec.properties.evidencePolicy.properties.curatedCandidateAuthenticated.const,
+    false,
+  );
+  assert.equal(
+    spec.properties.evidencePolicy.properties.editorVerificationRequiresAuthentication.const,
+    true,
+  );
+  assert.ok(
+    spec.properties.surfaceVocabulary.required.includes("curatedCandidate"),
+  );
+  assert.ok(
+    spec.properties.channelExtensions.properties.proofLabels.required.includes(
+      "curatedCandidate",
+    ),
+  );
+  assert.equal(
     spec.properties.evidencePolicy.properties.promotionRequiresHumanReview.const,
     true
   );
   assert.equal(spec["x-shokker-conformance"].failureMode, "closed");
+  assert.match(
+    spec["x-shokker-conformance"].capabilityRule,
+    /separately tested runtime contract/i
+  );
+  assert.deepEqual(spec.properties.capabilities.examples[0], [
+    "ask-the-tape",
+    "creator-taste-calibration",
+    "tape-companion"
+  ]);
   assert.match(compiler, /ChannelPack rejected/);
   assert.match(compiler, /namespace-collision/);
   assert.match(

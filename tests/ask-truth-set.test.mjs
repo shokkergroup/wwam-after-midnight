@@ -84,8 +84,8 @@ function firstAtlasTitle(markup) {
 test("the frozen Ask truth set is versioned, bounded, and fully executable", () => {
   assert.equal(truthSet.schema, "shokker.ask-truth-set/v1");
   assert.equal(truthSet.frozen, "2026-07-24");
-  assert.equal(truthSet.cases.length, 22);
-  assert.equal(new Set(truthSet.cases.map((entry) => entry.id)).size, 22);
+  assert.equal(truthSet.cases.length, 37);
+  assert.equal(new Set(truthSet.cases.map((entry) => entry.id)).size, 37);
 
   const ask = askFixture();
   const red = redFixture();
@@ -110,6 +110,38 @@ test("the frozen Ask truth set is versioned, bounded, and fully executable", () 
       }
       if (expected.kind) assert.equal(answer.results[0]?.kind, expected.kind, entry.id);
       if (expected.at != null) assert.equal(answer.results[0]?.at, expected.at, entry.id);
+      if (expected.views != null) {
+        assert.equal(answer.results[0]?.views, expected.views, entry.id);
+      }
+      if (expected.requestedYear != null) {
+        assert.equal(answer.requestedYear, expected.requestedYear, entry.id);
+      }
+      if (expected.direction) {
+        assert.equal(answer.queryPlan?.controls?.direction, expected.direction, entry.id);
+      }
+      if (expected.queryPlanOutputShape) {
+        assert.equal(
+          answer.queryPlan?.outputShape,
+          expected.queryPlanOutputShape,
+          entry.id,
+        );
+      }
+      if (expected.relativeTime) {
+        assert.equal(
+          answer.queryPlan?.controls?.relativeTime,
+          expected.relativeTime,
+          entry.id,
+        );
+      }
+      if (expected.collectionTotal != null) {
+        assert.equal(answer.collection?.total, expected.collectionTotal, entry.id);
+      }
+      if (expected.collectionUnit) {
+        assert.equal(answer.collection?.unit, expected.collectionUnit, entry.id);
+      }
+      if (expected.surfaceHandoffId) {
+        assert.equal(answer.surfaceHandoff?.id, expected.surfaceHandoffId, entry.id);
+      }
       if (expected.lane) assert.equal(answer.results[0]?.lane, expected.lane, entry.id);
       if (expected.reviewStatus) {
         assert.equal(answer.results[0]?.reviewStatus, expected.reviewStatus, entry.id);
@@ -165,13 +197,42 @@ test("the frozen Ask truth set is versioned, bounded, and fully executable", () 
           entry.id,
         );
       }
+      if (expected.allResultsKind) {
+        assert.ok(
+          answer.results.every((result) => result.kind === expected.allResultsKind),
+          entry.id,
+        );
+      }
+      if (expected.allResultsDatePrefix) {
+        assert.ok(
+          answer.results.every((result) =>
+            String(result.date || "").startsWith(expected.allResultsDatePrefix)),
+          entry.id,
+        );
+      }
+      if (expected.resultRanks) {
+        assert.deepEqual(
+          Array.from(answer.results, (result) => result.curatedRank),
+          expected.resultRanks,
+          entry.id,
+        );
+      }
+      if (expected.rosterNames) {
+        assert.deepEqual(
+          Array.from(answer.results, (result) => result.rosterProfile?.name),
+          expected.rosterNames,
+          entry.id,
+        );
+      }
       if (expected.targetProximityRequired) {
         assert.ok(
-          answer.results.every(
-            (result) =>
-              result.takeEvidence?.proximityPairs?.length > 0 &&
-              result.takeEvidence.proximityPairs.every((pair) => pair.distance <= 8),
-          ),
+          answer.results.every((result) => {
+            const proximity = result.takeEvidence?.proximityPairs ||
+              result.opinionEvidence?.proximityPairs ||
+              [];
+            return proximity.length > 0 &&
+              proximity.every((pair) => pair.distance <= 8);
+          }),
           entry.id,
         );
       }
