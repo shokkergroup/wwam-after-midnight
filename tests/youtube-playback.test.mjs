@@ -40,9 +40,10 @@ test("every player receives explicit page identity and referrer policy", () => {
   assert.match(markup, /referrerpolicy="strict-origin-when-cross-origin"/);
   assert.match(markup, /origin=https%3A%2F%2Fwiki\.example/);
   assert.doesNotMatch(markup, /widget_referrer/);
+  assert.match(markup, /enablejsapi=1/);
   assert.match(markup, /start=5406/);
   assert.match(markup, /end=5432/);
-  assert.match(markup, /allow="autoplay; encrypted-media; picture-in-picture"/);
+  assert.match(markup, /allow="autoplay; encrypted-media; picture-in-picture; fullscreen"/);
   assert.match(markup, /data-shokker-youtube-player/);
   assert.match(markup, /data-shokker-youtube-recover/);
   assert.match(markup, /PLAYER ERROR\? RECOVER HERE/);
@@ -96,6 +97,10 @@ test("HTTP pages can force the hosted bridge after YouTube identity error 153", 
     /https:\/\/wiki\.example\/demo\/youtube-player\.html/
   );
   assert.match(markup, /video=5et_A1tYnio/);
+  assert.match(
+    markup,
+    /widget_referrer=https%3A%2F%2Fwiki\.example%2Fdemo%2F/
+  );
   assert.match(markup, /start=5406/);
   assert.match(markup, /end=5432/);
   assert.doesNotMatch(markup, /origin=https%3A%2F%2Fwiki\.example/);
@@ -157,6 +162,9 @@ test("the hosted bridge validates coordinates and supplies YouTube a real referr
   );
   assert.match(hostedPlayer, /\^\[A-Za-z0-9_-\]\{11\}\$/);
   assert.match(hostedPlayer, /parameters\.set\("origin", location\.origin\)/);
+  assert.match(hostedPlayer, /parameters\.set\("widget_referrer", widgetReferrer\)/);
+  assert.match(hostedPlayer, /query\.get\("widget_referrer"\) \|\| document\.referrer/);
+  assert.match(hostedPlayer, /parameters\.set\("enablejsapi", "1"\)/);
   assert.match(hostedPlayer, /end > safeStart/);
   assert.match(hostedPlayer, /frame\.referrerPolicy = "strict-origin-when-cross-origin"/);
   assert.match(hostedPlayer, /host\.replaceChildren\(frame\)/);

@@ -27,9 +27,25 @@
       }
       var parameters = new URLSearchParams();
       parameters.set("autoplay", query.get("autoplay") === "1" ? "1" : "0");
+      parameters.set("enablejsapi", "1");
       parameters.set("rel", "0");
       parameters.set("playsinline", "1");
       parameters.set("origin", location.origin);
+      function safeWebReferrer(value) {
+        try {
+          var parsed = new URL(String(value || ""), location.href);
+          if (!/^https?:$/.test(parsed.protocol)) return "";
+          return parsed.origin + parsed.pathname;
+        } catch (error) {
+          return "";
+        }
+      }
+      var widgetReferrer = safeWebReferrer(
+        query.get("widget_referrer") || document.referrer
+      );
+      if (widgetReferrer) {
+        parameters.set("widget_referrer", widgetReferrer);
+      }
       var start = Number(query.get("start"));
       var safeStart = Number.isFinite(start) && start >= 0 ? Math.round(start) : 0;
       if (safeStart > 0) parameters.set("start", String(safeStart));
@@ -42,7 +58,7 @@
         "?" + parameters.toString();
       frame.title = "Official YouTube source playback";
       frame.referrerPolicy = "strict-origin-when-cross-origin";
-      frame.allow = "autoplay; encrypted-media; picture-in-picture";
+      frame.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
       frame.setAttribute("allowfullscreen", "");
       host.replaceChildren(frame);
     })();

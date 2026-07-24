@@ -570,6 +570,7 @@ img { display: block; max-width: 100%; }
   position: absolute; z-index: 4; top: 10px; right: 10px; min-height: 44px;
   padding: 0 14px; border: 1px solid var(--acid); background: rgba(5, 5, 5, .92);
   color: var(--acid); font: 700 10px var(--mono); letter-spacing: .08em; cursor: pointer;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, .72), 0 0 24px rgba(216, 255, 56, .24);
 }
 .shokker-youtube-recover:hover, .shokker-youtube-recover:focus-visible {
   background: var(--acid); color: #050505; outline: 2px solid #fff; outline-offset: 2px;

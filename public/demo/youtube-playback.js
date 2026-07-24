@@ -1,6 +1,7 @@
 (function (root) {
   "use strict";
 
+  var VERSION = "2.1.0";
   var POLICY = "strict-origin-when-cross-origin";
   var VIDEO_ID = /^[A-Za-z0-9_-]{11}$/;
   var HOSTED_PLAYER =
@@ -14,7 +15,8 @@
       : "";
     return {
       origin: origin,
-      pathname: String(location.pathname || "/")
+      pathname: String(location.pathname || "/"),
+      referrer: origin ? origin + String(location.pathname || "/") : ""
     };
   }
 
@@ -31,6 +33,7 @@
     var config = options || {};
     var query = new URLSearchParams();
     query.set("autoplay", config.autoplay ? "1" : "0");
+    query.set("enablejsapi", "1");
     query.set("rel", "0");
     query.set("playsinline", "1");
     if (Number.isFinite(Number(config.start))) {
@@ -57,6 +60,9 @@
         "?" + query.toString();
     }
     query.set("video", id);
+    if (identity.referrer) {
+      query.set("widget_referrer", identity.referrer);
+    }
     return bridgeUrl() + "?" + query.toString();
   }
 
@@ -87,7 +93,7 @@
       '<iframe src="' + escapeAttribute(src) +
       '" title="' + escapeAttribute(config.title || "Official YouTube source playback") +
       '" referrerpolicy="' + POLICY +
-      '" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>' +
+      '" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>' +
       '<button class="shokker-youtube-recover" type="button"' +
       ' data-shokker-youtube-recover aria-label="Reload this source inside the page">' +
       'PLAYER ERROR? RECOVER HERE</button></div>';
@@ -140,6 +146,7 @@
   }
 
   root.ShokkerYouTubePlayback = Object.freeze({
+    version: VERSION,
     referrerPolicy: POLICY,
     hosted: function () { return Boolean(pageIdentity().origin); },
     bridgeUrl: bridgeUrl,
