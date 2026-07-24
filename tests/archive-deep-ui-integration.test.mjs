@@ -11,6 +11,14 @@ const demo = path.join(root, "public", "demo");
 const app = fs.readFileSync(path.join(demo, "app.js"), "utf8");
 const html = fs.readFileSync(path.join(demo, "index.html"), "utf8");
 const atlasUi = fs.readFileSync(path.join(demo, "archive-atlas-ui.js"), "utf8");
+const sourceDossierAdapter = fs.readFileSync(
+  path.join(demo, "wwam-source-dossier-adapter.js"),
+  "utf8",
+);
+const sourceDossierUi = fs.readFileSync(
+  path.join(demo, "source-dossier-ui.js"),
+  "utf8",
+);
 
 function load(files) {
   const context = { window: {} };
@@ -68,14 +76,17 @@ test("all four Archive Deep batches and their portfolio are lazy-loaded before A
   assert.match(createDeepBody, /streamById\[stream\.id\] = stream/);
   assert.match(
     app,
-    /else loadArchiveAtlas\(\)\.then\(function \(\) \{ openLiveDossier\(id, params\.get\("at"\)\); \}\)/,
+    /if \(sourceRoute\) \{[\s\S]{0,240}openSourceDossier\(sourceRoute\.sourceId, sourceRoute\.at/,
   );
   assert.match(
-    app,
-    /streamById\[id\] && streamById\[id\]\._lane === "archive" \? "archive" : "livewire"/,
+    sourceDossierAdapter,
+    /var authority = archiveIds\.has\(id\)[\s\S]{0,90}\? "quarantined-lane"/,
   );
   assert.match(app, /OPENING ARCHIVE DEEP \/\/ 40 CAPTION AUDITS/);
-  assert.match(app, /"AUTOPSIED BATCH 0" \+ archiveBatch\.sequence/);
+  assert.match(atlasUi, /"archive-deep-10": "AUTOPSIED BATCH 01"/);
+  assert.match(atlasUi, /"archive-deep-batch-02": "ARCHIVE DEEP BATCH 02"/);
+  assert.match(atlasUi, /"archive-deep-batch-03": "ARCHIVE DEEP BATCH 03"/);
+  assert.match(atlasUi, /"archive-deep-batch-04": "ARCHIVE DEEP BATCH 04"/);
   assert.match(
     html,
     /archive-deep-batch3\.js,archive-deep-batch4\.js,archive-deep-engine\.js/,
@@ -140,9 +151,13 @@ test("Batch 01 remains immutable while Atlas and its current portfolio overlay s
     atlasUi,
     /stream\.rightsPolicy\.mode === "visual-context-unverified"/,
   );
-  assert.match(app, /SOURCE-AUDIO FIREWALL \/\/ TOPIC NAVIGATION ONLY/);
-  assert.match(app, /No public joke or character receipts are exposed from this source/);
-  assert.match(app, /SPEAKER NOT DIARIZED \/\/ VERIFY AGAINST ORIGINAL/);
+  assert.match(sourceDossierUi, /source-dossier-warnings/);
+  assert.match(sourceDossierAdapter, /SOURCE-AUDIO FIREWALL \/\/ TOPIC NAVIGATION ONLY/);
+  assert.match(
+    sourceDossierAdapter,
+    /NO PUBLIC JOKE OR CHARACTER RECEIPTS ARE EXPOSED FROM THIS SOURCE/,
+  );
+  assert.match(sourceDossierUi, /SPEAKER NOT DIARIZED/);
 });
 
 test("Batch 01's immutable 42 candidates do not enter Red Band, UP IN YA, or creator output pools", () => {

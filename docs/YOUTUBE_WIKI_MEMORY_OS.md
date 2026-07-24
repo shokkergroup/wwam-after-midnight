@@ -8,6 +8,8 @@ A transcript summary is a disposable output. A channel memory is a compounding a
 
 The Memory OS turns every indexed upload into:
 
+- a canonical Source Dossier that remains useful even when content evidence is
+  unavailable;
 - durable, timestamped evidence;
 - connections to people, topics, events, jokes, characters, and earlier uploads;
 - editorial work queues that improve trust;
@@ -29,6 +31,10 @@ The defensible product is not “AI made a website.” It is a source-backed mem
 6. **The archive must sound like the channel without pretending to be the channel.**
 7. **Generated character dialogue is never presented as a real quote.** Archival audio and generated text are separate surfaces.
 8. **Every new feature must improve discovery, trust, creator utility, or fan delight.** If it does none of those, it is decoration.
+9. **Every canonical source gets one page, but not the same depth of claim.**
+   Metadata-only and caption-limited sources must refuse unsupported semantic
+   sections rather than borrowing conclusions from titles or neighboring
+   uploads.
 
 ## Universal evidence schema
 

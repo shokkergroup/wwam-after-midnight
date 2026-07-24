@@ -15,7 +15,8 @@
     clipLabEngine, coldOpenFactory, trustEngine, canonIntegrityReport,
     humanReviewSession, pilotBuilderEngine, archiveAtlasEngine, archiveAtlasUi,
     archiveDeepEngine, archiveDeepLoadPromise, redBandRankingEngine,
-    redBandQueryEngine, archiveAtlasLoadPromise, archiveAtlasObserver,
+    redBandQueryEngine, sourceDossierEngine, sourceDossierUi,
+    sourceDossierLoadPromise, archiveAtlasLoadPromise, archiveAtlasObserver,
     redBandLoadPromise, redBandObserver;
   var archiveDeepStreams = [], redBandMoments = deep.hot100 || [],
     showcaseReceiptById = {}, showcaseSourceById = {}, clipItemById = {},
@@ -104,9 +105,6 @@
         return window.WWAMArchiveAtlasUI.create({
           engine: archiveAtlasEngine, formatNumber: fmt, formatDuration: duration,
           formatDate: shortDate, escapeHtml: esc,
-          isInternal: function (record) {
-            return Boolean(itemById[record.id] || streamById[record.id]);
-          },
           openRecord: openArchiveRecord, downloadJson: downloadJson,
           showToast: showToast, archiveDeepEngine: archiveDeepEngine, document: document,
         }).mount();
@@ -216,6 +214,253 @@
         return null;
       });
     return archiveAtlasLoadPromise;
+  }
+
+  function sourceDossierBindings() {
+    if (!window.ShokkerChannelPack || !window.WWAM_CHANNEL_PACK_ADAPTER) {
+      throw new Error("The ChannelPack boundary is not available.");
+    }
+    var pack = window.ShokkerChannelPack.compile(
+      channelDNA,
+      window.WWAM_CHANNEL_PACK_ADAPTER
+    );
+    return {
+      id: pack.identity.id,
+      label: pack.identity.channel,
+      packFingerprint: pack.fingerprint,
+    };
+  }
+
+  function buildSourceDossierRuntime() {
+    if (!window.ShokkerSourceDossier ||
+        !window.WWAMSourceDossierAdapter ||
+        !window.WWAMSourceDossierUI ||
+        !archiveAtlasPayload) {
+      throw new Error("The Source Dossier runtime is incomplete.");
+    }
+    var payload = window.WWAMSourceDossierAdapter.build({
+      archiveAtlas: archiveAtlasPayload,
+      catalog: catalog,
+      deep: deep,
+      live: live,
+      popular: popular,
+      archiveDeep: archiveDeepStreams,
+      showcase: showcaseEngine,
+      clipLab: clipLabEngine,
+      curated: curated,
+      characters: characterLore,
+      dna: channelDNA,
+      channel: sourceDossierBindings(),
+      snapshotDate: archiveAtlasPayload.snapshotDate,
+    });
+    sourceDossierEngine = window.ShokkerSourceDossier.create(payload);
+    sourceDossierUi = window.WWAMSourceDossierUI.create({
+      engine: sourceDossierEngine,
+      document: document,
+      mount: document.getElementById("modalContent"),
+      escapeHtml: esc,
+      formatNumber: fmt,
+      formatDuration: duration,
+      formatDate: shortDate,
+      formatTime: timestamp,
+      onPlay: function (payload) {
+        loadPlayer(payload.sourceId, payload.at, payload.end);
+      },
+      onCopyLink: function (payload) {
+        copy(
+          sourceDossierShareUrl(payload.sourceId, payload.at),
+          "SOURCE DOSSIER LINK COPIED"
+        );
+      },
+      onDownload: function (payload) {
+        downloadJson(
+          payload.filename || "wwam-source-dossier-" + payload.sourceId + ".json",
+          payload.manifest || sourceDossierEngine.exportManifest(payload.sourceId)
+        );
+        showToast("SOURCE DOSSIER MANIFEST DOWNLOADED");
+      },
+      onAskSource: function (payload) {
+        closeDossier({ replaceRoute: true });
+        var query = 'What is indexed for "' + payload.title + '"?';
+        document.getElementById("askInput").value = query;
+        ask(query);
+        document.getElementById("ask").scrollIntoView({ behavior: "smooth" });
+      },
+      onOpenSource: function (payload) {
+        openSourceDossier(payload.targetSourceId, null, { routeMode: "push" });
+      },
+      onOpenCompanion: function (payload) {
+        var companion = document.getElementById("companion");
+        closeDossier({ replaceRoute: true });
+        if (!companion) return;
+        companion.setAttribute("data-companion-source", payload.sourceId);
+        companion.setAttribute("data-companion-time", Math.round(Number(payload.at || 0)));
+        companion.scrollIntoView({ behavior: "smooth", block: "start" });
+        window.WWAMFeatureLoader.hydrate(companion).then(function (ready) {
+          if (!ready) return;
+          dispatchEvent(new CustomEvent("wwam:tape-companion-open", {
+            detail: { sourceId: payload.sourceId, at: Number(payload.at || 0) },
+          }));
+        });
+      },
+      onBagReceipt: function (payload) {
+        var source = payload.dossier.source;
+        var receipt = payload.receipt;
+        addToEvidenceBag({
+          source: source.sourceType === "commentary" ? "commentary" : "livestream",
+          sourceId: source.id,
+          at: receipt.at,
+          title: source.displayTitle || source.title,
+          category: receipt.label,
+          excerpt: receipt.excerpt,
+          evidenceLevel: receipt.evidenceLevel,
+          evidenceType: receipt.evidenceType,
+          speaker: null,
+          speakerStatus: "not-diarized",
+          warnings: source.warnings,
+        });
+      },
+    });
+    return sourceDossierUi;
+  }
+
+  function loadSourceDossier() {
+    if (sourceDossierEngine && sourceDossierUi) return Promise.resolve(sourceDossierUi);
+    if (sourceDossierLoadPromise) return sourceDossierLoadPromise;
+    var loader = window.WWAMFeatureLoader;
+    if (!loader) return Promise.reject(new Error("The feature loader is unavailable."));
+    sourceDossierLoadPromise = loadArchiveAtlas()
+      .then(function (atlas) {
+        if (!atlas) throw new Error("The canonical archive registry could not be loaded.");
+        if (!archiveDeepEngine || archiveDeepStreams.length !== 40) {
+          throw new Error("The 40-source Archive Deep evidence overlay is incomplete.");
+        }
+        if (!showcaseEngine) createDeepEngines();
+        if (!showcaseEngine) {
+          throw new Error("The promoted Showcase evidence registry is unavailable.");
+        }
+        return !clipLabEngine && showcaseEngine ?
+          Promise.resolve(createCreatorEngines()).catch(function () { return null; }) :
+          null;
+      })
+      .then(function () { return loader.loadStyle("source-dossier.css"); })
+      .then(function () {
+        return ["channel-pack-contract.js", "wwam-channel-pack-adapter.js",
+          "source-dossier-engine.js", "wwam-source-dossier-adapter.js",
+          "source-dossier-ui.js"].reduce(function (promise, source) {
+          return promise.then(function () { return loader.load(source); });
+        }, Promise.resolve());
+      })
+      .then(buildSourceDossierRuntime)
+      .catch(function (error) {
+        runtimeDiagnostics.push({
+          at: new Date().toISOString(),
+          operation: "source dossier lazy load",
+          message: error && error.message ? error.message : String(error),
+        });
+        sourceDossierLoadPromise = null;
+        throw error;
+      });
+    return sourceDossierLoadPromise;
+  }
+
+  function sourceDossierShareUrl(sourceId, at, section) {
+    var url = new URL(window.location.href); url.search = "";
+    url.searchParams.set("source", sourceId);
+    if (at != null && at !== "" && Number.isFinite(Number(at))) url.searchParams.set("at", Math.round(Number(at)));
+    if (section) url.searchParams.set("section", section);
+    url.hash = "archive"; return url.toString();
+  }
+
+  function sourceRouteUrl(sourceId, at, section) {
+    var url = new URL(window.location.href);
+    url.searchParams.delete("tape"); url.searchParams.delete("live");
+    url.searchParams.set("source", sourceId);
+    if (at != null && at !== "" && Number.isFinite(Number(at))) url.searchParams.set("at", Math.round(Number(at)));
+    else url.searchParams.delete("at");
+    if (section) url.searchParams.set("section", section);
+    else url.searchParams.delete("section");
+    url.hash = "archive"; return url;
+  }
+
+  function readSourceRoute() {
+    var params = new URLSearchParams(location.search);
+    var sourceId = params.get("source"), legacy = false;
+    if (!sourceId && params.get("tape")) { sourceId = params.get("tape"); legacy = true; }
+    else if (!sourceId && params.get("live")) { sourceId = params.get("live"); legacy = true; }
+    if (!/^[A-Za-z0-9_-]{11}$/.test(sourceId || "")) return null;
+    var at=params.get("at"); return { sourceId:sourceId,
+      at: at != null && Number.isFinite(Number(at)) ? Number(at) : null,
+      section:params.get("section") || "", legacy: legacy };
+  }
+
+  function syncSourceRoute(sourceId, at, section, mode) {
+    if (mode === "none") return;
+    var url = sourceRouteUrl(sourceId, at, section);
+    var nextState = Object.assign({}, history.state || {}, {
+      wwamSourceDossier: true,
+      wwamSourceDossierPushed: mode === "push",
+      sourceId: sourceId,
+    });
+    if (mode === "replace") history.replaceState(nextState, "", url);
+    else history.pushState(nextState, "", url);
+  }
+
+  function showSourceDossierLoading() {
+    rememberDialogFocus();
+    var modal = document.getElementById("tapeModal");
+    modal.setAttribute("aria-busy", "true");
+    modal.setAttribute("aria-labelledby", "sourceDossierTitle");
+    modal.setAttribute("aria-describedby", "sourceDossierBoundary");
+    document.getElementById("modalContent").innerHTML =
+      '<div class="source-dossier-loading" role="status" aria-live="polite">' +
+      '<span>THE TAPE\'S WAKE // BUILDING A 510-SOURCE MEMORY FILE</span>' +
+      '<h2 id="sourceDossierTitle">OPENING THE SOURCE DOSSIER.</h2>' +
+      '<p id="sourceDossierBoundary">The official source registry, evidence boundary, and cross-archive connections are being verified.</p></div>';
+    modal.classList.add("show");
+    modal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("modal-open");
+    syncBackgroundInert();
+    focusSoon("#modalClose");
+  }
+
+  function openSourceDossier(id, startTime, options) {
+    var settings = options || {};
+    var sourceId = String(id == null ? "" : id).trim();
+    if (!/^[A-Za-z0-9_-]{11}$/.test(sourceId)) return Promise.resolve(false);
+    showSourceDossierLoading();
+    return loadSourceDossier().then(function (ui) {
+      if (!sourceDossierEngine.has(sourceId)) {
+        throw new Error("This source is outside the 510-upload canonical registry.");
+      }
+      var rendered = ui.render(sourceId, {
+        at: startTime == null ? null : Number(startTime),
+        section: settings.section || "",
+      });
+      if (!rendered) throw new Error("The Source Dossier failed its render boundary.");
+      document.getElementById("tapeModal").setAttribute("aria-busy", "false");
+      syncSourceRoute(
+        sourceId,
+        startTime,
+        settings.section || "",
+        settings.routeMode || "push"
+      );
+      syncBagButtons();
+      if (startTime != null && settings.autoplay !== false) {
+        loadPlayer(sourceId, Number(startTime));
+      }
+      return true;
+    }).catch(function (error) {
+      var message = error && error.message ? error.message : String(error);
+      document.getElementById("tapeModal").setAttribute("aria-busy", "false");
+      document.getElementById("modalContent").innerHTML =
+        '<div class="source-dossier-loading source-dossier-error" role="alert">' +
+        '<span>THE SOURCE FILE WAS HELD</span><h2 id="sourceDossierTitle">DOSSIER UNAVAILABLE.</h2>' +
+        '<p id="sourceDossierBoundary">' + esc(message) +
+        '</p><a href="https://www.youtube.com/watch?v=' + encodeURIComponent(sourceId) +
+        '" target="_blank" rel="noopener">OPEN THE OFFICIAL SOURCE ON YOUTUBE &nearr;</a></div>';
+      return false;
+    });
   }
 
   function prepareArchiveAtlasLazy() {
@@ -1658,9 +1903,7 @@
       archiveAtlasEngine && archiveAtlasEngine.getRecord(recordOrId) :
       recordOrId;
     if (!record) return;
-    if (itemById[record.id]) openDossier(record.id);
-    else if (streamById[record.id]) openLiveDossier(record.id);
-    else window.open(record.url, "_blank", "noopener");
+    openSourceDossier(record.id);
   }
 
   function archiveAskMarkup(query) {
@@ -1743,170 +1986,8 @@
     });
   }
 
-  function metricRows(tape) {
-    var metrics = Object.keys(categoryCopy).map(function (category) {
-      return [category, tape.metrics[category] || 0];
-    }).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 6);
-    var max = metrics.length ? metrics[0][1] || 1 : 1;
-    return metrics.map(function (metric) {
-      return '<li><div><span>' + esc(metric[0]) + '</span><b>' + metric[1] + ' SIGNALS</b></div>' +
-        '<i><em style="width:' + Math.max(3, Math.round(metric[1] / max * 100)) + '%"></em></i></li>';
-    }).join("");
-  }
-
-  function arcMarkup(tape) {
-    return tape.arc.map(function (chapter) {
-      return '<div title="Chapter ' + chapter.chapter + ': ' + esc(chapter.dominant) + '"><i style="height:' +
-        chapter.heat + '%"></i><span>' + chapter.chapter + '</span><b>' + esc(chapter.dominant) + '</b></div>';
-    }).join("");
-  }
-
-  function momentsMarkup(tape, item) {
-    if (!tape.moments.length) {
-      return '<p class="sealed-copy">This upload requires an age-confirmed YouTube session. No transcript or score is invented; open the tape.</p>';
-    }
-    return tape.moments.map(function (moment) {
-      return '<article><div><span>' + esc(moment.category) + '</span><b>' + timestamp(moment.t) + '</b></div>' +
-        '<p>“' + esc(displayQuote(moment.quote)) + '”</p><footer><button data-play="' + item.id + '" data-time="' +
-        moment.t + '">▶ PLAY</button><button data-share="' + item.id + '" data-time="' + moment.t + '">SHARE RECEIPT</button></footer></article>';
-    }).join("");
-  }
-
-  function openDossier(id, startTime) {
-    var item = itemById[id];
-    var tape = tapeById[id] || {
-      unhinged: 0, wordsAudited: 0, captionMinutes: 0, verdict: "Tape sealed by YouTube's age gate.",
-      metrics: {}, arc: [], moments: [],
-    };
-    if (!item) return;
-    rememberDialogFocus();
-    var modal = document.getElementById("tapeModal");
-    document.getElementById("modalContent").innerHTML =
-      '<div class="modal-hero" style="--accent:' + colors[item.franchise] + '">' +
-      '<img src="' + esc(item.thumbnail) + '" alt=""><div><p>' + esc(item.franchise) + ' // TAPE ' +
-      String(item.order).padStart(2, "0") + '</p><h2>' + esc(item.film) + '</h2><span>' + shortDate(item.date) +
-      ' // ' + duration(item.duration) + '</span></div></div>' +
-      '<div class="modal-grid"><section class="modal-verdict"><p class="kicker">THE MACHINE-AUDITED VERDICT</p><blockquote>' +
-      esc(tape.verdict) + '</blockquote><div class="index-dial"><i style="--score:' + tape.unhinged +
-      '"></i><b>' + (item.transcript ? tape.unhinged : "—") + '</b><span>UNHINGED<br>INDEX</span></div>' +
-      '<div class="source-actions"><a href="' + esc(item.url) + '" target="_blank" rel="noopener">OPEN ORIGINAL ON YOUTUBE ↗</a>' +
-      '<button data-share="' + item.id + '">COPY DOSSIER LINK</button></div></section>' +
-      '<section class="signal-profile"><p class="kicker">SIGNAL PROFILE // ' + fmt(tape.wordsAudited) + ' WORDS AUDITED</p>' +
-      '<ul>' + metricRows(tape) + '</ul></section></div>' +
-      (tape.arc.length ? '<section class="heat-section"><div><p class="kicker">THE EIGHT-CHAPTER HEAT ARC</p><span>DOMINANT SIGNAL BY RUNTIME OCTANT</span></div><div class="heat-arc">' +
-      arcMarkup(tape) + '</div></section>' : '') +
-      '<section class="receipt-section"><div><p class="kicker">PLAYABLE EVIDENCE LOCKER</p><span>SHORT AUTO-CAPTION FRAGMENTS // VERIFY AGAINST ORIGINAL</span></div>' +
-      '<div class="modal-player" id="modalPlayer"><div><span>SELECT A RECEIPT TO CUE THE ORIGINAL TAPE.</span></div></div>' +
-      '<div class="receipt-list">' + momentsMarkup(tape, item) + '</div></section>';
-    modal.classList.add("show");
-    modal.setAttribute("aria-hidden", "false");
-    document.body.classList.add("modal-open");
-    syncBackgroundInert();
-    focusSoon("#modalClose");
-    bindPlayButtons(document.getElementById("modalContent"), true);
-    bindShareButtons(document.getElementById("modalContent"));
-    if (startTime != null) loadPlayer(item.id, Number(startTime));
-    history.replaceState(null, "", "?tape=" + encodeURIComponent(item.id) + (startTime != null ? "&at=" + Math.round(startTime) : "") + "#autopsies");
-  }
-
-  function liveHeatMarkup(stream) {
-    if (!stream.heatmap.length) {
-      if (stream.rightsPolicy && stream.rightsPolicy.restrictedToTopicNavigation) {
-        return '<p class="sealed-copy">Captions were audited, but this source is topic-navigation-only. Comedy heat and excerpts stay withheld because captions cannot prove host speech.</p>';
-      }
-      return '<p class="sealed-copy">YouTube supplies no captions, so scoring and topic chapters stay unavailable. The upload remains playable.</p>';
-    }
-    return stream.heatmap.map(function (bin, index) {
-      return '<button style="--heat:' + bin.heat + '" data-live-play="' + stream.id + '" data-time="' + bin.from +
-        '" title="' + esc(bin.signal + (bin.topic ? " // " + bin.topic : "")) + '"><i></i><span>' +
-        (index % 5 === 0 ? timestamp(bin.from) : "") + '</span></button>';
-    }).join("");
-  }
-
-  function liveTopicsMarkup(stream) {
-    if (!stream.topics.length) return '<li class="topic-empty">NO DEFENSIBLE TOPIC CHAPTERS WITHOUT CAPTIONS.</li>';
-    return stream.topics.map(function (topic, index) {
-      return '<li><button data-live-play="' + stream.id + '" data-time="' + topic.peak + '"><span>0' + (index + 1) +
-        '</span><div><b>' + esc(topic.name) + '</b><small>' + topic.mentions + ' MENTIONS // PEAK CLUSTER ' +
-        timestamp(topic.peak) + '</small></div><i>JUMP →</i></button></li>';
-    }).join("");
-  }
-
-  function liveMomentsMarkup(stream) {
-    if (!stream.moments.length) {
-      if (stream.rightsPolicy && stream.rightsPolicy.restrictedToTopicNavigation) {
-        return '<p class="sealed-copy">No public joke or character receipts are exposed from this source. Topic times remain; excerpts await human speaker separation.</p>';
-      }
-      return '<p class="sealed-copy">No caption-derived comedy receipts are published for this stream. Open the original source to watch it in full.</p>';
-    }
-    return stream.moments.map(function (moment) {
-      return '<article><div><span>' + esc(moment.category) + ' // HEAT ' + moment.heat + '</span><b>' +
-        timestamp(moment.t) + '</b></div><p>“' + esc(displayQuote(moment.quote)) +
-        '”</p><footer><button data-live-play="' + stream.id + '" data-time="' + moment.t +
-        '">▶ PLAY</button><button data-share-live="' + stream.id + '" data-time="' + moment.t +
-        '">SHARE RECEIPT</button></footer></article>';
-    }).join("");
-  }
-
-  function openLiveDossier(id, startTime) {
-    var stream = streamById[id];
-    if (!stream) return;
-    rememberDialogFocus();
-    var isArchiveDeep = stream._lane === "archive";
-    var archiveBatch = stream.archiveBatch || {};
-    var lane = stream._lane === "popular" ? "FOUNDATIONAL 25" :
-      isArchiveDeep ? "AUTOPSIED BATCH 0" + archiveBatch.sequence : "FRESH 10";
-    var laneRank = isArchiveDeep ?
-      Number(archiveBatch.batchRank || 0) :
-      (stream._lane === "popular" ? popular.streams : live.streams).indexOf(stream) + 1;
-    var peak = stream.moments.slice().sort(function (a, b) { return b.heat - a.heat; })[0];
-    var streamSummary = safeEditorialCopy(stream.summary || stream.whyItMatters ||
-      (stream.editorial && stream.editorial.whyItMatters) ||
-      "This source remains in the archive with an honest, playable path back to the original upload.");
-    var modal = document.getElementById("tapeModal");
-    document.getElementById("modalContent").innerHTML =
-      '<div class="modal-hero live-modal-hero" style="--accent:var(--cyan)"><img src="' + esc(stream.thumbnail) +
-      '" alt=""><div><p>' + lane + ' // ' +
-      (isArchiveDeep ? "BATCH-LOCAL PRIORITY #" : "LIVE MAP ") +
-      String(laneRank).padStart(2, "0") +
-      (isArchiveDeep ? " // PORTFOLIO #" +
-        String(archiveBatch.portfolioRank || 0).padStart(2, "0") : "") +
-      '</p><h2>' + esc(stream.title) + '</h2><span>' + shortDate(stream.date) + ' // ' +
-      duration(stream.duration) + ' // ' + fmt(stream.views) +
-      (isArchiveDeep ? ' CACHED VIEWS' : ' VIEWS') + '</span></div></div>' +
-      (isArchiveDeep && stream.contentMode === "visual-ranking" ?
-        '<p class="sealed-copy">VISUAL-RANKING RESULT UNVERIFIED // CAPTIONS CANNOT ESTABLISH WHICH KILL OR DEATH WON.</p>' : '') +
-      '<div class="modal-grid live-modal-grid"><section class="modal-verdict"><p class="kicker">THE LIVE-ROOM AUTOPSY</p><blockquote>' +
-      esc(streamSummary) + '</blockquote><div class="live-peak"><b>' + (peak ? peak.heat : "—") +
-      '</b><span>PEAK<br>' + (isArchiveDeep ? "CANDIDATE HEAT" : "COMEDY HEAT") +
-      '</span></div><div class="source-actions"><a href="' + esc(stream.url) +
-      '" target="_blank" rel="noopener">OPEN ORIGINAL ON YOUTUBE ↗</a><button data-share-live="' + stream.id +
-      '">COPY LIVE MAP</button></div></section><section class="live-topic-index"><p class="kicker">JUMP TO A TOPIC // ' +
-      fmt(stream.wordsAudited) + ' WORDS AUDITED</p><ol>' + liveTopicsMarkup(stream) + '</ol></section></div>' +
-      '<section class="heat-section live-heat-section"><div><p class="kicker">' +
-      (stream.rightsPolicy && stream.rightsPolicy.restrictedToTopicNavigation ?
-        "SOURCE-AUDIO FIREWALL // TOPIC NAVIGATION ONLY" : "THE 30-CHAPTER FUNNY-MOMENT HEAT MAP") +
-      '</p><span>' + (isArchiveDeep ? "MACHINE CANDIDATES // NOT CANON // HUMAN PLAYBACK REVIEW REQUIRED" :
-        "CLICK ANY BAR TO JUMP THERE // HEIGHT = COMEDY-SIGNAL DENSITY") + '</span></div><div class="live-heatmap">' +
-      liveHeatMarkup(stream) + '</div></section>' +
-      '<section class="receipt-section"><div><p class="kicker">' +
-      (stream._lane === "popular" ? "FOUNDATIONAL CHAOS" :
-        isArchiveDeep ? "ARCHIVE DEEP // REVIEW-REQUIRED CANDIDATES" : "FRESHLY UNWELL") +
-      ' // SOURCE RECEIPTS</p><span>SHORT AUTO-CAPTION FRAGMENTS // SPEAKER NOT DIARIZED // VERIFY AGAINST ORIGINAL</span></div><div class="modal-player" id="modalPlayer">' +
-      '<div><span>SELECT A TOPIC, HEAT BAR, OR COMEDY HIT TO CUE THE STREAM.</span></div></div><div class="receipt-list">' +
-      liveMomentsMarkup(stream) + '</div></section>';
-    modal.classList.add("show");
-    modal.setAttribute("aria-hidden", "false");
-    document.body.classList.add("modal-open");
-    syncBackgroundInert();
-    focusSoon("#modalClose");
-    bindLivePlayButtons(document.getElementById("modalContent"));
-    bindLiveShareButtons(document.getElementById("modalContent"));
-    if (startTime != null) loadPlayer(stream.id, Number(startTime));
-    history.replaceState(null, "", "?live=" + encodeURIComponent(stream.id) +
-      (startTime != null ? "&at=" + Math.round(startTime) : "") +
-      (stream._lane === "popular" ? "#popular25" : isArchiveDeep ? "#archive" : "#livewire"));
-  }
+  function openDossier(id,startTime){return openSourceDossier(id,startTime,{routeMode:"push"});}
+  function openLiveDossier(id,startTime){return openSourceDossier(id,startTime,{routeMode:"push"});}
 
   function openLooseSource(id, startTime, label, endTime) {
     if (!id) return;
@@ -1946,17 +2027,33 @@
     player.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
-  function closeDossier() {
+  function closeDossier(options) {
+    var settings = options || {};
+    if (!settings.fromHistory && !settings.replaceRoute &&
+        history.state && history.state.wwamSourceDossierPushed) {
+      history.back();
+      return;
+    }
     var modal = document.getElementById("tapeModal");
     modal.classList.remove("show");
     modal.setAttribute("aria-hidden", "true");
+    modal.setAttribute("aria-busy", "false");
+    modal.removeAttribute("aria-labelledby");
+    modal.removeAttribute("aria-describedby");
+    document.getElementById("modalContent").innerHTML = "";
     document.body.classList.remove("modal-open");
     syncBackgroundInert();
-    var url = new URL(window.location.href);
-    url.searchParams.delete("tape");
-    url.searchParams.delete("live");
-    url.searchParams.delete("at");
-    history.replaceState(null, "", url.pathname + url.hash);
+    if (!settings.preserveRoute) {
+      var url = new URL(window.location.href);
+      ["source", "tape", "live", "at", "section"].forEach(function (key) {
+        url.searchParams.delete(key);
+      });
+      var nextState = Object.assign({}, history.state || {});
+      delete nextState.wwamSourceDossier;
+      delete nextState.wwamSourceDossierPushed;
+      delete nextState.sourceId;
+      history.replaceState(nextState, "", url);
+    }
     restoreDialogFocus();
   }
 
@@ -1970,34 +2067,6 @@
         else openDossier(id, at);
       };
     });
-  }
-
-  function bindLivePlayButtons(root) {
-    Array.prototype.forEach.call(root.querySelectorAll("[data-live-play]"), function (button) {
-      button.onclick = function (event) {
-        event.stopPropagation();
-        loadPlayer(button.getAttribute("data-live-play"), Number(button.getAttribute("data-time") || 0));
-      };
-    });
-  }
-
-  function shareUrl(id, at) {
-    var url = new URL(window.location.href);
-    url.search = "";
-    url.hash = "autopsies";
-    url.searchParams.set("tape", id);
-    if (at != null) url.searchParams.set("at", Math.round(at));
-    return url.toString();
-  }
-
-  function shareLiveUrl(id, at) {
-    var url = new URL(window.location.href);
-    url.search = "";
-    url.hash = streamById[id] && streamById[id]._lane === "popular" ? "popular25" :
-      streamById[id] && streamById[id]._lane === "archive" ? "archive" : "livewire";
-    url.searchParams.set("live", id);
-    if (at != null) url.searchParams.set("at", Math.round(at));
-    return url.toString();
   }
 
   function copy(value, message) {
@@ -2042,23 +2111,6 @@
     } else {
       legacyCopy();
     }
-  }
-
-  function bindShareButtons(root) {
-    Array.prototype.forEach.call(root.querySelectorAll("[data-share]"), function (button) {
-      button.onclick = function () {
-        copy(shareUrl(button.getAttribute("data-share"), button.hasAttribute("data-time") ? Number(button.getAttribute("data-time")) : null));
-      };
-    });
-  }
-
-  function bindLiveShareButtons(root) {
-    Array.prototype.forEach.call(root.querySelectorAll("[data-share-live]"), function (button) {
-      button.onclick = function () {
-        copy(shareLiveUrl(button.getAttribute("data-share-live"),
-          button.hasAttribute("data-time") ? Number(button.getAttribute("data-time")) : null));
-      };
-    });
   }
 
   function showToast(message) {
@@ -4380,9 +4432,14 @@
     }
     var openModal = document.getElementById("tapeModal").classList.contains("show");
     if (openModal) {
-      var params = new URLSearchParams(location.search);
-      if (params.get("tape")) openDossier(params.get("tape"), params.get("at"));
-      else if (params.get("live")) openLiveDossier(params.get("live"), params.get("at"));
+      var route = readSourceRoute();
+      if (route) {
+        openSourceDossier(route.sourceId, route.at, {
+          section: route.section,
+          routeMode: route.legacy ? "replace" : "none",
+          autoplay: false,
+        });
+      }
     }
     if (!preferencePersisted) showToast("LANGUAGE PREFERENCE KEPT FOR THIS TAB ONLY");
   }
@@ -4682,6 +4739,18 @@
       if (location.hash !== "#tape-keeps-score") return;
       document.getElementById("tape-keeps-score").click();
     });
+    addEventListener("popstate", function () {
+      var route = readSourceRoute();
+      if (route) {
+        openSourceDossier(route.sourceId, route.at, {
+          section: route.section,
+          routeMode: route.legacy ? "replace" : "none",
+          autoplay: false,
+        });
+      } else if (document.getElementById("tapeModal").classList.contains("show")) {
+        closeDossier({ fromHistory: true, preserveRoute: true });
+      }
+    });
     addEventListener("wwam:verdict-room-open", function (event) {
       var room = document.getElementById("verdict-room");
       room.setAttribute("data-verdict-subject",
@@ -4751,13 +4820,14 @@
     if (gate && !gate.classList.contains("gone")) return;
     state.initialRouteHandled = true;
     var params = new URLSearchParams(location.search);
-    if (params.get("tape")) {
-      setTimeout(function () { openDossier(params.get("tape"), params.get("at")); }, 50);
-    } else if (params.get("live")) {
+    var sourceRoute = readSourceRoute();
+    if (sourceRoute) {
       setTimeout(function () {
-        var id = params.get("live");
-        if (streamById[id]) openLiveDossier(id, params.get("at"));
-        else loadArchiveAtlas().then(function () { openLiveDossier(id, params.get("at")); });
+        openSourceDossier(sourceRoute.sourceId, sourceRoute.at, {
+          section: sourceRoute.section,
+          routeMode: sourceRoute.legacy ? "replace" : "none",
+          autoplay: false,
+        });
       }, 50);
     } else if (window.WWAMAskShare.read(location.search)) {
       setTimeout(function () {

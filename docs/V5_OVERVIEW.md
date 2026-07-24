@@ -1,4 +1,4 @@
-# WWAM After Midnight V5.16
+# WWAM After Midnight V5.17
 
 ## One-sentence product
 
@@ -13,13 +13,15 @@ receipt, that proof also includes the exact indexed second. Source-level
 metadata and summaries remain labeled as source-level evidence rather than
 masquerading as timestamped utterances.
 
-V5.16 adds one more requirement: the bounded receipt must state how it is
-evidence about the resolved subject. A timestamp inside a relevant upload is
-not automatically an answer.
+V5.17 turns the source itself into a durable destination. Every one of 510
+unique canonical uploads receives the same evidence-safe dossier contract,
+whether its captions support a deep page or its cached metadata supports only
+an honest source record. V5.16's relationship rule remains: a timestamp inside
+a relevant upload is not automatically an answer.
 
 ## Audited snapshot
 
-V5.16 keeps a frozen release proof, the V5.12 Archive Deep overlay, the V5.13
+V5.17 keeps a frozen release proof, the V5.12 Archive Deep overlay, the V5.13
 longitudinal docket, the V5.14 device-local adjudication overlay, and the new
 playable-answer projection and evidence-relationship gate visibly separate.
 The **immutable V5.4 proof** remains:
@@ -67,6 +69,16 @@ Across promoted and quarantine lanes, the current audit covers **114 source
 inputs: 111 caption-audited and 3 sealed or limited, 3,097,866 audited words,
 and about 268.9 hours**. Promoted counts remain 872 receipts and 168 core
 memory nodes.
+
+V5.17 adds a canonical source-registry view without merging those evidence
+ledgers. The union is **510 unique uploads**: 472 cached official Streams-feed
+records plus 39 commentary catalog records minus one exact overlap. Its
+coverage is **111 caption-backed, 390 metadata-only, nine caption-limited, and
+zero classified unavailable**. A Source Dossier can therefore exist for every
+registered upload while the depth of its content claims remains evidence-
+dependent.
+
+See [The Source Dossier](SOURCE_DOSSIER.md).
 
 A separate Archive Atlas inventories all 472 records in the cached official
 Streams-feed snapshot from 2018–2026. Those records total 1,197.0 known hours

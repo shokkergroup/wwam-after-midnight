@@ -11,7 +11,7 @@ three things quickly:
 
 ## Before the call
 
-- Open the current V5.16 build or its confirmed deployment and choose either
+- Open the current V5.17 build or its confirmed deployment and choose either
   content-advisory mode.
 - Confirm YouTube playback is available in the browser.
 - Start at the hero, not halfway down the page.
@@ -56,6 +56,13 @@ Use this evidence vocabulary consistently:
   rights-cleared, written to Canon, or published to a server.
 
 ## The 60-second version
+
+For a source-first buyer demonstration, open the July 23 livestream dossier
+first: “This one new upload became a fan page, searchable memory, and a
+creator workbench.” Show its 21 registered receipts, four bit lineages, and
+draft clip inventory. Then switch to a metadata-only source and show the
+system refusing to invent its contents. That contrast explains the product
+faster than a feature tour.
 
 Press **Mike Mode** and use one sentence per slide:
 

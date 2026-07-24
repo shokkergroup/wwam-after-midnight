@@ -100,7 +100,7 @@ test("publishes a compact isolated UI controller with lifecycle and Ask APIs", (
   const { window, ui } = load();
 
   assert.ok(fs.statSync(uiPath).size < 30_000);
-  assert.equal(window.WWAMArchiveAtlasUI.VERSION, "1.1.0");
+  assert.equal(window.WWAMArchiveAtlasUI.VERSION, "1.2.0");
   for (const method of [
     "mount",
     "setEngine",

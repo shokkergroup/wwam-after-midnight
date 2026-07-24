@@ -3,6 +3,46 @@
 This changelog records product and evidence-contract changes. It does not by
 itself indicate that a build has been deployed.
 
+## 0.5.17 — V5.17 The Source Dossier — 2026-07-24
+
+### Added
+
+- Every canonical upload now opens one Source Dossier. The deterministic WWAM
+  adapter reconciles 472 Streams-feed records plus 39 commentary records minus
+  one exact overlap into 510 unique sources.
+- Coverage is fixed at 111 caption-backed, 390 metadata-only, nine
+  caption-limited, and zero unavailable records. Source-only pages expose
+  useful metadata and chronology while refusing invented content.
+- Source Proof, dormant official playback, Inside This Tape, Memory OS
+  Footprint, The Tape's Wake, creator actions, evidence boundaries, and
+  chronology now live around the source rather than in disconnected features.
+- The July 23 livestream dossier joins 21 registered receipts, four bit
+  lineages, 13 Short candidates, six supercut memberships, and four
+  resurfacing opportunities without promoting those drafts into approval.
+- Canonical `?source=` routes replace separate commentary/live share routes.
+  Legacy routes remain readable; browser history and modal close preserve
+  unrelated state.
+- Archive Atlas now opens a dossier for every record instead of sending
+  metadata-only records away from the wiki.
+- Source Dossier can hand an exact source and second into Tape Companion while
+  keeping playback dormant.
+
+### Evidence and playback boundaries
+
+- Content relationships require dual-ended registered evidence or exact
+  artifact membership. Title/date/lane neighbors remain labeled metadata
+  navigation and cannot claim callback, origin, influence, or discussion.
+- Archive Deep quarantine, 12 source-audio firewalls, sealed sources, and
+  caption-limited sources retain their existing refusal rules.
+- Share and export packets omit excerpts, transcripts, generated summaries,
+  media, and speakers.
+- YouTube playback now sends explicit client identity, supports the
+  first-party recovery bridge, preserves exact clip bounds, and exposes a more
+  visible recovery control. The public deployment must contain the bridge and
+  helper files before this change is live.
+
+See [The Source Dossier](SOURCE_DOSSIER.md).
+
 ## 0.5.16 — V5.16 Evidence Relationship Gate — 2026-07-24
 
 ### Accuracy moat

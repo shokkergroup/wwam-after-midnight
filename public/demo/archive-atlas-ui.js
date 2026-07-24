@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.1.0";
+  var VERSION = "1.2.0";
   var REQUIRED_ENGINE_METHODS = (
     "getStats getCoverage getBuckets getFilterOptions getRecord browse search getDistillQueue getProvenance"
   ).split(" ");
@@ -22,6 +22,7 @@
     "archive-deep-10": "AUTOPSIED BATCH 01",
     "archive-deep-batch-02": "ARCHIVE DEEP BATCH 02",
     "archive-deep-batch-03": "ARCHIVE DEEP BATCH 03",
+    "archive-deep-batch-04": "ARCHIVE DEEP BATCH 04",
     "commentary-catalog": "COMMENTARY",
     "archive-metadata": "ARCHIVE RECORD",
   };
@@ -79,7 +80,6 @@
       formatDuration = typeof input.formatDuration === "function" ? input.formatDuration : fallbackDuration,
       formatDate = typeof input.formatDate === "function" ? input.formatDate : fallbackDate,
       escapeHtml = typeof input.escapeHtml === "function" ? input.escapeHtml : fallbackEscape,
-      isInternal = typeof input.isInternal === "function" ? input.isInternal : function () { return false; },
       openRecord = typeof input.openRecord === "function" ? input.openRecord : function () {},
       downloadJson = typeof input.downloadJson === "function" ? input.downloadJson : function () {},
       showToast = typeof input.showToast === "function" ? input.showToast : function () {},
@@ -206,13 +206,8 @@
     }
 
     function card(record) {
-      var internal = Boolean(isInternal(record));
-      var action = internal
-        ? '<button type="button" data-archive-open="' + escapeHtml(record.id) + '">'
-          + (record.coverage === "deeply-indexed" ? "OPEN DEEP MAP" : "OPEN SOURCE DOSSIER")
-          + " &rarr;</button>"
-        : '<a href="' + escapeHtml(record.url) + '" target="_blank" rel="noopener">'
-          + "OPEN ORIGINAL &#8599;</a>";
+      var action = '<button type="button" data-archive-open="' + escapeHtml(record.id) + '">'
+        + "OPEN SOURCE DOSSIER &rarr;</button>";
       var depthClass = record.coverage === "deeply-indexed"
         ? "deep"
         : record.coverage === "caption-limited" ? "limited" : "metadata";
@@ -607,13 +602,8 @@
         + " These records show an upload was present in the cached feed snapshot. "
         + "They do not establish what anyone said inside it.</p><div>"
         + plan.records.map(function (record) {
-          var internal = Boolean(isInternal(record));
-          var action = internal
-            ? '<button type="button" data-ask-archive="' + escapeHtml(record.id) + '">OPEN '
-              + (record.coverage === "deeply-indexed" ? "DEEP MAP" : "DOSSIER")
-              + " &rarr;</button>"
-            : '<a href="' + escapeHtml(record.url)
-              + '" target="_blank" rel="noopener">OPEN ORIGINAL &#8599;</a>';
+          var action = '<button type="button" data-ask-archive="'
+            + escapeHtml(record.id) + '">OPEN SOURCE DOSSIER &rarr;</button>';
           return "<article><span>" + escapeHtml(formatDate(record.date)) + " // "
             + escapeHtml(record.coverage.replace(/-/g, " ").toUpperCase())
             + "</span><h4>" + escapeHtml(record.title)

@@ -7,7 +7,32 @@ character archaeology, topic paths, and creator-side editorial opportunities.
 This is an unofficial fan prototype. It sends playback and source traffic back
 to the official WWAM uploads.
 
-Current documented release: **V5.16 / 0.5.16**.
+Current documented release: **V5.17 / 0.5.17**.
+
+## V5.17 The Source Dossier
+
+Every one of the **510 unique canonical uploads** now has one honest,
+shareable source page. The registry reconciles 472 cached official
+Streams-feed records with 39 commentary records and one exact overlap. Its
+coverage remains explicit: 111 caption-backed, 390 metadata-only, nine
+caption-limited, and zero classified unavailable.
+
+The dossier gathers Source Proof, dormant in-page playback, Inside This Tape,
+Memory OS Footprint, The Tape's Wake, creator actions, evidence boundaries,
+and chronology around the upload that generated them. The July 23, 2026
+livestream demonstrates the full path with 21 registered receipts, four bit
+lineages, 13 Short candidates, six supercut memberships, and four resurfacing
+opportunities. Metadata-only sources receive a useful page and a permanent
+refusal instead of invented topics, quotes, characters, or sentiment.
+
+Cross-source content links require dual-ended evidence or exact registered
+artifact membership. Title similarity remains labeled metadata navigation.
+The canonical route is `?source=ID&at=SECONDS#archive`; older `?tape=` and
+`?live=` links remain readable. No player initializes until the visitor asks
+for it, and the shared YouTube identity bridge keeps timestamped playback
+inside the page.
+
+See [The Source Dossier](docs/SOURCE_DOSSIER.md).
 
 ## V5.16 Evidence Relationship Gate
 
@@ -345,11 +370,12 @@ manifest. Quarantined stops remain marked `promotionAllowed: false` with no
 speaker claim. The export omits transcripts, caption payloads, and full event
 ledgers. See [Archive Time Capsules](docs/ARCHIVE_TIME_CAPSULES.md).
 
-## V5.16 product map
+## V5.17 product map
 
 The hero offers three deliberate entry points:
 
-- **Fan Experience:** the daily Night Shift return ritual, source-grounded Tape
+- **Fan Experience:** 510 canonical Source Dossiers, the daily Night Shift
+  return ritual, source-grounded Tape
   Trivia, Tape Companion's synchronized second screen, the Evidence Bag, the
   100-rank Red Band Memorability Candidate Index V2.1, WWAM UP IN YA, and
   playable descent paths.
@@ -607,7 +633,8 @@ artifacts contain derived measurements and short, timestamped fragments only.
 
 ## Documentation
 
-- [V5.16 product overview](docs/V5_OVERVIEW.md)
+- [V5.17 product overview](docs/V5_OVERVIEW.md)
+- [The Source Dossier](docs/SOURCE_DOSSIER.md)
 - [Evidence Relationship Gate](docs/EVIDENCE_RELATIONSHIP_GATE.md)
 - [Play the Answer source-trail contract](docs/PLAY_THE_ANSWER.md)
 - [The Tape Keeps Score longitudinal evidence contract](docs/LONGITUDINAL_DOCKET.md)

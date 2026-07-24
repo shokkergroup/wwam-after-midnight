@@ -10,6 +10,14 @@ const demo = path.join(here, "..", "public", "demo");
 const app = fs.readFileSync(path.join(demo, "app.js"), "utf8");
 const html = fs.readFileSync(path.join(demo, "index.html"), "utf8");
 const atlasUi = fs.readFileSync(path.join(demo, "archive-atlas-ui.js"), "utf8");
+const sourceDossierAdapter = fs.readFileSync(
+  path.join(demo, "wwam-source-dossier-adapter.js"),
+  "utf8",
+);
+const sourceDossierUi = fs.readFileSync(
+  path.join(demo, "source-dossier-ui.js"),
+  "utf8",
+);
 const dnaSource = fs.readFileSync(path.join(demo, "wwam-channel-dna.js"), "utf8");
 const pitchTour = fs.readFileSync(path.join(demo, "pitch-tour-data.js"), "utf8");
 
@@ -107,9 +115,10 @@ test("the frozen V5.4 proof stays dated while the current four-batch overlay sta
   assert.match(app, /"archive-deep-engine\.js"/);
   assert.match(app, /"archive-deep-portfolio\.js"/);
   assert.match(app, /stream\._lane = "archive"/);
-  assert.match(app, /"AUTOPSIED BATCH 0" \+ archiveBatch\.sequence/);
-  assert.match(app, /REVIEW-REQUIRED CANDIDATES/);
-  assert.match(app, /restrictedToTopicNavigation/);
+  assert.match(atlasUi, /"archive-deep-10": "AUTOPSIED BATCH 01"/);
+  assert.match(atlasUi, /"archive-deep-batch-04": "ARCHIVE DEEP BATCH 04"/);
+  assert.match(sourceDossierUi, /QUARANTINE ACTIVE/);
+  assert.match(sourceDossierAdapter, /restrictedToTopicNavigation/);
   assert.match(html, /id="archiveBatch" hidden/);
   assert.match(atlasUi, /CURRENT ' \+ meta\.streams/);
   assert.match(atlasUi, /batchCount \+ " INDEPENDENT BATCH FINGERPRINTS/);

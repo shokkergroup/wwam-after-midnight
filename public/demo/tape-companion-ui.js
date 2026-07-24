@@ -579,6 +579,19 @@
     setStatus(options && options.reason || "SOURCE LOADED // PRESS PLAY WHEN READY");
   }
 
+  function handleCompanionOpen(event) {
+    var detail = event && event.detail;
+    var sourceId = clean(detail && detail.sourceId);
+    var at = Number(detail && detail.at);
+    if (!sourceId || !Number.isFinite(at) || at < 0) {
+      setStatus("SOURCE DOSSIER HANDOFF HELD // INVALID SOURCE OR TIME");
+      return;
+    }
+    selectSource(sourceId, at, {
+      reason: "SOURCE DOSSIER HANDOFF // EXACT SECOND LOADED // PRESS PLAY WHEN READY"
+    });
+  }
+
   function initControls() {
     elements.search.addEventListener("input", renderSources);
     elements.latest.onclick = function () {
@@ -615,6 +628,7 @@
       url.hash = "companion";
       copy(url.toString(), "EXACT COMPANION SECOND COPIED");
     };
+    root.addEventListener("wwam:tape-companion-open", handleCompanionOpen);
     root.addEventListener("pagehide", function () { persist(true); });
   }
 
