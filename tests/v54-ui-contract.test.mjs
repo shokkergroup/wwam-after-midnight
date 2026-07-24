@@ -94,7 +94,7 @@ test("Mike Mode has six coherent beats and opens Archive Atlas as live proof", (
 });
 
 test("the current release identity preserves V5.4 headline proof", () => {
-  assert.equal(packageJson.version, "0.5.17");
+  assert.equal(packageJson.version, "0.5.18");
   assert.match(changelog, /## 0\.5\.7\b/);
   assert.match(changelog, /## 0\.5\.6\b/);
   assert.match(changelog, /## 0\.5\.5\b/);

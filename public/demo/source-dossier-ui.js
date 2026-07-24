@@ -1,8 +1,41 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.0.0";
+  var VERSION = "1.1.0";
   var DOSSIER_SCHEMA = "shokker-source-dossier/v1";
+  var QUERY_SCHEMA = "shokker-source-query/v1";
+  var QUERY_RESULT_SCHEMA = "shokker-source-query-result/v1";
+  var QUERY_LIMIT = 3;
+  var COMPACT_LIMITS = Object.freeze({
+    receipts: 3,
+    entities: 8,
+    wake: 4,
+    neighborhood: 3,
+    artifacts: 6
+  });
+  var SECTION_IDS = Object.freeze({
+    proof: "sourceDossierProof",
+    player: "sourceDossierPlayerSection",
+    inside: "sourceDossierInside",
+    ask: "sourceDossierAsk",
+    footprint: "sourceDossierFootprint",
+    wake: "sourceDossierWake",
+    chronology: "sourceDossierChronology",
+    work: "sourceDossierWork",
+    boundary: "sourceDossierBoundary"
+  });
+  var EXPANDABLE_SECTIONS = Object.freeze([
+    "inside", "footprint", "wake", "work"
+  ]);
+  var QUERY_STATUSES = Object.freeze([
+    "supported", "inventory", "proof", "metadata-only", "caption-limited",
+    "unavailable", "insufficient-evidence", "speaker-refused",
+    "ranking-refused", "stale-source"
+  ]);
+  var QUERY_RESULT_TYPES = Object.freeze([
+    "receipt", "metadata", "entity", "artifact", "connection"
+  ]);
+  var DEFAULT_SOURCE_QUERY = "What is actually indexed in this tape?";
 
   function clean(value) {
     return String(value == null ? "" : value).replace(/\s+/g, " ").trim();
@@ -121,6 +154,7 @@
   function create(options) {
     var input = options || {};
     var engine = input.engine;
+    var queryEngine = input.queryEngine;
     var mount = input.mount;
     if (!engine || typeof engine.build !== "function") {
       throw new Error("Source Dossier UI requires an engine with build(sourceId).");
@@ -142,7 +176,6 @@
       play: typeof input.onPlay === "function" ? input.onPlay : function () {},
       copy: typeof input.onCopyLink === "function" ? input.onCopyLink : function () {},
       download: typeof input.onDownload === "function" ? input.onDownload : function () {},
-      ask: typeof input.onAskSource === "function" ? input.onAskSource : function () {},
       open: typeof input.onOpenSource === "function" ? input.onOpenSource : function () {},
       companion: typeof input.onOpenCompanion === "function" ?
         input.onOpenCompanion : function () {},
@@ -152,6 +185,15 @@
       dossier: null,
       sourceId: "",
       at: 0,
+      hasAnchor: false,
+      section: "",
+      fullFile: false,
+      expanded: {},
+      query: DEFAULT_SOURCE_QUERY,
+      queryAnswer: null,
+      queryBusy: false,
+      queryError: "",
+      queryEpoch: 0,
       destroyed: false
     };
 
@@ -167,11 +209,175 @@
       );
     }
 
+    function sectionAttributes(section) {
+      return ' id="' + esc(SECTION_IDS[section]) + '" data-source-dossier-section="' +
+        esc(section) + '"';
+    }
+
+    function sectionExpanded(section) {
+      return state.fullFile || state.expanded[section] === true;
+    }
+
+    function visibleItems(items, section, limit) {
+      var values = array(items);
+      return sectionExpanded(section) ? values : values.slice(0, limit);
+    }
+
+    function disclosureMarkup(section, total, visible, noun) {
+      var expanded = sectionExpanded(section);
+      if (state.fullFile || (!expanded && total <= visible)) return "";
+      return '<div class="source-dossier-disclosure"><span>' +
+        esc(visible) + ' OF ' + esc(total) + ' ' + esc(noun.toUpperCase()) +
+        ' VISIBLE</span><button type="button" data-source-dossier-action="toggle-section" ' +
+        'data-section="' + esc(section) + '" aria-controls="' +
+        esc(SECTION_IDS[section]) + 'Items" aria-expanded="' +
+        (expanded ? "true" : "false") + '">' +
+        (expanded ? 'RETURN TO COMPACT ' + esc(noun.toUpperCase()) :
+          'SHOW ALL ' + esc(total) + ' ' + esc(noun.toUpperCase())) +
+        '</button></div>';
+    }
+
+    function densityMarkup() {
+      return '<aside class="source-dossier-density" data-source-dossier-density="' +
+        (state.fullFile ? "full" : "compact") + '" aria-label="Source dossier display depth">' +
+        '<div><span>' + (state.fullFile ? "FULL SOURCE FILE" : "DIRECTOR'S CUT") +
+        '</span><p>' + (state.fullFile ?
+          "Every registered receipt, entity, connection, and draft is visible." :
+          "The strongest source-local proof stays up front. Expand only the evidence lane you need.") +
+        '</p></div><button type="button" data-source-dossier-action="' +
+        (state.fullFile ? "close-full-file" : "open-full-file") + '" aria-expanded="' +
+        (state.fullFile ? "true" : "false") + '">' +
+        (state.fullFile ? "RETURN TO COMPACT FILE" : "OPEN FULL FILE") +
+        '</button></aside>';
+    }
+
+    function sourceReceiptByKey(dossier, key) {
+      return array(dossier && dossier.source && dossier.source.receipts)
+        .filter(function (receipt) { return receipt.key === key; })[0] || null;
+    }
+
+    function validateQueryAnswer(answer, dossier) {
+      var source = dossier.source;
+      var scope = record(answer && answer.scope);
+      var boundary = record(answer && answer.boundary);
+      var sourceProof = record(answer && answer.sourceProof);
+      var status = clean(answer && answer.status);
+      var substitutionBlocked =
+        boundary.crossSourceSubstitutionAllowed === false ||
+        boundary.crossSourceSubstitution === false;
+      if (!answer || answer.schema !== QUERY_RESULT_SCHEMA ||
+          QUERY_STATUSES.indexOf(status) < 0 ||
+          scope.exactSource !== true ||
+          clean(scope.sourceId) !== source.id ||
+          clean(scope.sourceFingerprint) !== clean(source.sourceFingerprint) ||
+          clean(scope.dossierFingerprint) !== clean(dossier.fingerprint) ||
+          clean(scope.query) !== state.query ||
+          Number(scope.limit) !== QUERY_LIMIT ||
+          clean(sourceProof.sourceId) !== source.id ||
+          clean(sourceProof.sourceFingerprint) !== clean(source.sourceFingerprint) ||
+          !substitutionBlocked) {
+        throw new Error("The source query result did not preserve the exact-source lock.");
+      }
+      var rawResults = array(answer.results);
+      var normalizedResults = rawResults.map(function (rawResult) {
+        var result = record(rawResult);
+        var type = clean(result.type);
+        if (clean(result.sourceId) !== source.id ||
+            QUERY_RESULT_TYPES.indexOf(type) < 0) {
+          throw new Error("A source query result attempted to cross the source lock.");
+        }
+        if (type === "receipt") {
+          var canonical = sourceReceiptByKey(dossier, clean(result.key));
+          if (!canonical) {
+            throw new Error("A source query result referenced an unregistered receipt.");
+          }
+          return {
+            type: "receipt",
+            key: canonical.key,
+            receipt: canonical,
+            matchedBy: clean(result.matchedBy)
+          };
+        }
+        if (type === "metadata") {
+          return {
+            type: type,
+            field: clean(result.field),
+            basis: clean(result.basis),
+            value: result.value
+          };
+        }
+        if (type === "entity") {
+          return {
+            type: type,
+            id: clean(result.id),
+            label: clean(result.label),
+            entityType: clean(result.entityType),
+            basis: clean(result.basis),
+            receiptKeys: array(result.receiptKeys).map(clean).filter(Boolean)
+          };
+        }
+        if (type === "artifact") {
+          return {
+            type: type,
+            id: clean(result.id),
+            label: clean(result.label),
+            kind: clean(result.kind),
+            authority: clean(result.authority),
+            reviewState: clean(result.reviewState),
+            risk: clean(result.risk),
+            targetSection: clean(result.targetSection),
+            receiptKeys: array(result.receiptKeys).map(clean).filter(Boolean)
+          };
+        }
+        return {
+          type: type,
+          targetSourceId: clean(result.targetSourceId),
+          targetTitle: clean(result.targetTitle),
+          targetDate: clean(result.targetDate),
+          direction: clean(result.direction),
+          basis: clean(result.basis),
+          sharedEntities: array(result.sharedEntities).map(function (entity) {
+            return clean(record(entity).label);
+          }).filter(Boolean)
+        };
+      }).slice(0, QUERY_LIMIT);
+      return {
+        schema: answer.schema,
+        scope: scope,
+        status: status,
+        sourceProof: sourceProof,
+        boundary: boundary,
+        message: clean(answer.message),
+        results: normalizedResults,
+        total: Math.max(
+          normalizedResults.length,
+          Number(answer.resultCount) || rawResults.length
+        ),
+        limitations: array(answer.limitations).map(clean).filter(Boolean)
+      };
+    }
+
+    function queryStatusLabel(status) {
+      return {
+        supported: "SOURCE-LOCKED ANSWER",
+        inventory: "REGISTERED SOURCE INVENTORY",
+        proof: "CANONICAL SOURCE PROOF",
+        "metadata-only": "METADATA-ONLY REFUSAL",
+        "caption-limited": "CAPTION-LIMITED ANSWER",
+        unavailable: "SOURCE UNAVAILABLE",
+        "insufficient-evidence": "INSUFFICIENT SOURCE EVIDENCE",
+        "speaker-refused": "SPEAKER CLAIM REFUSED",
+        "ranking-refused": "UNSUPPORTED RANKING REFUSED",
+        "stale-source": "STALE SOURCE LOCK"
+      }[status] || "SOURCE QUERY HELD";
+    }
+
     function proofMarkup(dossier) {
       var source = dossier.source;
       var proof = dossier.proof;
       var lanes = array(source.lanes);
-      return '<section class="source-dossier-proof" aria-labelledby="sourceDossierProofTitle">' +
+      return '<section class="source-dossier-proof"' + sectionAttributes("proof") +
+        ' aria-labelledby="sourceDossierProofTitle">' +
         '<header><div><span>SOURCE PROOF</span><h3 id="sourceDossierProofTitle">THE UPLOAD, BEFORE THE INTERPRETATION.</h3></div>' +
         '<p>Cached measurements identify this source. They do not establish a speaker, intent, rights status, or creator verdict.</p></header>' +
         '<div class="source-dossier-proof-grid">' +
@@ -194,7 +400,8 @@
 
     function playerMarkup(dossier) {
       var source = dossier.source;
-      return '<section class="source-dossier-player-section" aria-labelledby="sourceDossierPlayerTitle">' +
+      return '<section class="source-dossier-player-section"' + sectionAttributes("player") +
+        ' aria-labelledby="sourceDossierPlayerTitle">' +
         '<header><div><span>OFFICIAL SOURCE PLAYBACK</span><h3 id="sourceDossierPlayerTitle">PLAY IT HERE. KEEP THE RECEIPTS ATTACHED.</h3></div>' +
         '<a href="' + esc(source.url) + '" target="_blank" rel="noopener">OPEN OFFICIAL SOURCE &#8599;</a></header>' +
         '<div class="modal-player source-dossier-player" id="modalPlayer" data-source-dossier-player aria-live="polite">' +
@@ -204,13 +411,14 @@
         '<small>OFFICIAL YOUTUBE UPLOAD // NO COPIED MEDIA // RECOVERY CONTROL APPEARS WITH THE PLAYER</small></div></div></section>';
     }
 
-    function receiptMarkup(receipt) {
+    function receiptMarkup(receipt, extraClass) {
       var excerpt = receipt.publicExcerptAllowed && receipt.excerpt ?
         '&ldquo;' + esc(receipt.excerpt) + '&rdquo;' :
         '<span class="source-dossier-withheld">EXCERPT WITHHELD // SOURCE COORDINATE REMAINS</span>';
       var label = clean(receipt.label) || "INDEXED RECEIPT";
       var time = formatTime(receipt.at);
-      return '<article class="source-dossier-receipt" data-receipt-key="' +
+      return '<article class="source-dossier-receipt' +
+        (extraClass ? ' ' + esc(extraClass) : '') + '" data-receipt-key="' +
         esc(receipt.key) + '"><header><span>' + esc(label) + '</span><time>' +
         esc(time) + '</time></header><p>' + excerpt + '</p><div class="source-dossier-receipt-proof">' +
         '<span>' + esc(clean(receipt.evidenceLevel).toUpperCase()) + '</span><span>' +
@@ -232,11 +440,182 @@
         '<li>0 content summaries</li><li>0 speaker claims</li><li>0 automatic promotions</li></ul></div>';
     }
 
+    function queryFact(label, value) {
+      return '<span><b>' + esc(value == null || value === "" ? "0" : value) +
+        '</b>' + esc(label) + '</span>';
+    }
+
+    function queryMetadataMarkup(result) {
+      var value = record(result.value);
+      var details = "";
+      if (result.field === "source-inventory") {
+        details = queryFact("RECEIPTS", formatNumber(record(value.receipts).total)) +
+          queryFact("ENTITIES", formatNumber(value.entities)) +
+          queryFact("ARTIFACTS", formatNumber(record(value.artifacts).total)) +
+          queryFact("CONNECTIONS", formatNumber(record(value.connections).total));
+      } else if (result.field === "source-proof") {
+        details = queryFact("UPLOAD", formatDate(value.date)) +
+          queryFact("RUNTIME", formatDuration(value.duration)) +
+          queryFact("CACHED VIEWS", formatNumber(value.views)) +
+          queryFact("EVIDENCE", coverageLabel(value.coverage));
+      } else if (result.field === "registered-summary") {
+        details = '<p>' + esc(clean(value.text) || "No registered summary text survived.") +
+          '</p>';
+      } else {
+        details = '<p>' + esc(
+          clean(result.value) || "This metadata field is registered without a public value."
+        ) + '</p>';
+      }
+      return '<article class="source-dossier-query-result is-metadata" ' +
+        'data-source-query-result-type="metadata"><span>' +
+        esc(clean(result.field).toUpperCase() || "SOURCE METADATA") +
+        '</span><h5>REGISTERED SOURCE FACTS</h5><div class="source-dossier-query-facts">' +
+        details + '</div><small>BASIS // ' +
+        esc(clean(result.basis).toUpperCase() || "REGISTERED DOSSIER") +
+        '</small></article>';
+    }
+
+    function queryEntityMarkup(result) {
+      return '<article class="source-dossier-query-result is-entity" ' +
+        'data-source-query-result-type="entity"><span>' +
+        esc(clean(result.entityType).toUpperCase() || "REGISTERED ENTITY") +
+        '</span><h5>' + esc(result.label || result.id || "UNNAMED ENTITY") +
+        '</h5><p>' + esc(entityBasisLabel(result.basis)) +
+        '</p><small>' + esc(array(result.receiptKeys).length) +
+        ' SOURCE-LOCAL RECEIPT LINK' +
+        (array(result.receiptKeys).length === 1 ? "" : "S") + '</small></article>';
+    }
+
+    function queryArtifactMarkup(result) {
+      return '<article class="source-dossier-query-result is-artifact" ' +
+        'data-source-query-result-type="artifact"><span>' +
+        esc(artifactAuthorityLabel(result.authority)) + '</span><h5>' +
+        esc(result.label || result.id || "UNNAMED REVIEW ARTIFACT") +
+        '</h5><p>' + esc(titleCase(result.kind).toUpperCase() || "REGISTERED ARTIFACT") +
+        (result.targetSection ? ' // TARGET: ' +
+          esc(clean(result.targetSection).toUpperCase()) : '') +
+        '</p><small>' + esc(clean(result.reviewState).toUpperCase() || "REVIEW STATE UNKNOWN") +
+        ' // ' + (result.risk ? 'RISK ' + esc(clean(result.risk).toUpperCase()) :
+          "RISK NOT ASSIGNED") + '</small></article>';
+    }
+
+    function queryConnectionMarkup(result) {
+      return '<article class="source-dossier-query-result is-connection" ' +
+        'data-source-query-result-type="connection"><span>' +
+        esc(clean(result.direction).toUpperCase() || "ARCHIVE") +
+        ' RELATIONSHIP // NAVIGATION ONLY</span><h5>' +
+        esc(result.targetTitle || result.targetSourceId || "RELATED SOURCE") +
+        '</h5><p>' + esc(relationshipLabel(result.basis)) +
+        (array(result.sharedEntities).length ? ' // ' +
+          esc(array(result.sharedEntities).join(", ")) : '') +
+        '</p>' + (result.targetSourceId ?
+          '<button type="button" data-source-dossier-action="open-source" data-source-id="' +
+          esc(result.targetSourceId) + '">OPEN RELATED SOURCE &#8594;</button>' : '') +
+        '</article>';
+    }
+
+    function queryResultMarkup(result) {
+      if (result.type === "receipt") {
+        return receiptMarkup(result.receipt, "source-dossier-query-receipt");
+      }
+      if (result.type === "metadata") return queryMetadataMarkup(result);
+      if (result.type === "entity") return queryEntityMarkup(result);
+      if (result.type === "artifact") return queryArtifactMarkup(result);
+      return queryConnectionMarkup(result);
+    }
+
+    function queryAnswerMarkup(dossier) {
+      if (state.queryBusy) {
+        return '<div class="source-dossier-query-state is-loading" id="sourceDossierAskAnswer" ' +
+          'role="status" aria-live="polite"><span>SOURCE LOCK HELD</span>' +
+          '<h4>INTERROGATING THIS TAPE ONLY.</h4><p>No other upload may substitute while the answer is assembled.</p></div>';
+      }
+      if (state.queryError) {
+        return '<div class="source-dossier-query-state is-held" id="sourceDossierAskAnswer" ' +
+          'role="alert"><span>SOURCE QUERY HELD</span><h4>THE LOCK REFUSED THE RESULT.</h4><p>' +
+          esc(state.queryError) + '</p></div>';
+      }
+      if (!state.queryAnswer) {
+        return '<div class="source-dossier-query-state" id="sourceDossierAskAnswer" ' +
+          'role="status" aria-live="polite"><span>SOURCE-LOCAL MODE</span>' +
+          '<h4>ASK ONE TAPE. GET ONE TAPE.</h4><p>' +
+          (queryEngine && typeof queryEngine.answer === "function" ?
+            "Every answer must resolve to this source fingerprint or fail closed." :
+            "The source-query engine is not connected. Archive-wide search will not be used as a substitute.") +
+          '</p></div>';
+      }
+      var answer = state.queryAnswer;
+      var status = answer.status;
+      var results = array(answer.results);
+      var refusal = [
+        "metadata-only", "caption-limited", "unavailable",
+        "insufficient-evidence", "speaker-refused", "ranking-refused",
+        "stale-source"
+      ].indexOf(status) >= 0;
+      var conclusion = answer.message || (refusal ?
+        "This exact source cannot support that claim." :
+        results.length + " source-locked result" +
+          (results.length === 1 ? "" : "s") + " survived this question.");
+      return '<div class="source-dossier-query-answer is-' + esc(token(status)) +
+        '" id="sourceDossierAskAnswer" role="region" aria-live="polite" ' +
+        'aria-labelledby="sourceDossierAskAnswerTitle" data-source-query-status="' +
+        esc(status) + '" data-source-query-result-count="' + esc(results.length) + '">' +
+        '<header><div><span>' + esc(queryStatusLabel(status)) +
+        '</span><h4 id="sourceDossierAskAnswerTitle">' + esc(conclusion) +
+        '</h4></div><b>LOCKED TO ' + esc(dossier.source.id) + '</b></header>' +
+        '<p class="source-dossier-query-question">&ldquo;' + esc(state.query) +
+        '&rdquo;</p>' +
+        (results.length ? '<div class="source-dossier-query-results">' +
+          results.map(queryResultMarkup).join("") + '</div>' :
+          '<div class="source-dossier-query-refusal"><b>0 SUPPORTED SOURCE RESULTS</b><span>' +
+          esc(dossier.proof.evidenceBoundary) + '</span></div>') +
+        (answer.limitations.length ? '<ul class="source-dossier-query-limitations">' +
+          answer.limitations.slice(0, 3).map(function (limitation) {
+            return '<li>' + esc(limitation) + '</li>';
+          }).join("") + '</ul>' : '') +
+        '<footer><span>' + esc(results.length) + ' OF ' +
+        esc(answer.total) + ' QUALIFYING RESULTS SHOWN</span><span>' +
+        'CROSS-SOURCE SUBSTITUTION: BLOCKED</span></footer></div>';
+    }
+
+    function askMarkup(dossier) {
+      var source = dossier.source;
+      var prompts = [
+        "What is actually indexed in this tape?",
+        "Show the registered moments in this tape.",
+        "Which recurring characters are indexed here?",
+        "What Short or supercut drafts are registered here?"
+      ];
+      return '<section class="source-dossier-ask"' + sectionAttributes("ask") +
+        ' aria-labelledby="sourceDossierAskTitle"><header><div>' +
+        '<span>SOURCE-LOCKED INTERROGATION</span><h3 id="sourceDossierAskTitle">ASK THIS TAPE.</h3>' +
+        '</div><p>Questions stay bound to this source ID and fingerprint. A duplicate title, hotter upload, or archive-wide match cannot replace it.</p></header>' +
+        '<div class="source-dossier-source-lock" role="status"><span>SOURCE LOCK</span><b>' +
+        esc(source.id) + '</b><small>' + esc(clean(source.sourceFingerprint)) +
+        '</small></div><div class="source-dossier-query-prompts" aria-label="Useful source questions">' +
+        prompts.map(function (prompt) {
+          return '<button type="button" data-source-dossier-action="query-prompt" data-query="' +
+            esc(prompt) + '">' + esc(prompt) + '</button>';
+        }).join("") + '</div><form class="source-dossier-query-form" data-source-dossier-query-form ' +
+        'aria-describedby="sourceDossierQueryBoundary"><label for="sourceDossierQuery">QUERY THIS SOURCE</label>' +
+        '<div><input id="sourceDossierQuery" name="query" type="search" maxlength="240" required ' +
+        'autocomplete="off" value="' + esc(state.query) +
+        '" placeholder="Ask about this upload only..."><button type="submit"' +
+        (state.queryBusy ? " disabled" : "") + '>EXHUME THIS TAPE</button></div>' +
+        '<small id="sourceDossierQueryBoundary">Results may use only registered receipts from ' +
+        esc(source.id) + '. Speaker identity, intent, and true origin remain outside the answer.</small></form>' +
+        queryAnswerMarkup(dossier) + '</section>';
+    }
+
     function insideMarkup(dossier) {
       var source = dossier.source;
       var receipts = array(source.receipts);
+      var visibleReceipts = visibleItems(
+        receipts, "inside", COMPACT_LIMITS.receipts
+      );
       var summary = source.summary;
-      return '<section class="source-dossier-inside" aria-labelledby="sourceDossierInsideTitle">' +
+      return '<section class="source-dossier-inside"' + sectionAttributes("inside") +
+        ' aria-labelledby="sourceDossierInsideTitle">' +
         '<header><div><span>INSIDE THIS TAPE</span><h3 id="sourceDossierInsideTitle">' +
         (receipts.length ? esc(formatNumber(receipts.length)) + ' PLAYABLE SOURCE RECEIPTS.' :
           'THE CONTENT CLAIM STAYS SEALED.') +
@@ -244,13 +623,17 @@
         (summary ? '<blockquote><span>SOURCE-BOUNDED SUMMARY // ' +
           esc(clean(summary.basis).toUpperCase()) + '</span><p>' +
           esc(summary.text) + '</p></blockquote>' : '') +
-        (receipts.length ? '<div class="source-dossier-receipts">' +
-          receipts.map(function (receipt) { return receiptMarkup(receipt); }).join("") +
-          '</div>' : refusalMarkup(dossier)) + '</section>';
+        (receipts.length ? '<div class="source-dossier-receipts" id="' +
+          esc(SECTION_IDS.inside) + 'Items">' +
+          visibleReceipts.map(function (receipt) { return receiptMarkup(receipt); }).join("") +
+          '</div>' + disclosureMarkup(
+            "inside", receipts.length, visibleReceipts.length, "receipts"
+          ) : refusalMarkup(dossier)) + '</section>';
     }
 
     function entityMarkup(entity) {
-      return '<article><span>' + esc(clean(entity.type).toUpperCase()) + '</span><b>' +
+      return '<article class="source-dossier-entity"><span>' +
+        esc(clean(entity.type).toUpperCase()) + '</span><b>' +
         esc(entity.label) + '</b><small>' + esc(entityBasisLabel(entity.basis)) +
         (array(entity.receiptKeys).length ? ' // ' +
           esc(array(entity.receiptKeys).length) + ' LOCAL RECEIPT' +
@@ -261,9 +644,13 @@
     function footprintMarkup(dossier) {
       var source = dossier.source;
       var entities = array(source.entities);
+      var visibleEntities = visibleItems(
+        entities, "footprint", COMPACT_LIMITS.entities
+      );
       var receipts = dossier.receiptSummary || { total: 0, byKind: {}, byEvidenceType: {} };
       var artifacts = dossier.artifactSummary || { total: 0, byKind: {}, byAuthority: {} };
-      return '<section class="source-dossier-footprint" aria-labelledby="sourceDossierFootprintTitle">' +
+      return '<section class="source-dossier-footprint"' + sectionAttributes("footprint") +
+        ' aria-labelledby="sourceDossierFootprintTitle">' +
         '<header><div><span>MEMORY OS FOOTPRINT</span><h3 id="sourceDossierFootprintTitle">WHAT THIS SOURCE POWERS.</h3></div>' +
         '<p>Counts describe registered archive inventory. They are not popularity, quality, creator approval, or objective importance.</p></header>' +
         '<div class="source-dossier-footprint-totals"><article><b>' +
@@ -278,8 +665,11 @@
         summaryRows(artifacts.byAuthority, artifactAuthorityLabel, esc) + '</div></article></div>' +
         '<div class="source-dossier-entities"><header><span>REGISTERED ENTITIES</span><b>' +
         esc(formatNumber(entities.length)) + ' TOTAL</b></header>' +
-        (entities.length ? entities.map(entityMarkup).join("") :
-          '<p>NO CONTENT ENTITY WAS REGISTERED FOR THIS SOURCE.</p>') +
+        (entities.length ? '<div id="' + esc(SECTION_IDS.footprint) + 'Items">' +
+          visibleEntities.map(entityMarkup).join("") + '</div>' +
+          disclosureMarkup(
+            "footprint", entities.length, visibleEntities.length, "entities"
+          ) : '<p>NO CONTENT ENTITY WAS REGISTERED FOR THIS SOURCE.</p>') +
         '</div></section>';
     }
 
@@ -321,13 +711,23 @@
       var titleNeighbors = later.filter(function (connection) {
         return connection.basis === "source-metadata-neighbor";
       }).concat(earlier);
-      return '<section class="source-dossier-wake" aria-labelledby="sourceDossierWakeTitle">' +
+      var visibleLater = visibleItems(
+        laterEvidence, "wake", COMPACT_LIMITS.wake
+      );
+      var visibleNeighbors = visibleItems(
+        titleNeighbors, "wake", COMPACT_LIMITS.neighborhood
+      );
+      var totalConnections = laterEvidence.length + titleNeighbors.length;
+      var visibleConnections = visibleLater.length + visibleNeighbors.length;
+      return '<section class="source-dossier-wake"' + sectionAttributes("wake") +
+        ' aria-labelledby="sourceDossierWakeTitle">' +
         '<header><div><span>THE TAPE&rsquo;S WAKE</span><h3 id="sourceDossierWakeTitle">WHAT THE ARCHIVE CONNECTS AFTERWARD.</h3></div>' +
         '<p>A shared entity or artifact proves an indexed relationship. It does not prove influence, causality, a callback, or the true origin of a bit.</p></header>' +
-        '<section class="source-dossier-later" aria-labelledby="sourceDossierLaterTitle"><header><span>LATER // DUAL-ENDED EVIDENCE</span>' +
+        '<div class="source-dossier-wake-items" id="' + esc(SECTION_IDS.wake) +
+        'Items"><section class="source-dossier-later" aria-labelledby="sourceDossierLaterTitle"><header><span>LATER // DUAL-ENDED EVIDENCE</span>' +
         '<h4 id="sourceDossierLaterTitle">' + esc(formatNumber(laterEvidence.length)) +
         ' LATER CONNECTION' + (laterEvidence.length === 1 ? '' : 'S') + ' WITH EVIDENCE ON BOTH SIDES.</h4></header>' +
-        (laterEvidence.length ? '<div>' + laterEvidence.map(function (connection) {
+        (laterEvidence.length ? '<div>' + visibleLater.map(function (connection) {
           return connectionMarkup(connection, false);
         }).join("") + '</div>' :
           '<p class="source-dossier-empty">NO LATER DUAL-ENDED EVIDENCE SURVIVES THE CURRENT SNAPSHOT.</p>') +
@@ -336,15 +736,18 @@
         esc(formatNumber(titleNeighbors.length)) + ' RELATED RECORD' +
         (titleNeighbors.length === 1 ? '' : 'S') + ' KEPT OUTSIDE THE CALLBACK CLAIM.</h4></header>' +
         '<p>Earlier records and title-only aliases establish archive proximity—not content, continuity, influence, or causality.</p>' +
-        (titleNeighbors.length ? '<div>' + titleNeighbors.map(function (connection) {
+        (titleNeighbors.length ? '<div>' + visibleNeighbors.map(function (connection) {
           return connectionMarkup(connection, true);
         }).join("") + '</div>' :
           '<p class="source-dossier-empty">NO TITLE-ONLY OR EARLIER NEIGHBOR SURVIVES THE CURRENT SNAPSHOT.</p>') +
-        '</section></section>';
+        '</section></div>' + disclosureMarkup(
+          "wake", totalConnections, visibleConnections, "connections"
+        ) + '</section>';
     }
 
     function artifactMarkup(artifact) {
-      return '<article><header><span>' + esc(artifactAuthorityLabel(artifact.authority)) +
+      return '<article class="source-dossier-artifact"><header><span>' +
+        esc(artifactAuthorityLabel(artifact.authority)) +
         '</span><b>' + esc(clean(artifact.reviewState).toUpperCase()) + '</b></header><h4>' +
         esc(artifact.label) + '</h4><p>' + esc(titleCase(artifact.kind).toUpperCase()) +
         (artifact.targetSection ? ' // TARGET: ' + esc(clean(artifact.targetSection).toUpperCase()) : '') +
@@ -357,14 +760,22 @@
     function workMarkup(dossier) {
       var source = dossier.source;
       var artifacts = array(source.artifacts);
-      return '<section class="source-dossier-work" aria-labelledby="sourceDossierWorkTitle">' +
+      var visibleArtifacts = visibleItems(
+        artifacts, "work", COMPACT_LIMITS.artifacts
+      );
+      return '<section class="source-dossier-work"' + sectionAttributes("work") +
+        ' aria-labelledby="sourceDossierWorkTitle">' +
         '<header><div><span>PUT THE ARCHIVE TO WORK</span><h3 id="sourceDossierWorkTitle">FROM SOURCE PROOF TO A REVIEWABLE NEXT MOVE.</h3></div>' +
         '<p>These controls navigate, draft, or export. Nothing here publishes, promotes, rights-clears, authenticates, or identifies a speaker.</p></header>' +
-        (artifacts.length ? '<div class="source-dossier-artifacts">' +
-          artifacts.map(artifactMarkup).join("") + '</div>' :
+        (artifacts.length ? '<div class="source-dossier-artifacts" id="' +
+          esc(SECTION_IDS.work) + 'Items">' +
+          visibleArtifacts.map(artifactMarkup).join("") + '</div>' +
+          disclosureMarkup(
+            "work", artifacts.length, visibleArtifacts.length, "artifacts"
+          ) :
           '<p class="source-dossier-empty">NO DRAFT OR REVIEW ARTIFACT IS REGISTERED FOR THIS SOURCE.</p>') +
         '<div class="source-dossier-work-actions"><button type="button" data-source-dossier-action="ask-source">' +
-        'ASK THIS SOURCE</button><button type="button" data-source-dossier-action="open-companion">' +
+        'ASK THIS TAPE</button><button type="button" data-source-dossier-action="open-companion">' +
         'WATCH WITH MEMORY</button><button type="button" data-source-dossier-action="copy-link">' +
         'COPY SOURCE LINK</button><button type="button" data-source-dossier-action="download">' +
         'EXPORT BOUNDED DOSSIER</button></div></section>';
@@ -395,6 +806,7 @@
     function boundaryMarkup(dossier) {
       var proof = dossier.proof;
       return '<section class="source-dossier-boundary" id="sourceDossierBoundary" ' +
+        'data-source-dossier-section="boundary" ' +
         'aria-labelledby="sourceDossierBoundaryTitle"><header><span>WHAT THIS PAGE CAN PROVE</span>' +
         '<h3 id="sourceDossierBoundaryTitle">THE RECEIPT IS REAL. THE REST STAYS UNDER OATH.</h3></header>' +
         '<p>' + esc(proof.evidenceBoundary) + '</p><ul><li><b>SOURCE:</b> title, date, runtime, cached measurements, lanes, and official URL.</li>' +
@@ -422,9 +834,11 @@
         '<button type="button" data-source-dossier-action="play-source">&#9654; PLAY SOURCE</button>' +
         '<button type="button" data-source-dossier-action="copy-link">COPY DOSSIER LINK</button>' +
         '<a href="' + esc(source.url) + '" target="_blank" rel="noopener">OFFICIAL YOUTUBE &#8599;</a>' +
-        '</div></div></header>' + proofMarkup(dossier) + playerMarkup(dossier) +
-        insideMarkup(dossier) + footprintMarkup(dossier) + wakeMarkup(dossier) +
-        '<nav class="source-dossier-chronology" aria-label="Source chronology">' +
+        '</div></div></header>' + densityMarkup() + proofMarkup(dossier) +
+        askMarkup(dossier) + playerMarkup(dossier) + insideMarkup(dossier) +
+        footprintMarkup(dossier) + wakeMarkup(dossier) +
+        '<nav class="source-dossier-chronology"' + sectionAttributes("chronology") +
+        ' aria-label="Source chronology">' +
         chronologyButton(dossier.chronology.previous, "previous") +
         chronologyButton(dossier.chronology.next, "next") + '</nav>' +
         workMarkup(dossier) + boundaryMarkup(dossier) + '</article>';
@@ -458,6 +872,113 @@
       })[0] || null : null;
     }
 
+    function safeSection(value) {
+      var section = clean(value).toLowerCase();
+      return Object.prototype.hasOwnProperty.call(SECTION_IDS, section) ? section : "";
+    }
+
+    function renderCurrent() {
+      if (!state.destroyed && state.dossier) {
+        mount.innerHTML = renderMarkup(state.dossier);
+      }
+    }
+
+    function focusAsk() {
+      var target = typeof mount.querySelector === "function" ?
+        mount.querySelector("#sourceDossierQuery") : null;
+      if (!target && input.document && typeof input.document.getElementById === "function") {
+        target = input.document.getElementById("sourceDossierQuery");
+      }
+      if (!target) return;
+      if (typeof target.scrollIntoView === "function") {
+        target.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      if (typeof target.focus === "function") target.focus();
+    }
+
+    function focusSection() {
+      if (!state.section || !input.document ||
+          typeof input.document.getElementById !== "function") return;
+      var target = input.document.getElementById(SECTION_IDS[state.section]);
+      if (!target) return;
+      if (!target.hasAttribute("tabindex")) target.setAttribute("tabindex", "-1");
+      if (typeof target.scrollIntoView === "function") {
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+      if (typeof target.focus === "function") target.focus();
+    }
+
+    function finishSourceQuery(epoch, rawAnswer, shouldFocus) {
+      if (state.destroyed || epoch !== state.queryEpoch || !state.dossier) return null;
+      try {
+        state.queryAnswer = validateQueryAnswer(rawAnswer, state.dossier);
+        state.queryError = "";
+        setAttribute("data-source-query-state", state.queryAnswer.status);
+      } catch (error) {
+        state.queryAnswer = null;
+        state.queryError = clean(error && error.message) ||
+          "The exact-source answer failed validation.";
+        setAttribute("data-source-query-state", "held");
+      }
+      state.queryBusy = false;
+      renderCurrent();
+      if (shouldFocus) focusAsk();
+      return state.queryAnswer;
+    }
+
+    function failSourceQuery(epoch, error, shouldFocus) {
+      if (state.destroyed || epoch !== state.queryEpoch) return null;
+      state.queryBusy = false;
+      state.queryAnswer = null;
+      state.queryError = clean(error && error.message) ||
+        "The exact-source query engine could not answer.";
+      setAttribute("data-source-query-state", "held");
+      renderCurrent();
+      if (shouldFocus) focusAsk();
+      return null;
+    }
+
+    function runSourceQuery(query, shouldFocus) {
+      var boundedQuery = clean(query).slice(0, 240);
+      state.section = "ask";
+      state.query = boundedQuery || DEFAULT_SOURCE_QUERY;
+      state.queryAnswer = null;
+      state.queryError = "";
+      state.queryBusy = true;
+      state.queryEpoch += 1;
+      var epoch = state.queryEpoch;
+      renderCurrent();
+      setAttribute("data-source-query-state", "loading");
+      if (!queryEngine || typeof queryEngine.answer !== "function") {
+        return failSourceQuery(
+          epoch,
+          new Error("The exact-source query engine is unavailable. Archive-wide Ask was not used."),
+          shouldFocus
+        );
+      }
+      var request = {
+        schema: QUERY_SCHEMA,
+        sourceId: state.dossier.source.id,
+        sourceFingerprint: state.dossier.source.sourceFingerprint,
+        query: state.query,
+        limit: QUERY_LIMIT
+      };
+      if (state.hasAnchor) request.at = state.at;
+      try {
+        var answer = queryEngine.answer(request);
+        if (answer && typeof answer.then === "function") {
+          return Promise.resolve(answer).then(function (resolved) {
+            return finishSourceQuery(epoch, resolved, shouldFocus);
+          }, function (error) {
+            return failSourceQuery(epoch, error, shouldFocus);
+          });
+        }
+        return finishSourceQuery(epoch, answer, shouldFocus);
+      } catch (error) {
+        return failSourceQuery(epoch, error, shouldFocus);
+      }
+    }
+
     function handleClick(event) {
       var button = event.target && event.target.closest ?
         event.target.closest("[data-source-dossier-action]") : null;
@@ -465,7 +986,18 @@
       if (typeof event.preventDefault === "function") event.preventDefault();
       var action = button.getAttribute("data-source-dossier-action");
       var source = state.dossier.source;
-      var payload = { sourceId: source.id, dossier: state.dossier };
+      var sectionOwner = typeof button.closest === "function" ?
+        button.closest("[data-source-dossier-section]") : null;
+      var ownerSection = safeSection(
+        sectionOwner && sectionOwner.getAttribute("data-source-dossier-section")
+      );
+      if (ownerSection) state.section = ownerSection;
+      var payload = {
+        sourceId: source.id,
+        dossier: state.dossier,
+        section: state.section,
+        query: state.query
+      };
       if (action === "play-source") {
         callbacks.play(Object.assign(payload, {
           mode: "source",
@@ -494,7 +1026,23 @@
           filename: "source-dossier-" + source.id + ".json"
         }));
       } else if (action === "ask-source") {
-        callbacks.ask(Object.assign(payload, { title: source.displayTitle || source.title }));
+        runSourceQuery(state.query || DEFAULT_SOURCE_QUERY, true);
+      } else if (action === "query-prompt") {
+        runSourceQuery(button.getAttribute("data-query"), false);
+      } else if (action === "toggle-section") {
+        var section = safeSection(button.getAttribute("data-section"));
+        if (EXPANDABLE_SECTIONS.indexOf(section) >= 0) {
+          state.section = section;
+          state.expanded[section] = !sectionExpanded(section);
+          renderCurrent();
+        }
+      } else if (action === "open-full-file") {
+        state.fullFile = true;
+        renderCurrent();
+      } else if (action === "close-full-file") {
+        state.fullFile = false;
+        state.expanded = {};
+        renderCurrent();
       } else if (action === "open-companion") {
         callbacks.companion(Object.assign(payload, { at: state.at }));
       } else if (action === "open-source") {
@@ -507,12 +1055,37 @@
       }
     }
 
+    function handleSubmit(event) {
+      var form = event.target;
+      if (!form || typeof form.matches !== "function" ||
+          !form.matches("[data-source-dossier-query-form]") ||
+          !state.dossier || state.destroyed) return;
+      if (typeof event.preventDefault === "function") event.preventDefault();
+      var field = form.elements && form.elements.query;
+      runSourceQuery(field ? field.value : state.query, false);
+    }
+
     function render(sourceId, renderOptions) {
       if (state.destroyed) throw new Error("Source Dossier UI has been destroyed.");
+      var settings = renderOptions || {};
       setAttribute("aria-busy", "true");
       setAttribute("data-source-dossier-state", "loading");
       state.sourceId = clean(sourceId);
-      state.at = Math.max(0, Number(renderOptions && renderOptions.at) || 0);
+      state.hasAnchor = settings.at != null && settings.at !== "" &&
+        Number.isFinite(Number(settings.at));
+      state.at = state.hasAnchor ? Math.max(0, Number(settings.at)) : 0;
+      state.section = safeSection(settings.section);
+      state.fullFile = settings.fullFile === true || settings.full === true;
+      state.expanded = {};
+      var deepSection = safeSection(settings.deepSection || settings.section);
+      if (EXPANDABLE_SECTIONS.indexOf(deepSection) >= 0) {
+        state.expanded[deepSection] = true;
+      }
+      state.query = clean(settings.query).slice(0, 240) || DEFAULT_SOURCE_QUERY;
+      state.queryAnswer = null;
+      state.queryBusy = false;
+      state.queryError = "";
+      state.queryEpoch += 1;
       try {
         var dossier = engine.build(state.sourceId);
         if (!validateDossier(dossier)) {
@@ -523,6 +1096,8 @@
         setAttribute("aria-busy", "false");
         setAttribute("data-source-dossier-state", "ready");
         setAttribute("data-source-dossier-id", dossier.source.id);
+        if (clean(settings.query)) runSourceQuery(state.query, false);
+        focusSection();
         return dossier;
       } catch (error) {
         state.dossier = null;
@@ -537,16 +1112,20 @@
       if (state.destroyed) return;
       state.destroyed = true;
       state.dossier = null;
+      state.queryEpoch += 1;
       mount.removeEventListener("click", handleClick);
+      mount.removeEventListener("submit", handleSubmit);
       mount.innerHTML = "";
       if (typeof mount.removeAttribute === "function") {
         mount.removeAttribute("data-source-dossier-id");
         mount.removeAttribute("data-source-dossier-state");
+        mount.removeAttribute("data-source-query-state");
         mount.removeAttribute("aria-busy");
       }
     }
 
     mount.addEventListener("click", handleClick);
+    mount.addEventListener("submit", handleSubmit);
 
     return Object.freeze({
       version: VERSION,

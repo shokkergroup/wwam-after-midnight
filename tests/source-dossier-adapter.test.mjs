@@ -34,6 +34,7 @@ function load() {
     "archive-deep-portfolio.js",
     "wwam-source-dossier-adapter.js",
     "source-dossier-engine.js",
+    "source-query-engine.js",
   ].forEach((file) => {
     vm.runInContext(fs.readFileSync(path.join(demo, file), "utf8"), sandbox, {
       filename: file,
@@ -71,6 +72,7 @@ function buildFixture() {
     archiveDeepPortfolio: archiveDeep,
     showcase,
     clipLab,
+    characters: window.WWAM_CHARACTER_LORE,
     dna: window.WWAM_CHANNEL_DNA,
     channel: {
       id: "wwam",
@@ -109,7 +111,7 @@ function wordCount(value) {
 test("adapter exposes the universal schema and exact 510-source WWAM union", () => {
   const { window, result } = buildFixture();
 
-  assert.equal(window.WWAMSourceDossierAdapter.VERSION, "1.0.0");
+  assert.equal(window.WWAMSourceDossierAdapter.VERSION, "1.1.0");
   assert.deepEqual(Object.keys(result), [
     "schema",
     "channel",
@@ -151,6 +153,71 @@ test("adapter exposes the universal schema and exact 510-source WWAM union", () 
   });
 });
 
+test("Ask This Tape stays on the exact canonical WWAM upload across title collisions and evidence gaps", () => {
+  const { window, result } = buildFixture();
+  const dossierEngine = window.ShokkerSourceDossier.create(result);
+  const queryEngine = window.ShokkerSourceQuery.create({ dossierEngine });
+  const request = (sourceId, query) => ({
+    schema: "shokker-source-query/v1",
+    sourceId,
+    query,
+    limit: 8,
+  });
+
+  const loomis = queryEngine.answer(
+    request("LV2rmwEA0w4", "Show me the Dr. Loomis moments in this tape."),
+  );
+  assert.equal(loomis.status, "supported");
+  assert.ok(loomis.results.every((item) => item.sourceId === "LV2rmwEA0w4"));
+  assert.deepEqual(
+    plain(
+      loomis.results
+        .filter((item) => item.type === "receipt")
+        .map((item) => [item.key, item.at, item.end]),
+    ),
+    [
+      ["character-receipt:loomis-funding", 9042.64, 9056.64],
+      ["character-receipt:loomis-pepto", 10734.88, 10748.88],
+    ],
+  );
+
+  const challis = queryEngine.answer(
+    request("ag3axSC9BpU", "Show me the Dr. Challis moments in this tape."),
+  );
+  assert.equal(challis.status, "supported");
+  assert.ok(challis.results.every((item) => item.sourceId === "ag3axSC9BpU"));
+  assert.deepEqual(
+    plain(
+      challis.results
+        .filter((item) => item.type === "receipt")
+        .map((item) => [item.key, item.at]),
+    ),
+    [
+      ["character-receipt:challis-miguel", 3860.72],
+      ["character-receipt:challis-doctor", 9851.76],
+    ],
+  );
+
+  const metadataOnly = queryEngine.answer(
+    request("FVuwRHM0kcc", "Who won the Marvel versus DC bracket?"),
+  );
+  assert.equal(metadataOnly.status, "metadata-only");
+  assert.equal(metadataOnly.resultCount, 0);
+
+  const captionLimited = queryEngine.answer(
+    request("x6tvsGRHgU0", "What topics are indexed in this tape?"),
+  );
+  assert.equal(captionLimited.status, "caption-limited");
+  assert.equal(captionLimited.resultCount, 0);
+
+  const wrongSource = queryEngine.answer(
+    request("uA5lTCjk7sQ", "Show me Superman receipts."),
+  );
+  assert.equal(wrongSource.status, "metadata-only");
+  assert.equal(wrongSource.resultCount, 0);
+  assert.equal(wrongSource.boundary.crossSourceSubstitution, false);
+});
+
 test("all dossiers retain canonical metadata and fail honest outside caption evidence", () => {
   const { result, window } = buildFixture();
   const receiptKeys = new Set();
@@ -158,6 +225,8 @@ test("all dossiers retain canonical metadata and fail honest outside caption evi
     "caption-excerpt",
     "caption-topic-receipt",
     "caption-topic-navigation",
+    "caption-character-signal",
+    "caption-character-context",
     "curated-character-performance",
   ]);
   const entityBases = new Set(window.ShokkerSourceDossier.ENTITY_BASIS);
@@ -212,6 +281,53 @@ test("all dossiers retain canonical metadata and fail honest outside caption evi
     });
   });
   assert.equal(receiptKeys.size, 1490);
+});
+
+test("the 1,490 receipts retain the exact evidence taxonomy", () => {
+  const { result } = buildFixture();
+  const receipts = result.sources.flatMap((source) => source.receipts);
+
+  assert.equal(receipts.length, 1490);
+  assert.deepEqual(countBy(receipts, "evidenceType"), {
+    "caption-excerpt": 701,
+    "caption-topic-receipt": 592,
+    "curated-character-performance": 25,
+    "caption-character-context": 28,
+    "caption-character-signal": 24,
+    "caption-topic-navigation": 120,
+  });
+});
+
+test("all 25 human-curated character clips retain their exact 14-second bounds", () => {
+  const { result, window } = buildFixture();
+  const soundbytes = window.WWAM_CHARACTER_LORE.characters.flatMap(
+    (character) => character.soundbytes,
+  );
+
+  assert.equal(soundbytes.length, 25);
+  soundbytes.forEach((soundbyte) => {
+    const receipt = byId(result, soundbyte.sourceId).receipts.find(
+      (candidate) => candidate.key === `character-receipt:${soundbyte.id}`,
+    );
+
+    assert.ok(receipt, soundbyte.id);
+    assert.equal(receipt.at, soundbyte.t, soundbyte.id);
+    assert.equal(receipt.at, soundbyte.playback.start, soundbyte.id);
+    assert.equal(receipt.end, soundbyte.playback.end, soundbyte.id);
+    assert.equal(receipt.end - receipt.at, 14, soundbyte.id);
+    assert.equal(
+      receipt.evidenceType,
+      "curated-character-performance",
+      soundbyte.id,
+    );
+    assert.equal(receipt.evidenceBasis, "exact-showcase-receipt", soundbyte.id);
+  });
+
+  const funding = byId(result, "LV2rmwEA0w4").receipts.find(
+    (receipt) => receipt.key === "character-receipt:loomis-funding",
+  );
+  assert.equal(funding.at, 9042.64);
+  assert.equal(funding.end, 9056.64);
 });
 
 test("promoted sources use exact Showcase receipts and exact creator memberships", () => {
@@ -334,12 +450,33 @@ test("Archive Deep remains quarantined and all 12 source-audio firewalls are top
   const archive = result.sources.filter(
     (source) => source.authority === "quarantined-lane",
   );
+  const archiveReceipts = archive.flatMap((source) => source.receipts);
+  const characterEvidence = archiveReceipts.filter(
+    (receipt) => receipt.evidenceType.startsWith("caption-character-"),
+  );
   const restricted = archive.filter(
     (source) => source.rightsPolicy.restrictedToTopicNavigation,
   );
 
   assert.equal(archive.length, 40);
   assert.equal(restricted.length, 12);
+  assert.equal(
+    archiveReceipts.filter(
+      (receipt) => receipt.evidenceType === "curated-character-performance",
+    ).length,
+    0,
+  );
+  assert.equal(characterEvidence.length, 52);
+  assert.deepEqual(countBy(characterEvidence, "evidenceType"), {
+    "caption-character-context": 28,
+    "caption-character-signal": 24,
+  });
+  assert.ok(characterEvidence.every(
+    (receipt) =>
+      receipt.evidenceLevel === "machine" &&
+      receipt.reviewState === "quarantined-machine-candidate" &&
+      receipt.evidenceBasis === "archive-deep-quarantined-candidate",
+  ));
   assert.ok(archive.every(
     (source) =>
       source.coverage === "caption-backed" &&
@@ -448,7 +585,10 @@ test("the exact 510-source adapter payload compiles through the generic engine",
   const live = engine.build("LV2rmwEA0w4");
   assert.equal(live.source.receipts.length, 21);
   assert.equal(live.source.artifacts.length, 27);
-  assert.equal(live.wake.total, 16);
+  assert.equal(live.wake.total, 138);
+  assert.equal(live.wake.matchingTotal, 138);
+  assert.equal(live.wake.displayed, 16);
+  assert.equal(live.wake.truncated, true);
   assert.equal(live.wake.later.length, 0);
   assert.equal(live.wake.earlier.length, 16);
   assert.ok(live.wake.earlier.every(
@@ -461,6 +601,22 @@ test("the exact 510-source adapter payload compiles through the generic engine",
   assert.ok(live.wake.earlier[0].artifactIds.includes(
     "ancestry:bit-loomis-alert",
   ));
+
+  result.sources.forEach((source) => {
+    const dossier = engine.build(source.id);
+    assert.equal(dossier.wake.total, dossier.wake.matchingTotal, source.id);
+    assert.equal(
+      dossier.wake.displayed,
+      dossier.wake.later.length + dossier.wake.earlier.length,
+      source.id,
+    );
+    assert.ok(dossier.wake.displayed <= 16, source.id);
+    assert.equal(
+      dossier.wake.truncated,
+      dossier.wake.matchingTotal > dossier.wake.displayed,
+      source.id,
+    );
+  });
 });
 
 test("adapter fails closed if the feed/catalog reconciliation drifts", () => {
@@ -509,5 +665,14 @@ test("adapter fails closed when canonical Archive Deep or Showcase proof is miss
     (error) =>
       error.name === "WWAMSourceDossierAdapterError" &&
       error.code === "SHOWCASE_ARTIFACT_PROOF_INCOMPLETE",
+  );
+  assert.throws(
+    () => fixture.window.WWAMSourceDossierAdapter.build({
+      ...fixture.input,
+      characters: null,
+    }),
+    (error) =>
+      error.name === "WWAMSourceDossierAdapterError" &&
+      error.code === "CURATED_RECEIPT_BOUND_MISSING",
   );
 });

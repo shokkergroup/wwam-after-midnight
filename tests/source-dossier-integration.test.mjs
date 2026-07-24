@@ -103,17 +103,38 @@ function atlasNode() {
 }
 
 test("canonical source URLs use ?source=ID&at=SECONDS#archive and retain route-safe context", () => {
+  const sourceDossierSection = evaluateNamed("sourceDossierSection", {
+    SOURCE_DOSSIER_SECTION_IDS: {
+      proof: "sourceDossierProof",
+      player: "sourceDossierPlayerSection",
+      inside: "sourceDossierInside",
+      ask: "sourceDossierAsk",
+      footprint: "sourceDossierFootprint",
+      wake: "sourceDossierWake",
+      chronology: "sourceDossierChronology",
+      work: "sourceDossierWork",
+      boundary: "sourceDossierBoundary",
+    },
+  });
   const window = {
     location: {
       href: "https://memory.example/demo?campaign=friend&utm=midnight#pitch",
     },
   };
-  const globals = { window, URL };
+  const globals = { window, URL, sourceDossierSection };
   const shareUrl = evaluateNamed("sourceDossierShareUrl", globals);
   const routeUrl = evaluateNamed("sourceRouteUrl", globals);
 
   assert.equal(
     shareUrl("ABCDEFGHIJK", 92),
+    "https://memory.example/demo?source=ABCDEFGHIJK&at=92#archive",
+  );
+  assert.equal(
+    shareUrl("ABCDEFGHIJK", 92, "ask"),
+    "https://memory.example/demo?source=ABCDEFGHIJK&at=92&section=ask#archive",
+  );
+  assert.equal(
+    shareUrl("ABCDEFGHIJK", 92, "javascript:alert(1)"),
     "https://memory.example/demo?source=ABCDEFGHIJK&at=92#archive",
   );
 
@@ -133,6 +154,7 @@ test("canonical source URLs use ?source=ID&at=SECONDS#archive and retain route-s
   const syncGlobals = {
     window,
     URL,
+    sourceDossierSection,
     history: {
       state: { campaignState: "kept" },
       pushed: [],
@@ -170,10 +192,24 @@ test("canonical source URLs use ?source=ID&at=SECONDS#archive and retain route-s
 });
 
 test("canonical, legacy tape, and legacy live source routes remain readable", () => {
+  const sourceDossierSection = evaluateNamed("sourceDossierSection", {
+    SOURCE_DOSSIER_SECTION_IDS: {
+      proof: "sourceDossierProof",
+      player: "sourceDossierPlayerSection",
+      inside: "sourceDossierInside",
+      ask: "sourceDossierAsk",
+      footprint: "sourceDossierFootprint",
+      wake: "sourceDossierWake",
+      chronology: "sourceDossierChronology",
+      work: "sourceDossierWork",
+      boundary: "sourceDossierBoundary",
+    },
+  });
   const location = { search: "" };
   const readRoute = evaluateNamed("readSourceRoute", {
     location,
     URLSearchParams,
+    sourceDossierSection,
   });
 
   location.search = "?source=ABCDEFGHIJK&at=92&section=wake";
@@ -203,6 +239,9 @@ test("canonical, legacy tape, and legacy live source routes remain readable", ()
   location.search = "?source=too-short&tape=ABCDEFGHIJK";
   assert.equal(readRoute(), null);
 
+  location.search = "?source=ABCDEFGHIJK&section=javascript%3Aalert%281%29";
+  assert.equal(readRoute().section, "");
+
   const initialRoute = namedFunction(app, "openInitialRoute");
   assert.match(
     initialRoute,
@@ -216,7 +255,6 @@ test("the app consumes every Source Dossier UI callback as one bounded payload o
     "onPlay",
     "onCopyLink",
     "onDownload",
-    "onAskSource",
     "onOpenSource",
     "onOpenCompanion",
     "onBagReceipt",
@@ -232,10 +270,13 @@ test("the app consumes every Source Dossier UI callback as one bounded payload o
   assert.match(runtime, /loadPlayer\(payload\.sourceId,\s*payload\.at,\s*payload\.end\)/);
   assert.match(
     runtime,
-    /sourceDossierShareUrl\(payload\.sourceId,\s*payload\.at\)/,
+    /sourceDossierShareUrl\(payload\.sourceId,\s*payload\.at,\s*payload\.section\)/,
   );
   assert.match(runtime, /payload\.filename[\s\S]*payload\.manifest/);
-  assert.match(runtime, /payload\.title/);
+  assert.match(runtime, /ShokkerSourceQuery\.create\(\{\s*dossierEngine:\s*sourceDossierEngine/);
+  assert.match(runtime, /queryEngine:\s*sourceQueryEngine/);
+  assert.doesNotMatch(runtime, /onAskSource/);
+  assert.doesNotMatch(runtime, /What is indexed for/);
   assert.match(runtime, /openSourceDossier\(payload\.targetSourceId/);
   assert.match(runtime, /data-companion-source",\s*payload\.sourceId/);
   assert.match(runtime, /data-companion-time",\s*Math\.round\(Number\(payload\.at/);
@@ -334,9 +375,10 @@ test("dossier CSS and scripts load lazily through the feature loader, never eage
   const dossierScripts = [
     "channel-pack-contract.js",
     "wwam-channel-pack-adapter.js",
-    "source-dossier-engine.js",
-    "wwam-source-dossier-adapter.js",
-    "source-dossier-ui.js",
+      "source-dossier-engine.js",
+      "wwam-source-dossier-adapter.js",
+      "source-query-engine.js",
+      "source-dossier-ui.js",
   ];
   assert.equal(eagerStyles.includes("source-dossier.css"), false);
   for (const asset of dossierScripts) {

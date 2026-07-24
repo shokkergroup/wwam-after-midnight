@@ -120,6 +120,7 @@
     var deep = root.WWAM_DEEP_DISTILL || {};
     var live = root.WWAM_LIVESTREAMS || {};
     var popular = root.WWAM_POPULAR_LIVE || {};
+    var atlas = root.WWAM_ARCHIVE_ATLAS || {};
     var curated = root.WWAM_CURATED || {};
     var characters = root.WWAM_CHARACTER_LORE || {};
     var dna = root.WWAM_CHANNEL_DNA || {};
@@ -150,8 +151,26 @@
           characters: characters
         })
       : null;
+    var registeredSources = (showcase.sources || []).concat(
+      (atlas.records || []).map(function (record) {
+        var lanes = Array.isArray(record.lanes) ? record.lanes.slice() : [];
+        var commentary = lanes.indexOf("commentary-catalog") >= 0;
+        return {
+          id: record.id,
+          title: record.title,
+          date: record.date,
+          durationSeconds: record.duration,
+          type: commentary ? "commentary" : "livestream",
+          lane: lanes[0] || "archive-metadata",
+          lanes: lanes,
+          url: record.url,
+          captioned: record.coverage === "deeply-indexed"
+        };
+      })
+    );
     return {
       showcase: showcase,
+      sources: registeredSources,
       deep: deep,
       live: live,
       popular: popular,
@@ -576,7 +595,11 @@
     renderSources();
     renderSnapshot(engine.snapshotAt(source.id, currentSecond), { mode: "snapshot", events: [] });
     mountPlayer(source, currentSecond);
-    setStatus(options && options.reason || "SOURCE LOADED // PRESS PLAY WHEN READY");
+    setStatus(
+      source.readiness.status === "companion-ready"
+        ? options && options.reason || "SOURCE LOADED // PRESS PLAY WHEN READY"
+        : "SOURCE-ONLY TAPE LOADED // PLAYBACK READY // TIMED MEMORY HELD"
+    );
   }
 
   function handleCompanionOpen(event) {
@@ -650,7 +673,12 @@
         restoreHandled = true;
         restoreToken(shared, "SHARED COMPANION SECOND RESTORED");
       }
-      if (!restoreHandled) setStatus("71 COMPANION-READY TAPES // CHOOSE ONE");
+      if (!restoreHandled) {
+        setStatus(
+          fmt(engine.metrics.sources) + " REGISTERED SOURCES // " +
+          fmt(engine.metrics.companionReady) + " MEMORY-READY // CHOOSE ONE"
+        );
+      }
     } catch (error) {
       section.setAttribute("aria-busy", "false");
       section.setAttribute("data-companion-ready", "false");

@@ -11,7 +11,7 @@ three things quickly:
 
 ## Before the call
 
-- Open the current V5.17 build or its confirmed deployment and choose either
+- Open the current V5.18 build or its confirmed deployment and choose either
   content-advisory mode.
 - Confirm YouTube playback is available in the browser.
 - Start at the hero, not halfway down the page.
@@ -58,11 +58,12 @@ Use this evidence vocabulary consistently:
 ## The 60-second version
 
 For a source-first buyer demonstration, open the July 23 livestream dossier
-first: “This one new upload became a fan page, searchable memory, and a
+first: “This one new upload became a fan page, exact-source search room, and a
 creator workbench.” Show its 21 registered receipts, four bit lineages, and
-draft clip inventory. Then switch to a metadata-only source and show the
-system refusing to invent its contents. That contrast explains the product
-faster than a feature tour.
+draft clip inventory. Ask for Dr. Loomis, switch to duplicate-title source
+`ag3axSC9BpU` and ask for Dr. Challis, then finish on a metadata-only source.
+The contrast between bounded answers, title isolation, and an honest refusal
+explains the product faster than a feature tour.
 
 Press **Mike Mode** and use one sentence per slide:
 
@@ -84,6 +85,96 @@ Press **Mike Mode** and use one sentence per slide:
 
 Use the proof button on at least two slides. A pitch that exits into working
 evidence is stronger than a complete slideshow.
+
+## V5.18 Mike path — exact-source proof in two minutes
+
+Use this path before a long feature tour. It demonstrates delight, accuracy,
+and refusal with three canonical source IDs.
+
+### 1. Latest tape: Loomis stays bounded
+
+Open:
+
+```text
+?source=LV2rmwEA0w4&at=9043&section=ask#archive
+```
+
+Ask:
+
+> Show me Dr. Loomis moments
+
+Expected proof:
+
+- the source lock reads `LV2rmwEA0w4`;
+- the answer returns only Loomis receipts registered to this source;
+- `loomis-funding` retains `9042.64–9056.64`;
+- `loomis-pepto` retains `10734.88–10748.88`;
+- each window is exactly 14 seconds; and
+- playback remains on the official July 23 upload.
+
+Say: “This is not a 30-second guess around a timestamp. The human-curated end
+bound survives all the way into the page.”
+
+### 2. Duplicate title: Challis cannot leak across tapes
+
+Open:
+
+```text
+?source=ag3axSC9BpU&section=ask#archive
+```
+
+This July 9 upload uses the same generic **We Watched A Movie LIVE! Movie News
+and More** title pattern as the latest source. Ask:
+
+> Show me Dr. Challis moments
+
+Expected proof:
+
+- the source lock reads `ag3axSC9BpU`;
+- `challis-miguel` returns at `3860.72–3874.72`;
+- `challis-doctor` returns at `9851.76–9865.76`;
+- every result repeats `ag3axSC9BpU`; and
+- `challis-birthday` from `LV2rmwEA0w4` does not appear.
+
+Say: “The title can be duplicated. The answer cannot. Scope is the source ID
+and fingerprint, not whatever text search thinks is close.”
+
+### 3. Metadata-only tape: absence is a product result
+
+Open:
+
+```text
+?source=FVuwRHM0kcc&section=ask#archive
+```
+
+Ask:
+
+> Who won the Marvel vs DC bracket?
+
+Expected proof:
+
+- coverage reads `metadata-only`;
+- the answer returns zero source-content receipts;
+- no winner is inferred from the title; and
+- source proof and official navigation remain available.
+
+Say: “It knows which upload this is. It does not pretend that knowing the title
+means knowing what happened inside.”
+
+### Optional 30-second scale proof
+
+Return to `LV2rmwEA0w4` and show:
+
+- **138** true Wake matches;
+- **16** connections in the bounded display collection;
+- `truncated: true`;
+- the compact Director's Cut and per-section/full-file disclosure; and
+- Tape Companion's **510 registered sources: 71 memory-ready and 439
+  source-only**.
+
+Close the sequence with: “The moat is not that AI can search video. The moat is
+that every answer, refusal, clip boundary, relationship total, and handoff is
+bound to the same auditable source file.”
 
 ## The under-five-minute version
 
@@ -294,7 +385,9 @@ too early to reveal.”
 
 What it proves:
 
-- 71 companion-ready promoted sources and 3 honest source-only gaps;
+- 510 registered sources: 71 memory-ready and 439 honest source-only records;
+- within the historical 74-source promoted subset, the same 71 are ready and
+  the same 3 caption gaps remain source-only;
 - 872 exact receipt members preserved inside 869 conservative incidents;
 - manual sync and official timestamp fallback when the player API is blocked;
 - no copied media or autoplay, and no future-event text leak through the
@@ -364,7 +457,8 @@ What it proves:
 - independent batches can compose behind one defensive read-only API;
 - source coverage can grow while the V5.4 sales proof remains frozen;
 - each batch retains independent selection and caption fingerprints;
-- 52 source-level character signals do not become 52 claimed performances;
+- 24 source-level character signals plus 28 character contexts do not become
+  52 claimed performances;
 - all 166 current candidates remain outside the promoted 872.
 
 ## V5.13 The Tape Keeps Score proof — 90 seconds
@@ -533,6 +627,27 @@ Use only the branch the audience cares about:
 
 ## Claims to use
 
+- “The current Source Dossier registry contains 510 canonical sources: 111
+  caption-backed, 390 metadata-only, nine caption-limited, and zero
+  unavailable.”
+- “The current dossier registry contains 1,490 source receipts and 928
+  source-bound artifact records. Those are not the same ledger as the frozen
+  V5.4 872 promoted receipts.”
+- “Ask This Tape resolves the exact source ID and fingerprint before it parses
+  the question. Duplicate titles and stronger receipts in another upload
+  cannot replace the requested tape.”
+- “All 25 curated character-performance clips retain explicit 14-second end
+  bounds; Loomis funding remains `9042.64–9056.64`.”
+- “Archive Deep's character evidence is 24 machine character signals plus 28
+  machine character contexts. None of those 52 records is a curated
+  performance.”
+- “The July 23 dossier has 138 matching Wake sources. The returned display is
+  capped at 16 and says `truncated: true` instead of calling 16 the total.”
+- “Tape Companion registers all 510 sources: 71 are memory-ready and 439
+  remain visibly source-only.”
+- “The dossier's compact view and section expansion change presentation only;
+  they do not change evidence, source scope, or authority.”
+
 - “The immutable V5.4 proof covers 84 source inputs, 2,175,344 audited caption
   words, 194.9 caption-audited hours, 872 promoted receipts, 42
   then-quarantined Batch 01 candidates, and 168 promoted core memory nodes.”
@@ -554,9 +669,9 @@ Use only the branch the audience cares about:
 - “Archive Deep Portfolio currently overlays 40 caption-audited sources, 97.7
   hours, 1,216,993 words, 173,675 parsed caption events, 400 topic lanes across
   48 distinct topics, and 445,949 cached snapshot views.”
-- “Its 166 machine moments remain quarantined, its 52 character-signal records
-  are source-level signals rather than performances, and its twelve
-  source-audio-sensitive records remain topic-navigation-only.”
+- “Its 166 machine moments remain quarantined; its character records are 24
+  machine signals plus 28 machine contexts rather than performances; and its
+  twelve source-audio-sensitive records remain topic-navigation-only.”
 - “Twelve Archive Deep sources occupy the special visual-ranking quarantine lane,
   and all 40 forbid visual claims. The 12-count does not mean the other 28 have
   verified visual context; a caption timestamp never identifies which visual
@@ -601,8 +716,9 @@ Use only the branch the audience cares about:
 - “The owner mapping identifies the recurring performer; individual
   auto-caption clips remain not speaker-diarized.”
 - “The Popular 25 is ranked by observed views at the snapshot date.”
-- “Tape Companion preserves 872 exact receipt members across 71
-  companion-ready sources; three disclosed gaps remain source-only.”
+- “Tape Companion lists all 510 sources: 71 are memory-ready and 439 remain
+  source-only. The historical promoted subset retains 872 exact receipt
+  members across the 71 ready sources and three disclosed gaps.”
 - “Companion heat is deterministic navigation derived from indexed evidence,
   not a measurement of audience sentiment. The playback UI's snapshot-safe and
   crossed-event path keeps future event text sealed until its timestamp is
@@ -627,7 +743,12 @@ Use only the branch the audience cares about:
   moments.”
 - “An Archive Deep batch is ranked by views” or “priority #1 means most
   watched.”
-- “The 52 character signals are verified performances.”
+- “The 24 character signals or 28 character contexts are verified
+  performances.”
+- “All 1,490 Source Dossier receipts are promoted, curated, or
+  human-verified.”
+- “Ask This Tape can borrow an answer from a better-matching upload.”
+- “The Wake displays 16, so only 16 matching relationships exist.”
 - “The captions prove which tier, poster, death, or matchup was on screen.”
 - “A source-level summary is what the hosts said at that timestamp.”
 - “Owner-mapped character means this individual clip has a verified speaker.”

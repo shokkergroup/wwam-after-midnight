@@ -20,6 +20,7 @@ function load() {
     "curation.js",
     "character-lore.js",
     "wwam-channel-dna.js",
+    "archive-atlas-data.js",
     "showcase-engine.js",
     "lore-engine.js",
     "red-band-ranking-v2.js",
@@ -220,6 +221,27 @@ function excerptWords(value) {
 
 const full = createFull();
 
+function createCanonicalRegistryCompanion() {
+  const atlasSources = full.window.WWAM_ARCHIVE_ATLAS.records.map((record) => {
+    const lanes = Array.isArray(record.lanes) ? [...record.lanes] : [];
+    return {
+      id: record.id,
+      title: record.title,
+      date: record.date,
+      durationSeconds: record.duration,
+      type: lanes.includes("commentary-catalog") ? "commentary" : "livestream",
+      lane: lanes[0] || "archive-metadata",
+      lanes,
+      url: record.url,
+      captioned: record.coverage === "deeply-indexed",
+    };
+  });
+  return full.window.WWAMTapeCompanionEngine.create({
+    ...full.inputs,
+    sources: full.showcase.sources.concat(atlasSources),
+  });
+}
+
 test("publishes the complete pure API and full promoted-corpus readiness boundary", () => {
   const { window, companion } = full;
 
@@ -288,6 +310,35 @@ test("publishes the complete pure API and full promoted-corpus readiness boundar
   assert.equal(companion.evidencePolicy.copiedMedia, false);
   assert.equal(companion.evidencePolicy.audioExtraction, false);
   assert.equal(companion.evidencePolicy.autoplay, false);
+});
+
+test("the canonical 510-source registry opens every dossier in Tape Companion without inventing timed memory", () => {
+  const companion = createCanonicalRegistryCompanion();
+  const sources = companion.listSources();
+  const ready = sources.filter(
+    (source) => source.readiness.status === "companion-ready",
+  );
+  const sourceOnly = sources.filter(
+    (source) => source.readiness.status !== "companion-ready",
+  );
+
+  assert.equal(sources.length, 510);
+  assert.equal(ready.length, 71);
+  assert.equal(sourceOnly.length, 439);
+  assert.equal(new Set(sources.map((source) => source.id)).size, 510);
+
+  const metadataOnly = companion.compileTimeline("FVuwRHM0kcc");
+  assert.ok(metadataOnly);
+  assert.equal(metadataOnly.readiness.mode, "source-only");
+  assert.equal(metadataOnly.readiness.allowsTimedClaims, false);
+  assert.equal(metadataOnly.counts.exactReceiptMembers, 0);
+  assert.equal(metadataOnly.counts.heatWindows, 0);
+  assert.equal(metadataOnly.events.length, 0);
+
+  const latest = companion.compileTimeline("LV2rmwEA0w4");
+  assert.ok(latest);
+  assert.equal(latest.readiness.mode, "source-synced-companion");
+  assert.ok(latest.counts.exactReceiptMembers > 0);
 });
 
 test("all 74 promoted sources compile and only the three honest gaps are source-only", () => {

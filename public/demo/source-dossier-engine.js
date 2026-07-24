@@ -10,7 +10,7 @@
    * captions, promote evidence, clear rights, or publish anything.
    */
 
-  var VERSION = "1.0.0";
+  var VERSION = "1.1.0";
   var INPUT_SCHEMA = "shokker-source-dossier-input/v1";
   var DOSSIER_SCHEMA = "shokker-source-dossier/v1";
   var EXPORT_SCHEMA = "shokker-source-dossier-export/v1";
@@ -43,6 +43,8 @@
     "caption-excerpt": true,
     "caption-topic-receipt": true,
     "caption-topic-navigation": true,
+    "caption-character-signal": true,
+    "caption-character-context": true,
     "curated-character-performance": true
   });
   var PROHIBITED_AUTHORITY =
@@ -506,7 +508,7 @@
     var localArtifacts = source.artifacts.filter(function (artifact) {
       return artifact.sourceIds.length > 1;
     });
-    return sources.filter(function (candidate) {
+    var matches = sources.filter(function (candidate) {
       return candidate.id !== source.id;
     }).map(function (candidate) {
       var sharedEntities = [];
@@ -556,12 +558,19 @@
         right.sharedEntities.length - left.sharedEntities.length ||
         right.date.localeCompare(left.date) ||
         left.sourceId.localeCompare(right.sourceId);
-    }).slice(0, 16).map(function (connection) {
+    });
+    var displayed = matches.slice(0, 16).map(function (connection) {
       if (!sourceById.has(connection.sourceId)) {
         fail("UNKNOWN_CONNECTION_SOURCE", "A connection left the source registry.");
       }
       return connection;
     });
+    return {
+      matchingTotal: matches.length,
+      displayed: displayed.length,
+      truncated: matches.length > displayed.length,
+      connections: displayed
+    };
   }
 
   function summarizeBy(values, key) {
@@ -667,7 +676,8 @@
         return total + source.artifacts.length;
       }, 0),
       connectedSources: sources.filter(function (source) {
-        return (connectionsById.get(source.id) || []).length;
+        var compiled = connectionsById.get(source.id);
+        return compiled && compiled.matchingTotal > 0;
       }).length,
       archiveFingerprint: archiveFingerprint
     };
@@ -678,7 +688,13 @@
       var index = chronologicalIndex.get(source.id);
       var previous = index > 0 ? chronological[index - 1] : null;
       var next = index < chronological.length - 1 ? chronological[index + 1] : null;
-      var connections = connectionsById.get(source.id) || [];
+      var compiledConnections = connectionsById.get(source.id) || {
+        matchingTotal: 0,
+        displayed: 0,
+        truncated: false,
+        connections: []
+      };
+      var connections = compiledConnections.connections;
       var dossier = {
         schema: DOSSIER_SCHEMA,
         version: VERSION,
@@ -719,7 +735,10 @@
           byAuthority: summarizeBy(source.artifacts, "authority")
         },
         wake: {
-          total: connections.length,
+          total: compiledConnections.matchingTotal,
+          matchingTotal: compiledConnections.matchingTotal,
+          displayed: compiledConnections.displayed,
+          truncated: compiledConnections.truncated,
           later: connections.filter(function (connection) {
             return connection.direction === "later";
           }),

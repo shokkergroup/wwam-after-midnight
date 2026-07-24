@@ -28,9 +28,10 @@ or the creator-approved character set.
 | Limited available caption spans | 1 |
 | Cached snapshot views | 445,949 |
 
-The 52 character-signal records are source-level automatic-caption signals.
-They are not 52 people, performances, verified character appearances, or
-speaker attributions. All 166 public moment candidates remain machine-surfaced,
+The 52 character records are source-level automatic-caption evidence: 24
+machine character signals and 28 machine character contexts. They are not 52
+people, performances, verified character appearances, or speaker
+attributions. All 166 public moment candidates remain machine-surfaced,
 speaker-undiarized, origin-unattributed, unreviewed, and quarantined.
 
 Twelve trailer, script-reading, watch-party, or film-clip-risk sources are

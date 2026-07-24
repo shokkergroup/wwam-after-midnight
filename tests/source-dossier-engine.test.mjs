@@ -197,10 +197,13 @@ test("builds a deterministic channel-neutral dossier with typed dual-ended conne
   const dossier = clone(engine.build("RACEFILE01A"));
   const again = clone(engine.build("RACEFILE01A"));
 
-  assert.equal(engine.version, "1.0.0");
+  assert.equal(engine.version, "1.1.0");
   assert.equal(engine.getStats().sources, 3);
   assert.equal(dossier.source.receipts.length, 1);
   assert.equal(dossier.wake.total, 2);
+  assert.equal(dossier.wake.matchingTotal, 2);
+  assert.equal(dossier.wake.displayed, 2);
+  assert.equal(dossier.wake.truncated, false);
   assert.equal(dossier.wake.later[0].sourceId, "RACEFILE02B");
   assert.equal(dossier.wake.later[0].basis, "receipt-backed-entity");
   assert.deepEqual(
@@ -220,6 +223,55 @@ test("builds a deterministic channel-neutral dossier with typed dual-ended conne
     JSON.stringify(dossier),
     /WWAM|Halloween|Scream|Loomis|horror/i,
   );
+});
+
+test("retains the 16-result Wake display cap while exposing the true match total", () => {
+  const input = fixture();
+  input.sources[0].artifacts = [];
+  input.sources[1].entities = [];
+  input.sources[2].entities = [];
+
+  for (let index = 0; index < 20; index += 1) {
+    input.sources.push(source({
+      id: `CAP${String(index).padStart(8, "0")}`,
+      title: `Car 33 archive neighbor ${index}`,
+      date: "2026-07-10",
+      coverage: "metadata-only",
+      authority: "source-only",
+      entities: [{
+        id: "driver:car-33",
+        label: "Car 33",
+        type: "driver",
+        basis: "cached-title-alias",
+        receiptKeys: [],
+      }],
+    }));
+  }
+
+  const dossier = clone(runtime().create(input).build("RACEFILE01A"));
+
+  assert.equal(dossier.wake.total, 20);
+  assert.equal(dossier.wake.matchingTotal, 20);
+  assert.equal(dossier.wake.displayed, 16);
+  assert.equal(dossier.wake.truncated, true);
+  assert.equal(dossier.wake.later.length + dossier.wake.earlier.length, 16);
+});
+
+test("accepts honest character signal/context evidence without promoting it", () => {
+  const api = runtime();
+
+  for (const evidenceType of [
+    "caption-character-signal",
+    "caption-character-context",
+  ]) {
+    const input = fixture();
+    input.sources[0].receipts[0].evidenceType = evidenceType;
+    assert.doesNotThrow(() => api.create(input), evidenceType);
+  }
+
+  const unknown = fixture();
+  unknown.sources[0].receipts[0].evidenceType = "curated-character-reference";
+  assert.throws(() => api.create(unknown), expectCode("UNKNOWN_EVIDENCE_TYPE"));
 });
 
 test("exports exact coordinates and bindings without excerpts, captions, media, or speakers", () => {

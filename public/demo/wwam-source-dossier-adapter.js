@@ -1,13 +1,14 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.0.0";
+  var VERSION = "1.1.0";
   var SCHEMA = "shokker-source-dossier-input/v1";
   var PUBLIC_EXCERPT_WORDS = 16;
   var EXPECTED_ATLAS_SOURCES = 472;
   var EXPECTED_CATALOG_SOURCES = 39;
   var EXPECTED_CANONICAL_SOURCES = 510;
   var EXPECTED_RECEIPTS = 1490;
+  var EXPECTED_CURATED_CHARACTER_RECEIPTS = 25;
   var EXPECTED_OVERLAP_ID = "3wK00_-K-Y0";
   var PINNED_SHOWCASE_SOURCE_ID = "LV2rmwEA0w4";
 
@@ -177,6 +178,72 @@
     return candidate;
   }
 
+  function curatedReceiptBounds(characterLore, showcase) {
+    var expected = new Set(
+      array(showcase && showcase.receipts).filter(function (receipt) {
+        return evidenceType(receipt && receipt.type) ===
+          "curated-character-performance";
+      }).map(function (receipt) {
+        return clean(receipt && receipt.id);
+      }).filter(Boolean)
+    );
+    if (expected.size !== EXPECTED_CURATED_CHARACTER_RECEIPTS) {
+      fail(
+        "CURATED_RECEIPT_SET_INVALID",
+        "The Showcase must retain exactly " +
+          EXPECTED_CURATED_CHARACTER_RECEIPTS +
+          " curated character receipt IDs."
+      );
+    }
+
+    var bounds = new Map();
+    array(characterLore && characterLore.characters).forEach(function (profile) {
+      array(profile && profile.soundbytes).forEach(function (soundbyte) {
+        var key = "character-receipt:" + clean(soundbyte && soundbyte.id);
+        if (!expected.has(key)) return;
+        var sourceId = clean(soundbyte && soundbyte.sourceId);
+        var at = numberOrNull(soundbyte && soundbyte.t);
+        var end = numberOrNull(
+          soundbyte && soundbyte.playback && soundbyte.playback.end
+        );
+        if (end == null && at != null) {
+          var clipSeconds = numberOrNull(
+            soundbyte && soundbyte.playback && soundbyte.playback.clipSeconds
+          );
+          if (clipSeconds != null) end = at + clipSeconds;
+        }
+        if (!sourceId || at == null || end == null || at < 0 || end <= at) {
+          fail(
+            "CURATED_RECEIPT_BOUND_INVALID",
+            "Curated receipt " + key +
+              " requires an exact source, start, and positive end bound."
+          );
+        }
+        if (bounds.has(key)) {
+          fail(
+            "CURATED_RECEIPT_BOUND_DUPLICATE",
+            "Curated receipt " + key + " has duplicate playback bounds."
+          );
+        }
+        bounds.set(key, {
+          sourceId: sourceId,
+          at: at,
+          end: end,
+        });
+      });
+    });
+    expected.forEach(function (key) {
+      if (!bounds.has(key)) {
+        fail(
+          "CURATED_RECEIPT_BOUND_MISSING",
+          "Curated receipt " + key +
+            " is missing its explicit human-curated playback bound."
+        );
+      }
+    });
+    return bounds;
+  }
+
   function evidenceType(kind, fallback) {
     var value = normalized(kind);
     if (value.indexOf("topic") >= 0) return "caption-topic-receipt";
@@ -249,9 +316,25 @@
     };
   }
 
-  function exactShowcaseReceipts(source, receipts) {
+  function exactShowcaseReceipts(source, receipts, curatedBounds) {
     return array(receipts).map(function (receipt) {
-      return normalizedReceipt(receipt, source, {
+      var raw = receipt;
+      var key = clean(receipt && receipt.id);
+      var bound = curatedBounds.get(key);
+      if (evidenceType(receipt && receipt.type) ===
+          "curated-character-performance") {
+        if (!bound || bound.sourceId !== source.id ||
+            Math.abs(number(receipt.t) - bound.at) > 0.01 ||
+            bound.end > source.duration) {
+          fail(
+            "CURATED_RECEIPT_BOUND_MISMATCH",
+            "Curated receipt " + key +
+              " does not match its exact source playback boundary."
+          );
+        }
+        raw = Object.assign({}, receipt, { end: bound.end });
+      }
+      return normalizedReceipt(raw, source, {
         key: receipt.id,
         kind: receipt.type,
         label: receipt.category,
@@ -334,6 +417,13 @@
     entityIdForLabel
   ) {
     var label = clean(character.character || character.label || "CHARACTER");
+    var status = normalized(character.status);
+    var type = status === "character reference"
+      ? "caption-character-signal"
+      : "caption-character-context";
+    var kind = type === "caption-character-signal"
+      ? "character-signal"
+      : "character-context";
     return normalizedReceipt(
       {
         id: [
@@ -344,16 +434,16 @@
           index,
         ].join(":"),
         t: character.t,
-        type: "character-context",
+        type: kind,
         label: label,
         excerpt: character.receipt || character.excerpt || "",
       },
       source,
       {
-        kind: "character-context",
+        kind: kind,
         label: label,
         evidenceLevel: "machine",
-        evidenceType: "curated-character-performance",
+        evidenceType: type,
         evidenceBasis: basis,
         reviewState: basis.indexOf("archive-deep") >= 0
           ? "quarantined-machine-candidate"
@@ -897,6 +987,7 @@
     var showcase = input.showcase || null;
     var clipLab = input.clipLab || null;
     var dna = input.dna || input.channelDNA || {};
+    var characterLore = input.characters || input.characterLore || {};
 
     assertCount(atlasRecords, EXPECTED_ATLAS_SOURCES, "WWAM Archive Atlas");
     assertCount(catalog, EXPECTED_CATALOG_SOURCES, "WWAM commentary catalog");
@@ -971,6 +1062,7 @@
       showcaseReceipts.get(id).push(receipt);
     });
     var artifactBySource = buildArtifacts(showcase, clipLab);
+    var curatedBounds = curatedReceiptBounds(characterLore, showcase);
     assertPinnedShowcaseProof(
       showcaseSources,
       showcaseReceipts,
@@ -1137,7 +1229,8 @@
         if (showcase) {
           receipts = exactShowcaseReceipts(
             source,
-            showcaseReceipts.get(id) || []
+            showcaseReceipts.get(id) || [],
+            curatedBounds
           );
         } else {
           var rawSource = commentaryTape || liveStream || popularStream || {};

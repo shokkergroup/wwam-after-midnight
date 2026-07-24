@@ -139,7 +139,7 @@ test("source byte budgets and generated fingerprints survive Windows checkouts",
 test("release identity, social proof, and documentation stay synchronized", () => {
   assert.match(html, /<title>[^<]*WWAM After Midnight[^<]*<\/title>/);
   assert.match(html, /<meta name="description" content="[^"]{80,}">/);
-  assert.match(html, /<meta property="og:image" content="\/og-memory-os\.png">/);
+  assert.match(html, /<meta property="og:image" content="\/og\.png">/);
   assert.match(html, /<meta name="twitter:card" content="summary_large_image">/);
   assert.match(changelog, new RegExp(`## ${packageJson.version.replace(/\./g, "\\.")}\\b`));
   assert.match(changelog, /74 unique sources/);

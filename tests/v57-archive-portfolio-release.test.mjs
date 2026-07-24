@@ -28,9 +28,9 @@ test("the historical V5.7 entry remains while current identity stays synchronize
   const packageLock = JSON.parse(read("package-lock.json"));
   const changelog = read("docs/CHANGELOG.md");
 
-  assert.equal(packageJson.version, "0.5.17");
-  assert.equal(packageLock.version, "0.5.17");
-  assert.equal(packageLock.packages[""].version, "0.5.17");
+  assert.equal(packageJson.version, "0.5.18");
+  assert.equal(packageLock.version, "0.5.18");
+  assert.equal(packageLock.packages[""].version, "0.5.18");
   assert.match(changelog, /^## 0\.5\.7\b/m);
   assert.match(changelog, /V5\.7 Archive Deep Portfolio/i);
 });
@@ -129,7 +129,14 @@ test("release language prevents raw-view, performance, speaker, and canon inflat
     coreDocs,
     /52 (?:verified |confirmed )?(?:character )?performances/i,
   );
-  assert.match(coreDocs, /52 source-level character-signal records[\s\S]{0,160}not[\s\S]{0,80}performances/i);
+  assert.match(
+    coreDocs,
+    /24[\s\S]{0,50}character signals[\s\S]{0,80}28[\s\S]{0,50}character contexts/i,
+  );
+  assert.match(
+    coreDocs,
+    /all 52[\s\S]{0,160}none[\s\S]{0,80}curated performance/i,
+  );
   assert.match(coreDocs, /all 166[^.\n]*speaker-undiarized/i);
   assert.match(coreDocs, /all 166[^.\n]*(?:remain|outside)[^.\n]*(?:quarantined|promoted 872)/i);
   assert.match(coreDocs, /(?:visual ranking context|visual context)[^.\n]*remains (?:explicitly )?unverified/i);
@@ -162,5 +169,8 @@ test("the portfolio documents four independent proof chains and twelve fail-hone
   assert.equal(auditRows.length, 12);
 
   assert.match(runbook, /Claims to avoid[\s\S]*(?:Archive Deep batch|Batch 02)[^.\n]*ranked by views/i);
-  assert.match(runbook, /52 character signals are verified performances/i);
+  assert.match(
+    runbook,
+    /24 character signals[\s\S]{0,50}28 character contexts[\s\S]{0,50}verified[\s\S]{0,30}performances/i,
+  );
 });

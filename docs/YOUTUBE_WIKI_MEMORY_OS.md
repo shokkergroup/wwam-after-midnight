@@ -35,6 +35,10 @@ The defensible product is not “AI made a website.” It is a source-backed mem
    Metadata-only and caption-limited sources must refuse unsupported semantic
    sections rather than borrowing conclusions from titles or neighboring
    uploads.
+10. **An exact-source question never escapes its source.** Resolve and verify
+    the requested source ID and fingerprint before interpreting the question.
+    A duplicate title, nearby upload, or stronger global result cannot
+    substitute another source.
 
 ## Universal evidence schema
 
@@ -102,6 +106,21 @@ Receipt requirements:
   used to answer about a resolved subject;
 - no named speaker unless the evidence supports it;
 - deterministic ID generation so corrections do not create silent duplicates.
+
+Evidence type must describe what was established, not what would make the card
+more exciting. In the current WWAM adapter:
+
+- `curated-character-performance` is reserved for 25 human-curated,
+  timestamp-validated candidates with explicit start/end windows;
+- `caption-character-signal` describes 24 machine-detected character
+  references; and
+- `caption-character-context` describes 28 machine-detected persona prompts,
+  character-name contexts, or performance discussions.
+
+The latter 52 Archive Deep records remain machine-surfaced and quarantined.
+They are not performances. Curated clip normalization must preserve explicit
+human end bounds; it may not replace a 14-second reviewed window with a
+generic 30-second fallback.
 
 ### Entity
 
@@ -433,6 +452,46 @@ Builds a playable path across receipts. Useful modes:
 
 The route must diversify sources and return exact timestamps.
 
+### Canonical Source Dossier and Ask This Tape
+
+Every canonical source receives one dossier even when it has no defensible
+content receipts. The portable dossier separates source proof, bounded
+receipts, entities, artifacts, connections, chronology, actions, and evidence
+limits.
+
+The exact-source query layer is intentionally smaller than archive-wide
+search. It must:
+
+- build the requested dossier before parsing the question;
+- optionally compare the request's source fingerprint with the freshly built
+  dossier;
+- return content results only when every result carries the requested source
+  ID;
+- treat titles as display metadata rather than source scope;
+- refuse metadata-only, caption-limited, unavailable, stale, and unsupported
+  content requests without global fallback;
+- preserve `speaker: null` and the complete authority boundary; and
+- expose typed inventory, receipt, entity, artifact, connection, metadata, and
+  registered-summary results.
+
+Connections are navigation, not replacement answers. A connection result may
+name a target source, but the answer itself remains scoped to the open source
+and cannot claim origin, causality, or content in the target.
+
+The universal Wake contract separates:
+
+- `matchingTotal`, the true number of passing relationships;
+- `displayed`, the size of the bounded returned collection; and
+- `truncated`, whether additional matches exist.
+
+The current return cap is 16. A compact UI may preview fewer cards, but it must
+never label the preview or cap as the complete total. Progressive disclosure
+and full-file mode change presentation only.
+
+Stable source routes use closed section keys rather than DOM selectors:
+`proof`, `player`, `ask`, `inside`, `footprint`, `wake`, `chronology`, `work`,
+and `boundary`. Unknown values fail to the dossier default.
+
 ### Synchronized Tape Companion
 
 Turns official playback into a second-screen memory route without copying the
@@ -451,6 +510,8 @@ Required behavior:
 - reverse, stationary, or large seeks replace the snapshot instead of firing
   a parade of skipped moments;
 - companion-limited sources remain honest source-only records;
+- the complete canonical registry remains discoverable even when only a
+  smaller subset is memory-ready;
 - manual sync and official timestamp links remain usable when the player API
   is unavailable; and
 - shared state binds channel plus the core archive/source ledgers and playback
@@ -458,6 +519,12 @@ Required behavior:
 
 A checksum proves deterministic consistency only. It does not prove identity,
 authorship, approval, or source availability.
+
+In the V5.18 WWAM demonstration, Tape Companion receives all 510 canonical
+sources. Seventy-one are memory-ready and 439 remain source-only. The
+historical promoted subset is still 74 sources—71 ready and three disclosed
+gaps—with 872 exact receipt members. Expanding registry breadth does not
+rewrite that frozen evidence ledger.
 
 The public `compileTimeline` audit API returns the complete compiled timeline.
 Playback code must not use it as a live feed. Optional display labels, excerpts,
@@ -735,6 +802,10 @@ Every build should run deterministic contract checks and a human benchmark.
 - Receipt IDs are unique.
 - No required source is silently dropped.
 - The same input produces the same fingerprint and ordered outputs.
+- Every explicit curated playback end survives normalization unchanged.
+- Every Wake satisfies `displayed <= 16`,
+  `truncated === (matchingTotal > displayed)`, and
+  `displayed === later.length + earlier.length`.
 
 ### Search and answer quality
 
@@ -750,7 +821,10 @@ Maintain at least 25 real user questions per channel:
 - apparent opinion change;
 - missing-caption question;
 - ambiguous “who said” question;
-- follow-up question that depends on prior context.
+- follow-up question that depends on prior context;
+- exact-source duplicate-title isolation;
+- exact-source wrong-subject refusal;
+- metadata-only content refusal without a global-search fallback.
 
 Score:
 
@@ -928,6 +1002,29 @@ showcase.getControlRoom();
 
 Both Popular 25 and character data are optional. The engine still returns a complete, deterministic model and honest readiness states when they are absent.
 
+Create a channel-neutral Source Dossier registry and exact-source query layer:
+
+```js
+const dossiers = window.ShokkerSourceDossier.create(sourceDossierPayload);
+const sourceQuery = window.ShokkerSourceQuery.create({
+  dossierEngine: dossiers
+});
+
+const dossier = dossiers.build("LV2rmwEA0w4");
+const answer = sourceQuery.answer({
+  schema: "shokker-source-query/v1",
+  sourceId: dossier.source.id,
+  sourceFingerprint: dossier.source.sourceFingerprint,
+  query: "Show me Dr. Loomis moments",
+  at: 9042.64,
+  limit: 8
+});
+```
+
+The query result remains bound to the requested source and includes an explicit
+`crossSourceSubstitution: false` boundary. Channel-specific vocabulary may
+change intent detection; it cannot weaken source scope.
+
 Create a portable synchronized companion from channel-shaped inputs:
 
 ```js
@@ -993,7 +1090,9 @@ const verifiedFreshTrail = player.restoreShare(share);
 
 ## Current implementation boundary
 
-`public/demo/showcase-engine.js`, `public/demo/tape-companion-engine.js`, and
+`public/demo/showcase-engine.js`, `public/demo/source-dossier-engine.js`,
+`public/demo/source-query-engine.js`,
+`public/demo/tape-companion-engine.js`, and
 `public/demo/creator-taste-engine.js` are intentionally pure browser engines:
 
 - no network calls;
@@ -1005,6 +1104,14 @@ const verifiedFreshTrail = player.restoreShare(share);
 - source IDs and timestamps retained in every derived artifact.
 
 It is a presentation-independent foundation. WWAM can render it as a horror evidence room; VRL can render the same contracts as a race-control archive.
+
+The V5.18 WWAM adapter is intentionally stricter than the universal core: it
+fails closed unless the canonical union remains 510 sources and the receipt
+ledger remains 1,490. Its current proof is 111 caption-backed, 390
+metadata-only, nine caption-limited, zero unavailable, 928 source-bound
+artifact records, 25 exact curated windows, and a 24/28 Archive Deep
+signal/context split. Those adapter assertions are channel snapshot checks,
+not universal constants.
 
 The current companion UI stores core archive/source-ledger-bound local state;
 optional display decorations are outside that binding. Calibration stores

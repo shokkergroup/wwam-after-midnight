@@ -12,14 +12,16 @@
     },
     {
       number: "02",
-      eyebrow: "THE RECEIPT",
-      title: "2,175,344 WORDS.<br>84 SOURCES. PROVE IT.",
-      body: "Audited: 39 commentaries + Fresh 10 + Popular 25 + Batch 01.",
-      proof: "84 INPUTS = 74 PROMOTED + 10 ARCHIVE DEEP QUARANTINE. 872 RECEIPTS + 42 REVIEW CANDIDATES.",
+      eyebrow: "THE SOURCE SESSION",
+      title: "510 SOURCE FILES.<br>ASK ONE. PROVE IT.",
+      body: "Every upload opens as its own honest, playable, interrogable micro-wiki. The source ID never changes underneath the answer.",
+      proof: "CURRENT V5.18 SOURCE REGISTRY // 510 FILES · 1,490 DOSSIER RECEIPTS · 111 CAPTION-BACKED · 390 METADATA-ONLY · 9 CAPTION-LIMITED. FROZEN V5.4 PROMOTED PROOF SET // 84 INPUTS = 74 PROMOTED + 10 ARCHIVE DEEP QUARANTINE · 872 PROMOTED RECEIPTS + 42 REVIEW CANDIDATES.",
       action: {
-        kind: "ask",
-        label: "ASK FOR THE MOST-VIEWED LIVE",
-        query: "What is the most-viewed foundational livestream?",
+        kind: "source",
+        label: "ASK THE JULY 23 TAPE ABOUT LOOMIS",
+        sourceId: "LV2rmwEA0w4",
+        section: "ask",
+        query: "Show me the Dr. Loomis moments in this tape.",
       },
     },
     {

@@ -5,16 +5,16 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="theme-color" content="#080608">
-  <title>WWAM After Midnight — The Deep Distill</title>
-  <meta name="description" content="A source-linked living memory system for WWAM: commentaries, current and foundational livestreams, evolving takes, recurring characters, lore, heat maps, and playable receipts.">
-  <meta property="og:title" content="WWAM After Midnight — The Deep Distill">
-  <meta property="og:description" content="The WWAM channel remembers itself: popular livestreams, evolving takes, recurring characters, lore, and playable source receipts.">
-  <meta property="og:image" content="/og-memory-os.png">
-  <meta property="og:image:alt" content="WWAM After Midnight — The Channel Remembers Itself">
+  <title>WWAM After Midnight — Ask This Tape</title>
+  <meta name="description" content="An independent, source-locked living YouTube wiki: 510 playable source dossiers, 1,490 bounded receipts, and exact-tape answers that refuse to fake what is not indexed.">
+  <meta property="og:title" content="WWAM After Midnight — Ask This Tape">
+  <meta property="og:description" content="510 source dossiers. 1,490 receipts. Zero wrong-tape substitutions.">
+  <meta property="og:image" content="/og.png">
+  <meta property="og:image:alt" content="WWAM After Midnight — Ask This Tape">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="WWAM After Midnight — The Deep Distill">
-  <meta name="twitter:description" content="A source-linked memory system for popular livestreams, evolving takes, recurring characters, lore, and playable receipts.">
-  <meta name="twitter:image" content="/og-memory-os.png">
+  <meta name="twitter:title" content="WWAM After Midnight — Ask This Tape">
+  <meta name="twitter:description" content="510 source dossiers. 1,490 receipts. Zero wrong-tape substitutions.">
+  <meta name="twitter:image" content="/og.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
@@ -64,6 +64,7 @@
         <h1>THE CHANNEL<br><em>REMEMBERS ITSELF.</em></h1>
         <p class="hero-dek">Popular livestreams. Fresh damage. Evolving takes. Recurring characters. Playable lore. A living brain built from WWAM's actual source history—not a chatbot wearing a horror T-shirt.</p>
         <div class="hero-actions">
+          <button class="primary" id="latestDossierButton" type="button">INTERROGATE THE JULY 23 TAPE <span>&rarr;</span></button>
           <a class="primary" href="#memory">ENTER THE MEMORY OS</a>
           <a href="#companion">WATCH WITH MEMORY <span>→</span></a>
           <button id="rouletteButton">RED BAND ROULETTE <span>↗</span></button>
@@ -140,7 +141,7 @@
 
     <section class="tape-companion" id="companion" aria-busy="true"
       data-feature-styles="tape-companion.css"
-      data-feature-scripts="red-band-ranking-v2.js,tape-companion-engine.js,tape-companion-ui.js">
+      data-feature-scripts="archive-atlas-data.js,red-band-ranking-v2.js,tape-companion-engine.js,tape-companion-ui.js">
       <header class="section-head">
         <div>
           <p class="kicker">SYNCHRONIZED SECOND SCREEN // THE OFFICIAL TAPE STAYS IN CONTROL</p>
@@ -157,7 +158,7 @@
             <span>CHOOSE THE TAPE</span>
             <h3 id="companionPickerTitle">WHAT ARE WE WATCHING?</h3>
           </div>
-          <label><span>SEARCH COMPANION-READY SOURCES</span><input id="companionSourceSearch"
+          <label><span>SEARCH ALL 510 REGISTERED SOURCES</span><input id="companionSourceSearch"
             type="search" autocomplete="off" placeholder="Latest live, Halloween, Scream…"></label>
           <button id="companionLatest" type="button">LOAD THE JULY 23 LIVE →</button>
           <button id="companionResume" type="button">RESUME LAST TAPE</button>
@@ -938,8 +939,8 @@
   <script src="human-review-session-engine.js"></script>
   <script src="search-engine.js"></script>
   <script src="ask-share.js"></script>
-  <script src="youtube-playback.js?v=0.5.17"></script>
-  <script src="app.js?v=0.5.17"></script>
+  <script src="youtube-playback.js?v=0.5.18"></script>
+  <script src="app.js?v=0.5.18"></script>
   <script src="feature-loader.js"></script>
 </body>
 </html>

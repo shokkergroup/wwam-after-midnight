@@ -7,9 +7,53 @@ character archaeology, topic paths, and creator-side editorial opportunities.
 This is an unofficial fan prototype. It sends playback and source traffic back
 to the official WWAM uploads.
 
-Current documented release: **V5.17 / 0.5.17**.
+Current documented release: **V5.18 / 0.5.18**.
 
-## V5.17 The Source Dossier
+## V5.18 Ask This Tape
+
+V5.18 turns every Source Dossier into an exact-source question room. **Ask
+This Tape** resolves the requested source ID and fingerprint before it
+interprets the question. Every content result must come from that one source;
+an upload with the same title, a hotter archive result, or a nearby source
+cannot replace it. Unsupported questions return zero source-content receipts
+instead of borrowing an answer from elsewhere in the archive.
+
+The current canonical dossier registry contains **510 sources**: 111
+caption-backed, 390 metadata-only, nine caption-limited, and zero unavailable.
+Across those source files it registers **1,490 receipts** and **928
+source-bound artifact records**. Those are current Source Dossier inventory
+counts. They do not replace the immutable V5.4 proof of 84 source inputs and
+872 promoted receipts.
+
+The evidence ledger now preserves all **25 human-curated character-performance
+windows** with their explicit end bounds. Every current window is exactly 14
+seconds; the July 23 Loomis funding receipt remains
+`LV2rmwEA0w4 @ 9042.64–9056.64`. Archive Deep's 52 machine-surfaced character
+records are kept in different evidence classes: **24
+`caption-character-signal` receipts and 28 `caption-character-context`
+receipts**, with zero promoted as curated performances.
+
+The Tape's Wake no longer lets its 16-result display window masquerade as the
+complete relationship count. A dossier now exposes `matchingTotal`,
+`displayed`, and `truncated`; `LV2rmwEA0w4` has **138 matching sources, 16
+displayed, and `truncated: true`**. Tape Companion also accepts the complete
+510-source registry: **71 sources are memory-ready and 439 remain visibly
+source-only**.
+
+The dossier opens in a compact Director's Cut, supports per-section progressive
+disclosure and a full-file view, and keeps stable routes for Source Proof,
+playback, Ask, receipts, Memory OS Footprint, Wake, chronology, work, and the
+evidence boundary. Canonical links use the source ID—not the title—and can
+retain an exact section:
+
+```text
+?source=LV2rmwEA0w4&at=9043&section=ask#archive
+```
+
+See [Ask This Tape](docs/ASK_THIS_TAPE.md) and
+[The Source Dossier](docs/SOURCE_DOSSIER.md).
+
+## V5.17 The Source Dossier — preserved
 
 Every one of the **510 unique canonical uploads** now has one honest,
 shareable source page. The registry reconciles 472 cached official
@@ -187,8 +231,8 @@ read-only quarantine portfolio:
 - 97.7 audited hours, 1,216,993 words, and 173,675 parsed caption events;
 - 400 topic lanes across 48 distinct normalized topics;
 - 166 quarantined public moment candidates;
-- 52 source-level character-signal records, not people or verified
-  performances;
+- 52 source-level character records: 24 machine character signals and 28
+  machine persona/context records, not people or verified performances;
 - 12 topic-only source-audio firewalls;
 - 12 special visual-ranking quarantines;
 - one disclosed limited available caption span;
@@ -370,7 +414,7 @@ manifest. Quarantined stops remain marked `promotionAllowed: false` with no
 speaker claim. The export omits transcripts, caption payloads, and full event
 ledgers. See [Archive Time Capsules](docs/ARCHIVE_TIME_CAPSULES.md).
 
-## V5.17 product map
+## V5.18 product map
 
 The hero offers three deliberate entry points:
 
@@ -405,10 +449,11 @@ payoff. Its share seed includes the archive fingerprint, its saved progress is
 ordered and canonical-response-checked on restore, and its visible snapshot
 notice says when newer uploads may be missing.
 
-Tape Companion compiles all 74 promoted sources into a source-synchronized
-memory rail: 71 are companion-ready and the same 3 disclosed caption gaps stay
-source-only. The release suite pins those corpus/readiness counts, 872 exact
-receipt members, 1,294 derived heat windows, and the 96/25/25 annotation totals.
+Tape Companion now compiles the complete 510-source dossier registry into one
+source-synchronized rail: 71 sources are memory-ready and 439 remain visibly
+source-only. The historical promoted subset is still 74 sources—71 ready plus
+the same three disclosed caption gaps—and its 872 exact receipt members,
+1,294 derived heat windows, and 96/25/25 annotation totals remain unchanged.
 The current deterministic snapshot further derives 869 conservative incidents
 and 2,967 receipt-backed Lore connections. The surface never copies media, the
 player keeps autoplay off, and the playback UI exposes event text only through
@@ -591,7 +636,7 @@ establish which host is speaking.
   **Clip-level speaker attribution** requires diarization or specific creator
   certification.
 
-The current snapshot contains 847 machine-level receipts and 25
+The frozen promoted snapshot contains 847 machine-level receipts and 25
 timestamp-validated human-curated character-performance candidates, but 0
 authenticated editor-verified decisions and 0 creator-certified receipts.
 Their speakers are not diarized. The candidate records preserve source/time
@@ -600,6 +645,11 @@ or clip-level speaker identity. The Trust Desk's “0 out-of-range
 indexed timestamps” result validates each time against the known source
 duration; it does not establish continuous network availability or the
 semantic truth of a derived claim.
+
+The current 1,490-receipt Source Dossier registry is a broader source
+inventory and must not be relabeled as the promoted 872. Its Archive Deep
+contribution includes 24 machine character signals and 28 machine character
+contexts, not curated performances.
 
 ## Local development
 
@@ -633,7 +683,8 @@ artifacts contain derived measurements and short, timestamped fragments only.
 
 ## Documentation
 
-- [V5.17 product overview](docs/V5_OVERVIEW.md)
+- [V5.18 product overview](docs/V5_OVERVIEW.md)
+- [Ask This Tape exact-source query contract](docs/ASK_THIS_TAPE.md)
 - [The Source Dossier](docs/SOURCE_DOSSIER.md)
 - [Evidence Relationship Gate](docs/EVIDENCE_RELATIONSHIP_GATE.md)
 - [Play the Answer source-trail contract](docs/PLAY_THE_ANSWER.md)

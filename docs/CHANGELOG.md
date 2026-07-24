@@ -3,6 +3,74 @@
 This changelog records product and evidence-contract changes. It does not by
 itself indicate that a build has been deployed.
 
+## 0.5.18 — V5.18 Ask This Tape — 2026-07-24
+
+### Added
+
+- **Ask This Tape** adds a channel-neutral exact-source query engine to every
+  canonical Source Dossier. It resolves the requested source ID and optional
+  source fingerprint before parsing the question.
+- Content results can use only receipts registered to the requested source.
+  Duplicate titles, hotter archive candidates, adjacent dates, and global
+  search results cannot substitute another upload.
+- Source-local inventory, receipt, entity, artifact, connection, metadata, and
+  registered-summary questions are typed separately. Speaker and subjective
+  ranking questions retain explicit refusal states.
+- Metadata-only, caption-limited, unavailable, stale-fingerprint, and
+  unsupported-subject questions fail closed without borrowing content.
+- Source Dossiers now open as a compact Director's Cut with per-section
+  progressive disclosure and a full-file view. Stable `section=` routes cover
+  proof, player, Inside This Tape, Ask, footprint, Wake, chronology, work, and
+  the evidence boundary.
+- Tape Companion now registers all 510 canonical sources. **71 are
+  memory-ready and 439 remain visibly source-only**; synchronization does not
+  create receipts for the latter.
+
+### Current Source Dossier proof
+
+- The canonical union remains **510 sources: 111 caption-backed, 390
+  metadata-only, nine caption-limited, and zero unavailable**.
+- The adapter registers exactly **1,490 source receipts** and **928
+  source-bound artifact records**.
+- Receipt taxonomy is explicit: 701 `caption-excerpt`, 592
+  `caption-topic-receipt`, 120 `caption-topic-navigation`, 25
+  `curated-character-performance`, 24 `caption-character-signal`, and 28
+  `caption-character-context`.
+- All 25 curated character-performance receipts preserve their human-curated
+  start and explicit end bounds. Each current window is 14 seconds, including
+  `character-receipt:loomis-funding` at
+  `LV2rmwEA0w4 @ 9042.64–9056.64`.
+- Archive Deep contributes 24 character signals and 28 character contexts.
+  All 52 remain machine-surfaced, speaker-undiarized, quarantined evidence;
+  none is relabeled as a curated performance.
+- The Tape's Wake retains a 16-result display cap but now reports the real
+  `matchingTotal`, `displayed`, and `truncated` state. `LV2rmwEA0w4` reports
+  138 matching sources, 16 displayed, and `truncated: true`.
+
+### Buyer demonstration
+
+- In `LV2rmwEA0w4`, **Show me Dr. Loomis moments** returns only the two Loomis
+  receipts registered to that source, including the exact funding window.
+- In duplicate-title source `ag3axSC9BpU`, **Show me Dr. Challis moments**
+  returns only `challis-miguel @ 3860.72–3874.72` and
+  `challis-doctor @ 9851.76–9865.76`; it does not borrow
+  `challis-birthday` from `LV2rmwEA0w4`.
+- In metadata-only source `FVuwRHM0kcc`, **Who won the Marvel vs DC bracket?**
+  returns zero content receipts. Its title can identify the upload, not its
+  winner.
+
+### Preserved boundaries
+
+- The immutable V5.4 sales proof remains exactly **84 source inputs and 872
+  promoted receipts**. It is a frozen historical ledger, not the current
+  510-source / 1,490-receipt Source Dossier inventory.
+- Exact-source answers do not establish speaker identity, intent, origin,
+  causality, rights clearance, creator approval, canon, or an objective
+  funniest/best ranking.
+
+See [Ask This Tape](ASK_THIS_TAPE.md) and
+[The Source Dossier](SOURCE_DOSSIER.md).
+
 ## 0.5.17 — V5.17 The Source Dossier — 2026-07-24
 
 ### Added

@@ -84,13 +84,13 @@ test("V5.12 release identity and current documentation publish one exact ledger"
   const runbook = read("docs/CREATOR_DEMO_RUNBOOK.md");
   const portfolioDoc = read("docs/ARCHIVE_DEEP_PORTFOLIO.md");
 
-  assert.equal(manifest.version, "0.5.17");
-  assert.equal(lock.version, "0.5.17");
-  assert.equal(lock.packages[""].version, "0.5.17");
-  assert.match(readme, /Current documented release: \*\*V5\.17 \/ 0\.5\.17\*\*/);
-  assert.match(overview, /^# WWAM After Midnight V5\.17/m);
+  assert.equal(manifest.version, "0.5.18");
+  assert.equal(lock.version, "0.5.18");
+  assert.equal(lock.packages[""].version, "0.5.18");
+  assert.match(readme, /Current documented release: \*\*V5\.18 \/ 0\.5\.18\*\*/);
+  assert.match(overview, /^# WWAM After Midnight V5\.18/m);
   assert.match(changelog, /^## 0\.5\.12 .*V5\.12 Archive Deep Batch 04/m);
-  assert.match(runbook, /current V5\.17 build/i);
+  assert.match(runbook, /current V5\.18 build/i);
 
   const currentDocs = [readme, overview, portfolioDoc, changelog, runbook];
   for (const document of currentDocs) {
@@ -108,7 +108,12 @@ test("V5.12 release identity and current documentation publish one exact ledger"
       /(?:173,675[\s\S]{0,50}caption events|Parsed caption events\s*\|\s*173,675)/i,
     );
     assert.match(document, /166[\s\S]{0,60}(?:quarantined|machine)/i);
-    assert.match(document, /52[\s\S]{0,60}character/i);
+    assert.match(document, /24[\s\S]{0,60}character[\s\S]{0,30}signal/i);
+    assert.match(document, /28[\s\S]{0,60}character[\s\S]{0,30}context/i);
+    assert.match(
+      document,
+      /(?:not|none|zero)[\s\S]{0,100}(?:curated )?performances?/i,
+    );
     assert.match(document, /fnv1a32:14050c7a/);
     assert.match(document, /fnv1a32:56ca74df/);
   }

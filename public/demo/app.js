@@ -15,7 +15,7 @@
     clipLabEngine, coldOpenFactory, trustEngine, canonIntegrityReport,
     humanReviewSession, pilotBuilderEngine, archiveAtlasEngine, archiveAtlasUi,
     archiveDeepEngine, archiveDeepLoadPromise, redBandRankingEngine,
-    redBandQueryEngine, sourceDossierEngine, sourceDossierUi,
+    redBandQueryEngine, sourceDossierEngine, sourceQueryEngine, sourceDossierUi,
     sourceDossierLoadPromise, archiveAtlasLoadPromise, archiveAtlasObserver,
     redBandLoadPromise, redBandObserver;
   var archiveDeepStreams = [], redBandMoments = deep.hot100 || [],
@@ -233,6 +233,7 @@
 
   function buildSourceDossierRuntime() {
     if (!window.ShokkerSourceDossier ||
+        !window.ShokkerSourceQuery ||
         !window.WWAMSourceDossierAdapter ||
         !window.WWAMSourceDossierUI ||
         !archiveAtlasPayload) {
@@ -254,8 +255,10 @@
       snapshotDate: archiveAtlasPayload.snapshotDate,
     });
     sourceDossierEngine = window.ShokkerSourceDossier.create(payload);
+    sourceQueryEngine = window.ShokkerSourceQuery.create({dossierEngine:sourceDossierEngine});
     sourceDossierUi = window.WWAMSourceDossierUI.create({
       engine: sourceDossierEngine,
+      queryEngine: sourceQueryEngine,
       document: document,
       mount: document.getElementById("modalContent"),
       escapeHtml: esc,
@@ -268,7 +271,7 @@
       },
       onCopyLink: function (payload) {
         copy(
-          sourceDossierShareUrl(payload.sourceId, payload.at),
+          sourceDossierShareUrl(payload.sourceId, payload.at, payload.section),
           "SOURCE DOSSIER LINK COPIED"
         );
       },
@@ -278,13 +281,6 @@
           payload.manifest || sourceDossierEngine.exportManifest(payload.sourceId)
         );
         showToast("SOURCE DOSSIER MANIFEST DOWNLOADED");
-      },
-      onAskSource: function (payload) {
-        closeDossier({ replaceRoute: true });
-        var query = 'What is indexed for "' + payload.title + '"?';
-        document.getElementById("askInput").value = query;
-        ask(query);
-        document.getElementById("ask").scrollIntoView({ behavior: "smooth" });
       },
       onOpenSource: function (payload) {
         openSourceDossier(payload.targetSourceId, null, { routeMode: "push" });
@@ -347,6 +343,7 @@
       .then(function () {
         return ["channel-pack-contract.js", "wwam-channel-pack-adapter.js",
           "source-dossier-engine.js", "wwam-source-dossier-adapter.js",
+          "source-query-engine.js",
           "source-dossier-ui.js"].reduce(function (promise, source) {
           return promise.then(function () { return loader.load(source); });
         }, Promise.resolve());
@@ -364,10 +361,18 @@
     return sourceDossierLoadPromise;
   }
 
+  var SOURCE_DOSSIER_SECTION_IDS = Object.freeze({proof:"sourceDossierProof",player:"sourceDossierPlayerSection",inside:"sourceDossierInside",ask:"sourceDossierAsk",footprint:"sourceDossierFootprint",wake:"sourceDossierWake",chronology:"sourceDossierChronology",work:"sourceDossierWork",boundary:"sourceDossierBoundary"});
+
+  function sourceDossierSection(value) {
+    var section = String(value == null ? "" : value).trim().toLowerCase();
+    return Object.prototype.hasOwnProperty.call(SOURCE_DOSSIER_SECTION_IDS, section) ? section : "";
+  }
+
   function sourceDossierShareUrl(sourceId, at, section) {
     var url = new URL(window.location.href); url.search = "";
     url.searchParams.set("source", sourceId);
     if (at != null && at !== "" && Number.isFinite(Number(at))) url.searchParams.set("at", Math.round(Number(at)));
+    section = sourceDossierSection(section);
     if (section) url.searchParams.set("section", section);
     url.hash = "archive"; return url.toString();
   }
@@ -378,6 +383,7 @@
     url.searchParams.set("source", sourceId);
     if (at != null && at !== "" && Number.isFinite(Number(at))) url.searchParams.set("at", Math.round(Number(at)));
     else url.searchParams.delete("at");
+    section = sourceDossierSection(section);
     if (section) url.searchParams.set("section", section);
     else url.searchParams.delete("section");
     url.hash = "archive"; return url;
@@ -391,7 +397,7 @@
     if (!/^[A-Za-z0-9_-]{11}$/.test(sourceId || "")) return null;
     var at=params.get("at"); return { sourceId:sourceId,
       at: at != null && Number.isFinite(Number(at)) ? Number(at) : null,
-      section:params.get("section") || "", legacy: legacy };
+      section:sourceDossierSection(params.get("section")), legacy: legacy };
   }
 
   function syncSourceRoute(sourceId, at, section, mode) {
@@ -425,24 +431,22 @@
   }
 
   function openSourceDossier(id, startTime, options) {
-    var settings = options || {};
-    var sourceId = String(id == null ? "" : id).trim();
+    var settings = options || {}, sourceId = String(id == null ? "" : id).trim(),
+      section = sourceDossierSection(settings.section);
     if (!/^[A-Za-z0-9_-]{11}$/.test(sourceId)) return Promise.resolve(false);
     showSourceDossierLoading();
     return loadSourceDossier().then(function (ui) {
       if (!sourceDossierEngine.has(sourceId)) {
         throw new Error("This source is outside the 510-upload canonical registry.");
       }
-      var rendered = ui.render(sourceId, {
-        at: startTime == null ? null : Number(startTime),
-        section: settings.section || "",
-      });
+      var rendered = ui.render(sourceId, {at:startTime == null ? null : Number(startTime),
+        section:section, query:String(settings.query || "").slice(0, 240)});
       if (!rendered) throw new Error("The Source Dossier failed its render boundary.");
       document.getElementById("tapeModal").setAttribute("aria-busy", "false");
       syncSourceRoute(
         sourceId,
         startTime,
-        settings.section || "",
+        section,
         settings.routeMode || "push"
       );
       syncBagButtons();
@@ -4462,6 +4466,7 @@
     var action = tourSlides[state.tourSlide].action;
     closeTour();
     var targetId = action.kind === "ask" ? "ask" :
+      action.kind === "source" ? "archive" :
       action.kind === "lore" ? "lore" :
         action.kind === "clip" ? "clip-lab" :
           action.kind === "pilot" ? "pitch" :
@@ -4473,6 +4478,10 @@
       document.getElementById("askInput").value = action.query;
       ask(action.query);
       document.getElementById("ask").scrollIntoView({ behavior: "smooth" });
+    } else if (action.kind === "source") {
+      openSourceDossier(action.sourceId, action.at == null ? null : action.at,
+        {section:action.section || "ask", query:action.query || "",
+          routeMode:"push", autoplay:false});
     } else if (action.kind === "lore") {
       state.loreKind = "character";
       state.loreSelected = action.entry;
@@ -4601,41 +4610,23 @@
   }
 
   function bindPage() {
-    document.getElementById("triviaDifficulty").onchange = function (event) {
-      state.triviaDifficulty = event.target.value;
-    };
+    document.getElementById("triviaDifficulty").onchange = function (event) { state.triviaDifficulty = event.target.value; };
     document.getElementById("triviaLength").onchange = function (event) {
       state.triviaLength = Number(event.target.value);
-      document.getElementById("triviaStart").textContent =
-        "DEAL ME " + state.triviaLength + " →";
+      document.getElementById("triviaStart").textContent = "DEAL ME " + state.triviaLength + " →";
     };
-    document.getElementById("triviaFranchise").onchange = function (event) {
-      state.triviaFranchise = event.target.value;
-    };
+    document.getElementById("triviaFranchise").onchange = function (event) { state.triviaFranchise = event.target.value; };
     document.getElementById("triviaStart").onclick = function () {
-      if (!tapeTriviaEngine) return showToast("THE TRIVIA DECK IS STILL SHUFFLING");
-      startTrivia(true);
+      if (!tapeTriviaEngine) return showToast("THE TRIVIA DECK IS STILL SHUFFLING"); startTrivia(true);
     };
-    document.getElementById("loreSearch").oninput = function (event) {
-      state.loreQuery = event.target.value;
-      renderLore();
-    };
-    document.getElementById("clipSearch").oninput = function (event) {
-      state.clipQuery = event.target.value;
-      renderClipLab();
-    };
-    document.getElementById("clipRisk").onchange = function (event) {
-      state.clipRisk = event.target.value;
-      renderClipLab();
-    };
+    document.getElementById("loreSearch").oninput = function (event) { state.loreQuery = event.target.value; renderLore(); };
+    document.getElementById("clipSearch").oninput = function (event) { state.clipQuery = event.target.value; renderClipLab(); };
+    document.getElementById("clipRisk").onchange = function (event) { state.clipRisk = event.target.value; renderClipLab(); };
     document.getElementById("campaignCopy").onclick = function () {
-      if (!clipLabEngine) return showToast("THE CLIP LAB IS STILL INDEXING");
-      copy(clipLabEngine.exportManifest(campaignManifest(), 2), "EDITORIAL CAMPAIGN COPIED");
+      if (!clipLabEngine) return showToast("THE CLIP LAB IS STILL INDEXING"); copy(clipLabEngine.exportManifest(campaignManifest(), 2), "EDITORIAL CAMPAIGN COPIED");
     };
     document.getElementById("campaignDownload").onclick = function () {
-      if (!clipLabEngine) return showToast("THE CLIP LAB IS STILL INDEXING");
-      downloadJson("wwam-editorial-campaign.json", campaignManifest());
-      showToast("EDITORIAL CAMPAIGN DOWNLOADED");
+      if (!clipLabEngine) return showToast("THE CLIP LAB IS STILL INDEXING"); downloadJson("wwam-editorial-campaign.json", campaignManifest()); showToast("EDITORIAL CAMPAIGN DOWNLOADED");
     };
     document.getElementById("campaignClear").onclick = function () {
       state.campaignIds = [];
@@ -4645,22 +4636,9 @@
       showToast(persisted ? "THE CAMPAIGN TRAY IS CLEAR" :
         "CAMPAIGN CLEARED // THIS TAB ONLY");
     };
-    document.getElementById("evidenceBagOpen").onclick = function () {
-      rememberDialogFocus();
-      state.bagOpen = true;
-      renderEvidenceBag();
-      focusSoon("#evidenceBagClose");
-    };
-    document.getElementById("evidenceBagClose").onclick = function () {
-      state.bagOpen = false;
-      renderEvidenceBag();
-      restoreDialogFocus();
-    };
-    document.getElementById("evidenceBagScrim").onclick = function () {
-      state.bagOpen = false;
-      renderEvidenceBag();
-      restoreDialogFocus();
-    };
+    document.getElementById("evidenceBagOpen").onclick = function () { rememberDialogFocus(); state.bagOpen = true; renderEvidenceBag(); focusSoon("#evidenceBagClose"); };
+    document.getElementById("evidenceBagClose").onclick = function () { state.bagOpen = false; renderEvidenceBag(); restoreDialogFocus(); };
+    document.getElementById("evidenceBagScrim").onclick = function () { state.bagOpen = false; renderEvidenceBag(); restoreDialogFocus(); };
     document.getElementById("evidenceBagCopy").onclick = copyEvidenceManifest;
     document.getElementById("evidenceBagDownload").onclick = downloadEvidenceManifest;
     document.getElementById("evidenceBagClear").onclick = function () {
@@ -4709,8 +4687,7 @@
       };
     });
     document.getElementById("soundRoulette").onclick = function () {
-      var candidates = soundbytes();
-      var item = candidates[Math.floor(Math.random() * candidates.length)];
+      var candidates = soundbytes(), item = candidates[Math.floor(Math.random() * candidates.length)];
       if (item) cueSoundbyte(item);
     };
     document.getElementById("characterForm").onsubmit = function (event) {
@@ -4718,10 +4695,7 @@
       var question = document.getElementById("characterInput").value.trim();
       if (question.length > 1) askCharacter(question);
     };
-    document.getElementById("popularSearch").oninput = function (event) {
-      state.popularQuery = event.target.value;
-      renderPopular();
-    };
+    document.getElementById("popularSearch").oninput = function (event) { state.popularQuery = event.target.value; renderPopular(); };
     Array.prototype.forEach.call(document.querySelectorAll("[data-memory-tab]"), function (button) {
       button.onclick = function () {
         state.memoryTab = button.getAttribute("data-memory-tab");
@@ -4761,10 +4735,7 @@
           window.WWAMVerdictRoomSurface.open(room.getAttribute("data-verdict-subject"));
       });
     });
-    document.getElementById("vaultSearch").oninput = function (event) {
-      state.vaultQuery = event.target.value;
-      renderVault();
-    };
+    document.getElementById("vaultSearch").oninput = function (event) { state.vaultQuery = event.target.value; renderVault(); };
     document.getElementById("askForm").onsubmit = function (event) {
       event.preventDefault();
       var query = document.getElementById("askInput").value.trim();
@@ -4786,9 +4757,7 @@
       };
     });
     document.getElementById("modalClose").onclick = closeDossier;
-    document.getElementById("tapeModal").onclick = function (event) {
-      if (event.target.id === "tapeModal") closeDossier();
-    };
+    document.getElementById("tapeModal").onclick = function (event) { if (event.target.id === "tapeModal") closeDossier(); };
     document.addEventListener("keydown", function (event) {
       trapDialogFocus(event);
       if (event.key === "Escape") {
@@ -4803,6 +4772,11 @@
     [document.getElementById("mikeButton"), document.getElementById("pitchTourButton"), document.getElementById("footerPitch")].forEach(function (button) {
       button.onclick = openTour;
     });
+    document.getElementById("latestDossierButton").onclick = function () {
+      openSourceDossier((live.streams[0] || {id:"LV2rmwEA0w4"}).id, null, {section:"ask",
+        query:"Show me the Dr. Loomis moments in this tape.",
+        routeMode:"push", autoplay:false});
+    };
     document.getElementById("copyDemoButton").onclick = function () { copy(location.origin + location.pathname + "#pitch"); };
     document.getElementById("tourClose").onclick = closeTour;
     document.getElementById("tourBack").onclick = function () {

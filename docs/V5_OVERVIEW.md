@@ -1,4 +1,4 @@
-# WWAM After Midnight V5.17
+# WWAM After Midnight V5.18
 
 ## One-sentence product
 
@@ -13,15 +13,18 @@ receipt, that proof also includes the exact indexed second. Source-level
 metadata and summaries remain labeled as source-level evidence rather than
 masquerading as timestamped utterances.
 
-V5.17 turns the source itself into a durable destination. Every one of 510
-unique canonical uploads receives the same evidence-safe dossier contract,
-whether its captions support a deep page or its cached metadata supports only
-an honest source record. V5.16's relationship rule remains: a timestamp inside
-a relevant upload is not automatically an answer.
+V5.17 turned the source itself into a durable destination. V5.18 makes that
+destination interrogable: **Ask This Tape** resolves an exact source ID and
+fingerprint before it parses the question, and every content result must stay
+inside that source. Every one of 510 unique canonical uploads receives the same
+evidence-safe dossier contract, whether its captions support a deep page or
+its cached metadata supports only an honest source record. V5.16's
+relationship rule remains: a timestamp inside a relevant upload is not
+automatically an answer.
 
 ## Audited snapshot
 
-V5.17 keeps a frozen release proof, the V5.12 Archive Deep overlay, the V5.13
+V5.18 keeps a frozen release proof, the V5.12 Archive Deep overlay, the V5.13
 longitudinal docket, the V5.14 device-local adjudication overlay, and the new
 playable-answer projection and evidence-relationship gate visibly separate.
 The **immutable V5.4 proof** remains:
@@ -54,7 +57,7 @@ quarantine inventory, not a retroactive rewrite of that proof:
 | Parsed caption events | 173,675 |
 | Topic lanes / distinct normalized topics | 400 / 48 |
 | Quarantined public moment candidates | 166 |
-| Source-level character-signal records | 52 |
+| Character signals / character contexts | 24 / 28 |
 | Topic-only source-audio firewalls | 12 |
 | Special visual-ranking quarantines | 12 |
 | Limited available caption spans | 1 |
@@ -70,13 +73,30 @@ inputs: 111 caption-audited and 3 sealed or limited, 3,097,866 audited words,
 and about 268.9 hours**. Promoted counts remain 872 receipts and 168 core
 memory nodes.
 
-V5.17 adds a canonical source-registry view without merging those evidence
+V5.17 added a canonical source-registry view without merging those evidence
 ledgers. The union is **510 unique uploads**: 472 cached official Streams-feed
 records plus 39 commentary catalog records minus one exact overlap. Its
 coverage is **111 caption-backed, 390 metadata-only, nine caption-limited, and
 zero classified unavailable**. A Source Dossier can therefore exist for every
 registered upload while the depth of its content claims remains evidence-
 dependent.
+
+V5.18 pins the current Source Dossier inventory separately:
+
+| Current Source Dossier measurement | Count |
+| --- | ---: |
+| Canonical sources | 510 |
+| Caption-backed / metadata-only / caption-limited / unavailable | 111 / 390 / 9 / 0 |
+| Registered source receipts | 1,490 |
+| Source-bound artifact records | 928 |
+| Human-curated character-performance windows | 25 |
+| Archive Deep character signals / contexts | 24 / 28 |
+| Tape Companion memory-ready / source-only sources | 71 / 439 |
+
+The 1,490 receipts are a current dossier registry, not a retroactive
+restatement of the frozen 872 promoted receipts. The 928 artifacts are
+source-bound draft/review records, not 928 creator-approved or unique published
+assets.
 
 See [The Source Dossier](SOURCE_DOSSIER.md).
 
@@ -97,7 +117,9 @@ and caption fingerprints for all four batches while exposing one defensive,
 read-only search payload.
 
 All 166 moment candidates remain speaker-undiarized and unreviewed. The 52
-source-level character-signal records are not people, performances, verified
+Archive Deep character records are now typed honestly as 24
+`caption-character-signal` references and 28 `caption-character-context`
+persona/context/discussion candidates. They are not performances, verified
 appearances, or clip-level speaker attributions. Twelve source-audio-sensitive
 streams remain topic-navigation-only. Twelve sources occupy the special
 visual-ranking quarantine lane. All 40 forbid visual claims; the 12-count does
@@ -107,6 +129,61 @@ The combined portfolio fingerprint is `fnv1a32:14050c7a`. Batch 01, 02, 03,
 and 04 retain `fnv1a32:17045a51`, `fnv1a32:bcea5692`,
 `fnv1a32:f79f2399`, and `fnv1a32:56ca74df`, respectively. These FNV values
 detect structural change; they do not authenticate the sources or an operator.
+
+## Ask This Tape
+
+Ask This Tape is the V5.18 source-local counterpart to archive-wide Ask WWAM.
+The request carries an exact source ID and may carry the currently rendered
+source fingerprint. The query engine builds and verifies that dossier before
+it interprets the question.
+
+That order is the feature:
+
+- every content result repeats the requested source ID;
+- source titles are display metadata, never query scope;
+- another upload cannot replace the requested source because its title is
+  identical or its receipt scores higher;
+- a stale source fingerprint refuses before the question is parsed;
+- an unsupported subject produces zero source-content receipts;
+- metadata-only, caption-limited, and unavailable sources expose only their
+  defensible source boundary; and
+- speaker identity and subjective “best/funniest/craziest” rankings keep
+  explicit refusal states.
+
+Source-local inventory, receipts, entities, artifacts, connections, metadata,
+and registered summaries remain typed. Connection answers can navigate to a
+related target, but they are labeled relationship-only and cannot become
+content, origin, or causality claims about either source.
+
+The compact dossier is designed for a buyer and a fan, not only an auditor. It
+opens in a Director's Cut with the strongest local proof visible, supports
+independent section expansion, and can reveal the full registered file on
+demand. Stable section routes retain `proof`, `player`, `ask`, `inside`,
+`footprint`, `wake`, `chronology`, `work`, or `boundary` without initializing
+media:
+
+```text
+?source=LV2rmwEA0w4&at=9043&section=ask#archive
+```
+
+All 25 curated character-performance candidates retain explicit 14-second
+start/end windows rather than generic 30-second fallbacks. The launch receipt
+`character-receipt:loomis-funding` remains
+`LV2rmwEA0w4 @ 9042.64–9056.64`.
+
+The Tape's Wake also distinguishes the complete match count from its bounded
+display. Its universal fields are `matchingTotal`, `displayed`, and
+`truncated`; the July 23 source reports **138 / 16 / true**. A compact preview
+may show fewer cards, but neither the preview nor the engine's 16-result
+collection is mislabeled as the complete match count.
+
+Tape Companion consumes the same 510-source registry. It exposes **71
+memory-ready sources and 439 source-only records**. The latter keep source
+identity and official navigation, but synchronization does not manufacture a
+timeline for them.
+
+See [Ask This Tape](ASK_THIS_TAPE.md) and
+[The Source Dossier](SOURCE_DOSSIER.md).
 
 ## Evidence Relationship Gate
 
@@ -458,9 +535,10 @@ The archive becomes something to play:
 - Tape Trivia builds deterministic five- or ten-round games from 872 playable
   receipts and never asks the player to identify an undiarized speaker.
 - Tape Companion turns the official YouTube player into a synchronized second
-  screen without copying media or exposing future event text. Across the
-  promoted corpus, 71 sources are companion-ready and the 3 disclosed caption
-  gaps remain source-only. Its 872 exact receipt members compile into 869
+  screen without copying media or exposing future event text. It now lists all
+  510 canonical sources: 71 are memory-ready and 439 remain source-only. The
+  historical 74-source promoted subset still contains the same 71 ready
+  sources and 3 disclosed gaps. Its 872 exact receipt members compile into 869
   conservative incidents, 1,294 derived heat windows, 96 Red Band annotations,
   25 UP IN YA annotations, 25 recurring-character annotations, and 2,967
   receipt-backed Lore connections.
@@ -487,6 +565,10 @@ The archive becomes something to play:
 
 The archive becomes navigable memory:
 
+- Ask This Tape answers only from the currently open Source Dossier. It binds
+  source ID plus fingerprint before query parsing, refuses cross-source
+  substitution and title inference, and returns zero content receipts when
+  this exact upload cannot support the request.
 - Ask WWAM's Answer Frame V2 separates action, scope, primary and secondary
   targets, predicates, selectors, and anchors before retrieval. Semantic target
   fit gates archive heat, so a direct answer from the right source cannot be
@@ -619,6 +701,28 @@ Mike Mode is the shortest route through the commercial argument:
    the preselected Archive Discovery Creator Pilot, inspect its acceptance
    checks, and keep every business outcome at `MEASURE DURING PILOT`.
 
+### Mike's V5.18 source-lock proof
+
+After the six beats, use three dossiers:
+
+1. Open `LV2rmwEA0w4` directly to `section=ask` and ask **Show me Dr. Loomis
+   moments**. The result stays inside the July 23 source and includes
+   `loomis-funding @ 9042.64–9056.64` plus
+   `loomis-pepto @ 10734.88–10748.88`.
+2. Open `ag3axSC9BpU`, whose generic livestream title duplicates the latest
+   source's title for retrieval purposes, and ask **Show me Dr. Challis
+   moments**. The answer returns only
+   `challis-miguel @ 3860.72–3874.72` and
+   `challis-doctor @ 9851.76–9865.76`. It must not borrow
+   `challis-birthday` from `LV2rmwEA0w4`.
+3. Open metadata-only `FVuwRHM0kcc` and ask **Who won the Marvel vs DC
+   bracket?** The correct result is a metadata-only refusal with zero content
+   receipts. The title identifies the source; it does not establish a winner.
+
+This sequence proves exact playback, duplicate-title isolation, and honest
+absence in under two minutes. It is a stronger accuracy demonstration than a
+general chatbot answer because the failure behavior is part of the product.
+
 The pitch is credible because every slide can leave the slideshow and open a
 working surface. For a longer buyer session, Tape Companion proves fan utility
 on the official upload and The Cut Test proves that channel-specific local
@@ -646,7 +750,15 @@ requires time and domain judgment.
 ## Trust snapshot
 
 The current Trust Desk reports on the 74-source promoted corpus. Its counts do
-not silently absorb any Archive Deep batch:
+not silently absorb any Archive Deep batch.
+
+The V5.18 Source Dossier registry is a separate operational view: 510 sources,
+1,490 receipts, and 928 source-bound artifact records. Its 25 curated
+performance receipts preserve exact 14-second end bounds; its Archive Deep
+records are 24 machine character signals plus 28 machine character contexts,
+not curated performances.
+
+The separate promoted Trust ledger remains:
 
 - 71 healthy sources and 3 visible caption gaps;
 - 0 structurally invalid or source-ID-mismatched URLs and 0 out-of-range
@@ -665,8 +777,10 @@ not silently absorb any Archive Deep batch:
 - 12 ordinary character mentions kept out of the performance set;
 - 49 take timelines and 14 Court boards, with 0 currently passing the strict
   creator-canon gate.
-- Tape Companion's three limited records are the same disclosed promoted-corpus
-  caption gaps; synchronization does not manufacture timed claims for them.
+- Tape Companion lists all 510 sources: 71 are memory-ready and 439 are
+  source-only. The historical promoted subset's three limited records remain
+  the same disclosed caption gaps; synchronization does not manufacture timed
+  claims for any source-only record.
 - Creator Taste sessions label the operator `UNAUTHENTICATED LOCAL OPERATOR`.
   A checksum detects drift but is not a signature or creator authorization.
 - Fresh Tape Intake performs no network fetch, cannot verify channel ownership
@@ -707,6 +821,7 @@ consistently shortened at render time.
 | --- | --- |
 | Static, source-linked fan experience | Official branding and approval |
 | Deterministic browser engines | Authenticated accounts and server storage |
+| Exact-source questions with source-ID/fingerprint lock and honest refusal | Open-domain conversational coverage or authority beyond registered source evidence |
 | Exact YouTube timestamp jumps | Licensed media editing or hosting |
 | Source-synchronized companion rail with manual fallback | Guaranteed player API availability or owned playback |
 | Exact ordered playable-answer trails with same-coordinate player recovery | Guaranteed third-party embed availability or owned playback |

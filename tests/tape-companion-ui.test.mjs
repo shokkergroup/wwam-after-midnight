@@ -75,28 +75,47 @@ function loadCompanionRuntime() {
       heatWindows: 4,
     },
   };
+  const metadataSource = {
+    id: "FVuwRHM0kcc",
+    title: "Marvel VS DC Movies Bracket Tournament",
+    date: "2026-05-26",
+    type: "livestream",
+    lane: "archive-metadata",
+    lanes: ["archive-metadata"],
+    durationSeconds: 11427,
+    readiness: {
+      status: "limited",
+      label: "SOURCE ONLY",
+      limitation: "No timed memory is registered for this source.",
+    },
+    counts: {
+      exactReceiptMembers: 0,
+      heatWindows: 0,
+    },
+  };
   const playbackCalls = [];
   const rootListeners = new Map();
   const storage = new Map();
   const engine = {
     archiveFingerprint: "test-fingerprint",
     metrics: {
-      sources: 1,
+      sources: 2,
       companionReady: 1,
-      limited: 0,
+      limited: 1,
       exactReceiptMembers: 8,
       exactIncidents: 8,
       heatWindows: 4,
     },
     listSources() {
-      return [source];
+      return [source, metadataSource];
     },
     snapshotAt(sourceId, seconds) {
-      if (sourceId !== source.id) return null;
+      const selected = [source, metadataSource].find((item) => item.id === sourceId);
+      if (!selected) return null;
       return {
         seconds,
-        source: { id: source.id },
-        readiness: source.readiness,
+        source: { id: selected.id },
+        readiness: selected.readiness,
         currentHeat: null,
         activeEvents: [],
         future: { next: null },
@@ -190,7 +209,7 @@ function loadCompanionRuntime() {
 test("Tape Companion lazy-loads as one coherent synchronized surface", () => {
   assert.match(
     html,
-    /id="companion"[\s\S]{0,180}data-feature-styles="tape-companion\.css"[\s\S]{0,180}data-feature-scripts="red-band-ranking-v2\.js,tape-companion-engine\.js,tape-companion-ui\.js"/,
+    /id="companion"[\s\S]{0,180}data-feature-styles="tape-companion\.css"[\s\S]{0,180}data-feature-scripts="archive-atlas-data\.js,red-band-ranking-v2\.js,tape-companion-engine\.js,tape-companion-ui\.js"/,
   );
   for (const id of [
     "companionProof",
@@ -208,10 +227,14 @@ test("Tape Companion lazy-loads as one coherent synchronized surface", () => {
     assert.match(html, new RegExp(`id="${id}"`));
   }
   assert.match(html, /href="#companion">WATCH WITH MEMORY/);
+  assert.match(html, /SEARCH ALL 510 REGISTERED SOURCES/);
 });
 
 test("the UI binds official playback to snapshot-safe engine calls", () => {
   assert.match(ui, /WWAMTapeCompanionEngine\.create\(buildInputs\(\)/);
+  assert.match(ui, /var atlas = root\.WWAM_ARCHIVE_ATLAS \|\| \{\}/);
+  assert.match(ui, /sources: registeredSources/);
+  assert.match(ui, /record\.coverage === "deeply-indexed"/);
   assert.match(ui, /engine\.crossedEvents\(activeSource\.id, previousSecond, nextSecond\)/);
   assert.match(ui, /engine\.snapshotAt\(activeSource\.id, nextSecond\)/);
   assert.match(ui, /future && snapshot\.future\.next/);
@@ -264,10 +287,22 @@ test("Source Dossier handoffs select only a registered source at the exact secon
   );
 
   runtime.emit("wwam:tape-companion-open", {
+    sourceId: "FVuwRHM0kcc",
+    at: 0,
+  });
+  assert.equal(runtime.playbackCalls.length, 2);
+  assert.equal(runtime.playbackCalls[1].sourceId, "FVuwRHM0kcc");
+  assert.equal(runtime.playbackCalls[1].options.start, 0);
+  assert.equal(
+    runtime.elements.get("companionStatus").textContent,
+    "SOURCE-ONLY TAPE LOADED // PLAYBACK READY // TIMED MEMORY HELD",
+  );
+
+  runtime.emit("wwam:tape-companion-open", {
     sourceId: "5et_A1tYnio",
     at: Number.POSITIVE_INFINITY,
   });
-  assert.equal(runtime.playbackCalls.length, 1, "invalid times must not remount the player");
+  assert.equal(runtime.playbackCalls.length, 2, "invalid times must not remount the player");
   assert.equal(
     runtime.elements.get("companionStatus").textContent,
     "SOURCE DOSSIER HANDOFF HELD // INVALID SOURCE OR TIME",
