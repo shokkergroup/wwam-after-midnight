@@ -228,6 +228,9 @@
   }
 
   function loadYouTubeApi() {
+    if (!root.ShokkerYouTubePlayback.hosted()) {
+      return Promise.reject(new Error("YouTube IFrame API requires an HTTP(S) page identity"));
+    }
     if (root.YT && root.YT.Player) return Promise.resolve(root.YT);
     if (ytPromise) return ytPromise;
     ytPromise = new Promise(function (resolve, reject) {
@@ -245,6 +248,7 @@
         var script = document.createElement("script");
         script.src = "https://www.youtube.com/iframe_api";
         script.async = true;
+        script.referrerPolicy = root.ShokkerYouTubePlayback.referrerPolicy;
         script.onerror = function () {
           if (!settled) {
             settled = true;
@@ -265,6 +269,20 @@
 
   function mountPlayer(source, startAt) {
     destroyPlayer();
+    if (!root.ShokkerYouTubePlayback.hosted()) {
+      elements.player.innerHTML =
+        '<div class="companion-player-host">' +
+        root.ShokkerYouTubePlayback.iframe(source.id, {
+          autoplay: false,
+          start: startAt,
+          title: "Official YouTube Tape Companion playback"
+        }) + '</div>';
+      elements.fallback.textContent =
+        "Local-file mode routes playback through the hosted WWAM player. " +
+        "Use the manual sync rail to move the memory system to the same second.";
+      setStatus("HOSTED PLAYER READY // MANUAL MEMORY SYNC");
+      return;
+    }
     elements.player.innerHTML =
       '<div class="companion-player-host"><div id="companionYoutubePlayer"></div></div>';
     setStatus(source.readiness.status === "companion-ready"
@@ -274,13 +292,10 @@
       if (!activeSource || activeSource.id !== source.id) return;
       player = new YT.Player("companionYoutubePlayer", {
         videoId: source.id,
-        playerVars: {
-          autoplay: 0,
-          controls: 1,
-          rel: 0,
-          playsinline: 1,
-          start: Math.max(0, Math.floor(startAt || 0))
-        },
+        playerVars: root.ShokkerYouTubePlayback.playerVars({
+          autoplay: false,
+          start: startAt
+        }),
         events: {
           onReady: function () {
             playerReady = true;
@@ -302,11 +317,18 @@
               setStatus("TAPE COMPLETE // " + crossedIds.size + " INCIDENTS CROSSED");
             }
           },
-          onError: function () {
+          onError: function (event) {
+            var code = Number(event && event.data);
             playerReady = false;
-            setStatus("EMBED UNAVAILABLE // MANUAL SYNC + OFFICIAL LINK READY");
-            elements.fallback.textContent =
-              "YouTube blocked embedded playback. Use the official-source link and move the manual sync rail to the same second.";
+            if (code === 153) {
+              setStatus("PLAYER IDENTITY ERROR 153 // HOSTED FALLBACK + OFFICIAL LINK READY");
+              elements.fallback.textContent =
+                "YouTube could not verify this page's identity. Reopen the hosted wiki for on-page playback, or use the exact official-source link and manual sync rail.";
+            } else {
+              setStatus("EMBED UNAVAILABLE // MANUAL SYNC + OFFICIAL LINK READY");
+              elements.fallback.textContent =
+                "YouTube could not play this source in the embedded player. Use the exact official-source link and move the manual sync rail to the same second.";
+            }
           }
         }
       });

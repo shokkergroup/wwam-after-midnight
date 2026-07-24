@@ -20,6 +20,13 @@
     "certified",
     "correction"
   ]);
+  const REQUIRED_LONGITUDINAL_VOCABULARY = Object.freeze([
+    "product",
+    "forecast",
+    "response",
+    "unresolved",
+    "editBrief"
+  ]);
   const REQUIRED_UPDATE_STAGES = Object.freeze([
     "discover",
     "quarantine",
@@ -34,6 +41,7 @@
     "inference"
   ]);
   const ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+  const ENTITY_ID_PATTERN = /^[a-z0-9][a-z0-9:-]{1,119}$/;
   const VERSION_PATTERN = /^\d+\.\d+\.\d+$/;
   const NAMESPACE_PATTERN = /^shokker\.youtube-wiki\.([a-z0-9]+(?:-[a-z0-9]+)*)\.v(\d+)$/;
   const RELATIONSHIP_PATTERN = /^[A-Z][A-Z0-9_]*$/;
@@ -181,6 +189,7 @@
       "updateContract",
       "storage",
       "surfaceVocabulary",
+      "longitudinalVocabulary",
       "capabilities"
     ]);
 
@@ -237,6 +246,43 @@
       });
       if (!entityTypes.includes("source")) {
         issue(issues, "dna.taxonomy.entityTypes", "missing-universal-entity", 'The universal "source" entity is required.');
+      }
+    }
+
+    if (!Array.isArray(dna.entities) || dna.entities.length === 0) {
+      issue(issues, "dna.entities", "required-list", "dna.entities must define the pack entity registry.");
+    } else {
+      const entityIds = [];
+      const entityTypes = isRecord(dna.taxonomy) && Array.isArray(dna.taxonomy.entityTypes) ?
+        dna.taxonomy.entityTypes :
+        [];
+      dna.entities.forEach((entity, index) => {
+        const path = `dna.entities[${index}]`;
+        if (!isRecord(entity)) {
+          issue(issues, path, "required-object", "Every registered entity must be an object.");
+          return;
+        }
+        const id = requireString(issues, entity.id, `${path}.id`, {
+          pattern: ENTITY_ID_PATTERN,
+          max: 120
+        });
+        const type = requireString(issues, entity.type, `${path}.type`, {
+          pattern: ID_PATTERN,
+          max: 60
+        });
+        requireString(issues, entity.label, `${path}.label`, { max: 120 });
+        entityIds.push(id);
+        if (type && !entityTypes.includes(type)) {
+          issue(
+            issues,
+            `${path}.type`,
+            "unknown-entity-type",
+            "Registered entity types must exist in dna.taxonomy.entityTypes."
+          );
+        }
+      });
+      if (new Set(entityIds.filter(Boolean)).size !== entityIds.filter(Boolean).length) {
+        issue(issues, "dna.entities", "duplicate-entity", "Registered entity IDs must be unique.");
       }
     }
 
@@ -439,6 +485,30 @@
       }
     }
 
+    if (!isRecord(adapter.longitudinalVocabulary)) {
+      issue(
+        issues,
+        "adapter.longitudinalVocabulary",
+        "required-object",
+        "adapter.longitudinalVocabulary must bind every machine-public longitudinal label."
+      );
+    } else {
+      rejectUnknownKeys(
+        issues,
+        adapter.longitudinalVocabulary,
+        "adapter.longitudinalVocabulary",
+        REQUIRED_LONGITUDINAL_VOCABULARY
+      );
+      REQUIRED_LONGITUDINAL_VOCABULARY.forEach((key) => {
+        requireString(
+          issues,
+          adapter.longitudinalVocabulary[key],
+          `adapter.longitudinalVocabulary.${key}`,
+          { max: 100 }
+        );
+      });
+    }
+
     const proofLabels = isRecord(dna.voice) && dna.voice.proofLabels;
     if (!isRecord(proofLabels)) {
       issue(issues, "dna.voice.proofLabels", "required-object", "dna.voice.proofLabels must be an object.");
@@ -490,6 +560,13 @@
         receiptTypes: cleanStringArray(dna.taxonomy.receiptTypes),
         relationships: cleanStringArray(dna.taxonomy.relationships)
       },
+      entityRegistry: dna.entities
+        .map((entity) => ({
+          id: cleanString(entity.id),
+          label: cleanString(entity.label),
+          type: cleanString(entity.type)
+        }))
+        .sort((left, right) => left.id.localeCompare(right.id)),
       evidencePolicy: {
         publicExcerptWords: dna.qualityGates.publicExcerptWords,
         timestampRequired: true,
@@ -517,6 +594,10 @@
       },
       surfaceVocabulary: REQUIRED_VOCABULARY.reduce((vocabulary, key) => {
         vocabulary[key] = cleanString(adapter.surfaceVocabulary[key]);
+        return vocabulary;
+      }, {}),
+      longitudinalVocabulary: REQUIRED_LONGITUDINAL_VOCABULARY.reduce((vocabulary, key) => {
+        vocabulary[key] = cleanString(adapter.longitudinalVocabulary[key]);
         return vocabulary;
       }, {}),
       capabilities: cleanStringArray(adapter.capabilities),
@@ -549,10 +630,12 @@
       "identity",
       "sourceLanes",
       "taxonomy",
+      "entityRegistry",
       "evidencePolicy",
       "updateContract",
       "storage",
       "surfaceVocabulary",
+      "longitudinalVocabulary",
       "capabilities",
       "channelExtensions"
     ]);
@@ -619,6 +702,43 @@
       });
       if (!entities.includes("source")) {
         issue(issues, "taxonomy.entityTypes", "missing-universal-entity", 'The universal "source" entity is required.');
+      }
+    }
+    if (!Array.isArray(pack.entityRegistry) || pack.entityRegistry.length === 0) {
+      issue(issues, "entityRegistry", "required-list", "The compiled entity registry is required.");
+    } else {
+      const entityIds = [];
+      const entityTypes = isRecord(pack.taxonomy) && Array.isArray(pack.taxonomy.entityTypes) ?
+        pack.taxonomy.entityTypes :
+        [];
+      pack.entityRegistry.forEach((entity, index) => {
+        const path = `entityRegistry[${index}]`;
+        if (!isRecord(entity)) {
+          issue(issues, path, "required-object", "Each compiled entity must be an object.");
+          return;
+        }
+        rejectUnknownKeys(issues, entity, path, ["id", "label", "type"]);
+        const entityId = requireString(issues, entity.id, `${path}.id`, {
+          pattern: ENTITY_ID_PATTERN,
+          max: 120
+        });
+        const entityType = requireString(issues, entity.type, `${path}.type`, {
+          pattern: ID_PATTERN,
+          max: 60
+        });
+        requireString(issues, entity.label, `${path}.label`, { max: 120 });
+        entityIds.push(entityId);
+        if (entityType && !entityTypes.includes(entityType)) {
+          issue(
+            issues,
+            `${path}.type`,
+            "unknown-entity-type",
+            "Compiled entity types must exist in the pack taxonomy."
+          );
+        }
+      });
+      if (new Set(entityIds.filter(Boolean)).size !== entityIds.filter(Boolean).length) {
+        issue(issues, "entityRegistry", "duplicate-entity", "Compiled entity IDs must be unique.");
       }
     }
     const evidence = pack.evidencePolicy;
@@ -729,6 +849,29 @@
           "Each surface state must have a distinct public label."
         );
       }
+    }
+    if (!isRecord(pack.longitudinalVocabulary)) {
+      issue(
+        issues,
+        "longitudinalVocabulary",
+        "required-object",
+        "The compiled longitudinal display vocabulary is required."
+      );
+    } else {
+      rejectUnknownKeys(
+        issues,
+        pack.longitudinalVocabulary,
+        "longitudinalVocabulary",
+        REQUIRED_LONGITUDINAL_VOCABULARY
+      );
+      REQUIRED_LONGITUDINAL_VOCABULARY.forEach((key) =>
+        requireString(
+          issues,
+          pack.longitudinalVocabulary[key],
+          `longitudinalVocabulary.${key}`,
+          { max: 100 }
+        )
+      );
     }
     requireUniqueStrings(issues, pack.capabilities, "capabilities");
     if (!isRecord(pack.channelExtensions)) {
@@ -862,6 +1005,7 @@
     VERSION,
     SCHEMA,
     REQUIRED_VOCABULARY,
+    REQUIRED_LONGITUDINAL_VOCABULARY,
     REQUIRED_UPDATE_STAGES,
     ChannelPackValidationError,
     compile,

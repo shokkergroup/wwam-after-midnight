@@ -88,12 +88,12 @@ test("Trust Desk is deterministic and reports the complete v4 evidence surface",
   assert.equal(first.metrics.correctionPackets, 95);
   assert.equal(first.metrics.rippleReadyPackets, 90);
   assert.equal(first.metrics.rippleBlockedPackets, 5);
-  assert.equal(first.metrics.rippleExactReceiptRecords, 904);
-  assert.equal(first.metrics.rippleSourceOnlyRecords, 2403);
+  assert.equal(first.metrics.rippleExactReceiptRecords, 921);
+  assert.equal(first.metrics.rippleSourceOnlyRecords, 2480);
   assert.equal(first.metrics.contributionPackets, 4);
   assert.equal(first.policy.noSpeakerGuessing, true);
   assert.equal(first.policy.generatedCharacterAudioAllowed, false);
-  assert.equal(first.correctionRipple.registeredRecords, 1374);
+  assert.equal(first.correctionRipple.registeredRecords, 1381);
   assert.equal(first.correctionRipple.registeredSurfaces.length, 9);
   assert.deepEqual(
     plain(first.correctionRipple.registryHealth),

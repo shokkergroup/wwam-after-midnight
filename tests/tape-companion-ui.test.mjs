@@ -40,7 +40,10 @@ test("the UI binds official playback to snapshot-safe engine calls", () => {
   assert.match(ui, /future && snapshot\.future\.next/);
   assert.match(ui, /NEXT INDEXED DISTURBANCE \/\/ TEXT SEALED/);
   assert.doesNotMatch(ui, /compileTimeline\(/);
-  assert.match(ui, /autoplay:\s*0/);
+  assert.match(
+    ui,
+    /ShokkerYouTubePlayback\.playerVars\(\{\s*autoplay:\s*false,\s*start:\s*startAt/
+  );
   assert.match(ui, /Math\.abs\(value - currentSecond\) < 0\.2/);
   assert.match(ui, /Math\.abs\(currentSecond - lastPersistSecond\) < 5/);
   assert.match(ui, /root\.addEventListener\("pagehide"/);

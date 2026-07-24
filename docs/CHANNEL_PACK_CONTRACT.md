@@ -24,6 +24,9 @@ title, transcript fragment, or machine candidate into evidence.
   preference contract documented in `docs/CREATOR_TASTE_CALIBRATION.md`.
 - `public/demo/fresh-tape-intake-engine.js` implements the portable bounded
   intake contract documented in `docs/FRESH_TAPE_INTAKE.md`.
+- `public/demo/longitudinal-docket-engine.js` implements the portable
+  before/after evidence contract documented in
+  `docs/LONGITUDINAL_DOCKET.md`.
 - `tests/fixtures/channel-pack-neutral-racing.mjs` is a synthetic, test-only
   portability fixture. It is not VRL data and is never loaded by the WWAM
   public demo.
@@ -31,17 +34,19 @@ title, transcript fragment, or machine candidate into evidence.
 The compiler is intentionally not part of the first-load bundle. Buyers can
 inspect or download the contract without making the fan experience heavier.
 
-## The eight conformance domains
+## The ten conformance domains
 
 | Domain | What the pack must declare | What the compiler refuses |
 | --- | --- | --- |
 | Identity | Stable channel ID, pack version, public label, source channel, promise | Missing identity, free-form IDs, invalid versions |
 | Source lanes | Label, purpose, and an explicit inclusion boundary for every lane | Inferred boundaries, orphan rules, empty lanes |
 | Taxonomy | Entity, receipt, and relationship types | A taxonomy without the universal `source` entity or duplicate types |
+| Entity registry | Stable entity ID, public label, and declared taxonomy type for every browsable subject | Duplicate IDs, unknown types, or artifact-authored subject labels |
 | Evidence policy | Excerpt ceiling, source/timestamp requirements, speaker restraint, and distinct machine, curated-candidate, editor, and creator states | Speaker guessing, synthetic character audio, machine-to-public promotion, or treating curation as authenticated review |
 | Update contract | `discover → quarantine → review → promote`, official source, honest cadence | Skipped review, implied automation, silent source removal |
 | Storage | Channel-scoped namespace, channel-first partitioning, source partition, export prefix | Namespace mismatch or storage that can mix channels |
 | Surface vocabulary | Nine channel-native labels for ask, receipt, source, unknown, quarantine, curated candidate, review, certification, and correction | Generic missing states, collapsed evidence tiers, or duplicate labels |
+| Longitudinal vocabulary | Exact product, forecast, response, unresolved, and edit-brief labels | Free-form artifact labels that can redefine public docket meaning |
 | Capabilities | The product surfaces this channel actually enables | An empty capability claim |
 
 Machine output must enter `quarantine`. A `curatedCandidate` is a distinct
@@ -112,11 +117,19 @@ The adapter must explicitly provide:
     certified: "AN OWNER-CERTIFIED LABEL",
     correction: "A CORRECTION LABEL"
   },
+  longitudinalVocabulary: {
+    product: "A CHANNEL-NATIVE LONGITUDINAL PRODUCT LABEL",
+    forecast: "A CHANNEL-NATIVE BEFORE-TAPE LABEL",
+    response: "A CHANNEL-NATIVE AFTER-TAPE LABEL",
+    unresolved: "AN HONEST UNRESOLVED LABEL",
+    editBrief: "A CHANNEL-NATIVE EDIT-BRIEF LABEL"
+  },
   capabilities: [
     "receipt-search",
     "tape-companion",
     "creator-taste-calibration",
-    "fresh-tape-intake"
+    "fresh-tape-intake",
+    "longitudinal-claim-ledger"
   ]
 }
 ```
@@ -126,7 +139,9 @@ There are no safety-relevant defaults. A missing policy produces a
 issues.
 
 Channel DNA must likewise declare `voice.proofLabels.curatedCandidate`
-separately from its machine, editor, creator, and inference labels.
+separately from its machine, editor, creator, and inference labels. Its
+`entities` collection becomes the compiled `entityRegistry`; every entity ID
+must have a unique label and a type declared in the DNA taxonomy.
 
 A capability is a declared runtime contract, not evidence that a feature is
 correct or authorized. ChannelPack validates the declaration and isolates its
@@ -136,15 +151,17 @@ behavior against real and neutral inputs.
 ## Determinism and isolation
 
 Objects and semantic sets are normalized before fingerprinting. Equivalent
-source-lane maps, taxonomies, and capability sets produce the same canonical
-JSON and `cp1-…` fingerprint even if their input order differs. The
-fingerprint is a reproducible change detector, not a cryptographic signature.
-Any post-compile mutation invalidates it.
+source-lane maps, taxonomies, entity registries, longitudinal vocabularies, and
+capability sets produce the same canonical JSON and `cp1-…` fingerprint even
+if their semantic-set input order differs. Prototype-sensitive keys are
+rejected recursively before canonicalization. The fingerprint is a
+reproducible change detector, not a cryptographic signature. Any post-compile
+mutation invalidates it.
 
-The current WWAM V5.6 artifact is `cp1-8ac1488f4f78448c`. This value is a
-dated change detector for the compiled policy, not a permanent ID. The prior
-V5.5 artifact was `cp1-59e4817559149f96`; declaring
-`fresh-tape-intake` intentionally changed the current fingerprint.
+The current WWAM V5.13 artifact is `cp1-f9ad38be22481b5d`. This value is a
+dated change detector for the compiled policy, not a permanent ID. The V5.6
+artifact was `cp1-8ac1488f4f78448c`; declaring
+`longitudinal-claim-ledger` intentionally changed the current fingerprint.
 
 Multiple products can be checked together:
 

@@ -14,7 +14,8 @@ const trivia = fs.readFileSync(path.join(demo, "tape-trivia-engine.js"), "utf8")
 const styles = fs.readFileSync(path.join(demo, "styles.css"), "utf8");
 
 test("the complete browser script chain exists in dependency order", () => {
-  const scripts = [...index.matchAll(/<script src="([^"]+)"><\/script>/g)].map((match) => match[1]);
+  const scripts = [...index.matchAll(/<script src="([^"]+)"><\/script>/g)]
+    .map((match) => match[1].split("?")[0]);
   const required = [
     "catalog.js",
     "deep-distill.js",
@@ -32,9 +33,9 @@ test("the complete browser script chain exists in dependency order", () => {
     "cold-open-engine.js",
     "canon-integrity-engine.js",
     "human-review-session-engine.js",
-    "pilot-builder-engine.js",
     "search-engine.js",
     "ask-share.js",
+    "youtube-playback.js",
     "app.js",
     "feature-loader.js",
   ];
@@ -48,6 +49,11 @@ test("the complete browser script chain exists in dependency order", () => {
     app,
     /loadDemoScript\("correction-ripple-engine\.js"\)[\s\S]{0,120}loadDemoScript\("trust-engine\.js"\)[\s\S]{0,80}then\(createCreatorEngines\)/,
   );
+  assert.match(
+    app,
+    /loadDemoScript\("pilot-builder-engine\.js"\)\.then\(createCreatorEngines\)/,
+  );
+  assert.doesNotMatch(index, /<script[^>]+src="pilot-builder-engine\.js"/);
 });
 
 test("every deep surface has a renderer and an isolated initialization stage", () => {

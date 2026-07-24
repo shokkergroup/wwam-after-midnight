@@ -47,7 +47,7 @@ test("every V5.5 lazy feature asset exists and stays below the per-script cap", 
 });
 
 test("the tiny feature loader runs after the main application", () => {
-  const appAt = html.indexOf('<script src="app.js"></script>');
+  const appAt = html.search(/<script src="app\.js(?:\?[^"]*)?"><\/script>/);
   const loaderAt = html.indexOf('<script src="feature-loader.js"></script>');
   assert.ok(appAt > 0);
   assert.ok(loaderAt > appAt);

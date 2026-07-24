@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="theme-color" content="#080608">
   <title>WWAM After Midnight — The Deep Distill</title>
   <meta name="description" content="A source-linked living memory system for WWAM: commentaries, current and foundational livestreams, evolving takes, recurring characters, lore, heat maps, and playable receipts.">
@@ -502,8 +503,8 @@
     </section>
 
     <section class="memory-os" id="memory"
-      data-feature-styles="riff-black-box.css"
-      data-feature-scripts="riff-black-box-engine.js,riff-black-box-ui.js">
+      data-feature-styles="longitudinal-docket.css,riff-black-box.css"
+      data-feature-scripts="channel-pack-contract.js,wwam-channel-pack-adapter.js,longitudinal-docket-data.js,longitudinal-docket-engine.js,longitudinal-docket-ui.js,wwam-longitudinal-docket-adapter.js,riff-black-box-engine.js,riff-black-box-ui.js">
       <div class="memory-grid-bg"></div>
       <header class="section-head">
         <div>
@@ -515,6 +516,7 @@
       <div class="memory-proof" id="memoryProof"></div>
       <div class="memory-tabs" id="memoryTabs">
         <button class="on" data-memory-tab="time">TAKE TIME MACHINE</button>
+        <button id="tape-keeps-score" data-memory-tab="score">THE TAPE KEEPS SCORE</button>
         <button data-memory-tab="bits">BIT ANCESTRY</button>
         <button data-memory-tab="chemistry">RIFF CHEMISTRY</button>
         <button data-memory-tab="court">WWAM COURT</button>
@@ -895,10 +897,10 @@
   <script src="cold-open-engine.js"></script>
   <script src="canon-integrity-engine.js"></script>
   <script src="human-review-session-engine.js"></script>
-  <script src="pilot-builder-engine.js"></script>
   <script src="search-engine.js"></script>
   <script src="ask-share.js"></script>
-  <script src="app.js"></script>
+  <script src="youtube-playback.js?v=0.5.13-playback2"></script>
+  <script src="app.js?v=0.5.13-playback2"></script>
   <script src="feature-loader.js"></script>
 </body>
 </html>

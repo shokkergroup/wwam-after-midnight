@@ -49,12 +49,20 @@
       certified: "CREATOR CERTIFIED",
       correction: "CORRECTION RIPPLE"
     }),
+    longitudinalVocabulary: Object.freeze({
+      product: "THE TAPE KEEPS SCORE",
+      forecast: "BEFORE TAPE",
+      response: "AFTER TAPE",
+      unresolved: "THE TAPE PLEADS THE FIFTH",
+      editBrief: "BEFORE / AFTER EDIT BRIEF"
+    }),
     capabilities: Object.freeze([
       "ask-the-tape",
       "character-studio",
       "creator-clip-lab",
       "creator-taste-calibration",
       "fresh-tape-intake",
+      "longitudinal-claim-ledger",
       "memory-graph",
       "red-band-candidate-index",
       "tape-companion"

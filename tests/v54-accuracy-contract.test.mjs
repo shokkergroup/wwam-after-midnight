@@ -11,6 +11,7 @@ const app = fs.readFileSync(path.join(demo, "app.js"), "utf8");
 const html = fs.readFileSync(path.join(demo, "index.html"), "utf8");
 const atlasUi = fs.readFileSync(path.join(demo, "archive-atlas-ui.js"), "utf8");
 const dnaSource = fs.readFileSync(path.join(demo, "wwam-channel-dna.js"), "utf8");
+const pitchTour = fs.readFileSync(path.join(demo, "pitch-tour-data.js"), "utf8");
 
 function loadChannelDna() {
   const context = { window: {} };
@@ -50,7 +51,7 @@ test("the proof wall does not silently morph when deferred engines finish", () =
     /\["EDITORIAL RECEIPTS", stable\.receipts \|\| moments, "872 PROMOTED \+ 42 QUARANTINED CANDIDATES"\]/,
   );
   assert.match(app, /"74 PROMOTED \+ 10 ARCHIVE DEEP QUARANTINE"/);
-  assert.match(app, /84 INPUTS = 74 PROMOTED \+ 10 ARCHIVE DEEP QUARANTINE/);
+  assert.match(pitchTour, /84 INPUTS = 74 PROMOTED \+ 10 ARCHIVE DEEP QUARANTINE/);
   assert.match(app, /HEALTHY · PROMOTED CORPUS/);
   assert.match(html, /This desk audits the 74-source promoted corpus/);
   assert.match(
@@ -61,10 +62,13 @@ test("the proof wall does not silently morph when deferred engines finish", () =
 });
 
 test("the sales tour ends in a measurable pilot instead of another feature tour", () => {
-  assert.match(app, /eyebrow: "THE PILOT"/);
   assert.match(
-    app,
-    /action: \{ kind: "pilot", label: "BUILD THE ARCHIVE-DISCOVERY PILOT", goal: "archive-discovery" \}/,
+    pitchTour,
+    /eyebrow: "THE PILOT"/,
+  );
+  assert.match(
+    pitchTour,
+    /kind: "pilot"[\s\S]{0,180}label: "BUILD THE ARCHIVE-DISCOVERY PILOT"[\s\S]{0,180}goal: "archive-discovery"/,
   );
   assert.match(app, /action\.kind === "pilot" \? "pitch"/);
   assert.match(app, /document\.getElementById\("pilotBuilder"\)\.scrollIntoView/);

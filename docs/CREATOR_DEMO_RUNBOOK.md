@@ -11,7 +11,7 @@ three things quickly:
 
 ## Before the call
 
-- Open the current V5.12 build or its confirmed deployment and choose either
+- Open the current V5.13 build or its confirmed deployment and choose either
   content-advisory mode.
 - Confirm YouTube playback is available in the browser.
 - Start at the hero, not halfway down the page.
@@ -44,6 +44,11 @@ Use this evidence vocabulary consistently:
   can preserve the query, issue, displayed source coordinates, and optional
   suggested correction, but it does not rewrite Ask, Canon, certification, or
   promoted evidence.
+- **Machine longitudinal pair signal** means two timestamped receipts share a
+  grounded subject and satisfy a typed before/after review contract. It may
+  say `MAY_SUPPORT`, `MAY_BE_MIXED`, or `OPEN`; it is never a verdict, proof of
+  speaker continuity, a mind-change claim, or an independently verified
+  outcome.
 
 ## The 60-second version
 
@@ -77,7 +82,7 @@ question. Do not add optional features until the close.
 | --- | --- | --- |
 | 0:00–0:30 | Night Shift | A daily route connects newest source, archive callback, choice, and payoff |
 | 0:30–1:05 | Archive Atlas + Time Capsule | The whole-feed map becomes an honest, playable 2019 capsule without merging its two source ledgers |
-| 1:05–2:05 | Ask + Comedy Black Box | An answer and a ranked riff both exit into timestamped, inspectable proof |
+| 1:05–2:05 | Ask + Comedy Black Box + The Tape Keeps Score | Answers, ranked riffs, and prediction/outcome handoffs exit into timestamped, inspectable proof |
 | 2:05–3:20 | Clip Lab | Evidence becomes a reviewable Short and an exact campaign ledger |
 | 3:20–4:00 | Trust Desk | Character mapping is separated from clip-level speaker proof |
 | 4:00–4:20 | Close | Ask which workflow deserves a production pilot |
@@ -336,6 +341,46 @@ What it proves:
 - 52 source-level character signals do not become 52 claimed performances;
 - all 166 current candidates remain outside the promoted 872.
 
+## V5.13 The Tape Keeps Score proof — 90 seconds
+
+Use this branch when the buyer asks whether the product can remember what the
+channel said before a release and compare it with what appeared later.
+
+1. Open Ask WWAM and ask **Which predictions came true?** Then ask **What did
+   they predict about Halloween Ends?**
+2. Point out that Ask does not manufacture an answer. It returns a typed
+   longitudinal handoff, scopes the second request to the exact Halloween Ends
+   subject, and opens the dedicated review surface.
+3. Open **The Tape Keeps Score** and point to **4 typed dockets / 8 distinct
+   official tapes / 9 short timestamped receipts / 0 public verdicts**. Read
+   the center boundary aloud: **THE TAPE PLEADS THE FIFTH.**
+4. Open **Halloween Ends theater hope → mixed commentary**. Show the
+   July 28, 2022 Q&A before tape at `2:21:47`, the October 18 commentary after
+   tape at `0:02:52`, and its retained counterweight at `1:39:54`. Point to the
+   82-day chronology and `MAY_BE_MIXED // NOT A VERDICT` label.
+5. Filter to **Scream VI**, build the **30 SEC** edit brief, and show that every
+   entry preserves a source date, exact anchor, bounded source window, and
+   rights/evidence labels. It contains no copied media and does not autoplay.
+6. Download the selected bounded review packet. Explain that it exports only
+   the open case, not captions, media, or all four dockets.
+
+Say: “Anyone can ask an AI whether an old take aged well. This system first
+finds the before tape, preserves the later tape and any counterweight, then
+refuses to turn a machine pairing into creator history until a human actually
+reviews it.”
+
+What it proves:
+
+- one Ask intent can hand off to a purpose-built evidence workflow instead of
+  hallucinating a verdict;
+- contradictions survive the ranking and editing path;
+- exact official timestamps remain attached to every before, after, and
+  counterweight receipt;
+- 30/60/90-second edit planning is source-window inventory, not rights-cleared
+  media; and
+- the same ChannelPack contract runs against a neutral racing fixture without
+  importing WWAM names, labels, or comedy voice.
+
 ## Optional ten-minute branches
 
 Use only the branch the audience cares about:
@@ -343,7 +388,8 @@ Use only the branch the audience cares about:
 - **Fan community:** Tape Companion, Night Shift, Red Band 100, WWAM UP IN YA,
   Personalized Descent, Evidence Bag, Trivia.
 - **Back-catalog discovery:** Ask WWAM, Popular 25, Fresh 10, franchise reports,
-  Lore Galaxy, and Archive Atlas's four-batch Archive Deep Portfolio.
+  Lore Galaxy, The Tape Keeps Score, and Archive Atlas's four-batch Archive
+  Deep Portfolio.
 - **Editorial operations:** Clip Lab, Creator Taste Calibration, Live
   Aftermath, Control Room, Human Review Session, and correction packets.
 - **Recurring characters:** Ask the Character, then immediately show the
@@ -386,6 +432,15 @@ Use only the branch the audience cares about:
 - “Flag This Answer creates a device-local, append-only, unverified proposal.
   It may suggest a better source, whole second, or expected answer, but it does
   not automatically mutate Ask, Canon, certification, or promoted evidence.”
+- “The Tape Keeps Score contains four typed dockets across eight distinct
+  official sources and nine short timestamped receipts. Every machine-paired
+  case remains unresolved, and the public verdict count is zero.”
+- “Prediction/outcome questions can hand off from Ask to an exact docket
+  subject. Unsupported entities open the global review surface instead of
+  receiving an invented match.”
+- “A 30-, 60-, or 90-second before/after brief is a source-linked editorial
+  worksheet. It contains no media, does not autoplay, and does not grant
+  publication rights.”
 - “A working timestamp proves where an indexed fragment lives; it does not
   automatically prove speaker, target, intent, or human-verified wording.”
 - “Source-level summaries are labeled summaries, not timestamped quotes.”
@@ -402,7 +457,7 @@ Use only the branch the audience cares about:
   not a measurement of audience sentiment. The playback UI's snapshot-safe and
   crossed-event path keeps future event text sealed until its timestamp is
   crossed; the full compiled timeline is an audit API.”
-- “Ask WWAM's current V5.12 release gate passes 128/128 Ask/search subtests,
+- “The Ask/search baseline introduced in V5.12 passes 128/128 subtests,
   including the complete 157-query adversarial corpus, the 8/8 Answer Frame
   cases, and 6/6 focused Batch 04 cases. That is regression coverage, not a
   claim that every possible phrasing is solved.”
@@ -428,6 +483,12 @@ Use only the branch the audience cares about:
 - “Owner-mapped character means this individual clip has a verified speaker.”
 - “This is the first time the bit ever happened.”
 - “Their opinion definitely changed.”
+- “The prediction came true,” “they called it,” or “the take aged badly” based
+  only on a Tape Keeps Score machine signal.
+- “The same speaker made both statements,” “this proves a mind change,” or
+  “the before statement caused the later result.”
+- “The edit brief is a finished or rights-cleared cut.”
+- “The FNV fingerprint authenticates the source, creator, reviewer, or truth.”
 - “These are guaranteed viral clips.”
 - “The system can publish autonomously.”
 - “Flagging an Ask answer automatically fixes the corpus, Canon, or

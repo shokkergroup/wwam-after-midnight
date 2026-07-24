@@ -63,7 +63,7 @@ test("V5.10 enhances the existing Riff Chemistry surface without growing app.js"
   });
   assert.match(
     html,
-    /<section class="memory-os" id="memory"\s+data-feature-styles="riff-black-box\.css"\s+data-feature-scripts="riff-black-box-engine\.js,riff-black-box-ui\.js">/,
+    /<section class="memory-os" id="memory"[\s\S]{0,300}data-feature-styles="[^"]*riff-black-box\.css"[\s\S]{0,500}data-feature-scripts="[^"]*riff-black-box-engine\.js,riff-black-box-ui\.js">/,
   );
   assert.match(html, /data-memory-tab="chemistry">RIFF CHEMISTRY<\/button>/);
   assert.match(html, /id="riffBlackBox" hidden inert aria-hidden="true"/);
@@ -102,14 +102,14 @@ test("V5.10 pins the runtime evidence ledger, neighborhood, and compact autopsy"
   assert.deepEqual(JSON.parse(JSON.stringify(engine.binding)), {
     packFingerprint: "68c87daa",
     showcaseFingerprint: "68c87daa",
-    ledgerFingerprint: "fnv1a32:b144f5f0",
+    ledgerFingerprint: "fnv1a32:0235b8e0",
     chemistryFingerprint: "fnv1a32:fe44c66e",
     contextSeconds: 15,
     contextAfterSeconds: 20,
     neighborhoodSeconds: 900,
-    evidenceFingerprint: "fnv1a32:56d6edef",
+    evidenceFingerprint: "fnv1a32:08ee9370",
   });
-  assert.equal(engine.snapshot().fingerprint, "fnv1a32:8764544e");
+  assert.equal(engine.snapshot().fingerprint, "fnv1a32:ad09f43d");
 
   const neighborhood = { both: 0, one: 0, none: 0 };
   engine.list().forEach((anchor) => {
@@ -126,7 +126,7 @@ test("V5.10 pins the runtime evidence ledger, neighborhood, and compact autopsy"
   const packet = engine.inspectionPacket(
     "R_bXrnNOcwg:moment:3810:the-room-breaks:2",
   );
-  assert.equal(packet.fingerprint, "fnv1a32:99315c4f");
+  assert.equal(packet.fingerprint, "fnv1a32:2b111efc");
   assert.equal(engine.verifyInspection(packet).ok, true);
   assert.ok(Buffer.byteLength(engine.serializeInspection(packet), "utf8") < 10_000);
   assert.ok(Buffer.byteLength(engine.serialize(), "utf8") > 400_000);
@@ -141,13 +141,13 @@ test("V5.10 documentation pins the score, evidence, and authority boundaries", (
   const changelog = read("docs/CHANGELOG.md");
   const runbook = read("docs/CREATOR_DEMO_RUNBOOK.md");
 
-  assert.equal(manifest.version, "0.5.12");
-  assert.equal(lock.version, "0.5.12");
-  assert.equal(lock.packages[""].version, "0.5.12");
-  assert.match(readme, /Current documented release: \*\*V5\.12 \/ 0\.5\.12\*\*/);
-  assert.match(overview, /^# WWAM After Midnight V5\.12/m);
+  assert.equal(manifest.version, "0.5.13");
+  assert.equal(lock.version, "0.5.13");
+  assert.equal(lock.packages[""].version, "0.5.13");
+  assert.match(readme, /Current documented release: \*\*V5\.13 \/ 0\.5\.13\*\*/);
+  assert.match(overview, /^# WWAM After Midnight V5\.13/m);
   assert.match(changelog, /^## 0\.5\.10 .*V5\.10 Comedy Black Box/m);
-  assert.match(runbook, /current V5\.12 build/);
+  assert.match(runbook, /current V5\.13 build/);
 
   [readme, overview, contract, changelog].forEach((source) => {
     assert.match(source, /301/);
@@ -159,8 +159,8 @@ test("V5.10 documentation pins the score, evidence, and authority boundaries", (
     assert.match(source, /zero (?:permitted )?(?:score )?drift/i);
     assert.match(source, /sixteen-word|sixteen\s+words/i);
   });
-  assert.match(contract, /fnv1a32:56d6edef/);
-  assert.match(contract, /fnv1a32:8764544e/);
+  assert.match(contract, /fnv1a32:08ee9370/);
+  assert.match(contract, /fnv1a32:ad09f43d/);
   assert.match(contract, /one-riff autopsy/i);
   assert.match(contract, /speaker: null|speaker remains null/i);
   assert.match(contract, /not causal|not a causal|causal findings/i);

@@ -7,9 +7,45 @@ character archaeology, topic paths, and creator-side editorial opportunities.
 This is an unofficial fan prototype. It sends playback and source traffic back
 to the official WWAM uploads.
 
-Current documented release: **V5.12 / 0.5.12**.
+Current documented release: **V5.13 / 0.5.13**.
 
-## V5.12 current Archive Deep overlay
+## V5.13 The Tape Keeps Score
+
+The WWAM Memory OS now has a demand-loaded longitudinal review surface:
+**before tape, machine status, after tape**. It joins forecast-shaped caption
+receipts to later response-shaped caption receipts under `MAY_RESOLVE`, exposes
+the complete pairing basis and blockers, and sends every playback back to the
+official WWAM upload at the exact indexed second. It never autoplays.
+
+The frozen July 23 snapshot contains **4 typed dockets across 8 distinct
+official sources, 8 grounded subjects, and 9 short timestamped receipts**. Its
+machine pair-signal distribution is **1 `MAY_SUPPORT`, 1 `MAY_BE_MIXED`, and
+2 `OPEN`**. All four are unreviewed, keep `verdict: null`, and publish **zero
+public verdicts**. The mixed Halloween Ends case retains its later
+counterweight instead of editing the contradiction away.
+
+The latest after tape is the July 23 livestream at
+`LV2rmwEA0w4&t=3811s`, where Scream 7 is scheduled for July 31. It remains
+`OPEN`: a plan is not proof of delivery. Public docket titles are generated
+from a ChannelPack-registered subject and the pack's fixed before/after
+vocabulary, so free-form artifact strings cannot smuggle in a verdict.
+
+Ask prediction/outcome requests now return a typed handoff to **The Tape Keeps
+Score**. Exact supported subjects open a scoped docket; unsupported subject IDs
+fail closed or open the global four-case view without a substitute claim. The
+surface can build source-linked **30-, 60-, or 90-second edit briefs** and
+download one reverified review packet. Those outputs contain source windows,
+not copied media, rights clearance, speaker attribution, visual verification,
+or an adjudication.
+
+The public ledger is **17,626 bytes**, bound to ChannelPack
+`cp1-f9ad38be22481b5d`, caption set
+`sha256:65741e59ab66c04254f9c40a5051308a8bb1cf6b121078737ba5b81f1b25d5fc`,
+and structural fingerprint `fnv1a32:d4ca362e`. The data, engine, UI, adapter,
+and stylesheet remain outside the eager path and total 160,410 source bytes.
+See [The Tape Keeps Score](docs/LONGITUDINAL_DOCKET.md).
+
+## V5.12 Archive Deep overlay — preserved
 
 V5.12 composes four independently fingerprinted Archive Deep batches as one
 read-only quarantine portfolio:
@@ -50,7 +86,8 @@ All 40 Archive Deep sources are excluded from the next metadata-only queue.
 
 ## Immutable V5.4 proof — preserved release snapshot
 
-The following values are the frozen V5.4 proof, not the current V5.12 overlay:
+The following values are the frozen V5.4 proof, not the later V5.12 or V5.13
+overlays:
 **84 inputs, 2,175,344 audited words, 194.9 caption-audited hours, 872 promoted
 receipts, 42 then-quarantined Batch 01 candidates, and 168 promoted core memory
 nodes**. The current forty-source portfolio does not retroactively change
@@ -200,7 +237,7 @@ manifest. Quarantined stops remain marked `promotionAllowed: false` with no
 speaker claim. The export omits transcripts, caption payloads, and full event
 ledgers. See [Archive Time Capsules](docs/ARCHIVE_TIME_CAPSULES.md).
 
-## V5.12 product map
+## V5.13 product map
 
 The hero offers three deliberate entry points:
 
@@ -209,9 +246,9 @@ The hero offers three deliberate entry points:
   100-rank Red Band Memorability Candidate Index V2.1, WWAM UP IN YA, and
   playable descent paths.
 - **Deep Dive:** Ask WWAM, Lore Galaxy, Take Time Machine, year-sized Archive
-  Time Capsules, Bit Ancestry, the Comedy Black Box / Riff Autopsy, WWAM
-  Court, franchise labs, autopsies, Fresh 10, Popular 25, and the whole-feed
-  Archive Atlas.
+  Time Capsules, The Tape Keeps Score, Bit Ancestry, the Comedy Black Box /
+  Riff Autopsy, WWAM Court, franchise labs, autopsies, Fresh 10, Popular 25,
+  and the whole-feed Archive Atlas.
 - **Creator Proof:** Clip Lab edit briefs, exact-runtime Cold Open Factory
   boards, supercut spines, then/now resurfacing, Live Aftermath, Control Room,
   the Trust / Canon Desk, the local Creator Taste Calibration, Fresh Tape
@@ -372,6 +409,9 @@ establish which host is speaking.
   not been silently merged into that legacy Trust/Canon contract.
 - The promoted corpus spans 171.19 caption-audited hours and
   177.45 hours of known source runtime.
+- The V5.13 entity registry yields 1,381 current Correction Ripple records;
+  the 95 Trust packets enumerate 921 exact-receipt and 2,480 same-source-only
+  dependencies without applying any correction.
 - Public transcript fragments are display-capped; exported edit suggestions
   remain clearly separated from archival excerpts.
 - The local Human Review Session binds 95 Trust findings and 362 Canon warnings
@@ -449,6 +489,7 @@ python pipeline/wwam_character_distill.py --check
 python pipeline/wwam_archive_deep_distill.py --check
 python pipeline/wwam_archive_deep_batch2.py --check
 python pipeline/wwam_archive_atlas.py --check
+python pipeline/wwam_longitudinal_docket.py --check
 ```
 
 Full caption payloads stay in the gitignored `source-cache/` directory. Public
@@ -456,7 +497,8 @@ artifacts contain derived measurements and short, timestamped fragments only.
 
 ## Documentation
 
-- [V5.12 product overview](docs/V5_OVERVIEW.md)
+- [V5.13 product overview](docs/V5_OVERVIEW.md)
+- [The Tape Keeps Score longitudinal evidence contract](docs/LONGITUDINAL_DOCKET.md)
 - [Ask the Tape: Answer Frame V2](docs/ASK_ANSWER_FRAME_V2.md)
 - [Comedy Black Box evidence contract](docs/RIFF_BLACK_BOX.md)
 - [Archive Time Capsules](docs/ARCHIVE_TIME_CAPSULES.md)

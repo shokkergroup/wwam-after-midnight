@@ -70,6 +70,17 @@ test("the WWAM DNA compiles into a deterministic, fingerprinted ChannelPack", ()
     first.channelExtensions.proofLabels.curatedCandidate,
     "TIMESTAMP-VALIDATED HUMAN-CURATED CANDIDATE",
   );
+  assert.deepEqual(plain(first.longitudinalVocabulary), {
+    editBrief: "BEFORE / AFTER EDIT BRIEF",
+    forecast: "BEFORE TAPE",
+    product: "THE TAPE KEEPS SCORE",
+    response: "AFTER TAPE",
+    unresolved: "THE TAPE PLEADS THE FIFTH",
+  });
+  assert.equal(
+    first.entityRegistry.find((entity) => entity.id === "film:scream-7").label,
+    "Scream 7",
+  );
   assert.equal(first.storage.namespace, "shokker.youtube-wiki.wwam.v1");
   assert.deepEqual(plain(first.capabilities), [
     "ask-the-tape",
@@ -77,11 +88,12 @@ test("the WWAM DNA compiles into a deterministic, fingerprinted ChannelPack", ()
     "creator-clip-lab",
     "creator-taste-calibration",
     "fresh-tape-intake",
+    "longitudinal-claim-ledger",
     "memory-graph",
     "red-band-candidate-index",
     "tape-companion"
   ]);
-  assert.equal(first.fingerprint, "cp1-8ac1488f4f78448c");
+  assert.equal(first.fingerprint, "cp1-f9ad38be22481b5d");
   assert.equal(first.fingerprint, second.fingerprint);
   assert.deepEqual(plain(first), plain(second));
   assert.deepEqual(plain(report), {
@@ -103,6 +115,7 @@ test("semantic set and map order do not change a compiled fingerprint", () => {
   reorderedDna.taxonomy.entityTypes.reverse();
   reorderedDna.taxonomy.receiptTypes.reverse();
   reorderedDna.taxonomy.relationships.reverse();
+  reorderedDna.entities.reverse();
   reorderedDna.sourceLanes = Object.fromEntries(Object.entries(reorderedDna.sourceLanes).reverse());
   const reorderedAdapter = clone(window.WWAM_CHANNEL_PACK_ADAPTER);
   reorderedAdapter.capabilities.reverse();
@@ -230,6 +243,20 @@ test("the compiler fails closed instead of inventing missing editorial policy", 
       code: "required-string"
     },
     {
+      label: "longitudinal display label missing",
+      mutate(dna, adapter) {
+        delete adapter.longitudinalVocabulary.forecast;
+      },
+      code: "required-string"
+    },
+    {
+      label: "registered entity label missing",
+      mutate(dna) {
+        delete dna.entities[0].label;
+      },
+      code: "required-string"
+    },
+    {
       label: "unknown policy typo",
       mutate(dna, adapter) {
         adapter.evidencePolicy.promoteAfterReview = true;
@@ -316,6 +343,14 @@ test("the downloadable JSON Schema and executable compiler describe the same saf
   assert.ok(
     spec.properties.surfaceVocabulary.required.includes("curatedCandidate"),
   );
+  assert.deepEqual(spec.properties.longitudinalVocabulary.required, [
+    "product",
+    "forecast",
+    "response",
+    "unresolved",
+    "editBrief",
+  ]);
+  assert.ok(spec.required.includes("entityRegistry"));
   assert.ok(
     spec.properties.channelExtensions.properties.proofLabels.required.includes(
       "curatedCandidate",
@@ -334,6 +369,7 @@ test("the downloadable JSON Schema and executable compiler describe the same saf
     "ask-the-tape",
     "creator-taste-calibration",
     "fresh-tape-intake",
+    "longitudinal-claim-ledger",
     "tape-companion"
   ]);
   assert.match(
@@ -351,6 +387,14 @@ test("the downloadable JSON Schema and executable compiler describe the same saf
   assert.match(
     spec["x-shokker-conformance"].freshTapeIntakeRule,
     /do not prove source content, authenticity, ownership, speaker identity, or authority/i
+  );
+  assert.match(
+    spec["x-shokker-conformance"].longitudinalClaimLedgerRule,
+    /Machine pairing is not truth, causality, speaker continuity, a mind-change claim, or a public verdict/i
+  );
+  assert.match(
+    spec["x-shokker-conformance"].longitudinalClaimLedgerRule,
+    /Visual outcomes, metadata-only records, restricted source audio, and corpus absence remain unresolved/i
   );
   assert.match(compiler, /ChannelPack rejected/);
   assert.match(compiler, /namespace-collision/);

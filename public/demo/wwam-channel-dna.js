@@ -108,6 +108,42 @@
         type: "franchise",
         label: "A Nightmare on Elm Street",
         aliases: ["nightmare on elm street", "elm street", "freddy krueger", "springwood"]
+      },
+      {
+        id: "film:halloween-ends",
+        type: "film",
+        label: "Halloween Ends",
+        aliases: ["halloween ends"]
+      },
+      {
+        id: "film:scream-7",
+        type: "film",
+        label: "Scream 7",
+        aliases: ["scream 7", "scream seven"]
+      },
+      {
+        id: "film:scream-vi",
+        type: "film",
+        label: "Scream VI",
+        aliases: ["scream vi", "scream 6", "scream six"]
+      },
+      {
+        id: "topic:anticipation-reception",
+        type: "topic",
+        label: "Anticipation → reception",
+        aliases: ["anticipation reception"]
+      },
+      {
+        id: "topic:commentary-plan",
+        type: "topic",
+        label: "Commentary plan",
+        aliases: ["commentary plan"]
+      },
+      {
+        id: "topic:anger-to-death-talk",
+        type: "topic",
+        label: "Anger forecast → later death talk",
+        aliases: ["anger forecast", "death talk"]
       }
     ]),
 

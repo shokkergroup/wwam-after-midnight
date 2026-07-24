@@ -1,4 +1,20 @@
 window.WWAM_CURATED = {
+  "categoryCopy": {
+    "OUT OF POCKET": "Subpoena fuel.",
+    "FRANCHISE FELONY": "Reputation murder.",
+    "LOVE LETTER": "Knife-wielding affection.",
+    "THEORY BOARD": "Context pending.",
+    "KILL ROOM": "Bodies.",
+    "BIT ENERGY": "Graveyard callback.",
+    "BREAKDOWN": "Integrity: zero.",
+    "HORROR BRAIN": "Horror cortex driving.",
+    "UP IN YA": "Unsupervised sentence.",
+    "THE ROOM BREAKS": "Laughter wins.",
+    "CHARACTER CALLBACK": "Character compounds.",
+    "FULL SEND": "Bit fully committed.",
+    "TAKE GETS NUCLEAR": "Opinion reactor breach.",
+    "CHAT DID THIS": "Audience-made chaos."
+  },
   "upInYa": [
     {"source":"commentary","id":"4UokRLETypU","t":809,"label":"THE SELF-SERVICE QUESTION"},
     {"source":"commentary","id":"Q6SN-Om1gIo","t":2835,"label":"FEROCIOUSLY"},
@@ -31,6 +47,7 @@ window.WWAM_CURATED = {
     "What did they say about Halloween on the latest livestream?",
     "Where did they talk about Batman recently?",
     "Which commentary has the highest Unhinged Index?",
+    "Which predictions came true?",
     "What is funniest in the newest stream?",
     "Who hated Scream 3?"
   ]

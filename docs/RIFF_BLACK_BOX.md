@@ -40,13 +40,17 @@ The public evidence split is 276 machine-level anchors and 25
 timestamp-validated human-curated candidates; neither tier implies editor or
 creator certification.
 
-The engine binds those records to:
+The current V5.13 runtime binds the preserved V5.10 chemistry records to:
 
 - ChannelPack / Showcase fingerprint `68c87daa`;
-- promoted source-and-receipt ledger fingerprint `fnv1a32:b144f5f0`;
+- promoted source-and-receipt ledger fingerprint `fnv1a32:0235b8e0`;
 - Riff Chemistry ledger fingerprint `fnv1a32:fe44c66e`;
-- label-independent evidence fingerprint `fnv1a32:56d6edef`; and
-- runtime-label full snapshot fingerprint `fnv1a32:8764544e`.
+- label-independent evidence fingerprint `fnv1a32:08ee9370`; and
+- runtime-label full snapshot fingerprint `fnv1a32:ad09f43d`.
+
+The source/receipt, evidence, and full-snapshot bindings changed when V5.13
+expanded the registered Channel DNA entity ontology. Anchor counts, score
+inputs, chemistry fingerprint, and the zero-drift requirement did not change.
 
 These FNV fingerprints are structural change detectors. They are not
 signatures, ownership checks, source authentication, human-review proof, or

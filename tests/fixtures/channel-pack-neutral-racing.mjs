@@ -39,6 +39,20 @@ export const NEUTRAL_RACING_DNA = Object.freeze({
       "CONTRADICTS"
     ])
   }),
+  entities: Object.freeze([
+    Object.freeze({
+      id: "event:round-4",
+      type: "event",
+      label: "Round 4",
+      aliases: Object.freeze(["round 4"]),
+    }),
+    Object.freeze({
+      id: "participant:car-33",
+      type: "participant",
+      label: "Car 33",
+      aliases: Object.freeze(["car 33"]),
+    }),
+  ]),
   qualityGates: Object.freeze({
     publicExcerptWords: 16,
     noSpeakerGuessing: true,
@@ -93,8 +107,16 @@ export const NEUTRAL_RACING_ADAPTER = Object.freeze({
     certified: "LEAGUE CERTIFIED",
     correction: "SCORING CORRECTION"
   }),
+  longitudinalVocabulary: Object.freeze({
+    product: "THE REPLAY REMEMBERS",
+    forecast: "BEFORE THE GREEN",
+    response: "AFTER THE FLAG",
+    unresolved: "UNDER STEWARD REVIEW",
+    editBrief: "BEFORE / AFTER REPLAY BRIEF",
+  }),
   capabilities: Object.freeze([
     "event-time-machine",
+    "longitudinal-claim-ledger",
     "participant-dossier",
     "receipt-search"
   ])

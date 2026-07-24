@@ -67,10 +67,7 @@ test("surface handoffs render as global ranking routes with a Red Band link", ()
     statusBlock.indexOf("GLOBAL RANKING HANDOFF") <
       statusBlock.indexOf("NO DEFENSIBLE RECEIPT"),
   );
-  assert.match(
-    askUi,
-    /var noMatchHeadline = isSurfaceHandoff \? "GLOBAL RANKING HANDOFF"/,
-  );
+  assert.match(askUi, /isSurfaceHandoff \? "GLOBAL RANKING HANDOFF"/);
   assert.match(askUi, /analysis\.recommendedSurface[\s\S]*?<a href=/);
   assert.match(askUi, /analysis\.recommendedSurface\.href/);
   assert.match(search, /surfaceHandoff:[\s\S]*?href: "#red100"/);

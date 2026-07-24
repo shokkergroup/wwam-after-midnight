@@ -13,10 +13,12 @@
     "identity",
     "sourceLanes",
     "taxonomy",
+    "entityRegistry",
     "evidencePolicy",
     "updateContract",
     "storage",
     "surfaceVocabulary",
+    "longitudinalVocabulary",
     "capabilities",
     "channelExtensions"
   ],
@@ -94,6 +96,28 @@
         },
         "relationships": {
           "$ref": "#/$defs/stringSet"
+        }
+      }
+    },
+    "entityRegistry": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label", "type"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9:-]{1,119}$"
+          },
+          "label": {
+            "$ref": "#/$defs/nonEmpty"
+          },
+          "type": {
+            "$ref": "#/$defs/kebabId"
+          }
         }
       }
     },
@@ -252,6 +276,28 @@
         }
       }
     },
+    "longitudinalVocabulary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["product", "forecast", "response", "unresolved", "editBrief"],
+      "properties": {
+        "product": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "forecast": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "response": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "unresolved": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "editBrief": {
+          "$ref": "#/$defs/nonEmpty"
+        }
+      }
+    },
     "capabilities": {
       "description": "Runtime capability IDs the channel product actually implements. Declaration does not create evidence, authorization, or creator approval.",
       "allOf": [
@@ -264,6 +310,7 @@
           "ask-the-tape",
           "creator-taste-calibration",
           "fresh-tape-intake",
+          "longitudinal-claim-ledger",
           "tape-companion"
         ]
       ]
@@ -350,6 +397,7 @@
     "publicCanonRule": "Machine output enters quarantine; human review is required before promotion.",
     "portfolioRule": "Channel IDs and storage namespaces must be unique across every installed pack.",
     "capabilityRule": "A capability declaration must correspond to a separately tested runtime contract; it does not establish evidence, authorization, identity, or creator approval.",
-    "freshTapeIntakeRule": "The fresh-tape-intake capability permits bounded device-local parsing only. It performs no network fetch, does not verify channel ownership or reviewer identity, requires timed transcript evidence before deriving candidates, keeps every result quarantined and undiarized, holds untimed text with zero candidates, and permits only FNV-bound structural verification. Its fingerprints do not prove source content, authenticity, ownership, speaker identity, or authority."
+    "freshTapeIntakeRule": "The fresh-tape-intake capability permits bounded device-local parsing only. It performs no network fetch, does not verify channel ownership or reviewer identity, requires timed transcript evidence before deriving candidates, keeps every result quarantined and undiarized, holds untimed text with zero candidates, and permits only FNV-bound structural verification. Its fingerprints do not prove source content, authenticity, ownership, speaker identity, or authority.",
+    "longitudinalClaimLedgerRule": "The longitudinal-claim-ledger capability may pair bounded earlier and later source receipts only when declared subject, chronology, source phase, and evidence rules pass. Machine pairing is not truth, causality, speaker continuity, a mind-change claim, or a public verdict. Visual outcomes, metadata-only records, restricted source audio, and corpus absence remain unresolved until the applicable human review gate passes."
   }
 }

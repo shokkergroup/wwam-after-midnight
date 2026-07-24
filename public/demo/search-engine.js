@@ -176,6 +176,7 @@
   var SCREEN_REFERENT_PROXIMITY_WORDS = 2;
 
   var QUERY_EXAMPLES = [
+    "Which predictions came true?",
     "What do they think of Halloween Ends?",
     "What is funniest in the most-viewed livestream?",
     "Where is The Burp Defense?",
@@ -530,6 +531,80 @@
     return Math.max(1, Math.min(25, Number(match[1])));
   }
 
+  /*
+   * Longitudinal questions belong to the typed prediction/response docket.
+   * This detector intentionally requires archive-comparison grammar, rather
+   * than treating every use of "predict" as a request for that surface.
+   */
+  function longitudinalRequest(normalizedQuery) {
+    var q = normalize(normalizedQuery);
+    if (!q) return false;
+
+    var asksEngineToPredict =
+      /^(?:i|we) (?:predict|forecast|promise)\b/.test(q) ||
+      /\b(?:can|could|would|will|do) you (?:predict|forecast)\b/.test(q) ||
+      /\bwhat do you (?:predict|forecast)\b/.test(q) ||
+      /^(?:predict|forecast) (?:the |what |which |how )/.test(q);
+    if (asksEngineToPredict) return false;
+
+    var creatorCue = /\b(?:they|their|them|wwam|hosts?|the guys|the show|the channel|commentary|commentaries|watchalong|watchalongs|watch along|watch alongs|livestream|livestreams|live stream|live streams)\b/.test(q);
+    var movieNarrativeCue = /\b(?:character|characters|ghostface|sidney|killer|plot|story|the movie|the film)\b/.test(q);
+    var explicitSurface = includesAny(q, [
+      "tape keeps score", "the tape keeps score", "prediction ledger",
+      "forecast ledger", "prediction docket", "forecast docket",
+      "called it ledger", "called it docket",
+    ]);
+    var agedTake =
+      /\b(?:takes?|predictions?|forecasts?|promises?|calls?)\b(?: [a-z0-9]+){0,5} aged (?:badly|poorly|well)\b/.test(q) ||
+      /\baged (?:badly|poorly|well)\b(?: [a-z0-9]+){0,5} (?:takes?|predictions?|forecasts?|promises?|calls?)\b/.test(q) ||
+      /\bwhich takes? (?:was|were|turned out) (?:right|wrong)\b/.test(q);
+    var calledIt =
+      /\bcalled it\b/.test(q) &&
+      (
+        /^(?:what|which|who|when|where|did|do|does|have|has|show|find|list|give|open)\b/.test(q) ||
+        /\b(?:moments?|receipts?|examples?|times?|predictions?|forecasts?|outcomes?)\b/.test(q)
+      );
+    var creatorPrediction =
+      /\bwhat (?:did|do|does|have|has) (?:they|the hosts|the guys|wwam)(?: ever| actually| originally| publicly| previously)? (?:predict|predicted|forecast|forecasted)\b/.test(q) ||
+      /\bwhat (?:was|were|are) their (?:prediction|predictions|forecast|forecasts)\b/.test(q) ||
+      /\b(?:did|do|does|have|has) they(?: ever| actually| originally| publicly| previously)? (?:predict|predicted|forecast|forecasted)\b/.test(q);
+    var predictionOutcome =
+      /\b(?:predictions?|forecasts?)\b(?: [a-z0-9]+){0,10} (?:came true|come true|proved right|proved wrong|was right|were right|was wrong|were wrong|happened|resolved|paid off)\b/.test(q) ||
+      /\b(?:outcomes?|results?|resolutions?|payoffs?)\b(?: [a-z0-9]+){0,8} (?:predictions?|forecasts?)\b/.test(q);
+    var promiseOutcome = creatorCue &&
+      /\b(?:promise|promises|promised)\b(?: [a-z0-9]+){0,10} (?:happen|happened|come true|came true|fulfilled|delivered|pay off|paid off|outcome|result|resolved)\b/.test(q);
+    var archiveCommand =
+      /^(?:show|find|list|give|open)(?: me)?\b(?: [a-z0-9]+){0,6} (?:prediction|predictions|forecast|forecasts|called it)\b(?: [a-z0-9]+){0,3} (?:moments?|receipts?|examples?|ledger|docket|outcomes?|results?)\b/.test(q) ||
+      /^(?:what|which) (?:are|were) (?:their|the) (?:predictions?|forecasts?)\b/.test(q);
+
+    if (movieNarrativeCue && !creatorCue && !explicitSurface && !agedTake) {
+      return false;
+    }
+    return explicitSurface || agedTake || calledIt || creatorPrediction ||
+      predictionOutcome || promiseOutcome || archiveCommand;
+  }
+
+  function longitudinalSubject(query, entity) {
+    var q = canonicalizeQuery(query);
+    var subjects = [
+      ["film:halloween-ends", "Halloween Ends", "film", "halloween ends"],
+      ["film:scream-vi", "Scream VI", "film", "scream vi|scream 6"],
+      ["film:scream-7", "Scream 7", "film", "scream 7|scream vii"],
+      ["franchise:halloween", "Halloween", "franchise", "halloween"],
+      ["franchise:scream", "Scream", "franchise", "scream"],
+    ];
+    var match = subjects.slice(0, 4).filter(function (subject) {
+      return subject[3].split("|").some(function (alias) {
+        return containsNormalizedPhrase(q, canonicalizeQuery(alias));
+      });
+    })[0];
+    if (!match && entity) match = subjects.filter(function (subject) {
+      return subject[2] === entity.type &&
+        normalize(subject[1]) === normalize(entity.label);
+    })[0];
+    return match ? { id: match[0], label: match[1], type: match[2] } : null;
+  }
+
   function compileQueryPlan(query, parsedIntent) {
     var q = parsedIntent.normalized;
     var relativeTimeLanguage = includesAny(q, [
@@ -606,6 +681,7 @@
       /\b(?:what|which|where).*\b(?:made them laugh|laugh(?:ed)? hardest)\b/.test(q) ||
       /\bfunniest (?:moment|bit|clip|thing) overall\b/.test(q)
     );
+    var longitudinalRequested = longitudinalRequest(q);
     var hasSurfaceHandoff =
       broadMemorabilitySuperlative || globalComedySuperlative;
     var temporalSourceContent = parsedIntent.sourceExplicit &&
@@ -615,7 +691,8 @@
         "what do they say in", "whats in", "what is in",
       ]);
     var outputShape = "single";
-    if (hasSurfaceHandoff) outputShape = "surface-handoff";
+    if (longitudinalRequested) outputShape = "longitudinal-handoff";
+    else if (hasSurfaceHandoff) outputShape = "surface-handoff";
     else if (recurringCharacterRoster) outputShape = "character-roster";
     else if (curatedSoundbytes) outputShape = "curated-soundbytes";
     else if (characterMentionCountLanguage) outputShape = "character-mention-count";
@@ -671,6 +748,15 @@
       curatedSoundbytes: curatedSoundbytes,
       relativeNewestStream: relativeNewestStream,
       relativeExplicitLane: relativeExplicitLane,
+      longitudinalRequested: longitudinalRequested,
+      longitudinalHandoff: longitudinalRequested ? {
+        id: "tape-keeps-score",
+        surface: "longitudinal-docket",
+        href: "#tape-keeps-score",
+        label: "THE TAPE KEEPS SCORE",
+        intent: "longitudinal",
+        reason: "Prediction and outcome comparisons belong to the typed, receipt-linked longitudinal docket.",
+      } : null,
       surfaceHandoff: broadMemorabilitySuperlative ? {
         id: "memorability-candidate-index-v2.1",
         href: "#red100",
@@ -3494,6 +3580,130 @@
           };
           entity = sourceEntity;
         }
+      }
+      var longitudinalSpeakerRequest = queryPlan.longitudinalRequested &&
+        (
+          intent.refusesSpeakerGuess ||
+          (
+            /(?:^| )(?:mike|mikes|j|js)(?: |$)/.test(intent.normalized) &&
+            intent.normalized.indexOf("mike myers") < 0
+          )
+        );
+      var longitudinalRightsBoundary = Boolean(
+        selectedSource && selectedSource.restrictedToTopicNavigation
+      );
+      var longitudinalRestrictedSourceLanguage = includesAny(
+        intent.normalized,
+        ["trailer reaction", "trailer audio", "source audio"]
+      );
+      var eligibleLongitudinalHandoff = queryPlan.longitudinalRequested &&
+        !longitudinalSpeakerRequest &&
+        !intent.visualResultRequest &&
+        !intent.visualContextRefusal &&
+        !longitudinalRightsBoundary &&
+        !longitudinalRestrictedSourceLanguage;
+      if (eligibleLongitudinalHandoff) {
+        var docketSubject = longitudinalSubject(queryPlan.canonicalQuery, entity);
+        var longitudinalHandoff = Object.assign(
+          {},
+          queryPlan.longitudinalHandoff,
+          {
+            mode: docketSubject ? "subject" : "global",
+            query: query,
+          },
+          docketSubject ? {
+            subjectId: docketSubject.id,
+            subject: docketSubject.label,
+            subjectType: docketSubject.type,
+          } : {}
+        );
+        queryPlan.longitudinalHandoff = longitudinalHandoff;
+        queryPlan.outputShape = "longitudinal-handoff";
+        queryPlan.subjectTerms = [];
+        if (docketSubject) {
+          queryPlan.concepts.primaryTarget = {
+            type: docketSubject.type,
+            label: docketSubject.label,
+            subjectId: docketSubject.id,
+          };
+          queryPlan.concepts.secondaryTargets = [];
+        }
+        return {
+          query: query,
+          intent: "longitudinal",
+          questionType: "prediction-outcome",
+          source: intent.source,
+          temporal: intent.temporal,
+          popularity: intent.popularity,
+          metric: "longitudinal-docket",
+          requestedYear: intent.requestedYear,
+          entity: docketSubject ? docketSubject.label :
+            entity ? entity.label : null,
+          entityType: docketSubject ? docketSubject.type :
+            entity ? entity.type : null,
+          ownerMapping: null,
+          continuedFrom: continuedFrom,
+          contextUsed: contextUsed,
+          resultAnchor: null,
+          context: {
+            query: query,
+            intent: "longitudinal",
+            source: intent.source,
+            temporal: intent.temporal,
+            popularity: intent.popularity,
+            metric: "longitudinal-docket",
+            entity: docketSubject ? docketSubject.label :
+              entity ? entity.label : null,
+            entityType: docketSubject ? docketSubject.type :
+              entity ? entity.type : null,
+            resultAnchor: null,
+          },
+          queryPlan: queryPlan,
+          longitudinalHandoff: longitudinalHandoff,
+          selectionPlan: {
+            longitudinalHandoff: longitudinalHandoff,
+          },
+          confidence: 100,
+          confidenceBasis: [
+            "Query Plan identified explicit prediction/outcome comparison grammar",
+            docketSubject ?
+              "Canonical longitudinal subject ID resolved" :
+              "No canonical longitudinal subject ID was inferred",
+            "Ask made no independent verdict",
+          ],
+          status: "longitudinal-handoff",
+          answer: "This is a prediction/outcome question" +
+            (docketSubject ? " about " + docketSubject.label : "") +
+            ". Ask WWAM is handing it to " + longitudinalHandoff.label +
+            ", the typed receipt-linked docket. Ask has not independently proved " +
+            "that a forecast came true, failed, paid off, or aged badly.",
+          limitations: [
+            "A handoff is not a verdict; the longitudinal docket owns claim/response pairing.",
+            "Machine-linked candidates require human review before any outcome is promoted as resolved.",
+          ].concat(docketSubject ? [] : [
+            "No canonical docket subject ID was safe enough to pass, so the destination opens globally.",
+          ]),
+          explanation: {
+            method: "query-plan longitudinal handoff",
+            subjectTerms: [],
+            topScore: 0,
+            resultCountBeforeDisplayLimit: 0,
+            safeguards: [
+              "no independently manufactured verdict",
+              "no speaker guessing",
+              "source-audio and visual-result firewalls preserved",
+              "unknown subjects remain global",
+            ],
+          },
+          evidenceChain: [],
+          results: [],
+          suggestions: ["Open THE TAPE KEEPS SCORE"],
+          recommendedSurface: longitudinalHandoff,
+        };
+      }
+      if (queryPlan.longitudinalRequested) {
+        queryPlan.longitudinalHandoff = null;
+        queryPlan.outputShape = "single";
       }
       var orphanSpeakerFollowup = intent.refusesSpeakerGuess &&
         !anchorActive && !entity && !subjectTerms.length;

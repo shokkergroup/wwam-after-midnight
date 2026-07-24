@@ -9,6 +9,7 @@ const root = path.join(here, "..");
 const demo = path.join(root, "public", "demo");
 const html = fs.readFileSync(path.join(demo, "index.html"), "utf8");
 const app = fs.readFileSync(path.join(demo, "app.js"), "utf8");
+const pitchTour = fs.readFileSync(path.join(demo, "pitch-tour-data.js"), "utf8");
 const styles = fs.readFileSync(path.join(demo, "styles.css"), "utf8");
 const atlasUi = fs.readFileSync(path.join(demo, "archive-atlas-ui.js"), "utf8");
 const redEngine = fs.readFileSync(path.join(demo, "red-band-ranking-v2.js"), "utf8");
@@ -85,15 +86,15 @@ test("every rendered Memorability Index card explains and opens its receipt", ()
 });
 
 test("Mike Mode has six coherent beats and opens Archive Atlas as live proof", () => {
-  assert.equal((app.match(/\bnumber: "0[1-6]"/g) || []).length, 6);
-  assert.match(app, /472 STREAMS\.<br>EVERY BLIND SPOT VISIBLE\./);
-  assert.match(app, /action: \{ kind: "archive", label: "OPEN THE ARCHIVE ATLAS" \}/);
+  assert.equal((pitchTour.match(/\bnumber: "0[1-6]"/g) || []).length, 6);
+  assert.match(pitchTour, /472 STREAMS\.<br>EVERY BLIND SPOT VISIBLE\./);
+  assert.match(pitchTour, /kind: "archive", label: "OPEN THE ARCHIVE ATLAS"/);
   assert.match(app, /action\.kind === "archive" \? "archive"/);
   assert.match(app, /action\.kind === "archive"[\s\S]{0,240}loadArchiveAtlas\(\)/);
 });
 
 test("the current release identity preserves V5.4 headline proof", () => {
-  assert.equal(packageJson.version, "0.5.12");
+  assert.equal(packageJson.version, "0.5.13");
   assert.match(changelog, /## 0\.5\.7\b/);
   assert.match(changelog, /## 0\.5\.6\b/);
   assert.match(changelog, /## 0\.5\.5\b/);

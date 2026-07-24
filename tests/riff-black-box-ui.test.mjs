@@ -373,7 +373,7 @@ function harness({ match = true, reduced = false } = {}) {
 test("Comedy Black Box is one lazy enhancement on the existing Memory OS", () => {
   assert.match(
     html,
-    /<section class="memory-os" id="memory"\s+data-feature-styles="riff-black-box\.css"\s+data-feature-scripts="riff-black-box-engine\.js,riff-black-box-ui\.js">/,
+    /<section class="memory-os" id="memory"[\s\S]{0,300}data-feature-styles="[^"]*riff-black-box\.css"[\s\S]{0,500}data-feature-scripts="[^"]*riff-black-box-engine\.js,riff-black-box-ui\.js">/,
   );
   assert.doesNotMatch(html, /<script[^>]+src="riff-black-box-(?:engine|ui)\.js"/);
   assert.doesNotMatch(html, /<link[^>]+href="riff-black-box\.css"/);

@@ -3,6 +3,84 @@
 This changelog records product and evidence-contract changes. It does not by
 itself indicate that a build has been deployed.
 
+## 0.5.13 — V5.13 The Tape Keeps Score — 2026-07-24
+
+### Added
+
+- **The Tape Keeps Score** adds a demand-loaded before/status/after review
+  surface inside the existing Memory OS.
+- The frozen launch ledger contains **4 typed dockets, 8 distinct official
+  sources, 8 grounded subjects, and 9 short timestamped receipts** from the
+  July 23 snapshot.
+- Ask prediction/outcome questions now return one typed longitudinal handoff.
+  Exact supported subjects open the scoped docket; unsupported subjects cannot
+  create a substitute match.
+- Every case exposes its exact official source coordinates, source dates,
+  rights and evidence labels, chronology, full pairing basis, and unresolved
+  blockers. The mixed Halloween Ends case preserves its later counterweight.
+- The workbench builds deterministic source-linked 30-, 60-, or 90-second edit
+  briefs and downloads one reverified selected-docket review packet.
+- The channel-neutral engine is gated by the ChannelPack
+  `longitudinal-claim-ledger` capability and is exercised with a neutral racing
+  pack as well as WWAM.
+- Source receipts, bounded Clip Lab excerpts, and Tape Companion now share one
+  YouTube playback identity contract. Every direct player supplies the current
+  HTTP(S) origin and an explicit `strict-origin-when-cross-origin` referrer
+  policy, preventing YouTube player Error 153 in normal hosted and localhost
+  launches.
+- Local-file launches keep video on the page through a small first-party hosted
+  playback bridge. The bridge validates the video ID and time bounds, embeds
+  only the original YouTube upload, and gives YouTube the HTTP page identity
+  that a `file://` document cannot provide.
+- Tape Companion reports Error 153 separately, preserves the exact official
+  source link and manual memory-sync rail, and never strands the viewer in an
+  unexplained dead player.
+
+### Accuracy and authority boundaries
+
+- Every machine pair remains `MAY_RESOLVE`,
+  `machine-paired-unreviewed`, `verdict: null`, and
+  `promotionAllowed: false`. The public verdict count is **zero**.
+- Final signals are **1 `MAY_SUPPORT`, 1 `MAY_BE_MIXED`, and 2 `OPEN`**.
+  Those are retrieval labels, not adjudication, causality, speaker continuity,
+  mind-change, or correctness claims.
+- The hardened anger/death case is `OPEN` and no longer claims a Karen subject,
+  target continuity, or a Halloween Kills film binding unsupported by its
+  before receipt.
+- The Halloween Ends before tape now uses the caption-safe July 28 Q&A source
+  at `ETuRUYiQEBM&t=8507s`, not mixed trailer-reaction source audio. Its
+  response now preserves the closing negative assessment at
+  `I6QKteG_hK0&t=6817s`, the immediately adjacent positive counterweight at
+  `I6QKteG_hK0&t=6823s`, and an 82-day chronology.
+- The Scream 7 response is now the July 23, 2026 scheduling receipt at
+  `LV2rmwEA0w4&t=3811s`, 28 days after the June 25 forecast. It remains
+  `OPEN` because a scheduled July 31 commentary is not verified delivery.
+- Public excerpts are bounded to at most sixteen normalized automatic-caption
+  words. Speaker stays null, origin is not inferred, visual context stays
+  unverified, no media is copied, and playback never autoplays.
+- Adversarial validation rejects hidden truth language in titles, labels, and
+  provenance; duplicate pair inflation; coerced coordinates; ungrounded cue
+  terms; free-form window-cue or unregistered-subject injection; invented
+  lanes and subject types; source-audio or visual shortcuts; missing
+  speaker-continuity blocks; oversized exports; caption-set drift; recursive
+  prototype-sensitive keys; and forged ChannelPacks.
+- Docket titles are deterministic combinations of the primary registered
+  non-topic subject plus ChannelPack-owned forecast and response labels. The
+  compiled pack now binds the exact entity registry and longitudinal
+  vocabulary accepted by the engine.
+- Expanding that registered entity ontology also updates the current derived
+  Correction Ripple registry to **1,381 records**. Across the same 95 Trust
+  packets, the current aggregates are **921 exact-receipt** and **2,480
+  same-source-only** dependencies; the historical V5.5 snapshot remains
+  recorded under its original counts.
+- The public artifact is **17,626 bytes** with structural fingerprint
+  `fnv1a32:d4ca362e`, caption-set binding
+  `sha256:65741e59ab66c04254f9c40a5051308a8bb1cf6b121078737ba5b81f1b25d5fc`,
+  and ChannelPack `cp1-f9ad38be22481b5d`. These are change detectors and input
+  bindings, not signatures, source authentication, or verdict authority.
+- The five lazy feature assets total **160,410 source bytes** and remain off
+  the eager application path.
+
 ## 0.5.12 — V5.12 Archive Deep Batch 04 — 2026-07-24
 
 ### Added

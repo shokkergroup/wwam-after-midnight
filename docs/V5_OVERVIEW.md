@@ -1,4 +1,4 @@
-# WWAM After Midnight V5.12
+# WWAM After Midnight V5.13
 
 ## One-sentence product
 
@@ -15,8 +15,9 @@ masquerading as timestamped utterances.
 
 ## Audited snapshot
 
-V5.12 keeps a frozen release proof and a current Archive Deep overlay visibly
-separate. The **immutable V5.4 proof** remains:
+V5.13 keeps a frozen release proof, the V5.12 Archive Deep overlay, and the
+new longitudinal docket visibly separate. The **immutable V5.4 proof**
+remains:
 
 | Source lane | Coverage |
 | --- | ---: |
@@ -34,8 +35,8 @@ separate. The **immutable V5.4 proof** remains:
 The Popular 25 ranking is a time-stamped view-count snapshot, not a permanent
 popularity claim.
 
-The **current V5.12 Archive Deep Portfolio overlay** is additive quarantine
-inventory, not a retroactive rewrite of that proof:
+The **Archive Deep Portfolio overlay introduced in V5.12** is additive
+quarantine inventory, not a retroactive rewrite of that proof:
 
 | Archive Deep Portfolio measurement | Current overlay |
 | --- | ---: |
@@ -89,6 +90,66 @@ The combined portfolio fingerprint is `fnv1a32:14050c7a`. Batch 01, 02, 03,
 and 04 retain `fnv1a32:17045a51`, `fnv1a32:bcea5692`,
 `fnv1a32:f79f2399`, and `fnv1a32:56ca74df`, respectively. These FNV values
 detect structural change; they do not authenticate the sources or an operator.
+
+## The Tape Keeps Score
+
+V5.13 adds a demand-loaded longitudinal review workbench inside the existing
+Memory OS. One earlier forecast-shaped automatic-caption receipt and one later
+response-shaped receipt can share a docket only under `MAY_RESOLVE`. The
+machine may publish `MAY_SUPPORT`, `MAY_BE_MIXED`, or `OPEN` as a subordinate
+retrieval signal; it may not publish a verdict.
+
+The frozen July 23 snapshot contains:
+
+| Longitudinal measurement | V5.13 launch ledger |
+| --- | ---: |
+| Typed before/after dockets | 4 |
+| Distinct official sources | 8 |
+| Grounded browsable subjects | 8 |
+| Short timestamped receipts | 9 |
+| `MAY_SUPPORT` / `MAY_BE_MIXED` / `OPEN` | 1 / 1 / 2 |
+| Public verdicts | 0 |
+| Public artifact bytes | 17,626 |
+
+The four deterministic public titles are **Halloween // BEFORE TAPE → AFTER
+TAPE** (`OPEN`), **Scream VI // BEFORE TAPE → AFTER TAPE** (`MAY_SUPPORT`),
+**Halloween Ends // BEFORE TAPE → AFTER TAPE** (`MAY_BE_MIXED`), and **Scream
+7 // BEFORE TAPE → AFTER TAPE** (`OPEN`). Every case remains
+`machine-paired-unreviewed`, keeps `verdict: null`, and forbids promotion.
+
+The hardened anger/death case deliberately drops unsupported Karen and
+Halloween Kills subject bindings. The Halloween Ends before tape moves from
+mixed trailer-reaction audio to the caption-safe July 28 Q&A at
+`ETuRUYiQEBM&t=8507s`; its closing negative local response at
+`I6QKteG_hK0&t=6817s`, immediately adjacent positive counterweight at
+`I6QKteG_hK0&t=6823s`, and 82-day chronology remain together. The Scream 7
+case now uses the July 23 plan-continuation receipt at
+`LV2rmwEA0w4&t=3811s`, 28 days after its June 25 forecast, but remains `OPEN`
+because scheduling is not delivery. None of these changes is a verdict.
+
+Ask prediction/outcome questions now return a typed longitudinal handoff.
+Exact supported subjects open the scoped docket, while unknown IDs fail closed
+instead of falling back to a plausible substitute. Speaker, source-audio, and
+visual firewalls take precedence. From the docket, a visitor can open every
+official source second, inspect the full basis and blockers, build a
+source-linked 30-, 60-, or 90-second edit brief, or download one reverified
+review packet.
+
+No output contains copied media or a full caption payload. Public excerpts are
+limited to sixteen normalized automatic-caption words. Speaker stays null,
+origin is not inferred, visual context stays unverified, autoplay is false,
+and rights clearance is not claimed. The artifact is bound to ChannelPack
+`cp1-f9ad38be22481b5d`, caption set
+`sha256:65741e59ab66c04254f9c40a5051308a8bb1cf6b121078737ba5b81f1b25d5fc`,
+and structural fingerprint `fnv1a32:d4ca362e`.
+
+The engine is channel-neutral and requires the
+`longitudinal-claim-ledger` ChannelPack capability. WWAM supplies the subject
+ontology, source lanes, evidence, and voice; a neutral racing fixture proves
+that the core engine does not require WWAM identity. The data, engine, UI,
+adapter, and stylesheet total 160,410 source bytes and remain outside the
+eager application path. See
+[The Tape Keeps Score](LONGITUDINAL_DOCKET.md).
 
 ## Archive Deep Batch 04
 
@@ -322,6 +383,10 @@ The archive becomes navigable memory:
   19 constellations, and 51 indexed lineages.
 - Take Time Machine and WWAM Court expose chronological signals and competing
   receipts without silently turning an inference into canon.
+- The Tape Keeps Score binds typed subjects to earlier and later exact-source
+  receipts, preserves contradictory evidence, and routes prediction/outcome
+  questions from Ask into a bounded review docket. Its machine signal remains
+  subordinate to the receipts and never renders a public verdict.
 - Archive Atlas browses 472 cached feed records by year, month, title metadata,
   and evidence depth: 74 deeply indexed, 390 metadata-only, 8
   caption-limited, and 0 classified unavailable in the cached snapshot;
@@ -453,6 +518,8 @@ not silently absorb any Archive Deep batch:
 - 95 open review candidates with deterministic V2 correction packets and
   dry-run dependency ripples: 90 complete, five stopped closed on unresolved
   evidence;
+- 1,381 registered Correction Ripple records, producing 921 exact-receipt and
+  2,480 same-source-only dependencies across those packet-level dry runs;
 - 457 locally routable Human Review findings when the 362 Canon excerpt
   warnings are included;
 - 25 curated character-performance receipts;
@@ -507,6 +574,7 @@ consistently shortened at render time.
 | Local, bounded taste calibration | Authenticated creator identity or shared preference profiles |
 | Local, bounded fresh-tape parsing and verifiable quarantine export | Trusted feed ingestion, authenticated review, and promotion into production ledgers |
 | Machine and timestamp-validated human-curated candidate labels | Any authenticated editor-verified or creator-certified receipts; clip-level diarization |
+| Machine-paired before/after review packets and source-linked edit briefs | Authenticated adjudication, speaker continuity, independent outcome review, or rights clearance |
 | Candidate edit plans | Human final cuts, rights, and platform review |
 | Current source snapshot | Scheduled ingest and monitoring |
 | Commercial surface concepts | Pricing, conversion, sponsor, and revenue data |
@@ -522,7 +590,7 @@ they become seasons, races, drivers, lead changes, close finishes, booth
 intensity, and recurring broadcast moments. The system is portable; the
 personality and proof are not generic.
 
-Six V5.9 patterns make that portability executable:
+The reusable patterns now include:
 
 - **Synchronized evidence:** a source adapter supplies official playback,
   exact receipt markers, derived heat windows, entity annotations, and
@@ -546,3 +614,7 @@ Six V5.9 patterns make that portability executable:
   device-local proposal with optional replacement coordinates and expected
   wording. Feedback remains evaluation material until an authorized human
   reviews it; it cannot silently rewrite retrieval or Canon.
+- **Longitudinal review:** a ChannelPack subject ontology binds earlier and
+  later exact-source receipts under a `MAY_RESOLVE` relationship. Machine
+  signals remain subordinate, contradictions stay visible, and only an
+  authorized human can adjudicate a public conclusion.

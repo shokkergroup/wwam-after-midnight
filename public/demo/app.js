@@ -45,7 +45,7 @@
     soundSource: "commentary", activeSoundbyte: null, liveTopic: "ALL TOPICS",
     popularQuery: "", popularTopic: "ALL TOPICS", character: "",
     characterContext: null, lastCharacterRiff: "", evidenceBag: loadEvidenceBag(),
-    bagOpen: false, memoryTab: "time", memoryEntity: "Halloween",
+    bagOpen: false, memoryTab: "time", memoryEntity: "Halloween", longitudinalSubject: "",
     battleA: "franchise:Halloween", battleB: "franchise:Friday the 13th",
     loreQuery: "", loreKind: "character", loreSelected: "character:loomis",
     triviaDifficulty: "mixed", triviaLength: 5, triviaFranchise: "", triviaSeed: 0,
@@ -513,6 +513,8 @@
   function createCreatorEngines() {
     if (!window.WWAMTrustEngine) return loadDemoScript("correction-ripple-engine.js")
       .then(function () { return loadDemoScript("trust-engine.js"); }).then(createCreatorEngines);
+    if (!window.WWAMCreatorPilotBuilder)
+      return loadDemoScript("pilot-builder-engine.js").then(createCreatorEngines);
     clipLabEngine = window.WWAMCreatorClipLab && window.WWAMCreatorClipLab.create && showcaseEngine ?
       attempt(function () { return window.WWAMCreatorClipLab.create({ showcase: showcaseEngine }); },
         "creator clip lab initialization") : null;
@@ -552,49 +554,8 @@
     "Scream": "#ff397f",
     "A Nightmare on Elm Street": "#55e5ff",
   };
-  var categoryCopy = {
-    "OUT OF POCKET": "Subpoena fuel.",
-    "FRANCHISE FELONY": "Reputation murder.",
-    "LOVE LETTER": "Knife-wielding affection.",
-    "THEORY BOARD": "Context pending.",
-    "KILL ROOM": "Bodies.",
-    "BIT ENERGY": "Graveyard callback.",
-    "BREAKDOWN": "Integrity: zero.",
-    "HORROR BRAIN": "Horror cortex driving.",
-    "UP IN YA": "Unsupervised sentence.",
-    "THE ROOM BREAKS": "Laughter wins.",
-    "CHARACTER CALLBACK": "Character compounds.",
-    "FULL SEND": "Bit fully committed.",
-    "TAKE GETS NUCLEAR": "Opinion reactor breach.",
-    "CHAT DID THIS": "Audience-made chaos.",
-  };
-  var tourSlides = [
-    { number: "01", eyebrow: "THE PROBLEM", title: "THOUSANDS OF HOURS.<br>NO MEMORY LAYER.",
-      body: "YouTube remembers titles—not the bits or exact seconds worth reviving.",
-      proof: "THE BACK CATALOG IS BURIED.",
-      action: { kind: "night", label: "RUN TONIGHT'S SOURCE-GROUNDED SHIFT" } },
-    { number: "02", eyebrow: "THE RECEIPT", title: "2,175,344 WORDS.<br>84 SOURCES. PROVE IT.",
-      body: "Audited: 39 commentaries + Fresh 10 + Popular 25 + Batch 01.",
-      proof: "84 INPUTS = 74 PROMOTED + 10 ARCHIVE DEEP QUARANTINE. 872 RECEIPTS + 42 REVIEW CANDIDATES.",
-      action: { kind: "ask", label: "ASK FOR THE MOST-VIEWED LIVE", query: "What is the most-viewed foundational livestream?" } },
-    { number: "03", eyebrow: "THE MAP", title: "472 STREAMS.<br>EVERY BLIND SPOT VISIBLE.",
-      body: "The feed maps depth and blind spots.",
-      proof: "1,197 CACHED HOURS. GAPS VISIBLE.",
-      action: { kind: "archive", label: "OPEN THE ARCHIVE ATLAS" } },
-    { number: "04", eyebrow: "THE MOAT", title: "THE CHANNEL<br>REMEMBERS ITSELF.",
-      body: "Time Machines track takes; Ancestry tracks bits.",
-      proof: "CONNECTED MEMORY. NO SELF-CERTIFYING.",
-      action: { kind: "lore", label: "OPEN THE LOOMIS CONSTELLATION", entry: "character:loomis" } },
-    { number: "05", eyebrow: "THE MONEY", title: "MEMORY CREATES<br>NEW INVENTORY.",
-      body: "One ledger yields Shorts, supercuts, and cold opens.",
-      proof: "MEMORY → EDIT PLAN → LEDGER → CREATOR DECISION.",
-      action: { kind: "clip", mode: "cold-open", duration: 30,
-        label: "BUILD A 30-SECOND LOOMIS COLD OPEN", query: "Dr. Loomis" } },
-    { number: "06", eyebrow: "THE PILOT", title: "DON'T BUY THE DREAM.<br>TEST THE MACHINE.",
-      body: "Choose a job, six receipts, and a stop.",
-      proof: "ONE PILOT. VISIBLE INPUTS.",
-      action: { kind: "pilot", label: "BUILD THE ARCHIVE-DISCOVERY PILOT", goal: "archive-discovery" } },
-  ];
+  var categoryCopy = curated.categoryCopy || {};
+  var tourSlides = window.WWAM_PITCH_TOUR || [];
 
   function esc(value) {
     return String(value == null ? "" : value).replace(/[&<>"']/g, function (char) {
@@ -1212,10 +1173,12 @@
   function cueSoundbyte(item) {
     state.activeSoundbyte = item;
     document.getElementById("soundPlayer").innerHTML =
-      '<div class="sound-video"><iframe src="https://www.youtube.com/embed/' + encodeURIComponent(item.id) +
-      '?autoplay=1&rel=0&start=' + Math.max(0, Math.round(item.t)) +
-      '&end=' + Math.max(1, Math.round(item.t) + 14) +
-      '" title="WWAM source soundbyte" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>' +
+      '<div class="sound-video">' + window.ShokkerYouTubePlayback.iframe(item.id, {
+        autoplay: true,
+        start: item.t,
+        end: Number(item.t) + 14,
+        title: "WWAM source soundbyte"
+      }) + '</div>' +
       '<div class="sound-now"><span>NOW VIOLATING THE SILENCE // ' +
       esc(displayUiText(item.category)) + '</span><h3>' +
       esc(displayUiText(item.label)) + '</h3><blockquote>“' + esc(displayQuote(item.quote)) + '”</blockquote><p>' +
@@ -1974,9 +1937,12 @@
   function loadPlayer(id, at, end) {
     var player = document.getElementById("modalPlayer");
     if (!player) return;
-    player.innerHTML = '<iframe src="https://www.youtube.com/embed/' + encodeURIComponent(id) + '?autoplay=1&rel=0&start=' +
-      Math.max(0, Math.round(at || 0)) + (Number(end || 0) > Number(at || 0) ? '&end=' + Math.round(end) : '') +
-      '" title="WWAM commentary source playback" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>';
+    player.innerHTML = window.ShokkerYouTubePlayback.iframe(id, {
+      autoplay: true,
+      start: at,
+      end: end,
+      title: "WWAM commentary source playback"
+    });
     player.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
@@ -2207,6 +2173,8 @@
     };
     state.lastAskQuery = query;
     state.lastAskAnalysis = analysis;
+    state.longitudinalSubject = analysis.longitudinalHandoff &&
+      analysis.longitudinalHandoff.subjectId || "";
     if (archiveFallback) {
       statusNode.textContent =
         "TITLE-METADATA DISCOVERY // REQUESTED ORDER APPLIED // NO CONTENT CLAIM";
@@ -2226,8 +2194,11 @@
       return;
     }
     var collectionStatus = askCollectionStatus(analysis);
+    var isLongitudinalHandoff = analysis.status === "longitudinal-handoff";
     var isSurfaceHandoff = analysis.status === "surface-handoff";
+    var isAnyHandoff = isLongitudinalHandoff || isSurfaceHandoff;
     statusNode.textContent =
+      isLongitudinalHandoff ? "PREDICTION HANDOFF // OPEN THE TAPE KEEPS SCORE" :
       isSurfaceHandoff ? "GLOBAL RANKING HANDOFF // OPEN THE SOURCE RANKING" :
       analysis.status === "out-of-range" ?
         "RED BAND 100 // RANK OUT OF RANGE // NO SILENT CLAMPING" :
@@ -2252,10 +2223,11 @@
         '<a href="' + esc(analysis.recommendedSurface.href === "#canon-desk" ? "#canon" : analysis.recommendedSurface.href) +
         '"><b>' + esc(displayUiText(analysis.recommendedSurface.label)) + ' →</b><span>' +
         esc(displayUiText(analysis.recommendedSurface.reason)) + '</span></a>' : "") + '</section>';
-    var noMatchHeadline = isSurfaceHandoff ? "GLOBAL RANKING HANDOFF" :
+    var noMatchHeadline = isLongitudinalHandoff ? "THE TAPE KEEPS SCORE" :
+      isSurfaceHandoff ? "GLOBAL RANKING HANDOFF" :
       analysis.status === "out-of-range" ? "THAT RANK DOES NOT EXIST." :
         "THE ARCHIVE REFUSED TO MAKE SOMETHING UP.";
-    var noMatchBody = isSurfaceHandoff ? analysis.answer : analysis.status === "out-of-range" ?
+    var noMatchBody = isAnyHandoff ? analysis.answer : analysis.status === "out-of-range" ?
       "Choose #001 through #100; the engine will not swap your request for a different rank." :
       "No confident match in the current source scope.";
     resultsNode.innerHTML =
@@ -2307,7 +2279,7 @@
           bagButton(Object.assign({}, result, { excerpt: excerpt }), "BAG IT") +
           '</footer></article>';
       }).join("") : '<div class="ask-no-match"><b>' + noMatchHeadline + '</b><p>' + noMatchBody + '</p>' +
-        (isSurfaceHandoff ? [] : analysis.suggestions || []).map(function (suggestion) {
+        (isAnyHandoff ? [] : analysis.suggestions || []).map(function (suggestion) {
           return '<button data-ask-suggestion="' + esc(suggestion) + '">' +
             esc(displayUiText(suggestion)) + '</button>';
         }).join("") + '</div>');
@@ -2333,6 +2305,11 @@
         copy(askShareUrl(state.lastAskQuery), "ANSWER LINK COPIED");
       };
     }
+    var scoreLink = document.querySelector('#askResults a[href="#tape-keeps-score"]');
+    if (scoreLink) scoreLink.onclick = function () {
+      state.memoryTab = "score";
+      renderMemory();
+    };
     syncBagButtons();
   }
 
@@ -2731,12 +2708,25 @@
   }
 
   function renderMemory() {
+    if (window.WWAMLongitudinalDocketDemo) window.WWAMLongitudinalDocketDemo.destroy();
     var content = state.memoryTab === "time" ? renderTimeMachine() :
       state.memoryTab === "bits" ? renderBitAncestry() :
       state.memoryTab === "chemistry" ? renderChemistry() :
       state.memoryTab === "court" ? renderCourt() :
-      state.memoryTab === "battle" ? renderBattle() : renderDescent();
-    document.getElementById("memoryStage").innerHTML = content;
+      state.memoryTab === "battle" ? renderBattle() :
+      state.memoryTab === "score" ? "" : renderDescent();
+    var memoryStage = document.getElementById("memoryStage");
+    memoryStage.innerHTML = content;
+    if (state.memoryTab === "score") {
+      if (!window.WWAMLongitudinalDocketDemo || !attempt(function () {
+        return window.WWAMLongitudinalDocketDemo.mount(
+          memoryStage, channelDNA, state.longitudinalSubject
+        );
+      }, "longitudinal docket initialization")) {
+        memoryStage.innerHTML =
+          '<p class="memory-empty">OPENING FOUR BEFORE / AFTER TAPE CASESâ€¦</p>';
+      }
+    }
     document.getElementById("memoryProof").innerHTML = [
       [showcaseMetric("nodes", 0), "PROMOTED NODES"],
       [showcaseMetric("edges", 0), "SOURCE-BACKED EDGES"],
@@ -4460,6 +4450,13 @@
   }
 
   function openTour() {
+    if (!tourSlides.length) {
+      loadDemoScript("pitch-tour-data.js").then(function () {
+        tourSlides = window.WWAM_PITCH_TOUR || [];
+        openTour();
+      }).catch(function () { showToast("MIKE MODE COULD NOT LOAD"); });
+      return;
+    }
     rememberDialogFocus();
     state.tourSlide = 0;
     renderTour();
@@ -4668,8 +4665,19 @@
     Array.prototype.forEach.call(document.querySelectorAll("[data-memory-tab]"), function (button) {
       button.onclick = function () {
         state.memoryTab = button.getAttribute("data-memory-tab");
+        if (state.memoryTab === "score")
+          history.replaceState(null, "", location.pathname + location.search + "#tape-keeps-score");
+        else if (location.hash === "#tape-keeps-score")
+          history.replaceState(null, "", location.pathname + location.search + "#memory");
         renderMemory();
       };
+    });
+    document.getElementById("memory").addEventListener("wwam:feature-ready", function () {
+      if (state.memoryTab === "score") renderMemory();
+    });
+    addEventListener("hashchange", function () {
+      if (location.hash !== "#tape-keeps-score") return;
+      document.getElementById("tape-keeps-score").click();
     });
     document.getElementById("vaultSearch").oninput = function (event) {
       state.vaultQuery = event.target.value;
@@ -4755,6 +4763,8 @@
       setTimeout(function () {
         document.getElementById("night-shift").scrollIntoView();
       }, 50);
+    } else if (location.hash === "#tape-keeps-score") {
+      setTimeout(function () { document.getElementById("tape-keeps-score").click(); }, 50);
     } else if (location.hash === "#pitch") {
       setTimeout(openTour, 50);
     }

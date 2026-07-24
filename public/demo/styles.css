@@ -1213,7 +1213,7 @@ img { display: block; max-width: 100%; }
 .memory-proof > div:last-child { border-right: 0; }
 .memory-proof b { display: block; color: var(--cyan); font: 34px var(--display); }
 .memory-proof span { color: #6f858a; font: 9px var(--mono); }
-.memory-tabs { display: grid; grid-template-columns: repeat(6, 1fr); margin-top: 8px; border: 1px solid #27444a; }
+.memory-tabs { display: grid; grid-template-columns: repeat(7, 1fr); margin-top: 8px; border: 1px solid #27444a; }
 .memory-tabs button { padding: 13px 8px; border: 0; border-right: 1px solid #27444a; background: #081013; color: #70858a; font: 700 10px var(--mono); cursor: pointer; }
 .memory-tabs button:last-child { border-right: 0; }
 .memory-tabs button.on { background: var(--cyan); color: #071014; }
