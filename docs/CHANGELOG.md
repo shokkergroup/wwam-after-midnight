@@ -3,6 +3,48 @@
 This changelog records product and evidence-contract changes. It does not by
 itself indicate that a build has been deployed.
 
+## 0.5.9 — V5.9 Archive Time Capsules — 2026-07-24
+
+### Added
+
+- **The Years Have Teeth** opens every cached Atlas year from 2018 through
+  2026 as a deterministic Archive Time Capsule.
+- **The Marquee** reconciles exact cached-feed record counts, runtime, cached
+  views, coverage, and leading uploads without assigning content knowledge to
+  metadata-only records.
+- **What the Tapes Remember** separately counts and samples promoted-corpus
+  sources and timestamped receipts dated to the selected year.
+- **The Quarantine Drawer** separately counts Archive Deep sources,
+  caption-derived topic lanes, and machine candidates. Its candidates remain
+  non-promotable and speaker-undiarized.
+- **Play the Year** assembles up to five official YouTube timestamp stops with
+  no autoplay. Copy and download controls produce reproducible, bounded
+  evidence manifests rather than transcript exports.
+- The capsule engine is channel-neutral. WWAM personality is supplied through
+  a presentation-label adapter so the three-ledger pattern can be reused for
+  other YouTube channels and racing seasons.
+
+### Accuracy and authority boundaries
+
+- The 2019 capsule preserves two non-overlapping ledgers: **21 metadata-only
+  cached Streams-feed records** and **12 separately indexed commentary sources
+  with 96 timestamped promoted receipts**.
+- Lore's twelve zero-second 2019 archive-source openings are inventory entry
+  points, not additional spoken moments.
+- The 2024 and 2025 promoted-memory ledgers are honestly empty. Their **19**
+  and **68** playable Archive Deep candidates remain visibly quarantined.
+- Cached views are snapshot observations, not current totals or unique
+  audience. Atlas counts cover the cached Streams feed, not every upload ever
+  published by the channel.
+- Metadata-only sources never receive inferred topics, quotes, sentiment, or
+  descriptions. Quarantine items never receive promotion, canon, speaker,
+  performer, true-origin, or visual-context claims.
+- Capsule fingerprints are deterministic structural change detectors, not
+  signatures or proof of authenticity, ownership, authorship, review, rights,
+  or creator approval.
+- Capsule exports omit raw transcripts, caption payloads, and full event
+  ledgers and fail closed when their bounded evidence packet is altered.
+
 ## 0.5.8 — V5.8 three-batch evidence depth and Ask review — 2026-07-24
 
 ### Added

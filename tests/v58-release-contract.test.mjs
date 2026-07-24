@@ -20,10 +20,10 @@ const reviewUi = read("public/demo/ask-review-ui.js");
 const html = read("public/demo/index.html");
 const batch3 = read("public/demo/archive-deep-batch3.js");
 
-test("V5.8 release identity stays synchronized", () => {
-  assert.equal(packageJson.version, "0.5.8");
-  assert.equal(packageLock.version, "0.5.8");
-  assert.equal(packageLock.packages[""].version, "0.5.8");
+test("release identity stays synchronized after the V5.8 evidence pass", () => {
+  assert.equal(packageJson.version, "0.5.9");
+  assert.equal(packageLock.version, "0.5.9");
+  assert.equal(packageLock.packages[""].version, "0.5.9");
   for (const document of [readme, overview, changelog, runbook]) {
     assert.match(document, /V5\.8/i);
   }

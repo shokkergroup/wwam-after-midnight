@@ -11,7 +11,7 @@ three things quickly:
 
 ## Before the call
 
-- Open the current V5.8 build or its confirmed deployment and choose either
+- Open the current V5.9 build or its confirmed deployment and choose either
   content-advisory mode.
 - Confirm YouTube playback is available in the browser.
 - Start at the hero, not halfway down the page.
@@ -70,17 +70,17 @@ evidence is stronger than a complete slideshow.
 
 ## The under-five-minute version
 
-The core route is designed for 4:15, leaving 45 seconds for load time or one
+The core route is designed for 4:20, leaving 40 seconds for load time or one
 question. Do not add optional features until the close.
 
 | Elapsed | Surface | One proof to show |
 | --- | --- | --- |
 | 0:00–0:30 | Night Shift | A daily route connects newest source, archive callback, choice, and payoff |
-| 0:30–0:55 | Archive Atlas | The whole-feed map shows all three Archive Deep batches, 13.6% coverage, and the next-distill queue |
-| 0:55–1:55 | Ask + Lore | Source metadata, a source-level answer, and a timestamped receipt stay visibly distinct |
-| 1:55–3:15 | Clip Lab | Evidence becomes a reviewable Short and an exact campaign ledger |
-| 3:15–3:55 | Trust Desk | Character mapping is separated from clip-level speaker proof |
-| 3:55–4:15 | Close | Ask which workflow deserves a production pilot |
+| 0:30–1:05 | Archive Atlas + Time Capsule | The whole-feed map becomes an honest, playable 2019 capsule without merging its two source ledgers |
+| 1:05–2:05 | Ask + Lore | Source metadata, a source-level answer, and a timestamped receipt stay visibly distinct |
+| 2:05–3:20 | Clip Lab | Evidence becomes a reviewable Short and an exact campaign ledger |
+| 3:20–4:00 | Trust Desk | Character mapping is separated from clip-level speaker proof |
+| 4:00–4:20 | Close | Ask which workflow deserves a production pilot |
 
 ### 1. Fan Experience — 30 seconds
 
@@ -106,6 +106,11 @@ What it proves:
 
 Return to the hero and choose **Follow the Lore**.
 
+- Open **Time Capsules**, choose **2019**, and point to the two separate
+  ledgers: 21 metadata-only cached feed records versus 12 separately indexed
+  commentary sources and 96 promoted timestamped receipts.
+- Open one stop from **Play the Year**. It must jump to an official source
+  second and must not autoplay.
 - Search Lore Galaxy for **Loomis**, open the dossier, and open one receipt.
 
 - Use the top navigation to open Ask WWAM and ask:

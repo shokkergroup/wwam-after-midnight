@@ -7,12 +7,12 @@ character archaeology, topic paths, and creator-side editorial opportunities.
 This is an unofficial fan prototype. It sends playback and source traffic back
 to the official WWAM uploads.
 
-Current documented release: **V5.8 / 0.5.8**.
+Current documented release: **V5.9 / 0.5.9**.
 
-## V5.8 current Archive Deep overlay
+## V5.9 current Archive Deep overlay
 
-V5.8 composes three independently fingerprinted Archive Deep batches into one
-read-only portfolio:
+V5.9 retains the three independently fingerprinted Archive Deep batches from
+V5.8 as one read-only portfolio:
 
 - 30 caption-audited sources;
 - 77.2 audited hours, 957,430 words, and 136,539 parsed caption events;
@@ -48,7 +48,7 @@ All 30 Archive Deep sources are excluded from the next metadata-only queue.
 
 ## Immutable V5.4 proof — preserved release snapshot
 
-The following values are the frozen V5.4 proof, not the current V5.8 overlay:
+The following values are the frozen V5.4 proof, not the current V5.9 overlay:
 **84 inputs, 2,175,344 audited words, 194.9 caption-audited hours, 872 promoted
 receipts, 42 then-quarantined Batch 01 candidates, and 168 promoted core memory
 nodes**. The current thirty-source portfolio does not retroactively change
@@ -93,7 +93,32 @@ The Lore Galaxy exposes 953 labeled graph receipt links. That broader count
 includes source entry points and context records; the 872 count is the
 editorial-moment inventory.
 
-## V5.8 product map
+## V5.9 Archive Time Capsules
+
+**The Years Have Teeth** opens any Atlas year from 2018 through 2026 as a
+playable capsule while keeping three evidence ledgers visibly separate:
+
+- **The Marquee** reports only cached Streams-feed metadata: record count,
+  known runtime, cached views, coverage, and leading uploads at snapshot time.
+- **What the Tapes Remember** reports separately indexed promoted-corpus
+  sources and exact timestamped receipts from that year.
+- **The Quarantine Drawer** reports Archive Deep sources, caption-derived
+  topic lanes, and non-promotable machine candidates from that year.
+
+The distinction is measurable. The 2019 cached feed contains 21 metadata-only
+records, while the separate promoted commentary corpus contains 12 sources and
+96 timestamped receipts. The capsule displays both facts without pretending
+the twelve commentary sources belong to the cached feed slice. In 2024 and
+2025, promoted memory is honestly empty while the quarantine drawer contains
+5 sources / 19 candidates and 14 sources / 68 candidates, respectively.
+
+Every capsule can assemble a deterministic five-stop route using official
+YouTube timestamps, copy a reproducible capsule link, and export a bounded
+manifest. Quarantined stops remain marked `promotionAllowed: false` with no
+speaker claim. The export omits transcripts, caption payloads, and full event
+ledgers. See [Archive Time Capsules](docs/ARCHIVE_TIME_CAPSULES.md).
+
+## V5.9 product map
 
 The hero offers three deliberate entry points:
 
@@ -101,9 +126,9 @@ The hero offers three deliberate entry points:
   Trivia, Tape Companion's synchronized second screen, the Evidence Bag, the
   100-rank Red Band Memorability Candidate Index V2.1, WWAM UP IN YA, and
   playable descent paths.
-- **Deep Dive:** Ask WWAM, Lore Galaxy, Take Time Machine, Bit Ancestry, Riff
-  Chemistry, WWAM Court, franchise labs, autopsies, Fresh 10, Popular 25, and
-  the whole-feed Archive Atlas.
+- **Deep Dive:** Ask WWAM, Lore Galaxy, Take Time Machine, year-sized Archive
+  Time Capsules, Bit Ancestry, Riff Chemistry, WWAM Court, franchise labs,
+  autopsies, Fresh 10, Popular 25, and the whole-feed Archive Atlas.
 - **Creator Proof:** Clip Lab edit briefs, exact-runtime Cold Open Factory
   boards, supercut spines, then/now resurfacing, Live Aftermath, Control Room,
   the Trust / Canon Desk, the local Creator Taste Calibration, Fresh Tape
@@ -341,7 +366,8 @@ artifacts contain derived measurements and short, timestamped fragments only.
 
 ## Documentation
 
-- [V5.8 product overview](docs/V5_OVERVIEW.md)
+- [V5.9 product overview](docs/V5_OVERVIEW.md)
+- [Archive Time Capsules](docs/ARCHIVE_TIME_CAPSULES.md)
 - [Creator demo runbook](docs/CREATOR_DEMO_RUNBOOK.md)
 - [Product changelog](docs/CHANGELOG.md)
 - [Reusable YouTube Wiki Memory OS](docs/YOUTUBE_WIKI_MEMORY_OS.md)

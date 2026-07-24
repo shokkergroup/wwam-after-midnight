@@ -1,4 +1,4 @@
-# WWAM After Midnight V5.8
+# WWAM After Midnight V5.9
 
 ## One-sentence product
 
@@ -15,7 +15,7 @@ masquerading as timestamped utterances.
 
 ## Audited snapshot
 
-V5.8 keeps a frozen release proof and a current Archive Deep overlay visibly
+V5.9 keeps a frozen release proof and a current Archive Deep overlay visibly
 separate. The **immutable V5.4 proof** remains:
 
 | Source lane | Coverage |
@@ -34,7 +34,7 @@ separate. The **immutable V5.4 proof** remains:
 The Popular 25 ranking is a time-stamped view-count snapshot, not a permanent
 popularity claim.
 
-The **current V5.8 Archive Deep Portfolio overlay** is additive quarantine
+The **current V5.9 Archive Deep Portfolio overlay**, retained from V5.8, is additive quarantine
 inventory, not a retroactive rewrite of that proof:
 
 | Archive Deep Portfolio measurement | Current overlay |
@@ -88,6 +88,42 @@ The combined portfolio fingerprint is `fnv1a32:8e474ea8`. Batch 01, 02, and
 03 retain `fnv1a32:17045a51`, `fnv1a32:bcea5692`, and
 `fnv1a32:f79f2399`, respectively. These FNV values detect structural change;
 they do not authenticate the sources or an operator.
+
+## The Years Have Teeth
+
+Archive Time Capsules turn a selected Atlas year into a playable archive route
+without erasing the boundary between inventory and memory.
+
+Each capsule exposes three separately reconciled ledgers:
+
+| Capsule chamber | Evidence it may use | Evidence it may not invent |
+| --- | --- | --- |
+| The Marquee | Cached feed title, date, duration, cached views, thumbnail, source URL, and coverage | Topics, quotes, sentiment, jokes, or what happened inside a metadata-only upload |
+| What the Tapes Remember | Separately indexed promoted sources and bounded timestamped receipts dated to the year | A claim that those sources necessarily belong to the cached Streams-feed slice |
+| The Quarantine Drawer | Archive Deep source records, caption-derived topic lanes, and bounded machine candidates | Promotion, canon, speaker, performer, true-origin, or visual-context claims |
+
+The 2019 capsule is the release's two-ledger proof: the cached Streams-feed
+slice contains **21 metadata-only records**, while a separately bounded
+commentary corpus contains **12 indexed sources and 96 playable receipts**.
+Neither figure overwrites the other. Lore's twelve zero-second archive-source
+openings are inventory links and are not added to the 96 moment count.
+
+The 2025 capsule is the quarantine proof: **94 cached feed records, 222.4 known
+hours, 637,619 cached views, 14 deeply indexed feed records, 80 metadata-only
+feed records, 14 Archive Deep sources, and 68 quarantined candidates**. It has
+no promoted Showcase or Lore receipts in the checked-in corpus, so the
+interface says so.
+
+A deterministic **Play the Year** route contains at most five official
+YouTube timestamp stops. A 2024 or 2025 stop can come from Archive Deep only
+when it is explicitly marked quarantined and remains
+`promotionAllowed: false` with `speaker: null`. No route autoplays.
+
+The engine is channel-neutral; WWAM language is supplied through an optional
+label adapter. Its bounded share/export packet omits transcripts, caption
+payloads, and full event arrays. Identical inputs produce identical ordering
+and a deterministic structural fingerprint. Missing optional evidence layers
+degrade to an honest metadata capsule rather than synthetic memory.
 
 ## How to read the proof
 
@@ -385,7 +421,7 @@ they become seasons, races, drivers, lead changes, close finishes, booth
 intensity, and recurring broadcast moments. The system is portable; the
 personality and proof are not generic.
 
-Five V5.8 patterns make that portability executable:
+Six V5.9 patterns make that portability executable:
 
 - **Synchronized evidence:** a source adapter supplies official playback,
   exact receipt markers, derived heat windows, entity annotations, and

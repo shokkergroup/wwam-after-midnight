@@ -42,6 +42,7 @@
     <div class="nav-links">
       <a href="#companion">TAPE COMPANION</a>
       <a href="#archive">ARCHIVE ATLAS</a>
+      <a href="#time-capsules">TIME CAPSULES</a>
       <a href="#fresh-intake">DROP ZONE</a>
       <a href="#characters">CHARACTERS</a>
       <a href="#lore">LORE GALAXY</a>
@@ -324,6 +325,53 @@
           </div>
         </header>
         <div id="archiveQueue"></div>
+      </div>
+    </section>
+
+    <section class="era-capsule" id="time-capsules" aria-busy="true"
+      data-feature-styles="era-capsule.css"
+      data-feature-scripts="archive-deep-distill.js,archive-deep-batch2.js,archive-deep-batch3.js,archive-deep-engine.js,archive-deep-portfolio.js,archive-atlas-data.js,archive-atlas-engine.js,era-capsule-engine.js,era-capsule-ui.js">
+      <div class="era-capsule-film" aria-hidden="true"></div>
+      <header class="section-head">
+        <div>
+          <p class="kicker">YEAR-SIZED MEMORY // METADATA, INDEXED TAPE, AND QUARANTINE STAY SEPARATE</p>
+          <h2>THE YEARS<br><em>HAVE TEETH.</em></h2>
+        </div>
+        <p>Open one year of WWAM as a source-grounded time capsule: what the cached feed can prove existed, what the indexed tapes actually remember, what remains quarantined, and a five-stop route back through the official uploads.</p>
+      </header>
+
+      <form class="era-capsule-console" id="eraCapsuleForm">
+        <div>
+          <span>ARCHIVE TIME CAPSULE V1</span>
+          <h3>WHICH YEAR ARE WE DIGGING UP?</h3>
+          <p id="eraCapsuleHelp">Feed totals use the July 23, 2026 cached Streams-feed snapshot. Views are cached counts, not current totals or unique audience.</p>
+        </div>
+        <label for="eraCapsuleYear">
+          <span>SELECT A YEAR</span>
+          <select id="eraCapsuleYear" aria-describedby="eraCapsuleHelp" disabled>
+            <option>CALIBRATING...</option>
+          </select>
+        </label>
+        <button id="eraCapsuleBuild" type="submit" disabled>BREAK THE SEAL &rarr;</button>
+      </form>
+
+      <div class="era-capsule-boundary" aria-label="Time Capsule evidence boundary">
+        <span>CACHED FEED IS METADATA</span>
+        <span>INDEXED RECEIPTS ARE PLAYABLE</span>
+        <span>QUARANTINE CANNOT PROMOTE ITSELF</span>
+        <span>NO SPEAKER GUESSES</span>
+        <span>NO AUTOPLAY</span>
+      </div>
+
+      <p class="era-capsule-status" id="eraCapsuleStatus" role="status"
+        aria-live="polite" aria-atomic="true">RECONCILING THE YEARS WITHOUT INVENTING THE GAPS.</p>
+
+      <div class="era-capsule-stage" id="eraCapsuleStage">
+        <div class="era-capsule-loading">
+          <i aria-hidden="true"></i>
+          <b>THE ARCHIVE IS CHECKING BOTH LEDGERS...</b>
+          <span>UPLOAD METADATA IS NOT BEING MISTAKEN FOR TRANSCRIPT MEMORY.</span>
+        </div>
       </div>
     </section>
 
