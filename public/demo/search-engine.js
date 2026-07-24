@@ -25,6 +25,7 @@
     "latest": ["recent", "newest", "today"],
     "recent": ["latest", "newest", "today"],
     "live": ["livestream", "stream"],
+    "popular": ["most viewed", "biggest", "foundational", "top stream"],
   };
 
   var CATEGORY_INTENTS = {
@@ -63,7 +64,8 @@
   function parseIntent(query) {
     var q = normalize(query);
     var intent = "discovery";
-    if (includesAny(q, ["highest", "lowest", "most unhinged", "rank", "ranking"])) intent = "ranking";
+    if (includesAny(q, ["highest", "lowest", "most unhinged", "rank", "ranking", "most popular",
+      "most viewed", "most watched", "biggest stream", "top stream", "foundational"])) intent = "ranking";
     else if (includesAny(q, ["hate", "hated", "worst", "bad", "sucks", "trash", "garbage"])) intent = "negative";
     else if (includesAny(q, ["love", "loved", "best", "favorite", "amazing"])) intent = "positive";
     else if (includesAny(q, ["funny", "funniest", "laugh", "deranged", "wild", "crazy", "fucked", "soundbyte"])) intent = "comedy";
@@ -71,14 +73,17 @@
     else if (includesAny(q, ["kill", "death", "murder", "stab"])) intent = "kills";
     else if (includesAny(q, ["talk about", "discuss", "mention", "topic", "jump to", "say about", "said about", "think about", "what did they say"])) intent = "topic";
 
-    var source = includesAny(q, ["live", "livestream", "stream", "recent show", "newest show"]) ? "livestream" :
+    var source = includesAny(q, ["live", "livestream", "stream", "recent show", "newest show", "most viewed", "most watched", "foundational"]) ? "livestream" :
       includesAny(q, ["commentary", "watchalong", "tape"]) ? "commentary" : "all";
     var temporal = includesAny(q, ["latest", "newest", "most recent", "today", "last night"]) ? "latest" :
       q.indexOf("recent") >= 0 ? "recent" : "all";
+    var popularity = includesAny(q, ["popular", "most viewed", "most watched", "biggest stream", "top stream", "foundational"]) ?
+      "popular" : "all";
     return {
       name: intent,
       source: source,
       temporal: temporal,
+      popularity: popularity,
       refusesSpeakerGuess: q.indexOf("who ") === 0 || q.indexOf(" who ") >= 0,
       normalized: q,
       words: tokens(q),
@@ -207,6 +212,8 @@
         excerpt: stream.summary,
         url: stream.url,
         streamRank: streamIndex,
+        lane: stream._lane || "fresh",
+        views: stream.views || 0,
         stream: stream,
       });
       (stream.topics || []).forEach(function (topic) {
@@ -225,6 +232,8 @@
           mentions: topic.mentions,
           url: stream.url + "&t=" + topic.peak + "s",
           streamRank: streamIndex,
+          lane: stream._lane || "fresh",
+          views: stream.views || 0,
           stream: stream,
         });
       });
@@ -244,6 +253,8 @@
           heat: moment.heat,
           url: stream.url + "&t=" + moment.t + "s",
           streamRank: streamIndex,
+          lane: stream._lane || "fresh",
+          views: stream.views || 0,
           momentRank: momentIndex,
           stream: stream,
         });
@@ -259,7 +270,9 @@
       return candidate.franchise === entity.franchise ||
         normalize(candidate.title + " " + candidate.subtitle).indexOf(normalize(entity.label)) >= 0;
     }
-    return normalize(candidate.title) === normalize(entity.topic);
+    return normalize(candidate.title) === normalize(entity.topic) ||
+      (candidate.kind === "livestream" &&
+        normalize(candidate.title + " " + candidate.subtitle).indexOf(normalize(entity.topic)) >= 0);
   }
 
   function scoreCandidate(candidate, intent, entity, terms) {
@@ -305,6 +318,15 @@
       score += Math.max(0, 48 - (candidate.streamRank || 0) * 6);
       reasons.push("recent stream");
     }
+    if (intent.popularity === "popular") {
+      if (candidate.source === "livestream" && candidate.lane === "popular") {
+        score += 95 + Math.min(90, Math.sqrt(Math.max(0, candidate.views || 0)) / 5);
+        if (candidate.kind === "livestream") score += 32;
+        reasons.push("foundational popularity");
+      } else {
+        score -= 35;
+      }
+    }
 
     var desiredCategories = CATEGORY_INTENTS[intent.name] || [];
     if (desiredCategories.indexOf(candidate.category) >= 0) {
@@ -315,7 +337,7 @@
       score += 65;
       reasons.push("topic chapter");
     }
-    if (intent.name === "ranking" && candidate.kind === "tape") {
+    if (intent.name === "ranking" && candidate.kind === "tape" && intent.popularity !== "popular") {
       score += candidate.unhinged || 0;
       reasons.push("Unhinged Index");
     }
@@ -328,6 +350,10 @@
 
   function resultLabel(candidate) {
     if (candidate.source === "livestream") {
+      if (candidate.lane === "popular") {
+        return candidate.kind === "topic" ? "FOUNDATIONAL TOPIC JUMP" :
+          candidate.kind === "moment" ? "FOUNDATIONAL COMEDY HIT" : "POPULAR 25 MAP";
+      }
       return candidate.kind === "topic" ? "LIVE TOPIC JUMP" :
         candidate.kind === "moment" ? "LIVE COMEDY HIT" : "LIVESTREAM MAP";
     }
@@ -343,6 +369,11 @@
     var entityLabel = entity ? entity.label : top.title;
     if (intent.refusesSpeakerGuess) {
       return "The auto-captions do not identify speakers reliably, so I won't invent a name. The strongest source receipt is " + top.title + time + ".";
+    }
+    if (intent.popularity === "popular" && top.source === "livestream") {
+      return "Direct answer: " + (top.stream && top.stream.title ? top.stream.title : top.title) +
+        " is the strongest popularity match with " +
+        Number(top.views || 0).toLocaleString("en-US") + " official views in the captured Popular 25.";
     }
     if (intent.name === "ranking") {
       return "Direct answer: " + top.title + " is the strongest ranking match, with an Unhinged Index of " + (top.unhinged || "—") + ".";
@@ -378,13 +409,65 @@
     return (hours ? hours + ":" + String(minutes).padStart(2, "0") : minutes) + ":" + secs;
   }
 
-  function create(catalog, deep, live, curated) {
+  function combineLiveData(live, popular) {
+    var streams = (live.streams || []).map(function (stream) {
+      return Object.assign({}, stream, { _lane: "fresh" });
+    }).concat((popular.streams || []).map(function (stream) {
+      return Object.assign({}, stream, { _lane: "popular" });
+    }));
+    var grouped = {};
+    (live.topicIndex || []).concat(popular.topicIndex || []).forEach(function (topic) {
+      var key = normalize(topic.name);
+      var record = grouped[key] || { name: topic.name, mentions: 0, streams: [] };
+      record.mentions += topic.mentions || 0;
+      (topic.streams || []).forEach(function (stream) {
+        if (!record.streams.some(function (candidate) { return candidate.id === stream.id; })) record.streams.push(stream);
+      });
+      grouped[key] = record;
+    });
+    return { streams: streams, topicIndex: Object.keys(grouped).map(function (key) { return grouped[key]; }) };
+  }
+
+  function contextualEntity(previous, aliases, intent) {
+    if (!previous || !previous.entity) return null;
+    var shortFollowup = intent.words.length <= 7 ||
+      includesAny(intent.normalized, ["what about", "did that", "was that", "show another", "more like", "change", "later", "earlier"]);
+    if (!shortFollowup) return null;
+    return aliases.filter(function (definition) {
+      return normalize(definition.label) === normalize(previous.entity);
+    })[0] || null;
+  }
+
+  function evidenceChain(intent, entity, ranked) {
+    if (!ranked.length) return [];
+    var top = ranked[0];
+    var chain = [{ role: "PRIMARY RECEIPT", result: top }];
+    var support = ranked.filter(function (candidate) {
+      return candidate.key !== top.key &&
+        (!entity || entityMatches(candidate, entity)) &&
+        candidate.category === top.category;
+    })[0] || ranked[1];
+    if (support) chain.push({ role: "SUPPORTING RECEIPT", result: support });
+    var counterCategories = intent.name === "negative" ? ["LOVE LETTER"] :
+      intent.name === "positive" ? ["FRANCHISE FELONY", "TAKE GETS NUCLEAR"] : [];
+    var counter = ranked.filter(function (candidate) {
+      return candidate.key !== top.key &&
+        (!entity || entityMatches(candidate, entity)) &&
+        counterCategories.indexOf(candidate.category) >= 0;
+    })[0];
+    if (counter) chain.push({ role: "COUNTERPOINT", result: counter });
+    return chain;
+  }
+
+  function create(catalog, deep, live, curated, popular) {
     catalog = catalog || [];
     deep = deep || { tapes: [] };
     live = live || { streams: [], topicIndex: [] };
+    popular = popular || { streams: [], topicIndex: [] };
     curated = curated || { upInYa: [] };
-    var aliases = aliasDefinitions(catalog, live);
-    var candidates = commentaryCandidates(catalog, deep).concat(liveCandidates(live));
+    var combinedLive = combineLiveData(live, popular);
+    var aliases = aliasDefinitions(catalog, combinedLive);
+    var candidates = commentaryCandidates(catalog, deep).concat(liveCandidates(combinedLive));
     var curatedRanks = {};
     (curated.upInYa || []).forEach(function (item, index) {
       curatedRanks[item.source + "|" + item.id + "|" + item.t] = index + 1;
@@ -394,9 +477,14 @@
     });
 
     return {
-      ask: function (query) {
+      ask: function (query, previous) {
         var intent = parseIntent(query);
         var entity = identifyEntity(query, aliases, intent);
+        var continuedFrom = false;
+        if (!entity) {
+          entity = contextualEntity(previous, aliases, intent);
+          continuedFrom = Boolean(entity);
+        }
         var terms = expandedTerms(intent);
         var ranked = candidates.map(function (candidate) {
           var scored = scoreCandidate(candidate, intent, entity, terms);
@@ -412,7 +500,20 @@
           }
           return true;
         }).sort(function (a, b) {
+          if (intent.popularity === "popular") {
+            var aPopular = a.source === "livestream" && a.lane === "popular" ? 1 : 0;
+            var bPopular = b.source === "livestream" && b.lane === "popular" ? 1 : 0;
+            if (bPopular !== aPopular) return bPopular - aPopular;
+            var aEntity = entity && entityMatches(a, entity) ? 1 : 0;
+            var bEntity = entity && entityMatches(b, entity) ? 1 : 0;
+            if (bEntity !== aEntity) return bEntity - aEntity;
+            var aMap = a.kind === "livestream" ? 1 : 0;
+            var bMap = b.kind === "livestream" ? 1 : 0;
+            if (bMap !== aMap) return bMap - aMap;
+            if ((b.views || 0) !== (a.views || 0)) return (b.views || 0) - (a.views || 0);
+          }
           return b.score - a.score ||
+            (b.views || 0) - (a.views || 0) ||
             (b.heat || 0) - (a.heat || 0) ||
             (b.unhinged || 0) - (a.unhinged || 0);
         });
@@ -425,6 +526,7 @@
           seen[key] = true;
           deduped.push(candidate);
         });
+        var fullRanked = deduped.slice();
         deduped = deduped.slice(0, 7);
         var topScore = deduped.length ? deduped[0].score : 0;
         var secondScore = deduped.length > 1 ? deduped[1].score : 0;
@@ -434,9 +536,12 @@
           intent: intent.name,
           source: intent.source,
           temporal: intent.temporal,
+          popularity: intent.popularity,
           entity: entity ? entity.label : null,
+          continuedFrom: continuedFrom,
           confidence: confidence,
-          answer: buildAnswer(intent, entity, deduped, live),
+          answer: buildAnswer(intent, entity, deduped, combinedLive),
+          evidenceChain: evidenceChain(intent, entity, fullRanked),
           results: deduped.map(function (candidate) {
             return Object.assign({}, candidate, { label: resultLabel(candidate) });
           }),
