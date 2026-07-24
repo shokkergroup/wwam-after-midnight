@@ -21,12 +21,12 @@ const html = read("public/demo/index.html");
 const batch3 = read("public/demo/archive-deep-batch3.js");
 
 test("the historical V5.8 entry remains while current identity stays synchronized", () => {
-  assert.equal(packageJson.version, "0.5.13");
-  assert.equal(packageLock.version, "0.5.13");
-  assert.equal(packageLock.packages[""].version, "0.5.13");
-  assert.match(readme, /Current documented release: \*\*V5\.13 \/ 0\.5\.13\*\*/);
-  assert.match(overview, /^# WWAM After Midnight V5\.13/m);
-  assert.match(runbook, /current V5\.13 build/i);
+  assert.equal(packageJson.version, "0.5.14");
+  assert.equal(packageLock.version, "0.5.14");
+  assert.equal(packageLock.packages[""].version, "0.5.14");
+  assert.match(readme, /Current documented release: \*\*V5\.14 \/ 0\.5\.14\*\*/);
+  assert.match(overview, /^# WWAM After Midnight V5\.14/m);
+  assert.match(runbook, /current V5\.14 build/i);
   assert.match(changelog, /^## 0\.5\.8 .*V5\.8/m);
 });
 

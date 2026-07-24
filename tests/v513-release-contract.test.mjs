@@ -322,14 +322,14 @@ test("the real adapter renders zero verdicts under one universal ChannelPack con
     NEUTRAL_RACING_ADAPTER,
   );
 
-  assert.equal(pack.fingerprint, "cp1-f9ad38be22481b5d");
+  assert.equal(pack.fingerprint, "cp1-dd23bc386008689b");
   assert.equal(
     window.WWAM_LONGITUDINAL_DOCKETS.channel.packFingerprint,
     pack.fingerprint,
   );
   assert.equal(
     window.WWAM_LONGITUDINAL_DOCKETS.fingerprints.publicFnv1a,
-    "fnv1a32:d4ca362e",
+    "fnv1a32:59b085f6",
   );
   assert.equal(
     window.WWAM_LONGITUDINAL_DOCKETS.fingerprints.captionSetSha256,

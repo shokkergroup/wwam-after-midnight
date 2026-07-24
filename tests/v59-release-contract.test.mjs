@@ -58,13 +58,13 @@ test("V5.9 proof remains while current Time Capsule totals stay synchronized", (
   const changelog = read("docs/CHANGELOG.md");
   const runbook = read("docs/CREATOR_DEMO_RUNBOOK.md");
 
-  assert.equal(manifest.version, "0.5.13");
-  assert.equal(lock.version, "0.5.13");
-  assert.equal(lock.packages[""].version, "0.5.13");
-  assert.match(readme, /Current documented release: \*\*V5\.13 \/ 0\.5\.13\*\*/);
-  assert.match(overview, /^# WWAM After Midnight V5\.13/m);
+  assert.equal(manifest.version, "0.5.14");
+  assert.equal(lock.version, "0.5.14");
+  assert.equal(lock.packages[""].version, "0.5.14");
+  assert.match(readme, /Current documented release: \*\*V5\.14 \/ 0\.5\.14\*\*/);
+  assert.match(overview, /^# WWAM After Midnight V5\.14/m);
   assert.match(changelog, /^## 0\.5\.9 .*V5\.9 Archive Time Capsules/m);
-  assert.match(runbook, /current V5\.13 build/);
+  assert.match(runbook, /current V5\.14 build/);
 
   [readme, overview, capsules, changelog].forEach((source) => {
     assert.match(source, /21 metadata-only/i);

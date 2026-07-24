@@ -11,7 +11,7 @@ three things quickly:
 
 ## Before the call
 
-- Open the current V5.13 build or its confirmed deployment and choose either
+- Open the current V5.14 build or its confirmed deployment and choose either
   content-advisory mode.
 - Confirm YouTube playback is available in the browser.
 - Start at the hero, not halfway down the page.
@@ -49,6 +49,11 @@ Use this evidence vocabulary consistently:
   say `MAY_SUPPORT`, `MAY_BE_MIXED`, or `OPEN`; it is never a verdict, proof of
   speaker continuity, a mind-change claim, or an independently verified
   outcome.
+- **Caller-attested local adjudication** means one human operator completed all
+  twelve Verdict Room checks and locked a canonical verdict code together with
+  its exact fixed, code-specific scoped sentence on this device. Reviewer
+  identity remains unverified; the result is not creator-certified,
+  rights-cleared, written to Canon, or published to a server.
 
 ## The 60-second version
 
@@ -142,7 +147,7 @@ Then ask:
 
 > What made them laugh hardest?
 
-The status must say **OPEN THE SOURCE RANKING** and hand off to the Comedy
+The status must say **SOURCE RANKING** and hand off to the Comedy
 Black Box instead of inventing an independent funniest-ever winner. Open one
 Riff Autopsy and show the six reproducible dimensions.
 
@@ -381,6 +386,45 @@ What it proves:
 - the same ChannelPack contract runs against a neutral racing fixture without
   importing WWAM names, labels, or comedy voice.
 
+## V5.14 The Verdict Room proof — 2 minutes
+
+Use this branch when the buyer asks what happens after machine retrieval finds
+a plausible before/after pair.
+
+1. Enter **Verdict Room** from The Tape Keeps Score. Start on a clean docket
+   and point to **0/12 PASS** and the absence of formal or comedy verdict copy.
+2. Keep the two official source panes visible. Explain that the room
+   independently re-resolves the current canonical packet; it does not accept a
+   pasted replacement take or caller-authored comedy label.
+3. Walk through the twelve checks. Call out the relied-on receipts,
+   counterweight, chronology, source-audio and visual limits, speaker and
+   causality restraint, and independent outcome review.
+4. Select one of the only three codes. Show that the twelfth check locks it
+   together with its exact fixed, code-specific scoped sentence, then read the
+   confirmation dialog aloud. After confirmation, show the formal result beside
+   its WWAM comedy label and the explicit **identity unverified / local
+   overlay** boundary.
+5. Export JSON or Markdown, then revoke the decision. Show that the visible
+   verdict disappears while the append-only adjudication and revoke history
+   remain in the ledger.
+6. If useful, switch to reduced-profanity mode and explain that only the display
+   label changes. The canonical code, evidence, and authority boundary do not.
+
+Say: “The moat is not an AI confidently declaring that an old take came true.
+The machine opens a source-bound case, a human crosses twelve explicit gates,
+and even then the product records exactly what that local decision can—and
+cannot—mean.”
+
+What it proves:
+
+- a machine pairing cannot manufacture a verdict or comedy label;
+- one exact human review can create one scoped, revocable local overlay;
+- contradiction, provenance, and revocation survive export and restore;
+- stale, foreign, malformed, and hostile imports fail closed;
+- ChannelPack owns the voice while the core engine stays portable; and
+- identity, rights, speaker, causality, creator approval, Canon, and public
+  publication remain outside the prototype's authority.
+
 ## Optional ten-minute branches
 
 Use only the branch the audience cares about:
@@ -388,8 +432,8 @@ Use only the branch the audience cares about:
 - **Fan community:** Tape Companion, Night Shift, Red Band 100, WWAM UP IN YA,
   Personalized Descent, Evidence Bag, Trivia.
 - **Back-catalog discovery:** Ask WWAM, Popular 25, Fresh 10, franchise reports,
-  Lore Galaxy, The Tape Keeps Score, and Archive Atlas's four-batch Archive
-  Deep Portfolio.
+  Lore Galaxy, The Tape Keeps Score, The Verdict Room, and Archive Atlas's
+  four-batch Archive Deep Portfolio.
 - **Editorial operations:** Clip Lab, Creator Taste Calibration, Live
   Aftermath, Control Room, Human Review Session, and correction packets.
 - **Recurring characters:** Ask the Character, then immediately show the
@@ -435,6 +479,14 @@ Use only the branch the audience cares about:
 - “The Tape Keeps Score contains four typed dockets across eight distinct
   official sources and nine short timestamped receipts. Every machine-paired
   case remains unresolved, and the public verdict count is zero.”
+- “The Verdict Room requires twelve explicit caller-attested human checks
+  before it can render one `SUPPORTED`, `CONTRADICTED`, or `MIXED` result for
+  one exact docket on this device.”
+- “Revocation removes the active local verdict without deleting its history.
+  The original machine docket remains immutable and unresolved.”
+- “WWAM's formal, comedy, and reduced-profanity verdict labels live in the
+  fingerprint-bound ChannelPack. A neutral racing pack supplies different
+  labels through the same engine.”
 - “Prediction/outcome questions can hand off from Ask to an exact docket
   subject. Unsupported entities open the global review surface instead of
   receiving an invented match.”
@@ -485,6 +537,11 @@ Use only the branch the audience cares about:
 - “Their opinion definitely changed.”
 - “The prediction came true,” “they called it,” or “the take aged badly” based
   only on a Tape Keeps Score machine signal.
+- “A Verdict Room result is creator-approved, authenticated, public, or
+  authoritative because a human checked the boxes.”
+- “The local ledger verifies who reviewed it, clears rights, assigns a speaker,
+  proves causality, updates Canon, or publishes itself.”
+- “Revoking a local decision deletes the original adjudication.”
 - “The same speaker made both statements,” “this proves a mind change,” or
   “the before statement caused the later result.”
 - “The edit brief is a finished or rights-cleared cut.”

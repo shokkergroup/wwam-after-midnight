@@ -19,6 +19,7 @@
     "storage",
     "surfaceVocabulary",
     "longitudinalVocabulary",
+    "adjudicationVocabulary",
     "capabilities",
     "channelExtensions"
   ],
@@ -298,6 +299,23 @@
         }
       }
     },
+    "adjudicationVocabulary": {
+      "description": "Fingerprint-bound display labels for the only canonical V1 human-adjudication verdict codes. Runtime callers supply a code, never a label.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["SUPPORTED", "CONTRADICTED", "MIXED"],
+      "properties": {
+        "SUPPORTED": {
+          "$ref": "#/$defs/adjudicationLabels"
+        },
+        "CONTRADICTED": {
+          "$ref": "#/$defs/adjudicationLabels"
+        },
+        "MIXED": {
+          "$ref": "#/$defs/adjudicationLabels"
+        }
+      }
+    },
     "capabilities": {
       "description": "Runtime capability IDs the channel product actually implements. Declaration does not create evidence, authorization, or creator approval.",
       "allOf": [
@@ -310,6 +328,7 @@
           "ask-the-tape",
           "creator-taste-calibration",
           "fresh-tape-intake",
+          "human-adjudication-ledger",
           "longitudinal-claim-ledger",
           "tape-companion"
         ]
@@ -387,6 +406,31 @@
         "type": "string",
         "minLength": 1
       }
+    },
+    "adjudicationLabels": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["formal", "comedy", "bleep"],
+      "properties": {
+        "formal": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 320,
+          "description": "Must begin with its owning canonical verdict code. The executable compiler enforces the code-specific prefix and rejects authority-inflating language."
+        },
+        "comedy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 320,
+          "description": "Decorative channel-native copy only; it cannot claim official, creator, canon, rights, identity, speaker, causal, publication, certification, or approval authority."
+        },
+        "bleep": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 320,
+          "description": "Must be semantically identical to comedy copy after profanity is mechanically replaced with [BLEEP]."
+        }
+      }
     }
   },
   "x-shokker-conformance": {
@@ -398,6 +442,7 @@
     "portfolioRule": "Channel IDs and storage namespaces must be unique across every installed pack.",
     "capabilityRule": "A capability declaration must correspond to a separately tested runtime contract; it does not establish evidence, authorization, identity, or creator approval.",
     "freshTapeIntakeRule": "The fresh-tape-intake capability permits bounded device-local parsing only. It performs no network fetch, does not verify channel ownership or reviewer identity, requires timed transcript evidence before deriving candidates, keeps every result quarantined and undiarized, holds untimed text with zero candidates, and permits only FNV-bound structural verification. Its fingerprints do not prove source content, authenticity, ownership, speaker identity, or authority.",
-    "longitudinalClaimLedgerRule": "The longitudinal-claim-ledger capability may pair bounded earlier and later source receipts only when declared subject, chronology, source phase, and evidence rules pass. Machine pairing is not truth, causality, speaker continuity, a mind-change claim, or a public verdict. Visual outcomes, metadata-only records, restricted source audio, and corpus absence remain unresolved until the applicable human review gate passes."
+    "longitudinalClaimLedgerRule": "The longitudinal-claim-ledger capability may pair bounded earlier and later source receipts only when declared subject, chronology, source phase, and evidence rules pass. Machine pairing is not truth, causality, speaker continuity, a mind-change claim, or a public verdict. Visual outcomes, metadata-only records, restricted source audio, and corpus absence remain unresolved until the applicable human review gate passes.",
+    "humanAdjudicationLedgerRule": "The human-adjudication-ledger capability permits only device-local, caller-attested review over canonical fingerprint-bound docket packets. It never verifies reviewer identity, clears rights, certifies a creator, mutates canon, or publishes. Formal display labels retain their canonical verdict-code prefix; comedy labels are decorative; reduced-profanity labels may only replace profanity with [BLEEP] and cannot reverse the result. Every display mode rejects authority-inflating language. Canonical verdict codes resolve only through the pack-owned adjudicationVocabulary included in the ChannelPack fingerprint."
   }
 }

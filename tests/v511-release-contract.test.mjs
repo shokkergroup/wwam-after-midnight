@@ -119,14 +119,14 @@ test("V5.11 release identity, UI status, and documentation stay synchronized", (
   const contract = read("docs/ASK_ANSWER_FRAME_V2.md");
   const app = read("public/demo/app.js");
 
-  assert.equal(manifest.version, "0.5.13");
-  assert.equal(lock.version, "0.5.13");
-  assert.equal(lock.packages[""].version, "0.5.13");
-  assert.match(readme, /Current documented release: \*\*V5\.13 \/ 0\.5\.13\*\*/);
-  assert.match(overview, /^# WWAM After Midnight V5\.13/m);
+  assert.equal(manifest.version, "0.5.14");
+  assert.equal(lock.version, "0.5.14");
+  assert.equal(lock.packages[""].version, "0.5.14");
+  assert.match(readme, /Current documented release: \*\*V5\.14 \/ 0\.5\.14\*\*/);
+  assert.match(overview, /^# WWAM After Midnight V5\.14/m);
   assert.match(changelog, /^## 0\.5\.11 .*Answer Frame V2/m);
-  assert.match(runbook, /current V5\.13 build/i);
-  assert.match(app, /GLOBAL RANKING HANDOFF \/\/ OPEN THE SOURCE RANKING/);
+  assert.match(runbook, /current V5\.14 build/i);
+  assert.match(app, /GLOBAL RANKING HANDOFF \/\/ SOURCE RANKING/);
   assert.doesNotMatch(
     app,
     /isSurfaceHandoff \? "GLOBAL RANKING HANDOFF \/\/ OPEN THE RED BAND 100"/,

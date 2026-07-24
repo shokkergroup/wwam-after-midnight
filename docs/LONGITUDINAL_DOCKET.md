@@ -16,9 +16,11 @@ The interface states that boundary in its center column:
 > MACHINE PAIR SIGNAL // NOT A VERDICT  
 > THE TAPE PLEADS THE FIFTH.
 
-An authenticated, authorized human-review workflow would be required before a
-future product could publish a verdict. V5.13 does not contain that workflow,
-and therefore publishes **zero public verdicts**.
+An authenticated, authorized human-review workflow would still be required
+before a production product could publish a verdict. V5.13 contains no
+adjudication workflow and publishes **zero public verdicts**. V5.14 adds a
+separate caller-attested, device-local review overlay; it does not alter that
+public or machine-ledger count.
 
 ## Frozen V5.13 launch ledger
 
@@ -155,13 +157,19 @@ coordinates must land within three seconds of the bounded excerpt start.
 
 ## Deterministic release bindings
 
-| Binding | Frozen V5.13 value |
+| Binding | Current V5.14-bound value |
 | --- | --- |
-| ChannelPack | `cp1-f9ad38be22481b5d` |
-| Public artifact | `fnv1a32:d4ca362e` |
+| ChannelPack | `cp1-dd23bc386008689b` |
+| Public artifact | `fnv1a32:59b085f6` |
 | Registered caption set | `sha256:65741e59ab66c04254f9c40a5051308a8bb1cf6b121078737ba5b81f1b25d5fc` |
 | Public artifact size | 17,626 bytes |
 | Generated / source snapshot | 2026-07-24 / 2026-07-23 |
+
+The receipts, case count, caption set, generated date, and source snapshot are
+unchanged from V5.13. The ChannelPack and public-artifact fingerprints changed
+in V5.14 because the pack now binds an adjudication vocabulary and
+`human-adjudication-ledger` capability. The historical V5.13 values remain
+recorded in the changelog.
 
 The FNV value is a deterministic structural change detector, not a signature.
 The caption-set SHA binds the registered local caption inputs; it does not
@@ -177,18 +185,19 @@ evidence policies. A forged object cannot replace a missing ChannelPack
 validator.
 
 WWAM supplies the launch subjects, source lanes, evidence, labels, and comedy
-voice. The compiled pack now carries the exact entity registry and five-label
-longitudinal vocabulary that the engine will accept; artifact strings cannot
-silently redefine either one. The same engine is tested against a neutral
-racing ChannelPack without WWAM identity leakage. Another YouTube Wiki can
-therefore use the same before/after contract while supplying its own ontology
-and presentation.
+voice. The compiled pack carries the exact entity registry, five-label
+longitudinal vocabulary, and three-code adjudication vocabulary that the
+engines will accept; artifact strings cannot silently redefine any of them.
+The same engines are tested against a neutral racing ChannelPack without WWAM
+identity leakage. Another YouTube Wiki can therefore use the same
+before/after and local-review contracts while supplying its own ontology and
+presentation.
 
 ## Demand-loaded presentation
 
 The feature is attached to the existing Memory OS rather than added to the
 eager homepage path. Its data, engine, UI, adapter, and stylesheet are declared
-as lazy assets and total **160,410 source bytes**. They load when the Memory OS
+as lazy assets and total **160,449 source bytes**. They load when the Memory OS
 feature boundary is reached. The UI adds no fetch, XHR, WebSocket, beacon,
 iframe, video element, or autoplay path.
 
@@ -211,15 +220,26 @@ node --test tests/longitudinal-docket-ui.test.mjs
 ```
 
 The generator check must reproduce **4 cases, 8 sources, 17,626 public bytes,
-and `fnv1a32:d4ca362e`** byte for byte.
+and `fnv1a32:59b085f6`** byte for byte.
 
-## What remains future work
+## V5.14 local adjudication bridge
 
-An authenticated review system could eventually record independently checked
-speaker identity, source-audio boundaries, whole-work visual context, outcome
-evidence, and an authorized decision. Those are future authority-bearing
-records, not properties that can be inferred from the current pair signal.
+The Verdict Room re-resolves one canonical inspection packet from this engine
+and binds it to the current ChannelPack, caption set, public artifact, receipt
+set, and exact wording. It requires twelve explicit caller-attested human
+checks before one local `SUPPORTED`, `CONTRADICTED`, or `MIXED` overlay may
+render. Revocation appends history and suppresses that local result. It never
+changes this docket's `verdict: null`, promotes a receipt, or publishes to a
+shared service. See [The Verdict Room](VERDICT_ROOM_DESIGN.md).
 
-Until such a workflow exists, the product should keep the joke in the
-presentation and the restraint in the data: the tape can open a case; it
-cannot close one.
+## What remains production work
+
+An authenticated review system could eventually verify reviewer identity,
+record independently checked speaker identity, clear source-audio or whole-work
+visual context, establish rights, and publish an authorized decision. Those are
+future authority-bearing records, not properties that can be inferred from the
+current pair signal or the device-local Verdict Room.
+
+The product keeps the joke in the presentation and the restraint in the data:
+the tape can open a case; only an explicitly scoped human action can close a
+local review, and that local action still cannot publish itself.

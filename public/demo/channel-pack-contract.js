@@ -27,6 +27,16 @@
     "unresolved",
     "editBrief"
   ]);
+  const REQUIRED_ADJUDICATION_CODES = Object.freeze([
+    "SUPPORTED",
+    "CONTRADICTED",
+    "MIXED"
+  ]);
+  const REQUIRED_ADJUDICATION_LABELS = Object.freeze([
+    "formal",
+    "comedy",
+    "bleep"
+  ]);
   const REQUIRED_UPDATE_STAGES = Object.freeze([
     "discover",
     "quarantine",
@@ -97,6 +107,118 @@
     Object.freeze(value);
     Object.values(value).forEach(deepFreeze);
     return value;
+  }
+
+  function snapshotOwnDataTree(value, path, issues, depth, seen) {
+    const level = depth || 0;
+    const visited = seen || new Set();
+    if (level > 64) {
+      issue(issues, path, "depth-limit", `${path} exceeds the artifact depth limit.`);
+      return null;
+    }
+    if (!value || typeof value !== "object") {
+      if (
+        value !== null &&
+        !["string", "number", "boolean"].includes(typeof value)
+      ) {
+        issue(issues, path, "non-json-value", `${path} must be JSON-compatible data.`);
+        return null;
+      }
+      if (typeof value === "number" && !Number.isFinite(value)) {
+        issue(issues, path, "non-finite-number", `${path} must be finite.`);
+        return null;
+      }
+      return value;
+    }
+    if (visited.has(value)) {
+      issue(issues, path, "circular-reference", `${path} must not be circular.`);
+      return null;
+    }
+    if (!Array.isArray(value) && !isRecord(value)) {
+      issue(issues, path, "required-object", `${path} must be plain data.`);
+      return null;
+    }
+    let descriptors;
+    try {
+      descriptors = Object.getOwnPropertyDescriptors(value);
+    } catch {
+      issue(issues, path, "unsafe-descriptor", `${path} descriptors could not be read safely.`);
+      return null;
+    }
+    if (Object.getOwnPropertySymbols(value).length) {
+      issue(issues, path, "unsafe-descriptor", `${path} must not contain symbol fields.`);
+    }
+    for (const inheritedKey in value) {
+      if (!own(value, inheritedKey)) {
+        issue(
+          issues,
+          `${path}.${inheritedKey}`,
+          "inherited-field",
+          `${path}.${inheritedKey} must be an own field.`
+        );
+      }
+    }
+    const output = Array.isArray(value) ? [] : Object.create(null);
+    const names = Object.keys(descriptors);
+    const lengthDescriptor = Array.isArray(value) ? descriptors.length : null;
+    const expectedLength = lengthDescriptor && Number.isInteger(lengthDescriptor.value) ?
+      lengthDescriptor.value :
+      0;
+    visited.add(value);
+    names.forEach((key) => {
+      if (Array.isArray(value) && key === "length") return;
+      const descriptor = descriptors[key];
+      if (["__proto__", "prototype", "constructor"].includes(key)) {
+        issue(
+          issues,
+          `${path}.${key}`,
+          "unsafe-key",
+          `${path}.${key} is a prototype-sensitive field.`
+        );
+        return;
+      }
+      if (
+        !descriptor ||
+        own(descriptor, "get") ||
+        own(descriptor, "set") ||
+        descriptor.enumerable !== true
+      ) {
+        issue(
+          issues,
+          `${path}.${key}`,
+          "unsafe-descriptor",
+          `${path}.${key} must be an enumerable own-data field.`
+        );
+        return;
+      }
+      if (
+        Array.isArray(value) &&
+        (!/^(?:0|[1-9]\d*)$/.test(key) || Number(key) >= expectedLength)
+      ) {
+        issue(
+          issues,
+          `${path}.${key}`,
+          "unsafe-array-key",
+          `${path}.${key} is not a canonical array index.`
+        );
+        return;
+      }
+      output[key] = snapshotOwnDataTree(
+        descriptor.value,
+        `${path}.${key}`,
+        issues,
+        level + 1,
+        visited
+      );
+    });
+    visited.delete(value);
+    if (
+      Array.isArray(value) &&
+      names.filter((key) => key !== "length").length !== expectedLength
+    ) {
+      issue(issues, path, "sparse-array", `${path} must not contain sparse entries.`);
+    }
+    return output;
   }
 
   function hash32(value, seed) {
@@ -173,6 +295,139 @@
     return cleanStringArray(usable, { preserveOrder: settings.preserveOrder });
   }
 
+  function requireOwnedUniqueStrings(list, value, path, options) {
+    if (Array.isArray(value)) {
+      for (let index = 0; index < value.length; index += 1) {
+        if (!own(value, String(index))) {
+          issue(
+            list,
+            `${path}[${index}]`,
+            "inherited-value",
+            `${path} must contain only own array entries.`
+          );
+        }
+      }
+    }
+    return requireUniqueStrings(list, value, path, options);
+  }
+
+  function validateAdjudicationVocabulary(list, value, path) {
+    const authorityClaim =
+      /\b(?:official|authoritative|authenticated|identity\s+verified|creator|canon|rights?\s+(?:clear(?:ed|ance)?|approved|granted|verified)|copyright|licensed|authorized|permission|published|speaker\s+verified|causality\s+(?:proved|verified)|certified|approved)\b/i;
+    const profanity =
+      /\b(?:fuck(?:ing|ed|er|ers)?|shit(?:ty|ting)?|jackass|dick|cock|pussy|cunt|asshole|bitch(?:es)?|goddamn)\b/gi;
+    const semanticBleep = (entry) => cleanString(entry)
+      .toLocaleLowerCase()
+      .replace(/\[\s*bleep\s*\]/gi, "[bleep]")
+      .replace(profanity, "[bleep]")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (!isRecord(value)) {
+      issue(
+        list,
+        path,
+        "required-object",
+        `${path} must bind every canonical adjudication code to fixed display labels.`
+      );
+      return;
+    }
+    rejectUnknownKeys(list, value, path, REQUIRED_ADJUDICATION_CODES);
+    REQUIRED_ADJUDICATION_CODES.forEach((code) => {
+      if (!own(value, code)) {
+        issue(
+          list,
+          `${path}.${code}`,
+          "required-object",
+          `${path}.${code} must be an own verdict-label map.`
+        );
+        return;
+      }
+      const labels = value[code];
+      if (!isRecord(labels)) {
+        issue(
+          list,
+          `${path}.${code}`,
+          "required-object",
+          `${path}.${code} must be a verdict-label map.`
+        );
+        return;
+      }
+      rejectUnknownKeys(
+        list,
+        labels,
+        `${path}.${code}`,
+        REQUIRED_ADJUDICATION_LABELS
+      );
+      REQUIRED_ADJUDICATION_LABELS.forEach((mode) => {
+        if (!own(labels, mode)) {
+          issue(
+            list,
+            `${path}.${code}.${mode}`,
+            "required-string",
+            `${path}.${code}.${mode} must be an own non-empty string.`
+          );
+          return;
+        }
+        requireString(
+          list,
+          labels[mode],
+          `${path}.${code}.${mode}`,
+          { max: 320 }
+        );
+        const label = cleanString(labels[mode]);
+        if (authorityClaim.test(label)) {
+          issue(
+            list,
+            `${path}.${code}.${mode}`,
+            "adjudication-authority-claim",
+            "Verdict display labels cannot claim official, creator, canon, rights, identity, speaker, causal, publication, or approval authority."
+          );
+        }
+      });
+      const formal = cleanString(labels.formal);
+      if (
+        formal &&
+        !new RegExp(`^${code}(?:$|[\\s:/|—-])`, "i").test(formal)
+      ) {
+        issue(
+          list,
+          `${path}.${code}.formal`,
+          "canonical-code-prefix",
+          `The formal label must begin with canonical code ${code}.`
+        );
+      }
+      const comedy = cleanString(labels.comedy);
+      const bleep = cleanString(labels.bleep);
+      if (
+        comedy &&
+        bleep &&
+        semanticBleep(comedy) !== semanticBleep(bleep)
+      ) {
+        issue(
+          list,
+          `${path}.${code}.bleep`,
+          "bleep-semantic-mismatch",
+          "Reduced-profanity copy may replace profanity with [BLEEP], but it cannot change the verdict meaning."
+        );
+      }
+    });
+    REQUIRED_ADJUDICATION_LABELS.forEach((mode) => {
+      const labels = REQUIRED_ADJUDICATION_CODES
+        .map((code) => (
+          isRecord(value[code]) ? cleanString(value[code][mode]).toLocaleLowerCase() : ""
+        ))
+        .filter(Boolean);
+      if (new Set(labels).size !== labels.length) {
+        issue(
+          list,
+          path,
+          "duplicate-adjudication-label",
+          `Every ${mode} adjudication label must identify one canonical verdict code.`
+        );
+      }
+    });
+  }
+
   function validateSourceDna(dna, adapter) {
     const issues = [];
     if (!isRecord(dna)) {
@@ -190,6 +445,7 @@
       "storage",
       "surfaceVocabulary",
       "longitudinalVocabulary",
+      "adjudicationVocabulary",
       "capabilities"
     ]);
 
@@ -509,6 +765,21 @@
       });
     }
 
+    if (!own(adapter, "adjudicationVocabulary")) {
+      issue(
+        issues,
+        "adapter.adjudicationVocabulary",
+        "inherited-field",
+        "adapter.adjudicationVocabulary must be an own ChannelPack field."
+      );
+    } else {
+      validateAdjudicationVocabulary(
+        issues,
+        adapter.adjudicationVocabulary,
+        "adapter.adjudicationVocabulary"
+      );
+    }
+
     const proofLabels = isRecord(dna.voice) && dna.voice.proofLabels;
     if (!isRecord(proofLabels)) {
       issue(issues, "dna.voice.proofLabels", "required-object", "dna.voice.proofLabels must be an object.");
@@ -518,7 +789,20 @@
       );
     }
 
-    requireUniqueStrings(issues, adapter.capabilities, "adapter.capabilities");
+    if (!own(adapter, "capabilities")) {
+      issue(
+        issues,
+        "adapter.capabilities",
+        "inherited-field",
+        "adapter.capabilities must be an own ChannelPack field."
+      );
+    } else {
+      requireOwnedUniqueStrings(
+        issues,
+        adapter.capabilities,
+        "adapter.capabilities"
+      );
+    }
     return issues;
   }
 
@@ -600,6 +884,13 @@
         vocabulary[key] = cleanString(adapter.longitudinalVocabulary[key]);
         return vocabulary;
       }, {}),
+      adjudicationVocabulary: REQUIRED_ADJUDICATION_CODES.reduce((vocabulary, code) => {
+        vocabulary[code] = REQUIRED_ADJUDICATION_LABELS.reduce((labels, mode) => {
+          labels[mode] = cleanString(adapter.adjudicationVocabulary[code][mode]);
+          return labels;
+        }, {});
+        return vocabulary;
+      }, {}),
       capabilities: cleanStringArray(adapter.capabilities),
       channelExtensions: {
         categorySignals,
@@ -622,6 +913,10 @@
       issue(issues, "pack", "required-object", "ChannelPack must be an object.");
       return { valid: false, issues, fingerprintVerified: false };
     }
+    pack = snapshotOwnDataTree(pack, "pack", issues, 0);
+    if (issues.length || !isRecord(pack)) {
+      return { valid: false, issues, fingerprintVerified: false };
+    }
     rejectUnknownKeys(issues, pack, "", [
       "$schema",
       "schemaVersion",
@@ -636,6 +931,7 @@
       "storage",
       "surfaceVocabulary",
       "longitudinalVocabulary",
+      "adjudicationVocabulary",
       "capabilities",
       "channelExtensions"
     ]);
@@ -873,7 +1169,30 @@
         )
       );
     }
-    requireUniqueStrings(issues, pack.capabilities, "capabilities");
+    if (!own(pack, "adjudicationVocabulary")) {
+      issue(
+        issues,
+        "adjudicationVocabulary",
+        "inherited-field",
+        "adjudicationVocabulary must be an own ChannelPack field."
+      );
+    } else {
+      validateAdjudicationVocabulary(
+        issues,
+        pack.adjudicationVocabulary,
+        "adjudicationVocabulary"
+      );
+    }
+    if (!own(pack, "capabilities")) {
+      issue(
+        issues,
+        "capabilities",
+        "inherited-field",
+        "capabilities must be an own ChannelPack field."
+      );
+    } else {
+      requireOwnedUniqueStrings(issues, pack.capabilities, "capabilities");
+    }
     if (!isRecord(pack.channelExtensions)) {
       issue(issues, "channelExtensions", "required-object", "channelExtensions must be an object.");
     } else {
@@ -953,7 +1272,10 @@
   function serialize(pack) {
     const report = validateArtifact(pack);
     if (!report.valid) throw new ChannelPackValidationError(report.issues);
-    return `${stableStringify(pack)}\n`;
+    const issues = [];
+    const snapshot = snapshotOwnDataTree(pack, "pack", issues, 0);
+    if (issues.length) throw new ChannelPackValidationError(issues);
+    return `${stableStringify(snapshot)}\n`;
   }
 
   function validatePortfolio(packs) {
@@ -965,13 +1287,25 @@
     const identities = new Map();
     const namespaces = new Map();
     packs.forEach((pack, index) => {
-      const report = validateArtifact(pack);
+      const snapshotIssues = [];
+      const snapshot = snapshotOwnDataTree(
+        pack,
+        `packs[${index}]`,
+        snapshotIssues,
+        0
+      );
+      snapshotIssues.forEach((entry) => {
+        issue(issues, entry.path, entry.code, entry.message);
+      });
+      const report = snapshotIssues.length ?
+        { valid: false, issues: [] } :
+        validateArtifact(snapshot);
       report.issues.forEach((entry) => {
         issue(issues, `packs[${index}].${entry.path}`, entry.code, entry.message);
       });
-      if (!isRecord(pack)) return;
-      const id = isRecord(pack.identity) ? pack.identity.id : "";
-      const namespace = isRecord(pack.storage) ? pack.storage.namespace : "";
+      if (!isRecord(snapshot)) return;
+      const id = isRecord(snapshot.identity) ? snapshot.identity.id : "";
+      const namespace = isRecord(snapshot.storage) ? snapshot.storage.namespace : "";
       if (id && identities.has(id)) {
         issue(
           issues,
@@ -1001,16 +1335,24 @@
     };
   }
 
-  root.ShokkerChannelPack = Object.freeze({
+  const api = Object.freeze({
     VERSION,
     SCHEMA,
     REQUIRED_VOCABULARY,
     REQUIRED_LONGITUDINAL_VOCABULARY,
+    REQUIRED_ADJUDICATION_CODES,
+    REQUIRED_ADJUDICATION_LABELS,
     REQUIRED_UPDATE_STAGES,
     ChannelPackValidationError,
     compile,
     serialize,
     validate: validateArtifact,
     validatePortfolio
+  });
+  Object.defineProperty(root, "ShokkerChannelPack", {
+    value: api,
+    enumerable: true,
+    writable: false,
+    configurable: false
   });
 })(typeof window !== "undefined" ? window : globalThis);

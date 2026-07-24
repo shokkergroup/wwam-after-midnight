@@ -45,6 +45,7 @@
       <a href="#archive">ARCHIVE ATLAS</a>
       <a href="#time-capsules">TIME CAPSULES</a>
       <a href="#fresh-intake">DROP ZONE</a>
+      <a href="#verdict-room">VERDICT ROOM</a>
       <a href="#characters">CHARACTERS</a>
       <a href="#lore">LORE GALAXY</a>
       <a href="#clip-lab">CLIP LAB</a>
@@ -524,6 +525,44 @@
         <button data-memory-tab="descent">PERSONALIZED DESCENT</button>
       </div>
       <div class="memory-stage" id="memoryStage"></div>
+      <a class="verdict-room-door" href="#verdict-room">
+        <span>THE TAPE KEEPS SCORE // HUMAN REVIEW LANE</span>
+        <b>THE MACHINE DOES NOT GET THE GAVEL.</b>
+        <small>Inspect the exact before / after receipts, clear all 12 checks, then record a scoped device-local decision.</small>
+        <em>ENTER THE VERDICT ROOM &rarr;</em>
+      </a>
+    </section>
+
+    <section class="verdict-room-portal" id="verdict-room" aria-busy="true"
+      data-feature-scripts="longitudinal-docket-engine.js,longitudinal-docket-data.js,wwam-longitudinal-docket-adapter.js,channel-pack-contract.js,wwam-channel-pack-adapter.js,verdict-room-engine.js,wwam-verdict-room-adapter.js,verdict-room-ui.js,verdict-room-surface.js">
+      <div class="verdict-room-grid" aria-hidden="true"></div>
+      <header class="section-head">
+        <div>
+          <p class="kicker">HUMAN ADJUDICATION LEDGER // 12 CHECKS BEFORE THE GAVEL MOVES</p>
+          <h2>THE VERDICT<br><em>ROOM.</em></h2>
+        </div>
+        <p>Machine dockets stay unresolved. A human reviews the exact before and after receipts through 12 explicit checks, records one tightly scoped decision on this device, can revoke it, and can export the append-only audit trail.</p>
+      </header>
+      <div class="verdict-room-proof" aria-label="Verdict Room authority boundaries">
+        <article><b>0</b><span>MACHINE VERDICTS</span></article>
+        <article><b>12</b><span>REQUIRED HUMAN CHECKS</span></article>
+        <article><b>LOCAL</b><span>DECISION SCOPE</span></article>
+        <article><b>JSON + MD</b><span>AUDIT EXPORTS</span></article>
+      </div>
+      <div class="verdict-room-boundary">
+        <b>THE HARD LINE</b>
+        <p>A local verdict does not identify a speaker, prove causality, clear rights, certify canon, or rewrite the public archive. Revocation appends history; it does not erase it.</p>
+        <a href="#tape-keeps-score">REOPEN THE UNRESOLVED MACHINE DOCKETS &rarr;</a>
+      </div>
+      <p class="verdict-room-status" id="verdictRoomStatus" role="status"
+        aria-live="polite" aria-atomic="true">THE GAVEL IS LOCKED // LOADING THE HUMAN REVIEW LANE.</p>
+      <div class="verdict-room-stage" id="verdictRoomStage">
+        <div class="verdict-room-loading">
+          <i aria-hidden="true"></i>
+          <b>VERIFYING THE REVIEW CHAIN...</b>
+          <span>NO DECISION EXISTS UNTIL A HUMAN COMPLETES THE CHECKLIST.</span>
+        </div>
+      </div>
     </section>
 
     <section class="lore-galaxy" id="lore">
@@ -899,8 +938,8 @@
   <script src="human-review-session-engine.js"></script>
   <script src="search-engine.js"></script>
   <script src="ask-share.js"></script>
-  <script src="youtube-playback.js?v=0.5.13-playback2"></script>
-  <script src="app.js?v=0.5.13-playback2"></script>
+  <script src="youtube-playback.js?v=0.5.14"></script>
+  <script src="app.js?v=0.5.14"></script>
   <script src="feature-loader.js"></script>
 </body>
 </html>

@@ -27,6 +27,8 @@ title, transcript fragment, or machine candidate into evidence.
 - `public/demo/longitudinal-docket-engine.js` implements the portable
   before/after evidence contract documented in
   `docs/LONGITUDINAL_DOCKET.md`.
+- `public/demo/verdict-room-engine.js` implements the portable, device-local
+  human adjudication ledger documented in `docs/VERDICT_ROOM_DESIGN.md`.
 - `tests/fixtures/channel-pack-neutral-racing.mjs` is a synthetic, test-only
   portability fixture. It is not VRL data and is never loaded by the WWAM
   public demo.
@@ -34,7 +36,7 @@ title, transcript fragment, or machine candidate into evidence.
 The compiler is intentionally not part of the first-load bundle. Buyers can
 inspect or download the contract without making the fan experience heavier.
 
-## The ten conformance domains
+## The eleven conformance domains
 
 | Domain | What the pack must declare | What the compiler refuses |
 | --- | --- | --- |
@@ -47,6 +49,7 @@ inspect or download the contract without making the fan experience heavier.
 | Storage | Channel-scoped namespace, channel-first partitioning, source partition, export prefix | Namespace mismatch or storage that can mix channels |
 | Surface vocabulary | Nine channel-native labels for ask, receipt, source, unknown, quarantine, curated candidate, review, certification, and correction | Generic missing states, collapsed evidence tiers, or duplicate labels |
 | Longitudinal vocabulary | Exact product, forecast, response, unresolved, and edit-brief labels | Free-form artifact labels that can redefine public docket meaning |
+| Adjudication vocabulary | Formal, comedy, and reduced-profanity labels for exactly `SUPPORTED`, `CONTRADICTED`, and `MIXED` | Caller-authored labels, missing display modes, extra verdict codes, or cross-channel voice leakage |
 | Capabilities | The product surfaces this channel actually enables | An empty capability claim |
 
 Machine output must enter `quarantine`. A `curatedCandidate` is a distinct
@@ -124,11 +127,29 @@ The adapter must explicitly provide:
     unresolved: "AN HONEST UNRESOLVED LABEL",
     editBrief: "A CHANNEL-NATIVE EDIT-BRIEF LABEL"
   },
+  adjudicationVocabulary: {
+    SUPPORTED: {
+      formal: "SUPPORTED // A SCOPED CHANNEL-NATIVE LABEL",
+      comedy: "A CHANNEL-NATIVE SUPPORTED LABEL",
+      bleep: "A CHANNEL-NATIVE SUPPORTED LABEL"
+    },
+    CONTRADICTED: {
+      formal: "CONTRADICTED // A SCOPED CHANNEL-NATIVE LABEL",
+      comedy: "A CHANNEL-NATIVE CONTRADICTED LABEL",
+      bleep: "A CHANNEL-NATIVE CONTRADICTED LABEL"
+    },
+    MIXED: {
+      formal: "MIXED // A SCOPED CHANNEL-NATIVE LABEL",
+      comedy: "A CHANNEL-NATIVE MIXED LABEL",
+      bleep: "A CHANNEL-NATIVE MIXED LABEL"
+    }
+  },
   capabilities: [
     "receipt-search",
     "tape-companion",
     "creator-taste-calibration",
     "fresh-tape-intake",
+    "human-adjudication-ledger",
     "longitudinal-claim-ledger"
   ]
 }
@@ -137,6 +158,19 @@ The adapter must explicitly provide:
 There are no safety-relevant defaults. A missing policy produces a
 `ChannelPackValidationError` with structured `path`, `code`, and `message`
 issues.
+
+Each formal adjudication label must begin with its canonical code. Comedy copy
+is decorative; its reduced-profanity variant may only replace profanity with
+`[BLEEP]`, never change the result. Every display mode rejects language that
+claims official, creator, canon, rights, identity, speaker, causal,
+publication, certification, or approval authority.
+
+The browser compiler publishes its API through a non-writable,
+non-configurable global binding. Verdict Room captures that exact frozen API
+and fails if it changes. This prevents later global substitution; production
+hosting must still use script-integrity controls such as a restrictive CSP
+and/or SRI because client code cannot prove its own authenticity after an
+arbitrary same-origin script compromise.
 
 Channel DNA must likewise declare `voice.proofLabels.curatedCandidate`
 separately from its machine, editor, creator, and inference labels. Its
@@ -151,17 +185,19 @@ behavior against real and neutral inputs.
 ## Determinism and isolation
 
 Objects and semantic sets are normalized before fingerprinting. Equivalent
-source-lane maps, taxonomies, entity registries, longitudinal vocabularies, and
-capability sets produce the same canonical JSON and `cp1-…` fingerprint even
+source-lane maps, taxonomies, entity registries, longitudinal vocabularies,
+adjudication vocabularies, and capability sets produce the same canonical JSON
+and `cp1-…` fingerprint even
 if their semantic-set input order differs. Prototype-sensitive keys are
 rejected recursively before canonicalization. The fingerprint is a
 reproducible change detector, not a cryptographic signature. Any post-compile
 mutation invalidates it.
 
-The current WWAM V5.13 artifact is `cp1-f9ad38be22481b5d`. This value is a
-dated change detector for the compiled policy, not a permanent ID. The V5.6
-artifact was `cp1-8ac1488f4f78448c`; declaring
-`longitudinal-claim-ledger` intentionally changed the current fingerprint.
+The current WWAM V5.14 artifact is `cp1-dd23bc386008689b`. This value is a
+dated change detector for the compiled policy, not a permanent ID. The V5.13
+artifact was `cp1-f9ad38be22481b5d`; declaring the fingerprint-bound
+`adjudicationVocabulary` and `human-adjudication-ledger` capability
+intentionally changed it. The V5.6 artifact was `cp1-8ac1488f4f78448c`.
 
 Multiple products can be checked together:
 
@@ -176,7 +212,7 @@ The portfolio validator rejects duplicate channel IDs and storage namespaces.
 That makes "same engine, separate products" an executable rule instead of a
 folder-naming convention.
 
-## V5.6 portable capability patterns
+## Portable capability patterns
 
 ### Tape Companion
 
@@ -220,13 +256,30 @@ Configured word and event limits are paired with maximum characters per word,
 caption event, and public excerpt. This prevents a single oversized token from
 bypassing the public excerpt boundary.
 
+### The Verdict Room
+
+The adjudication engine consumes only a validated ChannelPack that declares
+both `longitudinal-claim-ledger` and `human-adjudication-ledger`. The pack must
+own exact `formal`, `comedy`, and `bleep` labels for the three canonical V1
+codes: `SUPPORTED`, `CONTRADICTED`, and `MIXED`. Runtime callers choose a code;
+they never supply a label.
+
+Those labels travel inside the compiled fingerprint, so a changed or foreign
+vocabulary makes saved review input stale. The engine independently re-resolves
+the live canonical docket packet and requires twelve caller-attested human
+checks before one scoped local result can render. This declaration does not
+verify the reviewer, clear rights, assign a speaker, prove causality, certify a
+creator, mutate Canon, or publish to a server. Revoke is append-only and
+suppresses the active result without erasing its history.
+
 These patterns are deliberately separate from channel voice. A horror channel
-can synchronize recurring-character callbacks and calibrate dark-comedy edit
-inventory; a racing channel can synchronize lead changes and cautions and
-calibrate close-finish or booth-intensity inventory through the same contracts.
-Both can also run Fresh Tape Intake with their own source lanes and literal
-rules. The rules and labels change; the no-network, exact-time, no-speaker,
-quarantine, and verifiable-export boundary does not.
+can synchronize recurring-character callbacks, calibrate dark-comedy edit
+inventory, and render its own adjudication copy; a racing channel can
+synchronize lead changes and cautions, calibrate close-finish or
+booth-intensity inventory, and render steward-style verdict labels through the
+same contracts. Both can also run Fresh Tape Intake with their own source lanes
+and literal rules. The rules and labels change; the bounded evidence and
+authority boundaries do not.
 
 ## Portability proof
 

@@ -36,9 +36,10 @@
   function embedUrl(videoId, options) {
     var id = String(videoId || "");
     if (!VIDEO_ID.test(id)) return "";
-    var query = playerQuery(options);
+    var config = options || {};
+    var query = playerQuery(config);
     var identity = pageIdentity();
-    if (identity.origin) {
+    if (identity.origin && config.forceHostedBridge !== true) {
       query.set("origin", identity.origin);
       return "https://www.youtube.com/embed/" + encodeURIComponent(id) +
         "?" + query.toString();

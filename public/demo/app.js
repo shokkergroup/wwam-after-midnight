@@ -2194,12 +2194,11 @@
       return;
     }
     var collectionStatus = askCollectionStatus(analysis);
-    var isLongitudinalHandoff = analysis.status === "longitudinal-handoff";
-    var isSurfaceHandoff = analysis.status === "surface-handoff";
-    var isAnyHandoff = isLongitudinalHandoff || isSurfaceHandoff;
+    var isAnyHandoff = /handoff$/.test(analysis.status);
     statusNode.textContent =
-      isLongitudinalHandoff ? "PREDICTION HANDOFF // OPEN THE TAPE KEEPS SCORE" :
-      isSurfaceHandoff ? "GLOBAL RANKING HANDOFF // OPEN THE SOURCE RANKING" :
+      analysis.status === "adjudication-handoff" ? "HUMAN REVIEW // VERDICT ROOM" :
+      analysis.status === "longitudinal-handoff" ? "PREDICTION HANDOFF // TAPE KEEPS SCORE" :
+      analysis.status === "surface-handoff" ? "GLOBAL RANKING HANDOFF // SOURCE RANKING" :
       analysis.status === "out-of-range" ?
         "RED BAND 100 // RANK OUT OF RANGE // NO SILENT CLAMPING" :
         analysis.status === "machine-ranked" && results.length ?
@@ -2223,8 +2222,7 @@
         '<a href="' + esc(analysis.recommendedSurface.href === "#canon-desk" ? "#canon" : analysis.recommendedSurface.href) +
         '"><b>' + esc(displayUiText(analysis.recommendedSurface.label)) + ' →</b><span>' +
         esc(displayUiText(analysis.recommendedSurface.reason)) + '</span></a>' : "") + '</section>';
-    var noMatchHeadline = isLongitudinalHandoff ? "THE TAPE KEEPS SCORE" :
-      isSurfaceHandoff ? "GLOBAL RANKING HANDOFF" :
+    var noMatchHeadline = isAnyHandoff ? analysis.recommendedSurface.label :
       analysis.status === "out-of-range" ? "THAT RANK DOES NOT EXIST." :
         "THE ARCHIVE REFUSED TO MAKE SOMETHING UP.";
     var noMatchBody = isAnyHandoff ? analysis.answer : analysis.status === "out-of-range" ?
@@ -2310,6 +2308,9 @@
       state.memoryTab = "score";
       renderMemory();
     };
+    var verdictLink = document.querySelector('#askResults a[href="#verdict-room"]');
+    if (verdictLink) verdictLink.onclick = function () { dispatchEvent(new CustomEvent(
+      "wwam:verdict-room-open", { detail: analysis.adjudicationHandoff })); };
     syncBagButtons();
   }
 
@@ -4678,6 +4679,16 @@
     addEventListener("hashchange", function () {
       if (location.hash !== "#tape-keeps-score") return;
       document.getElementById("tape-keeps-score").click();
+    });
+    addEventListener("wwam:verdict-room-open", function (event) {
+      var room = document.getElementById("verdict-room");
+      room.setAttribute("data-verdict-subject",
+        event.detail && typeof event.detail.subjectId === "string" ? event.detail.subjectId : "");
+      location.hash = "verdict-room";
+      window.WWAMFeatureLoader.hydrate(room).then(function (ready) {
+        if (ready && window.WWAMVerdictRoomSurface)
+          window.WWAMVerdictRoomSurface.open(room.getAttribute("data-verdict-subject"));
+      });
     });
     document.getElementById("vaultSearch").oninput = function (event) {
       state.vaultQuery = event.target.value;

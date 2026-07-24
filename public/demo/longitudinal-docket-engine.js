@@ -2308,6 +2308,7 @@
       durationSeconds: source.durationSeconds,
       url: source.url,
       lane: source.lane,
+      contentMode: source.contentMode,
       rightsMode: source.rightsMode,
       evidenceAccess: source.evidenceAccess,
       captionTrack: source.captionTrack,
@@ -2964,7 +2965,7 @@
     });
   }
 
-  root.ShokkerLongitudinalDocket = Object.freeze({
+  var api = Object.freeze({
     VERSION: VERSION,
     SCHEMA: SCHEMA,
     DATA_SCHEMA: DATA_SCHEMA,
@@ -2973,5 +2974,11 @@
     EXPORT_SCHEMA: EXPORT_SCHEMA,
     DocketValidationError: DocketValidationError,
     create: create,
+  });
+  Object.defineProperty(root, "ShokkerLongitudinalDocket", {
+    value: api,
+    enumerable: true,
+    writable: false,
+    configurable: false,
   });
 })(typeof window !== "undefined" ? window : globalThis);

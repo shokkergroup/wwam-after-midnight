@@ -3,6 +3,72 @@
 This changelog records product and evidence-contract changes. It does not by
 itself indicate that a build has been deployed.
 
+## 0.5.14 — V5.14 The Verdict Room — 2026-07-24
+
+### Added
+
+- **The Verdict Room** adds a demand-loaded, device-local human adjudication
+  ledger over The Tape Keeps Score's canonical unresolved dockets.
+- A review requires all **12 explicit caller-attested human checks**. Check
+  twelve locks one of only three V1 codes—`SUPPORTED`, `CONTRADICTED`, or
+  `MIXED`—together with its exact fixed, code-specific scoped sentence. Final
+  adjudication must byte-match both.
+- The formal result stays adjacent to ChannelPack-owned comedy copy. WWAM
+  supplies `CALLED THAT SHIT.`, `AGED LIKE ROADKILL.`, and `HALF PROPHET. HALF
+  JACKASS.` plus reduced-profanity display variants.
+- Adjudication and revocation append immutable events. Revocation immediately
+  removes the active local result without deleting the earlier decision.
+- Deterministic JSON and Markdown exports preserve the bounded review record.
+  Exact restore replays the complete event chain; stale, foreign, malformed,
+  oversized, or semantically forbidden imports fail closed.
+- The WWAM adapter persists a namespaced local session across reloads. Corrupt
+  saved input is held visibly rather than deleted or silently accepted.
+  Unavailable browser storage degrades to a disclosed memory-only session while
+  export remains available.
+- A dedicated `#verdict-room` route, lazy surface controller, keyboard workflow,
+  confirmation dialogs, live status, reduced-motion behavior, and explicit
+  destroy lifecycle keep the feature isolated from the eager fan experience.
+- The neutral racing ChannelPack carries its own steward-style verdict map
+  through the same core engine, proving that adjudication logic and channel
+  voice remain separate.
+- Tape Companion now performs the fallback it promises: if YouTube returns
+  player identity Error 153, the failed API player is replaced in-page by the
+  first-party hosted bridge at the same source second. If the synchronized API
+  itself cannot load, the official source still opens in a direct on-page
+  player with the manual memory rail preserved.
+
+### Accuracy and authority boundaries
+
+- A machine docket still publishes **zero verdicts**. Every formal label,
+  comedy label, and reviewed wording remains `null` before a complete human
+  adjudication and after revocation or stale-input detection.
+- The local caller attests that a human performed the review, but the prototype
+  does not verify reviewer identity. It also does not clear rights, assign a
+  speaker, prove continuity or causality, certify a creator, mutate Canon, or
+  publish to a server.
+- The engine re-resolves the live canonical inspection packet for every target.
+  It accepts no caller-authored packet, speaker, label, certification, rights
+  claim, or Canon mutation.
+- `MIXED` requires opposing relied-on later evidence. Every result stays scoped
+  to the reviewed docket and wording; the same conclusion cannot silently
+  transfer to another subject, source set, or revision.
+- The compiled ChannelPack now fingerprint-binds the three-code
+  `adjudicationVocabulary` and declares `human-adjudication-ledger`. The current
+  WWAM pack is `cp1-dd23bc386008689b`; the re-bound public longitudinal artifact
+  is `fnv1a32:59b085f6`. The caption-set binding remains
+  `sha256:65741e59ab66c04254f9c40a5051308a8bb1cf6b121078737ba5b81f1b25d5fc`.
+  All are change detectors or input bindings, not authentication, authorship,
+  or truth proofs.
+- ChannelPack, longitudinal-docket, and Verdict Room factories now publish
+  through non-writable, non-configurable bindings, and Verdict Room captures
+  the exact frozen validator it loaded with. Portable formal labels must retain
+  their canonical verdict-code prefix; comedy copy cannot claim outside
+  authority; reduced-profanity copy may bleep words but cannot reverse the
+  decision.
+- The four dockets, eight official sources, nine short receipts, 17,626-byte
+  public artifact, July 23 source snapshot, and all V5.13 historical evidence
+  claims remain unchanged.
+
 ## 0.5.13 — V5.13 The Tape Keeps Score — 2026-07-24
 
 ### Added

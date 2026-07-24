@@ -56,18 +56,28 @@ test("Ask collection readouts use the Query Plan total and unit, not card count"
   assert.match(askUi, /collectionStatus \? collectionStatus :\s*results\.length \?/);
 });
 
-test("surface handoffs render as global ranking routes with a Red Band link", () => {
+test("surface handoffs keep their ranking status and use the recommended route label", () => {
   const statusBlock = askUi.slice(
     askUi.indexOf("statusNode.textContent"),
     askUi.indexOf("var boundary"),
   );
 
-  assert.match(statusBlock, /isSurfaceHandoff \? "GLOBAL RANKING HANDOFF/);
+  assert.match(
+    statusBlock,
+    /analysis\.status === "surface-handoff" \? "GLOBAL RANKING HANDOFF \/\/ SOURCE RANKING"/,
+  );
   assert.ok(
     statusBlock.indexOf("GLOBAL RANKING HANDOFF") <
       statusBlock.indexOf("NO DEFENSIBLE RECEIPT"),
   );
-  assert.match(askUi, /isSurfaceHandoff \? "GLOBAL RANKING HANDOFF"/);
+  assert.match(
+    askUi,
+    /var isAnyHandoff = \/handoff\$\/\.test\(analysis\.status\)/,
+  );
+  assert.match(
+    askUi,
+    /var noMatchHeadline = isAnyHandoff \? analysis\.recommendedSurface\.label/,
+  );
   assert.match(askUi, /analysis\.recommendedSurface[\s\S]*?<a href=/);
   assert.match(askUi, /analysis\.recommendedSurface\.href/);
   assert.match(search, /surfaceHandoff:[\s\S]*?href: "#red100"/);

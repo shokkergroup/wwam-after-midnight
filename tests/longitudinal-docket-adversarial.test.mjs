@@ -491,7 +491,7 @@ test("sources and subject types must exist in the bound ChannelPack taxonomy", (
   );
 });
 
-test("public packets omit internal subject-binding and window-cue multipliers", () => {
+test("public packets omit internal multipliers while retaining review-critical content mode", () => {
   const { engine } = fixture();
   const inspection = plain(
     engine.inspect("docket:scream-7-commentary-plan-open"),
@@ -502,7 +502,7 @@ test("public packets omit internal subject-binding and window-cue multipliers", 
     const serialized = JSON.stringify(packet);
     assert.doesNotMatch(serialized, /"subjectBindings"\s*:/);
     assert.doesNotMatch(serialized, /"windowCueTerms"\s*:/);
-    assert.doesNotMatch(serialized, /"contentMode"\s*:/);
+    assert.match(serialized, /"contentMode"\s*:/);
     assert.doesNotMatch(serialized, /"publicInput"\s*:/);
     assert.doesNotMatch(serialized, /"integrityNote"\s*:/);
     assert.equal(engine.verify(packet).ok, true);

@@ -584,6 +584,41 @@
       predictionOutcome || promiseOutcome || archiveCommand;
   }
 
+  /*
+   * The Verdict Room is not a synonym for prediction retrieval. Only an
+   * explicit request to enter the surface, inspect its local ledger, or put a
+   * prediction/forecast docket through human review is eligible. Questions
+   * that merely ask whether a prediction was right remain with the
+   * longitudinal docket.
+   */
+  function adjudicationRequest(normalizedQuery) {
+    var q = normalize(normalizedQuery);
+    if (!q) return false;
+
+    var explicitSurface = /\b(?:the )?verdict room\b/.test(q);
+    var explicitLedger = includesAny(q, [
+      "verdict ledger", "human verdict ledger", "local verdict ledger",
+      "scoped verdict ledger",
+      "adjudication ledger", "human adjudication ledger",
+      "reviewed verdict ledger",
+    ]);
+    var reviewedLedgerStatus =
+      /^(?:which|what) (?:local |scoped |human )?(?:verdicts|dockets) (?:have|were|are) (?:been )?(?:reviewed|adjudicated)\b/.test(q) ||
+      /^(?:show|list|find)(?: me)? (?:the )?(?:reviewed|adjudicated) (?:local |scoped |human )?(?:verdicts|dockets)\b/.test(q);
+    var docketObject = /\b(?:predictions?|forecasts?|promises?|called it|dockets?|claim response pairs?)\b/.test(q);
+    var directCommand =
+      /^(?:please )?(?:review|adjudicate|judge|audit|recheck)\b/.test(q) ||
+      /\b(?:can|could|would|will) you (?:review|adjudicate|judge|audit|recheck)\b/.test(q) ||
+      /\b(?:i|we) (?:want|need|would like) to (?:review|adjudicate|judge|audit|recheck)\b/.test(q) ||
+      /\b(?:let me|help me) (?:review|adjudicate|judge|audit|recheck)\b/.test(q);
+    var routedReview =
+      /\b(?:put|send|take|route)\b(?: [a-z0-9]+){0,10}\b (?:through|to|for) (?:a )?(?:human|manual|caller attested) (?:review|adjudication|verdict)\b/.test(q) ||
+      /\b(?:human|manual|caller attested) (?:review|adjudication)\b(?: [a-z0-9]+){0,10}\b (?:predictions?|forecasts?|dockets?|claims?|outcomes?)\b/.test(q);
+
+    return explicitSurface || explicitLedger || reviewedLedgerStatus ||
+      (docketObject && (directCommand || routedReview));
+  }
+
   function longitudinalSubject(query, entity) {
     var q = canonicalizeQuery(query);
     var subjects = [
@@ -681,6 +716,7 @@
       /\b(?:what|which|where).*\b(?:made them laugh|laugh(?:ed)? hardest)\b/.test(q) ||
       /\bfunniest (?:moment|bit|clip|thing) overall\b/.test(q)
     );
+    var adjudicationRequested = adjudicationRequest(q);
     var longitudinalRequested = longitudinalRequest(q);
     var hasSurfaceHandoff =
       broadMemorabilitySuperlative || globalComedySuperlative;
@@ -691,7 +727,8 @@
         "what do they say in", "whats in", "what is in",
       ]);
     var outputShape = "single";
-    if (longitudinalRequested) outputShape = "longitudinal-handoff";
+    if (adjudicationRequested) outputShape = "adjudication-handoff";
+    else if (longitudinalRequested) outputShape = "longitudinal-handoff";
     else if (hasSurfaceHandoff) outputShape = "surface-handoff";
     else if (recurringCharacterRoster) outputShape = "character-roster";
     else if (curatedSoundbytes) outputShape = "curated-soundbytes";
@@ -748,8 +785,17 @@
       curatedSoundbytes: curatedSoundbytes,
       relativeNewestStream: relativeNewestStream,
       relativeExplicitLane: relativeExplicitLane,
+      adjudicationRequested: adjudicationRequested,
+      adjudicationHandoff: adjudicationRequested ? {
+        id: "verdict-room",
+        surface: "human-adjudication-ledger",
+        href: "#verdict-room",
+        label: "THE VERDICT ROOM",
+        intent: "human-adjudication",
+        reason: "Explicit human review belongs to the caller-attested, device-local adjudication ledger.",
+      } : null,
       longitudinalRequested: longitudinalRequested,
-      longitudinalHandoff: longitudinalRequested ? {
+      longitudinalHandoff: longitudinalRequested && !adjudicationRequested ? {
         id: "tape-keeps-score",
         surface: "longitudinal-docket",
         href: "#tape-keeps-score",
@@ -3581,7 +3627,9 @@
           entity = sourceEntity;
         }
       }
-      var longitudinalSpeakerRequest = queryPlan.longitudinalRequested &&
+      var protectedHandoffRequested =
+        queryPlan.adjudicationRequested || queryPlan.longitudinalRequested;
+      var protectedHandoffSpeakerRequest = protectedHandoffRequested &&
         (
           intent.refusesSpeakerGuess ||
           (
@@ -3589,19 +3637,134 @@
             intent.normalized.indexOf("mike myers") < 0
           )
         );
-      var longitudinalRightsBoundary = Boolean(
+      var protectedHandoffRightsBoundary = Boolean(
         selectedSource && selectedSource.restrictedToTopicNavigation
       );
-      var longitudinalRestrictedSourceLanguage = includesAny(
+      var protectedHandoffRestrictedSourceLanguage = includesAny(
         intent.normalized,
         ["trailer reaction", "trailer audio", "source audio"]
       );
-      var eligibleLongitudinalHandoff = queryPlan.longitudinalRequested &&
-        !longitudinalSpeakerRequest &&
+      var protectedHandoffEligible =
+        !protectedHandoffSpeakerRequest &&
         !intent.visualResultRequest &&
         !intent.visualContextRefusal &&
-        !longitudinalRightsBoundary &&
-        !longitudinalRestrictedSourceLanguage;
+        !protectedHandoffRightsBoundary &&
+        !protectedHandoffRestrictedSourceLanguage;
+      var eligibleAdjudicationHandoff =
+        queryPlan.adjudicationRequested && protectedHandoffEligible;
+      if (eligibleAdjudicationHandoff) {
+        var adjudicationSubject = longitudinalSubject(
+          queryPlan.canonicalQuery,
+          entity
+        );
+        var adjudicationHandoff = Object.assign(
+          {},
+          queryPlan.adjudicationHandoff,
+          {
+            mode: adjudicationSubject ? "subject" : "global",
+            query: query,
+          },
+          adjudicationSubject ? {
+            subjectId: adjudicationSubject.id,
+            subject: adjudicationSubject.label,
+            subjectType: adjudicationSubject.type,
+          } : {}
+        );
+        queryPlan.adjudicationHandoff = adjudicationHandoff;
+        queryPlan.longitudinalHandoff = null;
+        queryPlan.outputShape = "adjudication-handoff";
+        queryPlan.subjectTerms = [];
+        if (adjudicationSubject) {
+          queryPlan.concepts.primaryTarget = {
+            type: adjudicationSubject.type,
+            label: adjudicationSubject.label,
+            subjectId: adjudicationSubject.id,
+          };
+          queryPlan.concepts.secondaryTargets = [];
+        }
+        return {
+          query: query,
+          intent: "human-adjudication",
+          questionType: "human-review",
+          source: intent.source,
+          temporal: intent.temporal,
+          popularity: intent.popularity,
+          metric: "human-adjudication-ledger",
+          requestedYear: intent.requestedYear,
+          entity: adjudicationSubject ? adjudicationSubject.label :
+            entity ? entity.label : null,
+          entityType: adjudicationSubject ? adjudicationSubject.type :
+            entity ? entity.type : null,
+          ownerMapping: null,
+          continuedFrom: continuedFrom,
+          contextUsed: contextUsed,
+          resultAnchor: null,
+          context: {
+            query: query,
+            intent: "human-adjudication",
+            source: intent.source,
+            temporal: intent.temporal,
+            popularity: intent.popularity,
+            metric: "human-adjudication-ledger",
+            entity: adjudicationSubject ? adjudicationSubject.label :
+              entity ? entity.label : null,
+            entityType: adjudicationSubject ? adjudicationSubject.type :
+              entity ? entity.type : null,
+            resultAnchor: null,
+          },
+          queryPlan: queryPlan,
+          adjudicationHandoff: adjudicationHandoff,
+          selectionPlan: {
+            adjudicationHandoff: adjudicationHandoff,
+          },
+          confidence: 100,
+          confidenceBasis: [
+            "Query Plan identified an explicit human review or verdict-ledger request",
+            adjudicationSubject ?
+              "Canonical longitudinal subject ID resolved" :
+              "No canonical longitudinal subject ID was inferred",
+            "Ask made no adjudication and recorded no verdict",
+          ],
+          status: "adjudication-handoff",
+          answer: "This is an explicit human review request" +
+            (adjudicationSubject ? " about " + adjudicationSubject.label : "") +
+            ". Ask WWAM is handing it to " + adjudicationHandoff.label +
+            ". Nothing has been adjudicated here; that device-local room records " +
+            "a scoped verdict only after a caller-attested human reviews the exact receipts.",
+          limitations: [
+            "A handoff is not a verdict; the machine docket remains unadjudicated.",
+            "The room records caller attestation, not verified identity, creator certification, rights clearance, or canon.",
+            "Any resulting verdict is scoped to the reviewed receipts and stays device-local.",
+          ].concat(adjudicationSubject ? [] : [
+            "No canonical docket subject ID was safe enough to pass, so the destination opens globally.",
+          ]),
+          explanation: {
+            method: "query-plan human adjudication handoff",
+            subjectTerms: [],
+            topScore: 0,
+            resultCountBeforeDisplayLimit: 0,
+            safeguards: [
+              "no independently manufactured verdict",
+              "no identity or creator-certification claim",
+              "no speaker guessing",
+              "source-audio and visual-result firewalls preserved",
+              "unknown subjects remain global",
+            ],
+          },
+          evidenceChain: [],
+          results: [],
+          suggestions: ["Open THE VERDICT ROOM"],
+          recommendedSurface: adjudicationHandoff,
+        };
+      }
+      if (queryPlan.adjudicationRequested) {
+        queryPlan.adjudicationHandoff = null;
+        queryPlan.longitudinalHandoff = null;
+        queryPlan.outputShape = "single";
+      }
+      var eligibleLongitudinalHandoff = queryPlan.longitudinalRequested &&
+        !queryPlan.adjudicationRequested &&
+        protectedHandoffEligible;
       if (eligibleLongitudinalHandoff) {
         var docketSubject = longitudinalSubject(queryPlan.canonicalQuery, entity);
         var longitudinalHandoff = Object.assign(

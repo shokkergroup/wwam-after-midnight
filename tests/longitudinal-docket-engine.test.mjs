@@ -372,7 +372,7 @@ test("freezes four honest WWAM launch cases under one exact ChannelPack", () => 
     window.ShokkerLongitudinalDocket.DATA_SCHEMA,
     "shokker-youtube-wiki/longitudinal-docket-data/v1",
   );
-  assert.equal(channelPack.fingerprint, "cp1-f9ad38be22481b5d");
+  assert.equal(channelPack.fingerprint, "cp1-dd23bc386008689b");
   assert.ok(channelPack.capabilities.includes("longitudinal-claim-ledger"));
   assert.equal(data.channel.packFingerprint, channelPack.fingerprint);
   assert.equal(data.labels.product, "THE TAPE KEEPS SCORE");
@@ -405,8 +405,8 @@ test("freezes four honest WWAM launch cases under one exact ChannelPack", () => 
     ok: true,
     kind: "data-artifact",
     schema: "shokker-youtube-wiki/longitudinal-docket-data/v1",
-    expected: "fnv1a32:d4ca362e",
-    actual: "fnv1a32:d4ca362e",
+    expected: "fnv1a32:59b085f6",
+    actual: "fnv1a32:59b085f6",
     errors: [],
     changeDetectorOnly: true,
   });
@@ -1038,7 +1038,7 @@ test("the offline pipeline proves and reproduces all source bindings byte-for-by
     /Validated longitudinal-docket-data\.js: 4 cases, 8 sources/,
   );
   assert.match(output, /17,626 public bytes/);
-  assert.match(output, /fnv1a32:d4ca362e/);
+  assert.match(output, /fnv1a32:59b085f6/);
   assert.ok(fs.statSync(dataPath).size < 32_000);
   assert.equal(data.provenance.networkUsed, false);
   assert.equal(data.provenance.fullCaptionPayloadPublic, false);

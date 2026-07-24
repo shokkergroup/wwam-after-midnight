@@ -1,4 +1,4 @@
-# WWAM After Midnight V5.13
+# WWAM After Midnight V5.14
 
 ## One-sentence product
 
@@ -15,8 +15,9 @@ masquerading as timestamped utterances.
 
 ## Audited snapshot
 
-V5.13 keeps a frozen release proof, the V5.12 Archive Deep overlay, and the
-new longitudinal docket visibly separate. The **immutable V5.4 proof**
+V5.14 keeps a frozen release proof, the V5.12 Archive Deep overlay, the V5.13
+longitudinal docket, and the new device-local adjudication overlay visibly
+separate. The **immutable V5.4 proof**
 remains:
 
 | Source lane | Coverage |
@@ -138,18 +139,62 @@ review packet.
 No output contains copied media or a full caption payload. Public excerpts are
 limited to sixteen normalized automatic-caption words. Speaker stays null,
 origin is not inferred, visual context stays unverified, autoplay is false,
-and rights clearance is not claimed. The artifact is bound to ChannelPack
-`cp1-f9ad38be22481b5d`, caption set
+and rights clearance is not claimed. The current artifact is bound to
+ChannelPack `cp1-dd23bc386008689b`, caption set
 `sha256:65741e59ab66c04254f9c40a5051308a8bb1cf6b121078737ba5b81f1b25d5fc`,
-and structural fingerprint `fnv1a32:d4ca362e`.
+and structural fingerprint `fnv1a32:59b085f6`.
 
 The engine is channel-neutral and requires the
 `longitudinal-claim-ledger` ChannelPack capability. WWAM supplies the subject
 ontology, source lanes, evidence, and voice; a neutral racing fixture proves
 that the core engine does not require WWAM identity. The data, engine, UI,
-adapter, and stylesheet total 160,410 source bytes and remain outside the
-eager application path. See
+adapter, and stylesheet remain outside the eager application path. See
 [The Tape Keeps Score](LONGITUDINAL_DOCKET.md).
+
+## The Verdict Room
+
+V5.14 adds a second, separately governed layer over those unresolved machine
+dockets. **The Verdict Room** accepts only the canonical live inspection
+packet for a docket bound to the current ChannelPack and caption artifact. It
+never accepts a caller-authored label, packet, speaker, certification, or Canon
+mutation.
+
+The workflow has twelve caller-attested human checks covering reviewer
+boundaries, every relied-on receipt, chronology, source-audio and visual
+limits, speaker and causality restraint, contradictory evidence, independent
+outcome review, and publication scope. Check twelve locks one of three
+canonical V1 codes—`SUPPORTED`, `CONTRADICTED`, or `MIXED`—together with its
+exact fixed, code-specific scoped sentence. Final adjudication must byte-match
+both.
+
+The formal result always stays beside the pack-owned comedy label. WWAM can
+render `CALLED THAT SHIT.`, `AGED LIKE ROADKILL.`, or `HALF PROPHET. HALF
+JACKASS.`; reduced-profanity mode changes only display copy. A neutral racing
+fixture renders `SUPPORTED // CALL UPHELD`, `CONTRADICTED // CALL OVERTURNED`,
+or `MIXED // SPLIT DECISION` through the same engine, with no WWAM vocabulary
+leakage. Formal labels must retain the canonical code; reduced-profanity copy
+can bleep words but cannot reverse the result.
+
+This is an unauthenticated, device-local review aid:
+
+- the source docket remains immutable and still carries `verdict: null`;
+- reviewer identity is explicitly unverified;
+- no decision clears rights, assigns a speaker, proves causality, certifies a
+  creator, mutates Canon, or publishes to a server;
+- revocation appends a new event and immediately suppresses the active local
+  result without erasing history;
+- exact JSON restore and deterministic Markdown export preserve the bounded
+  audit trail; hostile, stale, foreign, or malformed imports fail closed; and
+- browser persistence is a convenience. Storage loss degrades visibly to
+  memory-only review while export remains available.
+
+The current V5.14 input bindings are ChannelPack
+`cp1-dd23bc386008689b`, caption set
+`sha256:65741e59ab66c04254f9c40a5051308a8bb1cf6b121078737ba5b81f1b25d5fc`,
+and public longitudinal artifact `fnv1a32:59b085f6`. Fingerprints are change
+detectors and input bindings, not signatures, identity proof, or verdict
+authority. The Verdict Room's engine, UI, adapter, surface controller, and CSS
+are demand-loaded. See [The Verdict Room](VERDICT_ROOM_DESIGN.md).
 
 ## Archive Deep Batch 04
 
@@ -575,6 +620,7 @@ consistently shortened at render time.
 | Local, bounded fresh-tape parsing and verifiable quarantine export | Trusted feed ingestion, authenticated review, and promotion into production ledgers |
 | Machine and timestamp-validated human-curated candidate labels | Any authenticated editor-verified or creator-certified receipts; clip-level diarization |
 | Machine-paired before/after review packets and source-linked edit briefs | Authenticated adjudication, speaker continuity, independent outcome review, or rights clearance |
+| Caller-attested, device-local Verdict Room decisions with append-only revoke history | Verified reviewer identity, shared/server publication, creator certification, Canon mutation, or rights clearance |
 | Candidate edit plans | Human final cuts, rights, and platform review |
 | Current source snapshot | Scheduled ingest and monitoring |
 | Commercial surface concepts | Pricing, conversion, sponsor, and revenue data |
@@ -616,5 +662,8 @@ The reusable patterns now include:
   reviews it; it cannot silently rewrite retrieval or Canon.
 - **Longitudinal review:** a ChannelPack subject ontology binds earlier and
   later exact-source receipts under a `MAY_RESOLVE` relationship. Machine
-  signals remain subordinate, contradictions stay visible, and only an
-  authorized human can adjudicate a public conclusion.
+  signals remain subordinate and contradictions stay visible.
+- **Scoped local adjudication:** a fingerprint-bound ChannelPack supplies the
+  only permitted verdict codes and formal/comedy/bleep labels. Twelve explicit
+  human checks can create one revocable local overlay, while public publication
+  still requires authenticated, authorized production governance.
