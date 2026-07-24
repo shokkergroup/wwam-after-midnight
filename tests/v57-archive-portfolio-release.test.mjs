@@ -28,9 +28,9 @@ test("the historical V5.7 entry remains while current identity stays synchronize
   const packageLock = JSON.parse(read("package-lock.json"));
   const changelog = read("docs/CHANGELOG.md");
 
-  assert.equal(packageJson.version, "0.5.14");
-  assert.equal(packageLock.version, "0.5.14");
-  assert.equal(packageLock.packages[""].version, "0.5.14");
+  assert.equal(packageJson.version, "0.5.15");
+  assert.equal(packageLock.version, "0.5.15");
+  assert.equal(packageLock.packages[""].version, "0.5.15");
   assert.match(changelog, /^## 0\.5\.7\b/m);
   assert.match(changelog, /V5\.7 Archive Deep Portfolio/i);
 });

@@ -2108,6 +2108,7 @@
   function ask(query, preservedAnalysis) {
     var statusNode = document.getElementById("askStatus");
     var resultsNode = document.getElementById("askResults");
+    resultsNode._trail = null;
     resultsNode.setAttribute("data-ask-query", String(query || "").trim());
     var redBandIntent = isRedBandRankQuery(query);
     if (redBandIntent && !redBandQueryEngine) {
@@ -2134,6 +2135,7 @@
     var rankedAnalysis = redBandIntent && redBandQueryEngine ?
       redBandQueryEngine.analyze(query, state.askContext) : null;
     var analysis = rankedAnalysis || preservedAnalysis || askEngine.ask(query, state.askContext);
+    resultsNode._trail = analysis;
     if (!redBandIntent && !archiveDeepEngine && analysis.selectionPlan &&
         analysis.selectionPlan.sourceTitleBoundary) {
       state.lastAskQuery = query;

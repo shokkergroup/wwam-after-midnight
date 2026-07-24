@@ -564,6 +564,17 @@ img { display: block; max-width: 100%; }
 .sound-idle b { color: #73636e; font: 10px var(--mono); }
 .sound-video { position: relative; aspect-ratio: 16/9; border-bottom: 1px solid #563248; background: #000; }
 .sound-video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.shokker-youtube-player { position: absolute; inset: 0; overflow: hidden; background: #050505; }
+.shokker-youtube-player iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.shokker-youtube-recover {
+  position: absolute; z-index: 4; top: 10px; right: 10px; min-height: 44px;
+  padding: 0 14px; border: 1px solid var(--acid); background: rgba(5, 5, 5, .92);
+  color: var(--acid); font: 700 10px var(--mono); letter-spacing: .08em; cursor: pointer;
+}
+.shokker-youtube-recover:hover, .shokker-youtube-recover:focus-visible {
+  background: var(--acid); color: #050505; outline: 2px solid #fff; outline-offset: 2px;
+}
+.shokker-youtube-recover:disabled { border-color: #777; color: #ddd; cursor: default; }
 .sound-now { align-self: stretch; padding: 26px; }
 .sound-now > span { color: var(--pink); font: 700 10px var(--mono); }
 .sound-now h3 { margin: 7px 0 14px; color: var(--acid); font: 40px/.9 var(--display); }

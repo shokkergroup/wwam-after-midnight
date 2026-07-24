@@ -11,7 +11,7 @@ three things quickly:
 
 ## Before the call
 
-- Open the current V5.14 build or its confirmed deployment and choose either
+- Open the current V5.15 build or its confirmed deployment and choose either
   content-advisory mode.
 - Confirm YouTube playback is available in the browser.
 - Start at the hero, not halfway down the page.
@@ -87,7 +87,7 @@ question. Do not add optional features until the close.
 | --- | --- | --- |
 | 0:00–0:30 | Night Shift | A daily route connects newest source, archive callback, choice, and payoff |
 | 0:30–1:05 | Archive Atlas + Time Capsule | The whole-feed map becomes an honest, playable 2019 capsule without merging its two source ledgers |
-| 1:05–2:05 | Ask + Comedy Black Box + The Tape Keeps Score | Answers, ranked riffs, and prediction/outcome handoffs exit into timestamped, inspectable proof |
+| 1:05–2:05 | Ask + Play the Answer + The Tape Keeps Score | A written answer becomes an ordered official-source watch path; prediction/outcome questions retain their separate review handoff |
 | 2:05–3:20 | Clip Lab | Evidence becomes a reviewable Short and an exact campaign ledger |
 | 3:20–4:00 | Trust Desk | Character mapping is separated from clip-level speaker proof |
 | 4:00–4:20 | Close | Ask which workflow deserves a production pilot |
@@ -425,15 +425,48 @@ What it proves:
 - identity, rights, speaker, causality, creator approval, Canon, and public
   publication remain outside the prototype's authority.
 
+## V5.15 Play the Answer proof — 60 seconds
+
+Use this branch when the buyer says a chatbot can also return links.
+
+1. Ask **How did their opinion on Halloween change?**
+2. Read the visible boundary first: these franchise-wide receipts cannot prove
+   a host changed their mind.
+3. Select **PLAY THIS ANSWER**. Show the exact ordered rail:
+   `6VXSBDZ-3WE @ 26:37` as the earliest indexed receipt and
+   `I6QKteG_hK0 @ 1:39:53` as the latest.
+4. Play the first official upload in-page, choose **NEXT RECEIPT**, and play
+   the second. Point out that the evidence tier, speaker warning, and complete
+   Ask limitations remain visible.
+5. Copy the trail link. Explain that the share contains only bindings and
+   coordinates; opening it reruns Ask and rejects a changed or reordered trail.
+6. If a player is blocked, use **RECOVER PLAYER** to reopen the same bounded
+   source window through the hosted bridge.
+
+Say: “The answer is not AI prose with citations bolted on. It is a reproducible
+watch path through the channel's own uploads, and the warning survives the
+transition from reading to playback.”
+
+What it proves:
+
+- one answer can become an immersive multi-source experience without copied
+  media or synthetic narration;
+- Ask's evidence-chain order, not heat or popularity, controls the cut;
+- the official source remains the player and traffic destination;
+- share restore treats the current archive as authority rather than trusting
+  imported answer copy; and
+- the portable core can play a race evidence chain without importing WWAM's
+  vocabulary.
+
 ## Optional ten-minute branches
 
 Use only the branch the audience cares about:
 
 - **Fan community:** Tape Companion, Night Shift, Red Band 100, WWAM UP IN YA,
   Personalized Descent, Evidence Bag, Trivia.
-- **Back-catalog discovery:** Ask WWAM, Popular 25, Fresh 10, franchise reports,
-  Lore Galaxy, The Tape Keeps Score, The Verdict Room, and Archive Atlas's
-  four-batch Archive Deep Portfolio.
+- **Back-catalog discovery:** Ask WWAM, Play the Answer, Popular 25, Fresh 10,
+  franchise reports, Lore Galaxy, The Tape Keeps Score, The Verdict Room, and
+  Archive Atlas's four-batch Archive Deep Portfolio.
 - **Editorial operations:** Clip Lab, Creator Taste Calibration, Live
   Aftermath, Control Room, Human Review Session, and correction packets.
 - **Recurring characters:** Ask the Character, then immediately show the

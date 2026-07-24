@@ -3,6 +3,55 @@
 This changelog records product and evidence-contract changes. It does not by
 itself indicate that a build has been deployed.
 
+## 0.5.15 — V5.15 Play the Answer — 2026-07-24
+
+### Added
+
+- **Play the Answer** turns Ask's existing ordered evidence chain into one
+  on-page official-source watch path instead of making the fan open every
+  receipt separately.
+- Eligible answers expose a contextual `PLAY THIS ANSWER` action. The theater
+  preserves exact primary/support/counterpoint or earliest/latest roles and
+  provides Previous, Replay, Next, Recover Player, official-source, share, and
+  close controls.
+- The launch contract pins the Halloween trajectory
+  `6VXSBDZ-3WE @ 1597 → I6QKteG_hK0 @ 5993` and the Elm Street remake chain
+  `qTQdWKcwn4A @ 1132 → qTQdWKcwn4A @ 2101`.
+- Playback uses the shared origin-aware YouTube helper. Explicit recovery
+  reloads the same source window through the hosted first-party bridge, while
+  the exact official-source link remains available.
+- Every older helper-backed source player now exposes the same persistent
+  `PLAYER ERROR? RECOVER HERE` control. Recovery keeps the exact video, start,
+  end, and autoplay intent and routes through the current site's first-party
+  bridge; local-file launches retain the hosted bridge.
+- Compact share state binds the current query, archive identity, ChannelPack,
+  and exact ordered receipt coordinates. Restore reruns Ask and requires the
+  rebuilt trail to match rather than accepting the packet as evidence.
+- The engine and interface remain demand-loaded from the Ask surface. The
+  channel-neutral core is exercised with a racing fixture that contains no
+  WWAM or horror vocabulary.
+
+### Accuracy and authority boundaries
+
+- A trail requires two to six unique timed receipts from the current
+  `analysis.evidenceChain`. Metadata-only answers, source-level summaries,
+  single-receipt answers, handoffs, unknown sources, duplicates, and
+  out-of-range coordinates fail closed.
+- Trail order is answer order. Popularity, heat, profanity, visual ranking,
+  and UI card order cannot rerank it.
+- Every stop fixes speaker to `null` and keeps speaker continuity, causality,
+  opinion change, true origin, rights clearance, creator approval, Canon
+  mutation, and copied-media claims false.
+- Share packets contain no excerpt, caption, transcript, generated answer,
+  speaker, thumbnail, audio, or video. Foreign bindings, changed answers,
+  reordered stops, added fields, and fingerprint drift are rejected.
+- The bounded playback window is a navigation aid around an indexed second,
+  not a claim that a complete setup, joke, take, or payoff begins and ends at
+  those bounds.
+- Ask's full limitations remain visible in the theater. Playing two receipts
+  back-to-back cannot establish that the same host made both statements or
+  changed an opinion.
+
 ## 0.5.14 — V5.14 The Verdict Room — 2026-07-24
 
 ### Added

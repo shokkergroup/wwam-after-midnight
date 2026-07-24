@@ -141,13 +141,13 @@ test("V5.10 documentation pins the score, evidence, and authority boundaries", (
   const changelog = read("docs/CHANGELOG.md");
   const runbook = read("docs/CREATOR_DEMO_RUNBOOK.md");
 
-  assert.equal(manifest.version, "0.5.14");
-  assert.equal(lock.version, "0.5.14");
-  assert.equal(lock.packages[""].version, "0.5.14");
-  assert.match(readme, /Current documented release: \*\*V5\.14 \/ 0\.5\.14\*\*/);
-  assert.match(overview, /^# WWAM After Midnight V5\.14/m);
+  assert.equal(manifest.version, "0.5.15");
+  assert.equal(lock.version, "0.5.15");
+  assert.equal(lock.packages[""].version, "0.5.15");
+  assert.match(readme, /Current documented release: \*\*V5\.15 \/ 0\.5\.15\*\*/);
+  assert.match(overview, /^# WWAM After Midnight V5\.15/m);
   assert.match(changelog, /^## 0\.5\.10 .*V5\.10 Comedy Black Box/m);
-  assert.match(runbook, /current V5\.14 build/);
+  assert.match(runbook, /current V5\.15 build/);
 
   [readme, overview, contract, changelog].forEach((source) => {
     assert.match(source, /301/);

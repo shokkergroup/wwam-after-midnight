@@ -24,17 +24,17 @@ function load(files) {
   return sandbox.window;
 }
 
-test("V5.14 package identity and browser cache keys move together", () => {
+test("the current package identity and browser cache keys move together", () => {
   const manifest = JSON.parse(readRoot("package.json"));
   const lock = JSON.parse(readRoot("package-lock.json"));
   const html = readDemo("index.html");
   const playback =
-    '<script src="youtube-playback.js?v=0.5.14"></script>';
-  const app = '<script src="app.js?v=0.5.14"></script>';
+    '<script src="youtube-playback.js?v=0.5.15"></script>';
+  const app = '<script src="app.js?v=0.5.15"></script>';
 
-  assert.equal(manifest.version, "0.5.14");
-  assert.equal(lock.version, "0.5.14");
-  assert.equal(lock.packages[""].version, "0.5.14");
+  assert.equal(manifest.version, "0.5.15");
+  assert.equal(lock.version, "0.5.15");
+  assert.equal(lock.packages[""].version, "0.5.15");
   assert.ok(html.indexOf(playback) >= 0, "Playback cache key is stale.");
   assert.ok(html.indexOf(app) > html.indexOf(playback), "App cache/order drift.");
 });
@@ -97,8 +97,8 @@ test("V5.14 documentation ships the local-authority contract and keeps V5.13 his
     changelog.indexOf("## 0.5.12"),
   );
 
-  assert.match(readme, /Current documented release: \*\*V5\.14 \/ 0\.5\.14\*\*/);
-  assert.match(overview, /^# WWAM After Midnight V5\.14/m);
+  assert.match(readme, /Current documented release: \*\*V5\.15 \/ 0\.5\.15\*\*/);
+  assert.match(overview, /^# WWAM After Midnight V5\.15/m);
   assert.match(channelPack, /## The eleven conformance domains/);
   assert.match(channelPack, /human-adjudication-ledger/);
   assert.match(docket, /fnv1a32:59b085f6/);
@@ -106,8 +106,8 @@ test("V5.14 documentation ships the local-authority contract and keeps V5.13 his
   assert.match(verdict, /twelve caller-attested human checks/i);
   assert.match(runbook, /## V5\.14 The Verdict Room proof/);
   assert.ok(
-    changelog.indexOf("## 0.5.14") < changelog.indexOf("## 0.5.13"),
-    "V5.14 must lead the changelog.",
+    changelog.indexOf("## 0.5.15") < changelog.indexOf("## 0.5.14"),
+    "The current release must precede V5.14.",
   );
   assert.match(oldRelease, /cp1-f9ad38be22481b5d/);
   assert.match(oldRelease, /fnv1a32:d4ca362e/);

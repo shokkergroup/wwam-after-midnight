@@ -1,4 +1,4 @@
-# WWAM After Midnight V5.14
+# WWAM After Midnight V5.15
 
 ## One-sentence product
 
@@ -15,9 +15,9 @@ masquerading as timestamped utterances.
 
 ## Audited snapshot
 
-V5.14 keeps a frozen release proof, the V5.12 Archive Deep overlay, the V5.13
-longitudinal docket, and the new device-local adjudication overlay visibly
-separate. The **immutable V5.4 proof**
+V5.15 keeps a frozen release proof, the V5.12 Archive Deep overlay, the V5.13
+longitudinal docket, the V5.14 device-local adjudication overlay, and the new
+playable-answer projection visibly separate. The **immutable V5.4 proof**
 remains:
 
 | Source lane | Coverage |
@@ -413,6 +413,13 @@ The archive becomes navigable memory:
   navigation, and explicit handoffs when another ranked surface owns the
   question. The full Ask/search matrix passes 122/122 subtests, including its
   157-query adversarial corpus.
+- Play the Answer turns only Ask's current ordered two-to-six-stop timed
+  `evidenceChain` into an on-page official-source trail. It preserves roles,
+  coordinates, evidence tiers, and warnings; it does not generate narration,
+  rerank receipts, infer speakers, or convert a trajectory into an
+  opinion-change claim. Compact shares carry no excerpts, captions, generated
+  answer copy, or speaker fields and restore only after a fresh exact-chain
+  match.
 - Ask Review Queue V1 lets a user flag the rendered answer into a device-local,
   append-only proposal ledger. It can optionally name a better source, whole
   second, expected answer, or editor note. The packet performs no automatic
@@ -615,6 +622,7 @@ consistently shortened at render time.
 | Deterministic browser engines | Authenticated accounts and server storage |
 | Exact YouTube timestamp jumps | Licensed media editing or hosting |
 | Source-synchronized companion rail with manual fallback | Guaranteed player API availability or owned playback |
+| Exact ordered playable-answer trails with same-coordinate player recovery | Guaranteed third-party embed availability or owned playback |
 | Local Evidence Bag, Human Review Session, and JSON exports | Shared accounts, remote queues, and owner-controlled approval |
 | Local, bounded taste calibration | Authenticated creator identity or shared preference profiles |
 | Local, bounded fresh-tape parsing and verifiable quarantine export | Trusted feed ingestion, authenticated review, and promotion into production ledgers |
@@ -660,6 +668,12 @@ The reusable patterns now include:
   device-local proposal with optional replacement coordinates and expected
   wording. Feedback remains evaluation material until an authorized human
   reviews it; it cannot silently rewrite retrieval or Canon.
+- **Playable answer projection:** a current standalone structured answer may
+  become a two-to-six-stop official-source trail only when every receipt is
+  timed, promoted, registered, in range, undiarized, and unrestricted. Share
+  restore reruns the current answer and requires an exact chain match; order
+  creates a watch path, not a continuity, causality, opinion, origin, rights,
+  or Canon claim.
 - **Longitudinal review:** a ChannelPack subject ontology binds earlier and
   later exact-source receipts under a `MAY_RESOLVE` relationship. Machine
   signals remain subordinate and contradictions stay visible.

@@ -408,6 +408,34 @@ The public `compileTimeline` audit API returns the complete compiled timeline.
 Playback code must not use it as a live feed. Optional display labels, excerpts,
 and annotations are not part of the companion's core share fingerprint.
 
+### Playable Answer Projection
+
+A structured answer may become a short, ordered watch path only when its
+existing evidence chain contains two to six unique, registered, in-range,
+timed receipts. This projection is downstream of retrieval: it preserves the
+answer engine's exact role and receipt order and cannot rerank by heat,
+popularity, profanity, or interface position.
+
+The portable trail stores only the question, channel/archive bindings,
+receipt keys, fixed roles, official source IDs, whole-second starts, bounded
+ends, and deterministic fingerprints. It stores no answer prose, excerpt,
+caption payload, speaker, thumbnail, audio, or video. Restore reruns the
+current standalone answer and opens only after an exact trail match.
+
+Playing adjacent receipts is navigation, not a documentary claim. It does not
+establish speaker identity or continuity, causality, opinion change, true
+origin, rights clearance, creator approval, or Canon. Context-dependent
+follow-ups, one-stop answers, metadata/summary answers, handoffs, restricted
+source-audio or visual lanes, and machine quarantine remain ineligible.
+
+Every official-source player must retain:
+
+- the exact timestamp link as a fallback;
+- explicit referrer/origin identity;
+- an in-page recovery action that reloads the same source coordinates through
+  a hosted first-party bridge when an embed rejects page identity; and
+- copy that says recovery was attempted, never that playback was verified.
+
 ### Creator Taste Calibration
 
 Learns a bounded local ordering from 10 priority-blind, exact-ledger learning
@@ -693,6 +721,15 @@ Score:
   fingerprints, unknown sources, out-of-range seconds, and tampering.
 - A blocked player API leaves a working manual rail and official timestamp
   fallback.
+- Every playable-answer trail preserves the structured answer's exact
+  two-to-six-stop role/key/source/start/end order; no context-dependent
+  follow-up can be restored as a standalone query.
+- Player recovery preserves the same official source and exact bounded
+  coordinates. Direct, recovered, and file-mode playback all retain a visible
+  official timestamp fallback.
+- Playable-answer shares contain coordinates and bindings only. Tampering,
+  foreign or stale bindings, changed registries, and a changed fresh answer
+  fail closed before playback.
 - Neutral fixtures contain no source-channel vocabulary leakage; this check is
   narrower than the generic determinism/restore/tamper suite.
 
@@ -865,6 +902,26 @@ const calibration = window.ShokkerCreatorTasteCalibration.create({
 const session = calibration.start();
 const round = session.getCurrentRound();
 session.decide(round.id, "A");
+```
+
+Create a channel-neutral playable answer from a fresh structured-answer
+function and canonical official-source registry:
+
+```js
+const player = window.ShokkerPlayAnswer.create({
+  analyze: (query) => ask.ask(query),
+  bindings: {
+    channelId,
+    channelPackFingerprint,
+    archiveAsOf,
+    answerEngineVersion
+  },
+  sources: sourceRegistry
+});
+
+const trail = player.build("Show me the call and the finish");
+const share = player.exportShare(trail);
+const verifiedFreshTrail = player.restoreShare(share);
 ```
 
 ## Current implementation boundary

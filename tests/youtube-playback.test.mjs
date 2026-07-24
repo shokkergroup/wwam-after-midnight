@@ -43,6 +43,9 @@ test("every player receives explicit page identity and referrer policy", () => {
   assert.match(markup, /start=5406/);
   assert.match(markup, /end=5432/);
   assert.match(markup, /allow="autoplay; encrypted-media; picture-in-picture"/);
+  assert.match(markup, /data-shokker-youtube-player/);
+  assert.match(markup, /data-shokker-youtube-recover/);
+  assert.match(markup, /PLAYER ERROR\? RECOVER HERE/);
 });
 
 test("the IFrame API uses the same client-identity contract", () => {
@@ -90,7 +93,7 @@ test("HTTP pages can force the hosted bridge after YouTube identity error 153", 
 
   assert.match(
     markup,
-    /wwam-after-midnight\.downndirtytn\.chatgpt\.site\/demo\/youtube-player\.html/
+    /https:\/\/wiki\.example\/demo\/youtube-player\.html/
   );
   assert.match(markup, /video=5et_A1tYnio/);
   assert.match(markup, /start=5406/);
@@ -101,6 +104,50 @@ test("HTTP pages can force the hosted bridge after YouTube identity error 153", 
     /PLAYER IDENTITY ERROR 153 RECOVERED \/\/ HOSTED PLAYER \+ MANUAL MEMORY SYNC/
   );
   assert.match(companion, /forceHostedBridge:\s*forceHostedBridge === true/);
+});
+
+test("the universal recovery control keeps the same source and coordinates", () => {
+  const playback = load();
+  const attributes = new Map([
+    ["data-video-id", "5et_A1tYnio"],
+    ["data-start", "5406"],
+    ["data-end", "5432"],
+    ["data-autoplay", "1"],
+  ]);
+  const frame = {
+    src: "",
+    setAttribute(name, value) {
+      if (name === "src") this.src = value;
+    },
+  };
+  const player = {
+    getAttribute(name) {
+      return attributes.get(name) ?? "";
+    },
+    querySelector(selector) {
+      return selector === "iframe" ? frame : null;
+    },
+  };
+  const button = {
+    textContent: "",
+    disabled: false,
+    closest(selector) {
+      return selector === "[data-shokker-youtube-player]" ? player : null;
+    },
+    setAttribute(name, value) {
+      attributes.set(name, value);
+    },
+  };
+
+  playback.recoverPlayer(button);
+
+  assert.match(frame.src, /https:\/\/wiki\.example\/demo\/youtube-player\.html/);
+  assert.match(frame.src, /video=5et_A1tYnio/);
+  assert.match(frame.src, /start=5406/);
+  assert.match(frame.src, /end=5432/);
+  assert.match(frame.src, /autoplay=1/);
+  assert.equal(button.textContent, "RECOVERY PLAYER LOADED");
+  assert.equal(button.disabled, true);
 });
 
 test("the hosted bridge validates coordinates and supplies YouTube a real referrer", () => {
@@ -122,8 +169,8 @@ test("the document and both direct player paths cannot suppress YouTube's referr
     /<meta name="referrer" content="strict-origin-when-cross-origin">/
   );
   assert.ok(
-    index.indexOf('<script src="youtube-playback.js?v=0.5.14"></script>') <
-      index.indexOf('<script src="app.js?v=0.5.14"></script>')
+    index.indexOf('<script src="youtube-playback.js?v=0.5.15"></script>') <
+      index.indexOf('<script src="app.js?v=0.5.15"></script>')
   );
   assert.equal((app.match(/ShokkerYouTubePlayback\.iframe/g) || []).length, 2);
   assert.match(companion, /PLAYER IDENTITY ERROR 153/);

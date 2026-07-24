@@ -7,7 +7,45 @@ character archaeology, topic paths, and creator-side editorial opportunities.
 This is an unofficial fan prototype. It sends playback and source traffic back
 to the official WWAM uploads.
 
-Current documented release: **V5.14 / 0.5.14**.
+Current documented release: **V5.15 / 0.5.15**.
+
+## V5.15 Play the Answer
+
+Ask no longer stops at a stack of receipt cards. **Play the Answer** turns the
+current ordered `evidenceChain` into one on-page source trail with Previous,
+Replay, Next, player recovery, official-source, and share controls. A fan can
+watch the primary and supporting receipts—or the earliest and latest indexed
+receipts—in the exact order used by the answer.
+
+The trail is not a generated recap. It adds no narration, transitions,
+speaker identity, continuity, causality, opinion-change verdict, true-origin
+claim, rights clearance, or copied media. Every stop reopens an official WWAM
+upload at its registered indexed second, and the complete Ask limitation set
+stays visible beside the player.
+
+Eligibility is deliberately narrow: two to six unique timed receipts, all
+registered and in range. Metadata-only answers, source-level summaries,
+one-receipt answers, global ranking handoffs, longitudinal handoffs,
+adjudication handoffs, and unknown subjects cannot manufacture a trail.
+
+Share packets contain the query, exact bindings, ordered receipt keys, roles,
+source IDs, and bounded coordinates—never excerpts, captions, generated answer
+copy, or speaker fields. Restore reruns Ask and opens only when the fresh trail
+matches exactly; stale, reordered, foreign, or tampered packets fail closed.
+The same core passes a neutral racing fixture without WWAM vocabulary.
+
+The release pins two concrete watch paths: the Halloween trajectory from
+`6VXSBDZ-3WE @ 1597` to `I6QKteG_hK0 @ 5993`, and the Elm Street remake
+negative-language chain from `qTQdWKcwn4A @ 1132` to
+`qTQdWKcwn4A @ 2101`. Neither is promoted into a host-level opinion claim.
+
+Playback hardening now applies beyond the new theater: every shared-helper
+player in commentary dossiers, loose receipts, and soundbytes carries a
+visible **PLAYER ERROR? RECOVER HERE** action. It reloads the same official
+video and exact bounds through the first-party hosted bridge instead of making
+the visitor abandon the page when YouTube reports identity error 153.
+
+See [Play the Answer](docs/PLAY_THE_ANSWER.md).
 
 ## V5.14 The Verdict Room
 
@@ -268,7 +306,7 @@ manifest. Quarantined stops remain marked `promotionAllowed: false` with no
 speaker claim. The export omits transcripts, caption payloads, and full event
 ledgers. See [Archive Time Capsules](docs/ARCHIVE_TIME_CAPSULES.md).
 
-## V5.14 product map
+## V5.15 product map
 
 The hero offers three deliberate entry points:
 
@@ -276,8 +314,9 @@ The hero offers three deliberate entry points:
   Trivia, Tape Companion's synchronized second screen, the Evidence Bag, the
   100-rank Red Band Memorability Candidate Index V2.1, WWAM UP IN YA, and
   playable descent paths.
-- **Deep Dive:** Ask WWAM, Lore Galaxy, Take Time Machine, year-sized Archive
-  Time Capsules, The Tape Keeps Score, The Verdict Room, Bit Ancestry, the
+- **Deep Dive:** Ask WWAM with Play the Answer source trails, Lore Galaxy, Take
+  Time Machine, year-sized Archive Time Capsules, The Tape Keeps Score, The
+  Verdict Room, Bit Ancestry, the
   Comedy Black Box / Riff Autopsy, WWAM Court, franchise labs, autopsies, Fresh
   10, Popular 25, and the whole-feed Archive Atlas.
 - **Creator Proof:** Clip Lab edit briefs, exact-runtime Cold Open Factory
@@ -528,7 +567,8 @@ artifacts contain derived measurements and short, timestamped fragments only.
 
 ## Documentation
 
-- [V5.14 product overview](docs/V5_OVERVIEW.md)
+- [V5.15 product overview](docs/V5_OVERVIEW.md)
+- [Play the Answer source-trail contract](docs/PLAY_THE_ANSWER.md)
 - [The Tape Keeps Score longitudinal evidence contract](docs/LONGITUDINAL_DOCKET.md)
 - [The Verdict Room local adjudication contract](docs/VERDICT_ROOM_DESIGN.md)
 - [Ask the Tape: Answer Frame V2](docs/ASK_ANSWER_FRAME_V2.md)

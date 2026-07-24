@@ -12,7 +12,19 @@
       location.origin && location.origin !== "null"
       ? location.origin
       : "";
-    return { origin: origin };
+    return {
+      origin: origin,
+      pathname: String(location.pathname || "/")
+    };
+  }
+
+  function bridgeUrl() {
+    var identity = pageIdentity();
+    if (!identity.origin) return HOSTED_PLAYER;
+    var directory = /\/$/.test(identity.pathname)
+      ? identity.pathname
+      : identity.pathname.replace(/[^/]*$/, "");
+    return identity.origin + (directory || "/") + "youtube-player.html";
   }
 
   function playerQuery(options) {
@@ -45,7 +57,7 @@
         "?" + query.toString();
     }
     query.set("video", id);
-    return HOSTED_PLAYER + "?" + query.toString();
+    return bridgeUrl() + "?" + query.toString();
   }
 
   function escapeAttribute(value) {
@@ -59,10 +71,56 @@
     var config = options || {};
     var src = embedUrl(videoId, config);
     if (!src) return "";
-    return '<iframe src="' + escapeAttribute(src) +
+    var start = Number.isFinite(Number(config.start))
+      ? Math.max(0, Math.round(Number(config.start)))
+      : 0;
+    var end = Number.isFinite(Number(config.end)) && Number(config.end) > start
+      ? Math.max(1, Math.round(Number(config.end)))
+      : "";
+    var title = config.title || "Official YouTube source playback";
+    return '<div class="shokker-youtube-player" data-shokker-youtube-player' +
+      ' data-video-id="' + escapeAttribute(videoId) +
+      '" data-start="' + start +
+      '" data-end="' + end +
+      '" data-autoplay="' + (config.autoplay ? "1" : "0") +
+      '" data-title="' + escapeAttribute(title) + '">' +
+      '<iframe src="' + escapeAttribute(src) +
       '" title="' + escapeAttribute(config.title || "Official YouTube source playback") +
       '" referrerpolicy="' + POLICY +
-      '" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>';
+      '" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>' +
+      '<button class="shokker-youtube-recover" type="button"' +
+      ' data-shokker-youtube-recover aria-label="Reload this source inside the page">' +
+      'PLAYER ERROR? RECOVER HERE</button></div>';
+  }
+
+  function recoverPlayer(button) {
+    var player = button && button.closest
+      ? button.closest("[data-shokker-youtube-player]")
+      : null;
+    var frame = player && player.querySelector ? player.querySelector("iframe") : null;
+    if (!player || !frame) return;
+    var start = Number(player.getAttribute("data-start"));
+    var end = Number(player.getAttribute("data-end"));
+    var src = embedUrl(player.getAttribute("data-video-id"), {
+      autoplay: player.getAttribute("data-autoplay") === "1",
+      start: Number.isFinite(start) ? start : 0,
+      end: Number.isFinite(end) && end > start ? end : undefined,
+      forceHostedBridge: true
+    });
+    if (!src) return;
+    frame.setAttribute("src", src);
+    button.textContent = "RECOVERY PLAYER LOADED";
+    button.setAttribute("aria-label", "Recovery player loaded for this source");
+    button.disabled = true;
+  }
+
+  if (root.document && root.document.addEventListener) {
+    root.document.addEventListener("click", function (event) {
+      var button = event.target && event.target.closest
+        ? event.target.closest("[data-shokker-youtube-recover]")
+        : null;
+      if (button) recoverPlayer(button);
+    });
   }
 
   function playerVars(options) {
@@ -84,8 +142,10 @@
   root.ShokkerYouTubePlayback = Object.freeze({
     referrerPolicy: POLICY,
     hosted: function () { return Boolean(pageIdentity().origin); },
+    bridgeUrl: bridgeUrl,
     embedUrl: embedUrl,
     iframe: iframe,
+    recoverPlayer: recoverPlayer,
     playerVars: playerVars
   });
 })(window);

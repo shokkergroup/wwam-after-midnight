@@ -14,12 +14,12 @@ const app = fs.readFileSync(path.join(demo, "app.js"), "utf8");
 test("Ask Review hydrates with its engine first and stays off the eager script path", () => {
   assert.match(
     html,
-    /<section class="ask-room" id="ask"[\s\S]{0,180}data-feature-styles="ask-review\.css"[\s\S]{0,180}data-feature-scripts="ask-review-engine\.js,ask-review-ui\.js"/,
+    /<section class="ask-room" id="ask"[\s\S]{0,220}data-feature-styles="ask-review\.css,play-answer\.css"[\s\S]{0,260}data-feature-scripts="ask-review-engine\.js,ask-review-ui\.js,channel-pack-contract\.js,wwam-channel-pack-adapter\.js,play-answer-engine\.js,play-answer-ui\.js"/,
   );
   assert.doesNotMatch(html, /<script[^>]+src="ask-review-(?:engine|ui)\.js"/);
   assert.doesNotMatch(html, /<link[^>]+href="ask-review\.css"/);
   assert.ok(
-    html.indexOf('data-feature-scripts="ask-review-engine.js,ask-review-ui.js"') <
+    html.indexOf('data-feature-scripts="ask-review-engine.js,ask-review-ui.js,channel-pack-contract.js,wwam-channel-pack-adapter.js,play-answer-engine.js,play-answer-ui.js"') <
       html.indexOf('<script src="feature-loader.js"></script>'),
   );
 });
