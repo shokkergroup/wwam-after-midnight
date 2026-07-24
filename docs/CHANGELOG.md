@@ -3,6 +3,53 @@
 This changelog records product and evidence-contract changes. It does not by
 itself indicate that a build has been deployed.
 
+## 0.5.8 — V5.8 three-batch evidence depth and Ask review — 2026-07-24
+
+### Added
+
+- **Archive Deep Batch 03** freezes and caption-audits the exact next ten Atlas
+  priority sources after Batch 01 and Batch 02 exclusion. Two source-audio-risk
+  records remain topic-navigation-only, four additional ranking records deny
+  visual-context claims, and all 40 new moment candidates remain quarantined.
+- **Archive Deep Portfolio V1** now composes three independently fingerprinted
+  batches into one read-only surface: **30 sources, 77.2 hours, 957,430 words,
+  136,539 parsed caption events, 300 topic lanes across 44 distinct topics, 131
+  quarantined moments, 41 source-level character signals, 9 topic-only
+  source-audio firewalls, 10 special visual-ranking quarantines, and 335,489
+  cached snapshot views**.
+- The combined portfolio fingerprint is `fnv1a32:8e474ea8`. It retains the
+  independent Batch 01, 02, and 03 public fingerprints
+  `fnv1a32:17045a51`, `fnv1a32:bcea5692`, and `fnv1a32:f79f2399`.
+- Archive Atlas now reports **64 deeply indexed, 400 metadata-only, 8
+  caption-limited, and 0 unavailable records**, or **13.6% deep coverage**,
+  across the unchanged 472-record cached feed. All 30 Archive Deep sources are
+  excluded from Distill Next.
+- **Ask Review Queue V1** turns a rendered Ask answer into a device-local,
+  append-only review proposal. The packet retains the query and rendered
+  receipt coordinates and can optionally propose a better source, whole
+  second, expected answer, or editor note.
+
+### Accuracy and authority boundaries
+
+- Ask review packets are unverified proposals. They perform no automatic Ask,
+  Canon, certification, corpus, or promoted-ledger mutation and do not
+  authenticate the operator.
+- All 131 Archive Deep moment candidates remain machine-surfaced,
+  speaker-undiarized, origin-unattributed, unreviewed, and
+  promotion-forbidden. All 30 sources forbid visual claims; the 10-count is
+  the special visual-ranking quarantine lane, not a verified-visual count.
+- The current promoted-plus-quarantine overlay covers **104 inputs: 101
+  caption-audited and 3 sealed or limited, 2,838,303 audited words, and about
+  248.4 hours**. Promoted counts remain **872 receipts and 168 core memory
+  nodes**.
+- The immutable V5.4 proof remains exactly **84 inputs, 2,175,344 audited
+  words, 194.9 caption-audited hours, 872 promoted receipts, 42
+  then-quarantined Batch 01 candidates, and 168 promoted core memory nodes**.
+  The current V5.8 overlay does not retroactively rewrite that named proof.
+- Portfolio and batch FNV values are deterministic structural change detectors,
+  not signatures or proof of authenticity, authorship, review, speaker
+  identity, visual context, rights, or creator approval.
+
 ## 0.5.7 — V5.7 Archive Deep Portfolio — 2026-07-24
 
 ### Added
@@ -39,9 +86,9 @@ itself indicate that a build has been deployed.
 - The 23 source-level character-signal records are not 23 people,
   performances, verified appearances, or clip-level speaker attributions.
 - Seven trailer, script-reading, or watch-party uploads are
-  topic-navigation-only. Six visual-context-unverified sources—three in each
-  batch—can expose bounded caption navigation, but their visual ranking context
-  remains unverified.
+  topic-navigation-only. Six sources—three in each batch—occupy the special
+  visual-ranking quarantine lane. All 20 sources forbid visual claims; the
+  six-count never meant the other 14 had verified visuals.
 - Each batch retains independent selection, caption-set, and public-stream
   fingerprints. The portfolio adds a composition fingerprint. Every FNV value
   is a deterministic structural change detector, not a signature or proof of

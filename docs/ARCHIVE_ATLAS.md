@@ -25,8 +25,8 @@ opinions.
 
 | Status | Count | Meaning |
 | --- | ---: | --- |
-| `deeply-indexed` | 54 | A current source lane has a usable caption-backed distill. |
-| `metadata-only` | 410 | Only cached title/date/duration/view metadata is searchable. |
+| `deeply-indexed` | 64 | A current source lane has a usable caption-backed distill. |
+| `metadata-only` | 400 | Only cached title/date/duration/view metadata is searchable. |
 | `caption-limited` | 8 | No usable caption path survived in the cache; no transcript claims are made. |
 | `unavailable` | 0 | Supported as a future fail-honest state, but no cached record currently needs it. |
 
@@ -38,23 +38,43 @@ The current feed-side source lanes are:
   Distill Next batch
 - Archive Deep Batch 02: **10** caption-backed records from the exact next
   frozen eligible priority batch
+- Archive Deep Batch 03: **10** caption-backed records from the exact next
+  frozen eligible priority batch after Batch 02 exclusion
 - Commentary catalog overlap: **1** record (`3wK00_-K-Y0`)
-- Archive metadata lane: **416** records
+- Archive metadata lane: **406** records
 
 Those lanes describe current product coverage. They do not change what the
-metadata itself proves. The 56 records selected into a source lane contain 54
+metadata itself proves. The 66 records selected into a source lane contain 64
 usable caption distills and two disclosed caption gaps. Overall deep coverage
-is **11.4%**.
+is **13.6%**.
 
 Archive Deep 10 is independently generated and fingerprinted by
 `pipeline/wwam_archive_deep_distill.py`; Archive Deep Batch 02 is independently
-generated and fingerprinted by `pipeline/wwam_archive_deep_batch2.py`. Atlas
-provenance retains each batch's schema, generation/observation time, priority
-version, source-selection fingerprint, selection fingerprint, caption
-fingerprint, and public FNV-1a value. Batch 01 keeps the legacy
-`archive-deep-10` lane. Batch 02 uses `archive-deep-batch-02` with
-`integrated-quarantine` state. Both batches are excluded from the remaining
-metadata-only queue, and neither permits candidate promotion.
+generated and fingerprinted by `pipeline/wwam_archive_deep_batch2.py`; Archive
+Deep Batch 03 is independently generated and fingerprinted by
+`pipeline/wwam_archive_deep_batch3.py`. Atlas provenance retains each batch's
+schema, generation/observation time, priority version, source-selection
+fingerprint, selection fingerprint, caption fingerprint, and public FNV-1a
+value. Batch 01 keeps the legacy `archive-deep-10` lane. Batches 02 and 03 use
+`archive-deep-batch-02` and `archive-deep-batch-03`, respectively, with
+`integrated-quarantine` state.
+
+The combined current Archive Deep overlay covers **30 caption-audited sources,
+77.2 hours, 957,430 words, 136,539 caption events, 300 topic lanes across 44
+distinct topics, 131 quarantined moments, 41 source-level character signals,
+nine topic-only source-audio firewalls, 10 special visual-ranking quarantines,
+and 335,489 cached snapshot views**. All 30 records forbid visual claims; the
+10-count does not imply that the other 20 have verified visual context. All 30
+are excluded from the remaining metadata-only queue, and no batch permits
+candidate promotion.
+
+Runtime FNV-1a values make the exact checked-in payloads independently
+recomputable:
+
+- portfolio: `fnv1a32:8e474ea8`
+- Batch 01: `fnv1a32:17045a51`
+- Batch 02: `fnv1a32:bcea5692`
+- Batch 03: `fnv1a32:f79f2399`
 
 ## Why availability says `not-captured`
 
@@ -91,10 +111,11 @@ rank, formula version, and the evidence basis
 `cached title/date/views only`. No description, transcript topic, humor score,
 or host opinion is manufactured for an undistilled upload.
 
-Batch 02 freezes the exact next ten records after Batch 01 exclusion. Its
-priority order combines cached-view gravity, upload recency, and configured
-franchise-title signals. It is not raw view rank. A source with more cached
-views can appear below a newer or stronger franchise-title match.
+Each completed batch freezes the exact next ten eligible records after all
+earlier Archive Deep exclusions. Its priority order combines cached-view
+gravity, upload recency, and configured franchise-title signals. It is not raw
+view rank. A source with more cached views can appear below a newer or stronger
+franchise-title match.
 
 The score changes when a completed deep batch leaves the eligible pool because
 popularity is normalized against the highest remaining eligible cached view
@@ -171,7 +192,8 @@ Supported filters:
 - `month`: `"YYYY-MM"` or a month number when `year` is also present
 - `coverage`: one status or an array of statuses
 - `lane`: `fresh-10`, `popular-25`, `archive-deep-10`,
-  `archive-deep-batch-02`, `commentary-catalog`, or `archive-metadata`
+  `archive-deep-batch-02`, `archive-deep-batch-03`,
+  `commentary-catalog`, or `archive-metadata`
 - `availability` / `liveStatus`
 - `minViews`
 - `franchise`: a configured title-alias group ID
@@ -241,7 +263,7 @@ python pipeline\wwam_archive_atlas.py --check
 ```
 
 It reads the local metadata cache plus the checked-in Fresh 10, Popular 25,
-both Archive Deep batches, and commentary catalog to classify the current
+all three Archive Deep batches, and commentary catalog to classify the current
 source lanes. It asserts the reconciled 472-entry feed membership, validates
 every record, refuses a public artifact at or above 250 KB, and emits:
 
@@ -264,6 +286,6 @@ V1 deliberately does not add a visible section by itself. A UI can now build:
 
 Turning any remaining metadata-only card into a topic map, quote, character
 receipt, comedy heat score, or host take still requires a caption distill and
-source review. The first twenty Archive Deep sources demonstrate that coverage
-can grow without weakening the boundary for the remaining 410 metadata-only
+source review. The first 30 Archive Deep sources demonstrate that coverage can
+grow without weakening the boundary for the remaining 400 metadata-only
 records.

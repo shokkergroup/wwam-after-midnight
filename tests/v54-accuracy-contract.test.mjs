@@ -94,20 +94,22 @@ test("Clip Lab opens on a bounded, truth-labeled Tonight's 12", () => {
   assert.match(app, /RECEIPT-BACKED SHORTS POOL/);
 });
 
-test("the frozen V5.4 proof stays dated while the current two-batch overlay stays truthful", () => {
+test("the frozen V5.4 proof stays dated while the current three-batch overlay stays truthful", () => {
   assert.doesNotMatch(html, /<script[^>]+archive-deep-(?:distill|engine)/i);
-  assert.match(app, /loadDemoScript\("archive-deep-distill\.js"\)/);
-  assert.match(app, /loadDemoScript\("archive-deep-batch2\.js"\)/);
-  assert.match(app, /loadDemoScript\("archive-deep-engine\.js"\)/);
-  assert.match(app, /loadDemoScript\("archive-deep-portfolio\.js"\)/);
+  assert.match(app, /"archive-deep-distill\.js"/);
+  assert.match(app, /"archive-deep-batch2\.js"/);
+  assert.match(app, /"archive-deep-batch3\.js"/);
+  assert.match(app, /"archive-deep-engine\.js"/);
+  assert.match(app, /"archive-deep-portfolio\.js"/);
   assert.match(app, /stream\._lane = "archive"/);
-  assert.match(app, /AUTOPSIED BATCH 01/);
-  assert.match(app, /AUTOPSIED BATCH 02/);
+  assert.match(app, /"AUTOPSIED BATCH 0" \+ archiveBatch\.sequence/);
   assert.match(app, /REVIEW-REQUIRED CANDIDATES/);
   assert.match(app, /restrictedToTopicNavigation/);
   assert.match(html, /id="archiveBatch" hidden/);
-  assert.match(atlasUi, /CURRENT 20-SOURCE OVERLAY/);
-  assert.match(atlasUi, /TWO INDEPENDENTLY FINGERPRINTED BATCHES/);
+  assert.match(atlasUi, /CURRENT ' \+ meta\.streams/);
+  assert.match(atlasUi, /batchCount \+ " INDEPENDENT BATCH FINGERPRINTS/);
+  assert.doesNotMatch(atlasUi, /CURRENT 20-SOURCE OVERLAY/);
+  assert.doesNotMatch(atlasUi, /TWO INDEPENDENTLY FINGERPRINTED BATCHES/);
   assert.match(atlasUi, /BATCH-LOCAL PRIORITY/);
   assert.match(atlasUi, /PORTFOLIO #/);
   assert.match(atlasUi, /ATLAS SCORE/);

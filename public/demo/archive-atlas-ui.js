@@ -1,28 +1,15 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.0.0";
-  var REQUIRED_ENGINE_METHODS = [
-    "getStats",
-    "getCoverage",
-    "getBuckets",
-    "getFilterOptions",
-    "getRecord",
-    "browse",
-    "search",
-    "getDistillQueue",
-    "getProvenance",
-  ];
+  var VERSION = "1.1.0";
+  var REQUIRED_ENGINE_METHODS = (
+    "getStats getCoverage getBuckets getFilterOptions getRecord browse search getDistillQueue getProvenance"
+  ).split(" ");
   var ARCHIVE_QUERY = /\b(uploads?|uploaded|streams?|streamed|livestreams?|videos?|archive|feed)\b/i;
-  var STOP_WORDS = new Set([
-    "a", "an", "and", "are", "archive", "did", "do", "feed", "find", "for", "from",
-    "has", "have", "i", "in", "is", "latest", "list", "live", "livestream",
-    "livestreams", "made", "make", "me", "most", "newest", "of", "oldest", "on",
-    "popular", "recent", "show", "shows", "stream", "streamed", "streams", "the",
-    "their", "them", "they", "to", "upload", "uploaded", "uploads", "video",
-    "videos", "viewed", "was", "watched", "we", "were", "what", "when", "where",
-    "which", "who", "with", "year",
-  ]);
+  var STOP_WORDS = new Set(("a an and are archive did do feed find for from has have i in " +
+    "is latest list live livestream livestreams made make me most newest of oldest on popular " +
+    "recent show shows stream streamed streams the their them they to upload uploaded uploads " +
+    "video videos viewed was watched we were what when where which who with year").split(" "));
   var COVERAGE_COPY = {
     "deeply-indexed": "CAPTION-BACKED DISTILL AVAILABLE",
     "metadata-only": "TITLE / DATE / DURATION / VIEWS ONLY",
@@ -34,6 +21,7 @@
     "popular-25": "POPULAR 25",
     "archive-deep-10": "AUTOPSIED BATCH 01",
     "archive-deep-batch-02": "ARCHIVE DEEP BATCH 02",
+    "archive-deep-batch-03": "ARCHIVE DEEP BATCH 03",
     "commentary-catalog": "COMMENTARY",
     "archive-metadata": "ARCHIVE RECORD",
   };
@@ -43,11 +31,9 @@
 
   function normalized(value) { return clean(value).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim(); }
 
-  function fallbackEscape(value) {
-    return String(value == null ? "" : value).replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")
-      .replace(/'/g, "&#39;");
-  }
+  function fallbackEscape(value) { return String(value == null ? "" : value)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;"); }
 
   function fallbackNumber(value) { return Number(value || 0).toLocaleString("en-US"); }
 
@@ -106,22 +92,17 @@
     var removeListeners = [];
     var api;
 
-    function byId(id) {
-      return documentRef && documentRef.getElementById(id);
-    }
+    function byId(id) { return documentRef && documentRef.getElementById(id); }
 
     function listen(node, event, handler) {
       if (!node || typeof node.addEventListener !== "function") return;
       node.addEventListener(event, handler);
-      removeListeners.push(function () {
-        node.removeEventListener(event, handler);
-      });
+      removeListeners.push(function () { node.removeEventListener(event, handler); });
     }
 
-    function snapshotDate() {
-      if (!engine) return "THE CACHED SNAPSHOT";
-      return clean(engine.getProvenance().snapshotDate) || "THE CACHED SNAPSHOT";
-    }
+    function snapshotDate() { return engine
+      ? clean(engine.getProvenance().snapshotDate) || "THE CACHED SNAPSHOT"
+      : "THE CACHED SNAPSHOT"; }
 
     function queueFormulaCopy() {
       var formula = engine && (engine.formula || engine.getDistillQueue({ limit: 0 }).formula);
@@ -158,14 +139,10 @@
       if (queueDescription) queueDescription.textContent = copy.queue;
     }
 
-    function staticControls() {
-      return [
-        byId("archiveSearch"),
-        byId("archiveReset"),
-        byId("archiveLoadMore"),
-        byId("archiveQueueDownload"),
-      ].filter(Boolean);
-    }
+    function staticControls() { return [
+      byId("archiveSearch"), byId("archiveReset"), byId("archiveLoadMore"),
+      byId("archiveQueueDownload"),
+    ].filter(Boolean); }
 
     function setControlsDisabled(disabled) {
       staticControls().forEach(function (control) {
@@ -219,9 +196,8 @@
       return api;
     }
 
-    function coverageLabel(record) {
-      return COVERAGE_COPY[record.coverage] || "COVERAGE STATUS UNKNOWN";
-    }
+    function coverageLabel(record) { return COVERAGE_COPY[record.coverage] ||
+      "COVERAGE STATUS UNKNOWN"; }
 
     function laneLabel(record) {
       return (record.lanes || []).map(function (lane) {
@@ -411,28 +387,26 @@
     }
 
     function renderBatch() {
-      var node = byId("archiveBatch");
+      var node = byId("archiveBatch"), meta, batches, streams, metrics, batchCount;
       if (!node || !archiveDeepEngine) return;
-      var meta = archiveDeepEngine.getMetrics();
-      var batches = archiveDeepEngine.getSelection();
-      var streams = archiveDeepEngine.browse({ sort: "priority" }).records;
+      meta = archiveDeepEngine.getMetrics();
+      batches = archiveDeepEngine.getSelection();
+      streams = archiveDeepEngine.browse({ sort: "priority" }).records;
       if (!streams.length) return;
-      var metrics = [
-        [meta.streams, "SOURCES DISTILLED"],
-        [formatNumber(meta.snapshotViews), "CACHED SNAPSHOT VIEWS"],
+      batchCount = meta.batches || batches.length;
+      metrics = [
+        [meta.streams, "SOURCES DISTILLED"], [formatNumber(meta.snapshotViews), "CACHED SNAPSHOT VIEWS"],
         [meta.topicLanes + " / " + meta.distinctTopics, "TOPIC LANES / DISTINCT TOPICS"],
-        [meta.characterSignals, "CHARACTER-SIGNAL RECORDS"],
-        [meta.restricted, "TOPIC-ONLY FIREWALLS"],
-        [meta.visualContextUnverified, "VISUAL-CONTEXT UNVERIFIED"],
+        [meta.characterSignals, "CHARACTER-SIGNAL RECORDS"], [meta.restricted, "TOPIC-ONLY FIREWALLS"],
+        [meta.visualRankingQuarantines, "VISUAL-RANKING QUARANTINES"],
       ].map(function (metric) {
-        return "<div><b>" + escapeHtml(metric[0]) + "</b><span>" +
-          metric[1] + "</span></div>";
+        return "<div><b>" + escapeHtml(metric[0]) + "</b><span>" + metric[1] + "</span></div>";
       }).join("");
       node.hidden = false;
-      node.innerHTML = '<header><div><span>CURRENT 20-SOURCE OVERLAY // TWO INDEPENDENTLY FINGERPRINTED BATCHES</span>' +
-        '<h3>THE ARCHIVE DEEP PORTFOLIO.</h3></div><p>' +
-        Number(meta.hours || 0).toFixed(1) + "H // " +
-        escapeHtml(formatNumber(meta.wordsAudited || 0)) + " WORDS // " +
+      node.innerHTML = '<header><div><span>CURRENT ' + meta.streams +
+        "-SOURCE OVERLAY // " + batchCount + " INDEPENDENT BATCH FINGERPRINTS</span>" +
+        '<h3>THE ARCHIVE DEEP PORTFOLIO.</h3></div><p>' + Number(meta.hours || 0).toFixed(1) +
+        "H // " + escapeHtml(formatNumber(meta.wordsAudited || 0)) + " WORDS // " +
         escapeHtml(formatNumber(meta.captionEvents || 0)) + " EVENTS // " +
         escapeHtml(formatNumber(meta.publicMomentCandidates || 0)) +
         " QUARANTINED CANDIDATES.</p></header>" +
@@ -442,17 +416,18 @@
         }).join(" // ") + " // CHANGE DETECTION, NOT AUTHENTICATION.</p>" +
         '<div class="archive-batch-strip">' + streams.map(function (stream) {
           var batch = stream.archiveBatch;
-          var visual = stream.rightsPolicy.mode === "visual-context-unverified" ?
-            " // VISUAL RESULT UNVERIFIED" : "";
+          var warning = (stream.rightsPolicy.restrictedToTopicNavigation ? " // TOPIC-ONLY" : "") +
+            (stream.rightsPolicy.mode === "visual-context-unverified" ?
+              " // VISUAL RESULT UNVERIFIED" : "");
           return '<button type="button" data-archive-open="' + escapeHtml(stream.id) +
-            '"><img loading="lazy" src="' + escapeHtml(stream.thumbnail) +
-            '" alt=""><span>BATCH 0' + batch.sequence +
+            '"><img loading="lazy" src="' + escapeHtml(stream.thumbnail) + '" alt=""><span>BATCH 0' +
+            batch.sequence +
             " // BATCH-LOCAL PRIORITY #" + String(batch.batchRank).padStart(2, "0") +
             " // PORTFOLIO #" + String(batch.portfolioRank).padStart(2, "0") +
             '</span><b>' + escapeHtml(stream.title) + "</b><small>ATLAS SCORE " +
-            Number(stream.archivePriority.score || 0).toFixed(1) +
-            " // " + escapeHtml(formatNumber(stream.views || 0)) +
-            " CACHED VIEWS" + escapeHtml(visual) + "</small></button>";
+            Number(stream.archivePriority.score || 0).toFixed(1) + " // " +
+            escapeHtml(formatNumber(stream.views || 0)) + " CACHED VIEWS" +
+            escapeHtml(warning) + "</small></button>";
         }).join("") + "</div>";
     }
 

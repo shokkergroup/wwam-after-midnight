@@ -235,6 +235,9 @@
     var sourceExplicit = false;
     var source = "all";
     var archiveBatchSequence = includesAny(q, [
+      "batch 03", "batch 3", "batch03", "batch3", "third archive deep batch",
+      "archive deep batch 03", "archive deep batch 3",
+    ]) ? 3 : includesAny(q, [
       "batch 02", "batch 2", "batch02", "batch2", "second archive deep batch",
       "archive deep batch 02", "archive deep batch 2",
     ]) ? 2 : includesAny(q, [
@@ -935,7 +938,7 @@
     return intent.words.filter(function (word) {
       if (QUERY_CUE_WORDS.indexOf(word) >= 0) return false;
       if (QUERY_CONTROL_WORDS.indexOf(word) >= 0) return false;
-      if (intent.archiveBatchSequence && /^(?:0?[12]|first|second)$/.test(word)) return false;
+      if (intent.archiveBatchSequence && /^(?:batch)?(?:0?[123]|first|second|third)$/.test(word)) return false;
       if (intent.yearFilter && String(intent.requestedYear) === word) return false;
       if (intent.queryPlan && intent.queryPlan.controls.requestedLimit != null &&
         String(intent.queryPlan.controls.requestedLimit) === word) return false;
@@ -3153,7 +3156,9 @@
           archiveRequested: intent.archiveRequested || selectedSource.lane === "archive",
           visualContextRefusal: Boolean(
             intent.visualResultRequest &&
-            selectedSource.rightsMode === "visual-context-unverified" &&
+            /(?:visual-context|audio-boundary)-unverified/.test(
+              selectedSource.rightsMode || ""
+            ) &&
             selectedSource.visualContextVerified !== true
           ),
         });

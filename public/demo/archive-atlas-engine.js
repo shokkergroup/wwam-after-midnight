@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.0.0";
+  var VERSION = "1.1.0";
   var SCHEMA = "wwam-archive-atlas/v1";
   var COVERAGE = [
     {
@@ -30,6 +30,7 @@
     "popular-25": "POPULAR 25",
     "archive-deep-10": "ARCHIVE DEEP 10",
     "archive-deep-batch-02": "ARCHIVE DEEP BATCH 02",
+    "archive-deep-batch-03": "ARCHIVE DEEP BATCH 03",
     "commentary-catalog": "COMMENTARY CATALOG",
     "archive-metadata": "ARCHIVE METADATA",
   };

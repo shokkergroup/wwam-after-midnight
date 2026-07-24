@@ -37,11 +37,68 @@ function firstTitle(markup) {
   return markup.match(/<article><span>.*?<\/span><h4>(.*?)<\/h4>/s)?.[1];
 }
 
+function renderedPortfolio() {
+  const nodes = new Map();
+  function node() {
+    return {
+      disabled: false,
+      hidden: true,
+      innerHTML: "",
+      textContent: "",
+      addEventListener() {},
+      removeEventListener() {},
+      setAttribute() {},
+    };
+  }
+  nodes.set("archive", node());
+  nodes.set("archiveBatch", node());
+  const document = {
+    addEventListener() {},
+    getElementById(id) { return nodes.get(id) || null; },
+    querySelector() { return null; },
+    querySelectorAll() { return []; },
+  };
+  const context = { window: {}, setTimeout };
+  context.globalThis = context.window;
+  vm.createContext(context);
+  for (const file of [
+    "archive-deep-distill.js",
+    "archive-deep-batch2.js",
+    "archive-deep-batch3.js",
+    "archive-deep-engine.js",
+    "archive-deep-portfolio.js",
+    "archive-atlas-data.js",
+    "archive-atlas-engine.js",
+    "archive-atlas-ui.js",
+  ]) {
+    vm.runInContext(fs.readFileSync(path.join(demo, file), "utf8"), context, {
+      filename: file,
+    });
+  }
+  const archiveDeepEngine = context.window.WWAMArchiveDeepPortfolio.create(
+    [
+      context.window.WWAM_ARCHIVE_DEEP,
+      context.window.WWAM_ARCHIVE_DEEP_BATCH2,
+      context.window.WWAM_ARCHIVE_DEEP_BATCH3,
+    ],
+    context.window.WWAMArchiveDeepEngine,
+  );
+  const engine = context.window.WWAMArchiveAtlasEngine.create(
+    context.window.WWAM_ARCHIVE_ATLAS,
+  );
+  context.window.WWAMArchiveAtlasUI.create({
+    engine,
+    archiveDeepEngine,
+    document,
+  }).mount();
+  return nodes.get("archiveBatch").innerHTML;
+}
+
 test("publishes a compact isolated UI controller with lifecycle and Ask APIs", () => {
   const { window, ui } = load();
 
   assert.ok(fs.statSync(uiPath).size < 30_000);
-  assert.equal(window.WWAMArchiveAtlasUI.VERSION, "1.0.0");
+  assert.equal(window.WWAMArchiveAtlasUI.VERSION, "1.1.0");
   for (const method of [
     "mount",
     "setEngine",
@@ -164,6 +221,40 @@ test("source contract includes live status, busy state, disabled controls, and f
   assert.match(source, /focusGenerated\("data-archive-coverage"/);
   assert.match(source, /ARCHIVE LEDGER IS STILL LOADING/);
   assert.doesNotMatch(source, /scheduleIdle|IntersectionObserver|createElement\("script"\)/);
+});
+
+test("Archive Deep overlay derives all three-batch proof instead of freezing showcase totals", () => {
+  const source = fs.readFileSync(uiPath, "utf8");
+
+  assert.match(source, /batchCount = meta\.batches \|\| batches\.length/);
+  assert.match(source, /CURRENT ' \+ meta\.streams/);
+  assert.match(source, /batches\.map\(function \(batch\)/);
+  assert.match(source, /batch\.publicFnv1a/);
+  assert.match(source, /BATCH-LOCAL PRIORITY #/);
+  assert.match(source, /PORTFOLIO #/);
+  assert.match(source, /ATLAS SCORE/);
+  assert.match(source, /CACHED VIEWS/);
+  assert.match(source, /TOPIC-ONLY/);
+  assert.match(source, /VISUAL RESULT UNVERIFIED/);
+  assert.match(source, /"archive-deep-batch-03": "ARCHIVE DEEP BATCH 03"/);
+  assert.doesNotMatch(source, /CURRENT 20-SOURCE|TWO INDEPENDENTLY FINGERPRINTED/);
+});
+
+test("renders all 30 autopsies with dynamic proof, ranks, checksums, and firewalls", () => {
+  const markup = renderedPortfolio();
+
+  assert.match(markup, /CURRENT 30-SOURCE OVERLAY \/\/ 3 INDEPENDENT BATCH FINGERPRINTS/);
+  assert.match(markup, /77\.2H \/\/ 957,430 WORDS \/\/ 136,539 EVENTS \/\/ 131 QUARANTINED CANDIDATES/);
+  assert.equal((markup.match(/data-archive-open=/g) || []).length, 30);
+  assert.equal((markup.match(/BATCH 03/g) || []).length, 10);
+  assert.match(markup, /B01 fnv1a32:17045a51/);
+  assert.match(markup, /B02 fnv1a32:bcea5692/);
+  assert.match(markup, /B03 fnv1a32:f79f2399/);
+  assert.match(markup, /BATCH-LOCAL PRIORITY #10/);
+  assert.match(markup, /PORTFOLIO #30/);
+  assert.match(markup, /TOPIC-ONLY/);
+  assert.match(markup, /VISUAL RESULT UNVERIFIED/);
+  assert.doesNotMatch(markup, /NaN|undefined/);
 });
 
 test("rejects an incompatible engine instead of rendering plausible empty archive UI", () => {

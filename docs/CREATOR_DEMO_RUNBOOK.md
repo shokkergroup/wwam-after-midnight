@@ -11,7 +11,7 @@ three things quickly:
 
 ## Before the call
 
-- Open the current V5.7 build or its confirmed deployment and choose either
+- Open the current V5.8 build or its confirmed deployment and choose either
   content-advisory mode.
 - Confirm YouTube playback is available in the browser.
 - Start at the hero, not halfway down the page.
@@ -40,6 +40,10 @@ Use this evidence vocabulary consistently:
 - **Owner-mapped character** means the project owner supplied the recurring
   Mike/J-to-character mapping. The individual clip still is not
   speaker-diarized.
+- **Unverified user proposal** means a device-local Ask Review Queue entry. It
+  can preserve the query, issue, displayed source coordinates, and optional
+  suggested correction, but it does not rewrite Ask, Canon, certification, or
+  promoted evidence.
 
 ## The 60-second version
 
@@ -50,9 +54,9 @@ Press **Mike Mode** and use one sentence per slide:
 2. **Receipt:** “The immutable V5.4 proof binds 84 source inputs and 2,175,344
    caption words to 872 promoted exact jumps back to official videos.”
 3. **Map:** “The current Atlas maps 472 cached Streams-feed records and makes
-   the 54 deep, 410 metadata-only, eight caption-limited, and zero records
+   the 64 deep, 400 metadata-only, eight caption-limited, and zero records
    classified unavailable in the cached snapshot impossible to confuse.
-   Current availability was not rechecked.”
+   That is 13.6% deep coverage; current availability was not rechecked.”
 4. **Moat:** “The value compounds when takes, bits, characters, topics, and new
    uploads connect without pretending machine inference is canon.”
 5. **Money:** “Tonight's 12 turns the same archive proof into a labeled first
@@ -72,7 +76,7 @@ question. Do not add optional features until the close.
 | Elapsed | Surface | One proof to show |
 | --- | --- | --- |
 | 0:00–0:30 | Night Shift | A daily route connects newest source, archive callback, choice, and payoff |
-| 0:30–0:55 | Archive Atlas | The whole-feed map shows both Archive Deep batches, 11.4% coverage, and the next-distill queue |
+| 0:30–0:55 | Archive Atlas | The whole-feed map shows all three Archive Deep batches, 13.6% coverage, and the next-distill queue |
 | 0:55–1:55 | Ask + Lore | Source metadata, a source-level answer, and a timestamped receipt stay visibly distinct |
 | 1:55–3:15 | Clip Lab | Evidence becomes a reviewable Short and an exact campaign ledger |
 | 3:15–3:55 | Trust Desk | Character mapping is separated from clip-level speaker proof |
@@ -116,6 +120,12 @@ Point out that the first answer is grounded in source metadata and the dated
 view snapshot. The follow-up can return source-level topic context or a
 timestamped caption receipt; the badge says which one it is.
 
+For one concise accuracy proof, click **Flag This Answer**, choose an issue,
+and show that the device-local append-only proposal preserves the exact query
+and displayed coordinates. Optionally add a better source, whole second, or
+expected answer. Point to the `unverified user proposal` label and say that
+nothing automatically changes Ask, Canon, certification, or promoted evidence.
+
 Say: “Search finds a source. Memory explains why it belongs, what it connects
 to, which evidence layer supports the answer, and where the next useful path
 starts.”
@@ -125,6 +135,7 @@ What it proves:
 - entity-aware discovery;
 - follow-up context;
 - source-level and moment-level evidence that remains visibly distinct;
+- a portable human-review proposal without an invisible corpus mutation;
 - a growing channel-specific knowledge graph.
 
 ### 3. Creator Proof — 90 seconds
@@ -165,7 +176,7 @@ What it proves:
 Open **Canon Desk**.
 
 - State the boundary first: this desk covers the 74-source promoted corpus, not
-  Archive Deep Portfolio's 91 still-quarantined candidates.
+  Archive Deep Portfolio's 131 still-quarantined candidates.
 - Show Source Health: 71 healthy sources, 3 disclosed gaps, 0 structurally
   invalid or source-ID-mismatched URLs, and 0 out-of-range indexed timestamps.
 - Show Character Firewall: ordinary mentions are quarantined from curated
@@ -259,27 +270,32 @@ What it proves:
 - preference is capped at ±6 and cannot override risk, HOLD, evidence, canon,
   speaker, rights, or approval state.
 
-## V5.7 Archive Deep Portfolio proof — 75 seconds
+## V5.8 Archive Deep Portfolio proof — 75 seconds
 
 Use this branch when the buyer asks how the archive grows without turning
 automatic captions into fake certainty.
 
-- Open Archive Atlas and point to **54 deeply indexed / 410 metadata-only / 8
-  caption-limited**, or **11.4% deep coverage**.
-- Open the Archive Deep Portfolio and switch between Batch 01 and Batch 02.
-- Show the current overlay totals: 20 sources, 46.8 hours, 579,003 words,
-  82,551 caption events, 200 topic lanes, and 91 quarantined moment
-  candidates.
-- Open one Batch 02 topic or moment. Point to the official source/time and the
+- Open Archive Atlas and point to **64 deeply indexed / 400 metadata-only / 8
+  caption-limited / 0 unavailable**, or **13.6% deep coverage**.
+- Open the Archive Deep Portfolio and switch among Batch 01, Batch 02, and
+  Batch 03.
+- Show the current overlay totals: 30 sources, 77.2 hours, 957,430 words,
+  136,539 caption events, 300 topic lanes across 44 distinct topics, and 131
+  quarantined moment candidates.
+- Show the fingerprint strip: portfolio `fnv1a32:8e474ea8`, with Batch 01
+  `fnv1a32:17045a51`, Batch 02 `fnv1a32:bcea5692`, and Batch 03
+  `fnv1a32:f79f2399`.
+- Open one Batch 03 topic or moment. Point to the official source/time and the
   speaker-undiarized, machine-candidate, quarantine labels.
-- Explain one Batch 02 priority card: cached-view gravity + upload recency +
+- Explain one Batch 03 priority card: cached-view gravity + upload recency +
   franchise-title signal. Do not call the position raw view rank.
 - Open a script-reading, trailer/new-footage, or watchalong record and show
   that it remains topic-navigation-only.
 - Open a visual-ranking record and point out that visual ranking context
-  remains unverified.
+  remains unverified. All 30 sources forbid visual claims; the special
+  10-source lane does not make the other 20 visually verified.
 
-Say: “The impressive part is not that AI found words. It is that twenty more
+Say: “The impressive part is not that AI found words. It is that thirty more
 sources can enter one useful archive without crossing the speaker, source
 audio, visual context, or promotion boundary.”
 
@@ -288,8 +304,8 @@ What it proves:
 - independent batches can compose behind one defensive read-only API;
 - source coverage can grow while the V5.4 sales proof remains frozen;
 - each batch retains independent selection and caption fingerprints;
-- 23 source-level character signals do not become 23 claimed performances;
-- all 91 current candidates remain outside the promoted 872.
+- 41 source-level character signals do not become 41 claimed performances;
+- all 131 current candidates remain outside the promoted 872.
 
 ## Optional ten-minute branches
 
@@ -298,7 +314,7 @@ Use only the branch the audience cares about:
 - **Fan community:** Tape Companion, Night Shift, Red Band 100, WWAM UP IN YA,
   Personalized Descent, Evidence Bag, Trivia.
 - **Back-catalog discovery:** Ask WWAM, Popular 25, Fresh 10, franchise reports,
-  Lore Galaxy, and Archive Atlas's two-batch Archive Deep Portfolio.
+  Lore Galaxy, and Archive Atlas's three-batch Archive Deep Portfolio.
 - **Editorial operations:** Clip Lab, Creator Taste Calibration, Live
   Aftermath, Control Room, Human Review Session, and correction packets.
 - **Recurring characters:** Ask the Character, then immediately show the
@@ -311,30 +327,35 @@ Use only the branch the audience cares about:
 - “The immutable V5.4 proof covers 84 source inputs, 2,175,344 audited caption
   words, 194.9 caption-audited hours, 872 promoted receipts, 42
   then-quarantined Batch 01 candidates, and 168 promoted core memory nodes.”
-- “Across promoted and quarantine lanes, the current audit covers 94 source
-  inputs: 91 caption-audited and three sealed or limited, with 2,459,876 words
-  across 217.99 hours, or about 218.0.”
+- “Across promoted and quarantine lanes, the current audit covers 104 source
+  inputs: 101 caption-audited and three sealed or limited, with 2,838,303 words
+  across about 248.4 hours.”
 - “Every item labeled as a moment returns to an exact indexed source
   timestamp.”
 - “The promoted corpus contains 872 bounded editorial receipts and 168 core
   memory nodes.”
-- “Archive Deep Portfolio currently overlays 20 caption-audited sources, 46.8
-  hours, 579,003 words, 82,551 parsed caption events, 200 topic lanes across
-  42 distinct topics, and 214,278 cached snapshot views.”
-- “Its 91 machine moments remain quarantined, its 23 character-signal records
-  are source-level signals rather than performances, and its seven
+- “Archive Deep Portfolio currently overlays 30 caption-audited sources, 77.2
+  hours, 957,430 words, 136,539 parsed caption events, 300 topic lanes across
+  44 distinct topics, and 335,489 cached snapshot views.”
+- “Its 131 machine moments remain quarantined, its 41 character-signal records
+  are source-level signals rather than performances, and its nine
   source-audio-sensitive records remain topic-navigation-only.”
-- “Six Archive Deep sources—three in each batch—carry unverified visual
-  context. A caption timestamp does not identify which visual item was on
-  screen.”
+- “Ten Archive Deep sources occupy the special visual-ranking quarantine lane,
+  and all 30 forbid visual claims. The 10-count does not mean the other 20 have
+  verified visual context; a caption timestamp never identifies which visual
+  item was on screen.”
 - “The Trust Desk's 71 healthy and three gap counts cover the promoted
   74-source corpus; Archive Deep is disclosed separately.”
-- “Archive Atlas currently maps 472 records: 54 deeply indexed, 410
+- “Archive Atlas currently maps 472 records: 64 deeply indexed, 400
   metadata-only, eight caption-limited, and zero classified unavailable in the
-  cached snapshot, for 11.4% deep coverage. Current availability was not
+  cached snapshot, for 13.6% deep coverage. Current availability was not
   rechecked.”
-- “Batch 02 priority combines cached-view gravity, upload recency, and
+- “All 30 Archive Deep records are excluded from the next-distill queue.”
+- “Archive Deep priority combines cached-view gravity, upload recency, and
   configured franchise-title signals. It is not raw view rank.”
+- “Flag This Answer creates a device-local, append-only, unverified proposal.
+  It may suggest a better source, whole second, or expected answer, but it does
+  not automatically mutate Ask, Canon, certification, or promoted evidence.”
 - “A working timestamp proves where an indexed fragment lives; it does not
   automatically prove speaker, target, intent, or human-verified wording.”
 - “Source-level summaries are labeled summaries, not timestamped quotes.”
@@ -364,10 +385,11 @@ Use only the branch the audience cares about:
 
 - “The AI knows which host said every line.”
 - “All 872 receipts were manually quote-checked.”
-- “The 91 Archive Deep candidates are already approved Red Band or UP IN YA
+- “The 131 Archive Deep candidates are already approved Red Band or UP IN YA
   moments.”
-- “Batch 02 is ranked by views” or “priority #1 means most watched.”
-- “The 23 character signals are verified performances.”
+- “An Archive Deep batch is ranked by views” or “priority #1 means most
+  watched.”
+- “The 41 character signals are verified performances.”
 - “The captions prove which tier, poster, death, or matchup was on screen.”
 - “A source-level summary is what the hosts said at that timestamp.”
 - “Owner-mapped character means this individual clip has a verified speaker.”
@@ -375,6 +397,8 @@ Use only the branch the audience cares about:
 - “Their opinion definitely changed.”
 - “These are guaranteed viral clips.”
 - “The system can publish autonomously.”
+- “Flagging an Ask answer automatically fixes the corpus, Canon, or
+  certification state.”
 - “All WWAM uploads are indexed.”
 - “The creator has approved this.”
 - “This is already making money.”

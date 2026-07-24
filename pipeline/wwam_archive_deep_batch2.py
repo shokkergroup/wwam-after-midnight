@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from typing import Any, Iterable
 
@@ -47,6 +48,7 @@ SOURCE_ATLAS_SHA256 = (
 )
 EXCERPT_WORD_LIMIT = 16
 MAX_PUBLIC_BYTES = 125_000
+ARCHIVE_DEEP_BATCH_LANE = re.compile(r"^archive-deep-batch-(\d+)$")
 
 BATCH1_IDS: tuple[str, ...] = (
     "fpNtQMexZiw",
@@ -211,6 +213,15 @@ def canonical_atlas_record(record: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def integrated_at_or_after_batch2(record: dict[str, Any]) -> bool:
+    """Return whether an Atlas record was promoted in Batch 02 or later."""
+    for lane in record.get("lanes", []):
+        match = ARCHIVE_DEEP_BATCH_LANE.fullmatch(str(lane))
+        if match and int(match.group(1)) >= 2:
+            return True
+    return False
+
+
 def validate_selection(
     atlas: dict[str, Any],
     records: dict[str, dict[str, Any]],
@@ -224,16 +235,20 @@ def validate_selection(
     if overlap:
         raise RuntimeError(f"Batch 02 overlaps Batch 01: {overlap}")
 
-    # Once Batch 02 is integrated, its ten records correctly leave the
-    # metadata-only queue. Reconstruct only their former coverage/lane fields
-    # and require the result to reproduce the exact pre-integration Atlas
-    # fingerprint. This keeps the frozen selection independently auditable
-    # without pretending the current Atlas is still the selection snapshot.
+    # Once Batch 02 and any later batches are integrated, all of their records
+    # correctly leave the metadata-only queue. Reconstruct the exact Atlas as
+    # it stood immediately before Batch 02 by rolling every Batch 02+ lane back
+    # to its former metadata-only state. Batch 01 remains deeply indexed because
+    # it was already excluded at this selection snapshot. This keeps the frozen
+    # selection independently auditable as additional batches are integrated.
     selection_ids = {selected["id"] for selected in SELECTION}
     source_records = []
     for record in atlas["records"]:
         restored = dict(record)
-        if record["id"] in selection_ids:
+        if (
+            record["id"] in selection_ids
+            or integrated_at_or_after_batch2(record)
+        ):
             restored["coverage"] = "metadata-only"
             restored["lanes"] = ["archive-metadata"]
         source_records.append(restored)

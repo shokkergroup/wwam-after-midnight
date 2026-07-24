@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.0.0";
+  var VERSION = "1.1.0";
   var SCHEMA = "shokker-youtube-wiki/archive-deep-portfolio/v1";
   var LEGACY_SCHEMA = "wwam-archive-deep-distill/v1";
   var BATCH_SCHEMA = "shokker-youtube-wiki/archive-deep-batch/v1";
@@ -26,6 +26,7 @@
       id: "archive-deep-batch-02",
       sequence: 2,
       schema: BATCH_SCHEMA,
+      integrationStatus: "integrated-quarantine",
       publicFnv1a: "fnv1a32:bcea5692",
       selectionSha256:
         "sha256:74a060317ce5fedd59adba315b4ff888abce4bdb3b40c6473917e99e8ce9dec5",
@@ -33,8 +34,28 @@
         "sha256:2d40c45f985a9757b3a0bcaf113980d466cc28a5ac88a522a68d13557f2b6c2a",
       sourceAtlasArchiveSha256:
         "sha256:f11c4db03460f8854465718828ae8350e00462b93b4ecd13343d4a8f088d0855",
+      excludedLaneIds: Object.freeze(["archive-deep-batch-01"]),
       excludedSourceIdsSha256:
         "sha256:615a048bc553de31ddd51652eb5a4721b7b436f553ddbab352953c6a9f676396",
+    }),
+    Object.freeze({
+      id: "archive-deep-batch-03",
+      sequence: 3,
+      schema: BATCH_SCHEMA,
+      integrationStatus: "integrated-quarantine",
+      publicFnv1a: "fnv1a32:f79f2399",
+      selectionSha256:
+        "sha256:a06f9b2858be38a47fc83d003809f59e994756da68f01c88b46105754f1b6aa8",
+      captionSetSha256:
+        "sha256:9251fdad02633189fd19071a641271b1ff9926ae1e392806f1e1ea9d8c49b1cb",
+      sourceAtlasArchiveSha256:
+        "sha256:8799e6de57d891952902bfaf26fe36839b75581cf7c3707f333473b3dcb75da5",
+      excludedLaneIds: Object.freeze([
+        "archive-deep-batch-01",
+        "archive-deep-batch-02",
+      ]),
+      excludedSourceIdsSha256:
+        "sha256:3ad06017c627aae67ab99e4207fca92b583b77e2a57f912dbbb76d3bfddb0cf8",
     }),
   ]);
 
@@ -154,7 +175,7 @@
         lane.id !== spec.id ||
         lane.kind !== "caption-audited-quarantine" ||
         lane.sequence !== spec.sequence ||
-        lane.integrationStatus !== "integrated-quarantine" ||
+        lane.integrationStatus !== spec.integrationStatus ||
         lane.promotionAllowed !== false ||
         lane.requiresAuthenticatedReview !== true) {
       fail(spec.id + " lane metadata is invalid");
@@ -173,8 +194,8 @@
         records.length !== 10) {
       fail(spec.id + " frozen selection metadata is invalid");
     }
-    if (spec.sequence === 2 &&
-        (!sameValue(selection.excludedLaneIds, ["archive-deep-batch-01"]) ||
+    if (spec.sequence > 1 &&
+        (!sameValue(selection.excludedLaneIds, spec.excludedLaneIds) ||
          selection.excludedSourceIdsSha256 !== spec.excludedSourceIdsSha256)) {
       fail(spec.id + " exclusion boundary is invalid");
     }
@@ -212,7 +233,7 @@
           stream.captionEvidence.originAttribution !== false) {
         fail(spec.id + " source #" + (index + 1) + " lost an evidence boundary");
       }
-      if (spec.sequence === 2 &&
+      if (spec.sequence > 1 &&
           (stream.rightsPolicy.promotionAllowed !== false ||
            stream.rightsPolicy.performerClaimsAllowed !== false)) {
         fail(spec.id + " source #" + (index + 1) + " lost its quarantine boundary");
@@ -223,7 +244,7 @@
   function compatibilityEnvelope(payload, spec, factory) {
     var compatible = serialCopy(payload);
     compatible.schema = factory.SCHEMA;
-    if (spec.sequence === 2) {
+    if (spec.sequence > 1) {
       compatible.streams.forEach(function (stream) {
         stream.archivePriority.originalRank = stream.archivePriority.currentRank;
       });
@@ -352,8 +373,9 @@
         output.push(stream);
       });
     });
-    if (output.length !== 20 || priorities.size !== 20) {
-      fail("the portfolio must resolve to twenty unique priority positions");
+    var expected = BATCH_SPECS.length * 10;
+    if (output.length !== expected || priorities.size !== expected) {
+      fail("the portfolio must resolve to " + expected + " unique priority positions");
     }
     return output;
   }
@@ -438,11 +460,11 @@
 
   function createMetrics(batches, topicIndex) {
     return {
-      batches: 2,
+      batches: batches.length,
       streams: sumMetric(batches, "streams"),
       captioned: sumMetric(batches, "captioned"),
       restricted: sumMetric(batches, "restricted"),
-      visualContextUnverified: batches.reduce(function (total, batch) {
+      visualRankingQuarantines: batches.reduce(function (total, batch) {
         return total + batch.payload.streams.filter(function (stream) {
           return stream.rightsPolicy.mode === "visual-context-unverified";
         }).length;
@@ -481,7 +503,7 @@
     var rawBatches = array(settings.batches);
     validateFactory(factory);
     if (rawBatches.length !== BATCH_SPECS.length) {
-      fail("exactly two ordered batches are required");
+      fail("exactly three ordered batches are required");
     }
 
     var batches = rawBatches.map(function (payload, index) {
@@ -704,7 +726,7 @@
             clean(batch.payload.generated) : latest;
         }, ""),
         scope:
-          "Deterministic public composition of Archive Deep Batch 01 and Batch 02.",
+          "Deterministic public composition of three ordered Archive Deep batches.",
         evidencePolicy: serialCopy(evidencePolicy),
         meta: serialCopy(metrics),
         batches: serialCopy(provenance),

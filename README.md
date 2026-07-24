@@ -7,43 +7,53 @@ character archaeology, topic paths, and creator-side editorial opportunities.
 This is an unofficial fan prototype. It sends playback and source traffic back
 to the official WWAM uploads.
 
-## V5.7 current Archive Deep overlay
+Current documented release: **V5.8 / 0.5.8**.
 
-V5.7 composes two independently fingerprinted Archive Deep batches into one
+## V5.8 current Archive Deep overlay
+
+V5.8 composes three independently fingerprinted Archive Deep batches into one
 read-only portfolio:
 
-- 20 caption-audited sources;
-- 46.8 audited hours, 579,003 words, and 82,551 parsed caption events;
-- 200 topic lanes across 42 distinct normalized topics;
-- 91 quarantined public moment candidates;
-- 23 source-level character-signal records, not people or verified
+- 30 caption-audited sources;
+- 77.2 audited hours, 957,430 words, and 136,539 parsed caption events;
+- 300 topic lanes across 44 distinct normalized topics;
+- 131 quarantined public moment candidates;
+- 41 source-level character-signal records, not people or verified
   performances;
-- 7 topic-only source-audio firewalls;
-- 214,278 cached snapshot views.
+- 9 topic-only source-audio firewalls;
+- 10 special visual-ranking quarantines;
+- 335,489 cached snapshot views.
 
 Every portfolio candidate remains machine-surfaced, speaker-undiarized,
 origin-unattributed, unreviewed, and outside the promoted 872, Canon, Red Band,
-WWAM UP IN YA, and creator-approved inventory. Six visual-context-unverified
-sources—three in each batch—retain useful caption-derived navigation, but
-their visual ranking context remains unverified.
+WWAM UP IN YA, and creator-approved inventory. The portfolio fingerprint is
+`fnv1a32:8e474ea8`; its independently retained Batch 01, 02, and 03 public
+fingerprints are `fnv1a32:17045a51`, `fnv1a32:bcea5692`, and
+`fnv1a32:f79f2399`. These are structural change detectors, not signatures.
+All 30 sources forbid visual claims. The 10-count identifies the special
+visual-ranking quarantine lane; it does not imply verified visuals for the
+other 20.
 
-Across the promoted and quarantine lanes, the current audit covers 94 source
-inputs: 91 caption-audited and 3 sealed or limited, with 2,459,876 audited
-words across 217.99 hours (about 218.0). The 872 promoted-receipt count remains
-unchanged; all 91 current Archive Deep moment candidates remain quarantined.
+Across the promoted and quarantine lanes, the current audit covers 104 source
+inputs: 101 caption-audited and 3 sealed or limited, with 2,838,303 audited
+words across about 248.4 hours. The 872 promoted-receipt and 168 promoted core
+memory-node counts remain unchanged; all 131 current Archive Deep moment
+candidates remain quarantined.
 
 The whole-feed Archive Atlas still maps 472 cached Streams-feed records.
-Current evidence coverage is **54 deeply indexed, 410 metadata-only, and 8
-caption-limited records**, or **11.4% deep coverage**. No record was classified
+Current evidence coverage is **64 deeply indexed, 400 metadata-only, and 8
+caption-limited records**, or **13.6% deep coverage**. No record was classified
 unavailable in the cached snapshot, and current availability was not rechecked.
+All 30 Archive Deep sources are excluded from the next metadata-only queue.
 
 ## Immutable V5.4 proof — preserved release snapshot
 
-The following values are the frozen V5.4 proof, not the current V5.7 overlay:
+The following values are the frozen V5.4 proof, not the current V5.8 overlay:
 **84 inputs, 2,175,344 audited words, 194.9 caption-audited hours, 872 promoted
 receipts, 42 then-quarantined Batch 01 candidates, and 168 promoted core memory
-nodes**. The twenty-source portfolio does not retroactively change those named
-release values, and its 91 candidates must not be added to the promoted 872.
+nodes**. The current thirty-source portfolio does not retroactively change
+those named release values, and its 131 candidates must not be added to the
+promoted 872.
 
 - 39 franchise commentaries: 13 Halloween, 12 Friday the 13th, 6 Scream, and
   8 A Nightmare on Elm Street
@@ -83,7 +93,7 @@ The Lore Galaxy exposes 953 labeled graph receipt links. That broader count
 includes source entry points and context records; the 872 count is the
 editorial-moment inventory.
 
-## V5.7 product map
+## V5.8 product map
 
 The hero offers three deliberate entry points:
 
@@ -192,12 +202,17 @@ and order cached uploads by title metadata, year, date, or snapshot views, but
 they do not answer what happened inside a metadata-only source. The
 deterministic Distill Next queue scores only cached-view gravity, upload
 recency, and configured franchise-title signals. Priority is not raw view rank.
-Its current 472-record map is 54 deeply indexed, 410 metadata-only, 8
+Its current 472-record map is 64 deeply indexed, 400 metadata-only, 8
 caption-limited, and 0 records classified unavailable in the cached snapshot:
-11.4% deep coverage. Current availability was not rechecked. The Archive Deep
-Portfolio exposes both ten-source batches and their independent provenance,
-while all 91 machine candidates remain quarantined from promoted product
-lanes.
+13.6% deep coverage. Current availability was not rechecked. The Archive Deep
+Portfolio exposes all three ten-source batches and their independent
+provenance, while all 131 machine candidates remain quarantined from promoted
+product lanes.
+
+Ask Review Queue V1 turns **Flag This Answer** into a device-local,
+append-only proposal ledger. A reviewer can optionally suggest a better source,
+whole second, or expected answer, but the queue does not automatically mutate
+Ask, Canon, certification, or any promoted evidence ledger.
 
 The Red Band 100 now starts with 567 deduplicated playable candidates and
 publishes exactly 100 unique ranks spanning 53 sources. Its raw score uses
@@ -237,7 +252,7 @@ establish which host is speaking.
 - The current Trust Desk still audits the 74-source promoted corpus: 71 healthy
   sources, 3 disclosed caption gaps, 0 structurally invalid or
   source-ID-mismatched URLs, 0 invalid indexed timestamps, and 95 human review
-  candidates. Archive Deep Portfolio's twenty caption-audited sources and 91
+  candidates. Archive Deep Portfolio's thirty caption-audited sources and 131
   quarantined candidates are reported as a separate current overlay and have
   not been silently merged into that legacy Trust/Canon contract.
 - The promoted corpus spans 171.19 caption-audited hours and
@@ -326,7 +341,7 @@ artifacts contain derived measurements and short, timestamped fragments only.
 
 ## Documentation
 
-- [V5.7 product overview](docs/V5_OVERVIEW.md)
+- [V5.8 product overview](docs/V5_OVERVIEW.md)
 - [Creator demo runbook](docs/CREATOR_DEMO_RUNBOOK.md)
 - [Product changelog](docs/CHANGELOG.md)
 - [Reusable YouTube Wiki Memory OS](docs/YOUTUBE_WIKI_MEMORY_OS.md)
@@ -344,4 +359,5 @@ artifacts contain derived measurements and short, timestamped fragments only.
 - [Archive Atlas contract](docs/ARCHIVE_ATLAS.md)
 - [Archive Deep Distill contract](docs/ARCHIVE_DEEP_DISTILL.md)
 - [Archive Deep Portfolio contract](docs/ARCHIVE_DEEP_PORTFOLIO.md)
+- [Ask Review Queue contract](docs/ASK_REVIEW_QUEUE.md)
 - [Red Band Memorability Candidate Index V2.1](docs/RED_BAND_RANKING_V2.md)

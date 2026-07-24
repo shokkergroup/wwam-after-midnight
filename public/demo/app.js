@@ -117,10 +117,12 @@
 
   function createArchiveDeep() {
     if (!window.WWAM_ARCHIVE_DEEP || !window.WWAM_ARCHIVE_DEEP_BATCH2 ||
+        !window.WWAM_ARCHIVE_DEEP_BATCH3 ||
         !window.WWAMArchiveDeepEngine || !window.WWAMArchiveDeepPortfolio) return null;
     archiveDeepEngine = attempt(function () {
       return window.WWAMArchiveDeepPortfolio.create(
-        [window.WWAM_ARCHIVE_DEEP, window.WWAM_ARCHIVE_DEEP_BATCH2],
+        [window.WWAM_ARCHIVE_DEEP,window.WWAM_ARCHIVE_DEEP_BATCH2,
+          window.WWAM_ARCHIVE_DEEP_BATCH3],
         window.WWAMArchiveDeepEngine
       );
     }, "Archive Deep portfolio initialization");
@@ -144,14 +146,14 @@
   function loadArchiveDeep() {
     if (archiveDeepEngine) return Promise.resolve(archiveDeepEngine);
     if (archiveDeepLoadPromise) return archiveDeepLoadPromise;
-    archiveDeepLoadPromise = loadDemoScript("archive-deep-distill.js")
-      .then(function () { return loadDemoScript("archive-deep-batch2.js"); })
-      .then(function () { return loadDemoScript("archive-deep-engine.js"); })
-      .then(function () { return loadDemoScript("archive-deep-portfolio.js"); })
-      .then(createArchiveDeep)
+    archiveDeepLoadPromise = [
+      "archive-deep-distill.js","archive-deep-batch2.js","archive-deep-batch3.js",
+      "archive-deep-engine.js","archive-deep-portfolio.js",
+    ].reduce(function(p,s){return p.then(function(){return loadDemoScript(s);});},
+      Promise.resolve()).then(createArchiveDeep)
       .catch(function (error) {
         runtimeDiagnostics.push({ at: new Date().toISOString(),
-          operation: "Archive Deep portfolio lazy load",
+          operation: "Archive Deep lazy load",
           message: error && error.message ? error.message : String(error) });
         archiveDeepLoadPromise = null;
         return null;
@@ -1890,8 +1892,7 @@
     var isArchiveDeep = stream._lane === "archive";
     var archiveBatch = stream.archiveBatch || {};
     var lane = stream._lane === "popular" ? "FOUNDATIONAL 25" :
-      isArchiveDeep ? (archiveBatch.sequence === 2 ?
-        "AUTOPSIED BATCH 02" : "AUTOPSIED BATCH 01") : "FRESH 10";
+      isArchiveDeep ? "AUTOPSIED BATCH 0" + archiveBatch.sequence : "FRESH 10";
     var laneRank = isArchiveDeep ?
       Number(archiveBatch.batchRank || 0) :
       (stream._lane === "popular" ? popular.streams : live.streams).indexOf(stream) + 1;
@@ -2141,6 +2142,7 @@
   function ask(query, preservedAnalysis) {
     var statusNode = document.getElementById("askStatus");
     var resultsNode = document.getElementById("askResults");
+    resultsNode.setAttribute("data-ask-query", String(query || "").trim());
     var redBandIntent = isRedBandRankQuery(query);
     if (redBandIntent && !redBandQueryEngine) {
       state.lastAskQuery = query;
@@ -2153,7 +2155,7 @@
     }
     if (!redBandIntent && !archiveDeepEngine && /\barchive\s+deep\b/i.test(query)) {
       state.lastAskQuery = query;
-      statusNode.textContent = "OPENING ARCHIVE DEEP // 20 CAPTION AUDITS";
+      statusNode.textContent = "OPENING ARCHIVE DEEP // 30 CAPTION AUDITS";
       resultsNode.innerHTML =
         '<div class="ask-no-match"><b>SEARCHING THE QUARANTINED EVIDENCE LANE…</b>' +
         '<p>Machine candidates will stay visibly outside Canon while the batch loads.</p></div>';

@@ -39,8 +39,17 @@ test("V5.4 publishes its showcase surfaces without putting deferred ledgers on f
   assert.match(app, /loadDemoScript\("archive-atlas-data\.js"\)/);
   assert.match(app, /loadDemoScript\("archive-atlas-engine\.js"\)/);
   assert.match(app, /loadDemoScript\("archive-atlas-ui\.js"\)/);
-  assert.match(app, /loadDemoScript\("archive-deep-distill\.js"\)/);
-  assert.match(app, /loadDemoScript\("archive-deep-engine\.js"\)/);
+  const archiveAssets = [
+    "archive-deep-distill.js",
+    "archive-deep-batch2.js",
+    "archive-deep-batch3.js",
+    "archive-deep-engine.js",
+    "archive-deep-portfolio.js",
+  ];
+  const positions = archiveAssets.map((asset) => app.indexOf(`"${asset}"`));
+  assert.ok(positions.every((position) => position >= 0));
+  assert.deepEqual(positions, positions.slice().sort((left, right) => left - right));
+  assert.match(app, /\.reduce\(function\(p,s\)\{return p\.then\(function\(\)\{return loadDemoScript\(s\);/);
 });
 
 test("Archive Atlas keeps metadata scope and incomplete coverage visible in static copy", () => {
@@ -84,7 +93,7 @@ test("Mike Mode has six coherent beats and opens Archive Atlas as live proof", (
 });
 
 test("the current release identity preserves V5.4 headline proof", () => {
-  assert.equal(packageJson.version, "0.5.7");
+  assert.equal(packageJson.version, "0.5.8");
   assert.match(changelog, /## 0\.5\.7\b/);
   assert.match(changelog, /## 0\.5\.6\b/);
   assert.match(changelog, /## 0\.5\.5\b/);
