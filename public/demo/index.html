@@ -20,18 +20,18 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="content-gate" id="contentGate">
+  <div class="content-gate" id="contentGate" role="dialog" aria-modal="true" aria-labelledby="contentGateTitle">
     <div class="gate-static"></div>
     <div class="gate-card">
       <div class="gate-mark">W</div>
       <p class="kicker">CONTENT ADVISORY // THE CAPTIONS HAVE TEETH</p>
-      <h1>HOW RED DO YOU<br>WANT THE BAND?</h1>
+      <h1 id="contentGateTitle">HOW RED DO YOU<br>WANT THE BAND?</h1>
       <p>This prototype contains adult language and dark jokes pulled in short, source-linked fragments from public WWAM commentary captions.</p>
       <div class="gate-actions">
         <button class="primary" data-band="red">ENTER AFTER MIDNIGHT</button>
-        <button data-band="bleep">BLEEP IT FOR THE OFFICE</button>
+        <button data-band="bleep">REDUCE STRONG LANGUAGE</button>
       </div>
-      <small>Independent fan prototype. Auto-captions can mishear people; speaker attribution is intentionally withheld.</small>
+      <small>Independent fan prototype. Reduced-language mode only masks common profanity; adult themes remain. Auto-captions can mishear people, and speaker attribution is intentionally withheld.</small>
     </div>
   </div>
 
@@ -40,16 +40,16 @@
       <i>W</i><span>WWAM<b>AFTER MIDNIGHT</b></span>
     </a>
     <div class="nav-links">
-      <a href="#characters">ASK A CHARACTER</a>
-      <a href="#popular25">POPULAR 25</a>
-      <a href="#memory">MEMORY OS</a>
-      <a href="#upinya">WWAM UP IN YA</a>
+      <a href="#characters">CHARACTERS</a>
+      <a href="#lore">LORE GALAXY</a>
+      <a href="#clip-lab">CLIP LAB</a>
+      <a href="#canon">CANON DESK</a>
       <a href="#ask">ASK WWAM</a>
     </div>
     <button class="mike-button" id="mikeButton"><span></span> MIKE MODE</button>
   </nav>
 
-  <main id="top">
+  <main id="top" tabindex="-1">
     <section class="hero">
       <div class="hero-grain"></div>
       <div class="hero-copy">
@@ -59,6 +59,11 @@
         <div class="hero-actions">
           <a class="primary" href="#memory">ENTER THE MEMORY OS</a>
           <button id="rouletteButton">RED BAND ROULETTE <span>↗</span></button>
+        </div>
+        <div class="hero-doorways" aria-label="Choose a WWAM experience">
+          <a href="#trivia"><span>FAN EXPERIENCE</span><b>PLAY THE ARCHIVE →</b></a>
+          <a href="#lore"><span>DEEP DIVE</span><b>FOLLOW THE LORE →</b></a>
+          <a href="#clip-lab"><span>CREATOR PROOF</span><b>PUT MEMORY TO WORK →</b></a>
         </div>
         <p class="receipt-note">Every receipt is short. Every timestamp is playable. Every view returns to the original WWAM upload.</p>
       </div>
@@ -86,7 +91,7 @@
       </header>
       <div class="red-controls">
         <div class="category-filters" id="categoryFilters"></div>
-        <button class="band-toggle" id="bandToggle">OFFICE BLEEP: OFF</button>
+        <button class="band-toggle" id="bandToggle">REDUCED PROFANITY: OFF</button>
       </div>
       <div class="red-grid" id="hotGrid"></div>
       <button class="load-more" id="loadMore">UNSEAL MORE EVIDENCE</button>
@@ -140,7 +145,7 @@
             <input id="characterInput" autocomplete="off" placeholder="What do you think is really happening in Haddonfield?" aria-label="Ask the selected recurring character">
             <button>BREAK CHARACTER</button>
           </form>
-          <div class="character-answer" id="characterAnswer">
+          <div class="character-answer" id="characterAnswer" aria-live="polite">
             <p>Choose a recurring character and ask a question. The engine will expose the bit's behavioral ingredients before it answers.</p>
           </div>
         </section>
@@ -194,7 +199,7 @@
           <p class="kicker">THE COMPOUNDING MOAT // EVERY SOURCE MAKES THE BRAIN HARDER TO COPY</p>
           <h2>THE WWAM<br><em>MEMORY OS.</em></h2>
         </div>
-        <p>Moments stop living alone. The graph connects opinions, reversals, predictions, recurring bits, character performances, topics, and the exact sources that prove each relationship.</p>
+        <p>Moments stop living alone. The graph connects opinion signals, possible reversals, predictions, recurring bits, character performances, topics, and the exact sources that let a human verify each relationship.</p>
       </header>
       <div class="memory-proof" id="memoryProof"></div>
       <div class="memory-tabs" id="memoryTabs">
@@ -202,9 +207,61 @@
         <button data-memory-tab="bits">BIT ANCESTRY</button>
         <button data-memory-tab="chemistry">RIFF CHEMISTRY</button>
         <button data-memory-tab="court">WWAM COURT</button>
+        <button data-memory-tab="battle">TAKE BATTLE</button>
         <button data-memory-tab="descent">PERSONALIZED DESCENT</button>
       </div>
       <div class="memory-stage" id="memoryStage"></div>
+    </section>
+
+    <section class="lore-galaxy" id="lore">
+      <div class="lore-stars"></div>
+      <header class="section-head">
+        <div>
+          <p class="kicker">THE UNHOLY FIELD GUIDE // EVERY CONNECTION KEEPS ITS RECEIPT</p>
+          <h2>THE LORE<br><em>GALAXY.</em></h2>
+        </div>
+        <p>Characters, bits, motifs, topics, eras, and source tapes stop being a pile of tags. Search a dossier, then follow its constellation. “Graph receipt links” include source entry points and context records, so that count is intentionally broader than the 872 editorial moments.</p>
+      </header>
+      <div class="lore-proof" id="loreProof"></div>
+      <div class="lore-workbench">
+        <aside class="lore-index">
+          <label><span>SEARCH THE UNHOLY FIELD GUIDE</span><input id="loreSearch" placeholder="Loomis, Silver Shamrock, Haddonfield…"></label>
+          <div class="lore-kinds" id="loreKinds"></div>
+          <div class="lore-results" id="loreResults"></div>
+        </aside>
+        <section class="lore-dossier" id="loreDossier"></section>
+      </div>
+      <div class="constellation-desk">
+        <div class="constellation-head">
+          <div><span>CONNECTED MEMORY // CLICK ANY NODE TO RE-CENTER</span><h3 id="constellationTitle">THE ARCHIVE IS DRAWING A MAP</h3></div>
+          <p id="constellationCopy">Every line below is backed by one or more indexed receipts. Proximity means “connected in this archive,” never “definitive origin.”</p>
+        </div>
+        <div class="constellation-map" id="constellationMap"></div>
+      </div>
+    </section>
+
+    <section class="tape-trivia" id="trivia">
+      <header class="section-head">
+        <div>
+          <p class="kicker">NO SPEAKER GUESSES // NO SYNTHETIC QUOTES // EVERY REVEAL PLAYS</p>
+          <h2>WHAT TAPE DID<br><em>THIS ESCAPE FROM?</em></h2>
+        </div>
+        <p>A fan game made from the archive instead of pasted on top of it. Identify the source, movie, franchise, editorial classification, or which receipt came first—then open the exact timestamp that proves the answer.</p>
+      </header>
+      <div class="trivia-proof" id="triviaProof"></div>
+      <div class="trivia-shell">
+        <aside class="trivia-controls">
+          <div><span>BUILD A NIGHT SHIFT</span><h3>CHOOSE YOUR DAMAGE.</h3></div>
+          <label><span>DIFFICULTY</span><select id="triviaDifficulty"><option value="mixed">MIXED BAG</option><option value="easy">CASUALTY</option><option value="medium">FINAL GIRL</option><option value="hard">ARCHIVE GOBLIN</option></select></label>
+          <label><span>ROUNDS</span><select id="triviaLength"><option value="5">5 RECEIPTS</option><option value="10">10 RECEIPTS</option></select></label>
+          <label><span>FRANCHISE FILTER</span><select id="triviaFranchise"><option value="">ANY BLOODLINE</option><option>Halloween</option><option>Friday the 13th</option><option>Scream</option><option>A Nightmare on Elm Street</option></select></label>
+          <button id="triviaStart">DEAL ME FIVE →</button>
+          <small>The game never asks who said an undiarized caption line. A correct answer identifies only indexed source metadata.</small>
+        </aside>
+        <div class="trivia-stage" id="triviaStage" aria-live="polite">
+          <div class="trivia-loading"><i></i><b>SHUFFLING 872 PLAYABLE RECEIPTS…</b></div>
+        </div>
+      </div>
     </section>
 
     <section class="section franchise-room" id="franchises">
@@ -246,7 +303,7 @@
           <span>QUERY_</span><input id="askInput" autocomplete="off" placeholder="Ask the entire WWAM memory anything…" aria-label="Ask WWAM"><button>EXHUME</button>
         </form>
         <div class="ask-readout">
-          <div><i></i><span id="askStatus">THE MACHINE IS LISTENING</span><b>SOURCE-FIRST MODE</b></div>
+          <div><i></i><span id="askStatus" role="status" aria-live="polite">THE MACHINE IS LISTENING</span><b>SOURCE-FIRST MODE</b></div>
           <div id="askResults" class="ask-results">
             <p class="empty-state">Try a specific movie, a live topic, “latest,” “who,” a strong opinion, or a request for the funniest thing. The machine will show its work—and refuse to fake what the captions cannot prove.</p>
           </div>
@@ -294,10 +351,63 @@
           <p class="kicker">CREATOR-SIDE VALUE // THE PRODUCT WORKS AFTER THE FAN CLOSES THE TAB</p>
           <h2>THE CREATOR<br><em>CONTROL ROOM.</em></h2>
         </div>
-        <p>A working demonstration of the private layer: what the latest show added to canon, what needs human approval, which older uploads became relevant again, and what can become the next compilation or Short.</p>
+        <p>A working demonstration of the private layer: what the latest show added to indexed memory, what could become canon after human approval, which older uploads became relevant again, and what can become the next compilation or Short.</p>
       </header>
       <div class="aftermath" id="aftermath"></div>
       <div class="control-grid" id="controlGrid"></div>
+    </section>
+
+    <section class="clip-lab" id="clip-lab">
+      <header class="section-head">
+        <div>
+          <p class="kicker">CONTENT RESURRECTION LAB // THE ARCHIVE CLOCKS IN FOR WORK</p>
+          <h2>THE CLIP<br><em>LAB.</em></h2>
+        </div>
+        <p>Source receipts become edit briefs: exact in/out suggestions, context gates, hooks that are visibly labeled as new copy, multi-source supercut spines, and “then / now” callbacks that send old episodes back into circulation.</p>
+      </header>
+      <div class="clip-proof" id="clipProof"></div>
+      <div class="clip-toolbar">
+        <div class="clip-modes" id="clipModes">
+          <button class="on" data-clip-mode="shorts">SHORTS RADAR</button>
+          <button data-clip-mode="supercuts">SUPERCUT SPINES</button>
+          <button data-clip-mode="resurfacing">THEN / NOW</button>
+        </div>
+        <label><span>SEARCH THE EDIT QUEUE</span><input id="clipSearch" placeholder="Loomis, Halloween, rage, character…"></label>
+        <label><span>RISK GATE</span><select id="clipRisk"><option value="">ALL REVIEW STATES</option><option value="LOW">LOW</option><option value="MEDIUM">MEDIUM</option><option value="HIGH">HIGH</option><option value="HOLD">HOLD</option></select></label>
+      </div>
+      <div class="clip-lab-grid">
+        <div class="clip-results" id="clipResults"></div>
+        <aside class="campaign-tray">
+          <div><span>EDITORIAL PACKET</span><b id="campaignCount">0 CLIPS</b></div>
+          <h3>BUILD THE NEXT DROP.</h3>
+          <p>Stack candidates, preserve every source boundary, then export a deterministic handoff for an editor. Nothing is published and no media is downloaded.</p>
+          <div id="campaignList"></div>
+          <footer>
+            <button id="campaignCopy">COPY CAMPAIGN</button>
+            <button id="campaignDownload">DOWNLOAD JSON</button>
+            <button id="campaignClear">CLEAR</button>
+          </footer>
+        </aside>
+      </div>
+    </section>
+
+    <section class="canon-desk" id="canon">
+      <header class="section-head">
+        <div>
+          <p class="kicker">TRUST / CANON DESK // CONFIDENCE IS A FEATURE, NOT FINE PRINT</p>
+          <h2>SHOW THE<br><em>UNCERTAINTY.</em></h2>
+        </div>
+        <p>This is where the machine argues with itself. Healthy sources, caption gaps, character-attribution firewalls, opinion claims, excerpt limits, and community corrections all become inspectable work—not invisible caveats.</p>
+      </header>
+      <div class="canon-proof" id="canonProof"></div>
+      <div class="canon-tabs" id="canonTabs">
+        <button class="on" data-canon-tab="health">SOURCE HEALTH</button>
+        <button data-canon-tab="review">REVIEW QUEUE</button>
+        <button data-canon-tab="characters">CHARACTER FIREWALL</button>
+        <button data-canon-tab="claims">TAKES + COURT</button>
+        <button data-canon-tab="contribute">COMMUNITY MEMORY</button>
+      </div>
+      <div class="canon-stage" id="canonStage"></div>
     </section>
 
     <section class="method">
@@ -308,7 +418,7 @@
       <ol>
         <li><b>01 // DEFINE EACH SOURCE LANE</b><span>Complete watchalong paths, the rolling Fresh 10, and the foundational Popular 25 remain distinct while feeding one evidence graph.</span></li>
         <li><b>02 // AUDIT EVERY AVAILABLE WORD</b><span>Available caption tracks are processed end to end. Gated or uncaptioned sources stay visible without counterfeit analysis.</span></li>
-        <li><b>03 // CONNECT MEMORY, NOT KEYWORDS</b><span>Films, topics, takes, reversals, bits, characters, and livestreams become relationships whose source can always be reopened.</span></li>
+        <li><b>03 // CONNECT MEMORY, NOT KEYWORDS</b><span>Films, topics, take signals, possible reversals, bits, characters, and livestreams become reviewable relationships whose source can always be reopened.</span></li>
         <li><b>04 // KEEP HUMANS ABOVE THE MACHINE</b><span>Machines surface candidates. Editors verify. Creators can certify canon. Generated character riffs are never presented as archival quotes.</span></li>
       </ol>
     </section>
@@ -337,14 +447,29 @@
     <div><a href="https://www.youtube.com/@WeWatchedAMovie" target="_blank" rel="noopener">ORIGINAL CHANNEL ↗</a><button id="footerPitch">MIKE MODE</button></div>
   </footer>
 
-  <div class="tape-modal" id="tapeModal" aria-hidden="true">
+  <button class="evidence-bag-toggle" id="evidenceBagOpen" aria-controls="evidenceBag" aria-expanded="false">
+    <span>MY EVIDENCE BAG</span><b id="evidenceBagCount">0</b>
+  </button>
+  <div class="evidence-bag-scrim" id="evidenceBagScrim"></div>
+  <aside class="evidence-bag" id="evidenceBag" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="evidenceBagTitle" inert>
+    <header><div><span>PERSONAL NIGHTMARE QUEUE</span><h2 id="evidenceBagTitle">THE EVIDENCE BAG</h2></div><button id="evidenceBagClose" aria-label="Close evidence bag">×</button></header>
+    <p>Save receipts while you explore. Build a personal binge cut, reopen every exact second, or export the source manifest. This queue stays on this device.</p>
+    <div class="evidence-bag-list" id="evidenceBagList"></div>
+    <footer>
+      <button id="evidenceBagCopy">COPY CLIP MANIFEST</button>
+      <button id="evidenceBagDownload">DOWNLOAD JSON</button>
+      <button id="evidenceBagClear">BURN THE BAG</button>
+    </footer>
+  </aside>
+
+  <div class="tape-modal" id="tapeModal" aria-hidden="true" role="dialog" aria-modal="true" aria-label="WWAM source dossier">
     <div class="modal-shell">
       <button class="modal-close" id="modalClose" aria-label="Close">×</button>
       <div id="modalContent"></div>
     </div>
   </div>
 
-  <div class="tour" id="pitchTour" aria-hidden="true">
+  <div class="tour" id="pitchTour" aria-hidden="true" role="dialog" aria-modal="true" aria-label="WWAM creator pitch tour">
     <div class="tour-shell">
       <div class="tour-top"><span>PRIVATE SCREENING // MIKE MODE</span><button id="tourClose">EXIT ×</button></div>
       <div class="tour-progress"><i id="tourProgress"></i></div>
@@ -353,7 +478,7 @@
     </div>
   </div>
 
-  <div class="toast" id="toast">LINK COPIED TO THE EVIDENCE BAG</div>
+  <div class="toast" id="toast" role="status" aria-live="polite">LINK COPIED TO THE EVIDENCE BAG</div>
 
   <script src="catalog.js"></script>
   <script src="deep-distill.js"></script>
@@ -361,8 +486,13 @@
   <script src="popular-live-distill.js"></script>
   <script src="curation.js"></script>
   <script src="character-lore.js"></script>
+  <script src="character-engine.js"></script>
   <script src="wwam-channel-dna.js"></script>
   <script src="showcase-engine.js"></script>
+  <script src="lore-engine.js"></script>
+  <script src="tape-trivia-engine.js"></script>
+  <script src="creator-studio-engine.js"></script>
+  <script src="trust-engine.js"></script>
   <script src="search-engine.js"></script>
   <script src="app.js"></script>
 </body>

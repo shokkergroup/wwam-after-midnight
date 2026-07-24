@@ -9,27 +9,85 @@
   var characterLore = window.WWAM_CHARACTER_LORE || { meta: {}, characters: [] };
   var channelDNA = window.WWAM_CHANNEL_DNA || {};
   var askEngine;
+  var characterEngine;
   var showcaseEngine;
+  var loreEngine;
+  var tapeTriviaEngine;
+  var triviaSession;
+  var clipLabEngine;
+  var trustEngine;
   var showcaseReceiptById = {};
   var showcaseSourceById = {};
+  var clipItemById = {};
+  var campaignSnapshots = {};
+  var lastDialogFocus = null;
   var tapeById = {};
   var itemById = {};
   var streamById = {};
+  var storageFallback = {};
+  var runtimeDiagnostics = [];
+  window.WWAM_RUNTIME_DIAGNOSTICS = runtimeDiagnostics;
+
+  function storageGet(key) {
+    try {
+      var value = window.localStorage.getItem(key);
+      if (value != null) storageFallback[key] = value;
+      return value != null ? value : (storageFallback[key] || null);
+    } catch {
+      return storageFallback[key] || null;
+    }
+  }
+
+  function storageSet(key, value) {
+    storageFallback[key] = String(value);
+    try {
+      window.localStorage.setItem(key, String(value));
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   var state = {
-    redBand: localStorage.getItem("wwam-band") !== "bleep",
+    redBand: storageGet("wwam-band") !== "bleep",
     hotCategory: "ALL EVIDENCE",
     hotLimit: 12,
     franchise: "ALL",
     vaultQuery: "",
     lab: "Halloween",
     soundSource: "commentary",
+    activeSoundbyte: null,
     liveTopic: "ALL TOPICS",
     popularQuery: "",
     popularTopic: "ALL TOPICS",
     character: "",
+    characterContext: null,
+    lastCharacterRiff: "",
+    evidenceBag: loadEvidenceBag(),
+    bagOpen: false,
     memoryTab: "time",
     memoryEntity: "Halloween",
+    battleA: "franchise:Halloween",
+    battleB: "franchise:Friday the 13th",
+    loreQuery: "",
+    loreKind: "character",
+    loreSelected: "character:loomis",
+    triviaDifficulty: "mixed",
+    triviaLength: 5,
+    triviaFranchise: "",
+    triviaSeed: 0,
+    clipMode: "shorts",
+    clipQuery: "",
+    clipRisk: "",
+    campaignIds: loadCampaignIds(),
+    canonTab: "health",
+    canonDraft: null,
     askContext: null,
+    lastAskQuery: "",
+    lastAskAnalysis: null,
+    initialRouteHandled: false,
+    fanEnginesSettled: false,
+    creatorEnginesSettled: false,
     descentMinutes: 20,
     descentMode: "CHAOS",
     tourSlide: 0,
@@ -47,18 +105,98 @@
     streamById[stream.id] = stream;
   });
   askEngine = window.WWAMSearchEngine.create(catalog, deep, live, curated, popular);
-  showcaseEngine = window.WWAMShowcaseEngine && window.WWAMShowcaseEngine.create ?
-    window.WWAMShowcaseEngine.create({
-      catalog: catalog,
-      deep: deep,
-      live: live,
-      popular: popular,
-      characters: characterLore,
-      dna: channelDNA,
-    }) : null;
-  if (showcaseEngine) {
-    (showcaseEngine.receipts || []).forEach(function (receipt) { showcaseReceiptById[receipt.id] = receipt; });
-    (showcaseEngine.sources || []).forEach(function (source) { showcaseSourceById[source.id] = source; });
+  characterEngine = window.WWAMCharacterEngine && window.WWAMCharacterEngine.create ?
+    window.WWAMCharacterEngine.create(characterLore) : null;
+
+  function attempt(work, label) {
+    try {
+      return work();
+    } catch (error) {
+      var diagnostic = {
+        at: new Date().toISOString(),
+        operation: label || work.name || "anonymous operation",
+        message: error && error.message ? error.message : String(error),
+      };
+      runtimeDiagnostics.push(diagnostic);
+      if (window.console && typeof window.console.error === "function") {
+        window.console.error("[WWAM V5] " + diagnostic.operation + " failed:", error);
+      }
+      return null;
+    }
+  }
+
+  function createDeepEngines() {
+    showcaseEngine = window.WWAMShowcaseEngine && window.WWAMShowcaseEngine.create ?
+      attempt(function () { return window.WWAMShowcaseEngine.create({
+        catalog: catalog,
+        deep: deep,
+        live: live,
+        popular: popular,
+        characters: characterLore,
+        dna: channelDNA,
+      }); }, "showcase engine initialization") : null;
+    if (showcaseEngine) {
+      (showcaseEngine.receipts || []).forEach(function (receipt) { showcaseReceiptById[receipt.id] = receipt; });
+      (showcaseEngine.sources || []).forEach(function (source) { showcaseSourceById[source.id] = source; });
+    }
+    attempt(renderProof);
+    attempt(renderMemory);
+    attempt(renderControlRoom);
+    scheduleIdle(createFanEngines, 900);
+    scheduleIdle(createCreatorEngines, 1400);
+  }
+
+  function createFanEngines() {
+    loreEngine = window.WWAMLoreEngine && window.WWAMLoreEngine.create ?
+      attempt(function () { return window.WWAMLoreEngine.create({
+        catalog: catalog,
+        deep: deep,
+        live: live,
+        popular: popular,
+        characters: characterLore,
+      }); }, "lore engine initialization") : null;
+    tapeTriviaEngine = window.WWAMTapeTriviaEngine && window.WWAMTapeTriviaEngine.create && showcaseEngine ?
+      attempt(function () {
+        return window.WWAMTapeTriviaEngine.create({ showcase: showcaseEngine, lore: loreEngine });
+      }, "trivia engine initialization") : null;
+    if (tapeTriviaEngine) {
+      triviaSession = attempt(function () { return tapeTriviaEngine.createSession({
+        seed: "wwam-night-shift-" + state.triviaSeed,
+        length: state.triviaLength,
+        difficulty: state.triviaDifficulty,
+      }); });
+    }
+    state.fanEnginesSettled = true;
+    attempt(renderLore);
+    attempt(renderTrivia);
+  }
+
+  function createCreatorEngines() {
+    clipLabEngine = window.WWAMCreatorClipLab && window.WWAMCreatorClipLab.create && showcaseEngine ?
+      attempt(function () { return window.WWAMCreatorClipLab.create({ showcase: showcaseEngine }); },
+        "creator clip lab initialization") : null;
+    if (clipLabEngine) {
+      (clipLabEngine.shorts || []).concat(clipLabEngine.supercuts || [], clipLabEngine.resurfacing || [])
+        .forEach(function (item) { clipItemById[item.id] = item; });
+    }
+    trustEngine = window.WWAMTrustEngine && window.WWAMTrustEngine.create ?
+      attempt(function () { return window.WWAMTrustEngine.create({
+        catalog: catalog,
+        deep: deep,
+        live: live,
+        popular: popular,
+        characters: characterLore,
+        dna: channelDNA,
+        showcase: showcaseEngine,
+      }); }, "trust engine initialization") : null;
+    state.creatorEnginesSettled = true;
+    attempt(renderClipLab);
+    attempt(renderCanon);
+  }
+
+  function scheduleIdle(work, timeout) {
+    if (window.requestIdleCallback) window.requestIdleCallback(work, { timeout: timeout || 900 });
+    else setTimeout(work, 0);
   }
 
   var franchiseOrder = ["Halloween", "Friday the 13th", "Scream", "A Nightmare on Elm Street"];
@@ -83,8 +221,9 @@
       number: "01",
       eyebrow: "THE PROBLEM",
       title: "THOUSANDS OF HOURS.<br>NO MEMORY LAYER.",
-      body: "YouTube knows what a video is called. It does not know where a bit was born, when a take reversed, which commentary became a fan favorite, or what exact second deserves to live again.",
+      body: "YouTube knows what a video is called. It does not know where a bit first surfaced in the indexed archive, where take signals diverged, which commentary drew the largest captured audience, or what exact second deserves to live again.",
       proof: "THE BACK CATALOG IS VALUABLE—BUT MOST OF ITS VALUE IS BURIED.",
+      action: { kind: "trivia", label: "PLAY A SOURCE-GROUNDED ROUND" },
     },
     {
       number: "02",
@@ -92,13 +231,15 @@
       title: "1,880,873 WORDS.<br>74 SOURCES. PROVE IT.",
       body: "The expanded demo audits every available caption across 39 franchise commentaries, the rolling Fresh 10, and 25 new foundational livestreams—then turns 872 bounded evidence receipts into paths back to the exact source second.",
       proof: "71 CAPTIONED SOURCES. THREE HONESTLY DISCLOSED GAPS. ZERO COUNTERFEIT ANALYSIS.",
+      action: { kind: "ask", label: "ASK FOR THE MOST-VIEWED LIVE", query: "What is the most-viewed foundational livestream?" },
     },
     {
       number: "03",
       eyebrow: "THE MOAT",
       title: "THE CHANNEL<br>REMEMBERS ITSELF.",
-      body: "Take Time Machines reveal changing opinions. Bit Ancestry tracks recurring characters. Ask the Character pairs a clearly labeled fan-made riff with a bounded real performance clip. WWAM Court puts contradictory receipts on trial.",
-      proof: "168 MEMORY NODES. 603 SOURCE-BACKED EDGES. FOUR VERIFIED CHARACTER LINEAGES.",
+      body: "Take Time Machines surface chronological opinion signals for human review. Bit Ancestry tracks recurring characters. Ask the Character pairs a clearly labeled fan-made riff with a bounded real performance clip. WWAM Court remains an open argument board until both sides pass the canon gate.",
+      proof: "CONNECTED MEMORY WITH A VISIBLE TRUST FIREWALL — DISCOVERY IS NOT QUIETLY UPGRADED INTO CANON.",
+      action: { kind: "lore", label: "OPEN THE LOOMIS CONSTELLATION", entry: "character:loomis" },
     },
     {
       number: "04",
@@ -106,13 +247,15 @@
       title: "MEMORY CREATES<br>NEW INVENTORY.",
       body: "Premium franchise vaults. Member-only extended receipts. Sponsored lore labs. Annual supercuts. Merch tied to recurring bits. Share cards that drive old-video traffic. The archive creates surfaces without interrupting the show.",
       proof: "DISCOVERY → RETENTION → MEMBERSHIP → MERCH → MORE BACK-CATALOG VIEWS.",
+      action: { kind: "clip", label: "OPEN A LOOMIS EDIT QUEUE", query: "Dr. Loomis" },
     },
     {
       number: "05",
       eyebrow: "THE ASK",
       title: "THIS IS THE DEMO.<br>THE SYSTEM IS THE PRODUCT.",
-      body: "The creator-facing Control Room shows what the latest stream changed, what an editor should verify, which older uploads just became relevant, and which moments can become tomorrow's compilation, Short, membership perk, or merch callback.",
+      body: "The creator-facing Control Room shows what the latest stream added to indexed memory, what an editor should verify, which older uploads just became relevant, and which moments can become tomorrow's compilation, Short, membership perk, or merch callback.",
       proof: "THE CHANNEL'S HISTORY STOPS BEING STORAGE AND STARTS COMPOUNDING.",
+      action: { kind: "canon", label: "WATCH THE MACHINE REJECT A CLAIM", tab: "claims" },
     },
   ];
 
@@ -120,6 +263,239 @@
     return String(value == null ? "" : value).replace(/[&<>"']/g, function (char) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char];
     });
+  }
+
+  function loadEvidenceBag() {
+    try {
+      var parsed = JSON.parse(storageGet("wwam-evidence-bag") || "[]");
+      if (!Array.isArray(parsed)) return [];
+      return parsed.filter(function (item) {
+        return item && typeof item.id === "string" && Number.isFinite(Number(item.at));
+      }).slice(0, 30).map(normalizeEvidenceItem);
+    } catch {
+      return [];
+    }
+  }
+
+  function loadCampaignIds() {
+    try {
+      var parsed = JSON.parse(storageGet("wwam-campaign-clips") || "[]");
+      if (!Array.isArray(parsed)) return [];
+      return parsed.map(function (entry) {
+        if (typeof entry === "string") return entry;
+        if (!entry || typeof entry.id !== "string") return "";
+        campaignSnapshots[entry.id] = entry;
+        return entry.id;
+      }).filter(function (id, index, ids) {
+        return id && ids.indexOf(id) === index;
+      }).slice(0, 24);
+    } catch {
+      return [];
+    }
+  }
+
+  function saveCampaignIds() {
+    return storageSet("wwam-campaign-clips", JSON.stringify(state.campaignIds.map(function (id) {
+      return campaignSnapshots[id] || id;
+    })));
+  }
+
+  function downloadJson(filename, value) {
+    var blob = new Blob([JSON.stringify(value, null, 2)], { type: "application/json" });
+    var link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(function () { URL.revokeObjectURL(link.href); }, 1000);
+  }
+
+  function bagKey(item) {
+    return [item.source || "livestream", item.id || item.sourceId, Math.round(Number(item.at || item.t || 0))].join("|");
+  }
+
+  function inferEvidenceLevel(item) {
+    if (item.evidenceLevel) return item.evidenceLevel;
+    if (item.evidenceType === "derived-source-summary") return "SOURCE-LEVEL DERIVED SUMMARY";
+    if (item.evidenceType === "source-metadata") return "SOURCE METADATA ONLY";
+    return item.excerpt || item.quote ? "TIMESTAMPED CAPTION RECEIPT" : "SOURCE METADATA ONLY";
+  }
+
+  function normalizeEvidenceItem(item) {
+    var evidenceLevel = inferEvidenceLevel(item || {});
+    var resolvedId = item.id || item.sourceId || item.videoId;
+    return Object.assign({}, item || {}, {
+      source: item.source || item.sourceType || (itemById[resolvedId] ? "commentary" : "livestream"),
+      id: resolvedId,
+      at: Number(item.at != null ? item.at : item.t || item.time || 0),
+      title: item.title || item.label || item.sourceTitle || "WWAM SOURCE",
+      category: item.category || item.trigger || "SOURCE RECEIPT",
+      excerpt: boundedExcerpt(item.excerpt || item.quote || ""),
+      evidenceLevel: evidenceLevel,
+      evidenceType: item.evidenceType || (
+        evidenceLevel === "SOURCE-LEVEL DERIVED SUMMARY" ? "derived-source-summary" :
+          evidenceLevel === "SOURCE METADATA ONLY" ? "source-metadata" : "caption-excerpt"
+      ),
+    });
+  }
+
+  function bagButton(item, label) {
+    var normalizedItem = normalizeEvidenceItem(item);
+    var source = normalizedItem.source || (itemById[normalizedItem.id] ? "commentary" : "livestream");
+    var id = normalizedItem.id;
+    if (!id) return "";
+    var at = normalizedItem.at;
+    var title = normalizedItem.title;
+    var category = normalizedItem.category;
+    var excerpt = normalizedItem.excerpt;
+    var buttonLabel = label || "BAG THIS RECEIPT";
+    return '<button class="bag-add" data-bag-add data-default-label="' + esc(buttonLabel + " +") +
+      '" data-source="' + esc(source) + '" data-id="' + esc(id) +
+      '" data-time="' + at + '" data-title="' + esc(title) + '" data-category="' + esc(category) +
+      '" data-excerpt="' + esc(excerpt) + '" data-evidence-level="' + esc(normalizedItem.evidenceLevel) +
+      '" data-evidence-type="' + esc(normalizedItem.evidenceType) + '">' + esc(buttonLabel) + ' +</button>';
+  }
+
+  function readBagButton(button) {
+    return normalizeEvidenceItem({
+      source: button.getAttribute("data-source") || "livestream",
+      id: button.getAttribute("data-id"),
+      at: Number(button.getAttribute("data-time") || 0),
+      title: button.getAttribute("data-title") || "WWAM SOURCE",
+      category: button.getAttribute("data-category") || "SOURCE RECEIPT",
+      excerpt: button.getAttribute("data-excerpt") || "",
+      evidenceLevel: button.getAttribute("data-evidence-level") || "",
+      evidenceType: button.getAttribute("data-evidence-type") || "",
+      savedAt: new Date().toISOString(),
+    });
+  }
+
+  function saveEvidenceBag() {
+    return storageSet("wwam-evidence-bag", JSON.stringify(state.evidenceBag));
+  }
+
+  function syncBagButtons() {
+    var keys = {};
+    state.evidenceBag.forEach(function (item) { keys[bagKey(item)] = true; });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-bag-add]"), function (button) {
+      var item = readBagButton(button);
+      var saved = Boolean(keys[bagKey(item)]);
+      button.classList.toggle("saved", saved);
+      button.textContent = saved ? "IN THE BAG ✓" : (button.getAttribute("data-default-label") || "BAG THIS +");
+    });
+  }
+
+  function addToEvidenceBag(item) {
+    item = normalizeEvidenceItem(item);
+    var key = bagKey(item);
+    var existing = state.evidenceBag.some(function (candidate) { return bagKey(candidate) === key; });
+    var persisted = true;
+    if (!existing) {
+      state.evidenceBag.unshift(item);
+      state.evidenceBag = state.evidenceBag.slice(0, 30);
+      persisted = saveEvidenceBag();
+    }
+    renderEvidenceBag();
+    showToast(existing ? "ALREADY IN THE EVIDENCE BAG" :
+      persisted ? "RECEIPT BAGGED" : "RECEIPT BAGGED // THIS TAB ONLY");
+  }
+
+  function removeFromEvidenceBag(key) {
+    state.evidenceBag = state.evidenceBag.filter(function (item) { return bagKey(item) !== key; });
+    var persisted = saveEvidenceBag();
+    renderEvidenceBag();
+    if (!persisted) showToast("REMOVED // THIS TAB ONLY");
+  }
+
+  function openBagReceipt(item) {
+    state.bagOpen = false;
+    renderEvidenceBag();
+    if (item.source === "commentary" && itemById[item.id]) openDossier(item.id, item.at);
+    else if (streamById[item.id]) openLiveDossier(item.id, item.at);
+    else openLooseSource(item.id, item.at, item.title);
+  }
+
+  function renderEvidenceBag() {
+    var count = state.evidenceBag.length;
+    var bag = document.getElementById("evidenceBag");
+    document.getElementById("evidenceBagCount").textContent = count;
+    document.getElementById("evidenceBagOpen").setAttribute("aria-expanded", state.bagOpen ? "true" : "false");
+    bag.classList.toggle("show", state.bagOpen);
+    bag.setAttribute("aria-hidden", state.bagOpen ? "false" : "true");
+    if (state.bagOpen) bag.removeAttribute("inert");
+    else bag.setAttribute("inert", "");
+    document.getElementById("evidenceBagScrim").classList.toggle("show", state.bagOpen);
+    document.body.classList.toggle("bag-open", state.bagOpen);
+    document.getElementById("evidenceBagList").innerHTML = count ? state.evidenceBag.map(function (item, index) {
+      var isCaptionReceipt = String(item.evidenceType || "").indexOf("caption") >= 0 ||
+        item.evidenceLevel === "TIMESTAMPED CAPTION RECEIPT";
+      var evidenceCopy = displayQuote(item.excerpt || "Open the original source receipt.");
+      return '<article><div><span>' + String(index + 1).padStart(2, "0") + ' // ' +
+        esc(displayUiText(item.category)) + '</span><b>' + timestamp(item.at) + '</b></div><h3>' +
+        esc(displayUiText(item.title)) + '</h3><p><small>' + esc(displayUiText(item.evidenceLevel)) + '</small>' +
+        (isCaptionReceipt ? '“' + esc(evidenceCopy) + '”' : esc(evidenceCopy)) +
+        '</p><footer><button data-bag-play="' + esc(bagKey(item)) + '">PLAY RECEIPT →</button><button data-bag-remove="' +
+        esc(bagKey(item)) + '">REMOVE</button></footer></article>';
+    }).join("") : '<div class="evidence-bag-empty"><b>THE BAG IS EMPTY.</b><span>Add receipts from Ask WWAM, the Memory OS, character archaeology, and the creator tools.</span></div>';
+    Array.prototype.forEach.call(document.querySelectorAll("[data-bag-play]"), function (button) {
+      button.onclick = function () {
+        var item = state.evidenceBag.filter(function (candidate) {
+          return bagKey(candidate) === button.getAttribute("data-bag-play");
+        })[0];
+        if (item) openBagReceipt(item);
+      };
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-bag-remove]"), function (button) {
+      button.onclick = function () { removeFromEvidenceBag(button.getAttribute("data-bag-remove")); };
+    });
+    syncBagButtons();
+    syncBackgroundInert();
+  }
+
+  function evidenceManifest() {
+    return {
+      product: "WWAM After Midnight",
+      schemaVersion: 2,
+      exportedAt: new Date().toISOString(),
+      excerptWordLimit: 16,
+      disclaimer: "Bounded source-linked navigation receipts. Caption text requires source verification; derived summaries are labeled and are not quotations.",
+      clips: state.evidenceBag.map(function (item, index) {
+        return {
+          order: index + 1,
+          sourceId: item.id,
+          sourceType: item.source,
+          title: item.title,
+          category: item.category,
+          evidenceLevel: item.evidenceLevel,
+          evidenceType: item.evidenceType,
+          start: Math.round(item.at),
+          url: "https://www.youtube.com/watch?v=" + item.id + "&t=" + Math.round(item.at) + "s",
+          excerpt: boundedExcerpt(item.excerpt),
+        };
+      }),
+    };
+  }
+
+  function copyEvidenceManifest() {
+    var manifest = evidenceManifest();
+    var lines = ["WWAM EVIDENCE BAG // " + manifest.clips.length + " RECEIPTS"].concat(manifest.clips.map(function (clip) {
+      return String(clip.order).padStart(2, "0") + ". " + clip.title + " // " + clip.category +
+        " // " + timestamp(clip.start) + " // " + clip.url;
+    }));
+    copy(lines.join("\n"));
+  }
+
+  function downloadEvidenceManifest() {
+    var blob = new Blob([JSON.stringify(evidenceManifest(), null, 2)], { type: "application/json" });
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement("a");
+    link.href = url;
+    link.download = "wwam-evidence-bag.json";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
   }
 
   function fmt(value) {
@@ -155,9 +531,33 @@
     return found ? found.slug : "unknown";
   }
 
+  function applyLanguageMode(value) {
+    var text = String(value || "");
+    if (state.redBand) return text;
+    return text.replace(/\b(fuck\w*|shit\w*|bitch\w*|asshole\w*|ass|dick\w*|motherfucker\w*|goddamn\w*)\b/gi, "••••");
+  }
+
+  function boundedExcerpt(value) {
+    var words = String(value || "").trim().split(/\s+/).filter(Boolean);
+    return words.length > 16 ? words.slice(0, 16).join(" ") + " …" : words.join(" ");
+  }
+
   function displayQuote(value) {
-    if (state.redBand) return value;
-    return value.replace(/\b(fuck\w*|shit\w*|bitch\w*|asshole\w*|dick\w*|motherfucker\w*|goddamn\w*)\b/gi, "••••");
+    return applyLanguageMode(boundedExcerpt(value));
+  }
+
+  function displayUiText(value) {
+    return applyLanguageMode(value);
+  }
+
+  function displayGeneratedText(value) {
+    return displayUiText(value);
+  }
+
+  function safeEditorialCopy(value) {
+    return String(value || "")
+      .replace(/an explicit performance cue near/gi, "a machine-detected persona prompt or discussion near")
+      .replace(/explicit performance cues near/gi, "machine-detected persona prompts or discussion near");
   }
 
   function renderProof() {
@@ -172,7 +572,7 @@
       ["SOURCES", showcaseMetric("sources", sourceCount), "COMMENTARIES + FRESH 10 + POPULAR 25"],
       ["WORDS AUDITED", fmt(showcaseMetric("wordsAudited", words)), "AVAILABLE CAPTIONS"],
       ["HOURS", hours, "UNDER THE KNIFE"],
-      ["RECEIPTS", showcaseMetric("receipts", moments), "PLAYABLE EVIDENCE"],
+      ["EDITORIAL RECEIPTS", showcaseMetric("receipts", moments), "PLAYABLE SOURCE MOMENTS"],
       ["MEMORY NODES", showcaseMetric("nodes", (liveMeta.topics || 0) + (popularMeta.topics || 0)), "CONNECTED, NOT JUST TAGGED"],
     ].map(function (stat) {
       return '<article><span>' + stat[0] + '</span><b>' + stat[1] + '</b><small>' + stat[2] + '</small></article>';
@@ -237,7 +637,8 @@
     document.getElementById("heroConsole").innerHTML =
       '<div class="console-rank">#' + String(moment.rank).padStart(3, "0") + '</div>' +
       '<p>“' + esc(displayQuote(moment.quote)) + '”</p>' +
-      '<div><span>' + esc(moment.category) + '</span><b>' + esc(item.film) + ' @ ' + timestamp(moment.t) + '</b></div>' +
+      '<div><span>' + esc(displayUiText(moment.category)) + '</span><b>' +
+      esc(displayUiText(item.film)) + ' @ ' + timestamp(moment.t) + '</b></div>' +
       '<button data-play="' + item.id + '" data-time="' + moment.t + '">PLAY THE RECEIPT →</button>';
     document.getElementById("consoleClock").textContent = timestamp(moment.t);
     var button = document.querySelector("#heroConsole [data-play]");
@@ -277,10 +678,11 @@
       return '<article class="evidence-card ' + (index < 2 ? "featured" : "") + '" style="--accent:' +
         colors[item.franchise] + '">' +
         '<div class="evidence-top"><b>#' + String(moment.rank).padStart(3, "0") + '</b><span>' +
-        esc(moment.category) + '</span><i>' + timestamp(moment.t) + '</i></div>' +
+        esc(displayUiText(moment.category)) + '</span><i>' + timestamp(moment.t) + '</i></div>' +
         '<blockquote>“' + esc(displayQuote(moment.quote)) + '”</blockquote>' +
-        '<p>' + esc(categoryCopy[moment.category] || "A source-linked evidence fragment.") + '</p>' +
-        '<footer><div><span>' + esc(item.franchise) + '</span><b>' + esc(item.film) + '</b></div>' +
+        '<p>' + esc(displayUiText(categoryCopy[moment.category] || "A source-linked evidence fragment.")) + '</p>' +
+        '<footer><div><span>' + esc(displayUiText(item.franchise)) + '</span><b>' +
+        esc(displayUiText(item.film)) + '</b></div>' +
         '<button data-play="' + item.id + '" data-time="' + moment.t + '">▶ PLAY RECEIPT</button></footer>' +
         '</article>';
     }).join("");
@@ -332,9 +734,10 @@
     var list = soundbytes();
     document.getElementById("soundbyteGrid").innerHTML = list.map(function (item, index) {
       return '<button class="soundbyte" data-sound-index="' + index + '">' +
-        '<span><i></i>' + String(index + 1).padStart(2, "0") + ' // ' + esc(item.category) + '</span>' +
-        '<b>' + esc(item.label) + '</b><p>“' + esc(displayQuote(item.quote)) + '”</p>' +
-        '<em>' + esc(item.title) + ' @ ' + timestamp(item.t) + '</em></button>';
+        '<span><i></i>' + String(index + 1).padStart(2, "0") + ' // ' +
+        esc(displayUiText(item.category)) + '</span>' +
+        '<b>' + esc(displayUiText(item.label)) + '</b><p>“' + esc(displayQuote(item.quote)) + '”</p>' +
+        '<em>' + esc(displayUiText(item.title)) + ' @ ' + timestamp(item.t) + '</em></button>';
     }).join("");
     Array.prototype.forEach.call(document.querySelectorAll("#soundbyteGrid [data-sound-index]"), function (button) {
       button.onclick = function () {
@@ -351,13 +754,16 @@
   }
 
   function cueSoundbyte(item) {
+    state.activeSoundbyte = item;
     document.getElementById("soundPlayer").innerHTML =
       '<div class="sound-video"><iframe src="https://www.youtube.com/embed/' + encodeURIComponent(item.id) +
       '?autoplay=1&rel=0&start=' + Math.max(0, Math.round(item.t)) +
+      '&end=' + Math.max(1, Math.round(item.t) + 14) +
       '" title="WWAM source soundbyte" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>' +
-      '<div class="sound-now"><span>NOW VIOLATING THE SILENCE // ' + esc(item.category) + '</span><h3>' +
-      esc(item.label) + '</h3><blockquote>“' + esc(displayQuote(item.quote)) + '”</blockquote><p>' +
-      esc(item.title) + ' // ' + timestamp(item.t) + '</p><button data-open-sound="' + item.source +
+      '<div class="sound-now"><span>NOW VIOLATING THE SILENCE // ' +
+      esc(displayUiText(item.category)) + '</span><h3>' +
+      esc(displayUiText(item.label)) + '</h3><blockquote>“' + esc(displayQuote(item.quote)) + '”</blockquote><p>' +
+      esc(displayUiText(item.title)) + ' // ' + timestamp(item.t) + '</p><button data-open-sound="' + item.source +
       '" data-id="' + item.id + '" data-time="' + item.t + '">OPEN THE FULL RECEIPT →</button></div>';
     var button = document.querySelector("#soundPlayer [data-open-sound]");
     if (button) {
@@ -369,6 +775,21 @@
         }
       };
     }
+  }
+
+  function refreshSoundPlayerCopy() {
+    var item = state.activeSoundbyte;
+    var panel = document.querySelector("#soundPlayer .sound-now");
+    if (!item || !panel) return;
+    var category = panel.querySelector("span");
+    var label = panel.querySelector("h3");
+    var quote = panel.querySelector("blockquote");
+    var source = panel.querySelector("p");
+    if (category) category.textContent =
+      "NOW VIOLATING THE SILENCE // " + displayUiText(item.category);
+    if (label) label.textContent = displayUiText(item.label);
+    if (quote) quote.textContent = "“" + displayQuote(item.quote) + "”";
+    if (source) source.textContent = displayUiText(item.title) + " // " + timestamp(item.t);
   }
 
   function characterProfiles() {
@@ -457,9 +878,11 @@
         receipt.t != null ? receipt.t : receipt.time || receipt.timestamp || 0),
       end: Number(playback.end != null ? playback.end : 0),
       clipSeconds: Number(playback.clipSeconds != null ? playback.clipSeconds : 0),
+      title: receipt.sourceTitle || receipt.title || receipt.label || "WWAM CHARACTER PERFORMANCE",
+      category: receipt.trigger || "CHARACTER PERFORMANCE",
       quote: receipt.quote || receipt.excerpt || receipt.text || "Open the source performance.",
       label: receipt.label || receipt.title || receipt.note || receipt.context || "SOURCE PERFORMANCE",
-      confidence: receipt.confidence != null ? Math.round(Number(receipt.confidence) * 100) + "% VERIFIED" :
+      confidence: receipt.confidence != null ? Math.round(Number(receipt.confidence) * 100) + "% CURATION CONFIDENCE" :
         receipt.attributionConfidence || "SOURCE-LINKED",
     };
   }
@@ -486,6 +909,10 @@
     Array.prototype.forEach.call(document.querySelectorAll("#characterRoster [data-character]"), function (button) {
       button.onclick = function () {
         state.character = button.getAttribute("data-character");
+        state.characterContext = null;
+        state.lastCharacterRiff = "";
+        document.getElementById("characterAnswer").innerHTML =
+          "<p>Ask this recurring character a question. The generated riff will expose its behavioral ingredients and matched source receipt.</p>";
         renderCharacterRoster();
         renderCharacter();
       };
@@ -497,25 +924,39 @@
     if (!profile) return;
     var behaviors = (profile.behaviors || []).slice(0, 5);
     var triggers = (profile.triggers || []).slice(0, 4);
-    var receipts = (profile.soundbytes || []).map(normalizeCharacterReceipt).filter(function (receipt) { return receipt.id; }).slice(0, 6);
-    document.getElementById("characterLine").textContent = profile.name + " // " + profile.performer;
+    var allReceipts = (profile.soundbytes || []).map(normalizeCharacterReceipt).filter(function (receipt) { return receipt.id; });
+    var receipts = allReceipts.slice(0, 6);
+    document.getElementById("characterLine").textContent =
+      displayUiText(profile.name + " // " + profile.performer);
     document.getElementById("characterPortrait").innerHTML =
-      '<div><span>RECURRING BIT PROFILE</span><b>' + esc(profile.name) + '</b><i>' + esc(profile.performer) +
-      '</i></div><p>' + esc(profile.description) + '</p><ul>' +
-      behaviors.map(function (behavior) { return '<li>' + esc(typeof behavior === "string" ? behavior : behavior.label || behavior.pattern || "") + '</li>'; }).join("") +
+      '<div><span>RECURRING BIT PROFILE</span><b>' + esc(displayUiText(profile.name)) + '</b><i>' +
+      esc(displayUiText(profile.performer)) +
+      '</i></div><p>' + esc(displayUiText(profile.description)) + '</p><ul>' +
+      behaviors.map(function (behavior) {
+        return '<li>' + esc(displayUiText(typeof behavior === "string" ?
+          behavior : behavior.label || behavior.pattern || "")) + '</li>';
+      }).join("") +
       '</ul><footer><span>COMMON TRIGGERS</span><b>' +
-      (triggers.length ? triggers.map(function (trigger) { return esc(typeof trigger === "string" ? trigger : trigger.label || trigger.topic || ""); }).join(" // ") : "ARCHIVE-DERIVED PROMPTS") +
+      (triggers.length ? triggers.map(function (trigger) {
+        return esc(displayUiText(typeof trigger === "string" ?
+          trigger : trigger.label || trigger.topic || ""));
+      }).join(" // ") : "ARCHIVE-DERIVED PROMPTS") +
       '</b></footer>';
-    document.getElementById("characterReceiptLabel").textContent = receipts.length + " VERIFIED PERFORMANCE" + (receipts.length === 1 ? "" : "S");
+    document.getElementById("characterReceiptLabel").textContent = "SHOWING " + receipts.length + " OF " +
+      allReceipts.length + " TIMESTAMP-VALIDATED CHARACTER RECEIPTS";
     document.getElementById("characterReceipts").innerHTML = receipts.length ? receipts.map(function (receipt, index) {
       return '<article><div><span>VOICEPRINT 0' + (index + 1) + '</span><b>' + timestamp(receipt.t) +
-        '</b></div><h3>' + esc(receipt.label) + '</h3><p>“' + esc(displayQuote(receipt.quote)) +
+        '</b></div><h3>' + esc(displayUiText(receipt.label)) + '</h3><p>“' + esc(displayQuote(receipt.quote)) +
         '”</p><footer><span>' + esc(String(receipt.confidence).toUpperCase()) +
+        ' // CLIP SPEAKER NOT DIARIZED' +
         '</span><button data-character-source="' + esc(receipt.source) + '" data-id="' + esc(receipt.id) +
-        '" data-time="' + receipt.t + '" data-end="' + receipt.end + '" data-label="' + esc(receipt.label) + '">HEAR ' +
-        (receipt.clipSeconds ? receipt.clipSeconds + ' SEC' : 'THE') + ' REAL BIT →</button></footer></article>';
+        '" data-time="' + receipt.t + '" data-end="' + receipt.end + '" data-label="' +
+        esc(displayUiText(receipt.label)) + '">HEAR ' +
+        (receipt.clipSeconds ? receipt.clipSeconds + ' SEC' : 'THE') + ' REAL BIT →</button>' +
+        bagButton(receipt, "BAG THE BIT") + '</footer></article>';
     }).join("") : '<p class="character-empty">No defensible public soundbyte has cleared attribution yet. The profile remains visible; the archive does not counterfeit proof.</p>';
     bindCharacterReceipts();
+    syncBagButtons();
   }
 
   function bindCharacterReceipts() {
@@ -532,15 +973,60 @@
   function askCharacter(question) {
     var profile = characterProfiles().filter(function (candidate) { return candidate.id === state.character; })[0];
     if (!profile) return;
-    var behaviors = (profile.behaviors || []).slice(0, 3).map(function (behavior) {
+    var response = characterEngine ? characterEngine.answer(profile.id, question, state.characterContext) : null;
+    if (response && !response.ok) {
+      document.getElementById("characterAnswer").innerHTML = '<p class="character-engine-error">' +
+        esc(displayUiText(response.error || "That character is not ready to answer.")) + '</p>';
+      return;
+    }
+    var behaviors = response && response.ingredients ? response.ingredients : (profile.behaviors || []).slice(0, 3).map(function (behavior) {
       return typeof behavior === "string" ? behavior : behavior.label || behavior.pattern || "";
     }).filter(Boolean);
-    var riff = generateCharacterRiff(profile, question);
+    var riff = response ? response.text : generateCharacterRiff(profile, question);
+    var receipt = response && response.receipt ? normalizeCharacterReceipt(response.receipt) : null;
+    if (response) state.characterContext = response;
+    state.lastCharacterRiff = riff;
     document.getElementById("characterAnswer").innerHTML =
-      '<div><span>FAN-MADE GENERATED RIFF</span><b>NOT AN ARCHIVAL QUOTE // NOT THE HOST SPEAKING</b></div>' +
-      '<blockquote>“' + esc(displayQuote(riff)) + '”</blockquote><footer><span>BEHAVIORAL INGREDIENTS</span><b>' +
-      esc(behaviors.length ? behaviors.join(" + ").toUpperCase() : "RECURRING CHARACTER PATTERN") +
-      '</b></footer>';
+      '<div><span>FAN-MADE GENERATED RIFF' +
+      (response ? ' // ' + esc(response.intent.toUpperCase()) : '') +
+      '</span><b>NOT AN ARCHIVAL QUOTE // NOT THE HOST SPEAKING</b></div>' +
+      '<blockquote>“' + esc(displayGeneratedText(riff)) + '”</blockquote><footer><span>BEHAVIORAL INGREDIENTS</span><b>' +
+      esc(displayUiText(behaviors.length ?
+        behaviors.join(" + ").toUpperCase() : "RECURRING CHARACTER PATTERN")) +
+      '</b></footer>' + (response ? '<section class="character-grounding"><div><span>ENGINE READ</span><b>' +
+        esc(displayUiText(response.continuedFrom ? "FOLLOW-UP MEMORY KEPT THE SAME SUBJECT" :
+          "SUBJECT // " + response.subject.toUpperCase())) + '</b><i>' +
+        response.readiness.confidence + '% CHARACTER-READINESS // ' +
+        (response.readiness.timestampValidatedReceipts || response.readiness.verifiedSoundbytes) +
+        ' TIMESTAMP-VALIDATED CHARACTER RECEIPTS // CLIP SPEAKERS NOT DIARIZED</i></div>' +
+        (receipt ? '<button data-character-source="' + esc(receipt.source) +
+        '" data-id="' + esc(receipt.id) + '" data-time="' + receipt.t + '" data-end="' + receipt.end +
+        '" data-label="' + esc(displayUiText(receipt.label)) +
+        '">HEAR THE MATCHED REAL BIT →</button>' : '') +
+        '</section>' : '');
+    bindCharacterReceipts();
+  }
+
+  function refreshCharacterAnswerCopy() {
+    if (!state.lastCharacterRiff) return;
+    var characterQuote = document.querySelector("#characterAnswer blockquote");
+    if (characterQuote) {
+      characterQuote.textContent = "“" + displayGeneratedText(state.lastCharacterRiff) + "”";
+    }
+    if (!state.characterContext) return;
+    var ingredients = document.querySelector("#characterAnswer > footer b");
+    if (ingredients) {
+      ingredients.textContent = displayUiText(
+        (state.characterContext.ingredients || []).join(" + ").toUpperCase() ||
+        "RECURRING CHARACTER PATTERN"
+      );
+    }
+    var grounding = document.querySelector("#characterAnswer .character-grounding div b");
+    if (grounding) {
+      grounding.textContent = displayUiText(state.characterContext.continuedFrom ?
+        "FOLLOW-UP MEMORY KEPT THE SAME SUBJECT" :
+        "SUBJECT // " + String(state.characterContext.subject || "").toUpperCase());
+    }
   }
 
   function renderLiveProof() {
@@ -587,7 +1073,8 @@
     var topics = stream.topics.slice(0, 4);
     var peak = (stream.moments || []).slice().sort(function (a, b) { return (b.heat || b.score || 0) - (a.heat || a.score || 0); })[0];
     return '<article class="stream-card ' + (!stream.captioned ? "unmapped" : "") + '" data-live-id="' + stream.id + '">' +
-      '<div class="stream-thumb"><img loading="lazy" src="' + esc(stream.thumbnail) + '" alt=""><span>LIVE 0' +
+      '<div class="stream-thumb"><img loading="lazy" src="' + esc(stream.thumbnail) + '" alt="' +
+      esc(stream.title + " livestream thumbnail") + '"><span>LIVE 0' +
       (index + 1) + ' // ' + shortDate(stream.date) + '</span><b>' + duration(stream.duration) + '</b></div>' +
       '<div class="stream-body"><div><i class="' + (stream.captioned ? "" : "sealed") + '">' +
       (stream.captioned ? "FULL LIVE MAP" : "MAPPING UNAVAILABLE") + '</i><span>' + fmt(stream.wordsAudited) + ' WORDS</span></div>' +
@@ -597,7 +1084,7 @@
           topic.peak + '">' + esc(topic.name) + ' <b>' + timestamp(topic.peak) + '</b></button>';
       }).join("") : '<span>THE SOURCE IS LIVE. THE CAPTION MAP IS NOT.</span>') + '</div>' +
       miniHeat(stream) + '<footer><span>' + (peak ? 'PEAK COMEDY // ' + timestamp(peak.t) + ' // ' + esc(peak.category) : 'ORIGINAL STREAM AVAILABLE') +
-      '</span><button>OPEN LIVE MAP →</button></footer></div></article>';
+      '</span><button aria-label="Open live map for ' + esc(stream.title) + '">OPEN LIVE MAP →</button></footer></div></article>';
   }
 
   function renderStreams() {
@@ -682,6 +1169,14 @@
     });
   }
 
+  function characterSignalLabel(sighting) {
+    var status = String((sighting && sighting.status) || "").toLowerCase();
+    if (status === "persona prompt") return "PERSONA PROMPT";
+    if (status === "performance discussion") return "PERFORMANCE DISCUSSION";
+    if (status === "character reference") return "ORDINARY REFERENCE";
+    return "INDEXED SIGNAL";
+  }
+
   function popularCard(stream) {
     var topics = (stream.topics || []).slice(0, 5);
     var sightings = (stream.characters || stream.characterSightings || []).slice(0, 3);
@@ -691,28 +1186,36 @@
     var rank = stream.rank || stream.viewRank || popular.streams.indexOf(stream) + 1;
     return '<article class="popular-card ' + (!stream.captioned ? "unmapped" : "") + '" data-popular-id="' +
       esc(stream.id) + '"><div class="popular-rank"><b>#' + String(rank).padStart(2, "0") +
-      '</b><span>' + fmt(stream.views) + ' OFFICIAL VIEWS</span></div><div class="popular-image"><img loading="lazy" src="' +
-      esc(stream.thumbnail) + '" alt=""><span>' + shortDate(stream.date) + ' // ' + duration(stream.duration) +
+      '</b><span>' + fmt(stream.views) + ' VIEWS @ ' +
+      esc((popular.selection && popular.selection.snapshot) || popular.generated || "SNAPSHOT") +
+      '</span></div><div class="popular-image"><img loading="lazy" src="' +
+      esc(stream.thumbnail) + '" alt="' + esc(stream.title + " livestream thumbnail") + '"><span>' +
+      shortDate(stream.date) + ' // ' + duration(stream.duration) +
       '</span></div><div class="popular-body"><div><i>' + (stream.captioned ? "FOUNDATIONAL LIVE MAP" : "SOURCE VISIBLE // MAP SEALED") +
       '</i><b>' + fmt(stream.wordsAudited) + ' WORDS</b></div><h3>' + esc(stream.title) +
       '</h3><p class="popular-why"><span>WHY IT MATTERS' +
       (stream.editorial && stream.editorial.showShape ? ' // ' + esc(stream.editorial.showShape) : '') + '</span>' +
-      esc(stream.whyItMatters || stream.why_it_matters || (stream.editorial && stream.editorial.whyItMatters) ||
-        stream.summary || "A high-gravity WWAM livestream in the foundational live canon.") +
+      esc(safeEditorialCopy(stream.whyItMatters || stream.why_it_matters ||
+        (stream.editorial && stream.editorial.whyItMatters) ||
+        stream.summary || "A high-gravity WWAM livestream in the foundational live canon.")) +
       '</p><div class="popular-topic-row">' + topics.map(function (topic) {
         return '<button data-popular-jump="' + esc(stream.id) + '" data-time="' + Number(topic.peak || topic.t || 0) +
           '">' + esc(topic.name) + ' <b>' + timestamp(topic.peak || topic.t || 0) + '</b></button>';
-      }).join("") + '</div>' + (sightings.length ? '<div class="character-sightings"><span>CHARACTER SIGHTINGS</span><b>' +
-        sightings.map(function (sighting) { return esc(sighting.name || sighting.character || sighting); }).join(" // ") +
+      }).join("") + '</div>' + (sightings.length ? '<div class="character-sightings"><span>CHARACTER INDEX SIGNALS // NOT ATTRIBUTION</span><b>' +
+        sightings.map(function (sighting) {
+          return esc((sighting.name || sighting.character || sighting) + " — " + characterSignalLabel(sighting));
+        }).join(" // ") +
         '</b></div>' : '') + miniHeat(stream) + '<footer><span>' +
       (peak ? 'PEAK COMEDY // ' + timestamp(peak.t) + ' // ' + esc(peak.category) : 'ORIGINAL SOURCE READY') +
-      '</span><button>OPEN FOUNDATIONAL AUTOPSY →</button></footer></div></article>';
+      '</span><button aria-label="Open foundational autopsy for ' + esc(stream.title) +
+      '">OPEN FOUNDATIONAL AUTOPSY →</button></footer></div></article>';
   }
 
   function renderPopular() {
     var list = filteredPopular();
     document.getElementById("popularStatus").textContent = list.length + " OF " + popular.streams.length +
-      " FOUNDATIONAL STREAMS // RANKED BY OFFICIAL VIEW COUNT";
+      " FOUNDATIONAL STREAMS // VIEW SNAPSHOT " +
+      ((popular.selection && popular.selection.snapshot) || popular.generated || "RECORDED");
     document.getElementById("popularGrid").innerHTML = list.length ? list.map(popularCard).join("") :
       '<p class="popular-empty">NO FOUNDATIONAL STREAM MATCHES THAT SEARCH.</p>';
     Array.prototype.forEach.call(document.querySelectorAll("[data-popular-id]"), function (card) {
@@ -772,13 +1275,15 @@
     var sealed = !item.transcript;
     return '<article class="tape-card ' + franchiseSlug(item.franchise) + '" style="--accent:' + colors[item.franchise] +
       '" data-tape="' + item.id + '">' +
-      '<div class="tape-image"><img loading="lazy" src="' + esc(item.thumbnail) + '" alt=""><span>' +
+      '<div class="tape-image"><img loading="lazy" src="' + esc(item.thumbnail) + '" alt="' +
+      esc(item.film + " commentary thumbnail") + '"><span>' +
       esc(item.franchise) + '</span><b>' + duration(item.duration) + '</b></div>' +
       '<div class="tape-body"><div><span>TAPE ' + String(item.order).padStart(2, "0") + ' // ' + shortDate(item.date) +
       '</span><i class="' + (sealed ? "sealed" : "") + '">' + (sealed ? "TAPE SEALED" : "FULL DISTILL") + '</i></div>' +
       '<h3>' + esc(item.film) + '</h3><p>' + esc(tape.verdict || "Age gate prevents a defensible caption distill. The original tape remains linked.") + '</p>' +
       '<footer><span><b>' + (sealed ? "—" : tape.unhinged) + '</b>UNHINGED</span><span><b>' +
-      (sealed ? "—" : fmt(tape.wordsAudited)) + '</b>WORDS</span><button>OPEN AUTOPSY →</button></footer>' +
+      (sealed ? "—" : fmt(tape.wordsAudited)) + '</b>WORDS</span><button aria-label="Open tape autopsy for ' +
+      esc(item.film) + '">OPEN AUTOPSY →</button></footer>' +
       '</div></article>';
   }
 
@@ -836,6 +1341,7 @@
       metrics: {}, arc: [], moments: [],
     };
     if (!item) return;
+    rememberDialogFocus();
     var modal = document.getElementById("tapeModal");
     document.getElementById("modalContent").innerHTML =
       '<div class="modal-hero" style="--accent:' + colors[item.franchise] + '">' +
@@ -857,6 +1363,8 @@
     modal.classList.add("show");
     modal.setAttribute("aria-hidden", "false");
     document.body.classList.add("modal-open");
+    syncBackgroundInert();
+    focusSoon("#modalClose");
     bindPlayButtons(document.getElementById("modalContent"), true);
     bindShareButtons(document.getElementById("modalContent"));
     if (startTime != null) loadPlayer(item.id, Number(startTime));
@@ -899,13 +1407,14 @@
   function openLiveDossier(id, startTime) {
     var stream = streamById[id];
     if (!stream) return;
+    rememberDialogFocus();
     var lane = stream._lane === "popular" ? "FOUNDATIONAL 25" : "FRESH 10";
     var laneList = stream._lane === "popular" ? popular.streams : live.streams;
     var laneRank = laneList.indexOf(stream) + 1;
     var peak = stream.moments.slice().sort(function (a, b) { return b.heat - a.heat; })[0];
-    var streamSummary = stream.summary || stream.whyItMatters ||
+    var streamSummary = safeEditorialCopy(stream.summary || stream.whyItMatters ||
       (stream.editorial && stream.editorial.whyItMatters) ||
-      "This source remains in the archive with an honest, playable path back to the original upload.";
+      "This source remains in the archive with an honest, playable path back to the original upload.");
     var modal = document.getElementById("tapeModal");
     document.getElementById("modalContent").innerHTML =
       '<div class="modal-hero live-modal-hero" style="--accent:var(--cyan)"><img src="' + esc(stream.thumbnail) +
@@ -929,6 +1438,8 @@
     modal.classList.add("show");
     modal.setAttribute("aria-hidden", "false");
     document.body.classList.add("modal-open");
+    syncBackgroundInert();
+    focusSoon("#modalClose");
     bindLivePlayButtons(document.getElementById("modalContent"));
     bindLiveShareButtons(document.getElementById("modalContent"));
     if (startTime != null) loadPlayer(stream.id, Number(startTime));
@@ -939,6 +1450,7 @@
 
   function openLooseSource(id, startTime, label, endTime) {
     if (!id) return;
+    rememberDialogFocus();
     var at = Number(startTime || 0);
     var end = Number(endTime || 0);
     var clipSeconds = end > at ? Math.round(end - at) : 0;
@@ -957,6 +1469,8 @@
     modal.classList.add("show");
     modal.setAttribute("aria-hidden", "false");
     document.body.classList.add("modal-open");
+    syncBackgroundInert();
+    focusSoon("#modalClose");
     loadPlayer(id, at, end);
   }
 
@@ -974,11 +1488,13 @@
     modal.classList.remove("show");
     modal.setAttribute("aria-hidden", "true");
     document.body.classList.remove("modal-open");
+    syncBackgroundInert();
     var url = new URL(window.location.href);
     url.searchParams.delete("tape");
     url.searchParams.delete("live");
     url.searchParams.delete("at");
     history.replaceState(null, "", url.pathname + url.hash);
+    restoreDialogFocus();
   }
 
   function bindPlayButtons(root, inModal) {
@@ -1020,17 +1536,48 @@
     return url.toString();
   }
 
-  function copy(value) {
-    if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(value).then(showToast);
-    } else {
+  function copy(value, message) {
+    var notice = message || "LINK COPIED TO THE EVIDENCE BAG";
+    var previousFocus = document.activeElement;
+    function legacyCopy() {
       var input = document.createElement("textarea");
       input.value = value;
+      input.setAttribute("readonly", "");
+      input.style.position = "fixed";
+      input.style.left = "-9999px";
       document.body.appendChild(input);
-      input.select();
-      document.execCommand("copy");
-      input.remove();
-      showToast();
+      try {
+        input.focus();
+        input.select();
+        if (!document.execCommand("copy")) throw new Error("Legacy copy command was rejected.");
+        showToast(notice);
+        return true;
+      } catch {
+        var manualOpened = false;
+        try {
+          window.prompt("Clipboard access was blocked. Press Ctrl+C or Cmd+C to copy this value:", value);
+          manualOpened = true;
+        } catch {
+          // Some embedded browsers block prompts as well as clipboard writes.
+        }
+        showToast(manualOpened ? "COPY BLOCKED // MANUAL COPY WINDOW OPENED" :
+          "COPY BLOCKED // USE THE DOWNLOAD OPTION");
+        return false;
+      } finally {
+        input.remove();
+        if (previousFocus && typeof previousFocus.focus === "function") previousFocus.focus();
+      }
+    }
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        navigator.clipboard.writeText(value).then(function () {
+          showToast(notice);
+        }).catch(legacyCopy);
+      } catch {
+        legacyCopy();
+      }
+    } else {
+      legacyCopy();
     }
   }
 
@@ -1051,14 +1598,15 @@
     });
   }
 
-  function showToast() {
+  function showToast(message) {
     var toast = document.getElementById("toast");
+    if (typeof message === "string" && message) toast.textContent = message;
     toast.classList.add("show");
     setTimeout(function () { toast.classList.remove("show"); }, 2200);
   }
 
   function renderAskExamples() {
-    var examples = (curated.askExamples || []).concat([
+    var examples = (askEngine.examples || curated.askExamples || []).concat([
       "What is the most-viewed foundational livestream?",
       "Did their opinion on Halloween change?",
     ]).slice(0, 8);
@@ -1067,9 +1615,56 @@
     }).join("");
   }
 
-  function ask(query) {
-    var analysis = askEngine.ask(query, state.askContext);
-    var results = analysis.results;
+  function askExcerpt(result) {
+    if (typeof result.excerpt === "string") return result.excerpt;
+    if (result.excerpt && result.excerpt.whyItMatters) return safeEditorialCopy(result.excerpt.whyItMatters);
+    if (result.stream && result.stream.editorial && result.stream.editorial.whyItMatters) {
+      return safeEditorialCopy(result.stream.editorial.whyItMatters);
+    }
+    return result.subtitle || "Open the indexed source to inspect the evidence behind this result.";
+  }
+
+  function applyOwnerMappedCharacterKnowledge(analysis, query) {
+    var asksPerformer = /\bwho\s+(did|does|plays?|played|portrays?|portrayed|performs?|performed)\b|\b(character\s+performer|played\s+by|performed\s+by|portrayed\s+by)\b/i.test(query);
+    if (!asksPerformer || analysis.entityType !== "character" || !analysis.entity) return;
+    var entity = String(analysis.entity).toLowerCase();
+    var profile = characterProfiles().filter(function (candidate) {
+      var names = [candidate.name, candidate.id].concat(candidate.aliases || []);
+      return names.some(function (name) {
+        var normalized = String(name || "").toLowerCase();
+        return normalized && (normalized.indexOf(entity) >= 0 || entity.indexOf(normalized) >= 0);
+      });
+    })[0];
+    var performer = profile && (profile.performedBy || profile.performer);
+    if (!performer || /unknown|recurring performance/i.test(performer)) return;
+    analysis.answer = "Project owner mapping identifies " + performer + " as the recurring performer behind " +
+      profile.name + ". That owner-supplied identity applies to the recurring character; the linked auto-caption receipt is not speaker-diarized and cannot prove who speaks in any individual clip.";
+    analysis.confidenceBasis = ["owner-supplied recurring-character mapping"].concat(analysis.confidenceBasis || []);
+    analysis.limitations = [
+      "Owner mapping and clip-level speaker diarization are separate evidence layers.",
+    ].concat(analysis.limitations || []);
+    analysis.recommendedSurface = {
+      id: "lore",
+      href: "#lore",
+      label: "Lore / Character Lab",
+      reason: "Open the curated performance lineage and its attribution basis.",
+    };
+  }
+
+  function askShareUrl(query) {
+    var url = new URL(location.href);
+    url.searchParams.delete("tape");
+    url.searchParams.delete("live");
+    url.searchParams.delete("at");
+    url.searchParams.set("ask", String(query || "").slice(0, 240));
+    url.hash = "ask";
+    return url.toString();
+  }
+
+  function ask(query, preservedAnalysis) {
+    var analysis = preservedAnalysis || askEngine.ask(query, state.askContext);
+    if (!preservedAnalysis) applyOwnerMappedCharacterKnowledge(analysis, query);
+    var results = analysis.results || [];
     var roleByKey = {};
     (analysis.evidenceChain || []).forEach(function (entry) {
       if (entry.result && entry.result.key) roleByKey[entry.result.key] = entry.role;
@@ -1080,26 +1675,70 @@
       source: analysis.source,
       query: query,
     };
+    state.lastAskQuery = query;
+    state.lastAskAnalysis = analysis;
     document.getElementById("askStatus").textContent = results.length ?
-      (analysis.evidenceChain || []).length + " RECEIPT CHAIN // " + analysis.confidence + "% CONFIDENCE" : "NO DEFENSIBLE RECEIPT";
+      (analysis.evidenceChain || []).length + " RECEIPT CHAIN // " + analysis.confidence +
+      (analysis.status === "archive-boundary" ? "% RETRIEVAL // CLAIM NOT ESTABLISHED" : "% CONFIDENCE") :
+      "NO DEFENSIBLE RECEIPT";
+    var boundary = '<section class="ask-boundary ' + esc(analysis.status || "unknown") +
+      '"><header><span>ANSWER STATUS // ' + esc(String(analysis.status || "UNKNOWN").toUpperCase()) +
+      '</span><b>' + esc(String(analysis.questionType || analysis.intent || "QUERY").toUpperCase()) +
+      ' // ' + esc(String(analysis.metric || "RELEVANCE").toUpperCase()) + '</b></header><div class="ask-basis">' +
+      (analysis.confidenceBasis || []).map(function (basis) {
+        return '<span>' + esc(displayUiText(basis)) + '</span>';
+      }).join("") + '</div>' + ((analysis.limitations || []).length ? '<ul>' +
+        analysis.limitations.map(function (limit) {
+          return '<li>' + esc(displayUiText(limit)) + '</li>';
+        }).join("") +
+        '</ul>' : "") + (analysis.recommendedSurface ?
+        '<a href="' + esc(analysis.recommendedSurface.href === "#canon-desk" ? "#canon" : analysis.recommendedSurface.href) +
+        '"><b>' + esc(displayUiText(analysis.recommendedSurface.label)) + ' →</b><span>' +
+        esc(displayUiText(analysis.recommendedSurface.reason)) + '</span></a>' : "") + '</section>';
     document.getElementById("askResults").innerHTML =
       '<section class="answer-brief"><div><span>INTENT // ' + esc(analysis.intent.toUpperCase()) + '</span><b>' +
-      (analysis.entity ? 'ENTITY // ' + esc(analysis.entity.toUpperCase()) : 'ENTITY // OPEN') + '</b><i>' +
+      (analysis.entity ? 'ENTITY // ' + esc(displayUiText(analysis.entity.toUpperCase())) : 'ENTITY // OPEN') + '</b><i>' +
       esc((analysis.source === "all" ? "ALL SOURCES" : analysis.source).toUpperCase()) +
-      (analysis.continuedFrom ? ' // FOLLOW-UP MEMORY' : '') + '</i></div><h3>' +
-      esc(analysis.answer) + '</h3><div class="confidence-track"><i style="width:' + analysis.confidence +
-      '%"></i></div></section>' +
+      (analysis.continuedFrom ? ' // FOLLOW-UP MEMORY' : '') +
+      '</i><button class="ask-share" type="button" data-copy-ask>COPY ANSWER LINK</button></div><h3>' +
+      esc(displayUiText(analysis.answer)) + '</h3><div class="confidence-track"><i style="width:' + analysis.confidence +
+      '%"></i></div></section>' + boundary +
       (results.length ? results.map(function (result, index) {
         var role = roleByKey[result.key] || (index === 0 ? "DIRECT HIT" : result.label);
+        var excerpt = askExcerpt(result);
+        var isCaptionReceipt = String(result.evidenceType || "").indexOf("caption") >= 0 ||
+          result.evidenceLevel === "TIMESTAMPED CAPTION RECEIPT";
+        var excerptMarkup = isCaptionReceipt ?
+          "“" + esc(displayQuote(excerpt)) + "”" :
+          '<b class="derived-answer-copy">' + esc(displayQuote(excerpt)) + '</b>';
         return '<article class="' + (index === 0 ? "best" : "") + '"><div><span>' +
-          esc(role) + '</span><b>' + esc((result.lane === "popular" ? "POPULAR 25" : result.source).toUpperCase()) +
-          '</b></div><h3>' + esc(result.title) + '</h3><p>“' + esc(displayQuote(result.excerpt)) +
-          '”</p><div class="why-row"><span>WHY THIS RANKED</span><b>' +
-          esc(result.reasons.length ? result.reasons.join(" + ").toUpperCase() : "TEXTUAL EVIDENCE") +
-          '</b></div><footer><span>' + esc(result.category) + (result.at ? ' // ' + timestamp(result.at) : '') +
-          '</span><button data-ask-source="' + result.source + '" data-id="' + result.sourceId +
-          '" data-time="' + result.at + '">SHOW ME →</button></footer></article>';
-      }).join("") : '<p class="empty-state">No confident match in the current source scope. Try a specific film, a franchise alias, a live topic, “latest,” or a clear opinion.</p>');
+          esc(displayUiText(role)) + '</span><b>' +
+          esc(displayUiText((result.lane === "popular" ? "POPULAR 25" : result.source).toUpperCase())) +
+          '</b></div><h3>' + esc(displayUiText(result.title)) + '</h3><p><span>' +
+          esc(displayUiText(result.evidenceLevel || "TIMESTAMPED SOURCE RECEIPT")) + '</span>' +
+          excerptMarkup + '</p><div class="why-row"><span>WHY THIS RANKED</span><b>' +
+          esc(displayUiText(result.reasons.length ?
+            result.reasons.join(" + ").toUpperCase() : "TEXTUAL EVIDENCE")) +
+          '</b></div>' + ((result.evidenceWarnings || []).length ? '<ul class="result-warnings">' +
+            result.evidenceWarnings.slice(0, 3).map(function (warning) {
+              return '<li>' + esc(displayUiText(warning)) + '</li>';
+            }).join("") + '</ul>' : "") + (result.trajectoryEvidence ?
+            '<div class="trajectory-signal"><span>MACHINE-SURFACED TAKE SIGNAL</span><b>' +
+            esc(displayUiText((result.trajectoryEvidence.evaluativeTerms || []).join(" + ").toUpperCase())) +
+            ' // TARGET: ' +
+            esc(displayUiText((result.trajectoryEvidence.targetTerms || []).join(" + ").toUpperCase())) +
+            '</b><i>NOT A HOST-LEVEL OPINION CLAIM</i></div>' : "") +
+          '<footer><span>' + esc(displayUiText(result.category)) + ' // ' +
+          timestamp(result.at || 0) + ' // SPEAKER ' + (result.speaker ? "VERIFIED" : "NOT DIARIZED") +
+          '</span><button data-ask-source="' + esc(result.source) + '" data-id="' + esc(result.sourceId) +
+          '" data-time="' + Number(result.at || 0) + '">SHOW ME →</button>' +
+          bagButton(Object.assign({}, result, { excerpt: excerpt }), "BAG IT") +
+          '</footer></article>';
+      }).join("") : '<div class="ask-no-match"><b>THE ARCHIVE REFUSED TO MAKE SOMETHING UP.</b><p>No confident match in the current source scope.</p>' +
+        (analysis.suggestions || []).map(function (suggestion) {
+          return '<button data-ask-suggestion="' + esc(suggestion) + '">' +
+            esc(displayUiText(suggestion)) + '</button>';
+        }).join("") + '</div>');
     Array.prototype.forEach.call(document.querySelectorAll("#askResults [data-ask-source]"), function (button) {
       button.onclick = function () {
         if (button.getAttribute("data-ask-source") === "livestream") {
@@ -1109,6 +1748,20 @@
         }
       };
     });
+    Array.prototype.forEach.call(document.querySelectorAll("#askResults [data-ask-suggestion]"), function (button) {
+      button.onclick = function () {
+        var suggestion = button.getAttribute("data-ask-suggestion");
+        document.getElementById("askInput").value = suggestion;
+        ask(suggestion);
+      };
+    });
+    var askShare = document.querySelector("#askResults [data-copy-ask]");
+    if (askShare) {
+      askShare.onclick = function () {
+        copy(askShareUrl(state.lastAskQuery), "ANSWER LINK COPIED");
+      };
+    }
+    syncBagButtons();
   }
 
   function showcaseCall(method, fallback, args) {
@@ -1255,10 +1908,12 @@
 
   function memoryReceipt(item, index) {
     return '<article class="memory-receipt"><div><span>' + String(index + 1).padStart(2, "0") + ' // ' +
-      esc(item.category || item.role || "SOURCE RECEIPT") + '</span><b>' + (item.date ? shortDate(item.date) : timestamp(item.at || item.t)) +
-      '</b></div><h4>' + esc(item.title || item.label || "WWAM SOURCE") + '</h4><p>“' +
+      esc(displayUiText(item.category || item.role || "SOURCE RECEIPT")) + '</span><b>' +
+      (item.date ? shortDate(item.date) : timestamp(item.at || item.t)) +
+      '</b></div><h4>' + esc(displayUiText(item.title || item.label || "WWAM SOURCE")) + '</h4><p>“' +
       esc(displayQuote(item.excerpt || item.quote || "Open the source to inspect this evidence.")) +
-      '”</p>' + evidenceButton(item, "OPEN " + timestamp(item.at || item.t || 0)) + '</article>';
+      '”</p><div class="memory-actions">' + evidenceButton(item, "OPEN " + timestamp(item.at || item.t || 0)) +
+      bagButton(item, "BAG IT") + '</div></article>';
   }
 
   function bindMemoryReceipts() {
@@ -1287,8 +1942,8 @@
       return '<button class="' + (name === state.memoryEntity ? "on" : "") + '" data-memory-entity="' + esc(name) +
         '">' + esc(name) + '</button>';
     }).join("") + '</div><div class="time-machine"><div class="time-intro"><span>TAKE TIME MACHINE</span><h3>' +
-      esc(state.memoryEntity) + '</h3><p>Follow the strongest surviving source evidence in chronological order. Category changes expose affection, hostility, theory, and reversal without inventing a final opinion.</p><b>' +
-      events.length + ' VERIFIED STOPS</b></div><div class="time-track">' + events.slice(0, 10).map(function (event) {
+      esc(state.memoryEntity) + '</h3><p>Follow a machine-surfaced chronological receipt trail. These stops suggest where a take may deserve review; they do not prove a host changed their final opinion.</p><b>' +
+      events.length + ' TIMESTAMP-VERIFIED STOPS // TAKE INFERENCE</b></div><div class="time-track">' + events.slice(0, 10).map(function (event) {
         return '<article><i></i><div><span>' + esc(event.date ? shortDate(event.date) : "DATE IN SOURCE") + ' // ' +
           esc(event.category || "RECEIPT") + '</span><h4>' + esc(event.title || state.memoryEntity) + '</h4><p>“' +
           esc(displayQuote(event.excerpt || event.quote || "")) + '”</p>' + evidenceButton(event, "ENTER THIS MOMENT") +
@@ -1302,11 +1957,11 @@
     if (!lineages.length) return '<p class="memory-empty">NO RECURRING BIT HAS ENOUGH VERIFIED SIGHTINGS YET.</p>';
     var selected = lineages[0];
     var events = (selected.events || selected.performances || selected.receipts || selected.sightings || []).map(enrichEvidence);
-    return '<div class="bit-intro"><span>BIT ANCESTRY // ORIGIN TO LATEST SIGHTING</span><h3>' +
+    return '<div class="bit-intro"><span>BIT ANCESTRY // EARLIEST INDEXED TO LATEST SIGHTING</span><h3>' +
       esc(selected.name || selected.label || selected.bit || "RECURRING BIT") + '</h3><p>' +
       esc(selected.description || "A recurring performance or callback connected across its source appearances.") +
       '</p></div><div class="bit-chain">' + events.slice(0, 12).map(function (event, index) {
-        var stage = index === 0 ? "EARLIEST SURVIVING SIGHTING" : index === events.length - 1 ? "LATEST SIGHTING" : "MUTATION 0" + index;
+        var stage = index === 0 ? "EARLIEST INDEXED SIGHTING" : index === events.length - 1 ? "LATEST SIGHTING" : "MUTATION 0" + index;
           return '<article><span>' + stage + '</span><b>' + esc(event.title || selected.name || selected.label || selected.bit) +
           '</b><p>“' + esc(displayQuote(event.excerpt || event.quote || "")) + '”</p>' +
           evidenceButton(event, "PLAY THE LINEAGE") + '</article>';
@@ -1353,8 +2008,8 @@
     if (!court) return '<p class="memory-empty">COURT IS ADJOURNED UNTIL BOTH SIDES HAVE RECEIPTS.</p>';
     var prosecution = (court.prosecution || court.negative || []).map(enrichEvidence);
     var defense = (court.defense || court.positive || []).map(enrichEvidence);
-    return '<div class="court-title"><span>CASE 001 // RECEIPTS, NOT CONSENSUS</span><h3>' +
-      esc(court.title || court.caseName || "THE PEOPLE VS. THE FRANCHISE") + '</h3><p>The archive does not force a verdict. It puts contradictory source evidence on the same table and lets the viewer inspect both sides.</p></div><div class="court-grid"><section><header>THE PROSECUTION</header>' +
+    return '<div class="court-title"><span>MACHINE-SURFACED ARGUMENT BOARD // VERDICT OPEN</span><h3>' +
+      esc(court.title || court.caseName || "THE PEOPLE VS. THE FRANCHISE") + '</h3><p>These category signals have not passed strict whole-work opinion review. The board keeps contradictory candidates together so an editor or creator can inspect both sides; it does not declare a host verdict.</p></div><div class="court-grid"><section><header>PROSECUTION CANDIDATES</header>' +
       prosecution.slice(0, 3).map(memoryReceipt).join("") + '</section><div class="court-vs">VS</div><section><header>THE DEFENSE</header>' +
       defense.slice(0, 3).map(memoryReceipt).join("") + '</section></div>';
   }
@@ -1380,16 +2035,141 @@
       }).join("") + '</div>';
   }
 
+  function battleEntities() {
+    var franchises = franchiseOrder.map(function (name) {
+      return { key: "franchise:" + name, label: name, lane: "FRANCHISE" };
+    });
+    var tapes = catalog.map(function (item) {
+      return { key: "tape:" + item.id, label: item.film, lane: item.franchise };
+    });
+    return franchises.concat(tapes);
+  }
+
+  function battleSummary(key) {
+    var isFranchise = key.indexOf("franchise:") === 0;
+    var value = key.slice(key.indexOf(":") + 1);
+    var items = isFranchise ? catalog.filter(function (item) { return item.franchise === value; }) :
+      catalog.filter(function (item) { return item.id === value; });
+    var tapes = items.map(function (item) { return tapeById[item.id]; }).filter(Boolean);
+    var moments = [];
+    tapes.forEach(function (tape) {
+      var item = itemById[tape.id];
+      (tape.moments || []).forEach(function (moment) {
+        moments.push({
+          source: "commentary",
+          sourceId: tape.id,
+          id: tape.id,
+          at: moment.t,
+          t: moment.t,
+          title: item ? item.film : value,
+          category: moment.category,
+          excerpt: moment.quote,
+          score: Number(moment.score || 0),
+        });
+      });
+    });
+    moments.sort(function (a, b) { return b.score - a.score; });
+    var count = function (categories) {
+      return moments.filter(function (moment) { return categories.indexOf(moment.category) >= 0; }).length;
+    };
+    var unhinged = tapes.length ? Math.round(tapes.reduce(function (total, tape) {
+      return total + Number(tape.unhinged || 0);
+    }, 0) / tapes.length) : 0;
+    return {
+      key: key,
+      label: isFranchise ? value : (items[0] ? items[0].film : value),
+      lane: isFranchise ? "FRANCHISE" : (items[0] ? items[0].franchise : "TAPE"),
+      sources: tapes.length,
+      words: tapes.reduce(function (total, tape) { return total + Number(tape.wordsAudited || 0); }, 0),
+      unhinged: unhinged,
+      affection: count(["LOVE LETTER"]),
+      hostility: count(["FRANCHISE FELONY", "TAKE GETS NUCLEAR"]),
+      chaos: count(["OUT OF POCKET", "BREAKDOWN", "THE ROOM BREAKS", "FULL SEND", "UP IN YA", "BIT ENERGY"]),
+      theories: count(["THEORY BOARD", "HORROR BRAIN"]),
+      roomBreaks: count(["BREAKDOWN", "THE ROOM BREAKS"]),
+      receipts: moments.slice(0, 3),
+    };
+  }
+
+  function battleResult(left, right) {
+    var metrics = [
+      ["unhinged", "UNHINGED INDEX"],
+      ["affection", "LOVE SURVIVED"],
+      ["hostility", "VERBAL BODY COUNT"],
+      ["chaos", "CHAOS RECEIPTS"],
+      ["theories", "HORROR-BRAIN ACTIVITY"],
+      ["roomBreaks", "STRUCTURAL FAILURES"],
+    ];
+    var leftPoints = 0;
+    var rightPoints = 0;
+    metrics.forEach(function (metric) {
+      if (left[metric[0]] > right[metric[0]]) leftPoints += 1;
+      else if (right[metric[0]] > left[metric[0]]) rightPoints += 1;
+    });
+    return {
+      metrics: metrics,
+      leftPoints: leftPoints,
+      rightPoints: rightPoints,
+      winner: leftPoints === rightPoints ? "THE TAPE REFUSES TO PICK A BODY" :
+        (leftPoints > rightPoints ? left.label : right.label),
+    };
+  }
+
+  function battleOptions(selected) {
+    return battleEntities().map(function (entity) {
+      return '<option value="' + esc(entity.key) + '"' + (entity.key === selected ? " selected" : "") +
+        '>[' + esc(entity.lane) + '] ' + esc(entity.label) + '</option>';
+    }).join("");
+  }
+
+  function renderBattle() {
+    var left = battleSummary(state.battleA);
+    var right = battleSummary(state.battleB);
+    var result = battleResult(left, right);
+    var contender = function (summary, side) {
+      return '<section class="battle-contender ' + side + '"><div><span>' + esc(summary.lane) +
+        '</span><b>' + summary.sources + ' SOURCE' + (summary.sources === 1 ? "" : "S") + ' // ' +
+        fmt(summary.words) + ' WORDS</b></div><h3>' + esc(summary.label) + '</h3><select data-battle-side="' +
+        side + '" aria-label="Choose ' + side + ' contender">' + battleOptions(summary.key) +
+        '</select><div class="battle-receipts"><span>STRONGEST SURVIVING RECEIPTS</span>' +
+        summary.receipts.slice(0, 2).map(memoryReceipt).join("") + '</div></section>';
+    };
+    return '<div class="battle-title"><span>TAKE BATTLE // THE INDEXED ARCHIVE ENTERS THE RING</span><h3>' +
+      esc(result.winner) + '</h3><p>This is an archive scoreboard, not a claim about the hosts’ final opinion. It compares the categories and intensity of the receipts that survived the current 39-tape distill.</p><button data-copy-battle>STEAL THE SCORECARD →</button></div><div class="battle-ring">' +
+      contender(left, "left") + '<div class="battle-score"><span>ARCHIVE EDGE</span><b>' +
+      result.leftPoints + '<i>—</i>' + result.rightPoints + '</b><ol>' +
+      result.metrics.map(function (metric) {
+        var leftValue = left[metric[0]];
+        var rightValue = right[metric[0]];
+        return '<li><b>' + leftValue + '</b><span>' + metric[1] + '</span><b>' + rightValue + '</b></li>';
+      }).join("") + '</ol></div>' + contender(right, "right") + '</div>';
+  }
+
+  function copyBattle() {
+    var left = battleSummary(state.battleA);
+    var right = battleSummary(state.battleB);
+    var result = battleResult(left, right);
+    var lines = [
+      "WWAM TAKE BATTLE",
+      left.label + " " + result.leftPoints + " — " + result.rightPoints + " " + right.label,
+      "Archive edge: " + result.winner,
+    ].concat(result.metrics.map(function (metric) {
+      return metric[1] + ": " + left[metric[0]] + " / " + right[metric[0]];
+    })).concat(["Source-linked scoreboard: " + location.origin + location.pathname + "#memory"]);
+    copy(lines.join("\n"));
+  }
+
   function renderMemory() {
     var content = state.memoryTab === "time" ? renderTimeMachine() :
       state.memoryTab === "bits" ? renderBitAncestry() :
       state.memoryTab === "chemistry" ? renderChemistry() :
-      state.memoryTab === "court" ? renderCourt() : renderDescent();
+      state.memoryTab === "court" ? renderCourt() :
+      state.memoryTab === "battle" ? renderBattle() : renderDescent();
     document.getElementById("memoryStage").innerHTML = content;
     document.getElementById("memoryProof").innerHTML = [
       [showcaseMetric("nodes", 0), "MEMORY NODES"],
       [showcaseMetric("edges", 0), "SOURCE-BACKED EDGES"],
-      [showcaseMetric("timelines", fallbackTimeMachines().length), "TAKE TIMELINES"],
+      [showcaseMetric("timelines", fallbackTimeMachines().length), "TAKE TRAILS TO REVIEW"],
       [showcaseMetric("bits", fallbackBitLineages().length), "BIT LINEAGES"],
     ].map(function (stat) { return '<div><b>' + stat[0] + '</b><span>' + stat[1] + '</span></div>'; }).join("");
     Array.prototype.forEach.call(document.querySelectorAll("[data-memory-tab]"), function (button) {
@@ -1412,7 +2192,334 @@
       state.descentMinutes = Number(range.value);
       renderMemory();
     };
+    Array.prototype.forEach.call(document.querySelectorAll("[data-battle-side]"), function (select) {
+      select.onchange = function () {
+        if (select.getAttribute("data-battle-side") === "left") state.battleA = select.value;
+        else state.battleB = select.value;
+        renderMemory();
+      };
+    });
+    var copyBattleButton = document.querySelector("[data-copy-battle]");
+    if (copyBattleButton) copyBattleButton.onclick = copyBattle;
     bindMemoryReceipts();
+    syncBagButtons();
+  }
+
+  function loreReceiptItem(receipt) {
+    if (!receipt) return null;
+    return {
+      id: receipt.sourceId,
+      sourceId: receipt.sourceId,
+      source: receipt.lane === "commentary" ? "commentary" : "livestream",
+      at: Number(receipt.t || 0),
+      t: Number(receipt.t || 0),
+      end: Number(receipt.end || 0),
+      title: receipt.sourceTitle || receipt.label || "WWAM SOURCE",
+      category: receipt.label || receipt.kind || "LORE RECEIPT",
+      excerpt: receipt.quote || "",
+      date: receipt.date,
+    };
+  }
+
+  function loreEntries() {
+    if (!loreEngine) return [];
+    var filters = { limit: 24 };
+    if (state.loreKind !== "ALL") filters.kind = state.loreKind;
+    var entries = state.loreQuery.trim() ?
+      loreEngine.search(state.loreQuery, filters) :
+      loreEngine.getFieldGuide(filters);
+    return entries.filter(function (entry) { return entry.kind !== "candidate-character"; });
+  }
+
+  function loreKindLabel(kind) {
+    return String(kind || "entry").replace(/-/g, " ").toUpperCase();
+  }
+
+  function renderLoreDossier() {
+    var entry = loreEngine && loreEngine.getEntry(state.loreSelected);
+    if (!entry) {
+      var first = loreEntries()[0];
+      if (first) {
+        state.loreSelected = first.id;
+        entry = first;
+      }
+    }
+    if (!entry) {
+      document.getElementById("loreDossier").innerHTML =
+        '<div class="lore-empty"><b>NO LORE SURVIVED THAT SEARCH.</b><span>Try a character, franchise, recurring topic, or tape title.</span></div>';
+      document.getElementById("constellationMap").innerHTML = "";
+      return;
+    }
+    var trace = loreEngine.trace(entry.id);
+    var receipts = (entry.receiptIds || []).map(function (id) {
+      return loreEngine.getReceipt(id);
+    }).filter(Boolean).slice(0, 5);
+    var metricEntries = Object.entries(entry.metrics || {}).slice(0, 5);
+    var first = entry.archiveFirst;
+    document.getElementById("loreDossier").innerHTML =
+      '<div class="lore-dossier-top"><div><span>' + esc(entry.kicker || loreKindLabel(entry.kind)) +
+      '</span><b>' + esc(loreKindLabel(entry.kind)) + ' // ' + esc(entry.status || "INDEXED") +
+      '</b></div><h3>' + esc(entry.name) + '</h3><p>' + esc(entry.summary || "") +
+      '</p><blockquote>' + esc(entry.editorialFlavor || entry.deepCutReason || "") + '</blockquote></div>' +
+      '<div class="lore-score"><b>' + Number(entry.deepCutScore || 0) + '</b><span>ARCHIVE RARITY</span><i>NOT QUALITY // ' +
+      esc(entry.deepCutTier || "ARCHIVE ENTRY") + '</i></div>' +
+      '<div class="lore-metrics">' + metricEntries.map(function (metric) {
+        return '<div><b>' + fmt(metric[1]) + '</b><span>' +
+          esc(String(metric[0]).replace(/([a-z])([A-Z])/g, "$1 $2").toUpperCase()) + '</span></div>';
+      }).join("") + '</div>' +
+      '<div class="lore-basis"><span>WHY THIS IS ALLOWED IN THE GUIDE</span><p>' +
+      esc(entry.evidenceBasis || "This entry resolves to indexed source evidence.") + '</p></div>' +
+      (first ? '<article class="archive-first"><div><span>' +
+        esc(entry.kind === "character" ? "EARLIEST VERIFIED CURRENT-SET RECEIPT" :
+          ((entry.originLanguage && entry.originLanguage.label) || "EARLIEST IN INDEXED ARCHIVE")) +
+        '</span><b>NOT A TRUE-ORIGIN CLAIM</b></div><h4>' + esc(first.sourceTitle) +
+        '</h4><p>“' + esc(displayQuote(first.quote)) + '”</p><div>' +
+        evidenceButton(loreReceiptItem({
+          sourceId: first.sourceId,
+          lane: itemById[first.sourceId] ? "commentary" : "livestream",
+          t: first.t,
+          sourceTitle: first.sourceTitle,
+          label: "EARLIEST INDEXED RECEIPT",
+          quote: first.quote,
+        }), "OPEN ARCHIVE-FIRST RECEIPT") +
+        bagButton(loreReceiptItem({
+          sourceId: first.sourceId,
+          lane: itemById[first.sourceId] ? "commentary" : "livestream",
+          t: first.t,
+          sourceTitle: first.sourceTitle,
+          label: "EARLIEST INDEXED RECEIPT",
+          quote: first.quote,
+        }), "BAG IT") + '</div><small>' +
+        esc(entry.kind === "character" ?
+          "This curated performance and creator-context set is narrower than Ask WWAM's machine-indexed character signals. Neither is proof of the bit's true origin." :
+          ((entry.originLanguage && entry.originLanguage.disclaimer) || "Earliest indexed is not proof of first-ever.")) +
+        '</small></article>' : "") +
+      '<div class="lore-receipts"><div><span>PLAYABLE LORE RECEIPTS</span><b>' +
+      (entry.receiptIds || []).length + ' INDEXED</b></div>' +
+      receipts.map(function (receipt, index) {
+        return memoryReceipt(loreReceiptItem(receipt), index);
+      }).join("") + '</div>' +
+      '<div class="lore-related"><span>FOLLOW THE THREAD</span>' +
+      (trace.nodes || []).filter(function (node) { return node.entryId !== entry.id; }).slice(0, 10).map(function (node) {
+        return '<button data-lore-entry="' + esc(node.entryId) + '"><i>' + esc(loreKindLabel(node.kind)) +
+          '</i><b>' + esc(node.label) + '</b><span>' + node.receiptCount + ' RECEIPTS</span></button>';
+      }).join("") + '</div>';
+    renderConstellation(entry, trace);
+  }
+
+  function renderConstellation(entry, trace) {
+    var nodes = (trace.nodes || []).slice(0, 17);
+    var edges = trace.edges || [];
+    document.getElementById("constellationTitle").textContent = entry.name + " // " +
+      edges.length + " EVIDENCE CONNECTIONS";
+    document.getElementById("constellationCopy").textContent =
+      "This focused map shows " + Math.max(0, nodes.length - 1) +
+      " connected memories. Every relationship keeps receipt IDs; no line claims true origin.";
+    document.getElementById("constellationMap").innerHTML =
+      '<div class="constellation-nodes">' + nodes.map(function (node, index) {
+        return '<button class="' + (node.entryId === entry.id ? "center" : "") +
+          '" style="--node:' + index + ';--weight:' + Math.min(6, Number(node.receiptCount || 1)) +
+          '" data-lore-entry="' + esc(node.entryId) + '"><span>' + esc(loreKindLabel(node.kind)) +
+          '</span><b>' + esc(node.label) + '</b><i>' + node.receiptCount + ' RECEIPTS</i></button>';
+      }).join("") + '</div><ol class="constellation-ledger">' +
+      edges.slice(0, 12).map(function (edge) {
+        var from = loreEngine.getEntry(edge.from);
+        var to = loreEngine.getEntry(edge.to);
+        return '<li><span>' + esc(from ? from.name : edge.from) + '</span><b>' +
+          esc(String(edge.relation || "connected").replace(/-/g, " ").toUpperCase()) +
+          '</b><span>' + esc(to ? to.name : edge.to) + '</span><i>' +
+          Number(edge.receiptCount || 0) + ' RECEIPT' + (Number(edge.receiptCount || 0) === 1 ? "" : "S") +
+          '</i></li>';
+      }).join("") + '</ol>';
+  }
+
+  function bindLore() {
+    Array.prototype.forEach.call(document.querySelectorAll("[data-lore-kind]"), function (button) {
+      button.onclick = function () {
+        state.loreKind = button.getAttribute("data-lore-kind");
+        renderLore();
+      };
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-lore-entry]"), function (button) {
+      button.onclick = function () {
+        state.loreSelected = button.getAttribute("data-lore-entry");
+        renderLore();
+        document.getElementById("loreDossier").scrollIntoView({ behavior: "smooth", block: "start" });
+      };
+    });
+    bindMemoryReceipts();
+    syncBagButtons();
+  }
+
+  function renderLore() {
+    if (!loreEngine) {
+      document.getElementById("loreDossier").innerHTML = '<p class="memory-empty">' +
+        (state.fanEnginesSettled ? "THE FIELD GUIDE COULD NOT INITIALIZE." : "CONNECTING THE FIELD GUIDE…") +
+        '</p>';
+      return;
+    }
+    var metrics = loreEngine.metrics || {};
+    document.getElementById("loreProof").innerHTML = [
+      [metrics.fieldGuideEntries, "FIELD GUIDE ENTRIES"],
+      [metrics.playableReceipts, "GRAPH RECEIPT LINKS"],
+      [metrics.edges, "EVIDENCE CONNECTIONS"],
+      [metrics.lineages, "TRACEABLE LINEAGES"],
+      [metrics.constellations, "CONSTELLATIONS"],
+    ].map(function (stat) {
+      return '<div><b>' + fmt(stat[0]) + '</b><span>' + stat[1] + '</span></div>';
+    }).join("");
+    var kinds = ["ALL", "character", "bit", "motif", "franchise", "topic", "era", "source"];
+    document.getElementById("loreKinds").innerHTML = kinds.map(function (kind) {
+      var count = kind === "ALL" ? metrics.fieldGuideEntries : ((metrics.kinds || {})[kind] || 0);
+      return '<button class="' + (state.loreKind === kind ? "on" : "") + '" data-lore-kind="' +
+        esc(kind) + '">' + esc(loreKindLabel(kind)) + '<b>' + count + '</b></button>';
+    }).join("");
+    var entries = loreEntries();
+    document.getElementById("loreResults").innerHTML = entries.length ? entries.map(function (entry) {
+      return '<button class="' + (entry.id === state.loreSelected ? "on" : "") + '" data-lore-entry="' +
+        esc(entry.id) + '"><div><span>' + esc(loreKindLabel(entry.kind)) + '</span><b>' +
+        Number(entry.deepCutScore || 0) + '</b></div><h4>' + esc(displayUiText(entry.name)) + '</h4><p>' +
+        esc(displayUiText(entry.editorialFlavor || entry.summary || "")) + '</p><small>' +
+        Number((entry.metrics && entry.metrics.receipts) || (entry.receiptIds || []).length) +
+        ' RECEIPTS // ' + esc(entry.deepCutTier || "INDEXED") + '</small></button>';
+    }).join("") : '<div class="lore-empty"><b>NO MATCHES.</b><span>The machine will not hallucinate a field-guide entry.</span></div>';
+    renderLoreDossier();
+    bindLore();
+  }
+
+  function startTrivia(incrementSeed) {
+    if (!tapeTriviaEngine) return;
+    if (incrementSeed) state.triviaSeed += 1;
+    try {
+      triviaSession = tapeTriviaEngine.createSession({
+        seed: "wwam-night-shift-" + state.triviaSeed,
+        length: state.triviaLength,
+        difficulty: state.triviaDifficulty,
+        franchise: state.triviaFranchise || undefined,
+      });
+      renderTrivia();
+    } catch (error) {
+      document.getElementById("triviaStage").innerHTML =
+        '<div class="trivia-error"><b>THE TAPE JAMMED.</b><span>' + esc(error.message) + '</span></div>';
+    }
+  }
+
+  function addTriviaRevealToBag(items) {
+    var added = 0;
+    (items || []).map(normalizeEvidenceItem).forEach(function (item) {
+      if (!state.evidenceBag.some(function (candidate) { return bagKey(candidate) === bagKey(item); })) {
+        state.evidenceBag.unshift(item);
+        added += 1;
+      }
+    });
+    state.evidenceBag = state.evidenceBag.slice(0, 30);
+    var persisted = saveEvidenceBag();
+    renderEvidenceBag();
+    showToast(added ? added + " TRIVIA RECEIPT" + (added === 1 ? "" : "S") +
+      (persisted ? " BAGGED" : " BAGGED // THIS TAB ONLY") :
+      "THOSE RECEIPTS ARE ALREADY BAGGED");
+  }
+
+  function triviaReveal(result) {
+    if (!result || !result.reveal) return "";
+    var reveal = result.reveal;
+    return '<div class="trivia-reveal ' + (result.correct ? "correct" : "wrong") + '"><div class="reveal-verdict"><span>' +
+      (result.correct ? "THE ARCHIVE ACCEPTS YOUR SACRIFICE" : "THE TAPE HAS REJECTED YOU") +
+      '</span><h3>' + (result.correct ? "+" + result.points + " POINTS" :
+        "CORRECT ANSWER // " + esc(displayUiText(reveal.answer.label))) +
+      '</h3><p>' + esc(displayUiText(reveal.explanation)) + '</p></div><div class="reveal-receipts">' +
+      reveal.receipts.map(function (receipt, index) { return memoryReceipt(receipt, index); }).join("") +
+      '</div><footer><button data-trivia-bag-all>ADD REVEAL TO EVIDENCE BAG +</button><button data-trivia-next>' +
+      (result.roundNumber >= (triviaSession && triviaSession.getState().length || 5) ? "SEE AUTOPSY →" : "NEXT RECEIPT →") +
+      '</button></footer><small>' + esc(displayUiText(reveal.accuracy.notice)) +
+      ' // NO SPEAKER CLAIM MADE</small></div>';
+  }
+
+  function renderTriviaRound(sessionState) {
+    var round = sessionState.currentRound;
+    var result = sessionState.lastResult;
+    var clue = round.clue.cards ?
+      '<div class="trivia-clue-pair">' + round.clue.cards.map(function (card) {
+        return '<article><span>' + esc(displayUiText(card.label)) + '</span><blockquote>“' +
+          esc(displayQuote(card.excerpt)) + '”</blockquote></article>';
+      }).join("") + '</div>' :
+      '<blockquote class="trivia-clue"><span>' + esc(displayUiText(round.clue.label)) +
+      '</span>“' + esc(displayQuote(round.clue.excerpt)) + '”</blockquote>';
+    return '<div class="trivia-scorebar"><div><span>ROUND</span><b>' + round.number + '/' +
+      round.total + '</b></div><div><span>SCORE</span><b>' + sessionState.score +
+      '</b></div><div><span>STREAK</span><b>' + sessionState.streak +
+      '</b></div><div><span>DIFFICULTY</span><b>' + esc(round.difficulty.toUpperCase()) +
+      '</b></div></div><div class="trivia-question"><span>' + esc(displayUiText(round.typeLabel)) +
+      '</span><h3>' + esc(displayUiText(round.prompt)) + '</h3>' + clue + '<div class="trivia-choices">' +
+      round.choices.map(function (choice, index) {
+        var answerClass = result && result.reveal.answer.id === choice.id ? " answer" : "";
+        var selectedClass = result && result.reveal.selected && result.reveal.selected.id === choice.id ? " selected" : "";
+        return '<button' + (result ? " disabled" : "") + ' class="' + answerClass + selectedClass +
+          '" data-trivia-choice="' + esc(choice.id) + '"><b>' + String.fromCharCode(65 + index) +
+          '</b><span>' + esc(displayUiText(choice.label)) + '<i>' +
+          esc(displayUiText(choice.detail || "")) + '</i></span></button>';
+      }).join("") + '</div><small>' + esc(displayUiText(round.speakerNotice)) + '</small></div>' +
+      triviaReveal(result);
+  }
+
+  function renderTriviaSummary(summary) {
+    return '<div class="trivia-summary"><span>SESSION AUTOPSY</span><h3>' + esc(summary.grade) +
+      '</h3><div><article><b>' + summary.score + '</b><span>POINTS</span></article><article><b>' +
+      summary.accuracy + '%</b><span>ACCURACY</span></article><article><b>' + summary.correct +
+      '/' + summary.total + '</b><span>SURVIVED</span></article><article><b>' + summary.bestStreak +
+      '</b><span>BEST STREAK</span></article></div><p>You were tested on indexed source metadata and bounded caption receipts. No round guessed a speaker or invented a quote.</p><footer><button data-trivia-export>DOWNLOAD SESSION RECEIPTS</button><button data-trivia-restart>PLAY ANOTHER NIGHT SHIFT →</button></footer></div>';
+  }
+
+  function bindTrivia() {
+    Array.prototype.forEach.call(document.querySelectorAll("[data-trivia-choice]"), function (button) {
+      button.onclick = function () {
+        triviaSession.submit(button.getAttribute("data-trivia-choice"));
+        renderTrivia();
+      };
+    });
+    var next = document.querySelector("[data-trivia-next]");
+    if (next) next.onclick = function () {
+      triviaSession.next();
+      renderTrivia();
+    };
+    var bagAll = document.querySelector("[data-trivia-bag-all]");
+    if (bagAll) bagAll.onclick = function () {
+      var result = triviaSession.getState().lastResult;
+      if (result) addTriviaRevealToBag(result.reveal.evidenceBag);
+    };
+    var restart = document.querySelector("[data-trivia-restart]");
+    if (restart) restart.onclick = function () { startTrivia(true); };
+    var exportButton = document.querySelector("[data-trivia-export]");
+    if (exportButton) exportButton.onclick = function () {
+      downloadJson("wwam-tape-trivia-session.json", triviaSession.exportSession());
+      showToast("TRIVIA SESSION RECEIPTS DOWNLOADED");
+    };
+    bindMemoryReceipts();
+    syncBagButtons();
+  }
+
+  function renderTrivia() {
+    if (!tapeTriviaEngine || !triviaSession) {
+      document.getElementById("triviaStage").innerHTML =
+        '<div class="trivia-loading"><i></i><b>' +
+        (state.fanEnginesSettled ? "THE PLAYABLE ARCHIVE COULD NOT INITIALIZE." : "SHUFFLING THE PLAYABLE ARCHIVE…") +
+        '</b></div>';
+      return;
+    }
+    var metrics = tapeTriviaEngine.metrics;
+    document.getElementById("triviaProof").innerHTML = [
+      [metrics.playableReceipts, "PLAYABLE QUESTIONS"],
+      [metrics.eligibleSources, "SOURCES IN THE DECK"],
+      [metrics.categories, "ARCHIVE CHARGES"],
+      [metrics.exactTimestampReceipts, "EXACT TIMESTAMPS"],
+      [metrics.speakerQuestions, "SPEAKER GUESSES"],
+    ].map(function (stat) {
+      return '<div><b>' + fmt(stat[0]) + '</b><span>' + stat[1] + '</span></div>';
+    }).join("");
+    var sessionState = triviaSession.getState();
+    document.getElementById("triviaStage").innerHTML = sessionState.complete ?
+      renderTriviaSummary(sessionState.summary) : renderTriviaRound(sessionState);
+    bindTrivia();
   }
 
   function fallbackAftermath() {
@@ -1450,7 +2557,7 @@
     var aftermathChanges = aftermath.changes || aftermath.deltas || aftermath.newSincePreviousIndexedStream || [];
     document.getElementById("aftermath").innerHTML =
       '<div class="aftermath-title"><span>THE LIVE AFTERMATH REPORT</span><h3>' +
-      esc(aftermath.title || "WHAT THE NEWEST SHOW CHANGED") + '</h3><p>' +
+      esc(aftermath.title || "WHAT THE NEWEST SHOW ADDED TO INDEXED MEMORY") + '</h3><p>' +
       esc(aftermath.summary || "") + '</p>' + (sourceId ? evidenceButton({
         source: "livestream", sourceId: sourceId, at: aftermath.at || 0,
       }, "OPEN THE LATEST LIVE MAP") : "") + '</div><div class="aftermath-columns"><section><span>TOPICS THAT ENTERED THE ROOM</span>' +
@@ -1491,6 +2598,495 @@
     bindMemoryReceipts();
   }
 
+  function clipCandidates() {
+    if (!clipLabEngine) return [];
+    var filters = { limit: 12 };
+    if (state.clipQuery.trim()) filters.query = state.clipQuery.trim();
+    if (state.clipRisk) filters.maxRisk = state.clipRisk;
+    if (state.clipMode === "supercuts") return clipLabEngine.getSupercuts(filters);
+    if (state.clipMode === "resurfacing") return clipLabEngine.getResurfacing(filters);
+    return clipLabEngine.getShorts(filters);
+  }
+
+  function clipReceiptItem(candidate) {
+    return {
+      source: candidate.sourceType === "commentary" ? "commentary" : "livestream",
+      sourceId: candidate.sourceId,
+      id: candidate.sourceId,
+      at: Number(candidate.receiptAt || 0),
+      t: Number(candidate.receiptAt || 0),
+      title: candidate.sourceTitle,
+      category: candidate.category || "CLIP LAB",
+      excerpt: candidate.archivalExcerpt || "",
+      date: candidate.sourceDate,
+    };
+  }
+
+  function clipBadges(item) {
+    return '<div class="clip-badges"><span class="risk-' + esc(String(item.risk && item.risk.label || "REVIEW").toLowerCase()) +
+      '">' + esc((item.risk && item.risk.label) || "REVIEW") + ' RISK</span><span>' +
+      esc((item.evidence && item.evidence.label) || "MACHINE") + ' EVIDENCE</span></div>';
+  }
+
+  function shortCard(candidate) {
+    var title = candidate.editorial && candidate.editorial.titleOptions && candidate.editorial.titleOptions[0] ||
+      candidate.sourceTitle;
+    var hook = candidate.editorial && candidate.editorial.hookOptions && candidate.editorial.hookOptions[0] || "";
+    var selected = state.campaignIds.indexOf(candidate.id) >= 0;
+    return '<article class="clip-card short-card"><header><div><span>SHORTS CANDIDATE // PRIORITY ' +
+      Number(candidate.editPriority || 0) + '</span><b>' + esc(candidate.timecode || timestamp(candidate.receiptAt)) +
+      '</b></div><p class="clip-provenance">' + esc(candidate.sourceTitle) + ' // ' +
+      shortDate(candidate.sourceDate) + '</p>' + clipBadges(candidate) +
+      '</header><div class="suggested-copy"><span>SUGGESTED COPY — NOT ARCHIVAL</span><h3>' +
+      esc(title) + '</h3><p>' + esc(hook) + '</p></div><blockquote><span>ARCHIVAL CAPTION EXCERPT</span>“' +
+      esc(displayQuote(candidate.archivalExcerpt)) + '”</blockquote><div class="edit-window"><span>PROPOSED EDIT WINDOW</span><b>' +
+      esc(candidate.editWindow.inTimecode) + ' → ' + esc(candidate.editWindow.outTimecode) + '</b><i>' +
+      Number(candidate.editWindow.seconds || 0) + ' SEC // CONTEXT REVIEW REQUIRED</i></div><footer>' +
+      '<button data-clip-play="' + esc(candidate.id) + '">PLAY SOURCE →</button>' +
+      '<button class="' + (selected ? "selected" : "") + '" data-campaign-toggle="' + esc(candidate.id) + '">' +
+      (selected ? "IN CAMPAIGN ✓" : "ADD TO CAMPAIGN +") + '</button>' +
+      bagButton(clipReceiptItem(candidate), "BAG RECEIPT") + '</footer><small>' +
+      esc(candidate.approval && candidate.approval.status || "HUMAN EDIT REVIEW REQUIRED") +
+      ' // SPEAKER: ' + esc(candidate.speaker && candidate.speaker.status || "NOT DIARIZED") + '</small></article>';
+  }
+
+  function supercutCard(bundle) {
+    var selected = state.campaignIds.indexOf(bundle.id) >= 0;
+    return '<article class="clip-card package-card"><header><div><span>SUPERCUT SPINE // PRIORITY ' +
+      Number(bundle.editPriority || 0) + '</span><b>' + Number(bundle.segmentCount || 0) + ' SEGMENTS</b></div>' +
+      clipBadges(bundle) + '</header><div class="suggested-copy"><span>' +
+      esc(bundle.editorialLabel || "SUGGESTED COPY — NOT ARCHIVAL") + '</span><h3>' +
+      esc(bundle.title) + '</h3><p>' + esc(bundle.hook || "") + '</p></div><div class="package-stats"><div><b>' +
+      Number(bundle.sourceCount || 0) + '</b><span>ORIGINAL SOURCES</span></div><div><b>' +
+      duration(bundle.suggestedSeconds || 0) + '</b><span>SUGGESTED RUNTIME</span></div><div><b>' +
+      Number(bundle.segmentCount || 0) + '</b><span>PLAYABLE RECEIPTS</span></div></div><ol>' +
+      (bundle.segments || []).slice(0, 5).map(function (segment, index) {
+        return '<li><b>' + String(index + 1).padStart(2, "0") + '</b><span>' +
+          esc(segment.sourceTitle) + '<i>' + esc(segment.timecode) + ' // ' +
+          esc(segment.category) + '</i></span><button data-clip-play="' + esc(segment.id) + '">PLAY</button></li>';
+      }).join("") + '</ol><footer><button class="' + (selected ? "selected" : "") +
+      '" data-campaign-toggle="' + esc(bundle.id) + '">' +
+      (selected ? "IN CAMPAIGN ✓" : "ADD SUPERCUT +") + '</button></footer><small>' +
+      esc(bundle.editNote || "Every transition remains a human edit decision.") + '</small></article>';
+  }
+
+  function resurfacingCard(pair) {
+    var selected = state.campaignIds.indexOf(pair.id) >= 0;
+    var side = function (candidate, label) {
+      return '<section><span>' + label + ' // ' + shortDate(candidate.sourceDate) + '</span><h4>' +
+        esc(candidate.sourceTitle) + '</h4><blockquote>“' + esc(displayQuote(candidate.archivalExcerpt)) +
+        '”</blockquote><button data-clip-play="' + esc(candidate.id) + '">PLAY ' +
+        esc(candidate.timecode) + ' →</button></section>';
+    };
+    return '<article class="clip-card resurface-card"><header><div><span>ARCHIVE RESURFACING // SCORE ' +
+      Number(pair.resurfaceScore || 0) + '</span><b>' + fmt(pair.spanDays || 0) + ' DAYS APART</b></div>' +
+      clipBadges(pair) + '</header><div class="suggested-copy"><span>' +
+      esc(pair.editorialLabel || "SUGGESTED COPY — NOT ARCHIVAL") + '</span><h3>' + esc(pair.title) +
+      '</h3><p>' + esc(pair.hook || "") + '</p></div><div class="then-now">' +
+      side(pair.archive, "THEN") + '<i>↔</i>' + side(pair.current, "NOW") +
+      '</div><footer><button class="' + (selected ? "selected" : "") +
+      '" data-campaign-toggle="' + esc(pair.id) + '">' +
+      (selected ? "IN CAMPAIGN ✓" : "ADD THEN / NOW +") + '</button></footer><small>' +
+      esc(pair.claimBoundary || "") + '</small></article>';
+  }
+
+  function campaignSelection() {
+    if (!clipLabEngine) return [];
+    var lookup = function (id) {
+      var snapshot = campaignSnapshots[id];
+      if (snapshot && clipLabEngine.restoreSelection) {
+        var restored = attempt(function () { return clipLabEngine.restoreSelection(snapshot); });
+        if (!restored) return null;
+        clipItemById[id] = restored;
+        return restored;
+      }
+      var exact = clipItemById[id] || clipLabEngine.get(id);
+      if (exact && clipLabEngine.snapshotSelection) {
+        var upgraded = attempt(function () { return clipLabEngine.snapshotSelection(exact); });
+        if (upgraded) campaignSnapshots[id] = upgraded;
+      }
+      return exact;
+    };
+    var retained = {};
+    state.campaignIds = state.campaignIds.filter(function (id) {
+      var keep = Boolean(lookup(id));
+      if (keep) retained[id] = true;
+      return keep;
+    });
+    Object.keys(campaignSnapshots).forEach(function (id) {
+      if (!retained[id]) delete campaignSnapshots[id];
+    });
+    return state.campaignIds.map(function (id) {
+      var item = lookup(id);
+      return item ? Object.assign({}, item, { _campaignId: id }) : null;
+    }).filter(Boolean);
+  }
+
+  function campaignManifest() {
+    var selection = campaignSelection();
+    return clipLabEngine.createClipManifest(selection, {
+      campaignId: "wwam-user-packet",
+      name: "WWAM After Midnight — user-built evidence drop",
+    });
+  }
+
+  function renderCampaign() {
+    var beforeNormalization = state.campaignIds.join("|") + "//" +
+      Object.keys(campaignSnapshots).sort().join("|");
+    var selection = campaignSelection();
+    var afterNormalization = state.campaignIds.join("|") + "//" +
+      Object.keys(campaignSnapshots).sort().join("|");
+    document.getElementById("campaignCount").textContent = selection.length + " ASSET" +
+      (selection.length === 1 ? "" : "S");
+    document.getElementById("campaignList").innerHTML = selection.length ? selection.map(function (item, index) {
+      var title = item.kind === "short-candidate" ?
+        (item.editorial.titleOptions[0] || item.sourceTitle) : item.title;
+      var receipts = item.receiptIds ? item.receiptIds.length : 1;
+      return '<article><b>' + String(index + 1).padStart(2, "0") + '</b><div><span>' +
+        esc(String(item.kind).replace(/-/g, " ").toUpperCase()) + '</span><h4>' + esc(title) +
+        '</h4><small>' + receipts + ' RECEIPT' + (receipts === 1 ? "" : "S") +
+        '</small></div><button data-campaign-remove="' + esc(item._campaignId || item.id) + '" aria-label="Remove from campaign">×</button></article>';
+    }).join("") : '<div class="campaign-empty">ADD CLIPS OR PACKAGES FROM THE EDIT QUEUE. THE MANIFEST WILL KEEP EVERY SOURCE BOUNDARY.</div>';
+    if (beforeNormalization !== afterNormalization && !saveCampaignIds()) {
+      showToast("CAMPAIGN CLEANUP KEPT FOR THIS TAB ONLY");
+    }
+  }
+
+  function toggleCampaign(id) {
+    var index = state.campaignIds.indexOf(id);
+    if (index >= 0) {
+      state.campaignIds.splice(index, 1);
+      delete campaignSnapshots[id];
+    } else if (state.campaignIds.length >= 24) {
+      showToast("CAMPAIGN FULL // 24 ASSET LIMIT");
+      return;
+    } else {
+      var item = clipItemById[id] || clipLabEngine.get(id);
+      var snapshot = item && clipLabEngine.snapshotSelection ?
+        attempt(function () { return clipLabEngine.snapshotSelection(item); }) : null;
+      if (!snapshot) {
+        showToast("CAMPAIGN RECEIPT LEDGER COULD NOT BE SAVED");
+        return;
+      }
+      campaignSnapshots[id] = snapshot;
+      state.campaignIds.push(id);
+    }
+    var persisted = saveCampaignIds();
+    renderClipLab();
+    showToast((index >= 0 ? "REMOVED FROM THE CAMPAIGN" : "ADDED TO THE CAMPAIGN") +
+      (persisted ? "" : " // THIS TAB ONLY"));
+  }
+
+  function bindClipLab() {
+    Array.prototype.forEach.call(document.querySelectorAll("[data-clip-mode]"), function (button) {
+      button.onclick = function () {
+        state.clipMode = button.getAttribute("data-clip-mode");
+        renderClipLab();
+      };
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-clip-play]"), function (button) {
+      button.onclick = function () {
+        var candidate = clipItemById[button.getAttribute("data-clip-play")] ||
+          clipLabEngine.get(button.getAttribute("data-clip-play"));
+        if (!candidate) return;
+        if (candidate.kind === "short-candidate") {
+          openLooseSource(candidate.sourceId, candidate.editWindow.in, candidate.sourceTitle, candidate.editWindow.out);
+        }
+      };
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-campaign-toggle]"), function (button) {
+      button.onclick = function () { toggleCampaign(button.getAttribute("data-campaign-toggle")); };
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-campaign-remove]"), function (button) {
+      button.onclick = function () { toggleCampaign(button.getAttribute("data-campaign-remove")); };
+    });
+    syncBagButtons();
+  }
+
+  function renderClipLab() {
+    if (!clipLabEngine) {
+      document.getElementById("clipResults").innerHTML = '<p class="memory-empty">' +
+        (state.creatorEnginesSettled ? "THE EDIT QUEUE COULD NOT INITIALIZE." : "INDEXING THE EDIT QUEUE…") +
+        '</p>';
+      return;
+    }
+    var metrics = clipLabEngine.metrics || {};
+    document.getElementById("clipProof").innerHTML = [
+      [metrics.shortCandidates, "SHORTS CANDIDATES"],
+      [metrics.supercutBundles, "SUPERCUT SPINES"],
+      [metrics.resurfacingOpportunities, "THEN / NOW PAIRS"],
+      [metrics.sourcesRepresented, "SOURCES REPRESENTED"],
+      [metrics.holds, "AUTOMATIC HOLDS"],
+    ].map(function (stat) {
+      return '<div><b>' + fmt(stat[0]) + '</b><span>' + stat[1] + '</span></div>';
+    }).join("");
+    Array.prototype.forEach.call(document.querySelectorAll("[data-clip-mode]"), function (button) {
+      button.classList.toggle("on", button.getAttribute("data-clip-mode") === state.clipMode);
+    });
+    var values = clipCandidates();
+    values.forEach(function (item) {
+      clipItemById[item.id] = item;
+      (item.segments || []).forEach(function (segment) { clipItemById[segment.id] = segment; });
+      if (item.archive) clipItemById[item.archive.id] = item.archive;
+      if (item.current) clipItemById[item.current.id] = item.current;
+    });
+    document.getElementById("clipResults").innerHTML = values.length ? values.map(function (item) {
+      if (item.kind === "supercut-bundle") return supercutCard(item);
+      if (item.kind === "episode-resurfacing") return resurfacingCard(item);
+      return shortCard(item);
+    }).join("") : '<div class="clip-empty"><b>THE RISK GATE ATE THAT SEARCH.</b><span>Widen the filter or search a broader topic.</span></div>';
+    renderCampaign();
+    bindClipLab();
+  }
+
+  function canonEvidenceButton(receipt, label) {
+    if (!receipt || !receipt.sourceId) return "";
+    return evidenceButton({
+      source: itemById[receipt.sourceId] ? "commentary" : "livestream",
+      sourceId: receipt.sourceId,
+      at: receipt.t || 0,
+    }, label || "OPEN EVIDENCE");
+  }
+
+  function renderSourceHealth() {
+    var sources = trustEngine.sourceHealth.slice().sort(function (a, b) {
+      return (a.status === "LIMITED" ? -1 : 1) - (b.status === "LIMITED" ? -1 : 1) ||
+        b.score - a.score;
+    });
+    var limited = sources.filter(function (source) { return source.status !== "HEALTHY"; });
+    var healthy = sources.filter(function (source) { return source.status === "HEALTHY"; }).slice(0, 9);
+    var card = function (source) {
+      return '<article class="source-health-card ' + String(source.status).toLowerCase() +
+        '"><header><span>' + esc(source.lane.toUpperCase()) + '</span><b>' + esc(source.status) +
+        ' // ' + source.score + '</b></header><h3>' + esc(source.title) + '</h3><div class="health-meter"><i style="width:' +
+        Math.max(2, Number(source.score || 0)) + '%"></i></div><ul><li><span>CAPTIONS</span><b>' +
+        (source.captioned ? "AVAILABLE" : "UNAVAILABLE") + '</b></li><li><span>RECEIPTS</span><b>' +
+        fmt(source.receiptCoverage.total) + '</b></li><li><span>TIMESTAMPS</span><b>' +
+        (source.receiptCoverage.invalidTimestamps ? "REVIEW" : "VALID") + '</b></li></ul>' +
+        (source.issues.length ? '<p>' + esc(source.issues.join(" // ")) + '</p>' :
+          '<p>Source-linked and searchable. Auto-captions still do not prove speaker, target, or intent.</p>') +
+        '<footer><button data-canon-source="' + esc(source.id) + '" data-canon-lane="' +
+        esc(source.lane) + '">OPEN SOURCE →</button></footer></article>';
+    };
+    return '<div class="canon-lane-head"><div><span>STRUCTURAL SOURCE AUDIT</span><h3>' +
+      trustEngine.metrics.healthySources + ' OF ' + trustEngine.metrics.sources +
+      ' SOURCES ARE ARCHIVE-READY.</h3></div><p>Broken source links: 0. Invalid timestamps: 0. Limited sources stay visible instead of receiving counterfeit analysis.</p></div>' +
+      '<section class="health-group"><header><span>LIMITED SOURCES // HONEST GAPS</span><b>' +
+      limited.length + '</b></header><div>' + limited.map(card).join("") + '</div></section>' +
+      '<section class="health-group"><header><span>HEALTHY SOURCE SAMPLE</span><b>' +
+      trustEngine.metrics.healthySources + ' TOTAL</b></header><div>' + healthy.map(card).join("") + '</div></section>';
+  }
+
+  function renderReviewQueue() {
+    var queue = trustEngine.getReviewQueue({ limit: 16 });
+    return '<div class="canon-lane-head"><div><span>THE MACHINE MAY SURFACE // ONLY A HUMAN MAY CERTIFY</span><h3>' +
+      queue.length + ' OF ' + trustEngine.metrics.reviewCandidates + ' PRIORITY REVIEWS.</h3></div><p>Every row exports a deterministic correction packet containing the current claim, evidence, recommended action, and required reviewer role.</p></div>' +
+      '<div class="review-queue">' + queue.map(function (item, index) {
+        var evidence = item.evidence && item.evidence[0];
+        return '<article><header><b>#' + String(index + 1).padStart(2, "0") + ' // ' +
+          esc(item.severity) + '</b><span>' + esc(loreKindLabel(item.kind)) + '</span></header><h3>' +
+          esc(item.title) + '</h3><p>' + esc(item.summary) + '</p><blockquote>' +
+          esc(item.recommendation) + '</blockquote><footer>' +
+          (evidence ? canonEvidenceButton(evidence, "INSPECT RECEIPT") : "") +
+          '<button data-correction-packet="' + esc(item.id) + '">COPY CORRECTION PACKET</button></footer></article>';
+      }).join("") + '</div>';
+  }
+
+  function renderCharacterFirewall() {
+    var grounded = trustEngine.characterAudits.grounded || [];
+    var locked = trustEngine.characterAudits.locked || [];
+    return '<div class="canon-lane-head"><div><span>PERSONA MENTION ≠ CHARACTER PERFORMANCE</span><h3>' +
+      trustEngine.metrics.verifiedCuratedPerformances + ' CURATED PERFORMANCES. ' +
+      trustEngine.metrics.ordinaryCharacterMentionsQuarantined + ' ORDINARY MENTIONS QUARANTINED.</h3></div><p>Character text parody may be generated with a label. Character audio may not. Individual clip speakers remain unverified unless a human diarizes them.</p></div>' +
+      '<div class="firewall-grid">' + grounded.map(function (character) {
+        var first = character.soundbytes && character.soundbytes[0];
+        return '<article><header><span>GROUNDED CHARACTER</span><b>' +
+          Math.round(Number(character.confidence && character.confidence.score || 0)) + ' CONFIDENCE</b></header><h3>' +
+          esc(character.name) + '</h3><p>Owner-mapped performer: <b>' + esc(character.performedBy || "UNSET") +
+          '</b>. Exact clips are not speaker-diarized.</p><ul><li class="yes">LABELED TEXT PARODY ALLOWED</li>' +
+          '<li class="no">GENERATED CHARACTER AUDIO BLOCKED</li><li class="no">UNVERIFIED SPEAKER CREDIT BLOCKED</li></ul>' +
+          '<div><b>' + character.verifiedPerformanceIds.length + '</b><span>VERIFIED PERFORMANCE RECEIPTS</span><b>' +
+          character.ordinaryMentionReceiptIds.length + '</b><span>MENTIONS KEPT OUT</span></div>' +
+          (first ? canonEvidenceButton(first, "PLAY A CURATED RECEIPT") : "") + '</article>';
+      }).join("") + locked.map(function (character) {
+        var first = character.candidateSoundbytes && character.candidateSoundbytes[0];
+        return '<article class="locked"><header><span>ATTRIBUTION LOCK</span><b>ASK DISABLED</b></header><h3>' +
+          esc(character.name) + '</h3><p>' + esc(character.whyLocked) + '</p><ul><li class="no">NO PERFORMER GUESSED</li>' +
+          '<li class="no">NO GENERATED VOICE</li><li class="yes">CANDIDATE RECEIPTS PRESERVED</li></ul>' +
+          (first ? canonEvidenceButton(first, "INSPECT CANDIDATE") : "") + '</article>';
+      }).join("") + '</div>';
+  }
+
+  function renderClaimAudit() {
+    var timelines = trustEngine.timelineAudits.slice().sort(function (a, b) {
+      return b.projectedOrAmbiguousReceiptIds.length - a.projectedOrAmbiguousReceiptIds.length;
+    }).slice(0, 8);
+    var courts = trustEngine.courtAudits.slice(0, 6);
+    return '<div class="canon-lane-head warning"><div><span>DISCOVERY CANDIDATES // NOT CREATOR-CERTIFIED CANON</span><h3>0 TAKE TIMELINES AND 0 COURTS CURRENTLY PASS THE STRICT CANON GATE.</h3></div><p>The public Memory OS now describes these as chronological receipt trails and machine-surfaced argument boards. It does not claim a host changed their mind or issue a verdict.</p></div>' +
+      '<div class="claim-audit"><section><header><span>TAKE TIMELINE AUDIT</span><b>' +
+      trustEngine.metrics.timelines + ' REVIEWED</b></header>' + timelines.map(function (timeline) {
+        return '<article><div><h4>' + esc(timeline.subject) + '</h4><b>' +
+          timeline.directOpinionReceiptIds.length + '/' + timeline.receipts.length + ' DIRECT</b></div><p>' +
+          esc(timeline.safePublicLabel) + '</p><small>' +
+          timeline.projectedOrAmbiguousReceiptIds.length + ' AMBIGUOUS OR PROJECTED RECEIPTS // CANON BLOCKED</small></article>';
+      }).join("") + '</section><section><header><span>COURT AUDIT</span><b>' +
+      trustEngine.metrics.courts + ' REVIEWED</b></header>' + courts.map(function (court) {
+        return '<article><div><h4>' + esc(court.title) + '</h4><b>' + esc(court.verdict) +
+          '</b></div><p>' + esc(court.safePublicLabel) + '</p><small>' +
+          court.directProsecutionReceipts.length + ' DIRECT PROSECUTION // ' +
+          court.directDefenseReceipts.length + ' DIRECT DEFENSE</small></article>';
+      }).join("") + '</section></div>';
+  }
+
+  function contributionPreview(packet) {
+    if (!packet) return '<div class="contribution-empty"><b>NO PACKET YET.</b><span>Submit a source and timestamp. The desk will package a proposal, not silently rewrite canon.</span></div>';
+    return '<article class="contribution-preview"><header><span>' + esc(packet.schema) +
+      '</span><b>' + esc(packet.status) + '</b></header><h3>' + esc(packet.kind.replace(/-/g, " ").toUpperCase()) +
+      '</h3><dl><div><dt>TARGET</dt><dd>' + esc(packet.target.type + " // " + packet.target.id) +
+      '</dd></div><div><dt>SOURCE</dt><dd>' + esc(packet.proposedEvidence.sourceId) + ' @ ' +
+      timestamp(packet.proposedEvidence.t || 0) + '</dd></div><div><dt>VERIFICATION</dt><dd>' +
+      esc(packet.verificationState) + '</dd></div></dl><p>' + esc(packet.safety) +
+      '</p><footer><button id="copyContribution">COPY PROPOSAL JSON</button><button id="downloadContribution">DOWNLOAD PACKET</button></footer></article>';
+  }
+
+  function renderCommunityMemory() {
+    var missing = trustEngine.contributionPackets.filter(function (packet) {
+      return packet.kind === "transcript-or-human-notes";
+    });
+    return '<div class="canon-lane-head"><div><span>COMMUNITY MEMORY // PROPOSE, NEVER SELF-CERTIFY</span><h3>HELP THE ARCHIVE REMEMBER WHAT THE MACHINE CANNOT.</h3></div><p>A viewer can point to a source, timestamp, and context. The packet remains unreviewed until an editor, owner, or creator makes the required decision.</p></div>' +
+      '<div class="contribution-grid"><form id="contributionForm"><label><span>WHAT ARE YOU ADDING?</span><select id="contributionKind"><option value="new-receipt">NEW RECEIPT</option><option value="context-correction">CONTEXT CORRECTION</option><option value="transcript-or-human-notes">TRANSCRIPT / HUMAN NOTES</option><option value="performer-verification">PERFORMER VERIFICATION</option></select></label>' +
+      '<label><span>TARGET ID OR NAME</span><input id="contributionTarget" required placeholder="character:marky-mark or Halloween"></label>' +
+      '<label><span>YOUTUBE VIDEO ID</span><input id="contributionSource" required maxlength="20" placeholder="5HfhwoDSQ0E"></label>' +
+      '<label><span>TIMESTAMP (SECONDS OR M:SS)</span><input id="contributionTime" required placeholder="1:50:40"></label>' +
+      '<label><span>SHORT CONTEXT NOTE</span><textarea id="contributionExcerpt" maxlength="240" placeholder="What should an editor verify here?"></textarea></label>' +
+      '<button>BUILD UNREVIEWED PROPOSAL →</button><small>No upload occurs in this prototype. Export the packet and send it to the archive owner.</small></form>' +
+      '<aside><div class="missing-memory"><span>KNOWN MEMORY GAPS</span>' +
+      missing.map(function (packet) {
+        return '<button data-fill-contribution="' + esc(packet.proposedEvidence.sourceId) + '"><b>' +
+          esc((showcaseSourceById[packet.proposedEvidence.sourceId] || {}).title || packet.proposedEvidence.sourceId) +
+          '</b><small>CAPTIONS UNAVAILABLE // OFFER HUMAN NOTES</small></button>';
+      }).join("") + '</div>' + contributionPreview(state.canonDraft) + '</aside></div>';
+  }
+
+  function parseContributionTime(value) {
+    var cleanValue = String(value || "").trim();
+    if (/^\d+(\.\d+)?$/.test(cleanValue)) {
+      var seconds = Number(cleanValue);
+      return Number.isFinite(seconds) ? seconds : NaN;
+    }
+    if (!/^\d+:\d{1,2}(?::\d{1,2})?$/.test(cleanValue)) return NaN;
+    var parts = cleanValue.split(":").map(Number);
+    if (parts.slice(1).some(function (part) { return part >= 60; })) return NaN;
+    return parts.reduce(function (total, part) { return total * 60 + part; }, 0);
+  }
+
+  function bindCanon() {
+    Array.prototype.forEach.call(document.querySelectorAll("[data-canon-tab]"), function (button) {
+      button.onclick = function () {
+        state.canonTab = button.getAttribute("data-canon-tab");
+        renderCanon();
+      };
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-canon-source]"), function (button) {
+      button.onclick = function () {
+        var id = button.getAttribute("data-canon-source");
+        if (itemById[id]) openDossier(id);
+        else if (streamById[id]) openLiveDossier(id);
+        else openLooseSource(id, 0, "WWAM SOURCE");
+      };
+    });
+    bindMemoryReceipts();
+    Array.prototype.forEach.call(document.querySelectorAll("[data-correction-packet]"), function (button) {
+      button.onclick = function () {
+        var packet = trustEngine.buildCorrectionPacket(button.getAttribute("data-correction-packet"));
+        if (packet) copy(JSON.stringify(packet, null, 2), "CORRECTION PACKET COPIED");
+      };
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-fill-contribution]"), function (button) {
+      button.onclick = function () {
+        document.getElementById("contributionKind").value = "transcript-or-human-notes";
+        document.getElementById("contributionSource").value = button.getAttribute("data-fill-contribution");
+        document.getElementById("contributionTarget").value = button.getAttribute("data-fill-contribution");
+        document.getElementById("contributionTime").value = "0";
+        ["contributionTarget", "contributionSource", "contributionTime"].forEach(function (id) {
+          document.getElementById(id).setCustomValidity("");
+        });
+      };
+    });
+    ["contributionTarget", "contributionSource", "contributionTime"].forEach(function (id) {
+      var control = document.getElementById(id);
+      if (control) control.oninput = function () { control.setCustomValidity(""); };
+    });
+    var form = document.getElementById("contributionForm");
+    if (form) form.onsubmit = function (event) {
+      event.preventDefault();
+      var sourceId = document.getElementById("contributionSource").value.trim();
+      var sourceInput = document.getElementById("contributionSource");
+      var targetInput = document.getElementById("contributionTarget");
+      var targetId = targetInput.value.trim();
+      var timeInput = document.getElementById("contributionTime");
+      var at = parseContributionTime(timeInput.value);
+      sourceInput.setCustomValidity(/^[A-Za-z0-9_-]{11}$/.test(sourceId) ? "" : "Enter the 11-character YouTube video ID.");
+      targetInput.setCustomValidity(targetId ? "" : "Enter the archive entry, source, or character this proposal concerns.");
+      timeInput.setCustomValidity(Number.isFinite(at) && at >= 0 ? "" : "Enter seconds or a valid M:SS / H:MM:SS timestamp.");
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+      var kind = document.getElementById("contributionKind").value;
+      var targetType = kind === "performer-verification" ? "character" :
+        kind === "transcript-or-human-notes" ? "source" : "archive-entry";
+      state.canonDraft = trustEngine.buildContributionPacket({
+        kind: kind,
+        targetType: targetType,
+        targetId: targetId,
+        sourceId: sourceId,
+        t: at,
+        url: "https://www.youtube.com/watch?v=" + sourceId + "&t=" + Math.round(at) + "s",
+        excerpt: document.getElementById("contributionExcerpt").value.trim(),
+      });
+      renderCanon();
+      showToast("UNREVIEWED CONTRIBUTION PACKET BUILT");
+    };
+    var copyContribution = document.getElementById("copyContribution");
+    if (copyContribution) copyContribution.onclick = function () {
+      copy(JSON.stringify(state.canonDraft, null, 2), "CONTRIBUTION PACKET COPIED");
+    };
+    var downloadContribution = document.getElementById("downloadContribution");
+    if (downloadContribution) downloadContribution.onclick = function () {
+      downloadJson("wwam-community-memory-proposal.json", state.canonDraft);
+      showToast("CONTRIBUTION PACKET DOWNLOADED");
+    };
+  }
+
+  function renderCanon() {
+    if (!trustEngine) {
+      document.getElementById("canonStage").innerHTML = '<p class="memory-empty">' +
+        (state.creatorEnginesSettled ? "THE TRUST DESK COULD NOT INITIALIZE." : "RUNNING THE TRUST AUDIT…") +
+        '</p>';
+      return;
+    }
+    var metrics = trustEngine.metrics;
+    document.getElementById("canonProof").innerHTML = [
+      [metrics.healthySources + "/" + metrics.sources, "HEALTHY SOURCES"],
+      [metrics.invalidTimestamps, "INVALID TIMESTAMPS"],
+      [metrics.ordinaryCharacterMentionsQuarantined, "MENTIONS QUARANTINED"],
+      [metrics.reviewCandidates, "OPEN HUMAN REVIEWS"],
+      [metrics.publicExcerptViolations, "RAW EXCERPTS UI-CAPPED"],
+    ].map(function (stat) {
+      return '<div><b>' + stat[0] + '</b><span>' + stat[1] + '</span></div>';
+    }).join("");
+    Array.prototype.forEach.call(document.querySelectorAll("[data-canon-tab]"), function (button) {
+      button.classList.toggle("on", button.getAttribute("data-canon-tab") === state.canonTab);
+    });
+    var content = state.canonTab === "review" ? renderReviewQueue() :
+      state.canonTab === "characters" ? renderCharacterFirewall() :
+      state.canonTab === "claims" ? renderClaimAudit() :
+      state.canonTab === "contribute" ? renderCommunityMemory() : renderSourceHealth();
+    document.getElementById("canonStage").innerHTML = content;
+    bindCanon();
+  }
+
   function renderLabs() {
     document.getElementById("labTabs").innerHTML = deep.franchises.map(function (franchise) {
       return '<button class="' + (state.lab === franchise.name ? "on" : "") + '" data-lab="' + esc(franchise.name) +
@@ -1529,55 +3125,254 @@
 
   function setBand(value, persist) {
     state.redBand = value === "red";
-    if (persist) localStorage.setItem("wwam-band", state.redBand ? "red" : "bleep");
+    var preferencePersisted = !persist ||
+      storageSet("wwam-band", state.redBand ? "red" : "bleep");
     document.body.classList.toggle("office-bleep", !state.redBand);
-    document.getElementById("bandToggle").textContent = "OFFICE BLEEP: " + (state.redBand ? "OFF" : "ON");
+    document.getElementById("bandToggle").textContent = "REDUCED PROFANITY: " + (state.redBand ? "OFF" : "ON");
     renderHeroConsole();
     renderHot100();
     renderSoundbytes();
+    refreshSoundPlayerCopy();
     renderCharacter();
+    refreshCharacterAnswerCopy();
     renderMemory();
+    renderLore();
+    renderTrivia();
     renderControlRoom();
+    renderClipLab();
     renderLabs();
+    renderEvidenceBag();
+    if (state.lastAskQuery && askEngine) {
+      ask(state.lastAskQuery, state.lastAskAnalysis);
+    }
     var openModal = document.getElementById("tapeModal").classList.contains("show");
     if (openModal) {
       var params = new URLSearchParams(location.search);
       if (params.get("tape")) openDossier(params.get("tape"), params.get("at"));
       else if (params.get("live")) openLiveDossier(params.get("live"), params.get("at"));
     }
+    if (!preferencePersisted) showToast("LANGUAGE PREFERENCE KEPT FOR THIS TAB ONLY");
   }
 
   function renderTour() {
     var slide = tourSlides[state.tourSlide];
     document.getElementById("tourBody").innerHTML =
       '<div class="tour-number">' + slide.number + '</div><div><p>' + slide.eyebrow + '</p><h2>' + slide.title +
-      '</h2><span>' + slide.body + '</span><blockquote>' + slide.proof + '</blockquote></div>';
+      '</h2><span>' + slide.body + '</span><blockquote>' + slide.proof +
+      '</blockquote><button class="tour-proof-button" data-tour-proof>' + esc(slide.action.label) +
+      ' →</button></div>';
     document.getElementById("tourProgress").style.width = ((state.tourSlide + 1) / tourSlides.length * 100) + "%";
     document.getElementById("tourCounter").textContent = (state.tourSlide + 1) + " / " + tourSlides.length;
     document.getElementById("tourBack").disabled = state.tourSlide === 0;
     document.getElementById("tourNext").textContent = state.tourSlide === tourSlides.length - 1 ? "COPY DEMO LINK" : "NEXT →";
+    document.querySelector("[data-tour-proof]").onclick = runTourProof;
+  }
+
+  function runTourProof() {
+    var action = tourSlides[state.tourSlide].action;
+    closeTour();
+    var targetId = action.kind === "ask" ? "ask" :
+      action.kind === "lore" ? "lore" :
+        action.kind === "clip" ? "clip-lab" :
+          action.kind === "canon" ? "canon" : "trivia";
+    history.replaceState(null, "", location.pathname + location.search + "#" + targetId);
+    if (action.kind === "ask") {
+      document.getElementById("askInput").value = action.query;
+      ask(action.query);
+      document.getElementById("ask").scrollIntoView({ behavior: "smooth" });
+    } else if (action.kind === "lore") {
+      state.loreKind = "character";
+      state.loreSelected = action.entry;
+      state.loreQuery = "";
+      document.getElementById("loreSearch").value = "";
+      renderLore();
+      document.getElementById("lore").scrollIntoView({ behavior: "smooth" });
+    } else if (action.kind === "clip") {
+      state.clipMode = "shorts";
+      state.clipQuery = action.query;
+      document.getElementById("clipSearch").value = action.query;
+      renderClipLab();
+      document.getElementById("clip-lab").scrollIntoView({ behavior: "smooth" });
+    } else if (action.kind === "canon") {
+      state.canonTab = action.tab;
+      renderCanon();
+      document.getElementById("canon").scrollIntoView({ behavior: "smooth" });
+    } else {
+      document.getElementById("trivia").scrollIntoView({ behavior: "smooth" });
+      focusSoon("#triviaStart");
+    }
   }
 
   function openTour() {
+    rememberDialogFocus();
     state.tourSlide = 0;
     renderTour();
     document.getElementById("pitchTour").classList.add("show");
     document.getElementById("pitchTour").setAttribute("aria-hidden", "false");
     document.body.classList.add("modal-open");
     history.replaceState(null, "", "#pitch");
+    syncBackgroundInert();
+    focusSoon("#tourClose");
   }
 
   function closeTour() {
     document.getElementById("pitchTour").classList.remove("show");
     document.getElementById("pitchTour").setAttribute("aria-hidden", "true");
     document.body.classList.remove("modal-open");
+    if (location.hash === "#pitch") {
+      history.replaceState(null, "", location.pathname + location.search);
+    }
+    syncBackgroundInert();
+    restoreDialogFocus();
+  }
+
+  function rememberDialogFocus() {
+    if (document.activeElement && document.activeElement !== document.body &&
+        !(document.activeElement.closest && document.activeElement.closest("[inert]"))) {
+      lastDialogFocus = document.activeElement;
+    }
+  }
+
+  function focusSoon(target) {
+    setTimeout(function () {
+      var element = typeof target === "string" ? document.querySelector(target) : target;
+      if (element && typeof element.focus === "function") element.focus();
+    }, 0);
+  }
+
+  function restoreDialogFocus() {
+    if (lastDialogFocus && lastDialogFocus.isConnected && typeof lastDialogFocus.focus === "function") {
+      focusSoon(lastDialogFocus);
+    }
+    lastDialogFocus = null;
+  }
+
+  function activeDialog() {
+    var gate = document.getElementById("contentGate");
+    if (gate && !gate.classList.contains("gone")) return gate;
+    if (state.bagOpen) return document.getElementById("evidenceBag");
+    if (document.getElementById("pitchTour").classList.contains("show")) return document.getElementById("pitchTour");
+    if (document.getElementById("tapeModal").classList.contains("show")) return document.getElementById("tapeModal");
+    return null;
+  }
+
+  function syncBackgroundInert() {
+    var blocked = Boolean(activeDialog());
+    Array.prototype.forEach.call(document.querySelectorAll(
+      "body > nav, body > main, body > footer, #evidenceBagOpen"
+    ), function (element) {
+      if (blocked) element.setAttribute("inert", "");
+      else element.removeAttribute("inert");
+    });
+  }
+
+  function trapDialogFocus(event) {
+    if (event.key !== "Tab") return;
+    var dialog = activeDialog();
+    if (!dialog) return;
+    var focusable = Array.prototype.filter.call(dialog.querySelectorAll(
+      'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'
+    ), function (element) {
+      return !element.hasAttribute("inert") && element.getAttribute("aria-hidden") !== "true";
+    });
+    if (!focusable.length) return;
+    var first = focusable[0];
+    var last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
   }
 
   function bindPage() {
+    document.getElementById("triviaDifficulty").onchange = function (event) {
+      state.triviaDifficulty = event.target.value;
+    };
+    document.getElementById("triviaLength").onchange = function (event) {
+      state.triviaLength = Number(event.target.value);
+      document.getElementById("triviaStart").textContent =
+        "DEAL ME " + state.triviaLength + " →";
+    };
+    document.getElementById("triviaFranchise").onchange = function (event) {
+      state.triviaFranchise = event.target.value;
+    };
+    document.getElementById("triviaStart").onclick = function () {
+      if (!tapeTriviaEngine) return showToast("THE TRIVIA DECK IS STILL SHUFFLING");
+      startTrivia(true);
+    };
+    document.getElementById("loreSearch").oninput = function (event) {
+      state.loreQuery = event.target.value;
+      renderLore();
+    };
+    document.getElementById("clipSearch").oninput = function (event) {
+      state.clipQuery = event.target.value;
+      renderClipLab();
+    };
+    document.getElementById("clipRisk").onchange = function (event) {
+      state.clipRisk = event.target.value;
+      renderClipLab();
+    };
+    document.getElementById("campaignCopy").onclick = function () {
+      if (!clipLabEngine) return showToast("THE CLIP LAB IS STILL INDEXING");
+      copy(clipLabEngine.exportManifest(campaignManifest(), 2), "EDITORIAL CAMPAIGN COPIED");
+    };
+    document.getElementById("campaignDownload").onclick = function () {
+      if (!clipLabEngine) return showToast("THE CLIP LAB IS STILL INDEXING");
+      downloadJson("wwam-editorial-campaign.json", campaignManifest());
+      showToast("EDITORIAL CAMPAIGN DOWNLOADED");
+    };
+    document.getElementById("campaignClear").onclick = function () {
+      state.campaignIds = [];
+      campaignSnapshots = {};
+      var persisted = saveCampaignIds();
+      renderClipLab();
+      showToast(persisted ? "THE CAMPAIGN TRAY IS CLEAR" :
+        "CAMPAIGN CLEARED // THIS TAB ONLY");
+    };
+    document.getElementById("evidenceBagOpen").onclick = function () {
+      rememberDialogFocus();
+      state.bagOpen = true;
+      renderEvidenceBag();
+      focusSoon("#evidenceBagClose");
+    };
+    document.getElementById("evidenceBagClose").onclick = function () {
+      state.bagOpen = false;
+      renderEvidenceBag();
+      restoreDialogFocus();
+    };
+    document.getElementById("evidenceBagScrim").onclick = function () {
+      state.bagOpen = false;
+      renderEvidenceBag();
+      restoreDialogFocus();
+    };
+    document.getElementById("evidenceBagCopy").onclick = copyEvidenceManifest;
+    document.getElementById("evidenceBagDownload").onclick = downloadEvidenceManifest;
+    document.getElementById("evidenceBagClear").onclick = function () {
+      state.evidenceBag = [];
+      var persisted = saveEvidenceBag();
+      renderEvidenceBag();
+      showToast(persisted ? "THE EVIDENCE BAG HAS BEEN BURNED" :
+        "EVIDENCE BAG CLEARED // THIS TAB ONLY");
+    };
+    document.addEventListener("click", function (event) {
+      var button = event.target.closest && event.target.closest("[data-bag-add]");
+      if (!button) return;
+      event.preventDefault();
+      event.stopPropagation();
+      addToEvidenceBag(readBagButton(button));
+    });
     Array.prototype.forEach.call(document.querySelectorAll("[data-band]"), function (button) {
       button.onclick = function () {
         setBand(button.getAttribute("data-band"), true);
-        document.getElementById("contentGate").classList.add("gone");
+        var gate = document.getElementById("contentGate");
+        gate.classList.add("gone");
+        gate.setAttribute("aria-hidden", "true");
+        syncBackgroundInert();
+        focusSoon("#top");
+        openInitialRoute();
       };
     });
     document.getElementById("bandToggle").onclick = function () { setBand(state.redBand ? "bleep" : "red", true); };
@@ -1642,8 +3437,13 @@
       if (event.target.id === "tapeModal") closeDossier();
     };
     document.addEventListener("keydown", function (event) {
+      trapDialogFocus(event);
       if (event.key === "Escape") {
-        if (document.getElementById("pitchTour").classList.contains("show")) closeTour();
+        if (state.bagOpen) {
+          state.bagOpen = false;
+          renderEvidenceBag();
+          restoreDialogFocus();
+        } else if (document.getElementById("pitchTour").classList.contains("show")) closeTour();
         else if (document.getElementById("tapeModal").classList.contains("show")) closeDossier();
       }
     });
@@ -1661,7 +3461,32 @@
     };
   }
 
+  function openInitialRoute() {
+    if (state.initialRouteHandled) return;
+    var gate = document.getElementById("contentGate");
+    if (gate && !gate.classList.contains("gone")) return;
+    state.initialRouteHandled = true;
+    var params = new URLSearchParams(location.search);
+    if (params.get("tape")) {
+      setTimeout(function () { openDossier(params.get("tape"), params.get("at")); }, 50);
+    } else if (params.get("live")) {
+      setTimeout(function () { openLiveDossier(params.get("live"), params.get("at")); }, 50);
+    } else if (params.get("ask")) {
+      setTimeout(function () {
+        var sharedQuestion = params.get("ask").slice(0, 240);
+        document.getElementById("askInput").value = sharedQuestion;
+        ask(sharedQuestion);
+        document.getElementById("ask").scrollIntoView();
+      }, 50);
+    } else if (location.hash === "#pitch") {
+      setTimeout(openTour, 50);
+    }
+  }
+
   function init() {
+    document.body.classList.toggle("office-bleep", !state.redBand);
+    document.getElementById("bandToggle").textContent =
+      "REDUCED PROFANITY: " + (state.redBand ? "OFF" : "ON");
     document.getElementById("consoleStatus").textContent = "SCANNING " +
       fmt(deep.meta.wordsAudited + live.meta.wordsAudited + (popular.meta.wordsAudited || 0)) + " WORDS";
     renderProof();
@@ -1680,26 +3505,38 @@
     renderPopularTopics();
     renderPopular();
     renderMemory();
+    renderLore();
+    renderTrivia();
     renderControlRoom();
+    renderClipLab();
+    renderCanon();
     renderAskExamples();
     renderFranchises();
     renderFranchiseFilters();
     renderVault();
     renderLabs();
+    renderEvidenceBag();
     bindPage();
-    setBand(state.redBand ? "red" : "bleep", false);
 
-    if (localStorage.getItem("wwam-band")) document.getElementById("contentGate").classList.add("gone");
+    if (storageGet("wwam-band")) {
+      document.getElementById("contentGate").classList.add("gone");
+      document.getElementById("contentGate").setAttribute("aria-hidden", "true");
+    } else {
+      focusSoon('[data-band="red"]');
+    }
+    syncBackgroundInert();
+    openInitialRoute();
+    scheduleIdle(createDeepEngines, 700);
     if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       setInterval(function () {
+        var consoleNode = document.getElementById("heroConsole");
+        if (document.hidden || !consoleNode ||
+            consoleNode.matches(":hover") || consoleNode.contains(document.activeElement) ||
+            activeDialog()) return;
         state.consoleIndex += 1;
         renderHeroConsole();
       }, 5200);
     }
-    var params = new URLSearchParams(location.search);
-    if (params.get("tape")) setTimeout(function () { openDossier(params.get("tape"), params.get("at")); }, 50);
-    else if (params.get("live")) setTimeout(function () { openLiveDossier(params.get("live"), params.get("at")); }, 50);
-    else if (location.hash === "#pitch") setTimeout(openTour, 50);
   }
 
   init();
