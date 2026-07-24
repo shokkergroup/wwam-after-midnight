@@ -7,7 +7,7 @@ character archaeology, topic paths, and creator-side editorial opportunities.
 This is an unofficial fan prototype. It sends playback and source traffic back
 to the official WWAM uploads.
 
-## Audited scope — July 23 source snapshot, V5.5 product audit on July 24, 2026
+## Audited scope — July 23 source snapshot, V5.6 product audit on July 24, 2026
 
 - 39 franchise commentaries: 13 Halloween, 12 Friday the 13th, 6 Scream, and
   8 A Nightmare on Elm Street
@@ -47,7 +47,7 @@ The Lore Galaxy exposes 953 labeled graph receipt links. That broader count
 includes source entry points and context records; the 872 count is the
 editorial-moment inventory.
 
-## V5.5 product map
+## V5.6 product map
 
 The hero offers three deliberate entry points:
 
@@ -60,8 +60,9 @@ The hero offers three deliberate entry points:
   the whole-feed Archive Atlas.
 - **Creator Proof:** Clip Lab edit briefs, exact-runtime Cold Open Factory
   boards, supercut spines, then/now resurfacing, Live Aftermath, Control Room,
-  the Trust / Canon Desk, the local Creator Taste Calibration, a 457-finding
-  Human Review Session, and four evidence-backed Creator Pilot briefs.
+  the Trust / Canon Desk, the local Creator Taste Calibration, Fresh Tape
+  Intake, a 457-finding Human Review Session, and four evidence-backed Creator
+  Pilot briefs.
 
 Mike Mode is a six-beat private-screening walkthrough. Each beat exits the
 pitch and opens working proof: Night Shift, Ask WWAM, the whole-feed Archive
@@ -86,6 +87,19 @@ and 2,967 receipt-backed Lore connections. The surface never copies media, the
 player keeps autoplay off, and the playback UI exposes event text only through
 snapshot-safe and crossed-event APIs after the indexed second is crossed. The
 full compiled timeline remains an explicit audit API, not a playback feed.
+
+Fresh Tape Intake is a bounded, device-local route for testing a newly supplied
+source without pretending the public snapshot refreshed itself. It accepts
+explicit source metadata plus WebVTT, SRT, YouTube JSON3, or plain text. Timed
+inputs can produce source-bound machine candidates; plain text is held with
+zero candidates because it has no timestamp evidence. The feature performs no
+network fetch, does not verify channel ownership or user identity, assigns no
+speaker, and cannot promote anything into canon or another product lane. Its
+export omits the raw transcript and can be structurally rechecked against the
+ChannelPack, rule set, source boundaries, exact-event ledger, and artifact
+fingerprint. The deterministic FNV fingerprints are change detectors only;
+they do not verify source content, authenticity, ownership, speaker identity,
+or authority.
 
 The current creator inventory contains 560 timestamped Short candidates across
 71 sources, 32 multi-source supercut bundles, 21 then/now resurfacing
@@ -205,6 +219,12 @@ establish which host is speaking.
 - Creator Taste Calibration records unauthenticated local preferences, not
   creator approval. Its deterministic checksum is a consistency check, not a
   signature.
+- Fresh Tape Intake records local, quarantined review inventory only. A valid
+  YouTube URL proves URL structure and source-ID agreement, not that the upload
+  belongs to the configured channel. A verifiable export proves artifact
+  consistency, not authorship, authentication, review, speaker identity, or
+  promotion. Its explicit verification result keeps authenticity,
+  source-content, and authority flags false.
 
 ### Evidence vocabulary
 
@@ -268,11 +288,12 @@ artifacts contain derived measurements and short, timestamped fragments only.
 
 ## Documentation
 
-- [V5.5 product overview](docs/V5_OVERVIEW.md)
+- [V5.6 product overview](docs/V5_OVERVIEW.md)
 - [Creator demo runbook](docs/CREATOR_DEMO_RUNBOOK.md)
 - [Product changelog](docs/CHANGELOG.md)
 - [Reusable YouTube Wiki Memory OS](docs/YOUTUBE_WIKI_MEMORY_OS.md)
 - [Executable ChannelPack V1 contract](docs/CHANNEL_PACK_CONTRACT.md)
+- [Fresh Tape Intake contract](docs/FRESH_TAPE_INTAKE.md)
 - [Tape Companion contract](docs/TAPE_COMPANION.md)
 - [Creator Taste Calibration contract](docs/CREATOR_TASTE_CALIBRATION.md)
 - [Creator Clip Lab contract](docs/CREATOR_CLIP_LAB.md)

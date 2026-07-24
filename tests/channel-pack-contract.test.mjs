@@ -76,11 +76,12 @@ test("the WWAM DNA compiles into a deterministic, fingerprinted ChannelPack", ()
     "character-studio",
     "creator-clip-lab",
     "creator-taste-calibration",
+    "fresh-tape-intake",
     "memory-graph",
     "red-band-candidate-index",
     "tape-companion"
   ]);
-  assert.equal(first.fingerprint, "cp1-59e4817559149f96");
+  assert.equal(first.fingerprint, "cp1-8ac1488f4f78448c");
   assert.equal(first.fingerprint, second.fingerprint);
   assert.deepEqual(plain(first), plain(second));
   assert.deepEqual(plain(report), {
@@ -332,8 +333,25 @@ test("the downloadable JSON Schema and executable compiler describe the same saf
   assert.deepEqual(spec.properties.capabilities.examples[0], [
     "ask-the-tape",
     "creator-taste-calibration",
+    "fresh-tape-intake",
     "tape-companion"
   ]);
+  assert.match(
+    spec["x-shokker-conformance"].freshTapeIntakeRule,
+    /no network fetch/i
+  );
+  assert.match(
+    spec["x-shokker-conformance"].freshTapeIntakeRule,
+    /holds untimed text with zero candidates/i
+  );
+  assert.match(
+    spec["x-shokker-conformance"].freshTapeIntakeRule,
+    /FNV-bound structural verification/i
+  );
+  assert.match(
+    spec["x-shokker-conformance"].freshTapeIntakeRule,
+    /do not prove source content, authenticity, ownership, speaker identity, or authority/i
+  );
   assert.match(compiler, /ChannelPack rejected/);
   assert.match(compiler, /namespace-collision/);
   assert.match(

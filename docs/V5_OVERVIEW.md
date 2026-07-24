@@ -1,4 +1,4 @@
-# WWAM After Midnight V5.5
+# WWAM After Midnight V5.6
 
 ## One-sentence product
 
@@ -15,9 +15,9 @@ masquerading as timestamped utterances.
 
 ## Audited snapshot
 
-The V5.5 release preserves the July 23 source snapshot and July 24 Archive Deep
-Batch 01 audit while adding synchronized playback, retrieval-planning, and
-local creator-taste contracts:
+The V5.6 release preserves the July 23 source snapshot and July 24 Archive Deep
+Batch 01 audit while adding synchronized playback, retrieval-planning, local
+creator-taste, and bounded fresh-tape intake contracts:
 
 | Source lane | Coverage |
 | --- | ---: |
@@ -148,6 +148,10 @@ The archive becomes navigable memory:
   without presenting metadata as a content answer. Its Autopsied Batch 01 row
   exposes the ten newly caption-audited sources without promoting their 42
   machine candidates into editorial canon.
+- Fresh Tape Intake can examine manually supplied WebVTT, SRT, or YouTube JSON3
+  against a declared source lane and channel-native literal rules. Its exact
+  timed matches remain quarantined review inventory. Untimed plain text is held
+  with zero candidates instead of receiving invented timestamps.
 - Fresh 10, Popular 25, franchise reports, and tape autopsies preserve the
   channel-specific reason each source matters.
 
@@ -277,6 +281,13 @@ not silently absorb Archive Deep Batch 01:
   caption gaps; synchronization does not manufacture timed claims for them.
 - Creator Taste sessions label the operator `UNAUTHENTICATED LOCAL OPERATOR`.
   A checksum detects drift but is not a signature or creator authorization.
+- Fresh Tape Intake performs no network fetch, cannot verify channel ownership
+  or operator identity, assigns no speaker, and cannot promote a result. Its
+  raw transcript is omitted from export; the remaining artifact can be
+  structurally checked against its ChannelPack, rule, source, event-ledger, and
+  artifact fingerprints. Those FNV fingerprints are deterministic change
+  detectors only. Source-content, authenticity, and authority verification
+  remain explicitly false.
 
 Separately, the full proof snapshot contains 84 source inputs: 81
 caption-audited and 3 sealed or limited. Archive Deep contributes the ten-source
@@ -307,6 +318,7 @@ consistently shortened at render time.
 | Source-synchronized companion rail with manual fallback | Guaranteed player API availability or owned playback |
 | Local Evidence Bag, Human Review Session, and JSON exports | Shared accounts, remote queues, and owner-controlled approval |
 | Local, bounded taste calibration | Authenticated creator identity or shared preference profiles |
+| Local, bounded fresh-tape parsing and verifiable quarantine export | Trusted feed ingestion, authenticated review, and promotion into production ledgers |
 | Machine and timestamp-validated human-curated candidate labels | Any authenticated editor-verified or creator-certified receipts; clip-level diarization |
 | Candidate edit plans | Human final cuts, rights, and platform review |
 | Current source snapshot | Scheduled ingest and monitoring |
@@ -323,7 +335,7 @@ they become seasons, races, drivers, lead changes, close finishes, booth
 intensity, and recurring broadcast moments. The system is portable; the
 personality and proof are not generic.
 
-Two V5.5 patterns make that portability executable:
+Three V5.6 patterns make that portability executable:
 
 - **Synchronized evidence:** a source adapter supplies official playback,
   exact receipt markers, derived heat windows, entity annotations, and
@@ -333,3 +345,9 @@ Two V5.5 patterns make that portability executable:
   Explicit local choices may add only a capped ranking modifier, while
   ChannelPack, Clip Lab, inventory, goal, and decision ledgers remain
   fingerprint-bound. Preference never becomes evidence or approval.
+- **Bounded intake:** a channel adapter supplies source lanes and surface
+  vocabulary while a local rule set supplies literal topic and signal terms.
+  Only timed caption events can yield candidates, and those candidates remain
+  undiarized quarantine. Plain text is held, raw transcripts stay out of
+  exports, and a valid export proves structural consistency rather than source
+  content, authenticity, ownership, speaker identity, authority, or canon.

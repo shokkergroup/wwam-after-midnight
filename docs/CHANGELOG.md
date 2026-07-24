@@ -3,6 +3,55 @@
 This changelog records product and evidence-contract changes. It does not by
 itself indicate that a build has been deployed.
 
+## 0.5.6 — V5.6 bounded fresh-tape intake — 2026-07-24
+
+### Added
+
+- **Fresh Tape Intake V1** provides a universal, browser-safe intake boundary
+  for a newly supplied YouTube source and transcript. The 67,182-byte engine
+  supports WebVTT, SRT, YouTube JSON3, and plain text, and its focused contract
+  suite contains 23 cases.
+- Timed transcripts produce deterministic topic and signal candidates bound to
+  a declared ChannelPack lane, exact source ID, canonical official YouTube URL,
+  source date, duration, caption event, literal matching rule, and indexed
+  second.
+- Untimed plain text enters a visible `held` state with
+  `UNTIMED_TRANSCRIPT` and zero candidates. The system does not manufacture
+  timestamps from paragraph order.
+- Canonical JSON exports omit the raw transcript and bind the channel, current
+  ChannelPack, intake rules, source, event ledger, bounded excerpts, and all
+  candidate derivations. `verifyExport()` rejects drift or tampering.
+- ChannelPack now declares `fresh-tape-intake` as an implemented WWAM
+  capability. The resulting V5.6 pack fingerprint is
+  `cp1-8ac1488f4f78448c`.
+
+### Accuracy and authority boundaries
+
+- Intake performs no network fetch. The operator supplies both source metadata
+  and transcript content.
+- Official YouTube URL shape and exact video-ID agreement are validated, but
+  channel ownership is explicitly `channel-ownership-unverified`.
+- Every derived item remains machine-surfaced, unreviewed, quarantined,
+  undiarized, and ineligible for promotion. Intake authenticates no reviewer or
+  creator, certifies no speaker, and writes nothing into Canon, Red Band, WWAM
+  UP IN YA, Lore, Ask, or any promoted receipt ledger.
+- Every intake fingerprint is an FNV-based deterministic structural change
+  detector only. `verifyExport()` reports `structural-change-detection-only`
+  while keeping source-content, authenticity, and authority verification
+  explicitly false. A match is not source proof, an identity signature,
+  ownership verification, speaker attribution, rights clearance, or creator
+  approval.
+- Candidate-event receipts bind each public candidate to its exported event
+  time, content fingerprint, public-excerpt fingerprint, and matched rule IDs
+  without retaining raw transcript text. This prevents internal
+  candidate/ledger drift; it remains structural consistency, not authenticity.
+- Word, caption-event, and public-excerpt word ceilings are reinforced with
+  maximum character counts per word, caption event, and public excerpt so a
+  single giant token cannot bypass the public boundary.
+- The same engine is exercised with WWAM and synthetic racing vocabulary.
+  ChannelPack lanes, labels, literal rules, storage binding, and export
+  fingerprinting change; the quarantine contract does not.
+
 ## 0.5.5 — V5.5 synchronized memory and creator-taste pass — 2026-07-24
 
 ### Added

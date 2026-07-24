@@ -113,13 +113,16 @@ test("application element lookups are either static or explicitly dialog-generat
 
 test("the first-load static payload stays inside the showcase performance budget", () => {
   const scripts = matches(html, /<script[^>]*\bsrc="([^"]+)"/g);
-  const criticalFiles = [...scripts, "styles.css"];
+  const stylesheets = matches(html, /<link[^>]*\bhref="([^"]+\.css(?:\?[^"]*)?)"/g)
+    .filter((file) => !/^https?:/i.test(file));
+  const criticalFiles = [...scripts, ...stylesheets];
   const sizes = criticalFiles.map((file) => ({
     file,
-    bytes: fs.statSync(path.join(demoRoot, file)).size,
+    bytes: fs.statSync(path.join(demoRoot, file.split("?")[0])).size,
   }));
   const totalBytes = sizes.reduce((sum, item) => sum + item.bytes, 0);
 
+  assert.equal(criticalFiles.includes("fresh-tape-intake.css"), false);
   assert.ok(totalBytes < 1_500_000, `first-load source payload grew to ${totalBytes} bytes`);
   sizes.filter((item) => item.file.endsWith(".js")).forEach((item) => {
     assert.ok(item.bytes < 250_000, `${item.file} grew to ${item.bytes} bytes`);

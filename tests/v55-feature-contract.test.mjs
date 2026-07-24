@@ -18,15 +18,26 @@ function lazyChains() {
 
 test("every V5.5 lazy feature asset exists and stays below the per-script cap", () => {
   const chains = lazyChains();
-  assert.deepEqual(chains, [
-    ["red-band-ranking-v2.js", "tape-companion-engine.js", "tape-companion-ui.js"],
+  const requiredV55Chains = [
+    [
+      "red-band-ranking-v2.js",
+      "tape-companion-engine.js",
+      "tape-companion-ui.js",
+    ],
     [
       "channel-pack-contract.js",
       "wwam-channel-pack-adapter.js",
       "creator-taste-engine.js",
       "creator-taste-ui.js",
     ],
-  ]);
+  ];
+  for (const expected of requiredV55Chains) {
+    assert.equal(
+      chains.some((chain) => JSON.stringify(chain) === JSON.stringify(expected)),
+      true,
+      `missing V5.5 lazy chain: ${expected.join(",")}`,
+    );
+  }
 
   for (const file of new Set(chains.flat())) {
     const resolved = path.join(demo, file);

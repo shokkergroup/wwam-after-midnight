@@ -42,6 +42,7 @@
     <div class="nav-links">
       <a href="#companion">TAPE COMPANION</a>
       <a href="#archive">ARCHIVE ATLAS</a>
+      <a href="#fresh-intake">DROP ZONE</a>
       <a href="#characters">CHARACTERS</a>
       <a href="#lore">LORE GALAXY</a>
       <a href="#clip-lab">CLIP LAB</a>
@@ -322,6 +323,132 @@
           </div>
         </header>
         <div id="archiveQueue"></div>
+      </div>
+    </section>
+
+    <section class="fresh-intake" id="fresh-intake" aria-busy="true"
+      data-feature-styles="fresh-tape-intake.css"
+      data-feature-scripts="channel-pack-contract.js,wwam-channel-pack-adapter.js,fresh-tape-intake-engine.js,fresh-tape-intake-ui.js">
+      <div class="fresh-intake-grid" aria-hidden="true"></div>
+      <header class="section-head">
+        <div>
+          <p class="kicker">LOCAL FRESH-TAPE DROP ZONE // TIMESTAMPS OR IT DIDN'T HAPPEN</p>
+          <h2>FEED THE<br><em>MEMORY.</em></h2>
+        </div>
+        <p>Drop a new source and its transcript into the browser. Timed cues can become exact, playable machine candidates; untimed text is held with zero moment claims. Nothing uploads, nothing becomes canon, and every export stays quarantined.</p>
+      </header>
+      <div class="fresh-intake-proof" id="freshIntakeProof">
+        <article><span>INTAKE ENGINE</span><b>LOADING THE AIRLOCK</b><p>The local parser is binding itself to the channel evidence contract.</p></article>
+      </div>
+      <div class="intake-boundary">
+        <b>THE HARD LINE</b>
+        <p>This tool discovers places a human may want to review. It cannot identify a speaker, authenticate channel ownership, certify a joke, approve a clip, or promote anything into the public archive.</p>
+        <span>LOCAL-ONLY // NO MEDIA DOWNLOAD // NO RAW TRANSCRIPT IN EXPORT</span>
+      </div>
+      <div class="intake-workbench">
+        <form class="intake-form" id="freshIntakeForm">
+          <header>
+            <div>
+              <span>01 // BIND THE SOURCE</span>
+              <h3>WHAT JUST HIT THE TAPE?</h3>
+            </div>
+            <b>OFFICIAL YOUTUBE URL + EXACT ID REQUIRED</b>
+          </header>
+
+          <button class="intake-sample" id="freshIntakeSample" type="button">
+            <span>SAFE WAY TO KICK THE TIRES</span>
+            <b>LOAD SYNTHETIC LOCAL DEMO</b>
+            <small>Invented transcript // not a WWAM upload // not archive proof</small>
+          </button>
+
+          <fieldset>
+            <legend>SOURCE METADATA</legend>
+            <div class="intake-form-grid">
+              <label>
+                <span>YOUTUBE VIDEO ID</span>
+                <input id="freshSourceId" name="sourceId" autocomplete="off"
+                  maxlength="11" placeholder="11 characters" required>
+              </label>
+              <label>
+                <span>OFFICIAL YOUTUBE URL OR ID</span>
+                <input id="freshSourceUrl" name="sourceUrl" autocomplete="url"
+                  inputmode="url" placeholder="https://youtube.com/watch?v=..." required>
+              </label>
+              <label class="intake-wide">
+                <span>FACTUAL SOURCE TITLE</span>
+                <input id="freshSourceTitle" name="sourceTitle" autocomplete="off"
+                  maxlength="240" placeholder="Title exactly as you want it recorded" required>
+              </label>
+              <label>
+                <span>UPLOAD DATE</span>
+                <input id="freshSourceDate" name="sourceDate" type="date" required>
+              </label>
+              <label>
+                <span>DURATION // SECONDS OR HH:MM:SS</span>
+                <input id="freshSourceDuration" name="sourceDuration" autocomplete="off"
+                  inputmode="decimal" placeholder="02:13:05" required>
+              </label>
+              <label class="intake-wide">
+                <span>DECLARED SOURCE LANE</span>
+                <select id="freshSourceLane" name="sourceLane" required>
+                  <option value="">LOADING DECLARED LANES...</option>
+                </select>
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>TRANSCRIPT AIRLOCK</legend>
+            <div class="intake-format-row">
+              <label>
+                <span>TRANSCRIPT FORMAT</span>
+                <select id="freshTranscriptFormat" name="transcriptFormat" required>
+                  <option value="webvtt">WEBVTT // TIMED</option>
+                  <option value="srt">SRT // TIMED</option>
+                  <option value="youtube-json3">YOUTUBE JSON3 // TIMED</option>
+                  <option value="plain-text">PLAIN TEXT // HELD, ZERO CANDIDATES</option>
+                </select>
+              </label>
+              <label class="intake-file">
+                <span>CHOOSE A LOCAL FILE // OPTIONAL</span>
+                <input id="freshTranscriptFile" name="transcriptFile" type="file"
+                  accept=".vtt,.srt,.json,.json3,.txt,text/vtt,text/plain,application/json">
+              </label>
+            </div>
+            <label class="intake-transcript">
+              <span>PASTE TRANSCRIPT CONTENT</span>
+              <textarea id="freshTranscriptContent" name="transcriptContent"
+                spellcheck="false" placeholder="WEBVTT&#10;&#10;00:00:05.000 --&gt; 00:00:09.000&#10;The exact caption event goes here." required></textarea>
+              <small>Raw input stays in this form only until you clear it or leave. The structure-checked JSON export retains bounded excerpts and fingerprints, never the raw transcript; it does not verify authenticity.</small>
+            </label>
+          </fieldset>
+
+          <div class="intake-rules" id="freshIntakeRules">
+            <header><span>ACTIVE LITERAL LENSES</span><b>LOADING...</b></header>
+          </div>
+
+          <div class="intake-form-actions">
+            <button class="primary" id="freshIntakeRun" type="submit">RUN LOCAL INTAKE &rarr;</button>
+            <button id="freshIntakeBurn" type="button">BURN RAW INPUT</button>
+            <button id="freshIntakeClear" type="button">CLEAR EVERYTHING</button>
+          </div>
+        </form>
+
+        <section class="intake-output" aria-labelledby="freshIntakeOutputTitle">
+          <header>
+            <div>
+              <span>02 // INSPECT THE QUARANTINE</span>
+              <h3 id="freshIntakeOutputTitle">THE LOCAL RECEIVING BAY.</h3>
+            </div>
+            <b id="freshIntakeStatus" role="status" aria-live="polite" aria-atomic="true">AIRLOCK INITIALIZING</b>
+          </header>
+          <div id="freshIntakeOutput">
+            <div class="intake-empty">
+              <span>WAITING FOR THE LOCAL ENGINE</span>
+              <h3>NOTHING HAS ENTERED THE LEDGER.</h3>
+            </div>
+          </div>
+        </section>
       </div>
     </section>
 

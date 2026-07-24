@@ -14,29 +14,40 @@ const source = fs.readFileSync(
 function fixture(options = {}) {
   const appended = [];
   const scripts = [];
+  const styles = [];
   let failuresRemaining = Number(options.failures || 0);
+  function append(element, collection, source) {
+    collection.push(element);
+    appended.push(source);
+    if (failuresRemaining > 0) {
+      failuresRemaining -= 1;
+      queueMicrotask(() => element.onerror());
+    } else {
+      queueMicrotask(() => element.onload());
+    }
+  }
   const document = {
     readyState: "complete",
     scripts,
-    body: {
-      appendChild(script) {
-        scripts.push(script);
-        appended.push(script.src);
-        if (failuresRemaining > 0) {
-          failuresRemaining -= 1;
-          queueMicrotask(() => script.onerror());
-        } else {
-          queueMicrotask(() => script.onload());
-        }
+    head: {
+      appendChild(link) {
+        append(link, styles, link.href);
       },
     },
-    createElement() {
+    body: {
+      appendChild(script) {
+        append(script, scripts, script.src);
+      },
+    },
+    createElement(tagName) {
       const attributes = new Map();
       const element = {
+        tagName: String(tagName).toUpperCase(),
         readyState: "",
         addEventListener() {},
         getAttribute(name) {
           if (name === "src") return this.src;
+          if (name === "href") return this.href;
           return attributes.has(name) ? attributes.get(name) : null;
         },
         setAttribute(name, value) {
@@ -44,12 +55,15 @@ function fixture(options = {}) {
         },
       };
       element.remove = () => {
-        const index = scripts.indexOf(element);
-        if (index >= 0) scripts.splice(index, 1);
+        for (const collection of [scripts, styles]) {
+          const index = collection.indexOf(element);
+          if (index >= 0) collection.splice(index, 1);
+        }
       };
       return element;
     },
-    querySelectorAll() {
+    querySelectorAll(selector) {
+      if (selector === 'link[rel~="stylesheet"]') return styles;
       return [];
     },
     addEventListener() {},
@@ -71,11 +85,14 @@ function fixture(options = {}) {
   window.globalThis = window;
   vm.createContext(window);
   vm.runInContext(source, window, { filename: "feature-loader.js" });
-  return { window, appended };
+  return { window, appended, styles };
 }
 
-function section(scriptList) {
-  const attributes = new Map([["data-feature-scripts", scriptList]]);
+function section(scriptList, styleList = "") {
+  const attributes = new Map([
+    ["data-feature-scripts", scriptList],
+    ["data-feature-styles", styleList],
+  ]);
   const events = [];
   const prepended = [];
   return {
@@ -128,19 +145,34 @@ test("feature-loaded scripts advertise compatibility with the main lazy loader",
   assert.equal(script.getAttribute("data-loaded"), "true");
 });
 
+test("feature stylesheets load exactly once even when requested concurrently", async () => {
+  const { window, appended, styles } = fixture();
+  await Promise.all([
+    window.WWAMFeatureLoader.loadStyle("feature-a.css"),
+    window.WWAMFeatureLoader.loadStyle("feature-a.css"),
+  ]);
+
+  assert.deepEqual(appended, ["feature-a.css"]);
+  assert.equal(styles.length, 1);
+  assert.equal(styles[0].rel, "stylesheet");
+  assert.equal(styles[0].getAttribute("data-feature-style"), "feature-a.css");
+  assert.equal(styles[0].getAttribute("data-feature-loaded"), "true");
+});
+
 test("section hydration is ordered, idempotent, and reports ready", async () => {
   const { window, appended } = fixture();
-  const target = section("engine.js, ui.js");
+  const target = section("engine.js, ui.js", "feature.css");
 
   assert.equal(await window.WWAMFeatureLoader.hydrate(target), true);
   assert.equal(target.getAttribute("aria-busy"), "false");
   assert.equal(target.getAttribute("data-feature-state"), "ready");
-  assert.deepEqual(appended, ["engine.js", "ui.js"]);
+  assert.deepEqual(appended, ["feature.css", "engine.js", "ui.js"]);
   assert.equal(target.events.at(-1).type, "wwam:feature-ready");
+  assert.deepEqual(Array.from(target.events.at(-1).detail.styles), ["feature.css"]);
   assert.deepEqual(Array.from(target.events.at(-1).detail.scripts), ["engine.js", "ui.js"]);
 
   assert.equal(await window.WWAMFeatureLoader.hydrate(target), true);
-  assert.deepEqual(appended, ["engine.js", "ui.js"]);
+  assert.deepEqual(appended, ["feature.css", "engine.js", "ui.js"]);
 });
 
 test("a transient script failure exposes a retry and does not poison hydration", async () => {

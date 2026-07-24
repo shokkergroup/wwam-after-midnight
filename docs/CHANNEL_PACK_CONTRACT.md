@@ -22,6 +22,8 @@ title, transcript fragment, or machine candidate into evidence.
   evidence contract documented in `docs/TAPE_COMPANION.md`.
 - `public/demo/creator-taste-engine.js` implements the portable bounded
   preference contract documented in `docs/CREATOR_TASTE_CALIBRATION.md`.
+- `public/demo/fresh-tape-intake-engine.js` implements the portable bounded
+  intake contract documented in `docs/FRESH_TAPE_INTAKE.md`.
 - `tests/fixtures/channel-pack-neutral-racing.mjs` is a synthetic, test-only
   portability fixture. It is not VRL data and is never loaded by the WWAM
   public demo.
@@ -113,7 +115,8 @@ The adapter must explicitly provide:
   capabilities: [
     "receipt-search",
     "tape-companion",
-    "creator-taste-calibration"
+    "creator-taste-calibration",
+    "fresh-tape-intake"
   ]
 }
 ```
@@ -138,9 +141,10 @@ JSON and `cp1-…` fingerprint even if their input order differs. The
 fingerprint is a reproducible change detector, not a cryptographic signature.
 Any post-compile mutation invalidates it.
 
-The current WWAM V5.5 artifact is `cp1-59e4817559149f96`. This value is a
-dated change detector for the compiled policy, not a permanent ID; adding the
-two V5.5 capability declarations intentionally changed it.
+The current WWAM V5.6 artifact is `cp1-8ac1488f4f78448c`. This value is a
+dated change detector for the compiled policy, not a permanent ID. The prior
+V5.5 artifact was `cp1-59e4817559149f96`; declaring
+`fresh-tape-intake` intentionally changed the current fingerprint.
 
 Multiple products can be checked together:
 
@@ -155,7 +159,7 @@ The portfolio validator rejects duplicate channel IDs and storage namespaces.
 That makes "same engine, separate products" an executable rule instead of a
 folder-naming convention.
 
-## V5.5 portable capability patterns
+## V5.6 portable capability patterns
 
 ### Tape Companion
 
@@ -176,10 +180,36 @@ decision ledger. Local preference may change only a bounded derived modifier
 and ordering. It cannot become evidence, canon, identity, rights clearance, or
 creator approval.
 
+### Fresh Tape Intake
+
+The intake engine consumes a compiled ChannelPack, explicit channel-native
+topic and signal rules, manually supplied YouTube source metadata, and a
+manually supplied transcript payload. It performs no network discovery or
+download. WebVTT, SRT, and YouTube JSON3 can yield exact-event candidates;
+plain text has no timestamp proof and is held with zero candidates.
+
+Every candidate remains machine-surfaced, unreviewed, quarantined, undiarized,
+and promotion-ineligible. URL validation establishes only canonical YouTube
+shape and video-ID agreement. It does not verify channel ownership. Export
+verification binds the ChannelPack fingerprint, source lanes, rule
+fingerprint, event-ledger fingerprint, safe excerpt limit, and candidate
+derivation. It does not authenticate an operator or convert a local artifact
+into a promoted product record. All intake fingerprints are FNV-based
+deterministic structural change detectors only. `verifyExport()` leaves source
+content, authenticity, and authority verification explicitly false; it does
+not prove ownership, speaker identity, or any other authority claim.
+
+Configured word and event limits are paired with maximum characters per word,
+caption event, and public excerpt. This prevents a single oversized token from
+bypassing the public excerpt boundary.
+
 These patterns are deliberately separate from channel voice. A horror channel
 can synchronize recurring-character callbacks and calibrate dark-comedy edit
 inventory; a racing channel can synchronize lead changes and cautions and
 calibrate close-finish or booth-intensity inventory through the same contracts.
+Both can also run Fresh Tape Intake with their own source lanes and literal
+rules. The rules and labels change; the no-network, exact-time, no-speaker,
+quarantine, and verifiable-export boundary does not.
 
 ## Portability proof
 
@@ -196,13 +226,15 @@ machine promotion, skipped review, foreign namespaces, speaker guessing,
 missing vocabulary, artifact tampering, and portfolio collisions all fail
 closed.
 
-The Tape Companion and Creator Taste suites separately compile neutral racing
-inputs and reject WWAM or horror vocabulary leakage.
+The Tape Companion, Creator Taste, and Fresh Tape Intake suites separately
+compile neutral racing inputs and reject WWAM or horror vocabulary leakage.
 
 Run the proofs:
 
 ```bash
 node --test tests/channel-pack-contract.test.mjs \
   tests/tape-companion-engine.test.mjs \
-  tests/creator-taste-engine.test.mjs
+  tests/creator-taste-engine.test.mjs \
+  tests/fresh-tape-intake-engine.test.mjs \
+  tests/v56-fresh-tape-intake-contract.test.mjs
 ```

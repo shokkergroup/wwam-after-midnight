@@ -54,6 +54,7 @@
       "character-studio",
       "creator-clip-lab",
       "creator-taste-calibration",
+      "fresh-tape-intake",
       "memory-graph",
       "red-band-candidate-index",
       "tape-companion"
