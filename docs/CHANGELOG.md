@@ -3,6 +3,61 @@
 This changelog records product and evidence-contract changes. It does not by
 itself indicate that a build has been deployed.
 
+## 0.5.3 — V5.3 archive breadth and memorability pass — 2026-07-23
+
+### Added
+
+- Archive Atlas V1 maps all 472 records in the cached official Streams-feed
+  snapshot from 2018–2026: 1,197.0 hours and 5,674,608 cached views. It
+  distinguishes 34 caption-backed deep records, 430 metadata-only records, 8
+  caption-limited records, and 0 unavailable records without treating a title
+  or thumbnail as transcript knowledge.
+- Year, month, title-metadata, and evidence-depth browsing with explicit
+  snapshot provenance, deterministic fingerprints, original-source links, and
+  an Ask WWAM source-discovery fallback that is visibly separate from content
+  answers.
+- An inspectable Distill Next queue. Its score is limited to cached-view
+  gravity, upload recency, and configured franchise-title signals; missing
+  evidence controls eligibility but contributes no score.
+- Red Band Memorability Index V2 ranks exactly 100 playable receipts from 567
+  deduplicated candidates across commentaries, the Fresh 10, and Popular 25.
+  The current list spans 52 sources and publishes a short “why memorable”
+  explanation plus percentile signal bars on every card.
+- Exact Ask WWAM retrieval for a Red Band rank, bounded rank range, or top-ten
+  cut, plus a downloadable JSON ranking snapshot with score components,
+  provenance, uncertainty, and methodology.
+- A sixth Mike Mode proof beat that exits the pitch directly into the
+  472-record Archive Atlas and its visible coverage gaps.
+- A zero-default editorial-vote hook, an off-by-default recency adjustment,
+  unique content-derived rank keys, collision diagnostics, and transparent
+  tie handling for the Red Band 100.
+
+### Accuracy, access, and performance
+
+- Archive metadata search never claims to search captions. Current
+  availability was not rechecked; cards say they were present in the cached
+  July 23 snapshot.
+- “Most viewed,” “oldest,” and “newest” archive-discovery questions apply
+  their requested metadata ordering after title matching instead of implying
+  that relevance order is a date or view selector.
+- The Archive Atlas data, engine, and interface are lazy-loaded near the
+  section or on an explicit archive question. The static first-load payload
+  remains inside the 1.5 MB release budget.
+- Atlas loading, filtering, generated controls, and failures expose live
+  status, `aria-busy`, disabled-control, and keyboard-focus behavior.
+- Memorability scores do not infer a host, true origin, or synthetic quote.
+  Recency supplies zero default points and unsupplied editorial votes are
+  literal zero.
+
+### Current measured proof
+
+- Archive Atlas: 472 cached feed records, 2018–2026, 1,197.0 known hours,
+  5,674,608 cached views, and a reproducible 430-item metadata-only distill
+  queue.
+- Memorability Index: 692 input contributions, 567 unique playable receipts,
+  100 unique ranked receipts, 52 ranked sources, 7 equal-score groups, and 0
+  rank-key collisions.
+
 ## 0.5.2 — V5.2 return, review, and creator-pilot pass — 2026-07-23
 
 ### Added

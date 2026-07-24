@@ -44,12 +44,15 @@ Press **Mike Mode** and use one sentence per slide:
    relationships inside it.”
 2. **Receipt:** “This snapshot audits 74 sources and turns 872 bounded indexed
    receipts into exact jumps back to the official videos.”
-3. **Moat:** “The value compounds when takes, bits, characters, topics, and new
+3. **Map:** “The Atlas maps 472 cached Streams-feed records and makes the 34
+   deep, 430 metadata-only, and eight caption-limited records impossible to
+   confuse.”
+4. **Moat:** “The value compounds when takes, bits, characters, topics, and new
    uploads connect without pretending machine inference is canon.”
-4. **Money:** “The same archive produces reviewable Short candidates, supercut
+5. **Money:** “The same archive produces reviewable Short candidates, supercut
    spines, resurfacing ideas, member experiences, and new routes into old
    videos.”
-5. **Trust:** “The system shows the gaps, blocks unsupported claims, and leaves
+6. **Trust:** “The system shows the gaps, blocks unsupported claims, and leaves
    publishing decisions with the creator.”
 
 Use the proof button on at least two slides. A pitch that exits into working
@@ -63,9 +66,10 @@ question. Do not add optional features until the close.
 | Elapsed | Surface | One proof to show |
 | --- | --- | --- |
 | 0:00–0:30 | Night Shift | A daily route connects newest source, archive callback, choice, and payoff |
-| 0:30–1:40 | Ask + Lore | Source metadata, a source-level answer, and a timestamped receipt stay visibly distinct |
-| 1:40–3:10 | Clip Lab | Evidence becomes a reviewable Short and an exact campaign ledger |
-| 3:10–3:55 | Trust Desk | Character mapping is separated from clip-level speaker proof |
+| 0:30–0:55 | Archive Atlas | The whole-feed map shows coverage depth and the next-distill queue |
+| 0:55–1:55 | Ask + Lore | Source metadata, a source-level answer, and a timestamped receipt stay visibly distinct |
+| 1:55–3:15 | Clip Lab | Evidence becomes a reviewable Short and an exact campaign ledger |
+| 3:15–3:55 | Trust Desk | Character mapping is separated from clip-level speaker proof |
 | 3:55–4:15 | Close | Ask which workflow deserves a production pilot |
 
 ### 1. Fan Experience — 30 seconds

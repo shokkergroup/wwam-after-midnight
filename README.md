@@ -15,6 +15,10 @@ to the official WWAM uploads.
 - 25 additional official livestreams ranked by snapshot view count, with zero
   overlap against either source lane
 - 74 unique source videos; 71 with available captions and 3 disclosed gaps
+- A separate whole-feed Archive Atlas with 472 cached Streams-feed records
+  from 2018–2026: 1,197.0 known hours, 5,674,608 cached views, 34
+  caption-backed deep records, 430 metadata-only records, and 8
+  caption-limited records
 - 1,880,873 audited caption words across 171.19 caption-audited hours;
   177.45 hours of known source runtime in the preserved July 23 distill
   snapshot
@@ -37,18 +41,19 @@ editorial-moment inventory.
 The hero offers three deliberate entry points:
 
 - **Fan Experience:** the daily Night Shift return ritual, source-grounded Tape
-  Trivia, the Evidence Bag, Red Band Roulette, WWAM UP IN YA, and playable
-  descent paths.
+  Trivia, the Evidence Bag, the 100-rank Red Band Memorability Index V2, WWAM
+  UP IN YA, and playable descent paths.
 - **Deep Dive:** Ask WWAM, Lore Galaxy, Take Time Machine, Bit Ancestry, Riff
-  Chemistry, WWAM Court, franchise labs, autopsies, Fresh 10, and Popular 25.
+  Chemistry, WWAM Court, franchise labs, autopsies, Fresh 10, Popular 25, and
+  the whole-feed Archive Atlas.
 - **Creator Proof:** Clip Lab edit briefs, exact-runtime Cold Open Factory
   boards, supercut spines, then/now resurfacing, Live Aftermath, Control Room,
   the Trust / Canon Desk, a 457-finding local Human Review Session, and four
   evidence-backed Creator Pilot briefs.
 
-Mike Mode is a five-beat private-screening walkthrough. Each beat exits the
-pitch and opens working proof: Night Shift, Ask WWAM, a Loomis constellation, a
-Loomis edit queue, or the strict canon gate.
+Mike Mode is a six-beat private-screening walkthrough. Each beat exits the
+pitch and opens working proof: Night Shift, Ask WWAM, the whole-feed Archive
+Atlas, a Loomis constellation, a Loomis edit queue, or the strict canon gate.
 
 Night Shift produces a deterministic three- to five-beat daily journey whose
 five required roles are the newest indexed source, an older archive callback,
@@ -76,6 +81,21 @@ Ask WWAM now indexes those curated performance receipts as their own evidence
 lane. Questions about a character's latest, earliest, funniest, or specific
 recurring bit can return the relevant source second, while performer mapping,
 individual clip attribution, and true origin remain three separate claims.
+
+Archive Atlas source-discovery questions are a separate lane. They can locate
+and order cached uploads by title metadata, year, date, or snapshot views, but
+they do not answer what happened inside a metadata-only source. The
+deterministic Distill Next queue scores only cached-view gravity, upload
+recency, and configured franchise-title signals.
+
+The Red Band 100 now starts with 567 deduplicated playable candidates and
+publishes exactly 100 unique ranks spanning 52 sources. Its default score uses
+percentile-normalized category intensity, room-break energy, language voltage,
+callback value, human curation, source diversity, and an evidence modifier.
+Recency is off by default, unsupplied editorial votes are literal zero, and no
+rank identifies an undiarized speaker. Ask WWAM can retrieve an exact rank,
+bounded rank range, or top-ten cut by rank key, and the full ranked ledger plus
+methodology is downloadable as JSON.
 
 The Marky Mark candidate remains deliberately locked: three timestamped
 character-performance candidates exist, but automatic captions cannot
@@ -164,3 +184,5 @@ artifacts contain derived measurements and short, timestamped fragments only.
 - [Night Shift engine contract](docs/NIGHT_SHIFT_ENGINE.md)
 - [Human Review Session contract](docs/HUMAN_REVIEW_SESSION.md)
 - [Creator Pilot Builder contract](docs/CREATOR_PILOT_BUILDER.md)
+- [Archive Atlas contract](docs/ARCHIVE_ATLAS.md)
+- [Red Band Memorability Index V2](docs/RED_BAND_RANKING_V2.md)

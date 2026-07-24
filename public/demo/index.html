@@ -40,6 +40,7 @@
       <i>W</i><span>WWAM<b>AFTER MIDNIGHT</b></span>
     </a>
     <div class="nav-links">
+      <a href="#archive">ARCHIVE ATLAS</a>
       <a href="#characters">CHARACTERS</a>
       <a href="#lore">LORE GALAXY</a>
       <a href="#clip-lab">CLIP LAB</a>
@@ -85,14 +86,18 @@
     <section class="section red100" id="red100">
       <header class="section-head">
         <div>
-          <p class="kicker">THE HOTTEST SOURCE-LINKED RECEIPTS IN THE ROOM</p>
+          <p class="kicker">MEMORABILITY INDEX V2 // 100 UNIQUE, SOURCE-LINKED RANKS</p>
           <h2>THE RED BAND <em>100</em></h2>
         </div>
-        <p>Not “best quotes” guessed from memory. A full-caption signal pass ranked by hostility, profanity, affection, prediction, kill language, callbacks, and on-mic breakdown energy.</p>
+        <p>Not &ldquo;best quotes&rdquo; guessed from memory and not a profanity leaderboard. Every rank combines percentile-normalized intensity, room-break energy, callback pressure, source diversity, and a disclosed zero-default human-vote lane.</p>
       </header>
+      <div class="red-method" id="redMethod" aria-live="polite"></div>
       <div class="red-controls">
         <div class="category-filters" id="categoryFilters"></div>
-        <button class="band-toggle" id="bandToggle">REDUCED PROFANITY: OFF</button>
+        <div class="red-actions">
+          <button class="red-export" id="redExport" type="button" aria-describedby="redMethod">DOWNLOAD INDEX JSON</button>
+          <button class="band-toggle" id="bandToggle" type="button">REDUCED PROFANITY: OFF</button>
+        </div>
       </div>
       <div class="red-grid" id="hotGrid"></div>
       <button class="load-more" id="loadMore">UNSEAL MORE EVIDENCE</button>
@@ -191,6 +196,67 @@
         <div id="popularTopics"></div>
       </div>
       <div class="popular-grid" id="popularGrid"></div>
+    </section>
+
+    <section class="archive-atlas" id="archive" aria-busy="true">
+      <div class="archive-grid-bg"></div>
+      <header class="section-head">
+        <div>
+          <p class="kicker">THE WHOLE CACHED STREAMS FEED // COVERAGE WITHOUT COUNTERFEIT OMNISCIENCE</p>
+          <h2>THE ARCHIVE<br><em>ATLAS.</em></h2>
+        </div>
+        <p>Browse every cached feed record by year, month, title, and evidence depth. A thumbnail and upload date mean the record was present in the July 23 cached feed snapshot. Only a deep-indexed badge means its available captions were actually distilled.</p>
+      </header>
+      <div class="archive-proof" id="archiveProof" aria-live="polite">
+        <div><b>...</b><span>RECONCILING THE SOURCE LEDGER</span></div>
+      </div>
+      <div class="archive-workbench">
+        <aside class="archive-controls">
+          <div class="archive-controls-head">
+            <span>TIME TELESCOPE</span>
+            <b id="archiveScope">ALL CACHED YEARS</b>
+          </div>
+          <label>
+            <span>SEARCH TITLE METADATA</span>
+            <input id="archiveSearch" autocomplete="off" placeholder="Halloween, Scream, trailer, tier list..." disabled>
+          </label>
+          <div class="archive-filter-block">
+            <span>YEAR</span>
+            <div class="archive-filter-list" id="archiveYears"></div>
+          </div>
+          <div class="archive-filter-block">
+            <span>MONTH</span>
+            <div class="archive-filter-list archive-months" id="archiveMonths"></div>
+          </div>
+          <div class="archive-filter-block">
+            <span>EVIDENCE DEPTH</span>
+            <div class="archive-filter-list" id="archiveCoverage"></div>
+          </div>
+          <button class="archive-reset" id="archiveReset" disabled>RESET THE TELESCOPE</button>
+        </aside>
+        <section class="archive-browser" aria-labelledby="archiveBrowserTitle">
+          <header>
+            <div>
+              <span>UPLOAD CONSTELLATION</span>
+              <h3 id="archiveBrowserTitle">THE FEED, WITH ITS BLIND SPOTS LEFT VISIBLE.</h3>
+            </div>
+            <b id="archiveStatus" role="status" aria-live="polite">INDEX CALIBRATING</b>
+          </header>
+          <div class="archive-grid" id="archiveGrid"></div>
+          <button class="archive-more" id="archiveLoadMore" disabled>OPEN MORE OF THE VAULT</button>
+        </section>
+      </div>
+      <div class="archive-queue">
+        <header>
+          <div>
+            <span>WHAT THE MACHINE SHOULD DISTILL NEXT</span>
+            <h3>THE AUTOPSY QUEUE.</h3>
+          </div>
+          <p>Priority is deterministic and inspectable: cached-view gravity, upload recency, and configured franchise-title signals. Metadata-only status controls eligibility; it does not add points. This is a work queue, not a claim about what happens inside an undistilled show.</p>
+          <button id="archiveQueueDownload" disabled>DOWNLOAD QUEUE JSON</button>
+        </header>
+        <div id="archiveQueue"></div>
+      </div>
     </section>
 
     <section class="memory-os" id="memory">
@@ -467,7 +533,7 @@
     <div><a href="https://www.youtube.com/@WeWatchedAMovie" target="_blank" rel="noopener">ORIGINAL CHANNEL ↗</a><button id="footerPitch">MIKE MODE</button></div>
   </footer>
 
-  <button class="evidence-bag-toggle" id="evidenceBagOpen" aria-controls="evidenceBag" aria-expanded="false">
+  <button class="evidence-bag-toggle" id="evidenceBagOpen" aria-controls="evidenceBag" aria-expanded="false" aria-label="Open evidence bag; 0 saved receipts">
     <span>MY EVIDENCE BAG</span><b id="evidenceBagCount">0</b>
   </button>
   <div class="evidence-bag-scrim" id="evidenceBagScrim"></div>

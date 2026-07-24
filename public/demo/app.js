@@ -8,6 +8,7 @@
   var curated = window.WWAM_CURATED || { upInYa: [], askExamples: [] };
   var characterLore = window.WWAM_CHARACTER_LORE || { meta: {}, characters: [] };
   var channelDNA = window.WWAM_CHANNEL_DNA || {};
+  var archiveAtlasPayload = window.WWAM_ARCHIVE_ATLAS || null;
   var askEngine;
   var characterEngine;
   var showcaseEngine;
@@ -23,6 +24,14 @@
   var canonIntegrityReport;
   var humanReviewSession;
   var pilotBuilderEngine;
+  var archiveAtlasEngine;
+  var archiveAtlasUi;
+  var redBandRankingEngine;
+  var redBandMoments = deep.hot100 || [];
+  var archiveAtlasLoadPromise;
+  var archiveAtlasObserver;
+  var redBandLoadPromise;
+  var redBandObserver;
   var showcaseReceiptById = {};
   var showcaseSourceById = {};
   var clipItemById = {};
@@ -152,6 +161,180 @@
         window.console.error("[WWAM V5] " + diagnostic.operation + " failed:", error);
       }
       return null;
+    }
+  }
+
+  function createArchiveAtlas() {
+    archiveAtlasPayload = window.WWAM_ARCHIVE_ATLAS || archiveAtlasPayload;
+    if (!window.WWAMArchiveAtlasEngine || !window.WWAMArchiveAtlasEngine.create ||
+        !archiveAtlasPayload) return null;
+    archiveAtlasEngine = attempt(function () {
+      return window.WWAMArchiveAtlasEngine.create(archiveAtlasPayload);
+    }, "archive atlas initialization");
+    if (archiveAtlasEngine && window.WWAMArchiveAtlasUI && window.WWAMArchiveAtlasUI.create) {
+      archiveAtlasUi = attempt(function () {
+        return window.WWAMArchiveAtlasUI.create({
+          engine: archiveAtlasEngine,
+          formatNumber: fmt,
+          formatDuration: duration,
+          formatDate: shortDate,
+          escapeHtml: esc,
+          isInternal: function (record) {
+            return Boolean(itemById[record.id] || streamById[record.id]);
+          },
+          openRecord: openArchiveRecord,
+          downloadJson: downloadJson,
+          showToast: showToast,
+          document: document,
+        }).mount();
+      }, "archive atlas UI initialization");
+    }
+    return archiveAtlasEngine;
+  }
+
+  function loadDemoScript(source) {
+    return new Promise(function (resolve, reject) {
+      var existing = document.querySelector('script[data-lazy-source="' + source + '"]');
+      if (existing) {
+        if (existing.getAttribute("data-loaded") === "true") resolve();
+        else {
+          existing.addEventListener("load", resolve, { once: true });
+          existing.addEventListener("error", reject, { once: true });
+        }
+        return;
+      }
+      var script = document.createElement("script");
+      script.src = source;
+      script.async = true;
+      script.setAttribute("data-lazy-source", source);
+      script.onload = function () {
+        script.setAttribute("data-loaded", "true");
+        resolve();
+      };
+      script.onerror = function () {
+        script.remove();
+        reject(new Error("Unable to load " + source));
+      };
+      document.body.appendChild(script);
+    });
+  }
+
+  function loadArchiveAtlas() {
+    if (archiveAtlasEngine) return Promise.resolve(archiveAtlasEngine);
+    if (archiveAtlasLoadPromise) return archiveAtlasLoadPromise;
+    document.getElementById("archive").setAttribute("aria-busy", "true");
+    document.getElementById("archiveStatus").textContent = "LOADING THE 472-RECORD LEDGER";
+    archiveAtlasLoadPromise = loadDemoScript("archive-atlas-data.js")
+      .then(function () { return loadDemoScript("archive-atlas-engine.js"); })
+      .then(function () { return loadDemoScript("archive-atlas-ui.js"); })
+      .then(function () {
+        createArchiveAtlas();
+        if (!archiveAtlasEngine || !archiveAtlasUi) throw new Error("Archive Atlas did not initialize");
+        if (archiveAtlasObserver) archiveAtlasObserver.disconnect();
+        return archiveAtlasEngine;
+      })
+      .catch(function (error) {
+        runtimeDiagnostics.push({
+          at: new Date().toISOString(),
+          operation: "archive atlas lazy load",
+          message: error && error.message ? error.message : String(error),
+        });
+        if (archiveAtlasUi) archiveAtlasUi.setError("ARCHIVE LEDGER LOAD FAILED");
+        else {
+          document.getElementById("archiveStatus").textContent = "ARCHIVE LEDGER LOAD FAILED";
+          document.getElementById("archive").setAttribute("aria-busy", "false");
+        }
+        archiveAtlasLoadPromise = null;
+        return null;
+      });
+    return archiveAtlasLoadPromise;
+  }
+
+  function prepareArchiveAtlasLazy() {
+    var section = document.getElementById("archive");
+    if (!section) return;
+    Array.prototype.forEach.call(document.querySelectorAll('a[href="#archive"]'), function (link) {
+      link.addEventListener("click", loadArchiveAtlas);
+    });
+    if ("IntersectionObserver" in window) {
+      archiveAtlasObserver = new IntersectionObserver(function (entries) {
+        if (entries.some(function (entry) { return entry.isIntersecting; })) loadArchiveAtlas();
+      }, { rootMargin: "900px 0px" });
+      archiveAtlasObserver.observe(section);
+    } else {
+      var check = function () {
+        var rect = section.getBoundingClientRect();
+        if (rect.top <= window.innerHeight + 900 && rect.bottom >= -900) {
+          window.removeEventListener("scroll", check);
+          section.removeEventListener("focusin", check);
+          loadArchiveAtlas();
+        }
+      };
+      window.addEventListener("scroll", check, { passive: true });
+      section.addEventListener("focusin", check);
+      check();
+    }
+  }
+
+  function createRedBandRanking() {
+    if (!window.WWAMRedBandRankingV2 || !window.WWAMRedBandRankingV2.create) return null;
+    redBandRankingEngine = attempt(function () {
+      return window.WWAMRedBandRankingV2.create({
+        catalog: catalog,
+        deep: deep,
+        live: live,
+        popular: popular,
+        curation: curated,
+        characters: characterLore,
+      });
+    }, "Red Band Memorability Index V2 initialization");
+    if (redBandRankingEngine && Array.isArray(redBandRankingEngine.rankings) &&
+        redBandRankingEngine.rankings.length === 100) {
+      redBandMoments = redBandRankingEngine.rankings;
+    }
+    return redBandRankingEngine;
+  }
+
+  function loadRedBandRanking() {
+    if (redBandRankingEngine) return Promise.resolve(redBandRankingEngine);
+    if (redBandLoadPromise) return redBandLoadPromise;
+    redBandLoadPromise = loadDemoScript("red-band-ranking-v2.js")
+      .then(function () {
+        createRedBandRanking();
+        if (!redBandRankingEngine || redBandMoments.length !== 100) {
+          throw new Error("Memorability Index V2 did not produce 100 ranks");
+        }
+        if (categories().indexOf(state.hotCategory) < 0) state.hotCategory = "ALL EVIDENCE";
+        renderRedMethod();
+        renderCategoryFilters();
+        renderHot100();
+        renderHeroConsole();
+        if (redBandObserver) redBandObserver.disconnect();
+        return redBandRankingEngine;
+      })
+      .catch(function (error) {
+        runtimeDiagnostics.push({
+          at: new Date().toISOString(),
+          operation: "Red Band Memorability Index V2 lazy load",
+          message: error && error.message ? error.message : String(error),
+        });
+        redBandLoadPromise = null;
+        renderRedMethod();
+        return null;
+      });
+    return redBandLoadPromise;
+  }
+
+  function prepareRedBandRankingLazy() {
+    var section = document.getElementById("red100");
+    if (!section) return;
+    if ("IntersectionObserver" in window) {
+      redBandObserver = new IntersectionObserver(function (entries) {
+        if (entries.some(function (entry) { return entry.isIntersecting; })) loadRedBandRanking();
+      }, { rootMargin: "800px 0px" });
+      redBandObserver.observe(section);
+    } else {
+      scheduleIdle(loadRedBandRanking, 1200);
     }
   }
 
@@ -391,6 +574,12 @@
     "BIT ENERGY": "A callback signal escaped the grave.",
     "BREAKDOWN": "On-mic structural integrity approaches zero.",
     "HORROR BRAIN": "The horror-nerd cortex has the wheel.",
+    "UP IN YA": "A human-curated sentence that escaped adult supervision.",
+    "THE ROOM BREAKS": "Laughter or a room-break pattern pushes the receipt over the edge.",
+    "CHARACTER CALLBACK": "Recurring-character or callback pressure makes the moment compound.",
+    "FULL SEND": "The live room commits completely to the bit.",
+    "TAKE GETS NUCLEAR": "Opinion intensity reaches unsafe operating temperature.",
+    "CHAT DID THIS": "The audience put the hosts on a road nobody should travel.",
   };
   var tourSlides = [
     {
@@ -411,6 +600,14 @@
     },
     {
       number: "03",
+      eyebrow: "THE MAP",
+      title: "472 STREAMS.<br>EVERY BLIND SPOT VISIBLE.",
+      body: "The Archive Atlas maps the cached official Streams-feed snapshot from 2018–2026 before pretending the whole channel is understood: 34 records are deeply indexed, 430 remain title-metadata-only, and eight are caption-limited.",
+      proof: "1,197 CACHED HOURS MAPPED — COVERAGE DEPTH, SOURCE BOUNDARIES, AND THE NEXT-DISTILL QUEUE STAY VISIBLE.",
+      action: { kind: "archive", label: "OPEN THE ARCHIVE ATLAS" },
+    },
+    {
+      number: "04",
       eyebrow: "THE MOAT",
       title: "THE CHANNEL<br>REMEMBERS ITSELF.",
       body: "Take Time Machines surface chronological opinion signals for human review. Bit Ancestry tracks recurring characters. Ask the Character pairs a clearly labeled fan-made riff with a bounded real performance clip. WWAM Court remains an open argument board until both sides pass the canon gate.",
@@ -418,7 +615,7 @@
       action: { kind: "lore", label: "OPEN THE LOOMIS CONSTELLATION", entry: "character:loomis" },
     },
     {
-      number: "04",
+      number: "05",
       eyebrow: "THE MONEY",
       title: "MEMORY CREATES<br>NEW INVENTORY.",
       body: "The same receipt inventory now produces Shorts candidates, supercut spines, then/now callbacks, and 117 exact-runtime cold-open storyboards. Each one keeps a source ledger, proposed cut boundaries, risk, evidence, and the human approval gate.",
@@ -432,7 +629,7 @@
       },
     },
     {
-      number: "05",
+      number: "06",
       eyebrow: "THE ASK",
       title: "THIS IS THE DEMO.<br>THE SYSTEM IS THE PRODUCT.",
       body: "The creator-facing Control Room shows what the latest stream added to indexed memory, what an editor should verify, which older uploads just became relevant, and which moments can become tomorrow's compilation, Short, membership perk, or merch callback.",
@@ -602,7 +799,10 @@
     var count = state.evidenceBag.length;
     var bag = document.getElementById("evidenceBag");
     document.getElementById("evidenceBagCount").textContent = count;
-    document.getElementById("evidenceBagOpen").setAttribute("aria-expanded", state.bagOpen ? "true" : "false");
+    var bagOpen = document.getElementById("evidenceBagOpen");
+    bagOpen.setAttribute("aria-expanded", state.bagOpen ? "true" : "false");
+    bagOpen.setAttribute("aria-label", "Open evidence bag; " + count +
+      " saved receipt" + (count === 1 ? "" : "s"));
     bag.classList.toggle("show", state.bagOpen);
     bag.setAttribute("aria-hidden", state.bagOpen ? "false" : "true");
     if (state.bagOpen) bag.removeAttribute("inert");
@@ -842,24 +1042,55 @@
   }
 
   function renderHeroConsole() {
-    var moments = deep.hot100.filter(function (moment) { return moment.rank <= 16; });
+    var moments = redBandMoments.filter(function (moment) { return moment.rank <= 16; });
     if (!moments.length) return;
     var moment = moments[state.consoleIndex % moments.length];
-    var item = itemById[moment.tapeId];
+    var source = redSource(moment);
     document.getElementById("heroConsole").innerHTML =
       '<div class="console-rank">#' + String(moment.rank).padStart(3, "0") + '</div>' +
       '<p>“' + esc(displayQuote(moment.quote)) + '”</p>' +
       '<div><span>' + esc(displayUiText(moment.category)) + '</span><b>' +
-      esc(displayUiText(item.film)) + ' @ ' + timestamp(moment.t) + '</b></div>' +
-      '<button data-play="' + item.id + '" data-time="' + moment.t + '">PLAY THE RECEIPT →</button>';
+      esc(displayUiText(source.title)) + ' @ ' + timestamp(moment.t) + '</b></div>' +
+      '<button data-red-open="' + esc(source.id) + '" data-time="' + moment.t +
+      '">PLAY THE RECEIPT →</button>';
     document.getElementById("consoleClock").textContent = timestamp(moment.t);
-    var button = document.querySelector("#heroConsole [data-play]");
-    if (button) button.onclick = function () { openDossier(button.getAttribute("data-play"), Number(button.getAttribute("data-time"))); };
+    bindRedButtons(document.getElementById("heroConsole"));
+  }
+
+  function redSource(moment) {
+    var id = moment.sourceId || moment.tapeId || moment.id;
+    var source = itemById[id] || streamById[id] || {};
+    return {
+      id: id,
+      title: moment.sourceTitle || source.film || source.title || "WWAM SOURCE",
+      franchise: moment.franchise || source.franchise || "MULTI-FRANCHISE HORROR",
+      lane: moment.lane || (itemById[id] ? "commentary" : "livestream"),
+    };
+  }
+
+  function openRedMoment(id, at) {
+    if (itemById[id]) openDossier(id, at);
+    else if (streamById[id]) openLiveDossier(id, at);
+    else {
+      var match = redBandMoments.filter(function (moment) {
+        return (moment.sourceId || moment.tapeId) === id && Number(moment.t) === Number(at);
+      })[0];
+      if (match && match.url) window.open(match.url, "_blank", "noopener");
+    }
+  }
+
+  function bindRedButtons(root) {
+    Array.prototype.forEach.call(root.querySelectorAll("[data-red-open]"), function (button) {
+      button.onclick = function () {
+        openRedMoment(button.getAttribute("data-red-open"),
+          Number(button.getAttribute("data-time") || 0));
+      };
+    });
   }
 
   function categories() {
     var found = [];
-    deep.hot100.forEach(function (moment) {
+    redBandMoments.forEach(function (moment) {
       if (found.indexOf(moment.category) < 0) found.push(moment.category);
     });
     return ["ALL EVIDENCE"].concat(found);
@@ -880,26 +1111,76 @@
     });
   }
 
+  function redSignalMarkup(moment) {
+    if (!moment.scoreComponents) return "";
+    var labels = {
+      categoryIntensity: "CATEGORY",
+      roomBreak: "ROOM BREAK",
+      loreCallback: "CALLBACK",
+      humanCuration: "HUMAN CURATION",
+    };
+    return '<div class="evidence-signals">' + Object.keys(labels).map(function (key) {
+      var value = Math.round(Number((moment.scoreComponents[key] || {}).percentile || 0));
+      return '<div class="evidence-signal"><div><span>' + labels[key] + '</span><b>' +
+        value + '</b></div><i style="--signal:' + value + '%"></i></div>';
+    }).join("") + '</div>';
+  }
+
+  function renderRedMethod() {
+    var root = document.getElementById("redMethod");
+    if (!redBandRankingEngine) {
+      root.innerHTML = '<article class="red-method-verdict"><span>MEMORABILITY INDEX V2</span><b>CALIBRATING</b><p>The legacy receipt wall remains playable while the transparent cross-archive ranker loads.</p></article>' +
+        '<article><span>RANK CONTRACT</span><b>100</b><p>Exact target; no duplicate rank keys.</p></article>' +
+        '<article><span>EDITORIAL VOTES</span><b>ZERO DEFAULT</b><p>No human preference is invented.</p></article>' +
+        '<article><span>SPEAKER POLICY</span><b>NOT DIARIZED</b><p>A great line is not assigned to a host.</p></article>' +
+        '<article><span>RECENCY</span><b>OFF</b><p>New uploads get no hidden boost.</p></article>';
+      return;
+    }
+    var metrics = redBandRankingEngine.metrics;
+    var diagnostics = redBandRankingEngine.diagnostics;
+    root.innerHTML = [
+      ["100 UNIQUE RANKS", "EXACT CONTRACT", "567 playable receipts competed; every winner keeps a timestamp.", "red-method-verdict"],
+      [metrics.uniqueRankedSources, "RANKED SOURCES", "Commentaries, Fresh 10, and Popular 25 share one disclosed field.", ""],
+      [diagnostics.collisions.scoreTieGroups, "TIE GROUPS", "Resolved by evidence and content signals, never lexical source ID.", ""],
+      [diagnostics.editorialVotes.suppliedNonZero, "EDITORIAL VOTES", "Literal zero by default; the human lane is visible and optional.", ""],
+      [diagnostics.recency.label, "TIME BIAS", "Recency is excluded from the default score.", ""],
+    ].map(function (entry) {
+      return '<article class="' + entry[3] + '"><span>' + entry[1] + '</span><b>' +
+        entry[0] + '</b><p>' + entry[2] + '</p></article>';
+    }).join("");
+  }
+
   function renderHot100() {
-    var filtered = deep.hot100.filter(function (moment) {
+    var filtered = redBandMoments.filter(function (moment) {
       return state.hotCategory === "ALL EVIDENCE" || moment.category === state.hotCategory;
     });
     var visible = filtered.slice(0, state.hotLimit);
     document.getElementById("hotGrid").innerHTML = visible.map(function (moment, index) {
-      var item = itemById[moment.tapeId];
+      var source = redSource(moment);
+      var accent = colors[source.franchise] ||
+        (source.lane === "recent-livestream" ? "#55e5ff" :
+          source.lane === "popular-livestream" ? "#d8ff38" : "#ff397f");
+      var why = moment.whyMemorableSummary ||
+        categoryCopy[moment.category] || "A source-linked evidence fragment.";
       return '<article class="evidence-card ' + (index < 2 ? "featured" : "") + '" style="--accent:' +
-        colors[item.franchise] + '">' +
+        accent + '">' +
         '<div class="evidence-top"><b>#' + String(moment.rank).padStart(3, "0") + '</b><span>' +
-        esc(displayUiText(moment.category)) + '</span><i>' + timestamp(moment.t) + '</i></div>' +
+        esc(displayUiText(moment.category)) + '</span><i>' +
+        (moment.score != null ? "INDEX " + Number(moment.score).toFixed(2) + " // " : "") +
+        timestamp(moment.t) + '</i></div>' +
         '<blockquote>“' + esc(displayQuote(moment.quote)) + '”</blockquote>' +
-        '<p>' + esc(displayUiText(categoryCopy[moment.category] || "A source-linked evidence fragment.")) + '</p>' +
-        '<footer><div><span>' + esc(displayUiText(item.franchise)) + '</span><b>' +
-        esc(displayUiText(item.film)) + '</b></div>' +
-        '<button data-play="' + item.id + '" data-time="' + moment.t + '">▶ PLAY RECEIPT</button></footer>' +
+        '<div class="evidence-why"><span>WHY THIS IS MEMORABLE</span><p>' +
+        esc(displayUiText(why)) + '</p></div>' + redSignalMarkup(moment) +
+        '<p>' + esc(displayUiText(categoryCopy[moment.category] ||
+          "A source-linked evidence fragment.")) + ' // SPEAKER NOT DIARIZED.</p>' +
+        '<footer><div><span>' + esc(displayUiText(source.franchise)) + '</span><b>' +
+        esc(displayUiText(source.title)) + '</b></div>' +
+        '<button data-red-open="' + esc(source.id) + '" data-time="' + moment.t +
+        '">▶ PLAY RECEIPT</button></footer>' +
         '</article>';
     }).join("");
     document.getElementById("loadMore").hidden = visible.length >= filtered.length;
-    bindPlayButtons(document.getElementById("hotGrid"));
+    bindRedButtons(document.getElementById("hotGrid"));
   }
 
   function resolveSoundbyte(entry) {
@@ -1441,6 +1722,20 @@
     });
   }
 
+  function openArchiveRecord(recordOrId) {
+    var record = typeof recordOrId === "string" ?
+      archiveAtlasEngine && archiveAtlasEngine.getRecord(recordOrId) :
+      recordOrId;
+    if (!record) return;
+    if (itemById[record.id]) openDossier(record.id);
+    else if (streamById[record.id]) openLiveDossier(record.id);
+    else window.open(record.url, "_blank", "noopener");
+  }
+
+  function archiveAskMarkup(query) {
+    return archiveAtlasUi ? archiveAtlasUi.askMarkup(query) : "";
+  }
+
   function renderFranchises() {
     document.getElementById("franchiseGrid").innerHTML = deep.franchises.map(function (franchise, index) {
       var items = catalog.filter(function (item) { return item.franchise === franchise.name; });
@@ -1846,9 +2141,134 @@
     return url.toString();
   }
 
+  function isRedBandRankQuery(query) {
+    return /\b(?:red\s*band(?:\s*100)?|memorability\s+index|most\s+memorable\s+moments?)\b/i.test(
+      String(query || "")
+    );
+  }
+
+  function redBandRankSelection(query) {
+    var value = String(query || "");
+    var range = value.match(/\b(?:ranks?|numbers?)?\s*#?(\d{1,3})\s*(?:-|–|to|through)\s*#?(\d{1,3})\b/i);
+    if (range) {
+      var first = Math.max(1, Math.min(100, Number(range[1])));
+      var last = Math.max(1, Math.min(100, Number(range[2])));
+      var start = Math.min(first, last);
+      var end = Math.min(Math.max(first, last), start + 9);
+      return { start: start, end: end, mode: "range" };
+    }
+    var exact = value.match(/(?:\brank(?:ed)?|\bnumber|#)\s*#?\s*(\d{1,3})\b/i);
+    if (exact) {
+      var rank = Math.max(1, Math.min(100, Number(exact[1])));
+      return { start: rank, end: rank, mode: "exact" };
+    }
+    var top = value.match(/\btop\s+(\d{1,2})\b/i);
+    var limit = top ? Math.max(1, Math.min(10, Number(top[1]))) : 1;
+    return { start: 1, end: limit, mode: limit === 1 ? "leader" : "top" };
+  }
+
+  function redBandAskAnalysis(query) {
+    if (!redBandRankingEngine || !isRedBandRankQuery(query)) return null;
+    var selection = redBandRankSelection(query);
+    var moments = [];
+    for (var rank = selection.start; rank <= selection.end; rank += 1) {
+      var moment = redBandRankingEngine.getByRank(rank);
+      if (moment) moments.push(moment);
+    }
+    var results = moments.map(function (moment) {
+      var source = redSource(moment);
+      var why = moment.whyMemorable || [];
+      return {
+        key: moment.rankKey,
+        kind: "red-band-rank",
+        source: itemById[source.id] ? "commentary" : "livestream",
+        sourceId: source.id,
+        lane: moment.lane,
+        laneLabel: moment.lane === "recent-livestream" ? "FRESH 10" :
+          moment.lane === "popular-livestream" ? "POPULAR 25" : "COMMENTARY",
+        at: Number(moment.t || 0),
+        title: "#" + String(moment.rank).padStart(3, "0") + " · " + source.title,
+        category: moment.category,
+        excerpt: moment.excerpt || moment.quote || "",
+        score: moment.score,
+        speaker: null,
+        evidenceLevel: "TIMESTAMPED CAPTION RECEIPT",
+        evidenceType: "caption-excerpt",
+        reasons: [
+          "INDEX " + Number(moment.score).toFixed(2),
+          moment.category,
+          moment.confidenceLabel,
+        ],
+        evidenceWarnings: [
+          "Machine-ranked by Memorability Index V2; not a creator vote or canon declaration.",
+          "Speaker not diarized; the receipt makes no host-authorship or true-origin claim.",
+        ].concat((moment.uncertainty && moment.uncertainty.reasons) || []),
+        subtitle: why.join(" "),
+      };
+    });
+    var rankLabel = selection.start === selection.end ?
+      "#" + String(selection.start).padStart(3, "0") :
+      "#" + String(selection.start).padStart(3, "0") + "–#" +
+        String(selection.end).padStart(3, "0");
+    var answer = results.length === 1 ?
+      rankLabel + " is “" + boundedExcerpt(results[0].excerpt) + "” from " +
+        results[0].title.replace(/^#\d+\s*·\s*/, "") + "." :
+      "Here are Red Band ranks " + rankLabel + " in exact index order.";
+    return {
+      intent: "red-band-ranking",
+      entity: "Red Band 100",
+      source: "all",
+      results: results,
+      evidenceChain: results.map(function (result, index) {
+        return {
+          role: index === 0 ? "EXACT INDEX HIT" : "NEXT INDEX RANK",
+          result: result,
+        };
+      }),
+      confidence: results.length ? 100 : 0,
+      status: "machine-ranked",
+      questionType: selection.mode === "exact" ? "exact rank lookup" : "ranked list",
+      metric: "memorability index v2",
+      answer: answer,
+      confidenceBasis: [
+        "Exact unique rank key from Memorability Index V2",
+        "Playable YouTube timestamp and bounded caption excerpt",
+        "Disclosed score components with recency excluded and editorial votes at zero by default",
+      ],
+      limitations: [
+        "Memorability is a transparent machine ranking, not an authenticated Mike/J vote.",
+        "The indexed caption receipt is not speaker-diarized.",
+        "Rankings compare the current bounded commentary, Fresh 10, and Popular 25 evidence sets.",
+      ],
+      recommendedSurface: {
+        href: "#red100",
+        label: "Inspect the full Red Band 100",
+        reason: "See every score, signal bar, source, timestamp, and ranking boundary.",
+      },
+      suggestions: [
+        "What is Red Band rank #25?",
+        "Show me the top 5 most memorable moments",
+      ],
+    };
+  }
+
   function ask(query, preservedAnalysis) {
-    var analysis = preservedAnalysis || askEngine.ask(query, state.askContext);
+    var redBandIntent = isRedBandRankQuery(query);
+    var rankedAnalysis = redBandIntent ? redBandAskAnalysis(query) : null;
+    var analysis = rankedAnalysis || preservedAnalysis || askEngine.ask(query, state.askContext);
+    if (redBandIntent && !redBandRankingEngine) {
+      loadRedBandRanking().then(function (engine) {
+        if (engine && state.lastAskQuery === query) ask(query);
+      });
+    }
+    if (!archiveAtlasEngine &&
+        /\b(uploads?|uploaded|streams?|streamed|livestreams?|videos?|archive|feed)\b/i.test(query)) {
+      loadArchiveAtlas().then(function (engine) {
+        if (engine && state.lastAskQuery === query) ask(query, analysis);
+      });
+    }
     var results = analysis.results || [];
+    var archiveFallback = archiveAskMarkup(query);
     var roleByKey = {};
     (analysis.evidenceChain || []).forEach(function (entry) {
       if (entry.result && entry.result.key) roleByKey[entry.result.key] = entry.role;
@@ -1861,10 +2281,31 @@
     };
     state.lastAskQuery = query;
     state.lastAskAnalysis = analysis;
-    document.getElementById("askStatus").textContent = results.length ?
-      (analysis.evidenceChain || []).length + " RECEIPT CHAIN // " + analysis.confidence +
-      (analysis.status === "archive-boundary" ? "% RETRIEVAL // CLAIM NOT ESTABLISHED" : "% CONFIDENCE") :
-      "NO DEFENSIBLE RECEIPT";
+    if (archiveFallback) {
+      document.getElementById("askStatus").textContent =
+        "TITLE-METADATA DISCOVERY // REQUESTED ORDER APPLIED // NO CONTENT CLAIM";
+      document.getElementById("askResults").innerHTML =
+        '<section class="answer-brief"><div><span>INTENT // SOURCE DISCOVERY</span>' +
+        '<b>ENTITY // CACHED STREAMS FEED</b><i>TITLE METADATA ONLY</i>' +
+        '<button class="ask-share" type="button" data-copy-ask>COPY ANSWER LINK</button></div>' +
+        '<h3>Showing cached upload records in the order you requested—not guessing what happened inside them.</h3>' +
+        '<div class="confidence-track"><i style="width:100%"></i></div></section>' +
+        archiveFallback;
+      var archiveShare = document.querySelector("#askResults [data-copy-ask]");
+      if (archiveShare) {
+        archiveShare.onclick = function () {
+          copy(askShareUrl(state.lastAskQuery), "ANSWER LINK COPIED");
+        };
+      }
+      return;
+    }
+    document.getElementById("askStatus").textContent =
+      analysis.status === "machine-ranked" && results.length ?
+        "MEMORABILITY INDEX V2 // EXACT RANK KEY // MACHINE-RANKED, NOT A CREATOR VOTE" :
+        results.length ?
+          (analysis.evidenceChain || []).length + " RECEIPT CHAIN // " + analysis.confidence +
+          (analysis.status === "archive-boundary" ? "% RETRIEVAL // CLAIM NOT ESTABLISHED" : "% CONFIDENCE") :
+      archiveFallback ? "TITLE-METADATA DISCOVERY // NO CONTENT CLAIM" : "NO DEFENSIBLE RECEIPT";
     var boundary = '<section class="ask-boundary ' + esc(analysis.status || "unknown") +
       '"><header><span>ANSWER STATUS // ' + esc(String(analysis.status || "UNKNOWN").toUpperCase()) +
       '</span><b>' + esc(String(analysis.questionType || analysis.intent || "QUERY").toUpperCase()) +
@@ -1898,7 +2339,8 @@
           '<b class="derived-answer-copy">' + esc(displayQuote(excerpt)) + '</b>';
         return '<article class="' + (index === 0 ? "best" : "") + '"><div><span>' +
           esc(displayUiText(role)) + '</span><b>' +
-          esc(displayUiText((result.lane === "popular" ? "POPULAR 25" : result.source).toUpperCase())) +
+          esc(displayUiText((result.laneLabel ||
+            (result.lane === "popular" ? "POPULAR 25" : result.source)).toUpperCase())) +
           '</b></div><h3>' + esc(displayUiText(result.title)) + '</h3><p><span>' +
           esc(displayUiText(result.evidenceLevel || "TIMESTAMPED SOURCE RECEIPT")) + '</span>' +
           excerptMarkup + '</p><div class="why-row"><span>WHY THIS RANKED</span><b>' +
@@ -1923,7 +2365,7 @@
         (analysis.suggestions || []).map(function (suggestion) {
           return '<button data-ask-suggestion="' + esc(suggestion) + '">' +
             esc(displayUiText(suggestion)) + '</button>';
-        }).join("") + '</div>');
+        }).join("") + '</div>') + archiveFallback;
     Array.prototype.forEach.call(document.querySelectorAll("#askResults [data-ask-source]"), function (button) {
       button.onclick = function () {
         if (button.getAttribute("data-ask-source") === "livestream") {
@@ -4022,7 +4464,8 @@
       action.kind === "lore" ? "lore" :
         action.kind === "clip" ? "clip-lab" :
           action.kind === "canon" ? "canon" :
-            action.kind === "night" ? "night-shift" : "trivia";
+            action.kind === "night" ? "night-shift" :
+              action.kind === "archive" ? "archive" : "trivia";
     history.replaceState(null, "", location.pathname + location.search + "#" + targetId);
     if (action.kind === "ask") {
       document.getElementById("askInput").value = action.query;
@@ -4048,6 +4491,11 @@
       document.getElementById("canon").scrollIntoView({ behavior: "smooth" });
     } else if (action.kind === "night") {
       document.getElementById("night-shift").scrollIntoView({ behavior: "smooth" });
+    } else if (action.kind === "archive") {
+      document.getElementById("archive").scrollIntoView({ behavior: "smooth" });
+      loadArchiveAtlas().then(function (engine) {
+        if (engine) focusSoon("#archiveSearch");
+      });
     } else {
       document.getElementById("trivia").scrollIntoView({ behavior: "smooth" });
       focusSoon("#triviaStart");
@@ -4227,10 +4675,17 @@
       };
     });
     document.getElementById("bandToggle").onclick = function () { setBand(state.redBand ? "bleep" : "red", true); };
+    document.getElementById("redExport").onclick = function () {
+      loadRedBandRanking().then(function (engine) {
+        if (!engine) return showToast("THE MEMORABILITY INDEX COULD NOT LOAD");
+        downloadJson("wwam-red-band-100-v2.json", engine.exportSnapshot());
+        showToast("RED BAND 100 INDEX + METHODOLOGY DOWNLOADED");
+      });
+    };
     document.getElementById("loadMore").onclick = function () { state.hotLimit += 12; renderHot100(); };
     document.getElementById("rouletteButton").onclick = function () {
-      var moment = deep.hot100[Math.floor(Math.random() * deep.hot100.length)];
-      if (moment) openDossier(moment.tapeId, moment.t);
+      var moment = redBandMoments[Math.floor(Math.random() * redBandMoments.length)];
+      if (moment) openRedMoment(moment.sourceId || moment.tapeId, moment.t);
     };
     Array.prototype.forEach.call(document.querySelectorAll("[data-sound-source]"), function (button) {
       button.onclick = function () {
@@ -4347,6 +4802,7 @@
     renderProof();
     renderMarquee();
     renderHeroConsole();
+    renderRedMethod();
     renderCategoryFilters();
     renderHot100();
     renderSoundFilters();
@@ -4374,6 +4830,8 @@
     renderLabs();
     renderEvidenceBag();
     bindPage();
+    prepareArchiveAtlasLazy();
+    prepareRedBandRankingLazy();
 
     if (storageGet("wwam-band")) {
       document.getElementById("contentGate").classList.add("gone");

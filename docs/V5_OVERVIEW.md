@@ -31,6 +31,12 @@ The July 23, 2026 build covers:
 The Popular 25 ranking is a time-stamped view-count snapshot, not a permanent
 popularity claim.
 
+A separate Archive Atlas inventories all 472 records in the cached official
+Streams-feed snapshot from 2018–2026. Those records total 1,197.0 known hours
+and 5,674,608 cached views: 34 are already caption-backed deep records, 430 are
+metadata-only, and 8 are caption-limited. This broad source map does not expand
+the 74-source deep-caption scope or invent knowledge inside the other uploads.
+
 ## How to read the proof
 
 The build deliberately separates five evidence states:
@@ -68,6 +74,10 @@ The archive becomes something to play:
 - Tape Trivia builds deterministic five- or ten-round games from 872 playable
   receipts and never asks the player to identify an undiarized speaker.
 - The Evidence Bag saves moments on the device and exports a source manifest.
+- The Red Band Memorability Index V2 compares 567 deduplicated playable
+  receipts and publishes exactly 100 unique ranks across 52 sources, with
+  transparent signal components, zero-default editorial votes, and no inferred
+  speaker.
 - Red Band Roulette, WWAM UP IN YA, Personalized Descent, and soundbyte paths
   turn archive discovery into a repeatable session instead of a search result.
 
@@ -84,6 +94,9 @@ The archive becomes navigable memory:
   19 constellations, and 51 indexed lineages.
 - Take Time Machine and WWAM Court expose chronological signals and competing
   receipts without silently turning an inference into canon.
+- Archive Atlas browses 472 cached feed records by year, month, title metadata,
+  and evidence depth. Its Ask fallback locates sources without presenting
+  metadata as a content answer.
 - Fresh 10, Popular 25, franchise reports, and tape autopsies preserve the
   channel-specific reason each source matters.
 
@@ -135,11 +148,13 @@ Mike Mode is the shortest route through the commercial argument:
    run tonight's deterministic source-grounded Night Shift.
 2. **The receipt:** 74 sources become 872 exact jumps. Live proof: ask for the
    most-viewed foundational livestream.
-3. **The moat:** years of connected lore compound. Live proof: open the Dr.
+3. **The map:** 472 cached Streams-feed records reveal both coverage and blind
+   spots. Live proof: open Archive Atlas and its deterministic distill queue.
+4. **The moat:** years of connected lore compound. Live proof: open the Dr.
    Loomis constellation.
-4. **The money:** archive memory creates editorial inventory. Live proof: open
+5. **The money:** archive memory creates editorial inventory. Live proof: open
    the Loomis Clip Lab queue.
-5. **The trust:** the system refuses unsupported canon. Live proof: open the
+6. **The trust:** the system refuses unsupported canon. Live proof: open the
    Takes + Court audit.
 
 The pitch is credible because every slide can leave the slideshow and open a
