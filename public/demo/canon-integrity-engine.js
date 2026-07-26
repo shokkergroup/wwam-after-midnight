@@ -1,8 +1,9 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.1.1";
+  var VERSION = "1.2.0";
   var DEFAULT_PUBLIC_EXCERPT_WORDS = 16;
+  var OFFICIAL_WWAM_CHANNEL_ID = "UC6ieEOZW4iXV8TcILJI8k5g";
   var ALLOWED_EVIDENCE_LEVELS = new Set([
     "machine",
     "curated-candidate",
@@ -45,7 +46,7 @@
     }),
     Object.freeze({
       code: "SOURCE_REFERENCE_ORPHAN",
-      description: "Every source reference must resolve to the merged showcase source registry."
+      description: "Every source reference must resolve to the showcase registry or a strictly validated character-evidence source."
     }),
     Object.freeze({
       code: "SPEAKER_CLAIM_UNSUPPORTED",
@@ -466,6 +467,66 @@
     });
   }
 
+  function youtubeIdFromUrl(value) {
+    var match = clean(value).match(
+      /(?:youtube\.com\/(?:watch\?(?:[^#\s]*&)?v=|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/
+    );
+    return match ? match[1] : "";
+  }
+
+  function validatedCharacterEvidenceSource(soundbyte) {
+    var item = object(soundbyte);
+    var sourceId = clean(item.sourceId);
+    var playback = object(item.playback);
+    var playability = object(item.playability);
+    var provenance = object(item.provenance);
+    var start = playback.start;
+    var end = playback.end;
+    var exactSourceUrl =
+      youtubeIdFromUrl(item.url) === sourceId &&
+      youtubeIdFromUrl(playback.embedUrl) === sourceId;
+    var deterministicSelection =
+      /human-curated seed with deterministic caption validation/i.test(
+        clean(provenance.selection)
+      );
+
+    if (
+      !/^[A-Za-z0-9_-]{11}$/.test(sourceId) ||
+      clean(item.classification) !== "actual-character-performance" ||
+      lower(playability.status) !== "eligible" ||
+      lower(playability.provider) !== "youtube" ||
+      lower(playability.metadataStatus) !== "official-public-cached" ||
+      clean(provenance.channelId) !== OFFICIAL_WWAM_CHANNEL_ID ||
+      lower(provenance.timestampStatus) !== "exact-caption-event" ||
+      !deterministicSelection ||
+      !exactSourceUrl ||
+      lower(playback.provider) !== "youtube" ||
+      !finite(item.t) ||
+      !finite(start) ||
+      Math.abs(start - item.t) > 0.02 ||
+      !finite(end) ||
+      end <= start ||
+      end - start > 30.01 ||
+      !clean(item.sourceTitle) ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(clean(item.date)) ||
+      !clean(item.excerpt) ||
+      words(item.excerpt) > DEFAULT_PUBLIC_EXCERPT_WORDS
+    ) {
+      return null;
+    }
+
+    return {
+      id: sourceId,
+      type: clean(item.sourceType) || "livestream",
+      title: clean(item.sourceTitle),
+      date: clean(item.date),
+      url: clean(item.url),
+      duration: end,
+      captioned: true,
+      evidenceLane: "validated-character-performance"
+    };
+  }
+
   function sourceMaps(options) {
     var sources = array(object(options.showcase).sources);
     var byId = new Map();
@@ -473,7 +534,30 @@
       var id = clean(source && source.id);
       if (id && !byId.has(id)) byId.set(id, source);
     });
-    return { sources: sources, byId: byId };
+    var characterEvidenceSources = [];
+    array(object(options.characters).characters).forEach(function (character) {
+      array(character && character.soundbytes).forEach(function (soundbyte) {
+        var source = validatedCharacterEvidenceSource(soundbyte);
+        if (!source) return;
+        var existing = byId.get(source.id);
+        if (existing) {
+          if (
+            existing.evidenceLane === "validated-character-performance" &&
+            source.duration > existing.duration
+          ) {
+            existing.duration = source.duration;
+          }
+          return;
+        }
+        byId.set(source.id, source);
+        characterEvidenceSources.push(source);
+      });
+    });
+    return {
+      sources: sources,
+      characterEvidenceSources: characterEvidenceSources,
+      byId: byId
+    };
   }
 
   function receiptMaps(options) {
@@ -528,7 +612,7 @@
         domain,
         path,
         ownerId,
-        "Source reference does not resolve to showcase.sources.",
+        "Source reference does not resolve to showcase.sources or the validated character-evidence lane.",
         { sourceId: id }
       );
     }
@@ -781,14 +865,17 @@
           soundbyte.t
         );
         var receiptId = expectedCharacterReceiptId(soundbyte);
+        var ownsValidatedEvidence = Boolean(
+          validatedCharacterEvidenceSource(soundbyte)
+        );
         collector.scan("GRAPH_RECEIPT_ORPHAN");
-        if (!receipts.showcase.has(receiptId)) {
+        if (!receipts.showcase.has(receiptId) && !ownsValidatedEvidence) {
           collector.error(
             "GRAPH_RECEIPT_ORPHAN",
             "characters",
             path + ".receiptId",
             soundbyteId,
-            "Curated character soundbyte has no matching showcase receipt.",
+            "Curated character soundbyte has neither a matching showcase receipt nor a strictly validated character-evidence receipt.",
             { receiptId: receiptId }
           );
         }
@@ -1964,6 +2051,8 @@
     return {
       rawCatalogSources: array(options.catalog).length,
       sources: maps.sources.length,
+      characterEvidenceSources: maps.characterEvidenceSources.length,
+      ownedEvidenceSources: maps.byId.size,
       showcaseReceipts: receipts.showcase.size,
       characterProfiles: array(characters.characters).length,
       loreReceipts: receipts.lore.size,

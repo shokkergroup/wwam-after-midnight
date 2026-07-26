@@ -201,7 +201,7 @@ test("Trust Desk correction exports make the dry-run ripple visible", () => {
   assert.match(app, /RIPPLE BLOCKED \/\/ UNRESOLVED EVIDENCE/);
 });
 
-test("Ask answers and Mike Mode proofs leave reproducible deep links", () => {
+test("Ask answers and Showcase Mode proofs leave reproducible deep links", () => {
   assert.match(app, /function askShareUrl\(query\)/);
   assert.match(app, /WWAMAskShare\.build\(location\.href,\s*query,\s*state\.askContext\)/);
   assert.match(app, /WWAMAskShare\.read\(location\.search\)/);

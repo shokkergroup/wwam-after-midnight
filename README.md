@@ -208,9 +208,7 @@ source-bound artifact records**. Those are current Source Dossier inventory
 counts. They do not replace the immutable V5.4 proof of 84 source inputs and
 872 promoted receipts.
 
-The evidence ledger now preserves all **25 human-curated character-performance
-windows** with their explicit end bounds. Every current window is exactly 14
-seconds; the July 23 Loomis funding receipt remains
+The evidence ledger now preserves all **60 timestamp-validated human-curated character-performance candidates** with their explicit end bounds: 15 each for Loomis, Challis, Slenderman, and Corey Feldman. The current Character Lore scan covers all 209 locally cached official caption sources rather than stopping at the older 74-source showcase subset. Every current window is exactly 14 seconds; the July 23 Loomis funding receipt remains
 `LV2rmwEA0w4 @ 9042.64–9056.64`. Archive Deep's 52 machine-surfaced character
 records are kept in different evidence classes: **24
 `caption-character-signal` receipts and 28 `caption-character-context`
@@ -824,9 +822,7 @@ establish which host is speaking.
   **Clip-level speaker attribution** requires diarization or specific creator
   certification.
 
-The frozen promoted snapshot contains 847 machine-level receipts and 25
-timestamp-validated human-curated character-performance candidates, but 0
-authenticated editor-verified decisions and 0 creator-certified receipts.
+The frozen 74-source promoted snapshot still contains its legacy 847 machine-level receipts and 25 curated character candidates. The current all-cached-official Character Lore layer expands that library to 60 timestamp-validated human-curated character-performance candidates, but still claims 0 authenticated editor-verified decisions and 0 creator-certified receipts.
 Their speakers are not diarized. The candidate records preserve source/time
 provenance; they do not prove reviewer identity, surrounding-context review,
 or clip-level speaker identity. The Trust Desk's “0 out-of-range

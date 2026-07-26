@@ -36,12 +36,18 @@ test("builds a broad field guide from all unique source lanes", () => {
   const expectedSources = new Set([
     ...context.window.WWAM_CATALOG.map((source) => source.id),
     ...context.window.WWAM_LIVESTREAMS.streams.map((source) => source.id),
-    ...context.window.WWAM_POPULAR_LIVE.streams.map((source) => source.id)
+    ...context.window.WWAM_POPULAR_LIVE.streams.map((source) => source.id),
+    ...context.window.WWAM_CHARACTER_LORE.characters.flatMap((character) =>
+      [...character.soundbytes, ...character.creatorContext].map((receipt) => receipt.sourceId)
+    ),
+    ...context.window.WWAM_CHARACTER_LORE.lockedCandidates.flatMap((candidate) =>
+      candidate.soundbytes.map((receipt) => receipt.sourceId)
+    )
   ]);
 
   assert.equal(engine.scope.uniqueSources, expectedSources.size);
-  assert.equal(engine.scope.uniqueSources, 74);
-  assert.equal(engine.metrics.kinds.source, 74);
+  assert.equal(engine.scope.uniqueSources, 97);
+  assert.equal(engine.metrics.kinds.source, 97);
   assert.equal(engine.metrics.kinds.character, 4);
   assert.equal(engine.metrics.kinds["candidate-character"], 1);
   assert.equal(engine.metrics.kinds.franchise, 4);
@@ -79,10 +85,10 @@ test("character and bit lineages resolve to timestamp-validated curated candidat
   const feldman = engine.getEntry("character:corey-feldman");
   const marky = engine.getEntry("candidate-character:marky-mark");
 
-  assert.equal(loomis.metrics.curatedPerformanceCandidates, 7);
-  assert.equal(challis.metrics.curatedPerformanceCandidates, 7);
-  assert.equal(slender.metrics.curatedPerformanceCandidates, 6);
-  assert.equal(feldman.metrics.curatedPerformanceCandidates, 5);
+  assert.equal(loomis.metrics.curatedPerformanceCandidates, 15);
+  assert.equal(challis.metrics.curatedPerformanceCandidates, 15);
+  assert.equal(slender.metrics.curatedPerformanceCandidates, 15);
+  assert.equal(feldman.metrics.curatedPerformanceCandidates, 15);
   assert.equal(marky.status, "locked-needs-human-verification");
   assert.equal(marky.confidence, 0);
   assert.match(marky.evidenceBasis, /performer identity/i);
@@ -91,7 +97,7 @@ test("character and bit lineages resolve to timestamp-validated curated candidat
     [loomis.id, "2022-08-20"],
     [challis.id, "2022-07-20"],
     [slender.id, "2021-04-24"],
-    [feldman.id, "2026-06-16"]
+    [feldman.id, "2025-05-25"]
   ]);
 
   for (const character of [loomis, challis, slender, feldman]) {
@@ -195,7 +201,7 @@ test("machine-only or non-exact soundbytes cannot become performance archive-fir
   });
   const conservativeLoomis = conservativeEngine.getEntry("character:loomis");
 
-  assert.equal(conservativeLoomis.performanceReceiptIds.length, 7);
+  assert.equal(conservativeLoomis.performanceReceiptIds.length, 15);
   assert.equal(conservativeLoomis.archiveFirst.date, "2022-08-20");
   assert.ok(
     !conservativeLoomis.performanceReceiptIds.some(

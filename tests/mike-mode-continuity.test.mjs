@@ -15,7 +15,7 @@ function functionBlock(name, nextName) {
   return app.slice(start, end);
 }
 
-test("Mike Mode live-proof exits arm the next sales beat instead of resetting the pitch", () => {
+test("Showcase Mode proof exits arm the next guided beat instead of resetting the tour", () => {
   assert.match(app, /tourSlide: 0, tourResumeSlide: null/);
 
   const proof = functionBlock("runTourProof", "openTour");
@@ -36,12 +36,12 @@ test("Mike Mode live-proof exits arm the next sales beat instead of resetting th
   assert.match(close, /state\.tourResumeSlide = Math\.max\(0, Math\.min\(/);
 });
 
-test("all three Mike Mode entry points visibly disclose the resumable slide", () => {
+test("all three Showcase Mode entry points visibly disclose the resumable slide", () => {
   const launchers = functionBlock("updateTourLaunchers", "runTourProof");
   assert.match(launchers, /var step = canResume \? \(state\.tourResumeSlide \+ 1\) \+ "\/" \+ total/);
-  assert.match(launchers, /"RESUME " \+ step : "MIKE MODE"/);
-  assert.match(launchers, /"RESUME MIKE MODE · " \+ step : "START THE 60-SECOND PITCH"/);
-  assert.match(launchers, /"Resume Mike Mode at slide " \+ \(state\.tourResumeSlide \+ 1\)/);
+  assert.match(launchers, /"RESUME " \+ step : "SHOWCASE MODE"/);
+  assert.match(launchers, /"RESUME SHOWCASE · " \+ step : "START THE 60-SECOND SHOWCASE"/);
+  assert.match(launchers, /"Resume Showcase Mode at slide " \+ \(state\.tourResumeSlide \+ 1\)/);
   assert.equal((launchers.match(/tour-resume-ready/g) || []).length, 3);
 
   assert.match(

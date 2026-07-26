@@ -4,7 +4,7 @@
   root.WWAM_PITCH_TOUR = Object.freeze([
     {
       number: "01",
-      eyebrow: "THE PROBLEM",
+      eyebrow: "THE ARCHIVE GAP",
       title: "THOUSANDS OF HOURS.<br>NO MEMORY LAYER.",
       body: "YouTube remembers titles—not the bits, receipts, and exact seconds worth reviving.",
       proof: "THE BACK CATALOG IS BURIED.",
@@ -34,7 +34,7 @@
     },
     {
       number: "04",
-      eyebrow: "THE MOAT",
+      eyebrow: "THE LORE SYSTEM",
       title: "THE CHANNEL<br>REMEMBERS ITSELF.",
       body: "Time Machines track takes; Ancestry tracks bits; every connection keeps its receipts and authority boundary.",
       proof: "CONNECTED MEMORY. NO SELF-CERTIFYING CANON.",
@@ -46,7 +46,7 @@
     },
     {
       number: "05",
-      eyebrow: "THE MONEY",
+      eyebrow: "THE WORKFLOW",
       title: "ONE SHOW BECOMES<br>THE AFTERMATH PACK.",
       body: "The July 23 upload became a source-locked review desk: 21 receipts, 23 registered review candidates, four research threads, and nine separately counted cold-open boards.",
       proof: "SOURCE → CUT WINDOW → RISK → HUMAN ROUTE → EDITOR PACKET.",
@@ -59,13 +59,13 @@
     },
     {
       number: "06",
-      eyebrow: "THE PILOT",
-      title: "$500. THREE SHOWS.<br>FOURTEEN DAYS.",
-      body: "A fixed-scope proof: three exact-source Aftermath Packs, three local review ledgers, and three bounded editor handoffs.",
-      proof: "NO PERFORMANCE PROMISE. VISIBLE INPUTS. MUTUAL AGREEMENT REQUIRED.",
+      eyebrow: "THE SHOWCASE",
+      title: "THREE SHOWS.<br>ONE REVIEWABLE WORKFLOW.",
+      body: "A bounded prototype traces three exact-source Aftermath Packs through local review ledgers and editor handoffs.",
+      proof: "NO PERFORMANCE CLAIMS. VISIBLE INPUTS. HUMAN REVIEW REQUIRED.",
       action: {
         kind: "pilot",
-        label: "OPEN THE THREE-SHOW PILOT",
+        label: "OPEN THE THREE-SHOW WORKFLOW",
         goal: "compilation-workflow",
       },
     },

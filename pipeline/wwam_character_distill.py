@@ -33,10 +33,18 @@ from wwam_deep_distill import (
 
 
 OUTPUT = PUBLIC / "character-lore.js"
+AUDIT_OUTPUT = PUBLIC / "character-receipt-audit.js"
 CATALOG_OUTPUT = PUBLIC / "catalog.js"
 FRESH_OUTPUT = PUBLIC / "livestream-distill.js"
 POPULAR_OUTPUT = PUBLIC / "popular-live-distill.js"
 OFFICIAL_CHANNEL_ID = "UC6ieEOZW4iXV8TcILJI8k5g"
+BLOCKED_AVAILABILITY = {
+    "private",
+    "unavailable",
+    "needs_auth",
+    "premium_only",
+    "subscriber_only",
+}
 ATTRIBUTION_BASIS = (
     "The project owner explicitly identified this host-to-character mapping "
     "in the WWAM build brief dated 2026-07-23."
@@ -813,6 +821,428 @@ EVIDENCE_SEEDS: list[dict[str, Any]] = [
         "trigger": "Fictional Wolf Pack",
         "note": "The fictional Wolf Pack is blamed in an improvised conspiracy detour.",
     },
+    {
+        "id": "loomis-mortal-kombat",
+        "character": "loomis",
+        "sourceId": "tL9zmuyrtl4",
+        "t": 7052.56,
+        "cue": "Uh, much like your sex life",
+        "limit": 13,
+        "confidence": 0.97,
+        "trigger": "Apocalyptic certainty",
+        "note": "A direct Loomis prompt turns a sequel forecast into a scorched-earth box-office ruling.",
+        "auditWave": "2026-07-26-character-library-expansion",
+    },
+    {
+        "id": "loomis-zero-option",
+        "character": "loomis",
+        "sourceId": "7PzSj-oIRjA",
+        "t": 7775.199,
+        "cue": "their ass? None. Nobody. The option is",
+        "limit": 11,
+        "confidence": 0.97,
+        "trigger": "Apocalyptic certainty",
+        "note": "A dual-character viewer prompt ends with Loomis prescribing option D: zero.",
+        "auditWave": "2026-07-26-character-library-expansion",
+    },
+    {
+        "id": "loomis-tenacious-toes",
+        "character": "loomis",
+        "sourceId": "AGL5yUH5Xy4",
+        "t": 9930.6,
+        "cue": "Uh, we don't mind sucking on",
+        "limit": 11,
+        "confidence": 0.96,
+        "trigger": "Apocalyptic certainty",
+        "note": "An explicitly requested Loomis impression answers relationship advice with total certainty.",
+        "auditWave": "2026-07-26-character-library-expansion",
+    },
+    {
+        "id": "loomis-christmas-gift",
+        "character": "loomis",
+        "sourceId": "qXM8FSp7ywM",
+        "t": 11057.76,
+        "cue": "thought about this",
+        "limit": 13,
+        "confidence": 0.98,
+        "trigger": "Michael containment",
+        "note": "A Christmas question addressed to Loomis becomes another Michael Myers problem.",
+        "auditWave": "2026-07-26-character-library-expansion",
+    },
+    {
+        "id": "loomis-restraining-order",
+        "character": "loomis",
+        "sourceId": "QMYgsEfPMg0",
+        "t": 3948.4,
+        "cue": "ears. YOU WILL GET A RESTRAINING order",
+        "limit": 11,
+        "confidence": 0.97,
+        "trigger": "Bureaucratic combat",
+        "note": "A staged holiday message immediately escalates into Loomis-style legal authority.",
+        "auditWave": "2026-07-26-character-library-expansion",
+    },
+    {
+        "id": "loomis-std-garden",
+        "character": "loomis",
+        "sourceId": "HLDAxs4_3U4",
+        "t": 3672.72,
+        "cue": "And that's why your dick is about ready",
+        "limit": 13,
+        "confidence": 0.97,
+        "trigger": "Medical authority",
+        "note": "A direct Loomis-and-Challis movie prompt ends with Loomis issuing an absurd diagnosis.",
+        "auditWave": "2026-07-26-character-library-expansion",
+    },
+    {
+        "id": "loomis-michael-erection",
+        "character": "loomis",
+        "sourceId": "e7Guc5jtHQg",
+        "t": 8863.92,
+        "cue": "because my PP works fine. It also gets",
+        "limit": 14,
+        "confidence": 0.98,
+        "trigger": "Michael containment",
+        "note": "The Loomis half of an explicitly addressed medical prompt loops back to Michael.",
+        "auditWave": "2026-07-26-character-library-expansion",
+    },
+    {
+        "id": "loomis-dolphins-pep-talk",
+        "character": "loomis",
+        "sourceId": "EhWiOIxlfak",
+        "t": 9409.359,
+        "cue": "Uh yeah. What? You know, I'll give you a",
+        "limit": 13,
+        "confidence": 0.98,
+        "trigger": "Apocalyptic certainty",
+        "note": "A direct Loomis-and-Challis request becomes a disastrous Dolphins pep talk.",
+        "auditWave": "2026-07-26-character-library-expansion",
+    },
+    {
+        "id": "challis-christmas-bar-hop",
+        "character": "challis",
+        "sourceId": "qXM8FSp7ywM",
+        "t": 11093.279,
+        "cue": "Uh, listen. The Halloween or the",
+        "limit": 14,
+        "confidence": 0.98,
+        "trigger": "Alcohol",
+        "note": "The Challis half of a direct Christmas prompt quickly becomes a bar itinerary.",
+        "auditWave": "2026-07-26-character-library-expansion",
+    },
+    {
+        "id": "challis-courtney-answer",
+        "character": "challis",
+        "sourceId": "7PzSj-oIRjA",
+        "t": 7743.36,
+        "cue": "Uh, I'll tell you right now",
+        "limit": 16,
+        "confidence": 0.97,
+        "trigger": "Flirtation",
+        "note": "A viewer addresses Challis directly and gets a fully committed romantic answer.",
+        "auditWave": "2026-07-26-character-library-expansion",
+    },
+    {
+        "id": "challis-happy-gilmore",
+        "character": "challis",
+        "sourceId": "HLDAxs4_3U4",
+        "t": 3652.72,
+        "cue": "So, uh yeah, I'm going to watch",
+        "limit": 15,
+        "confidence": 0.97,
+        "trigger": "Flirtation",
+        "note": "The Challis half of a direct movie prompt turns the answer into a date plan.",
+        "auditWave": "2026-07-26-character-library-expansion",
+    },
+    {
+        "id": "challis-whiskey-dick",
+        "character": "challis",
+        "sourceId": "e7Guc5jtHQg",
+        "t": 8896.88,
+        "cue": "right. The only time I've ever had",
+        "limit": 15,
+        "confidence": 0.98,
+        "trigger": "Alcohol",
+        "note": "An explicit handoff to Dr. Challis turns a medical question into drinking testimony.",
+        "auditWave": "2026-07-26-character-library-expansion",
+    },
+    {
+        "id": "challis-dolphins",
+        "character": "challis",
+        "sourceId": "EhWiOIxlfak",
+        "t": 9420.399,
+        "cue": "Uh yeah, listen, that team is completely",
+        "limit": 14,
+        "confidence": 0.99,
+        "trigger": "Questionable medicine",
+        "note": "A direct Dolphins pep-talk prompt is explicitly confirmed moments later as Challis.",
+        "auditWave": "2026-07-26-character-library-expansion",
+    },
+    {
+        "id": "challis-christmas-tidings",
+        "character": "challis",
+        "sourceId": "QMYgsEfPMg0",
+        "t": 3987.359,
+        "cue": "Listen, Lee, you're my best friend",
+        "limit": 14,
+        "confidence": 0.98,
+        "trigger": "Flirtation",
+        "note": "An explicitly announced Dr. Challis holiday message becomes intimate immediately.",
+        "auditWave": "2026-07-26-character-library-expansion",
+    },
+    {
+        "id": "challis-rib-platter",
+        "character": "challis",
+        "sourceId": "ceD5ulYUy5M",
+        "t": 8470.24,
+        "cue": "And uh as chalice, I'd just like to say",
+        "limit": 16,
+        "confidence": 0.99,
+        "trigger": "Flirtation",
+        "note": "The performance self-labels as Challis before delivering the viewer response.",
+        "auditWave": "2026-07-26-character-library-expansion",
+    },
+    {
+        "id": "challis-birthday-bar",
+        "character": "challis",
+        "sourceId": "fUCQoxTwKqo",
+        "t": 8095.26,
+        "cue": "Jonathan uh turn 34 is a big",
+        "limit": 16,
+        "confidence": 0.97,
+        "trigger": "Alcohol",
+        "note": "A direct Challis-and-Slenderman birthday request opens with barroom wisdom.",
+        "auditWave": "2026-07-26-character-library-expansion",
+    },
+
+    {
+        "id": "slender-hair-reassurance",
+        "character": "slenderman",
+        "sourceId": "Z7ArdfA054w",
+        "t": 7154.96,
+        "cue": "uh yes, you know",
+        "limit": 16,
+        "confidence": 0.98,
+        "trigger": "Calming ritual",
+        "note": "A direct request asks Slenderman to reassure Mike about his hair.",
+        "auditWave": "2026-07-26-character-library-expansion",
+    },
+    {
+        "id": "slender-jerry-shoutout",
+        "character": "slenderman",
+        "sourceId": "Fro7cVFk404",
+        "t": 4241.36,
+        "cue": "hello jerry how you doing",
+        "limit": 15,
+        "confidence": 0.98,
+        "trigger": "Awkward hospitality",
+        "note": "A viewer's direct Slendy request becomes an unusually cordial supernatural shout-out.",
+        "auditWave": "2026-07-26-character-library-expansion",
+    },
+    {
+        "id": "slender-halloween-trailer",
+        "character": "slenderman",
+        "sourceId": "lCH31VtaSeI",
+        "t": 4386.719,
+        "cue": "so yeah me saw a lot of angriliness",
+        "limit": 14,
+        "confidence": 0.98,
+        "trigger": "Impossible visitors",
+        "note": "A question addressed to Slenderman gets an in-character Halloween trailer review.",
+        "auditWave": "2026-07-26-character-library-expansion",
+    },
+    {
+        "id": "slender-giants",
+        "character": "slenderman",
+        "sourceId": "gRS6216vIEc",
+        "t": 10606.24,
+        "cue": "me really do enjoy",
+        "limit": 15,
+        "confidence": 0.99,
+        "trigger": "Awkward hospitality",
+        "note": "A direct favorite-team prompt receives a fully in-character NFL answer.",
+        "auditWave": "2026-07-26-character-library-expansion",
+    },
+    {
+        "id": "slender-job-reassurance",
+        "character": "slenderman",
+        "sourceId": "R8ODT-dbcxU",
+        "t": 7083.52,
+        "cue": "well, Mia is so sorry",
+        "limit": 15,
+        "confidence": 0.98,
+        "trigger": "Calming ritual",
+        "note": "The host hands a bad-job update directly to Slenderman for reassurance.",
+        "auditWave": "2026-07-26-character-library-expansion",
+    },
+    {
+        "id": "slender-truly-madly",
+        "character": "slenderman",
+        "sourceId": "e7Guc5jtHQg",
+        "t": 6254.159,
+        "cue": "goes. Well, me not gay either",
+        "limit": 14,
+        "confidence": 0.96,
+        "trigger": "Soft-rock request",
+        "note": "A direct Slenderman-and-Mark-Wahlberg song prompt opens with an original in-character riff.",
+        "auditWave": "2026-07-26-character-library-expansion",
+    },
+    {
+        "id": "slender-birthday",
+        "character": "slenderman",
+        "sourceId": "fUCQoxTwKqo",
+        "t": 8155.199,
+        "cue": "hey Jonathan",
+        "limit": 16,
+        "confidence": 0.97,
+        "trigger": "Awkward hospitality",
+        "note": "The Slenderman half of an explicitly requested birthday message follows the Challis handoff.",
+        "auditWave": "2026-07-26-character-library-expansion",
+    },
+    {
+        "id": "slender-subway",
+        "character": "slenderman",
+        "sourceId": "QJGSOrFBdS8",
+        "t": 4248.96,
+        "cue": "it's a wonderful place that made",
+        "limit": 16,
+        "confidence": 0.99,
+        "trigger": "Awkward hospitality",
+        "note": "A direct request asks Slenderman to tell a viewer's sister about Subway.",
+        "auditWave": "2026-07-26-character-library-expansion",
+    },
+    {
+        "id": "slender-song-refusal",
+        "character": "slenderman",
+        "sourceId": "OgefrSuRqLk",
+        "t": 3800.359,
+        "cue": "you don't know what that song is",
+        "limit": 15,
+        "confidence": 0.95,
+        "trigger": "Soft-rock request",
+        "note": "A direct Slenderman song request produces an in-character refusal instead of a lyric excerpt.",
+        "auditWave": "2026-07-26-character-library-expansion",
+    },
+    {
+        "id": "feldman-guitar-strings",
+        "character": "corey-feldman",
+        "sourceId": "BikumH8JKmw",
+        "t": 2647.839,
+        "cue": "by the way, this is what Cory Felman",
+        "limit": 16,
+        "confidence": 0.99,
+        "trigger": "Music takeover",
+        "note": "The host explicitly announces what Corey thinks before launching the guitar-string riff.",
+        "auditWave": "2026-07-26-character-library-expansion",
+    },
+    {
+        "id": "feldman-wolfpack-cult",
+        "character": "corey-feldman",
+        "sourceId": "MRLPoTP8cBo",
+        "t": 1034.16,
+        "cue": "them. All right Corey Feldman",
+        "limit": 16,
+        "confidence": 0.98,
+        "trigger": "Fictional Wolf Pack",
+        "note": "An explicit Corey Feldman handoff immediately becomes a fictional Wolf Pack response.",
+        "auditWave": "2026-07-26-character-library-expansion",
+    },
+    {
+        "id": "feldman-birthday",
+        "character": "corey-feldman",
+        "sourceId": "KpqbfsBGfAk",
+        "t": 10955.12,
+        "cue": "You know what? The real Cory Felman be",
+        "limit": 16,
+        "confidence": 0.98,
+        "trigger": "Comeback mythology",
+        "note": "A direct request for Corey Feldman to sing happy birthday becomes comeback mythology.",
+        "auditWave": "2026-07-26-character-library-expansion",
+    },
+    {
+        "id": "feldman-three-way-argument",
+        "character": "corey-feldman",
+        "sourceId": "Aw2ICPP6rAQ",
+        "t": 9417.16,
+        "cue": "so I don't like anybody BECAUSE I THINK",
+        "limit": 13,
+        "confidence": 0.99,
+        "trigger": "Fictional Wolf Pack",
+        "note": "A viewer explicitly requests Loomis, Slenderman, and Corey arguing; this is the Corey segment.",
+        "auditWave": "2026-07-26-character-library-expansion",
+    },
+    {
+        "id": "feldman-mcdonalds-commercials",
+        "character": "corey-feldman",
+        "sourceId": "gR_64RyPhEM",
+        "t": 3406.48,
+        "cue": "him about anything, he was like",
+        "limit": 16,
+        "confidence": 0.97,
+        "trigger": "Comeback mythology",
+        "note": "A direct Corey question shifts into a quoted in-character answer about commercials.",
+        "auditWave": "2026-07-26-character-library-expansion",
+    },
+    {
+        "id": "feldman-read-the-tweet",
+        "character": "corey-feldman",
+        "sourceId": "hCCQpZcW-sY",
+        "t": 5126.32,
+        "cue": 'that rockstar. He says, "I hate beating',
+        "limit": 12,
+        "confidence": 0.98,
+        "trigger": "Comeback mythology",
+        "note": "The preceding instruction explicitly asks for the tweet to be read in Corey.",
+        "auditWave": "2026-07-26-character-library-expansion",
+    },
+    {
+        "id": "feldman-jason-credit",
+        "character": "corey-feldman",
+        "sourceId": "hagePawEnC4",
+        "t": 5082.48,
+        "cue": "That's right. because I am. I'm the best",
+        "limit": 15,
+        "confidence": 0.98,
+        "trigger": "Casting grievance",
+        "note": "The hosts choose Corey as the franchise's best final person, then answer in character.",
+        "auditWave": "2026-07-26-character-library-expansion",
+    },
+    {
+        "id": "feldman-cliff-booth",
+        "character": "corey-feldman",
+        "sourceId": "tUJviU09fWM",
+        "t": 9585.56,
+        "cue": "what happened is they were like",
+        "limit": 16,
+        "confidence": 0.97,
+        "trigger": "Casting grievance",
+        "note": "An explicit what-if-Corey-was-cast setup launches the Cliff Booth casting riff.",
+        "auditWave": "2026-07-26-character-library-expansion",
+    },
+    {
+        "id": "feldman-lick-it-up",
+        "character": "corey-feldman",
+        "sourceId": "SL2HtTbAF9I",
+        "t": 3063.8,
+        "cue": "Oh, I that's totally my original song",
+        "limit": 14,
+        "confidence": 0.98,
+        "trigger": "Music takeover",
+        "note": "A direct can-Corey-sing prompt becomes a claim of musical ownership.",
+        "auditWave": "2026-07-26-character-library-expansion",
+    },
+    {
+        "id": "feldman-failed-man",
+        "character": "corey-feldman",
+        "sourceId": "k698GIJe8EA",
+        "t": 6446.8,
+        "cue": "What are you talking about? You're",
+        "limit": 13,
+        "confidence": 0.97,
+        "trigger": "Fictional Wolf Pack",
+        "note": "A direct Corey cue immediately becomes a defensive fictional Wolf Pack response.",
+        "auditWave": "2026-07-26-character-library-expansion",
+    },
+
 ]
 
 
@@ -884,6 +1314,54 @@ CREATOR_CONTEXT_SEEDS: list[dict[str, Any]] = [
             "The line directly distinguishes Jay from the person performing Challis; "
             "the owner-supplied mapping identifies that performer as Mike."
         ),
+    },
+]
+
+
+MERE_MENTION_SEEDS: list[dict[str, Any]] = [
+    {
+        "id": "loomis-ordinary-movie-commentary",
+        "character": "loomis",
+        "sourceId": "28PfRNKoSCA",
+        "t": 203.64,
+        "cue": "scenes is when when Loomis confronts him",
+        "limit": 11,
+        "confidence": 0.99,
+        "trigger": "ordinary movie commentary",
+        "note": "Rejected from the performance shelf: this is discussion of a Loomis scene, not a recurring-character performance.",
+    },
+    {
+        "id": "challis-movie-dialogue",
+        "character": "challis",
+        "sourceId": "4UokRLETypU",
+        "t": 2372.84,
+        "cue": "Where do you want to sleep Dr. Challis?",
+        "limit": 9,
+        "confidence": 0.99,
+        "trigger": "movie dialogue/commentary",
+        "note": "Rejected from the performance shelf: the commentary is following Halloween III dialogue, not performing the WWAM Challis bit.",
+    },
+    {
+        "id": "slenderman-ordinary-comparison",
+        "character": "slenderman",
+        "sourceId": "l8HKF-nXdyc",
+        "t": 961.16,
+        "cue": "around in a dark creepy ass Slender Man",
+        "limit": 12,
+        "confidence": 0.99,
+        "trigger": "ordinary comparison",
+        "note": "Rejected from the performance shelf: Slender Man is only used as a visual comparison.",
+    },
+    {
+        "id": "feldman-actor-discussion",
+        "character": "corey-feldman",
+        "sourceId": "kTJXSHz9BXw",
+        "t": 363.35,
+        "cue": "originally went for Corey Feldman",
+        "limit": 12,
+        "confidence": 0.99,
+        "trigger": "actor discussion",
+        "note": "Rejected from the performance shelf: this is a casting-history reference to the real actor.",
     },
 ]
 
@@ -961,8 +1439,9 @@ GLOBAL_GUARDRAILS = {
     "speakerGuessing": "forbidden",
     "realPersonAllegations": "forbidden",
     "evidenceRule": (
-        "Archival claims must return a source ID, exact timestamp, short caption "
-        "excerpt, and provenance confidence."
+        "Archival claims must return an exact official source ID, exact timestamp, "
+        "short caption excerpt, provenance confidence, evidence classification, and "
+        "playability eligibility."
     ),
 }
 
@@ -986,23 +1465,36 @@ def read_js_assignment(path: Path, variable: str) -> Any:
     return json.loads(text[len(prefix) : -1])
 
 
-def promoted_source_ids() -> set[str]:
-    catalog = read_js_assignment(CATALOG_OUTPUT, "WWAM_CATALOG")
-    fresh = read_js_assignment(FRESH_OUTPUT, "WWAM_LIVESTREAMS")
-    popular = read_js_assignment(POPULAR_OUTPUT, "WWAM_POPULAR_LIVE")
-    source_ids = {
-        str(item.get("id") or "")
-        for item in [
-            *catalog,
-            *(fresh.get("streams") or []),
-            *(popular.get("streams") or []),
-        ]
-        if item.get("id")
-    }
-    if len(source_ids) != 74:
+def validate_playable_metadata(source_id: str, info: dict[str, Any] | None) -> None:
+    if not info:
+        raise RuntimeError(f"No cached metadata for seeded source {source_id}")
+    if str(info.get("id") or "") != source_id:
         raise RuntimeError(
-            f"Expected the promoted 74-source corpus, found {len(source_ids)} sources."
+            f"Cached metadata ID does not match exact source ID {source_id}"
         )
+    if info.get("channel_id") != OFFICIAL_CHANNEL_ID:
+        raise RuntimeError(
+            f"Source {source_id} is not verified against the official WWAM channel"
+        )
+    availability = str(info.get("availability") or "public").lower()
+    if availability in BLOCKED_AVAILABILITY or info.get("is_private") is True:
+        raise RuntimeError(f"Source {source_id} is not publicly playable: {availability}")
+    if float(info.get("age_limit") or 0) >= 18 or info.get("age_restricted") is True:
+        raise RuntimeError(f"Source {source_id} is age-restricted")
+    if str(info.get("live_status") or "").lower() in {"is_live", "is_upcoming"}:
+        raise RuntimeError(f"Source {source_id} is not an archived playable upload")
+    if float(info.get("duration") or 0) <= 0:
+        raise RuntimeError(f"Source {source_id} has no positive cached duration")
+
+
+def official_cached_source_ids(metadata: dict[str, dict[str, Any]]) -> set[str]:
+    source_ids: set[str] = set()
+    for path in sorted((CACHE / "captions").glob("*.json")):
+        source_id = path.stem
+        validate_playable_metadata(source_id, metadata.get(source_id))
+        source_ids.add(source_id)
+    if not source_ids:
+        raise RuntimeError("No official cached caption sources found")
     return source_ids
 
 
@@ -1107,10 +1599,7 @@ def receipt(
     line, excerpt, context = excerpt_from_seed(seed, captions)
     source_id = seed["sourceId"]
     info = metadata.get(source_id) or {}
-    if info.get("channel_id") != OFFICIAL_CHANNEL_ID:
-        raise RuntimeError(
-            f"Seeded source {source_id} is not verified against the official WWAM channel"
-        )
+    validate_playable_metadata(source_id, info)
     timestamp = round(float(line["start"]), 2)
     duration = float(info.get("duration") or 0)
     if duration and timestamp >= duration + 2:
@@ -1148,6 +1637,19 @@ def receipt(
         "trigger": seed.get("trigger"),
         "note": seed["note"],
         "confidence": seed["confidence"],
+        "classification": seed.get(
+            "classification", "actual-character-performance"
+        ),
+        "playability": {
+            "status": "eligible",
+            "provider": "youtube",
+            "metadataStatus": "official-public-cached",
+            "basis": (
+                "Cached metadata resolves to the exact official upload, includes a "
+                "positive duration, and carries no unavailable, private, or "
+                "age-restricted flag."
+            ),
+        },
         "provenance": {
             "channel": info.get("channel") or "WeWatchedAMovie",
             "channelId": OFFICIAL_CHANNEL_ID,
@@ -1219,7 +1721,11 @@ def build_character(
     for seed in CREATOR_CONTEXT_SEEDS:
         if seed["character"] != character_id:
             continue
-        item, context = receipt(seed, captions, metadata)
+        item, context = receipt(
+            {**seed, "classification": "creator-context-not-performance"},
+            captions,
+            metadata,
+        )
         creator_context.append(item)
         contexts.append(context)
     if not soundbytes:
@@ -1273,6 +1779,7 @@ def build_bonus(
                 **seed,
                 "character": definition["id"],
                 "trigger": "Candidate performance",
+                "classification": "candidate-unverified-performance",
                 "speakerBasis": LOCKED_CANDIDATE_SPEAKER_BASIS,
             },
             captions,
@@ -1308,9 +1815,92 @@ def validate_behavior_links(characters: list[dict[str, Any]]) -> None:
                 )
 
 
-def build_payload() -> dict[str, Any]:
+def build_receipt_audit(
+    payload: dict[str, Any],
+    captions: dict[str, list[dict[str, Any]]],
+    metadata: dict[str, dict[str, Any]],
+) -> dict[str, Any]:
+    expansion_ids = {
+        seed["id"]
+        for seed in EVIDENCE_SEEDS
+        if seed.get("auditWave") == "2026-07-26-character-library-expansion"
+    }
+    promoted = []
+    for character in payload["characters"]:
+        for item in character["soundbytes"]:
+            if item["id"] not in expansion_ids:
+                continue
+            promoted.append(
+                {
+                    **item,
+                    "characterId": character["id"],
+                    "shelfEligible": True,
+                    "decision": (
+                        "Promoted: immediate caption context explicitly addresses, "
+                        "announces, or confirms the recurring-character performance."
+                    ),
+                }
+            )
+    rejected = []
+    for seed in MERE_MENTION_SEEDS:
+        item, _ = receipt(
+            {**seed, "classification": "mere-mention"}, captions, metadata
+        )
+        rejected.append(
+            {
+                **item,
+                "characterId": seed["character"],
+                "shelfEligible": False,
+                "decision": seed["note"],
+            }
+        )
+    return {
+        "version": "1.0.0",
+        "auditWave": "2026-07-26-character-library-expansion",
+        "corpus": {
+            "captionFilesScanned": len(captions),
+            "captionEventsScanned": sum(len(lines) for lines in captions.values()),
+            "officialChannelId": OFFICIAL_CHANNEL_ID,
+            "mode": "all-locally-cached-official-caption-sources",
+        },
+        "rules": [
+            (
+                "A performance receipt needs an exact official upload ID, exact caption "
+                "event timestamp, short excerpt, and immediate character-performance cue."
+            ),
+            (
+                "Alias matches and ordinary movie, actor, or character discussion are "
+                "mentions only; they never enter the playable performance shelf."
+            ),
+            (
+                "Public shelf receipts must resolve to cached official-channel metadata, "
+                "positive duration, and no private, unavailable, or age-restricted flag."
+            ),
+            (
+                "Auto-captions are not speaker-diarized. Host identity is never inferred "
+                "from turn order or voice."
+            ),
+        ],
+        "counts": {
+            "promotedPerformanceReceipts": len(promoted),
+            "rejectedMentionExamples": len(rejected),
+            "libraryPerformanceReceipts": sum(
+                len(character["soundbytes"])
+                for character in payload["characters"]
+            ),
+            "perCharacter": {
+                character["id"]: len(character["soundbytes"])
+                for character in payload["characters"]
+            },
+        },
+        "promotedPerformanceReceipts": promoted,
+        "rejectedMentionExamples": rejected,
+    }
+
+
+def build_artifacts() -> tuple[dict[str, Any], dict[str, Any]]:
     metadata = read_metadata()
-    source_ids = promoted_source_ids()
+    source_ids = official_cached_source_ids(metadata)
     captions = read_captions(source_ids)
     if not captions:
         raise RuntimeError("No cached captions found; run the WWAM distill pipelines first.")
@@ -1320,7 +1910,7 @@ def build_payload() -> dict[str, Any]:
     ]
     validate_behavior_links(characters)
     bonus = [build_bonus(item, captions, metadata) for item in BONUS_CANDIDATES]
-    all_receipts = [
+    performance_receipts = [
         soundbyte
         for character in characters
         for soundbyte in character["soundbytes"]
@@ -1330,26 +1920,26 @@ def build_payload() -> dict[str, Any]:
         for character in characters
         for receipt_item in character["creatorContext"]
     ]
-    all_receipts.extend(
+    locked_receipts = [
         soundbyte for candidate in bonus for soundbyte in candidate["soundbytes"]
-    )
+    ]
+    all_receipts = [*performance_receipts, *locked_receipts]
     unique_receipt_sources = {
         item["sourceId"] for item in all_receipts + creator_context_receipts
     }
-    return {
-        "version": "1.1.0",
+    payload = {
+        "version": "1.2.0",
         "scope": {
+            "corpusMode": "all-locally-cached-official-caption-sources",
             "captionFilesScanned": len(captions),
-            "promotedSources": len(source_ids),
+            "officialCaptionSourcesScanned": len(source_ids),
+            "legacyPromotedCorpusSize": 74,
             "metadataFilesScanned": len(metadata),
             "captionEventsScanned": sum(len(lines) for lines in captions.values()),
             "groundedCharacters": len(characters),
             "lockedCandidates": len(bonus),
-            "curatedPerformanceCandidates": len(all_receipts)
-            - sum(len(candidate["soundbytes"]) for candidate in bonus),
-            "lockedPerformanceCandidates": sum(
-                len(candidate["soundbytes"]) for candidate in bonus
-            ),
+            "curatedPerformanceCandidates": len(performance_receipts),
+            "lockedPerformanceCandidates": len(locked_receipts),
             "timestampValidatedCandidates": len(all_receipts),
             "curatedContextReceipts": len(creator_context_receipts),
             "authenticatedEditorVerifiedDecisions": 0,
@@ -1357,8 +1947,8 @@ def build_payload() -> dict[str, Any]:
         },
         "methodology": [
             (
-                "Scan every locally cached official YouTube caption payload; keep full "
-                "captions private and gitignored."
+                "Scan all locally cached caption payloads whose exact metadata resolves "
+                "to the official WWAM channel; keep full captions private and gitignored."
             ),
             (
                 "Use owner-supplied host mappings instead of attempting unreliable "
@@ -1366,7 +1956,13 @@ def build_payload() -> dict[str, Any]:
             ),
             (
                 "Human-select candidate performances, then deterministically validate "
-                "the caption event, cue text, source duration, and public excerpt limit."
+                "the caption event, cue text, source duration, playability flags, and "
+                "public excerpt limit."
+            ),
+            (
+                "Classify recurring-character performances, creator context, locked "
+                "candidates, and ordinary mentions separately before anything reaches "
+                "the public performance shelf."
             ),
             (
                 "Separate archival soundbytes from generated text riffs. Every "
@@ -1383,11 +1979,11 @@ def build_payload() -> dict[str, Any]:
             ),
             (
                 "Mention counts include ordinary discussion of a character as well as "
-                "performances. Only the curated soundbytes are performance receipts."
+                "performances. Only actual-character-performance receipts enter the shelf."
             ),
             (
-                "The current Slenderman evidence set is smaller than Loomis, Challis, "
-                "and Feldman, so its generated-riff profile carries lower confidence."
+                "Cached public metadata is an extraction-time playability check, not a "
+                "promise that YouTube will never later remove or restrict an upload."
             ),
             (
                 "Generated responses are grounded parody scaffolds, not predictions of "
@@ -1395,6 +1991,11 @@ def build_payload() -> dict[str, Any]:
             ),
         ],
     }
+    return payload, build_receipt_audit(payload, captions, metadata)
+
+
+def build_payload() -> dict[str, Any]:
+    return build_artifacts()[0]
 
 
 def main() -> int:
@@ -1406,22 +2007,31 @@ def main() -> int:
     )
     args = parser.parse_args()
     try:
-        payload = build_payload()
-        rendered = js_assignment("WWAM_CHARACTER_LORE", payload)
+        payload, audit_payload = build_artifacts()
+        artifacts = [
+            (OUTPUT, js_assignment("WWAM_CHARACTER_LORE", payload)),
+            (
+                AUDIT_OUTPUT,
+                js_assignment("WWAM_CHARACTER_RECEIPT_AUDIT", audit_payload),
+            ),
+        ]
         if args.check:
-            if not OUTPUT.exists():
-                raise RuntimeError(f"Missing generated artifact: {OUTPUT}")
-            existing = OUTPUT.read_text(encoding="utf-8")
-            if existing != rendered:
-                raise RuntimeError(
-                    "character-lore.js is stale; run pipeline/wwam_character_distill.py"
-                )
+            for path, rendered in artifacts:
+                if not path.exists():
+                    raise RuntimeError(f"Missing generated artifact: {path}")
+                existing = path.read_text(encoding="utf-8")
+                if existing != rendered:
+                    raise RuntimeError(
+                        f"{path.name} is stale; run pipeline/wwam_character_distill.py"
+                    )
         else:
-            OUTPUT.write_text(rendered, encoding="utf-8")
+            for path, rendered in artifacts:
+                path.write_text(rendered, encoding="utf-8")
         scope = payload["scope"]
         action = "Validated" if args.check else "Wrote"
         print(
-            f"{action} {OUTPUT}: {scope['groundedCharacters']} grounded characters, "
+            f"{action} {OUTPUT} and {AUDIT_OUTPUT}: "
+            f"{scope['groundedCharacters']} grounded characters, "
             f"{scope['lockedCandidates']} locked candidate, "
             f"{scope['curatedPerformanceCandidates']} curated performance candidates, "
             f"{scope['lockedPerformanceCandidates']} locked candidates across "

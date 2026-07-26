@@ -329,13 +329,13 @@ test("Aftermath handoff clears hidden Clip Lab filters before exact-source rende
   assert.equal(fields["clip-lab"].scrollIntoViewCalls, 1);
 });
 
-test("the compilation pilot hydrates source-bound Aftermath proof on first entry", () => {
+test("the compilation workflow hydrates source-bound Aftermath proof on first entry", () => {
   const ensure = namedFunction(app, "ensureAftermathPilot");
   const render = namedFunction(app, "renderPilotBuilder");
   assert.match(ensure, /loadSourceDossier\(\)\.then/);
   assert.match(ensure, /renderPilotBuilder\(\)/);
   assert.match(render, /wantsAftermathPilot && !aftermathPackEngine\) ensureAftermathPilot\(\)/);
-  assert.match(render, /VERIFYING \$500 \/ 3 SHOWS \/ 14 DAYS/);
+  assert.match(render, /VERIFYING THREE SOURCE-LOCKED SHOWS/);
 });
 
 test("all 472 Atlas records pass through one card-to-dossier route", () => {
@@ -442,7 +442,7 @@ test("dossier CSS and scripts load lazily through the feature loader, never eage
   );
 
   const loader = namedFunction(app, "loadSourceDossier");
-  assert.match(loader, /loader\.loadStyle\("source-dossier\.css\?v=1\.6\.0"\)/);
+  assert.match(loader, /loader\.loadStyle\("source-dossier\.css\?v=1\.7\.0"\)/);
   const scriptList = loader
     .match(/return \[([\s\S]*?)\]\.reduce/)?.[1]
     .match(/"[^"]+\.js(?:\?[^"]*)?"/g)

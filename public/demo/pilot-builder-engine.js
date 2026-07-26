@@ -2,9 +2,9 @@
   "use strict";
 
   var VERSION = "1.0.0";
-  var SCHEMA = "shokker.creator-pilot-brief/v1";
+  var SCHEMA = "shokker.creator-workflow-brief/v1";
   var DRAFT_STATUS = "DRAFT / HUMAN APPROVAL REQUIRED";
-  var MEASUREMENT_STATUS = "MEASURE DURING PILOT";
+  var MEASUREMENT_STATUS = "MEASURE DURING REVIEW";
 
   var GOALS = [
     {
@@ -40,8 +40,8 @@
         }
       ],
       instruments: [
-        "Record whether each pilot question produced a source-linked answer, an honest hold, or an irrelevant result.",
-        "Record source-open actions only after pilot analytics are intentionally enabled.",
+        "Record whether each review question produced a source-linked answer, an honest hold, or an irrelevant result.",
+        "Record source-open actions only after review analytics are intentionally enabled.",
         "Human-review a fixed question set before and after each retrieval change."
       ]
     },
@@ -78,7 +78,7 @@
         }
       ],
       instruments: [
-        "Count candidates reviewed, held, rejected, and advanced during the pilot.",
+        "Count candidates reviewed, held, rejected, and advanced during the review.",
         "Count packets whose source and receipt ledgers remain complete after export and re-import.",
         "Record unresolved-context items; do not translate this count into claimed hours saved."
       ]
@@ -117,8 +117,8 @@
       ],
       instruments: [
         "If analytics are enabled, record completed journeys, source opens, and voluntary return sessions.",
-        "Ask pilot viewers which route felt useful and which result needed more context.",
-        "Keep engagement observations descriptive until the pilot produces enough sessions for an agreed evaluation."
+        "Ask showcase viewers which route felt useful and which result needed more context.",
+        "Keep engagement observations descriptive until the review produces enough sessions for an agreed evaluation."
       ]
     },
     {
@@ -154,7 +154,7 @@
         }
       ],
       instruments: [
-        "Count claims reviewed, held, rejected, and creator-certified during the pilot.",
+        "Count claims reviewed, held, rejected, and creator-certified during the review.",
         "Audit every promoted claim for a complete receipt trail and authorized decision.",
         "Record corrections as versioned editorial decisions rather than erasing the earlier state."
       ]
@@ -263,13 +263,13 @@
 
   function assertMetricGroup(engineName, engine, required) {
     if (!engine || typeof engine !== "object") {
-      throw new TypeError("Creator Pilot Builder requires " + engineName + ".");
+      throw new TypeError("Creator Workflow Builder requires " + engineName + ".");
     }
     var metrics = object(engine.metrics);
     required.forEach(function (name) {
       if (!Number.isFinite(Number(metrics[name])) || Number(metrics[name]) < 0) {
         throw new TypeError(
-          "Creator Pilot Builder requires " +
+          "Creator Workflow Builder requires " +
             engineName +
             ".metrics." +
             name +
@@ -324,10 +324,10 @@
       "canonEligibleCourts"
     ]);
     if (!array(normalized.showcase.sources).length) {
-      throw new TypeError("Creator Pilot Builder requires indexed showcase sources.");
+      throw new TypeError("Creator Workflow Builder requires indexed showcase sources.");
     }
     if (!array(normalized.showcase.receipts).length) {
-      throw new TypeError("Creator Pilot Builder requires timestamped showcase receipts.");
+      throw new TypeError("Creator Workflow Builder requires timestamped showcase receipts.");
     }
     if (
       normalized.integrityReport &&
@@ -335,9 +335,9 @@
         clean(normalized.integrityReport.status) !== "PASS")
     ) {
       var error = new Error(
-        "Creator Pilot Builder stopped because the supplied Canon Integrity report did not pass."
+        "Creator Workflow Builder stopped because the supplied Canon Integrity report did not pass."
       );
-      error.name = "PilotIntegrityError";
+      error.name = "WorkflowIntegrityError";
       error.report = normalized.integrityReport;
       throw error;
     }
@@ -540,10 +540,10 @@
       },
       {
         order: 4,
-        stage: "PILOT",
+        stage: "TRY",
         owner: "AUTHORIZED OPERATOR",
         decision:
-          "Run the agreed pilot and record only the observations named in the measurement plan.",
+          "Run the bounded review and record only the observations named in the measurement plan.",
         gate: "Rights, platform, and brand decisions stay with the creator."
       },
       {
@@ -553,7 +553,7 @@
         decision:
           "Continue, revise, or stop based on reviewed evidence and qualitative creator judgment.",
         gate:
-          "The builder recommends no purchase, rollout, or canon promotion on its own."
+          "The builder recommends no publishing or canon promotion on its own."
       }
     ].map(function (step) {
       return Object.assign({ goalId: goal.id }, step);
@@ -567,9 +567,9 @@
       observedResults: [],
       instruments: goal.instruments.slice(),
       evaluationRule:
-        "The creator chooses the sample, observation window, and acceptable result before interpreting pilot data.",
+        "The creator chooses the sample, observation window, and acceptable result before interpreting review observations.",
       claimsBoundary:
-        "This static prototype contains no verified conversion, retention, revenue, labor-savings, or audience-impact result."
+        "This static prototype contains no verified workflow, labor-savings, or audience-impact result."
     };
   }
 
@@ -577,7 +577,7 @@
     var goal = goalById(goalId);
     if (!goal) {
       throw new RangeError(
-        "Unknown Creator Pilot goal: " +
+        "Unknown Creator Workflow goal: " +
           clean(goalId) +
           ". Expected one of: " +
           GOALS.map(function (item) {
@@ -588,13 +588,13 @@
     }
     var request = options || {};
     var title =
-      clean(request.title) || "WWAM After Midnight / " + goal.label + " Pilot";
+      clean(request.title) || "WWAM After Midnight / " + goal.label + " Workflow";
     var proof = sampleProof(builder._input, goal.id);
     var brief = {
       schema: SCHEMA,
       engineVersion: VERSION,
       briefId:
-        "pilot:" +
+        "workflow:" +
         goal.id +
         ":" +
         fingerprint([builder.inputFingerprint, goal.id, title].join("|")),
@@ -603,16 +603,16 @@
       creatorDecisionState: "NOT REVIEWED",
       snapshotDate: builder.snapshotDate,
       goal: clone(goal),
-      pitch:
+      summary:
         goal.promise +
-        " The pilot is deliberately narrow so the creator can judge the workflow with source evidence before authorizing a wider build.",
+        " This prototype is deliberately bounded so the creator can judge the workflow with source evidence before expanding it.",
       currentProof: {
         label: "CURRENT PROMOTED-CORPUS SNAPSHOT / NOT A PERFORMANCE CLAIM",
         summary: goalProofSummary(goal.id, builder.metrics),
         sampleReceipts: proof
       },
-      pilotScope: {
-        sourceLane: clean(request.sourceLane) || "CREATOR-SELECTED PILOT LANE",
+      reviewScope: {
+        sourceLane: clean(request.sourceLane) || "CREATOR-SELECTED REVIEW LANE",
         sourceLimit:
           number(request.sourceLimit) > 0
             ? Math.floor(number(request.sourceLimit))
@@ -622,7 +622,7 @@
           "No media files are copied or bundled by this brief.",
           "No rights clearance, platform approval, or brand-safety approval is implied.",
           "No guessed speaker, true-origin claim, or unlabeled archival quote is permitted.",
-          "No creator endorsement, purchase decision, or rollout authorization is recorded."
+          "No creator endorsement, publishing authority, or canon promotion is recorded."
         ]
       },
       deliverables: goal.deliverables.map(function (deliverable) {
@@ -634,14 +634,14 @@
       workflow: workflow(goal),
       measurementPlan: measurementPlan(goal),
       humanDecisionsRequired: [
-        "Confirm the pilot goal and source lane.",
+        "Confirm the workflow goal and source lane.",
         "Name the authorized context reviewer and creator decision-maker.",
         "Approve the evaluation set and observation window.",
         "Resolve every rights, attribution, and brand-safety question before publication.",
-        "Choose continue, revise, or stop after reviewing pilot evidence."
+        "Choose continue, revise, or stop after reviewing workflow evidence."
       ],
-      commercialBoundary:
-        "This brief demonstrates a buildable workflow. Scope, price, support, hosting, analytics, and ownership terms require a separate human agreement.",
+      prototypeBoundary:
+        "This workflow is a reviewable prototype. It records no creator approval, publishing authority, rights clearance, or performance claim.",
       proofLedger: {
         inputFingerprint: builder.inputFingerprint,
         engineFingerprints: clone(builder.engineFingerprints),
@@ -670,7 +670,7 @@
 
   function exportMarkdown(brief) {
     if (!brief || brief.schema !== SCHEMA) {
-      throw new TypeError("exportMarkdown requires a Creator Pilot brief.");
+      throw new TypeError("exportMarkdown requires a Creator Workflow brief.");
     }
     var lines = [
       "# " + clean(brief.title),
@@ -679,9 +679,9 @@
       "",
       "**Snapshot:** " + clean(brief.snapshotDate),
       "",
-      "## Pilot promise",
+      "## Workflow purpose",
       "",
-      clean(brief.pitch),
+      clean(brief.summary),
       "",
       "## What the current index can prove",
       ""
@@ -689,7 +689,7 @@
     array(brief.currentProof && brief.currentProof.summary).forEach(function (item) {
       lines.push("- " + clean(item));
     });
-    lines.push("", "These are snapshot counts, not performance or business results.", "");
+    lines.push("", "These are snapshot counts, not verified performance results.", "");
     lines.push("## Deliverables", "");
     array(brief.deliverables).forEach(function (item) {
       lines.push(
@@ -702,7 +702,7 @@
         ""
       );
     });
-    lines.push("## Pilot workflow", "");
+    lines.push("## Review workflow", "");
     array(brief.workflow).forEach(function (step) {
       lines.push(
         step.order +
@@ -761,10 +761,10 @@
       "",
       "## Boundary",
       "",
-      clean(brief.commercialBoundary),
+      clean(brief.prototypeBoundary),
       ""
     );
-    array(brief.pilotScope && brief.pilotScope.exclusions).forEach(function (item) {
+    array(brief.reviewScope && brief.reviewScope.exclusions).forEach(function (item) {
       lines.push("- " + clean(item));
     });
     return lines.join("\n");
@@ -779,7 +779,7 @@
     var measurement = object(brief.measurementPlan);
     var proofLedger = object(brief.proofLedger);
     var currentProof = object(brief.currentProof);
-    var pilotScope = object(brief.pilotScope);
+    var reviewScope = object(brief.reviewScope);
     var deliverables = array(brief.deliverables);
 
     if (clean(brief.status) !== DRAFT_STATUS) {
@@ -838,10 +838,10 @@
 
     var expected = buildBrief(builder, brief.goal && brief.goal.id, {
       title: clean(brief.title),
-      sourceLane: clean(pilotScope.sourceLane),
+      sourceLane: clean(reviewScope.sourceLane),
       sourceLimit:
-        typeof pilotScope.sourceLimit === "number"
-          ? pilotScope.sourceLimit
+        typeof reviewScope.sourceLimit === "number"
+          ? reviewScope.sourceLimit
           : undefined
     });
     var suppliedProjection = clone(brief);
@@ -923,7 +923,7 @@
       integrity: integrity
     });
     var builder = {
-      engine: "SHOKKER CREATOR PILOT BUILDER",
+      engine: "SHOKKER CREATOR WORKFLOW BUILDER",
       version: VERSION,
       schema: SCHEMA,
       snapshotDate: snapshotDate,
@@ -935,7 +935,7 @@
       goals: clone(GOALS),
       policy: {
         failClosed: true,
-        noInventedBusinessResults: true,
+        noInventedPerformanceResults: true,
         noCreatorApprovalByDefault: true,
         noRightsClearanceByDefault: true,
         noAutomaticCanonPromotion: true,
@@ -958,7 +958,7 @@
       var verification = verifyBrief(builder, brief);
       if (!verification.ok) {
         throw new Error(
-          "Creator Pilot brief failed verification: " +
+          "Creator Workflow brief failed verification: " +
             verification.problems.join(", ")
         );
       }
@@ -968,7 +968,7 @@
       var verification = verifyBrief(builder, brief);
       if (!verification.ok) {
         throw new Error(
-          "Creator Pilot brief failed verification: " +
+          "Creator Workflow brief failed verification: " +
             verification.problems.join(", ")
         );
       }

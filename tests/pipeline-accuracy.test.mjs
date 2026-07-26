@@ -49,25 +49,26 @@ test("public audit copy distinguishes captioned runtime and uses the real heatma
   assert.doesNotMatch(readme, /750 heatmap/);
   assert.match(
     readme,
-    /25\s+timestamp-validated human-curated character-performance candidates/,
+    /60\s+timestamp-validated human-curated character-performance candidates/,
   );
   assert.match(readme, /0\s+authenticated editor-verified\s+decisions/);
 });
 
-test("Character Lore stays sealed to the promoted corpus and never aliases validation as verification", () => {
+test("Character Lore scans the complete cached official corpus and never aliases validation as verification", () => {
   const window = loadPublic(["character-lore.js"]);
   const lore = window.WWAM_CHARACTER_LORE;
   const pipeline = read(path.join("pipeline", "wwam_character_distill.py"));
 
-  assert.equal(lore.scope.promotedSources, 74);
-  assert.equal(lore.scope.captionFilesScanned, 71);
-  assert.equal(lore.scope.curatedPerformanceCandidates, 25);
+  assert.equal(lore.scope.corpusMode, "all-locally-cached-official-caption-sources");
+  assert.equal(lore.scope.officialCaptionSourcesScanned, 209);
+  assert.equal(lore.scope.captionFilesScanned, 209);
+  assert.equal(lore.scope.curatedPerformanceCandidates, 60);
   assert.equal(lore.scope.lockedPerformanceCandidates, 3);
   assert.equal(lore.scope.authenticatedEditorVerifiedDecisions, 0);
   assert.equal("verifiedSoundbytes" in lore.scope, false);
   lore.characters.forEach((character) => {
     assert.equal("verifiedSoundbytes" in character.metrics, false);
-    assert.ok(character.metrics.curatedPerformanceCandidates >= 5);
+    assert.equal(character.metrics.curatedPerformanceCandidates, 15);
     character.soundbytes.forEach((soundbyte) => {
       assert.match(
         soundbyte.provenance.speakerBasis,
@@ -93,8 +94,9 @@ test("Character Lore stays sealed to the promoted corpus and never aliases valid
       /host identity comes only from the owner-supplied mapping/i,
     );
   });
-  assert.match(pipeline, /def promoted_source_ids\(\)/);
-  assert.match(pipeline, /Expected the promoted 74-source corpus/);
+  assert.match(pipeline, /def official_cached_source_ids\(/);
+  assert.match(pipeline, /all-locally-cached-official-caption-sources/);
+  assert.doesNotMatch(pipeline, /Expected the promoted 74-source corpus/);
 });
 
 test("future pipeline builds use explicit observation provenance and verified completion", () => {

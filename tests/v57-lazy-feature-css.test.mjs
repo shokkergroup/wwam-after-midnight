@@ -147,9 +147,10 @@ test("neither extracted stylesheet is part of the first-load transfer", () => {
 
   assert.equal(criticalFiles.includes("tape-companion.css"), false);
   assert.equal(criticalFiles.includes("creator-taste.css"), false);
-  // V5.21 deliberately adds resumable Mike Mode and readable proof surfaces;
-  // keep a tight post-release ceiling while preserving the lazy feature split.
-  assert.ok(total < 1_520_000, `first-load source payload grew to ${total} bytes`);
+  // The 60-tape character shelf is deliberately eager because Ask the Character
+  // and its playable evidence roster are first-class landing-page experiences.
+  // Preserve the lazy feature split while keeping a tight post-expansion ceiling.
+  assert.ok(total < 1_710_000, `first-load source payload grew to ${total} bytes`);
 });
 
 test("the current four-batch portfolio proof keeps dense metadata readable", () => {

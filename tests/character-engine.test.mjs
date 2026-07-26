@@ -106,6 +106,24 @@ test("grounding rejects truthy-but-inexact provenance and enforces the candidate
   assert.match(held.error, /at least 3/i);
 });
 
+test("public shelf rejects non-performance and ineligible playback receipts", () => {
+  const original = sandbox.window.WWAM_CHARACTER_LORE.characters.find(
+    (profile) => profile.id === "loomis"
+  );
+  const poisoned = original.soundbytes.slice(0, 3).map((receipt, index) => {
+    if (index === 0) return { ...receipt, classification: "mere-mention" };
+    if (index === 1) return { ...receipt, playability: { ...receipt.playability, status: "unavailable" } };
+    return { ...receipt, playability: { ...receipt.playability, provider: "other" } };
+  });
+  const unsafe = sandbox.window.WWAMCharacterEngine.create({
+    guardrails: sandbox.window.WWAM_CHARACTER_LORE.guardrails,
+    characters: [{ ...original, soundbytes: poisoned }],
+  });
+  const result = unsafe.answer("loomis", "What about the front door?");
+  assert.equal(result.ok, false);
+  assert.equal(result.status, "insufficient-grounding");
+});
+
 test("intent and subject parsing are deterministic", () => {
   const api = sandbox.window.WWAMCharacterEngine;
   assert.equal(api.detectIntent("How do I fix this?"), "advice");
@@ -115,6 +133,8 @@ test("intent and subject parsing are deterministic", () => {
   assert.equal(api.extractSubject("How should I deal with haunted Wi-Fi?"), "haunted Wi-Fi");
   assert.equal(api.extractSubject("What should I watch tonight?"), "tonight's watchlist");
   assert.equal(api.extractSubject("What movie should we watch?"), "the watchlist");
+  assert.equal(api.extractSubject("What do you think?"), "this entire situation");
+  assert.equal(api.extractSubject("How do you feel?"), "this entire situation");
   assert.equal(
     JSON.stringify(engine.answer("slenderman", "What about phones?")),
     JSON.stringify(engine.answer("slenderman", "What about phones?")),
@@ -131,4 +151,53 @@ test("ordinary watch recommendations stay grammatical in every enabled voice", (
     assert.doesNotMatch(result.text, /\bI watch tonight\b/i, id);
     assert.doesNotMatch(result.text, /\breviewed I\b|\bme I\b/i, id);
   }
+});
+
+
+test("exposes the complete timestamp-validated tape shelf for every enabled character", () => {
+  const expected = {
+    loomis: 15,
+    challis: 15,
+    slenderman: 15,
+    "corey-feldman": 15,
+  };
+  for (const [id, count] of Object.entries(expected)) {
+    const library = engine.getReceiptLibrary(id);
+    assert.equal(library.ok, true, id);
+    assert.equal(library.total, count, id);
+    assert.equal(library.receipts.length, count, id);
+    assert.equal(library.speakerStatus, "not-diarized", id);
+    assert.ok(library.receipts.every((receipt, index) =>
+      receipt.libraryIndex === index + 1 &&
+      receipt.libraryTotal === count &&
+      receipt.evidenceState === "timestamp-validated-human-curated-candidate" &&
+      receipt.speakerStatus === "not-diarized"
+    ), id);
+  }
+  const unknown = engine.getReceiptLibrary("not-a-character");
+  assert.equal(unknown.ok, false);
+  assert.equal(unknown.receipts.length, 0);
+});
+
+test("repeated broad questions rotate tied source clips without weakening exact matches", () => {
+  let previous = null;
+  const seen = [];
+  for (let index = 0; index < 6; index += 1) {
+    const answer = engine.answer("loomis", "Tell me about the situation.", previous);
+    assert.equal(answer.ok, true);
+    if (previous) assert.notEqual(answer.receipt.id, previous.receipt.id);
+    assert.ok(answer.receiptHistory.length <= 3);
+    seen.push(answer.receipt.id);
+    previous = answer;
+  }
+  assert.ok(new Set(seen).size > 1);
+
+  const exact = engine.answer("loomis", "Why does the government refuse Loomis funding?");
+  const exactAgain = engine.answer(
+    "loomis",
+    "Why does the government refuse Loomis funding?",
+    exact,
+  );
+  assert.equal(exact.receipt.id, "loomis-funding");
+  assert.equal(exactAgain.receipt.id, "loomis-funding");
 });

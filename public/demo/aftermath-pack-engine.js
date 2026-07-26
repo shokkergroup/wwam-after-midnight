@@ -5,7 +5,7 @@
   var PACK_SCHEMA = "shokker.aftermath-pack/v1";
   var REVIEW_SCHEMA = "shokker.aftermath-review/v1";
   var EXPORT_SCHEMA = "shokker.aftermath-editor-packet/v1";
-  var PILOT_SCHEMA = "shokker.creator-pilot-offer/v1";
+  var SHOWCASE_SCHEMA = "shokker.creator-workflow-showcase/v1";
   var PUBLIC_EXCERPT_WORD_LIMIT = 16;
   var REVIEW_STATES = ["keep", "hold", "reject"];
   var PRODUCTION_KINDS = {
@@ -871,7 +871,7 @@
       return lines.join("\n");
     }
 
-    function buildPilot(options) {
+    function buildShowcase(options) {
       var settings = options || {};
       var requested = unique(settings.sourceIds);
       var sourceCounts = new Map();
@@ -898,25 +898,23 @@
           number(sourceCounts.get(right)) - number(sourceCounts.get(left)) || left.localeCompare(right);
       });
       requested.forEach(function (id) {
-        if (!listById.has(id) || !sourceCounts.has(id)) fail("PILOT_SOURCE_INELIGIBLE", "Pilot source has no registered creator opportunities.");
+        if (!listById.has(id) || !sourceCounts.has(id)) fail("SHOWCASE_SOURCE_INELIGIBLE", "Showcase source has no registered creator opportunities.");
       });
       var selected = requested.slice(0, 3);
       candidates.forEach(function (id) {
         if (selected.length < 3 && selected.indexOf(id) < 0) selected.push(id);
       });
-      if (selected.length !== 3) fail("PILOT_SOURCE_COUNT", "The proposed pilot requires exactly three eligible shows.");
+      if (selected.length !== 3) fail("SHOWCASE_SOURCE_COUNT", "The workflow showcase requires exactly three eligible shows.");
       var packs = selected.map(build);
-      var offer = {
-        schema: PILOT_SCHEMA,
+      var showcase = {
+        schema: SHOWCASE_SCHEMA,
         version: VERSION,
-        status: "PROPOSED PILOT / MUTUAL AGREEMENT REQUIRED",
-        offer: {
-          priceUsd: 500,
+        status: "PROTOTYPE / HUMAN REVIEW REQUIRED",
+        scope: {
           shows: 3,
-          durationDays: 14,
-          label: "$500 / 3 SHOWS / 14 DAYS"
+          label: "THREE-SHOW SOURCE REVIEW"
         },
-        promise: "Turn three already-indexed shows into source-locked Aftermath review desks and editor handoff packets.",
+        summary: "Trace three already-indexed shows through source-locked Aftermath review desks and editor handoff packets.",
         sources: packs.map(function (pack) {
           return {
             id: pack.source.id,
@@ -932,7 +930,7 @@
           "Three exact-source Aftermath Packs with playable receipt coordinates.",
           "One local Keep / Hold / Reject review ledger per show.",
           "One bounded JSON plus Markdown editor handoff per show.",
-          "One pilot-close review of gaps, holds, and next-corpus priorities."
+          "One closing review of gaps, holds, and next-corpus priorities."
         ],
         acceptanceChecks: [
           "Every surfaced opportunity resolves to the selected source and a registered receipt.",
@@ -947,12 +945,12 @@
           "rights clearance",
           "creator approval",
           "publishing",
-          "guaranteed views, revenue, conversion, retention, or virality"
+          "performance or audience-impact claims"
         ],
-        commercialBoundary: "The $500 figure is a proposed fixed-scope creator pilot, not an invoice, guarantee, or completed agreement."
+        prototypeBoundary: "This workflow is a reviewable prototype. It records no creator approval, publishing authority, rights clearance, or performance claim."
       };
-      offer.fingerprint = fingerprint("po1", offer);
-      return freezeDeep(offer);
+      showcase.fingerprint = fingerprint("sw1", showcase);
+      return freezeDeep(showcase);
     }
 
     return freezeDeep({
@@ -962,7 +960,7 @@
         pack: PACK_SCHEMA,
         review: REVIEW_SCHEMA,
         export: EXPORT_SCHEMA,
-        pilot: PILOT_SCHEMA
+        showcase: SHOWCASE_SCHEMA
       },
       publicExcerptWordLimit: PUBLIC_EXCERPT_WORD_LIMIT,
       build: build,
@@ -970,7 +968,7 @@
       restoreReview: restoreReview,
       exportPacket: exportPacket,
       exportMarkdown: exportMarkdown,
-      buildPilot: buildPilot
+      buildShowcase: buildShowcase
     });
   }
 
@@ -979,7 +977,7 @@
     PACK_SCHEMA: PACK_SCHEMA,
     REVIEW_SCHEMA: REVIEW_SCHEMA,
     EXPORT_SCHEMA: EXPORT_SCHEMA,
-    PILOT_SCHEMA: PILOT_SCHEMA,
+    SHOWCASE_SCHEMA: SHOWCASE_SCHEMA,
     PUBLIC_EXCERPT_WORD_LIMIT: PUBLIC_EXCERPT_WORD_LIMIT,
     REVIEW_STATES: REVIEW_STATES.slice(),
     create: create

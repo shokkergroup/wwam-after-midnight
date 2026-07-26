@@ -294,6 +294,9 @@
       .replace(/^(think|feel|say)\s+(about\s+)?/i, "")
       .replace(/^of\s+/i, "")
       .trim();
+    if (["think", "feel", "say", "tell", "tell me", "opinion", "your opinion"].indexOf(normalize(subject)) >= 0) {
+      subject = "";
+    }
     if (!subject) subject = "this entire situation";
     if (subject.length > 78) subject = subject.slice(0, 75).replace(/\s+\S*$/, "") + "…";
     return subject;
@@ -328,10 +331,14 @@
 
   function validReceipt(receipt) {
     var provenance = receipt && receipt.provenance || {};
+    var playability = receipt && receipt.playability || {};
     var at = Number(receipt && receipt.t);
     var start = Number(receipt && receipt.playback && receipt.playback.start);
     var end = Number(receipt && receipt.playback && receipt.playback.end);
     return Boolean(receipt && receipt.id && receipt.sourceId && receipt.url &&
+      receipt.classification === "actual-character-performance" &&
+      playability.status === "eligible" &&
+      playability.provider === "youtube" &&
       sourceIdFromUrl(receipt.url) === receipt.sourceId &&
       Number.isFinite(at) && at >= 0 &&
       Number.isFinite(start) && Number.isFinite(end) &&
@@ -346,9 +353,23 @@
     });
   }
 
-  function chooseReceipt(profile, intent, question, receipts) {
+  function receiptLibrary(profile) {
+    return (profile && profile.soundbytes || []).filter(validReceipt);
+  }
+
+  function previousReceiptIds(previous, characterId) {
+    if (!previous || previous.characterId !== characterId) return [];
+    var ids = Array.isArray(previous.receiptHistory) ? previous.receiptHistory.slice() : [];
+    if (previous.receipt && previous.receipt.id && ids.indexOf(previous.receipt.id) < 0) {
+      ids.unshift(previous.receipt.id);
+    }
+    return ids.filter(Boolean).slice(0, 3);
+  }
+
+  function chooseReceipt(profile, intent, question, receipts, avoidIds) {
     var terms = RECEIPT_TERMS[intent] || RECEIPT_TERMS.open;
     var queryTerms = meaningfulQuestionTerms(question);
+    var avoided = avoidIds || [];
     var candidates = receipts.map(function (receipt) {
       var blob = normalize([receipt.trigger, receipt.note, receipt.excerpt].join(" "));
       var reasons = [];
@@ -367,7 +388,15 @@
     if (!candidates.length) return null;
     var bestScore = candidates[0].score;
     var pool = candidates.filter(function (candidate) { return candidate.score === bestScore; });
-    return pool[hash(question + profileId(profile) + intent) % pool.length];
+    var start = hash(question + profileId(profile) + intent) % pool.length;
+    var rotated = pool.slice(start).concat(pool.slice(0, start));
+    var unseen = rotated.filter(function (candidate) {
+      return avoided.indexOf(candidate.receipt.id) < 0;
+    });
+    if (unseen.length) return unseen[0];
+    return rotated.filter(function (candidate) {
+      return candidate.receipt.id !== avoided[0];
+    })[0] || rotated[0];
   }
 
   function groundingPlan(profile, intent, receipt) {
@@ -493,7 +522,7 @@
             error: "This character has no configured response bank, so the engine will not borrow another character's voice.",
           };
         }
-        var receipts = (profile.soundbytes || []).filter(validReceipt);
+        var receipts = receiptLibrary(profile);
         var minimum = Math.max(
           1,
           Math.floor(Number(profile.minimumCuratedCandidatesForAsk || 3))
@@ -514,8 +543,15 @@
         var subject = continuedFrom ? previous.subject : extractSubject(cleaned);
         var choices = bank[intent] || bank.open;
         var text = fill(choices[hash(cleaned + characterId + intent) % choices.length], subject);
-        var receiptMatch = chooseReceipt(profile, intent, cleaned, receipts);
+        var recentReceiptIds = previousReceiptIds(previous, characterId);
+        var receiptMatch = chooseReceipt(
+          profile, intent, cleaned, receipts, recentReceiptIds
+        );
         var receipt = receiptMatch && receiptMatch.receipt;
+        var receiptHistory = receipt && receipt.id ?
+          [receipt.id].concat(recentReceiptIds.filter(function (id) {
+            return id !== receipt.id;
+          })).slice(0, 3) : recentReceiptIds;
         var grounding = groundingPlan(profile, intent, receipt);
         return {
           ok: true,
@@ -532,6 +568,7 @@
           ingredients: grounding.ingredients,
           evidenceRecipe: grounding.evidenceRecipe,
           receipt: receipt,
+          receiptHistory: receiptHistory,
           receiptMatch: receiptMatch ? {
             score: receiptMatch.score,
             reasons: receiptMatch.reasons,
@@ -546,6 +583,34 @@
           },
           guardrailLabel: lore.guardrails && lore.guardrails.requiredLabel || null,
           disclaimer: "FAN-MADE GENERATED RIFF — NOT AN ARCHIVAL QUOTE OR THE HOST SPEAKING",
+        };
+      },
+      getReceiptLibrary: function (characterId) {
+        var profile = byId[characterId];
+        if (!profile) {
+          return {
+            ok: false,
+            status: "unknown-character",
+            error: "That character is not part of the current recurring-character library.",
+            receipts: [],
+          };
+        }
+        var receipts = receiptLibrary(profile);
+        return {
+          ok: true,
+          characterId: characterId,
+          character: profile.name,
+          total: receipts.length,
+          evidenceState: "timestamp-validated human-curated candidates",
+          speakerStatus: "not-diarized",
+          receipts: receipts.map(function (receipt, index) {
+            return Object.assign({}, receipt, {
+              libraryIndex: index + 1,
+              libraryTotal: receipts.length,
+              evidenceState: "timestamp-validated-human-curated-candidate",
+              speakerStatus: "not-diarized",
+            });
+          }),
         };
       },
       getProfile: function (characterId) { return byId[characterId] || null; },

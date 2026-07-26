@@ -499,18 +499,17 @@ test("editor packet structures every route and preserves bounded evidence for ed
   assert.match(markdown, /No media, rights clearance/);
 });
 
-test("the commercial handoff is a concrete fixed-scope proposal, not a performance promise", () => {
-  const pilot = built.engine.buildPilot({ sourceIds: [SOURCE_ID] });
-  assert.equal(pilot.schema, "shokker.creator-pilot-offer/v1");
-  assert.deepEqual(plain(pilot.offer), {
-    priceUsd: 500,
+test("the three-show showcase is a reviewable workflow with no product offer", () => {
+  const showcase = built.engine.buildShowcase({ sourceIds: [SOURCE_ID] });
+  assert.equal(showcase.schema, "shokker.creator-workflow-showcase/v1");
+  assert.deepEqual(plain(showcase.scope), {
     shows: 3,
-    durationDays: 14,
-    label: "$500 / 3 SHOWS / 14 DAYS",
+    label: "THREE-SHOW SOURCE REVIEW",
   });
-  assert.equal(pilot.sources.length, 3);
-  assert.equal(pilot.sources[0].id, SOURCE_ID);
-  assert.ok(pilot.sources.every((source) => source.packFingerprint.startsWith("ap1-")));
-  assert.ok(pilot.excluded.includes("guaranteed views, revenue, conversion, retention, or virality"));
-  assert.match(pilot.commercialBoundary, /proposed fixed-scope creator pilot/i);
+  assert.equal(showcase.sources.length, 3);
+  assert.equal(showcase.sources[0].id, SOURCE_ID);
+  assert.ok(showcase.sources.every((source) => source.packFingerprint.startsWith("ap1-")));
+  assert.ok(showcase.excluded.includes("performance or audience-impact claims"));
+  assert.match(showcase.prototypeBoundary, /reviewable prototype/i);
+  assert.doesNotMatch(JSON.stringify(showcase), /\$|price|purchase|revenue|invoice/i);
 });

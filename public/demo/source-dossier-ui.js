@@ -1580,8 +1580,8 @@
       var routingHeadline = !number(metrics.opportunities) ? "NO RECEIPT-BACKED HANDOFF YET" :
         handoffReady ? "CREATOR HANDOFF READY FOR HUMAN REVIEW" :
           "DRAFT EXPORT WILL DISCLOSE UNREVIEWED WORK";
-      var pilotOffer = number(metrics.opportunities) > 0 ?
-        '<div class="source-aftermath-offer"><div><span>MIKE PILOT // PROPOSED FIXED SCOPE</span><b>$500 / 3 SHOWS / 14 DAYS</b><p>Three source-locked packs, three local review ledgers, and three bounded editor handoffs. No media edit, rights clearance, publishing, or performance guarantee is implied.</p></div><button type="button" data-source-dossier-action="open-clip-lab" data-clip-mode="shorts">OPEN THIS SOURCE IN CLIP LAB &#8594;</button></div>' : "";
+      var workflowShowcase = number(metrics.opportunities) > 0 ?
+        '<div class="source-aftermath-workflow"><div><span>SOURCE-LOCKED CREATOR WORKFLOW</span><b>THIS SHOW, READY FOR REVIEW</b><p>Playable candidates, a local review ledger, and a bounded editor handoff keep every proposed use attached to this tape. No media edit, rights clearance, publishing authority, or performance claim is included.</p></div><button type="button" data-source-dossier-action="open-clip-lab" data-clip-mode="shorts">OPEN THIS SOURCE IN CLIP LAB &#8594;</button></div>' : "";
       var aftermathAlert = state.aftermathError ?
         '<p class="source-aftermath-error" role="alert"><b>AFTERMATH ACTION HELD.</b> ' +
           esc(state.aftermathError) + '</p>' : "";
@@ -1601,7 +1601,7 @@
         esc(metrics.clipReady + metrics.fastReview) + '</b><span>CURATED CUTS IN THE FAST LANE</span><small>STILL REQUIRE CONTEXT, SPEAKER, RIGHTS, AND FINAL-EDIT REVIEW</small></article><article><b>' +
         esc(metrics.referenceThreads) + '</b><span>REFERENCE-ONLY LORE THREADS</span><small>NOT COUNTED AS CLIP-READY INVENTORY</small></article><article><b>' +
         esc(metrics.coldOpenStoryboards) + '</b><span>SOURCE-LINKED COLD OPENS</span><small>GENERATED STORYBOARDS // SEPARATE FROM REGISTERED ARTIFACTS</small></article></div>' +
-        pilotOffer +
+        workflowShowcase +
         '<div class="source-aftermath-progress" role="status" aria-live="polite">' + [
           [counts.keep, "KEEP"], [counts.hold, "HOLD"], [counts.reject, "REJECT"],
           [counts.unreviewed, "UNREVIEWED"]

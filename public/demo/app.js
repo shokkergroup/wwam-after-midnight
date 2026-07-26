@@ -45,7 +45,8 @@
     hotLimit: 12, franchise: "ALL", vaultQuery: "", lab: "Halloween",
     soundSource: "commentary", activeSoundbyte: null, liveTopic: "ALL TOPICS",
     popularQuery: "", popularTopic: "ALL TOPICS", character: "",
-    characterContext: null, lastCharacterRiff: "", evidenceBag: loadEvidenceBag(),
+    characterContext: null, lastCharacterRiff: "", characterReceiptLimit: 3,
+    characterReceiptOffset: 0, characterMatchedReceipt: "", evidenceBag: loadEvidenceBag(),
     bagOpen: false, memoryTab: "time", memoryEntity: "Halloween", longitudinalSubject: "",
     battleA: "franchise:Halloween", battleB: "franchise:Friday the 13th",
     loreQuery: "", loreKind: "character", loreSelected: "character:loomis",
@@ -906,7 +907,7 @@
       }); }, "trust engine initialization") : null;
     state.creatorEnginesSettled = true;
     attempt(renderClipLab);
-    attempt(createPilotBuilder, "creator pilot builder initialization");
+    attempt(createPilotBuilder, "creator workflow builder initialization");
     attempt(renderCanon);
     attempt(renderPilotBuilder);
   }
@@ -1661,6 +1662,7 @@
     var playback = receipt.playback || {};
     return Object.assign({}, receipt, {
       source: receipt.source || receipt.sourceType || (itemById[receipt.id || receipt.sourceId] ? "commentary" : "livestream"),
+      performanceReceiptId: receipt.performanceReceiptId || receipt.id,
       id: receipt.sourceId || receipt.videoId || receipt.id,
       t: Number(playback.start != null ? playback.start :
         receipt.t != null ? receipt.t : receipt.time || receipt.timestamp || 0),
@@ -1692,7 +1694,7 @@
     }
     document.getElementById("characterRoster").innerHTML = profiles.map(function (profile, index) {
       return '<button class="' + (profile.id === state.character ? "on" : "") + '" data-character="' + esc(profile.id) +
-        '"><span>WITNESS 0' + (index + 1) + '</span><b>' + esc(profile.name) + '</b><i>' +
+        '"><span>CHARACTER 0' + (index + 1) + '</span><b>' + esc(profile.name) + '</b><i>' +
         esc(profile.performer) + '</i></button>';
     }).join("") + locked.map(function (candidate) {
       return '<button class="locked" disabled aria-disabled="true" title="' + esc(candidate.whyLocked || "Human verification required") +
@@ -1704,12 +1706,82 @@
         state.character = button.getAttribute("data-character");
         state.characterContext = null;
         state.lastCharacterRiff = "";
+        state.characterReceiptLimit = 3;
+        state.characterReceiptOffset = 0;
+        state.characterMatchedReceipt = "";
         document.getElementById("characterAnswer").innerHTML =
-          "<p>Ask this recurring character a question. The generated riff will expose its behavioral ingredients and matched source receipt.</p>";
+          "<p>Ask anything. The answer is a fan-made riff; the tape shelf keeps every playable source candidate separate and visible.</p>";
         renderCharacterRoster();
         renderCharacter();
       };
     });
+  }
+
+  function characterReceiptLibrary(profile) {
+    var library = characterEngine && characterEngine.getReceiptLibrary ?
+      characterEngine.getReceiptLibrary(profile.id) : null;
+    var source = library && library.ok ? library.receipts : (profile.soundbytes || []);
+    return source.map(normalizeCharacterReceipt).filter(function (receipt) {
+      return receipt.id && receipt.performanceReceiptId;
+    });
+  }
+
+  function renderCharacterReceiptShelf(profile, matchedId) {
+    var allReceipts = characterReceiptLibrary(profile);
+    var total = allReceipts.length;
+    if (matchedId) {
+      state.characterMatchedReceipt = matchedId;
+      allReceipts.some(function (receipt, index) {
+        if (receipt.performanceReceiptId !== matchedId) return false;
+        state.characterReceiptOffset = index;
+        return true;
+      });
+    }
+    var offset = total ? ((Number(state.characterReceiptOffset) || 0) % total + total) % total : 0;
+    var ordered = allReceipts.slice(offset).concat(allReceipts.slice(0, offset));
+    var limit = Math.min(total, Math.max(3, Number(state.characterReceiptLimit) || 3));
+    var receipts = ordered.slice(0, limit);
+    var label = document.getElementById("characterReceiptLabel");
+    label.textContent = total ?
+      "SHOWING " + receipts.length + " OF " + total +
+        " TAPES // TIMESTAMP-VALIDATED CANDIDATES // CLIP SPEAKERS NOT DIARIZED" :
+      "NO TIMESTAMP-VALIDATED CHARACTER CANDIDATES";
+    document.getElementById("characterReceipts").innerHTML = receipts.length ? receipts.map(function (receipt) {
+      var position = Number(receipt.libraryIndex) || allReceipts.indexOf(receipt) + 1;
+      var matched = receipt.performanceReceiptId === state.characterMatchedReceipt;
+      return '<article class="' + (matched ? "matched" : "") + '" data-character-receipt="' +
+        esc(receipt.performanceReceiptId) + '"><div><span>TAPE ' + String(position).padStart(2, "0") +
+        ' OF ' + String(total).padStart(2, "0") + ' // PATTERN RECEIPT ' +
+        String(position).padStart(2, "0") + '</span><b>' + timestamp(receipt.t) + '</b></div>' +
+        (matched ? '<em>MATCHED TO YOUR RIFF</em>' : '') +
+        '<small>' + esc(receipt.date ? shortDate(receipt.date) : "DATE UNLISTED") + ' // ' +
+        esc(displayUiText(receipt.title)) + '</small><h3>' + esc(displayUiText(receipt.label)) +
+        '</h3><p>“' + esc(displayQuote(receipt.quote)) + '</p><footer><span>' +
+        'TIMESTAMP-VALIDATED HUMAN-CURATED CANDIDATE // SPEAKER NOT DIARIZED' +
+        '</span><button data-character-source="' + esc(receipt.source) + '" data-id="' + esc(receipt.id) +
+        '" data-time="' + receipt.t + '" data-end="' + receipt.end + '" data-label="' +
+        esc(displayUiText(receipt.label)) + '">PLAY ' +
+        (receipt.clipSeconds ? receipt.clipSeconds + '-SEC' : 'THE') + ' SOURCE CLIP →</button>' +
+        bagButton(receipt, "BAG THE BIT") + '</footer></article>';
+    }).join("") : '<p class="character-empty">No public candidate yet; the archive will not counterfeit proof.</p>';
+    var rotate = document.getElementById("characterReceiptRotate");
+    var more = document.getElementById("characterReceiptMore");
+    rotate.hidden = total <= 1;
+    rotate.disabled = total <= 1;
+    rotate.onclick = function () {
+      if (total <= 1) return;
+      state.characterMatchedReceipt = "";
+      state.characterReceiptOffset = (offset + 1) % total;
+      renderCharacterReceiptShelf(profile);
+    };
+    more.hidden = total <= 3;
+    more.textContent = limit >= total ? "SHOW 3 TAPES" : "OPEN ALL " + total + " TAPES";
+    more.onclick = function () {
+      state.characterReceiptLimit = limit >= total ? 3 : total;
+      renderCharacterReceiptShelf(profile);
+    };
+    bindCharacterReceipts();
+    syncBagButtons();
   }
 
   function renderCharacter() {
@@ -1717,13 +1789,11 @@
     if (!profile) return;
     var behaviors = (profile.behaviors || []).slice(0, 5);
     var triggers = (profile.triggers || []).slice(0, 4);
-    var allReceipts = (profile.soundbytes || []).map(normalizeCharacterReceipt).filter(function (receipt) { return receipt.id; });
-    var receipts = allReceipts.slice(0, 6);
     document.getElementById("characterLine").textContent =
-      displayUiText(profile.name + " // " + profile.performer);
+      displayUiText(profile.name + " // RECURRING BIT MAPPED TO " + profile.performer);
     document.getElementById("characterPortrait").innerHTML =
       '<div><span>RECURRING BIT PROFILE</span><b>' + esc(displayUiText(profile.name)) + '</b><i>' +
-      esc(displayUiText(profile.performer)) +
+      esc(displayUiText(profile.performer + " // RECURRING-BIT MAPPING; CLIP SPEAKERS NOT DIARIZED")) +
       '</i></div><p>' + esc(displayUiText(profile.description)) + '</p><ul>' +
       behaviors.map(function (behavior) {
         return '<li>' + esc(displayUiText(typeof behavior === "string" ?
@@ -1735,21 +1805,7 @@
           trigger : trigger.label || trigger.topic || ""));
       }).join(" // ") : "ARCHIVE-DERIVED PROMPTS") +
       '</b></footer>';
-    document.getElementById("characterReceiptLabel").textContent = "SHOWING " + receipts.length + " OF " +
-      allReceipts.length + " VALIDATED CHARACTER CANDIDATES";
-    document.getElementById("characterReceipts").innerHTML = receipts.length ? receipts.map(function (receipt, index) {
-      return '<article><div><span>PATTERN RECEIPT 0' + (index + 1) + '</span><b>' + timestamp(receipt.t) +
-        '</b></div><h3>' + esc(displayUiText(receipt.label)) + '</h3><p>“' + esc(displayQuote(receipt.quote)) +
-        '”</p><footer><span>' + esc(String(receipt.confidence).toUpperCase()) +
-        ' // CLIP SPEAKER NOT DIARIZED' +
-        '</span><button data-character-source="' + esc(receipt.source) + '" data-id="' + esc(receipt.id) +
-        '" data-time="' + receipt.t + '" data-end="' + receipt.end + '" data-label="' +
-        esc(displayUiText(receipt.label)) + '">PLAY ' +
-        (receipt.clipSeconds ? receipt.clipSeconds + '-SEC' : 'THE') + ' SOURCE CANDIDATE →</button>' +
-        bagButton(receipt, "BAG THE BIT") + '</footer></article>';
-    }).join("") : '<p class="character-empty">No public candidate yet; the archive will not counterfeit proof.</p>';
-    bindCharacterReceipts();
-    syncBagButtons();
+    renderCharacterReceiptShelf(profile, state.characterMatchedReceipt);
   }
 
   function bindCharacterReceipts() {
@@ -1759,6 +1815,21 @@
         var at = Number(button.getAttribute("data-time") || 0);
         var end = Number(button.getAttribute("data-end") || 0);
         openLooseSource(id, at, button.getAttribute("data-label") || "WWAM CHARACTER PERFORMANCE", end);
+      };
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-character-shelf-jump]"), function (button) {
+      button.onclick = function () {
+        var profile = characterProfiles().filter(function (candidate) {
+          return candidate.id === state.character;
+        })[0];
+        if (!profile) return;
+        state.characterReceiptLimit = characterReceiptLibrary(profile).length;
+        renderCharacterReceiptShelf(profile, state.characterMatchedReceipt);
+        var shelf = document.querySelector(".character-receipts");
+        if (shelf) {
+          shelf.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          shelf.focus({ preventScroll: true });
+        }
       };
     });
   }
@@ -1776,9 +1847,12 @@
       return typeof behavior === "string" ? behavior : behavior.label || behavior.pattern || "";
     }).filter(Boolean);
     var riff = response ? response.text : generateCharacterRiff(profile, question);
+    var matchedReceiptId = response && response.receipt ? response.receipt.id : "";
     var receipt = response && response.receipt ? normalizeCharacterReceipt(response.receipt) : null;
     if (response) state.characterContext = response;
     state.lastCharacterRiff = riff;
+    state.characterMatchedReceipt = matchedReceiptId;
+    if (response) renderCharacterReceiptShelf(profile, matchedReceiptId);
     document.getElementById("characterAnswer").innerHTML =
       '<div><span>FAN-MADE GENERATED RIFF' +
       (response ? ' // ' + esc(response.intent.toUpperCase()) : '') +
@@ -1786,17 +1860,19 @@
       '<blockquote>“' + esc(displayGeneratedText(riff)) + '”</blockquote><footer><span>BEHAVIORAL INGREDIENTS</span><b>' +
       esc(displayUiText(behaviors.length ?
         behaviors.join(" + ").toUpperCase() : "RECURRING CHARACTER PATTERN")) +
-      '</b></footer>' + (response ? '<section class="character-grounding"><div><span>ENGINE READ</span><b>' +
+      '</b></footer>' + (response ? '<section class="character-grounding"><div><span>WHY THIS TAPE MATCHED</span><b>' +
         esc(displayUiText(response.continuedFrom ? "FOLLOW-UP MEMORY KEPT THE SAME SUBJECT" :
           "SUBJECT // " + response.subject.toUpperCase())) + '</b><i>' +
-        response.readiness.confidence + '% CHARACTER-READINESS // ' +
+        response.readiness.confidence + '% RIFF-READINESS // ' +
         response.readiness.timestampValidatedReceipts +
-        ' VALIDATED CHARACTER CANDIDATES // SPEAKERS NOT DIARIZED</i></div>' +
+        ' TAPES IN THE SHELF // INDIVIDUAL CLIP SPEAKERS NOT DIARIZED</i></div>' +
+        '<div class="character-grounding-actions">' +
         (receipt ? '<button data-character-source="' + esc(receipt.source) +
         '" data-id="' + esc(receipt.id) + '" data-time="' + receipt.t + '" data-end="' + receipt.end +
         '" data-label="' + esc(displayUiText(receipt.label)) +
-        '">PLAY MATCHED SOURCE CANDIDATE →</button>' : '') +
-        '</section>' : '');
+        '">PLAY MATCHED SOURCE CANDIDATE CLIP →</button>' : '') +
+        '<button data-character-shelf-jump>OPEN ALL ' +
+        response.readiness.timestampValidatedReceipts + ' TAPES →</button></div></section>' : '');
     bindCharacterReceipts();
   }
 
@@ -4392,11 +4468,11 @@
     state.pilotAftermathNotice = "VERIFYING THE THREE SOURCE-LOCKED PACKS...";
     aftermathPilotLoadPromise = loadSourceDossier().then(function () {
       state.pilotAftermathNotice = aftermathPackEngine ? "" :
-        "AFTERMATH OFFER HELD // SOURCE-BOUND PACKS DID NOT INITIALIZE";
+        "AFTERMATH SHOWCASE HELD // SOURCE-BOUND PACKS DID NOT INITIALIZE";
       renderPilotBuilder();
       return aftermathPackEngine;
     }).catch(function (error) {
-      state.pilotAftermathNotice = "AFTERMATH OFFER HELD // " +
+      state.pilotAftermathNotice = "AFTERMATH SHOWCASE HELD // " +
         (error && error.message ? error.message : "SOURCE-BOUND PACKS DID NOT INITIALIZE");
       renderPilotBuilder();
       return null;
@@ -4415,21 +4491,21 @@
     if (copyButton) copyButton.onclick = function () {
       var markdown = pilotBuilderEngine.exportMarkdown(brief);
       if (aftermathPilot) {
-        markdown += "\n\n# PROPOSED AFTERMATH PILOT\n\n" +
-          aftermathPilot.offer.label + "\n\n" + aftermathPilot.promise +
-          "\n\nNo performance promise. Mutual agreement required.\n";
+        markdown += "\n\n# CREATOR WORKFLOW SHOWCASE\n\n" +
+          aftermathPilot.scope.label + "\n\n" + aftermathPilot.summary +
+          "\n\nReviewable prototype. Human review required.\n";
       }
-      copy(markdown, "CREATOR PILOT BRIEF COPIED // STILL A DRAFT");
+      copy(markdown, "CREATOR WORKFLOW BRIEF COPIED // STILL A DRAFT");
     };
     var downloadButton = document.getElementById("pilotDownload");
     if (downloadButton) downloadButton.onclick = function () {
-      downloadJson("wwam-" + state.pilotGoal + "-pilot-draft.json",
+      downloadJson("wwam-" + state.pilotGoal + "-workflow-draft.json",
         aftermathPilot ? {
-          schema: "wwam.creator-pilot-handoff/v1",
+          schema: "wwam.creator-workflow-handoff/v1",
           brief: brief,
-          proposedAftermathOffer: aftermathPilot
+          aftermathShowcase: aftermathPilot
         } : brief);
-      showToast("PILOT DRAFT DOWNLOADED // HUMAN APPROVAL STILL REQUIRED");
+      showToast("WORKFLOW DRAFT DOWNLOADED // HUMAN APPROVAL STILL REQUIRED");
     };
   }
 
@@ -4439,16 +4515,16 @@
     if (!pilotBuilderEngine) {
       stage.innerHTML = '<div class="pilot-loading"><i></i><b>' +
         (state.creatorEnginesSettled && state.fanEnginesSettled ?
-          "PILOT BUILDER HELD // ONE OR MORE EVIDENCE ENGINES DID NOT INITIALIZE" :
-          "ASSEMBLING AN EVIDENCE-BACKED CREATOR PILOT...") +
+          "WORKFLOW BUILDER HELD // ONE OR MORE EVIDENCE ENGINES DID NOT INITIALIZE" :
+          "ASSEMBLING AN EVIDENCE-BACKED CREATOR WORKFLOW...") +
         '</b></div>';
       return;
     }
     var brief = attempt(function () {
       return pilotBuilderEngine.build(state.pilotGoal);
-    }, "creator pilot brief rendering");
+    }, "creator workflow brief rendering");
     if (!brief) {
-      stage.innerHTML = '<div class="pilot-loading"><b>PILOT BRIEF FAILED CLOSED // CHECK THE TRUST DESK</b></div>';
+      stage.innerHTML = '<div class="pilot-loading"><b>WORKFLOW BRIEF FAILED CLOSED // CHECK THE TRUST DESK</b></div>';
       return;
     }
     var verification = pilotBuilderEngine.verify(brief);
@@ -4457,27 +4533,27 @@
     if (wantsAftermathPilot && !aftermathPackEngine) ensureAftermathPilot();
     var aftermathPilot = wantsAftermathPilot && aftermathPackEngine ?
       attempt(function () {
-        return aftermathPackEngine.buildPilot({ sourceIds: ["LV2rmwEA0w4"] });
-      }, "Aftermath pilot offer rendering") : null;
+        return aftermathPackEngine.buildShowcase({ sourceIds: ["LV2rmwEA0w4"] });
+      }, "Aftermath workflow showcase rendering") : null;
     var aftermathPilotMarkup = aftermathPilot ?
-      '<section class="pilot-fixed-offer"><div><span>PROPOSED FIXED-SCOPE CREATOR PILOT</span><h4>' +
-      esc(aftermathPilot.offer.label) + '</h4><p>' + esc(aftermathPilot.promise) +
+      '<section class="workflow-showcase"><div><span>THREE-SHOW WORKFLOW SHOWCASE</span><h4>' +
+      esc(aftermathPilot.scope.label) + '</h4><p>' + esc(aftermathPilot.summary) +
       '</p></div><div class="pilot-fixed-sources">' + aftermathPilot.sources.map(function (source) {
         return '<article><span>' + esc(source.date) + '</span><b>' + esc(source.title) +
           '</b><small>' + esc(source.opportunities) + ' REGISTERED REVIEW CANDIDATES // PACK ' +
           esc(source.packFingerprint) + '</small></article>';
       }).join("") + '</div><footer><b>' + esc(aftermathPilot.status) +
-      '</b><p>' + esc(aftermathPilot.commercialBoundary) + '</p></footer></section>' :
-      wantsAftermathPilot ? '<section class="pilot-fixed-offer"><div><span>PROPOSED FIXED-SCOPE CREATOR PILOT</span><h4>' +
-        (state.pilotAftermathNotice.indexOf("HELD") >= 0 ? 'PROOF HELD.' : 'VERIFYING $500 / 3 SHOWS / 14 DAYS...') +
+      '</b><p>' + esc(aftermathPilot.prototypeBoundary) + '</p></footer></section>' :
+      wantsAftermathPilot ? '<section class="workflow-showcase"><div><span>THREE-SHOW WORKFLOW SHOWCASE</span><h4>' +
+        (state.pilotAftermathNotice.indexOf("HELD") >= 0 ? 'PROOF HELD.' : 'VERIFYING THREE SOURCE-LOCKED SHOWS...') +
         '</h4><p>' + esc(state.pilotAftermathNotice || "VERIFYING THE THREE SOURCE-LOCKED PACKS...") +
         '</p></div></section>' : "";
     stage.innerHTML =
-      '<header class="pilot-head"><div><span>CREATOR PILOT BUILDER // PICK ONE JOB, THEN PROVE IT</span>' +
-      '<h3>DON\'T BUY THE DREAM.<br>TEST THE MACHINE.</h3></div><div class="pilot-status"><b>' +
+      '<header class="pilot-head"><div><span>CREATOR WORKFLOW BUILDER // PICK ONE JOB, THEN TRACE IT</span>' +
+      '<h3>OPEN THE WORKFLOW.<br>FOLLOW THE RECEIPTS.</h3></div><div class="pilot-status"><b>' +
       esc(brief.status) + '</b><span>BRIEF ' + esc(brief.fingerprint) + '</span><span>INTEGRITY ' +
       esc(integrity.status) + ' // ' + esc(integrity.fingerprint) + '</span></div></header>' +
-      '<nav class="pilot-goals" aria-label="Choose a creator pilot goal">' +
+      '<nav class="pilot-goals" aria-label="Choose a creator workflow goal">' +
       pilotBuilderEngine.goals.map(function (goal) {
         return '<button class="' + (goal.id === state.pilotGoal ? "on" : "") +
           '" data-pilot-goal="' + esc(goal.id) + '" aria-pressed="' +
@@ -4486,7 +4562,7 @@
       }).join("") + '</nav>' + aftermathPilotMarkup +
       '<div class="pilot-brief">' +
       '<section class="pilot-promise"><span>THE NARROW PROMISE</span><h4>' +
-      esc(brief.goal.label) + '</h4><p>' + esc(brief.pitch) +
+      esc(brief.goal.label) + '</h4><p>' + esc(brief.summary) +
       '</p><div class="pilot-snapshot">' +
       brief.currentProof.summary.map(function (item) {
         var match = String(item).match(/^([\d,]+)\s+(.*)$/);
@@ -4519,8 +4595,8 @@
       brief.humanDecisionsRequired.map(function (item) {
         return '<li>' + esc(item) + '</li>';
       }).join("") + '</ol></aside></div>' +
-      '<footer class="pilot-actions"><p>' + esc(brief.commercialBoundary) +
-      '</p><div><button id="pilotCopy">COPY PILOT BRIEF</button>' +
+      '<footer class="pilot-actions"><p>' + esc(brief.prototypeBoundary) +
+      '</p><div><button id="pilotCopy">COPY WORKFLOW BRIEF</button>' +
       '<button id="pilotDownload">DOWNLOAD PROOF LEDGER</button></div></footer>';
     bindPilotBuilder(brief, aftermathPilot);
     if (focusGoal) {
@@ -4624,19 +4700,19 @@
     var pitchButton = document.getElementById("pitchTourButton");
     var footerButton = document.getElementById("footerPitch");
     if (mikeButton) {
-      mikeButton.innerHTML = '<span></span> ' + (canResume ? "RESUME " + step : "MIKE MODE");
+      mikeButton.innerHTML = '<span></span> ' + (canResume ? "RESUME " + step : "SHOWCASE MODE");
       mikeButton.setAttribute("aria-label", canResume ?
-        "Resume Mike Mode at slide " + (state.tourResumeSlide + 1) + " of " + total :
-        "Open Mike Mode");
+        "Resume Showcase Mode at slide " + (state.tourResumeSlide + 1) + " of " + total :
+        "Open Showcase Mode");
       mikeButton.classList.toggle("tour-resume-ready", canResume);
     }
     if (pitchButton) {
       pitchButton.textContent = canResume ?
-        "RESUME MIKE MODE · " + step : "START THE 60-SECOND PITCH";
+        "RESUME SHOWCASE · " + step : "START THE 60-SECOND SHOWCASE";
       pitchButton.classList.toggle("tour-resume-ready", canResume);
     }
     if (footerButton) {
-      footerButton.textContent = canResume ? "RESUME MIKE MODE · " + step : "MIKE MODE";
+      footerButton.textContent = canResume ? "RESUME SHOWCASE · " + step : "SHOWCASE MODE";
       footerButton.classList.toggle("tour-resume-ready", canResume);
     }
   }
@@ -4706,7 +4782,7 @@
       loadDemoScript("pitch-tour-data.js").then(function () {
         tourSlides = window.WWAM_PITCH_TOUR || [];
         openTour();
-      }).catch(function () { showToast("MIKE MODE COULD NOT LOAD"); });
+      }).catch(function () { showToast("SHOWCASE MODE COULD NOT LOAD"); });
       return;
     }
     rememberDialogFocus();
@@ -4866,7 +4942,8 @@
       });
     };
     document.getElementById("loadMore").onclick = function () { state.hotLimit += 12; renderHot100(); };
-    document.getElementById("rouletteButton").onclick = function () {
+    var rouletteButton = document.getElementById("rouletteButton");
+    if (rouletteButton) rouletteButton.onclick = function () {
       var moment = redBandMoments[Math.floor(Math.random() * redBandMoments.length)];
       if (moment) openRedMoment(moment.sourceId || moment.tapeId, moment.t);
     };

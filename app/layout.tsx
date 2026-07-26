@@ -11,19 +11,19 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     metadataBase: base,
-    title: "WWAM After Midnight — Ask This Tape",
+    title: "WWAM After Midnight — The Living Archive",
     description:
-      "An independent, source-locked living YouTube wiki: 510 playable source dossiers, 1,490 bounded receipts, and exact-tape answers that refuse to fake what is not indexed.",
+      "Watch, search and explore We Watched A Movie history through playable show wikis, source-linked moments, recurring characters and a living 2025–2026 canon.",
     openGraph: {
       type: "website",
-      title: "WWAM After Midnight — Ask This Tape",
-      description: "510 source dossiers. 1,490 receipts. Zero wrong-tape substitutions.",
-      images: [{ url: image, width: 1200, height: 630, alt: "WWAM After Midnight — Ask This Tape" }],
+      title: "WWAM After Midnight — The Living Archive",
+      description: "Every show becomes a playable wiki: summaries, best moments, topic jumps, movie context and source-linked WWAM lore.",
+      images: [{ url: image, width: 1200, height: 630, alt: "WWAM After Midnight — The Living Archive" }],
     },
     twitter: {
       card: "summary_large_image",
-      title: "WWAM After Midnight — Ask This Tape",
-      description: "510 source dossiers. 1,490 receipts. Zero wrong-tape substitutions.",
+      title: "WWAM After Midnight — The Living Archive",
+      description: "Every show becomes a playable wiki: summaries, best moments, topic jumps, movie context and source-linked WWAM lore.",
       images: [image],
     },
   };

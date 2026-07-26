@@ -162,11 +162,11 @@ test("V5.13 stays a correctly ordered lazy Memory OS enhancement", () => {
   assert.match(
     app,
     /loadDemoScript\("pitch-tour-data\.js"\)[\s\S]{0,160}WWAM_PITCH_TOUR/,
-    "Mike Mode data must remain demand-loaded.",
+    "Showcase Mode data must remain demand-loaded.",
   );
   assert.ok(
-    fs.statSync(path.join(demo, "app.js")).size < 255_000,
-    "app.js exceeded its V5.21 255 KB source ceiling.",
+    fs.statSync(path.join(demo, "app.js")).size < 265_000,
+    "app.js exceeded its post-character-shelf 265 KB source ceiling.",
   );
 });
 

@@ -52,14 +52,14 @@
     </div>
     <div class="guided-topbar-actions">
       <button class="guided-more-button" id="guidedMoreButton" type="button" aria-controls="guidedMorePanel" aria-expanded="false">MORE <span>+</span></button>
-      <button class="mike-button" id="mikeButton"><span></span> MIKE MODE</button>
+      <button class="mike-button" id="mikeButton"><span></span> SHOWCASE MODE</button>
     </div>
   </nav>
   <aside class="guided-more-panel" id="guidedMorePanel" aria-hidden="true" inert>
     <div><span>WATCH + BINGE</span><a href="#companion" data-journey-link="shows">TAPE COMPANION</a><a href="#popular25" data-journey-link="shows">POPULAR 25</a><a href="#time-capsules" data-journey-link="shows">TIME CAPSULES</a></div>
     <div><span>THE UNHINGED SIDE</span><a href="#red100" data-journey-link="highlights">RED BAND 100</a><a href="#upinya" data-journey-link="highlights">WWAM UP IN YA</a><a href="#night-shift" data-journey-link="highlights">NIGHT SHIFT</a><a href="#trivia" data-journey-link="highlights">TAPE TRIVIA</a></div>
     <div><span>THE DEEP END</span><a href="#lore" data-journey-link="characters">LORE GALAXY</a><a href="#memory" data-journey-link="studio">MEMORY OS</a><a href="#verdict-room" data-journey-link="studio">VERDICT ROOM</a></div>
-    <div><span>MIKE'S WORKBENCH</span><a href="#clip-lab" data-journey-link="studio">CLIP LAB</a><a href="#fresh-intake" data-journey-link="studio">DROP ZONE</a><a href="#canon" data-journey-link="studio">CANON DESK</a><a href="#pitch" data-journey-link="studio">THE BUSINESS CASE</a><a href="#top" data-journey-link="all">SHOW EVERYTHING</a></div>
+    <div><span>CREATOR WORKBENCH</span><a href="#clip-lab" data-journey-link="studio">CLIP LAB</a><a href="#fresh-intake" data-journey-link="studio">DROP ZONE</a><a href="#canon" data-journey-link="studio">CANON DESK</a><a href="#pitch" data-journey-link="studio">GUIDED SHOWCASE</a><a href="#top" data-journey-link="all">SHOW EVERYTHING</a></div>
   </aside>
 
   <main id="top" tabindex="-1">
@@ -209,27 +209,32 @@
       <div class="character-static"></div>
       <header class="section-head">
         <div>
-          <p class="kicker">RECURRING CHARACTER ENGINE // SYNTHESIS BESIDE PROOF</p>
+          <p class="kicker">ASK A CHARACTER // THEN OPEN THE REAL TAPE</p>
           <h2>ASK THE<br><em>CHARACTER.</em></h2>
         </div>
-        <p>Ask Loomis, Challis, Slenderman, or Corey Feldman a question. The response is a clearly labeled fan-made riff assembled from the recurring behavior of the bit—then the real WWAM performances sit beside it as playable evidence.</p>
+        <p>Pick Loomis, Challis, Slenderman, or Corey Feldman and ask anything. You get a clearly labeled fan-made riff, a matched source clip, and the complete playable tape shelf for that recurring bit.</p>
       </header>
       <div class="character-roster" id="characterRoster"></div>
       <div class="character-console">
         <section class="character-terminal">
-          <div class="character-terminal-top"><i></i><span id="characterLine">SELECT A WITNESS</span><b>GENERATED RIFF // NEVER AN ARCHIVAL QUOTE</b></div>
+          <div class="character-terminal-top"><i></i><span id="characterLine">PICK A CHARACTER</span><b>FAN-MADE RIFF // SOURCE CLIPS STAY SEPARATE</b></div>
           <div class="character-portrait" id="characterPortrait"></div>
           <form id="characterForm">
             <span>ASK_</span>
             <input id="characterInput" autocomplete="off" placeholder="What do you think is really happening in Haddonfield?" aria-label="Ask the selected recurring character">
-            <button>BREAK CHARACTER</button>
+            <button>ASK THE CHARACTER</button>
           </form>
           <div class="character-answer" id="characterAnswer" aria-live="polite">
-            <p>Choose a recurring character and ask a question. The engine will expose the bit's behavioral ingredients before it answers.</p>
+            <p>Pick a character and ask a question. The riff is generated; every playable clip below remains a separate timestamped source candidate.</p>
           </div>
         </section>
-        <aside class="character-receipts">
-          <div><span>THE PATTERN DOSSIER</span><b id="characterReceiptLabel">TIMESTAMP-VALIDATED CANDIDATES APPEAR HERE</b></div>
+        <aside class="character-receipts" aria-labelledby="characterShelfTitle" tabindex="-1">
+          <div class="character-shelf-head">
+            <span id="characterShelfTitle">THE TAPE SHELF</span>
+            <b id="characterReceiptLabel" role="status" aria-live="polite">LOADING TIMESTAMP-VALIDATED CANDIDATES</b>
+            <button id="characterReceiptRotate" type="button" aria-controls="characterReceipts">ROTATE FIRST TAPE</button>
+            <button id="characterReceiptMore" type="button" aria-controls="characterReceipts">OPEN FULL SHELF</button>
+          </div>
           <div id="characterReceipts"></div>
         </aside>
       </div>
@@ -376,7 +381,7 @@
           <p>Priority is deterministic and inspectable: cached-view gravity, upload recency, and configured franchise-title signals. Metadata-only status controls eligibility; it does not add points. This is a work queue, not a claim about what happens inside an undistilled show.</p>
           <div class="archive-queue-actions">
             <button id="archiveQueueDownload" disabled>DOWNLOAD QUEUE JSON</button>
-            <a href="#pitch">TURN THIS MAP INTO A PILOT &rarr;</a>
+            <a href="#pitch">TRACE THIS MAP THROUGH THE WORKFLOW &rarr;</a>
           </div>
         </header>
         <div id="archiveQueue"></div>
@@ -885,18 +890,18 @@
 
     <section class="pitch-room" id="pitch">
       <div class="pitch-copy">
-        <p class="kicker">THE PRIVATE SCREENING ROOM</p>
-        <h2>THIS ISN'T A<br>FAN PAGE.<br><em>IT'S A MEMORY BUSINESS.</em></h2>
-        <p>The archive turns years of uploads—and the latest indexed show—into new reasons to click, binge, share, join, buy, argue, and come back. The weirdness is the moat.</p>
+        <p class="kicker">THE GUIDED SHOWCASE</p>
+        <h2>THIS ISN'T JUST<br>A FAN PAGE.<br><em>IT'S A LIVING MEMORY WORLD.</em></h2>
+        <p>The archive turns years of uploads—and the latest indexed show—into new paths to click, binge, laugh, argue, connect the callbacks, and come back. The weirdness is the connective tissue.</p>
         <div>
-          <button class="primary" id="pitchTourButton">START THE 60-SECOND PITCH</button>
+          <button class="primary" id="pitchTourButton">START THE 60-SECOND SHOWCASE</button>
           <button id="copyDemoButton">COPY THIS DEMO LINK</button>
         </div>
       </div>
-      <div class="money-stack">
+      <div class="showcase-stack">
         <article><b>01</b><span>DISCOVERY</span><h3>Good questions become receipts—or an honest unknown.</h3><p>Intent-aware answers route the fan to the strongest available source, exact second when the evidence supports one, and visible limitations when it does not.</p></article>
-        <article><b>02</b><span>RETENTION</span><h3>Yesterday and tonight connect.</h3><p>Live topics feed franchise paths, soundbytes, rankings, and dossiers instead of disappearing down the upload feed.</p></article>
-        <article><b>03</b><span>REVENUE</span><h3>Memory becomes inventory.</h3><p>Sponsored topic desks, member vaults, shareable soundbytes, merch callbacks, and premium annuals fit the same evidence layer.</p></article>
+        <article><b>02</b><span>CONTINUITY</span><h3>Yesterday and tonight connect.</h3><p>Live topics feed franchise paths, soundbytes, rankings, and dossiers instead of disappearing down the upload feed.</p></article>
+        <article><b>03</b><span>PARTICIPATION</span><h3>Fans can follow the memory, not just the feed.</h3><p>Playable trails, character constellations, evidence bags, corrections, and source-linked callbacks make the archive something people can explore together.</p></article>
       </div>
       <div class="universal-proof">
         <header>
@@ -906,11 +911,11 @@
         <div>
           <article><span>UNIVERSAL CORE</span><h4>THE PART EVERY CHANNEL NEEDS.</h4><ul><li>Versioned source ledger</li><li>Timestamped evidence receipts</li><li>Context-aware retrieval</li><li>Uncertainty and review gates</li><li>Portable editorial exports</li></ul><a class="truth-set-link" href="ask-truth-set.json" download>DOWNLOAD THE 37-CASE FROZEN ASK TRUTH SET &rarr;</a> <a class="truth-set-link" href="channel-pack-spec.json" download>DOWNLOAD THE CHANNELPACK V1 SPEC &rarr;</a> <a class="truth-set-link" href="channel-pack-contract.js" download>DOWNLOAD THE FAIL-CLOSED COMPILER &rarr;</a></article>
           <article><span>WWAM CHANNEL DNA</span><h4>THE PART NOBODY CAN COPY-PASTE.</h4><ul><li>Horror-franchise ontology</li><li>Recurring-character firewalls</li><li>UP IN YA and Red Band signals</li><li>Room-break and dark-comedy grammar</li><li>WWAM-native art direction and voice</li></ul></article>
-          <article><span>LIVING UPDATE CONTRACT</span><h4>DISCOVER → QUARANTINE → REVIEW → PROMOTE.</h4><ul><li>Diff the official feed</li><li>Recheck captions and availability</li><li>Distill into a candidate quarantine</li><li>Require an authenticated, authorized editor or creator decision for public canon</li></ul><p>This static prototype was manually refreshed through the July 23 feed snapshot and July 24 Batch 04, producing a 40-source Archive Deep portfolio. No unattended scheduler is claimed; cadence is a production-pilot decision.</p></article>
+          <article><span>LIVING UPDATE CONTRACT</span><h4>DISCOVER → QUARANTINE → REVIEW → PROMOTE.</h4><ul><li>Diff the official feed</li><li>Recheck captions and availability</li><li>Distill into a candidate quarantine</li><li>Require an authenticated, authorized editor or creator decision for public canon</li></ul><p>This static prototype was manually refreshed through the July 23 feed snapshot and July 24 Batch 04, producing a 40-source Archive Deep portfolio. No unattended scheduler is claimed; future cadence remains a creator review decision.</p></article>
         </div>
       </div>
       <div class="pilot-builder" id="pilotBuilder" aria-live="polite">
-        <div class="pilot-loading"><i></i><b>ASSEMBLING AN EVIDENCE-BACKED CREATOR PILOT...</b></div>
+        <div class="pilot-loading"><i></i><b>ASSEMBLING AN EVIDENCE-BACKED CREATOR WORKFLOW...</b></div>
       </div>
     </section>
   </main>
@@ -918,7 +923,7 @@
   <footer>
     <div class="brand footer-brand"><i>W</i><span>WWAM<b>AFTER MIDNIGHT</b></span></div>
     <p>UNOFFICIAL INDEPENDENT FAN PROTOTYPE // ALL PLAYBACK AND SOURCE TRAFFIC RETURN TO WE WATCHED A MOVIE ON YOUTUBE</p>
-    <div><a href="https://www.youtube.com/@WeWatchedAMovie" target="_blank" rel="noopener">ORIGINAL CHANNEL ↗</a><button id="footerPitch">MIKE MODE</button></div>
+    <div><a href="https://www.youtube.com/@WeWatchedAMovie" target="_blank" rel="noopener">ORIGINAL CHANNEL ↗</a><button id="footerPitch">SHOWCASE MODE</button></div>
   </footer>
 
   <button class="evidence-bag-toggle" id="evidenceBagOpen" aria-controls="evidenceBag" aria-expanded="false" aria-label="Open evidence bag; 0 saved receipts">
@@ -966,9 +971,9 @@
     </div>
   </div>
 
-  <div class="tour" id="pitchTour" aria-hidden="true" role="dialog" aria-modal="true" aria-label="WWAM creator pitch tour">
+  <div class="tour" id="pitchTour" aria-hidden="true" role="dialog" aria-modal="true" aria-label="WWAM guided showcase">
     <div class="tour-shell">
-      <div class="tour-top"><span>PRIVATE SCREENING // MIKE MODE</span><button id="tourClose">EXIT ×</button></div>
+      <div class="tour-top"><span>GUIDED TOUR // SHOWCASE MODE</span><button id="tourClose">EXIT ×</button></div>
       <div class="tour-progress"><i id="tourProgress"></i></div>
       <div class="tour-body" id="tourBody"></div>
       <div class="tour-controls"><button id="tourBack">← BACK</button><span id="tourCounter"></span><button class="primary" id="tourNext">NEXT →</button></div>

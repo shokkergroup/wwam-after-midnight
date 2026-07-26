@@ -2587,7 +2587,7 @@
 .source-aftermath-head,
 .source-aftermath-delta,
 .source-aftermath-inventory,
-.source-aftermath-offer,
+.source-aftermath-workflow,
 .source-aftermath-progress,
 .source-aftermath-filters,
 .source-aftermath-workbench,
@@ -2612,7 +2612,7 @@
 .source-aftermath-why article > span,
 .source-aftermath-related > span,
 .source-aftermath-sidecars header span,
-.source-aftermath-offer span {
+.source-aftermath-workflow span {
   color: var(--acid);
   font: 700 10px/1.4 var(--mono);
   letter-spacing: .08em;
@@ -2780,7 +2780,7 @@
 .source-aftermath-inventory span { color: #d7c5ce; font: 700 10px/1.45 var(--mono); }
 .source-aftermath-inventory small { color: #a58e99; font: 10px/1.5 var(--mono); }
 
-.source-aftermath-offer {
+.source-aftermath-workflow {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 28px;
@@ -2792,10 +2792,10 @@
   color: #090609;
 }
 
-.source-aftermath-offer span { color: #090609; }
-.source-aftermath-offer b { display: block; margin-top: 7px; font: 46px/.8 var(--display); }
-.source-aftermath-offer p { max-width: 900px; margin: 9px 0 0; font: 11px/1.6 var(--mono); }
-.source-aftermath-offer button {
+.source-aftermath-workflow span { color: #090609; }
+.source-aftermath-workflow b { display: block; margin-top: 7px; font: 46px/.8 var(--display); }
+.source-aftermath-workflow p { max-width: 900px; margin: 9px 0 0; font: 11px/1.6 var(--mono); }
+.source-aftermath-workflow button {
   min-height: 48px;
   padding: 12px 15px;
   border: 1px solid #090609;
@@ -3035,7 +3035,7 @@
 
 @media (max-width: 1050px) {
   .source-aftermath-head,
-  .source-aftermath-offer,
+  .source-aftermath-workflow,
   .source-aftermath-actions { grid-template-columns: 1fr; }
   .source-aftermath-head > aside { justify-items: start; }
   .source-aftermath-inventory { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -3068,8 +3068,8 @@
   .source-aftermath-inventory article:last-child { border-bottom: 1px solid #35222d; }
   .source-aftermath-proof-jumps article { grid-template-areas: "label" "title" "action"; border-right: 0; border-bottom: 1px solid #35222d; }
   .source-aftermath-proof-jumps article:last-child { border-bottom: 0; }
-  .source-aftermath-offer b { font-size: 39px; }
-  .source-aftermath-offer button { width: 100%; }
+  .source-aftermath-workflow b { font-size: 39px; }
+  .source-aftermath-workflow button { width: 100%; }
   .source-aftermath-progress { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .source-aftermath-progress > span:nth-child(2) { border-right: 0; }
   .source-aftermath-workbench { grid-template-columns: 1fr; min-height: 0; }

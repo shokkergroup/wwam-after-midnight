@@ -815,7 +815,8 @@ test("inline Aftermath Pack turns a source into one bounded creator review desk"
   assert.match(mount.innerHTML, /DOCTOR EXAMPLE COLD OPEN/);
   assert.match(mount.innerHTML, /1 SHORTS/);
   assert.doesNotMatch(mount.innerHTML, /13 SHORTS/);
-  assert.match(mount.innerHTML, /\$500 \/ 3 SHOWS \/ 14 DAYS/);
+  assert.match(mount.innerHTML, /SOURCE-LOCKED CREATOR WORKFLOW/);
+  assert.match(mount.innerHTML, /THIS SHOW, READY FOR REVIEW/);
   assert.match(mount.innerHTML, /1 UNREVIEWED/);
   assert.doesNotMatch(mount.innerHTML, /creator approved/i);
 });
@@ -866,7 +867,7 @@ test("Aftermath routing, export, copy, and exact-source Clip Lab handoff remain 
   assert.equal(clipOpens[0].mode, "shorts");
 });
 
-test("zero-opportunity Aftermath pages stay source-specific and never borrow the July offer", () => {
+test("zero-opportunity Aftermath pages stay source-specific and never invent a workflow callout", () => {
   const dossier = makeDossier({ metadataOnly: true, receiptCount: 0 });
   const harness = makeAftermathHarness(dossier);
   Object.assign(harness.pack.metrics, {
@@ -896,7 +897,7 @@ test("zero-opportunity Aftermath pages stay source-specific and never borrow the
   assert.match(mount.innerHTML, /NO RECEIPT-BACKED HANDOFF YET/);
   assert.match(mount.innerHTML, /DOWNLOAD ELIGIBILITY RECEIPT/);
   assert.doesNotMatch(mount.innerHTML, /13 SHORTS/);
-  assert.equal(mount.innerHTML.includes("$500 / 3 SHOWS / 14 DAYS"), false);
+  assert.equal(mount.innerHTML.includes("SOURCE-LOCKED CREATOR WORKFLOW"), false);
   assert.doesNotMatch(mount.innerHTML, /OPEN THIS SOURCE IN CLIP LAB/);
   assert.doesNotMatch(mount.innerHTML, /CREATOR HANDOFF READY/);
 });

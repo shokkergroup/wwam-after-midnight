@@ -362,14 +362,14 @@ test("Character Lore enables four grounded voices and locks unverifiable attribu
     "corey-feldman": "J",
   };
   const expectedByteCounts = {
-    loomis: 7,
-    challis: 7,
-    slenderman: 6,
-    "corey-feldman": 5,
+    loomis: 15,
+    challis: 15,
+    slenderman: 15,
+    "corey-feldman": 15,
   };
 
   assert.equal(lore.characters.length, 4);
-  assert.equal(lore.characters.reduce((sum, character) => sum + character.soundbytes.length, 0), 25);
+  assert.equal(lore.characters.reduce((sum, character) => sum + character.soundbytes.length, 0), 60);
   assert.equal(lore.guardrails.generatedRiffLabelRequired, true);
   assert.equal(
     lore.guardrails.requiredLabel,
