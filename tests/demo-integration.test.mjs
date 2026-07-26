@@ -38,6 +38,9 @@ test("the complete browser script chain exists in dependency order", () => {
     "youtube-playback.js",
     "feature-loader.js",
     "app.js",
+    "context-atlas.js",
+    "context-companion.js",
+    "guided-shell.js",
   ];
   assert.deepEqual(scripts, required);
   required.forEach((file) => assert.equal(fs.existsSync(path.join(demo, file)), true, `${file} is missing`));

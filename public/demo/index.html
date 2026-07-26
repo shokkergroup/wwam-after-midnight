@@ -5,21 +5,22 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="theme-color" content="#080608">
-  <title>WWAM After Midnight — Ask This Tape</title>
-  <meta name="description" content="An independent, source-locked living YouTube wiki: 510 canonical source dossiers, 210 content-backed show Wikis, 3,310 bounded receipts, and exact-tape answers that refuse to fake what is not indexed.">
-  <meta property="og:title" content="WWAM After Midnight — Ask This Tape">
-  <meta property="og:description" content="510 source dossiers. 210 content-backed show Wikis. 3,310 receipts. Zero wrong-tape substitutions.">
+  <title>WWAM After Midnight — The Living Archive</title>
+  <meta name="description" content="Watch, search and explore We Watched A Movie history through playable show wikis, source-linked moments, recurring characters and a living 2025–2026 canon.">
+  <meta property="og:title" content="WWAM After Midnight — The Living Archive">
+  <meta property="og:description" content="Every show becomes a playable wiki: summaries, best moments, topic jumps, movie context and source-linked WWAM lore.">
   <meta property="og:image" content="/og.png">
-  <meta property="og:image:alt" content="WWAM After Midnight — Ask This Tape">
+  <meta property="og:image:alt" content="WWAM After Midnight — The Living Archive">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="WWAM After Midnight — Ask This Tape">
-  <meta name="twitter:description" content="510 source dossiers. 210 content-backed show Wikis. 3,310 receipts. Zero wrong-tape substitutions.">
+  <meta name="twitter:title" content="WWAM After Midnight — The Living Archive">
+  <meta name="twitter:description" content="Every show becomes a playable wiki: summaries, best moments, topic jumps, movie context and source-linked WWAM lore.">
   <meta name="twitter:image" content="/og.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=0.5.27-year-canon">
   <link rel="stylesheet" href="year-canon.css?v=1.0.0">
+  <link rel="stylesheet" href="guided-shell.css?v=1.0.0">
 </head>
 <body>
   <div class="content-gate" id="contentGate" role="dialog" aria-modal="true" aria-labelledby="contentGateTitle">
@@ -37,46 +38,48 @@
     </div>
   </div>
 
-  <nav class="topbar">
+  <nav class="topbar guided-topbar" aria-label="Primary">
     <a class="brand" href="#top" aria-label="WWAM After Midnight home">
       <i>W</i><span>WWAM<b>AFTER MIDNIGHT</b></span>
     </a>
-    <div class="nav-links">
-      <a href="#companion">TAPE COMPANION</a>
-      <a href="#yearCanonSpotlight">2025–26 CANON</a>
-      <a href="#archive">ARCHIVE ATLAS</a>
-      <a href="#time-capsules">TIME CAPSULES</a>
-      <a href="#fresh-intake">DROP ZONE</a>
-      <a href="#verdict-room">VERDICT ROOM</a>
-      <a href="#characters">CHARACTERS</a>
-      <a href="#lore">LORE GALAXY</a>
-      <a href="#clip-lab">CLIP LAB</a>
-      <a href="#canon">CANON DESK</a>
-      <a href="#night-shift">NIGHT SHIFT</a>
-      <a href="#ask">ASK WWAM</a>
+    <div class="nav-links guided-primary-links">
+      <a href="#top" data-journey-link="home">HOME</a>
+      <a href="#livewire" data-journey-link="shows">NEWEST</a>
+      <a href="#archive" data-journey-link="shows">SHOW WIKIS</a>
+      <a href="#franchises" data-journey-link="watchalongs">WATCHALONGS</a>
+      <a href="#characters" data-journey-link="characters">CHARACTERS</a>
+      <a href="#ask" data-journey-link="ask">ASK WWAM</a>
     </div>
-    <button class="mike-button" id="mikeButton"><span></span> MIKE MODE</button>
+    <div class="guided-topbar-actions">
+      <button class="guided-more-button" id="guidedMoreButton" type="button" aria-controls="guidedMorePanel" aria-expanded="false">MORE <span>+</span></button>
+      <button class="mike-button" id="mikeButton"><span></span> MIKE MODE</button>
+    </div>
   </nav>
+  <aside class="guided-more-panel" id="guidedMorePanel" aria-hidden="true" inert>
+    <div><span>WATCH + BINGE</span><a href="#companion" data-journey-link="shows">TAPE COMPANION</a><a href="#popular25" data-journey-link="shows">POPULAR 25</a><a href="#time-capsules" data-journey-link="shows">TIME CAPSULES</a></div>
+    <div><span>THE UNHINGED SIDE</span><a href="#red100" data-journey-link="highlights">RED BAND 100</a><a href="#upinya" data-journey-link="highlights">WWAM UP IN YA</a><a href="#night-shift" data-journey-link="highlights">NIGHT SHIFT</a><a href="#trivia" data-journey-link="highlights">TAPE TRIVIA</a></div>
+    <div><span>THE DEEP END</span><a href="#lore" data-journey-link="characters">LORE GALAXY</a><a href="#memory" data-journey-link="studio">MEMORY OS</a><a href="#verdict-room" data-journey-link="studio">VERDICT ROOM</a></div>
+    <div><span>MIKE'S WORKBENCH</span><a href="#clip-lab" data-journey-link="studio">CLIP LAB</a><a href="#fresh-intake" data-journey-link="studio">DROP ZONE</a><a href="#canon" data-journey-link="studio">CANON DESK</a><a href="#pitch" data-journey-link="studio">THE BUSINESS CASE</a><a href="#top" data-journey-link="all">SHOW EVERYTHING</a></div>
+  </aside>
 
   <main id="top" tabindex="-1">
     <section class="hero">
       <div class="hero-grain"></div>
       <div class="hero-copy">
-        <div class="live-pill"><i></i> THE CHANNEL MEMORY SYSTEM // JULY 2026</div>
-        <h1>THE CHANNEL<br><em>REMEMBERS ITSELF.</em></h1>
-        <p class="hero-dek">Popular livestreams. Fresh damage. Evolving takes. Recurring characters. Playable lore. A living brain built from WWAM's actual source history—not a chatbot wearing a horror T-shirt.</p>
+        <div class="live-pill"><i></i> THE LIVING WWAM ARCHIVE // UPDATED JULY 23, 2026</div>
+        <h1>START WITH<br><em>THE GOOD STUFF.</em></h1>
+        <p class="hero-dek">Pick a show. Jump to the funniest part. Follow a running bit. Ask the archive a question. The receipts and full WWAM upload are always one click away.</p>
         <div class="hero-actions">
-          <button class="primary" id="latestDossierButton" type="button">INTERROGATE THE JULY 23 TAPE <span>&rarr;</span></button>
-          <a class="primary" href="#memory">ENTER THE MEMORY OS</a>
-          <a href="#companion">WATCH WITH MEMORY <span>→</span></a>
-          <button id="rouletteButton">RED BAND ROULETTE <span>↗</span></button>
+          <button class="primary" id="latestDossierButton" type="button">OPEN THE NEWEST SHOW WIKI <span>&rarr;</span></button>
+          <a href="#archive" data-journey-link="shows">BROWSE EVERY SHOW <span>→</span></a>
+          <a href="#franchises" data-journey-link="watchalongs">PICK A WATCHALONG <span>→</span></a>
         </div>
         <div class="hero-doorways" aria-label="Choose a WWAM experience">
-          <a href="#night-shift"><span>FAN EXPERIENCE</span><b>START TONIGHT'S SHIFT →</b></a>
-          <a href="#lore"><span>DEEP DIVE</span><b>FOLLOW THE LORE →</b></a>
-          <a href="#clip-lab"><span>CREATOR PROOF</span><b>PUT MEMORY TO WORK →</b></a>
+          <a href="#livewire" data-journey-link="shows"><span>I MISSED A SHOW</span><b>CATCH UP FAST →</b></a>
+          <a href="#characters" data-journey-link="characters"><span>I KNOW THE BITS</span><b>FOLLOW THE LORE →</b></a>
+          <a href="#ask" data-journey-link="ask"><span>I HAVE A QUESTION</span><b>ASK THE ARCHIVE →</b></a>
         </div>
-        <p class="receipt-note">Every receipt is short. Every timestamp is playable. Every playback opens the original WWAM upload.</p>
+        <p class="receipt-note">131 current-canon livestreams. 39 franchise watchalongs. Exact timestamps. No wrong-tape substitutions. <span>THE CHANNEL REMEMBERS ITSELF.</span></p>
       </div>
       <div class="hero-console">
         <div class="console-top"><span>LIVE EVIDENCE FEED</span><b id="consoleStatus" data-words-audited="5539960">SCANNING 5,539,960 WORDS</b></div>
@@ -995,5 +998,8 @@
   <script src="youtube-playback.js?v=0.5.28-year-canon-player2"></script>
   <script src="feature-loader.js"></script>
   <script src="app.js?v=0.5.28-year-canon"></script>
+  <script src="context-atlas.js?v=1.0.0"></script>
+  <script src="context-companion.js?v=1.0.0"></script>
+  <script src="guided-shell.js?v=1.0.0"></script>
 </body>
 </html>

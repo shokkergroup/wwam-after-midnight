@@ -4964,8 +4964,7 @@
       button.onclick = openTour;
     });
     document.getElementById("latestDossierButton").onclick = function () {
-      openSourceDossier((live.streams[0] || {id:"LV2rmwEA0w4"}).id, null, {section:"ask",
-        query:"Show me the Dr. Loomis moments in this tape.",
+      openSourceDossier((live.streams[0] || {id:"LV2rmwEA0w4"}).id, null, {section:"wiki",
         routeMode:"push", autoplay:false});
     };
     document.getElementById("copyDemoButton").onclick = function () { copy(location.origin + location.pathname + "#pitch"); };
