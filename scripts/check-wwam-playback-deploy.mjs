@@ -173,7 +173,7 @@ export async function runCheck(baseUrl = DEFAULT_BASE, options = {}) {
 
   const helperUrl = new URL(helperEntry.src, indexUrl);
   const appUrl = new URL(appEntry.src, indexUrl);
-  const bridgeUrl = new URL("youtube-player.html", helperUrl);
+  const bridgeUrl = new URL("media-bridge.html", helperUrl);
   const [helperResponse, bridgeResponse, appResponse] = await Promise.all([
     fetchText(helperUrl, "YouTube playback helper", fetchImpl),
     fetchText(bridgeUrl, "Hosted YouTube bridge", fetchImpl),
@@ -200,7 +200,7 @@ export async function runCheck(baseUrl = DEFAULT_BASE, options = {}) {
   );
   verifyCurrentAsset(
     bridgeResponse.text,
-    "youtube-player.html",
+    "media-bridge.html",
     "Deployed hosted bridge",
   );
 
@@ -225,7 +225,7 @@ export async function runCheck(baseUrl = DEFAULT_BASE, options = {}) {
   return result;
 }
 
-const invokedDirectly = process.argv[1] &&
+const invokedDirectly = typeof process !== "undefined" && process.argv[1] &&
   import.meta.url === pathToFileURL(process.argv[1]).href;
 if (invokedDirectly) {
   runCheck(process.argv[2]).catch((error) => {

@@ -328,8 +328,8 @@ test("Error 153 recovery preserves every Elm stop's official source and bounds",
 
     playback.recoverPlayer(button);
     const recovered = new URL(frame.src);
-    assert.equal(recovered.origin, "https://wiki.example");
-    assert.equal(recovered.pathname, "/demo/youtube-player.html");
+    assert.equal(recovered.origin, "https://wwam-after-midnight.downndirtytn.chatgpt.site");
+    assert.equal(recovered.pathname, "/demo/media-bridge.html");
     assert.equal(recovered.searchParams.get("video"), stop.sourceId);
     assert.equal(recovered.searchParams.get("start"), String(stop.at));
     assert.equal(recovered.searchParams.get("end"), String(stop.end));

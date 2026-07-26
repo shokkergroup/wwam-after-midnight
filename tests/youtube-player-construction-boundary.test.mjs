@@ -39,13 +39,13 @@ test("actual player construction is confined to the three reviewed implementatio
   );
 
   assert.deepEqual(actual, [
+    { file: "media-bridge.html", kind: "createdIframe" },
     { file: "tape-companion-ui.js", kind: "iframeApiPlayer" },
     { file: "youtube-playback.js", kind: "literalIframe" },
-    { file: "youtube-player.html", kind: "createdIframe" },
   ]);
 
   assert.match(byName.get("youtube-playback.js"), directEmbedUrl);
-  assert.match(byName.get("youtube-player.html"), directEmbedUrl);
+  assert.match(byName.get("media-bridge.html"), directEmbedUrl);
   assert.match(
     byName.get("tape-companion-ui.js"),
     /ShokkerYouTubePlayback\.playerVars/,
@@ -140,8 +140,8 @@ test("post-deploy checker validates a local production-shaped fixture without ne
       fs.readFileSync(path.join(demo, "youtube-playback.js"), "utf8"),
     ],
     [
-      "/demo/youtube-player.html",
-      fs.readFileSync(path.join(demo, "youtube-player.html"), "utf8"),
+      "/demo/media-bridge.html",
+      fs.readFileSync(path.join(demo, "media-bridge.html"), "utf8"),
     ],
     ["/demo/app.js", fs.readFileSync(path.join(demo, "app.js"), "utf8")],
   ]);

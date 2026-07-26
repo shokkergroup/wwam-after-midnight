@@ -79,7 +79,7 @@ test("all Source Dossier assets ship locally but remain outside the eager docume
 test("the release keeps Source Dossier media dormant and YouTube identity explicit", () => {
   const ui = readDemo("source-dossier-ui.js");
   const playback = readDemo("youtube-playback.js");
-  const bridge = readDemo("youtube-player.html");
+  const bridge = readDemo("media-bridge.html");
   const index = readDemo("index.html");
 
   assert.doesNotMatch(ui, /<iframe|<video|<audio|autoplay\s*=/i);

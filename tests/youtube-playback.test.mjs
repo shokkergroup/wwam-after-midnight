@@ -12,7 +12,7 @@ const index = fs.readFileSync(path.join(demo, "index.html"), "utf8");
 const app = fs.readFileSync(path.join(demo, "app.js"), "utf8");
 const companion = fs.readFileSync(path.join(demo, "tape-companion-ui.js"), "utf8");
 const hostedPlayer = fs.readFileSync(
-  path.join(demo, "youtube-player.html"),
+  path.join(demo, "media-bridge.html"),
   "utf8"
 );
 
@@ -39,11 +39,11 @@ test("every player receives explicit page identity and referrer policy", () => {
 
   assert.match(markup, /referrerpolicy="strict-origin-when-cross-origin"/);
   assert.match(markup, /origin=https%3A%2F%2Fwiki\.example/);
-  assert.doesNotMatch(markup, /widget_referrer/);
+  assert.match(markup, /widget_referrer=https%3A%2F%2Fwiki\.example%2Fdemo%2F/);
   assert.match(markup, /enablejsapi=1/);
   assert.match(markup, /start=5406/);
   assert.match(markup, /end=5432/);
-  assert.match(markup, /allow="autoplay; encrypted-media; picture-in-picture; fullscreen"/);
+  assert.match(markup, /allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"/);
   assert.match(markup, /data-shokker-youtube-player/);
   assert.match(markup, /data-shokker-youtube-recover/);
   assert.match(markup, /HAVING TROUBLE\? TRY RECOVERY/);
@@ -76,7 +76,7 @@ test("file launches keep playback on-page through the hosted player bridge", () 
   assert.equal(playback.hosted(), false);
   assert.match(
     markup,
-    /wwam-after-midnight\.downndirtytn\.chatgpt\.site\/demo\/youtube-player\.html/
+    /wwam-after-midnight\.downndirtytn\.chatgpt\.site\/demo\/media-bridge\.html/
   );
   assert.match(markup, /video=5et_A1tYnio/);
   assert.match(markup, /referrerpolicy="strict-origin-when-cross-origin"/);
@@ -94,7 +94,7 @@ test("HTTP pages can force the hosted bridge after YouTube identity error 153", 
 
   assert.match(
     markup,
-    /https:\/\/wiki\.example\/demo\/youtube-player\.html/
+    /https:\/\/wwam-after-midnight\.downndirtytn\.chatgpt\.site\/demo\/media-bridge\.html/
   );
   assert.match(markup, /video=5et_A1tYnio/);
   assert.match(
@@ -146,7 +146,7 @@ test("the universal recovery control keeps the same source and coordinates", () 
 
   playback.recoverPlayer(button);
 
-  assert.match(frame.src, /https:\/\/wiki\.example\/demo\/youtube-player\.html/);
+  assert.match(frame.src, /https:\/\/wwam-after-midnight\.downndirtytn\.chatgpt\.site\/demo\/media-bridge\.html/);
   assert.match(frame.src, /video=5et_A1tYnio/);
   assert.match(frame.src, /start=5406/);
   assert.match(frame.src, /end=5432/);
@@ -177,8 +177,8 @@ test("the document and both direct player paths cannot suppress YouTube's referr
     /<meta name="referrer" content="strict-origin-when-cross-origin">/
   );
   assert.ok(
-    index.indexOf('<script src="youtube-playback.js?v=0.5.21-p1"></script>') <
-      index.indexOf('<script src="app.js?v=0.5.21-ui15"></script>')
+    index.indexOf('youtube-playback.js?v=') <
+      index.indexOf('app.js?v=')
   );
   assert.equal((app.match(/ShokkerYouTubePlayback\.iframe/g) || []).length, 2);
   assert.match(companion, /PLAYER IDENTITY ERROR 153/);
