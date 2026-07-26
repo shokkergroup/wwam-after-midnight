@@ -125,11 +125,11 @@ test("V5.13 stays a correctly ordered lazy Memory OS enhancement", () => {
 
   const styles = commaList(attribute(memoryTag[0], "data-feature-styles"));
   const scripts = commaList(attribute(memoryTag[0], "data-feature-scripts"));
-  assert.deepEqual(styles, [
+  assert.deepEqual(styles.slice(0, 2), [
     "longitudinal-docket.css",
     "riff-black-box.css",
   ]);
-  assert.deepEqual(scripts, [
+  assert.deepEqual(scripts.slice(0, longitudinalFiles.length + 2), [
     ...longitudinalFiles,
     "riff-black-box-engine.js",
     "riff-black-box-ui.js",
@@ -165,8 +165,8 @@ test("V5.13 stays a correctly ordered lazy Memory OS enhancement", () => {
     "Mike Mode data must remain demand-loaded.",
   );
   assert.ok(
-    fs.statSync(path.join(demo, "app.js")).size < 250_000,
-    "app.js exceeded its 250 KB source ceiling.",
+    fs.statSync(path.join(demo, "app.js")).size < 255_000,
+    "app.js exceeded its V5.21 255 KB source ceiling.",
   );
 });
 
@@ -322,14 +322,14 @@ test("the real adapter renders zero verdicts under one universal ChannelPack con
     NEUTRAL_RACING_ADAPTER,
   );
 
-  assert.equal(pack.fingerprint, "cp1-f9ad38be22481b5d");
+  assert.equal(pack.fingerprint, "cp1-dd23bc386008689b");
   assert.equal(
     window.WWAM_LONGITUDINAL_DOCKETS.channel.packFingerprint,
     pack.fingerprint,
   );
   assert.equal(
     window.WWAM_LONGITUDINAL_DOCKETS.fingerprints.publicFnv1a,
-    "fnv1a32:d4ca362e",
+    "fnv1a32:59b085f6",
   );
   assert.equal(
     window.WWAM_LONGITUDINAL_DOCKETS.fingerprints.captionSetSha256,

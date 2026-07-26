@@ -7,9 +7,369 @@ character archaeology, topic paths, and creator-side editorial opportunities.
 This is an unofficial fan prototype. It sends playback and source traffic back
 to the official WWAM uploads.
 
-Current documented release: **V5.13 / 0.5.13**.
+Current documented release: **V5.21 / 0.5.21**.
 
-## V5.13 The Tape Keeps Score
+## Per-Show Wikis
+
+Every registered upload opens as a video-first Show Wiki. **Show Wiki V1.5**
+organizes one exact upload into an evidence-bound episode experience:
+
+- a canonical, metadata-only **Source Brief** when transcript-derived content
+  has not been distilled;
+- a title- and format-aware Episode Recap whose blocks point to registered
+  receipts from that upload;
+- a playable **THE MIDNIGHT CUT** or source-audio-safe **THE TOPIC HOP**;
+- Topics, Best Moments, Funny Moments, WWAM UP IN YA, Straight to Steve's
+  Asshole, and Character Bits lanes with explicit empty states;
+- conversational exact-episode Ask routing for the Source Brief, recap, watch
+  path, and registered lanes;
+- persistent **Now Playing Receipt** context with exact bounds, previous/next,
+  return-to-lane, and copy-this-moment controls; and
+- sticky local navigation plus a collision-safe, touch-sized pulse map that
+  remains usable on narrow screens.
+
+The page states what it honestly knows. `distilled` pages may expose bounded
+moment lanes; `topic-nav-only` pages expose safe topic doors without pretending
+source audio is host reaction; and `source-brief` pages expose canonical source
+facts while keeping summaries, topics, quotes, reactions, and highlight lanes
+sealed. `queued` remains a fail-closed fallback rather than the normal
+metadata-only experience.
+
+The Source Brief contains only the canonical source record, registered source
+type, a title/source-derived format with its declared basis, and safe query
+aliases. It does not infer what the hosts discussed or how they reacted.
+Natural source-fact questions such as `When was this uploaded?`, `How long is
+this tape?`, and `How many views?` return canonical proof even before content
+distillation.
+Natural questions such as `Can I see the best?`, `Where did they crack up?`,
+`What did the guys hate?`, and `When do they do voices?` resolve through WWAM's
+registered lane aliases while any named subject remains an exact-source
+constraint. See [The Source Brief Contract](docs/SOURCE_BRIEF.md).
+
+The engine validates source identity, local receipt keys, episode answer counts,
+playback coordinates, and truth boundaries. The WWAM adapter supplies the
+format grammar, recap voice, lane gates, aliases, lane order, and Midnight Cut /
+Topic Hop ritual. A different channel reuses the engine without inheriting
+WWAM's horror-comedy vocabulary.
+
+The integrated V1.5 audit certifies **510 Show Wikis: 99 distilled, 12
+topic-nav-only, and 399 safe canonical Source Briefs; 111 distinct
+receipt-bound recaps; and 1,490 unique registered receipts.** Quality checks
+also certify **15 strict Steve receipts, 37 named character recap blocks with 0
+generic blocks, 7 restored moments across BIT ENERGY and CHAT DID THIS, and
+53/53 title-relevant topic selections wherever topic evidence exists.** The
+prior V1.4 release gate was **178/178 tests**, with build, lint, and diff checks
+green. These are bounded inventory and verification counts, not creator
+approval, semantic claims about undistilled uploads, or objective rankings.
+See [Per-Show Wiki Contract](docs/SHOW_WIKI_CONTRACT.md).
+
+## The Aftermath Pack
+
+Each eligible Show Wiki now includes an exact-source creator review desk. It
+turns the show's registered Clip Lab memberships into a transparent production
+queue with playable receipts, proposed windows, suggested-copy labels, evidence
+and risk explanations, and local **Keep / Hold / Reject** routing.
+
+The July 23, 2026 proof source `LV2rmwEA0w4` binds 21 registered receipts to
+exactly **23 production opportunities: 13 Shorts + six supercut memberships +
+four resurfacing pairs**. Its four recurring-bit lineages remain reference-only,
+and nine Cold Open Factory storyboards remain separate generated plans. Those
+two inventories do not inflate the opportunity total.
+
+Saved review ledgers and JSON/Markdown editor packets are fingerprinted against
+the exact source and production build. The handoff separates kept, held,
+risk-quarantined, rejected, and unreviewed work. Keep means only keep for
+creator review; none of the actions or exports grants creator approval, rights
+clearance, publishing authority, media delivery, or a performance promise.
+
+Mike Mode can close on a proposed **$500 / 3-show / 14-day** pilot. That is a
+bounded offer requiring mutual agreement, not an invoice, completed agreement,
+or guarantee. See [The Aftermath Pack](docs/AFTERMATH_PACK.md).
+
+## V5.21 Receipt Matrix
+
+V5.21 makes archive-wide Ask answers count the right thing. **Receipt Matrix**
+separates unique official uploads from eligible timestamped receipts, answers
+same-source intersections, ranks sources by grounded performance evidence, and
+builds exact chronological performance routes. It lives inside the existing
+Ask WWAM surface; it adds no duplicate homepage section, player, or truth
+system.
+
+The current 510-source proof answers three questions that fuzzy retrieval could
+not answer reliably:
+
+| Grounded question | Unique uploads | Eligible receipts |
+| --- | ---: | ---: |
+| How many uploads contain Dr. Loomis performances? | 5 | 7 |
+| Which uploads contain both Loomis and Challis performances? | 4 | 11 |
+| Which upload has the most current recurring-character performances? | 12 matching | 25 |
+
+The ranking begins with `LV2rmwEA0w4` at six eligible receipts,
+`ag3axSC9BpU` at five, and `N-UahfG8-gM` at three. Those numbers are compiled
+from canonical Source Dossiers, not hand-written answer text. Shared receipts
+are deduplicated, metadata mentions cannot inflate totals, and missing or
+unknown entities fail honestly.
+
+The core is channel-neutral. A horror channel can intersect Loomis and Challis;
+a racing league can intersect a driver and a photo finish; another archive can
+substitute its own entity directory and exact eligibility policy. The invariant
+is the same: count sources separately from evidence, preserve exact source
+coordinates, and never turn co-occurrence into causality or authorship.
+
+See [Receipt Matrix](docs/RECEIPT_MATRIX.md).
+
+## V5.20 Bit Bloodlines
+
+V5.20 turns the incomplete Bit Ancestry card into **Bit Bloodlines** inside the
+existing Memory OS tab. All four current recurring-character lineages are now
+selectable: The Challis Hotline, Slenderman Dispatch, The Loomis Alert System,
+and The Feldman Frequency. The feature does not add another homepage section
+or navigation destination.
+
+The current WWAM adapter compiles **25 exact, timestamp-validated
+human-curated performance candidates across 12 official uploads and 350
+seconds of bounded source time**. Every current window is exactly 14 seconds.
+Slenderman is the default demonstration: six windows, six sources, 84 source
+seconds, and 1,916 indexed days. Challis contains 7 / 6 / 98 / 1,464; Loomis
+contains 7 / 5 / 98 / 1,433; and Feldman contains 5 / 3 / 70 / 37, where the
+four values are windows / sources / source seconds / indexed days.
+
+The lineage compiler resolves and verifies each playable receipt through the
+canonical Source Dossier. On click, the host rechecks source availability and
+passes that resolved source, start, and end to the shared in-page YouTube
+player. **Cut This Bloodline** hands the same exact chronological
+selections to V5.19's Midnight Cut, where next-stop playback remains manual.
+No 14-second receipt is widened into a generic clip.
+
+Archive Deep's 28 character contexts and 24 character signals remain a
+separate **52-record, unbounded, quarantined machine-echo layer**. None can
+enter the performance rail or a cut. Chronology never becomes a mutation,
+confirmed callback, speaker-continuity, causality, or true-origin claim.
+
+See [Bit Bloodlines](docs/BIT_BLOODLINES.md).
+
+The production playback smoke check verifies that the published page carries
+YouTube's required referrer/client identity, loads the shared helper before the
+app, serves the recovery bridge, and preserves the exact Scream 4 test window:
+
+```powershell
+node scripts/check-wwam-playback-deploy.mjs
+```
+
+## V5.19 The Midnight Cut
+
+V5.19 lets a fan turn **three to eight canonical timed receipts** from the
+Evidence Bag into one ordered route through the official WWAM uploads. **The
+Midnight Cut** plays each exact source window inside the existing tape theater
+with manual previous, replay, next, and direct-stop controls. It does not
+instantiate a player before an explicit command, chain into another stop
+automatically, stitch copied media, or turn a viewer's sequence into archive fact.
+
+Compilation re-resolves every selection against the canonical Source Dossier
+registry and fails closed on unknown, duplicate, quarantined, withheld,
+stale-fingerprint, ambiguous, foreign, out-of-range, or untimed evidence.
+Explicit human-curated end bounds survive compilation. A reviewed 14-second
+window cannot quietly expand into a generic playback window.
+
+A compact share packet carries ordered receipt keys, channel/archive/registry
+bindings, bounded viewer prose, and deterministic cut/packet fingerprints. It
+carries no transcripts, excerpts, summaries, speakers, generated dialogue, or
+media.
+Optional viewer title and introduction remain visibly labeled
+**VIEWER-WRITTEN // NOT ARCHIVE EVIDENCE**. Restore performs the same
+fail-closed canonical resolution again.
+
+The same sequence exports a JSON or Markdown creator edit brief with official
+URLs and exact edit coordinates. It is a human-review handoff, not creator
+approval, rights clearance, proof of speaker continuity or origin, a Canon
+mutation, or an automatic publish action.
+
+The launch preset, **The Character Ward // 2021–2026**, preserves five exact
+14-second human-curated performance windows in this order: Slenderman stomach,
+Challis boilermaker, Loomis biscuit job, Feldman atmosphere, and Loomis
+funding. The feature launches from the Evidence Bag and existing tape theater;
+it is deliberately not another homepage section or navigation item.
+
+See [The Midnight Cut](docs/THE_MIDNIGHT_CUT.md).
+
+## V5.18 Ask This Tape
+
+V5.18 turns every Source Dossier into an exact-source question room. **Ask
+This Tape** resolves the requested source ID and fingerprint before it
+interprets the question. Every content result must come from that one source;
+an upload with the same title, a hotter archive result, or a nearby source
+cannot replace it. Unsupported questions return zero source-content receipts
+instead of borrowing an answer from elsewhere in the archive.
+
+The current canonical dossier registry contains **510 sources**: 111
+caption-backed, 390 metadata-only, nine caption-limited, and zero unavailable.
+Across those source files it registers **1,490 receipts** and **928
+source-bound artifact records**. Those are current Source Dossier inventory
+counts. They do not replace the immutable V5.4 proof of 84 source inputs and
+872 promoted receipts.
+
+The evidence ledger now preserves all **25 human-curated character-performance
+windows** with their explicit end bounds. Every current window is exactly 14
+seconds; the July 23 Loomis funding receipt remains
+`LV2rmwEA0w4 @ 9042.64–9056.64`. Archive Deep's 52 machine-surfaced character
+records are kept in different evidence classes: **24
+`caption-character-signal` receipts and 28 `caption-character-context`
+receipts**, with zero promoted as curated performances.
+
+The Tape's Wake no longer lets its 16-result display window masquerade as the
+complete relationship count. A dossier now exposes `matchingTotal`,
+`displayed`, and `truncated`; `LV2rmwEA0w4` has **138 matching sources, 16
+displayed, and `truncated: true`**. Tape Companion also accepts the complete
+510-source registry: **71 sources are memory-ready and 439 remain visibly
+source-only**.
+
+The dossier opens in a compact Director's Cut, supports per-section progressive
+disclosure and a full-file view, and keeps stable routes for Source Proof,
+playback, Ask, receipts, Memory OS Footprint, Wake, chronology, work, and the
+evidence boundary. Canonical links use the source ID—not the title—and can
+retain an exact section:
+
+```text
+?source=LV2rmwEA0w4&at=9043&section=ask#archive
+```
+
+See [Ask This Tape](docs/ASK_THIS_TAPE.md) and
+[The Source Dossier](docs/SOURCE_DOSSIER.md).
+
+## V5.17 The Source Dossier — preserved
+
+Every one of the **510 unique canonical uploads** now has one honest,
+shareable source page. The registry reconciles 472 cached official
+Streams-feed records with 39 commentary records and one exact overlap. Its
+coverage remains explicit: 111 caption-backed, 390 metadata-only, nine
+caption-limited, and zero classified unavailable.
+
+The dossier gathers Source Proof, dormant in-page playback, Inside This Tape,
+Memory OS Footprint, The Tape's Wake, creator actions, evidence boundaries,
+and chronology around the upload that generated them. The July 23, 2026
+livestream demonstrates the full path with 21 registered receipts, four bit
+lineages, 13 Short candidates, six supercut memberships, and four resurfacing
+opportunities. Metadata-only sources receive a useful page and a permanent
+refusal instead of invented topics, quotes, characters, or sentiment.
+
+Cross-source content links require dual-ended evidence or exact registered
+artifact membership. Title similarity remains labeled metadata navigation.
+The canonical route is `?source=ID&at=SECONDS#archive`; older `?tape=` and
+`?live=` links remain readable. No player initializes until the visitor asks
+for it, and the shared YouTube identity bridge keeps timestamped playback
+inside the page.
+
+See [The Source Dossier](docs/SOURCE_DOSSIER.md).
+
+## V5.16 Evidence Relationship Gate
+
+Ask now distinguishes **a receipt from a relevant source** from **a receipt
+that is evidence about the requested subject**. Every subject-bearing
+candidate receives one closed-vocabulary `claimRelation`:
+`explicit-caption-target`, `exact-topic-receipt`,
+`screen-referent-in-exact-commentary`, or `source-context-only`. The first
+three may support neutral aboutness under their stated limits.
+`source-context-only` may navigate to a source, but it cannot answer “what did
+they say about X?”, enter an evidence chain, or become a Play the Answer stop.
+
+This closes a reproduced V5.15 failure. `What do they say about Halloween?`
+could rank `4UokRLETypU @ 809` (“Would you suck your own dick?”) and
+`Q6SN-Om1gIo @ 2835`; the source titles were relevant, but the bounded remarks
+did not establish Halloween as their subject. The equivalent Scream query
+could rank `2G8lpFaeIdw @ 1585` and `jLIfEdg8Oc0 @ 4366`, while the Friday the
+13th query could rank the curated Burp Defense. Those were precise,
+source-linked, memorable wrong answers.
+
+Relationship eligibility now runs before heat, curation, comedy, popularity,
+or source-title score. None can upgrade `source-context-only`. Direct evidence
+still survives: the Halloween 5 mask receipt at `AtcRT3Xkk6E @ 1327` remains
+available, the absent Scream 3 ending subtopic still refuses, and the Elm
+Street remake's two exact-commentary screen referents remain an
+`archive-boundary` route rather than a host-level opinion claim.
+
+The closed relationship vocabulary and Play enforcement are channel-neutral.
+A racing adapter can apply the same distinction between a caption that names
+car 33, an exact driver/event topic, a concrete referent inside the selected
+race, and an unrelated exciting call that merely occurred in a race where car
+33 started. The neutral fixture proves transport and rejection, not that
+WWAM's film-specific search classifier can classify racing unchanged. This is
+an accuracy moat, not another interface surface: the system must prove why the
+exact played second is evidence for the question.
+
+See [Evidence Relationship Gate](docs/EVIDENCE_RELATIONSHIP_GATE.md).
+
+## V5.15 Play the Answer
+
+Ask no longer stops at a stack of receipt cards. **Play the Answer** turns the
+current ordered `evidenceChain` into one on-page source trail with Previous,
+Replay, Next, player recovery, official-source, and share controls. A fan can
+watch the primary and supporting receipts—or the earliest and latest indexed
+receipts—in the exact order used by the answer.
+
+The trail is not a generated recap. It adds no narration, transitions,
+speaker identity, continuity, causality, opinion-change verdict, true-origin
+claim, rights clearance, or copied media. Every stop reopens an official WWAM
+upload at its registered indexed second, and the complete Ask limitation set
+stays visible beside the player.
+
+Eligibility is deliberately narrow: two to six unique timed receipts, all
+registered and in range, with one V5.16-allowed `claimRelation` per stop.
+Metadata-only answers, source-level summaries, source-context-only receipts,
+one-receipt answers, global ranking handoffs, longitudinal handoffs,
+adjudication handoffs, and unknown subjects cannot manufacture a trail.
+
+Share packets contain the query, exact bindings, ordered receipt keys, roles,
+source IDs, bounded coordinates, and exact claim relations—never excerpts,
+captions, generated answer copy, or speaker fields. Restore reruns Ask and
+opens only when the fresh trail matches exactly; stale, reordered, foreign, or
+tampered packets fail closed. The same core passes a neutral racing fixture
+without WWAM vocabulary.
+
+The release pins two concrete watch paths: the Halloween trajectory from
+`6VXSBDZ-3WE @ 1597` to `I6QKteG_hK0 @ 5993`, and the Elm Street remake
+negative-language chain from `qTQdWKcwn4A @ 1132` to
+`qTQdWKcwn4A @ 2101`. Neither is promoted into a host-level opinion claim.
+
+Playback hardening now applies beyond the new theater: every shared-helper
+player in commentary dossiers, loose receipts, and soundbytes carries a
+visible **PLAYER ERROR? RECOVER HERE** action. It reloads the same official
+video and exact bounds through the first-party hosted bridge instead of making
+the visitor abandon the page when YouTube reports identity error 153.
+
+See [Play the Answer](docs/PLAY_THE_ANSWER.md).
+
+## V5.14 The Verdict Room
+
+The machine still gets no vote. **The Verdict Room** is a demand-loaded,
+device-local human review ledger layered over The Tape Keeps Score's four
+canonical unresolved dockets. A caller-attested human must complete all
+**12 explicit checks**, select one of only three codes—`SUPPORTED`,
+`CONTRADICTED`, or `MIXED`—and lock that code together with its exact fixed,
+code-specific scoped sentence. Final adjudication must byte-match both. Until
+then, every formal label, comedy label, and reviewed wording stays `null`.
+
+One adjudication creates one local overlay; it does not rewrite the source
+docket, Canon, Ask, or any public/server record. Reviewer identity remains
+unverified. Rights, speaker continuity, causality, creator approval, and
+publication authority remain explicitly unclaimed. Revocation appends history
+and immediately removes the active verdict without deleting the audit trail.
+JSON and Markdown exports preserve the complete bounded review record; hostile,
+foreign, stale, or malformed imports fail closed.
+
+WWAM's fingerprint-bound verdict voice includes `CALLED THAT SHIT.`,
+`AGED LIKE ROADKILL.`, and `HALF PROPHET. HALF JACKASS.` with a reduced-
+profanity mode beside the formal scoped result. The core engine also passes a
+neutral racing ChannelPack, proving the workflow travels without importing
+WWAM copy. The current longitudinal input is bound to ChannelPack
+`cp1-dd23bc386008689b`, caption set
+`sha256:65741e59ab66c04254f9c40a5051308a8bb1cf6b121078737ba5b81f1b25d5fc`,
+and structural fingerprint `fnv1a32:59b085f6`. These values detect and bind
+change; they do not authenticate a reviewer or prove truth.
+
+See [The Verdict Room](docs/VERDICT_ROOM_DESIGN.md) and
+[The Tape Keeps Score](docs/LONGITUDINAL_DOCKET.md).
+
+## V5.13 The Tape Keeps Score — preserved
 
 The WWAM Memory OS now has a demand-loaded longitudinal review surface:
 **before tape, machine status, after tape**. It joins forecast-shaped caption
@@ -54,8 +414,8 @@ read-only quarantine portfolio:
 - 97.7 audited hours, 1,216,993 words, and 173,675 parsed caption events;
 - 400 topic lanes across 48 distinct normalized topics;
 - 166 quarantined public moment candidates;
-- 52 source-level character-signal records, not people or verified
-  performances;
+- 52 source-level character records: 24 machine character signals and 28
+  machine persona/context records, not people or verified performances;
 - 12 topic-only source-audio firewalls;
 - 12 special visual-ranking quarantines;
 - one disclosed limited available caption span;
@@ -86,8 +446,8 @@ All 40 Archive Deep sources are excluded from the next metadata-only queue.
 
 ## Immutable V5.4 proof — preserved release snapshot
 
-The following values are the frozen V5.4 proof, not the later V5.12 or V5.13
-overlays:
+The following values are the frozen V5.4 proof, not the later V5.12, V5.13, or
+V5.14 overlays:
 **84 inputs, 2,175,344 audited words, 194.9 caption-audited hours, 872 promoted
 receipts, 42 then-quarantined Batch 01 candidates, and 168 promoted core memory
 nodes**. The current forty-source portfolio does not retroactively change
@@ -237,18 +597,22 @@ manifest. Quarantined stops remain marked `promotionAllowed: false` with no
 speaker claim. The export omits transcripts, caption payloads, and full event
 ledgers. See [Archive Time Capsules](docs/ARCHIVE_TIME_CAPSULES.md).
 
-## V5.13 product map
+## V5.21 product map
 
 The hero offers three deliberate entry points:
 
-- **Fan Experience:** the daily Night Shift return ritual, source-grounded Tape
+- **Fan Experience:** 510 canonical Source Dossiers, The Midnight Cut's
+  evidence-safe personal viewing routes, the daily Night Shift
+  return ritual, source-grounded Tape
   Trivia, Tape Companion's synchronized second screen, the Evidence Bag, the
   100-rank Red Band Memorability Candidate Index V2.1, WWAM UP IN YA, and
   playable descent paths.
-- **Deep Dive:** Ask WWAM, Lore Galaxy, Take Time Machine, year-sized Archive
-  Time Capsules, The Tape Keeps Score, Bit Ancestry, the Comedy Black Box /
-  Riff Autopsy, WWAM Court, franchise labs, autopsies, Fresh 10, Popular 25,
-  and the whole-feed Archive Atlas.
+- **Deep Dive:** relationship-gated Ask WWAM with Play the Answer source
+  trails, Receipt Matrix source counts and intersections, Lore Galaxy, Take
+  Time Machine, year-sized Archive Time Capsules, The Tape Keeps Score, The
+  Verdict Room, Bit Bloodlines, the
+  Comedy Black Box / Riff Autopsy, WWAM Court, franchise labs, autopsies, Fresh
+  10, Popular 25, and the whole-feed Archive Atlas.
 - **Creator Proof:** Clip Lab edit briefs, exact-runtime Cold Open Factory
   boards, supercut spines, then/now resurfacing, Live Aftermath, Control Room,
   the Trust / Canon Desk, the local Creator Taste Calibration, Fresh Tape
@@ -269,10 +633,11 @@ payoff. Its share seed includes the archive fingerprint, its saved progress is
 ordered and canonical-response-checked on restore, and its visible snapshot
 notice says when newer uploads may be missing.
 
-Tape Companion compiles all 74 promoted sources into a source-synchronized
-memory rail: 71 are companion-ready and the same 3 disclosed caption gaps stay
-source-only. The release suite pins those corpus/readiness counts, 872 exact
-receipt members, 1,294 derived heat windows, and the 96/25/25 annotation totals.
+Tape Companion now compiles the complete 510-source dossier registry into one
+source-synchronized rail: 71 sources are memory-ready and 439 remain visibly
+source-only. The historical promoted subset is still 74 sources—71 ready plus
+the same three disclosed caption gaps—and its 872 exact receipt members,
+1,294 derived heat windows, and 96/25/25 annotation totals remain unchanged.
 The current deterministic snapshot further derives 869 conservative incidents
 and 2,967 receipt-backed Lore connections. The surface never copies media, the
 player keeps autoplay off, and the playback UI exposes event text only through
@@ -401,6 +766,10 @@ establish which host is speaking.
 - Generated parody is never represented as an archival quote.
 - Opinion timelines and Court cases remain discovery tools until a human
   certifies the underlying claim.
+- Receipt Matrix reports unique sources and eligible receipts as different
+  measures. A source containing two requested entities proves same-source
+  coverage only; it does not prove dialogue, interaction, influence, origin,
+  causality, or speaker identity.
 - The current Trust Desk still audits the 74-source promoted corpus: 71 healthy
   sources, 3 disclosed caption gaps, 0 structurally invalid or
   source-ID-mismatched URLs, 0 invalid indexed timestamps, and 95 human review
@@ -409,7 +778,7 @@ establish which host is speaking.
   not been silently merged into that legacy Trust/Canon contract.
 - The promoted corpus spans 171.19 caption-audited hours and
   177.45 hours of known source runtime.
-- The V5.13 entity registry yields 1,381 current Correction Ripple records;
+- The current entity registry yields 1,381 Correction Ripple records;
   the 95 Trust packets enumerate 921 exact-receipt and 2,480 same-source-only
   dependencies without applying any correction.
 - Public transcript fragments are display-capped; exported edit suggestions
@@ -455,7 +824,7 @@ establish which host is speaking.
   **Clip-level speaker attribution** requires diarization or specific creator
   certification.
 
-The current snapshot contains 847 machine-level receipts and 25
+The frozen promoted snapshot contains 847 machine-level receipts and 25
 timestamp-validated human-curated character-performance candidates, but 0
 authenticated editor-verified decisions and 0 creator-certified receipts.
 Their speakers are not diarized. The candidate records preserve source/time
@@ -464,6 +833,11 @@ or clip-level speaker identity. The Trust Desk's “0 out-of-range
 indexed timestamps” result validates each time against the known source
 duration; it does not establish continuous network availability or the
 semantic truth of a derived claim.
+
+The current 1,490-receipt Source Dossier registry is a broader source
+inventory and must not be relabeled as the promoted 872. Its Archive Deep
+contribution includes 24 machine character signals and 28 machine character
+contexts, not curated performances.
 
 ## Local development
 
@@ -497,8 +871,16 @@ artifacts contain derived measurements and short, timestamped fragments only.
 
 ## Documentation
 
-- [V5.13 product overview](docs/V5_OVERVIEW.md)
+- [V5.21 product overview](docs/V5_OVERVIEW.md)
+- [Receipt Matrix source-set query contract](docs/RECEIPT_MATRIX.md)
+- [Bit Bloodlines source-locked recurrence contract](docs/BIT_BLOODLINES.md)
+- [The Midnight Cut ordered-receipt contract](docs/THE_MIDNIGHT_CUT.md)
+- [Ask This Tape exact-source query contract](docs/ASK_THIS_TAPE.md)
+- [The Source Dossier](docs/SOURCE_DOSSIER.md)
+- [Evidence Relationship Gate](docs/EVIDENCE_RELATIONSHIP_GATE.md)
+- [Play the Answer source-trail contract](docs/PLAY_THE_ANSWER.md)
 - [The Tape Keeps Score longitudinal evidence contract](docs/LONGITUDINAL_DOCKET.md)
+- [The Verdict Room local adjudication contract](docs/VERDICT_ROOM_DESIGN.md)
 - [Ask the Tape: Answer Frame V2](docs/ASK_ANSWER_FRAME_V2.md)
 - [Comedy Black Box evidence contract](docs/RIFF_BLACK_BOX.md)
 - [Archive Time Capsules](docs/ARCHIVE_TIME_CAPSULES.md)
@@ -510,6 +892,7 @@ artifacts contain derived measurements and short, timestamped fragments only.
 - [Tape Companion contract](docs/TAPE_COMPANION.md)
 - [Creator Taste Calibration contract](docs/CREATOR_TASTE_CALIBRATION.md)
 - [Creator Clip Lab contract](docs/CREATOR_CLIP_LAB.md)
+- [The Aftermath Pack per-show review contract](docs/AFTERMATH_PACK.md)
 - [Cold Open Factory contract](docs/COLD_OPEN_FACTORY.md)
 - [Tape Trivia engine contract](docs/TAPE_TRIVIA_ENGINE.md)
 - [Night Shift engine contract](docs/NIGHT_SHIFT_ENGINE.md)

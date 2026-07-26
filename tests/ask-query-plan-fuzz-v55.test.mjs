@@ -143,3 +143,113 @@ test("generic output nouns do not become required comedy subjects", () => {
   assert.equal(answer.results.length, 5);
   assert.ok(answer.results.every((result) => result.kind === "moment"));
 });
+
+test("plural source mention questions count unique streams instead of caption matches", () => {
+  const answer = plain(engine.ask("How many streams mention Batman?"));
+
+  assert.equal(answer.queryPlan.outputShape, "source-count");
+  assert.equal(answer.queryPlan.sourceMentionCollection, true);
+  assert.equal(answer.collection.unit, "livestreams");
+  assert.ok(answer.collection.total > 1);
+  assert.equal(
+    answer.collection.total,
+    answer.explanation.resultCountBeforeDisplayLimit,
+  );
+  assert.match(answer.answer, /unique indexed livestreams/i);
+  assert.ok(answer.results.every((result) => (
+    result.kind === "topic" && result.title === "Batman"
+  )));
+  assert.equal(
+    new Set(answer.results.map((result) => result.sourceId)).size,
+    answer.results.length,
+  );
+  assert.notEqual(answer.collection.total, 71);
+});
+
+test("which/list source mention questions return playable unique topic receipts", () => {
+  const answers = [
+    plain(engine.ask("Which streams mention Batman?")),
+    plain(engine.ask("List all streams that mention Batman")),
+  ];
+
+  for (const answer of answers) {
+    assert.equal(answer.queryPlan.outputShape, "source-list");
+    assert.equal(answer.queryPlan.sourceMentionCollection, true);
+    assert.equal(answer.collection.unit, "livestreams");
+    assert.ok(answer.collection.total > 1);
+    assert.equal(answer.results.length, answer.collection.total);
+    assert.equal(
+      new Set(answer.results.map((result) => result.sourceId)).size,
+      answer.results.length,
+    );
+    assert.ok(answer.results.every((result) => (
+      result.kind === "topic" && result.title === "Batman" && /[?&]t=\d+s$/.test(result.url)
+    )));
+  }
+});
+
+test("source nouns also disambiguate character source counts from raw mention counts", () => {
+  const streams = plain(engine.ask("How many streams mention Dr. Loomis?"));
+  const mentions = plain(engine.ask("How many mentions of Dr. Loomis are indexed?"));
+
+  assert.equal(streams.queryPlan.outputShape, "source-count");
+  assert.equal(streams.collection.unit, "livestreams");
+  assert.ok(streams.collection.total > 1);
+  assert.ok(streams.results.every((result) => (
+    result.kind === "character" && result.character === "Dr. Loomis"
+  )));
+  assert.equal(
+    new Set(streams.results.map((result) => result.sourceId)).size,
+    streams.results.length,
+  );
+
+  assert.equal(mentions.queryPlan.outputShape, "character-mention-count");
+  assert.equal(mentions.collection.unit, "caption mention matches");
+  assert.ok(mentions.collection.total > streams.collection.total);
+  assert.match(mentions.answer, /mention matches across/i);
+});
+
+test("last-night result limits lock to one exact livestream and never backfill", () => {
+  const answer = plain(engine.ask("Show me the top 10 funniest moments last night"));
+
+  assert.equal(answer.queryPlan.outputShape, "result-list");
+  assert.equal(answer.queryPlan.temporalSourceContent, true);
+  assert.equal(answer.queryPlan.controls.requestedLimit, 10);
+  assert.equal(answer.selectionPlan.source.sourceId, "LV2rmwEA0w4");
+  assert.equal(answer.selectionPlan.source.matchMode, "latest-indexed-livestream");
+  assert.ok(answer.results.length > 0);
+  assert.ok(answer.results.length < 10, "do not pad the requested limit from older streams");
+  assert.ok(answer.results.every((result) => (
+    result.sourceId === "LV2rmwEA0w4" && result.kind === "moment"
+  )));
+  assert.match(answer.answer, /inside the newest indexed livestream/i);
+});
+
+test("every funny moment in the newest livestream is a result list, not a source list", () => {
+  const answer = plain(engine.ask("Show every funny moment in the newest livestream"));
+
+  assert.equal(answer.queryPlan.outputShape, "result-list");
+  assert.equal(answer.queryPlan.resultPlural, true);
+  assert.equal(answer.queryPlan.allResultsRequested, true);
+  assert.equal(answer.queryPlan.temporalSourceContent, true);
+  assert.equal(answer.selectionPlan.source.sourceId, "LV2rmwEA0w4");
+  assert.equal(answer.selectionPlan.source.matchMode, "latest-indexed-livestream");
+  assert.ok(answer.results.length > 0);
+  assert.ok(answer.results.every((result) => (
+    result.sourceId === "LV2rmwEA0w4" && result.kind === "moment"
+  )));
+  assert.equal(
+    answer.results.length,
+    answer.explanation.resultCountBeforeDisplayLimit,
+  );
+});
+
+test("topic chronology ranks matching receipts instead of selecting an unrelated earliest source", () => {
+  const answer = plain(engine.ask("What is the earliest indexed Scream livestream topic?"));
+
+  assert.equal(answer.status, "supported");
+  assert.equal(answer.queryPlan.temporalSourceContent, false);
+  assert.equal(answer.entity, "Scream");
+  assert.equal(answer.results[0].sourceId, "R_bXrnNOcwg");
+  assert.equal(answer.results[0].kind, "topic");
+});

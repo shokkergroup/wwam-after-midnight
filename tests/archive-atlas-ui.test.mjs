@@ -52,6 +52,9 @@ function renderedPortfolio() {
   }
   nodes.set("archive", node());
   nodes.set("archiveBatch", node());
+  nodes.set("archiveGrid", node());
+  nodes.set("archiveStatus", node());
+  nodes.set("archiveLoadMore", node());
   const document = {
     addEventListener() {},
     getElementById(id) { return nodes.get(id) || null; },
@@ -88,19 +91,39 @@ function renderedPortfolio() {
   const engine = context.window.WWAMArchiveAtlasEngine.create(
     context.window.WWAM_ARCHIVE_ATLAS,
   );
+  const deepRecord = engine.getRecord("2FlxuJxv81s");
+  const metadataRecord = engine.browse({ coverage: "metadata-only", limit: 1 }).records[0];
+  const focusedEngine = {
+    formula: engine.formula,
+    getStats: (...args) => engine.getStats(...args),
+    getCoverage: (...args) => engine.getCoverage(...args),
+    getBuckets: (...args) => engine.getBuckets(...args),
+    getFilterOptions: (...args) => engine.getFilterOptions(...args),
+    getRecord: (...args) => engine.getRecord(...args),
+    browse: () => ({ total: 2, records: [deepRecord, metadataRecord] }),
+    search: (...args) => engine.search(...args),
+    getDistillQueue: (...args) => engine.getDistillQueue(...args),
+    getProvenance: (...args) => engine.getProvenance(...args),
+  };
   context.window.WWAMArchiveAtlasUI.create({
-    engine,
+    engine: focusedEngine,
     archiveDeepEngine,
     document,
   }).mount();
-  return nodes.get("archiveBatch").innerHTML;
+  return {
+    batch: nodes.get("archiveBatch").innerHTML,
+    grid: nodes.get("archiveGrid").innerHTML,
+    deepRecord,
+    metadataRecord,
+    deepSummary: archiveDeepEngine.getStream(deepRecord.id).summary,
+  };
 }
 
 test("publishes a compact isolated UI controller with lifecycle and Ask APIs", () => {
   const { window, ui } = load();
 
-  assert.ok(fs.statSync(uiPath).size < 30_000);
-  assert.equal(window.WWAMArchiveAtlasUI.VERSION, "1.1.0");
+  assert.ok(fs.statSync(uiPath).size < 32_000);
+  assert.equal(window.WWAMArchiveAtlasUI.VERSION, "1.3.0");
   for (const method of [
     "mount",
     "setEngine",
@@ -243,7 +266,7 @@ test("Archive Deep overlay derives all four-batch proof instead of freezing show
 });
 
 test("renders all 40 autopsies with dynamic proof, ranks, checksums, and firewalls", () => {
-  const markup = renderedPortfolio();
+  const { batch: markup } = renderedPortfolio();
 
   assert.match(markup, /CURRENT 40-SOURCE OVERLAY \/\/ 4 INDEPENDENT BATCH FINGERPRINTS/);
   assert.match(markup, /97\.7H \/\/ 1,216,993 WORDS \/\/ 173,675 EVENTS \/\/ 166 QUARANTINED CANDIDATES/);
@@ -258,7 +281,80 @@ test("renders all 40 autopsies with dynamic proof, ranks, checksums, and firewal
   assert.match(markup, /PORTFOLIO #40/);
   assert.match(markup, /TOPIC-ONLY/);
   assert.match(markup, /VISUAL RESULT UNVERIFIED/);
+  assert.equal((markup.match(/OPEN SHOW WIKI &rarr;/g) || []).length, 40);
+  assert.equal((markup.match(/aria-label="Open show wiki for /g) || []).length, 40);
   assert.doesNotMatch(markup, /NaN|undefined/);
+});
+
+test("main Atlas cards show only registered Archive Deep summaries and preserve every source door", () => {
+  const { grid, deepRecord, metadataRecord, deepSummary } = renderedPortfolio();
+  const escapedSummary = deepSummary.replace(/&/g, "&amp;").replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  const cards = grid.match(/<article class="archive-card[\s\S]*?<\/article>/g) || [];
+
+  assert.equal(cards.length, 2);
+  assert.equal((grid.match(/data-archive-open=/g) || []).length, 2);
+  assert.equal((grid.match(/class="archive-card-summary"/g) || []).length, 1);
+  assert.match(grid, /WHAT IS INSIDE \/\/ REGISTERED DISTILL/);
+  assert.ok(grid.includes(escapedSummary));
+
+  const deepCard = cards.find((card) => card.includes(deepRecord.title));
+  const metadataCard = cards.find((card) => card.includes(metadataRecord.title));
+  assert.match(deepCard, /archive-card-summary/);
+  assert.doesNotMatch(metadataCard, /archive-card-summary/);
+  assert.match(metadataCard, /TITLE \/ DATE \/ DURATION \/ VIEWS ONLY/);
+});
+
+test("deep cards may receive a registered summary from another indexed lane without leaking to metadata cards", () => {
+  const nodes = new Map();
+  function node() {
+    return {
+      disabled: false,
+      hidden: true,
+      innerHTML: "",
+      textContent: "",
+      addEventListener() {},
+      removeEventListener() {},
+      setAttribute() {},
+    };
+  }
+  for (const id of ["archive", "archiveBatch", "archiveGrid", "archiveStatus", "archiveLoadMore"]) {
+    nodes.set(id, node());
+  }
+  const document = {
+    addEventListener() {},
+    getElementById(id) { return nodes.get(id) || null; },
+    querySelector() { return null; },
+    querySelectorAll() { return []; },
+  };
+  const { window, engine } = load();
+  const fresh = engine.getRecord("LV2rmwEA0w4");
+  const metadata = engine.browse({ coverage: "metadata-only", limit: 1 }).records[0];
+  const focusedEngine = {
+    formula: engine.formula,
+    getStats: (...args) => engine.getStats(...args),
+    getCoverage: (...args) => engine.getCoverage(...args),
+    getBuckets: (...args) => engine.getBuckets(...args),
+    getFilterOptions: (...args) => engine.getFilterOptions(...args),
+    getRecord: (...args) => engine.getRecord(...args),
+    browse: () => ({ total: 2, records: [fresh, metadata] }),
+    search: (...args) => engine.search(...args),
+    getDistillQueue: (...args) => engine.getDistillQueue(...args),
+    getProvenance: (...args) => engine.getProvenance(...args),
+  };
+  const registered = "A registered caption-backed live-room summary.";
+
+  window.WWAMArchiveAtlasUI.create({
+    engine: focusedEngine,
+    document,
+    getSourceSummary(id) { return id === fresh.id || id === metadata.id ? registered : ""; },
+  }).mount();
+
+  const markup = nodes.get("archiveGrid").innerHTML;
+  const cards = markup.match(/<article class="archive-card[\s\S]*?<\/article>/g) || [];
+  assert.equal((markup.match(/class="archive-card-summary"/g) || []).length, 1);
+  assert.ok(cards.find((card) => card.includes(fresh.title)).includes(registered));
+  assert.doesNotMatch(cards.find((card) => card.includes(metadata.title)), /archive-card-summary/);
 });
 
 test("rejects an incompatible engine instead of rendering plausible empty archive UI", () => {

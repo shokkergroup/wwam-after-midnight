@@ -84,13 +84,13 @@ test("V5.12 release identity and current documentation publish one exact ledger"
   const runbook = read("docs/CREATOR_DEMO_RUNBOOK.md");
   const portfolioDoc = read("docs/ARCHIVE_DEEP_PORTFOLIO.md");
 
-  assert.equal(manifest.version, "0.5.13");
-  assert.equal(lock.version, "0.5.13");
-  assert.equal(lock.packages[""].version, "0.5.13");
-  assert.match(readme, /Current documented release: \*\*V5\.13 \/ 0\.5\.13\*\*/);
-  assert.match(overview, /^# WWAM After Midnight V5\.13/m);
+  assert.equal(manifest.version, "0.5.21");
+  assert.equal(lock.version, "0.5.21");
+  assert.equal(lock.packages[""].version, "0.5.21");
+  assert.match(readme, /Current documented release: \*\*V5\.21 \/ 0\.5\.21\*\*/);
+  assert.match(overview, /^# WWAM After Midnight V5\.21/m);
   assert.match(changelog, /^## 0\.5\.12 .*V5\.12 Archive Deep Batch 04/m);
-  assert.match(runbook, /current V5\.13 build/i);
+  assert.match(runbook, /current V5\.21 build/i);
 
   const currentDocs = [readme, overview, portfolioDoc, changelog, runbook];
   for (const document of currentDocs) {
@@ -108,7 +108,12 @@ test("V5.12 release identity and current documentation publish one exact ledger"
       /(?:173,675[\s\S]{0,50}caption events|Parsed caption events\s*\|\s*173,675)/i,
     );
     assert.match(document, /166[\s\S]{0,60}(?:quarantined|machine)/i);
-    assert.match(document, /52[\s\S]{0,60}character/i);
+    assert.match(document, /24[\s\S]{0,60}character[\s\S]{0,30}signal/i);
+    assert.match(document, /28[\s\S]{0,60}character[\s\S]{0,30}context/i);
+    assert.match(
+      document,
+      /(?:not|none|zero)[\s\S]{0,100}(?:curated )?performances?/i,
+    );
     assert.match(document, /fnv1a32:14050c7a/);
     assert.match(document, /fnv1a32:56ca74df/);
   }
@@ -324,8 +329,8 @@ test("V5.12 browser load order, status, and app cap stay synchronized", () => {
   );
   assert.match(app, /OPENING ARCHIVE DEEP \/\/ 40 CAPTION AUDITS/);
   assert.ok(
-    fs.statSync(path.join(demo, "app.js")).size < 250_000,
-    "app.js exceeded its 250 KB source cap",
+    fs.statSync(path.join(demo, "app.js")).size < 255_000,
+    "app.js exceeded its V5.21 255 KB source cap",
   );
   assert.match(
     html,

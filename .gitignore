@@ -43,3 +43,7 @@ next-env.d.ts
 /source-cache/
 __pycache__/
 *.pyc
+
+# local Codex patch and scratch artifacts
+/.codex-*.patch
+/.codex-tmp/

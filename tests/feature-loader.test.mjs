@@ -64,6 +64,7 @@ function fixture(options = {}) {
     },
     querySelectorAll(selector) {
       if (selector === 'link[rel~="stylesheet"]') return styles;
+      if (selector === "[data-feature-scripts]") return options.targets || [];
       return [];
     },
     addEventListener() {},
@@ -80,6 +81,10 @@ function fixture(options = {}) {
         this.detail = options?.detail;
       }
     },
+    IntersectionObserver: class IntersectionObserver {
+      observe() {}
+      disconnect() {}
+    },
   };
   window.window = window;
   window.globalThis = window;
@@ -95,8 +100,10 @@ function section(scriptList, styleList = "") {
   ]);
   const events = [];
   const prepended = [];
+  const listeners = new Map();
   return {
     id: "feature",
+    dataset: {},
     events,
     prepended,
     getAttribute(name) {
@@ -105,7 +112,11 @@ function section(scriptList, styleList = "") {
     setAttribute(name, value) {
       attributes.set(name, String(value));
     },
-    addEventListener() {},
+    addEventListener(name, handler) {
+      const handlers = listeners.get(name) || [];
+      handlers.push(handler);
+      listeners.set(name, handlers);
+    },
     querySelector(selector) {
       if (selector !== "[data-feature-retry]") return null;
       return prepended.find((item) => item.getAttribute("data-feature-retry") !== null) || null;
@@ -119,6 +130,10 @@ function section(scriptList, styleList = "") {
     },
     dispatchEvent(event) {
       events.push(event);
+      (listeners.get(event.type) || []).forEach((handler) => handler(event));
+    },
+    dispatch(name) {
+      (listeners.get(name) || []).forEach((handler) => handler({ type: name, target: this }));
     },
   };
 }
@@ -189,4 +204,29 @@ test("a transient script failure exposes a retry and does not poison hydration",
   assert.equal(target.getAttribute("data-feature-state"), "ready");
   assert.equal(target.prepended.length, 0);
   assert.deepEqual(appended, ["engine.js", "engine.js", "ui.js"]);
+});
+
+test("a feature action waits for its lazy assets before emitting activation", async () => {
+  const target = section(
+    "memory-cut-engine.js,memory-cut-ui.js,wwam-memory-cut-launcher.js",
+    "memory-cut.css",
+  );
+  target.dataset.featureActivate = "memory-cut";
+  const { appended } = fixture({ targets: [target] });
+
+  target.dispatch("click");
+  await new Promise((resolve) => setImmediate(resolve));
+
+  assert.deepEqual(appended, [
+    "memory-cut.css",
+    "memory-cut-engine.js",
+    "memory-cut-ui.js",
+    "wwam-memory-cut-launcher.js",
+  ]);
+  const ready = target.events.findIndex((event) => event.type === "wwam:feature-ready");
+  const activate = target.events.findIndex(
+    (event) => event.type === "wwam:feature-activate",
+  );
+  assert.ok(ready >= 0);
+  assert.ok(activate > ready, "activation must occur only after every lazy asset is ready");
 });

@@ -65,6 +65,33 @@ Campaign packets deterministically select source-diverse Shorts, a supercut, and
 
 `snapshotSelection` stores the exact receipt and source ledger for one campaign asset. `restoreSelection` verifies its fingerprint and reconstructs that same filtered package. It returns `null` instead of silently widening a filtered supercut when a receipt is missing or the ledger has been altered.
 
+## Per-show Aftermath handoff
+
+The Aftermath Pack projects Clip Lab's archive-wide production registry back
+into one exact Show Wiki. It includes only Shorts owned by that source,
+supercuts with a registered membership in that source, and resurfacing pairs
+whose archive or current side is that source. The Source Dossier artifact
+membership must match the Clip Lab inventory or the pack fails closed.
+
+For the July 23, 2026 source `LV2rmwEA0w4`, the desk joins 21 registered
+receipts to exactly 23 production opportunities: 13 Shorts, six supercut
+memberships, and four resurfacing pairs. Four recurring-bit lineages remain
+reference-only. Nine Cold Open Factory storyboards remain separate generated
+plans. Neither group inflates the 23-opportunity total.
+
+The desk adds local Keep/Hold/Reject routing, but those states mean only keep
+for creator review, hold for more context, or reject from this local pack.
+Reviews and editor packets are fingerprinted against the exact source and
+production build. Exports separate kept, held, risk-quarantined, rejected, and
+unreviewed work while preserving the same evidence and risk boundaries.
+
+Mike Mode can propose a fixed-scope **$500 / 3-show / 14-day** pilot around
+three such desks and handoff packets. The proposal is not an invoice,
+agreement, creator approval, rights clearance, publishing action, or
+performance guarantee.
+
+See [The Aftermath Pack](AFTERMATH_PACK.md).
+
 ## Human gate
 
 No item is auto-publishable. The final editor must watch surrounding context, set exact in/out points by ear and picture, verify any on-screen speaker credit, handle language and platform rules, and preserve the visual distinction between archival captions and promotional copy.

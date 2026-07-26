@@ -77,6 +77,23 @@ test("the WWAM DNA compiles into a deterministic, fingerprinted ChannelPack", ()
     response: "AFTER TAPE",
     unresolved: "THE TAPE PLEADS THE FIFTH",
   });
+  assert.deepEqual(plain(first.adjudicationVocabulary), {
+    CONTRADICTED: {
+      bleep: "AGED LIKE ROADKILL.",
+      comedy: "AGED LIKE ROADKILL.",
+      formal: "CONTRADICTED WITHIN REVIEWED SCOPE",
+    },
+    MIXED: {
+      bleep: "HALF PROPHET. HALF [BLEEP].",
+      comedy: "HALF PROPHET. HALF JACKASS.",
+      formal: "MIXED WITHIN REVIEWED SCOPE",
+    },
+    SUPPORTED: {
+      bleep: "CALLED THAT [BLEEP].",
+      comedy: "CALLED THAT SHIT.",
+      formal: "SUPPORTED WITHIN REVIEWED SCOPE",
+    },
+  });
   assert.equal(
     first.entityRegistry.find((entity) => entity.id === "film:scream-7").label,
     "Scream 7",
@@ -88,12 +105,13 @@ test("the WWAM DNA compiles into a deterministic, fingerprinted ChannelPack", ()
     "creator-clip-lab",
     "creator-taste-calibration",
     "fresh-tape-intake",
+    "human-adjudication-ledger",
     "longitudinal-claim-ledger",
     "memory-graph",
     "red-band-candidate-index",
     "tape-companion"
   ]);
-  assert.equal(first.fingerprint, "cp1-f9ad38be22481b5d");
+  assert.equal(first.fingerprint, "cp1-dd23bc386008689b");
   assert.equal(first.fingerprint, second.fingerprint);
   assert.deepEqual(plain(first), plain(second));
   assert.deepEqual(plain(report), {
@@ -101,6 +119,12 @@ test("the WWAM DNA compiles into a deterministic, fingerprinted ChannelPack", ()
     issues: [],
     fingerprintVerified: true
   });
+  const binding = Object.getOwnPropertyDescriptor(
+    window,
+    "ShokkerChannelPack",
+  );
+  assert.equal(binding.writable, false);
+  assert.equal(binding.configurable, false);
   assert.equal(Object.isFrozen(first), true);
   assert.equal(Object.isFrozen(first.evidencePolicy), true);
 });
@@ -161,6 +185,14 @@ test("a synthetic racing channel passes through the same compiler without WWAM i
 
   assert.equal(racing.identity.id, "sample-racing");
   assert.equal(racing.surfaceVocabulary.ask, "ASK RACE CONTROL");
+  assert.equal(
+    racing.adjudicationVocabulary.SUPPORTED.formal,
+    "SUPPORTED // CALL UPHELD",
+  );
+  assert.equal(
+    racing.capabilities.includes("human-adjudication-ledger"),
+    true,
+  );
   assert.equal(racing.sourceLanes.length, 2);
   assert.notEqual(racing.fingerprint, wwam.fingerprint);
   assert.equal(portfolio.valid, true);
@@ -250,6 +282,80 @@ test("the compiler fails closed instead of inventing missing editorial policy", 
       code: "required-string"
     },
     {
+      label: "canonical adjudication code omitted",
+      mutate(dna, adapter) {
+        delete adapter.adjudicationVocabulary.MIXED;
+      },
+      code: "required-object"
+    },
+    {
+      label: "adjudication label omitted",
+      mutate(dna, adapter) {
+        delete adapter.adjudicationVocabulary.SUPPORTED.comedy;
+      },
+      code: "required-string"
+    },
+    {
+      label: "adjudication labels collapse verdict codes",
+      mutate(dna, adapter) {
+        adapter.adjudicationVocabulary.MIXED.formal =
+          adapter.adjudicationVocabulary.SUPPORTED.formal;
+      },
+      code: "duplicate-adjudication-label"
+    },
+    {
+      label: "formal adjudication label drops its canonical code",
+      mutate(dna, adapter) {
+        adapter.adjudicationVocabulary.SUPPORTED.formal = "CALL UPHELD";
+      },
+      code: "canonical-code-prefix"
+    },
+    {
+      label: "adjudication label claims outside authority",
+      mutate(dna, adapter) {
+        adapter.adjudicationVocabulary.SUPPORTED.formal =
+          "SUPPORTED // OFFICIAL CANON APPROVED";
+      },
+      code: "adjudication-authority-claim"
+    },
+    {
+      label: "bleep label reverses the verdict",
+      mutate(dna, adapter) {
+        adapter.adjudicationVocabulary.SUPPORTED.bleep =
+          "THE CALL WAS OVERTURNED.";
+      },
+      code: "bleep-semantic-mismatch"
+    },
+    {
+      label: "adjudication vocabulary inherited from caller prototype",
+      mutate(dna, adapter) {
+        const vocabulary = adapter.adjudicationVocabulary;
+        delete adapter.adjudicationVocabulary;
+        Object.setPrototypeOf(adapter, { adjudicationVocabulary: vocabulary });
+      },
+      code: "inherited-field"
+    },
+    {
+      label: "capability list inherited from caller prototype",
+      mutate(dna, adapter) {
+        const capabilities = adapter.capabilities;
+        delete adapter.capabilities;
+        Object.setPrototypeOf(adapter, { capabilities });
+      },
+      code: "inherited-field"
+    },
+    {
+      label: "capability value inherited through a sparse array",
+      mutate(dna, adapter) {
+        const inherited = Object.assign(Object.create(Array.prototype), {
+          0: adapter.capabilities[0],
+        });
+        delete adapter.capabilities[0];
+        Object.setPrototypeOf(adapter.capabilities, inherited);
+      },
+      code: "inherited-value"
+    },
+    {
       label: "registered entity label missing",
       mutate(dna) {
         delete dna.entities[0].label;
@@ -314,6 +420,70 @@ test("artifact tampering invalidates the fingerprint and portfolio collisions ar
   );
 });
 
+test("artifact validation snapshots own data and rejects accessor-backed fingerprints", () => {
+  const window = load();
+  const valid = window.ShokkerChannelPack.compile(
+    window.WWAM_CHANNEL_DNA,
+    window.WWAM_CHANNEL_PACK_ADAPTER,
+  );
+
+  for (const nested of [false, true]) {
+    const attempted = clone(valid);
+    let getterCalls = 0;
+    if (nested) {
+      Object.defineProperty(
+        attempted.adjudicationVocabulary.SUPPORTED,
+        "formal",
+        {
+          enumerable: true,
+          configurable: true,
+          get() {
+            getterCalls += 1;
+            return "CALLER-FORGED FORMAL LABEL";
+          },
+        },
+      );
+    } else {
+      const official = attempted.adjudicationVocabulary;
+      Object.defineProperty(attempted, "adjudicationVocabulary", {
+        enumerable: true,
+        configurable: true,
+        get() {
+          getterCalls += 1;
+          return official;
+        },
+      });
+    }
+    const report = window.ShokkerChannelPack.validate(attempted);
+    assert.equal(report.valid, false);
+    assert.equal(report.fingerprintVerified, false);
+    assert.equal(
+      report.issues.some((entry) => entry.code === "unsafe-descriptor"),
+      true,
+    );
+    assert.equal(getterCalls, 0);
+    assert.throws(
+      () => window.ShokkerChannelPack.serialize(attempted),
+      (error) => error.code === "CHANNEL_PACK_REJECTED",
+    );
+  }
+
+  const prototypeKey = clone(valid);
+  Object.defineProperty(prototypeKey, "__proto__", {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value: { polluted: true },
+  });
+  const prototypeReport = window.ShokkerChannelPack.validate(prototypeKey);
+  assert.equal(prototypeReport.valid, false);
+  assert.equal(
+    prototypeReport.issues.some((entry) => entry.code === "unsafe-key"),
+    true,
+  );
+  assert.equal({}.polluted, undefined);
+});
+
 test("the downloadable JSON Schema and executable compiler describe the same safety boundary", () => {
   const spec = JSON.parse(fs.readFileSync(path.join(demo, "channel-pack-spec.json"), "utf8"));
   const compiler = fs.readFileSync(path.join(demo, "channel-pack-contract.js"), "utf8");
@@ -350,6 +520,16 @@ test("the downloadable JSON Schema and executable compiler describe the same saf
     "unresolved",
     "editBrief",
   ]);
+  assert.deepEqual(spec.properties.adjudicationVocabulary.required, [
+    "SUPPORTED",
+    "CONTRADICTED",
+    "MIXED",
+  ]);
+  assert.deepEqual(spec.$defs.adjudicationLabels.required, [
+    "formal",
+    "comedy",
+    "bleep",
+  ]);
   assert.ok(spec.required.includes("entityRegistry"));
   assert.ok(
     spec.properties.channelExtensions.properties.proofLabels.required.includes(
@@ -369,6 +549,7 @@ test("the downloadable JSON Schema and executable compiler describe the same saf
     "ask-the-tape",
     "creator-taste-calibration",
     "fresh-tape-intake",
+    "human-adjudication-ledger",
     "longitudinal-claim-ledger",
     "tape-companion"
   ]);
@@ -395,6 +576,10 @@ test("the downloadable JSON Schema and executable compiler describe the same saf
   assert.match(
     spec["x-shokker-conformance"].longitudinalClaimLedgerRule,
     /Visual outcomes, metadata-only records, restricted source audio, and corpus absence remain unresolved/i
+  );
+  assert.match(
+    spec["x-shokker-conformance"].humanAdjudicationLedgerRule,
+    /pack-owned adjudicationVocabulary included in the ChannelPack fingerprint/i,
   );
   assert.match(compiler, /ChannelPack rejected/);
   assert.match(compiler, /namespace-collision/);

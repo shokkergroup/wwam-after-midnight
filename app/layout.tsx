@@ -11,19 +11,19 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     metadataBase: base,
-    title: "WWAM After Midnight — The Commentaries, Takes, and Lore",
+    title: "WWAM After Midnight — Ask This Tape",
     description:
-      "An independent, source-linked fan prototype built around We Watched A Movie's Halloween and Friday the 13th commentary archives.",
+      "An independent, source-locked living YouTube wiki: 510 playable source dossiers, 1,490 bounded receipts, and exact-tape answers that refuse to fake what is not indexed.",
     openGraph: {
       type: "website",
-      title: "WWAM After Midnight",
-      description: "The commentaries. The takes. The lore.",
-      images: [{ url: image, width: 1200, height: 630, alt: "WWAM After Midnight" }],
+      title: "WWAM After Midnight — Ask This Tape",
+      description: "510 source dossiers. 1,490 receipts. Zero wrong-tape substitutions.",
+      images: [{ url: image, width: 1200, height: 630, alt: "WWAM After Midnight — Ask This Tape" }],
     },
     twitter: {
       card: "summary_large_image",
-      title: "WWAM After Midnight",
-      description: "The commentaries. The takes. The lore.",
+      title: "WWAM After Midnight — Ask This Tape",
+      description: "510 source dossiers. 1,490 receipts. Zero wrong-tape substitutions.",
       images: [image],
     },
   };

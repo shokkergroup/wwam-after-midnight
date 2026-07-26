@@ -397,6 +397,20 @@
 }
 
 .intake-empty h3 { max-width: 640px; font-size: clamp(36px, 4.5vw, 66px); }
+.intake-empty.is-staged {
+  border: 1px solid rgba(216,255,56,.32);
+  background:
+    radial-gradient(circle at center, rgba(216,255,56,.09), transparent 38%),
+    repeating-linear-gradient(0deg, transparent 0 3px, rgba(255,255,255,.012) 3px 4px);
+}
+.intake-empty.is-staged > span,
+.intake-empty.is-staged > b { color: var(--intake-acid, #d8ff38); }
+.intake-empty.is-staged > b {
+  padding: 8px 10px;
+  border: 1px solid rgba(216,255,56,.28);
+  font: 700 8px/1.45 var(--mono);
+  letter-spacing: .06em;
+}
 .intake-empty p {
   max-width: 620px;
   margin: 0;

@@ -27,6 +27,7 @@
   ];
   var LANE_LABELS = {
     "fresh-10": "FRESH 10",
+    "year-canon-2025-2026": "2025–26 LIVING CANON",
     "popular-25": "POPULAR 25",
     "archive-deep-10": "ARCHIVE DEEP 10",
     "archive-deep-batch-02": "ARCHIVE DEEP BATCH 02",
@@ -632,7 +633,7 @@
       });
       var limit = settings.limit == null
         ? 25
-        : Math.max(0, Math.min(200, Number(settings.limit) || 0));
+        : Math.max(0, Math.min(500, Number(settings.limit) || 0));
       return {
         formula: serialCopy(QUEUE_FORMULA),
         snapshotDate: payload.snapshotDate,

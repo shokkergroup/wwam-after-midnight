@@ -114,8 +114,26 @@ export const NEUTRAL_RACING_ADAPTER = Object.freeze({
     unresolved: "UNDER STEWARD REVIEW",
     editBrief: "BEFORE / AFTER REPLAY BRIEF",
   }),
+  adjudicationVocabulary: Object.freeze({
+    SUPPORTED: Object.freeze({
+      formal: "SUPPORTED // CALL UPHELD",
+      comedy: "THE REPLAY BACKS THE CALL.",
+      bleep: "THE REPLAY BACKS THE CALL.",
+    }),
+    CONTRADICTED: Object.freeze({
+      formal: "CONTRADICTED // CALL OVERTURNED",
+      comedy: "THE REPLAY OVERTURNED THE CALL.",
+      bleep: "THE REPLAY OVERTURNED THE CALL.",
+    }),
+    MIXED: Object.freeze({
+      formal: "MIXED // SPLIT DECISION",
+      comedy: "THE REPLAY SPLIT THE CALL.",
+      bleep: "THE REPLAY SPLIT THE CALL.",
+    }),
+  }),
   capabilities: Object.freeze([
     "event-time-machine",
+    "human-adjudication-ledger",
     "longitudinal-claim-ledger",
     "participant-dossier",
     "receipt-search"

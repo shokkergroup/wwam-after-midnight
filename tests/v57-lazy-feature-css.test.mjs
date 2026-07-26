@@ -95,7 +95,7 @@ function fingerprint(entries) {
 test("the two V5.5 sections own lazy standalone stylesheets", () => {
   assert.match(
     html,
-    /id="companion"[\s\S]{0,180}data-feature-styles="tape-companion\.css"[\s\S]{0,180}data-feature-scripts="red-band-ranking-v2\.js,tape-companion-engine\.js,tape-companion-ui\.js"/,
+    /id="companion"[\s\S]{0,180}data-feature-styles="tape-companion\.css"[\s\S]{0,180}data-feature-scripts="archive-atlas-data\.js,red-band-ranking-v2\.js,tape-companion-engine\.js,tape-companion-ui\.js"/,
   );
   assert.match(
     html,
@@ -147,11 +147,17 @@ test("neither extracted stylesheet is part of the first-load transfer", () => {
 
   assert.equal(criticalFiles.includes("tape-companion.css"), false);
   assert.equal(criticalFiles.includes("creator-taste.css"), false);
-  assert.ok(total < 1_510_000, `first-load source payload grew to ${total} bytes`);
+  // V5.21 deliberately adds resumable Mike Mode and readable proof surfaces;
+  // keep a tight post-release ceiling while preserving the lazy feature split.
+  assert.ok(total < 1_520_000, `first-load source payload grew to ${total} bytes`);
 });
 
 test("the current four-batch portfolio proof keeps dense metadata readable", () => {
   assert.match(main, /\.archive-batch-fingerprints\s*\{[\s\S]{0,360}overflow-wrap:\s*anywhere;/);
   assert.match(main, /\.archive-batch-strip button small\s*\{[\s\S]{0,240}overflow-wrap:\s*anywhere;/);
-  assert.match(main, /\.archive-batch-strip button small\s*\{[\s\S]{0,240}font:\s*700 8px\/1\.45 var\(--mono\);/);
+  assert.match(main, /--atlas-micro:\s*11px;/);
+  assert.match(main, /\.archive-batch-strip button small\s*\{[\s\S]{0,260}font:\s*700 var\(--atlas-micro\)\/1\.5 var\(--mono\);/);
+  assert.match(main, /\.archive-batch-strip button small\s*\{[\s\S]{0,300}font-size:\s*var\(--atlas-micro\) !important;/);
+  assert.doesNotMatch(main, /\.archive-batch-strip button small\s*\{[\s\S]{0,260}font:\s*700 8px/);
+  assert.match(main, /\.archive-batch-door\s*\{[\s\S]{0,260}OPEN SOURCE DOSSIER|\.archive-batch-door\s*\{/);
 });

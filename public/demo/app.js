@@ -15,7 +15,8 @@
     clipLabEngine, coldOpenFactory, trustEngine, canonIntegrityReport,
     humanReviewSession, pilotBuilderEngine, archiveAtlasEngine, archiveAtlasUi,
     archiveDeepEngine, archiveDeepLoadPromise, redBandRankingEngine,
-    redBandQueryEngine, archiveAtlasLoadPromise, archiveAtlasObserver,
+    redBandQueryEngine, sourceDossierEngine, sourceQueryEngine, sourceDossierUi, aftermathPackEngine,
+    sourceDossierLoadPromise, aftermathPilotLoadPromise, archiveAtlasLoadPromise, archiveAtlasObserver,
     redBandLoadPromise, redBandObserver;
   var archiveDeepStreams = [], redBandMoments = deep.hot100 || [],
     showcaseReceiptById = {}, showcaseSourceById = {}, clipItemById = {},
@@ -51,14 +52,14 @@
     triviaDifficulty: "mixed", triviaLength: 5, triviaFranchise: "", triviaSeed: 0,
     nightMode: storageGet("wwam-night-mode") || "lore", nightDate: "",
     nightVariant: "daily", nightVariantIndex: 0, nightReveal: null, nightNotice: "",
-    nightShareHandled: false, clipMode: "shorts", clipQuery: "", clipRisk: "",
+    nightShareHandled: false, clipMode: "shorts", clipQuery: "", clipRisk: "", clipSourceId: "",
     coldOpenDuration: 30, campaignIds: loadCampaignIds(), canonTab: "health",
     canonDraft: null, reviewOrigin: "trust", reviewStatus: "unreviewed",
     reviewQuery: "", reviewSelected: "", reviewNotice: "", reviewRestoreNotice: "",
-    reviewQuarantinedLedger: "", pilotGoal: "archive-discovery", askContext: null,
+    reviewQuarantinedLedger: "", pilotGoal: "archive-discovery", pilotAftermathNotice: "", askContext: null,
     lastAskQuery: "", lastAskAnalysis: null, initialRouteHandled: false,
     fanEnginesSettled: false, creatorEnginesSettled: false, descentMinutes: 20,
-    descentMode: "CHAOS", tourSlide: 0, consoleIndex: 0,
+    descentMode: "CHAOS", tourSlide: 0, tourResumeSlide: null, consoleIndex: 0,
   };
 
   deep.tapes.forEach(function (tape) { tapeById[tape.id] = tape; });
@@ -104,11 +105,17 @@
         return window.WWAMArchiveAtlasUI.create({
           engine: archiveAtlasEngine, formatNumber: fmt, formatDuration: duration,
           formatDate: shortDate, escapeHtml: esc,
-          isInternal: function (record) {
-            return Boolean(itemById[record.id] || streamById[record.id]);
-          },
-          openRecord: openArchiveRecord, downloadJson: downloadJson,
+          openRecord: openArchiveRecord, stageRecord: stageArchiveRecord, downloadJson: downloadJson,
           showToast: showToast, archiveDeepEngine: archiveDeepEngine, document: document,
+          getSourceSummary: function (id) {
+            var source = streamById[id];
+            if (source && source.summary) return source.summary;
+            if (source && source.editorial && source.editorial.whyItMatters) {
+              return source.editorial.whyItMatters;
+            }
+            var tape = tapeById[id];
+            return tape && tape.verdict ? tape.verdict : "";
+          },
         }).mount();
       }, "archive atlas UI initialization");
     }
@@ -118,6 +125,7 @@
   function createArchiveDeep() {
     if (!window.WWAM_ARCHIVE_DEEP || !window.WWAM_ARCHIVE_DEEP_BATCH2 ||
         !window.WWAM_ARCHIVE_DEEP_BATCH3 || !window.WWAM_ARCHIVE_DEEP_BATCH4 ||
+        !window.WWAM_YEAR_CANON_2025_2026 ||
         !window.WWAMArchiveDeepEngine || !window.WWAMArchiveDeepPortfolio) return null;
     archiveDeepEngine = attempt(function () {
       return window.WWAMArchiveDeepPortfolio.create(
@@ -129,6 +137,23 @@
     if (!archiveDeepEngine) return null;
     archiveDeepPayload = archiveDeepEngine.getSearchPayload();
     archiveDeepStreams = archiveDeepEngine.browse({ sort: "priority" }).records;
+    var recentCanonStreams = (window.WWAM_YEAR_CANON_2025_2026.streams || []).map(function (stream) {
+      return JSON.parse(JSON.stringify(stream));
+    });
+    var archiveDeepIds = new Set(archiveDeepStreams.map(function (stream) { return stream.id; }));
+    recentCanonStreams.forEach(function (stream) {
+      if (!archiveDeepIds.has(stream.id)) archiveDeepStreams.push(stream);
+    });
+    archiveDeepPayload = Object.assign({}, archiveDeepPayload, {
+      streams: archiveDeepStreams,
+      topicIndex: (archiveDeepPayload.topicIndex || []).concat(window.WWAM_YEAR_CANON_2025_2026.topicIndex || []),
+      characterIndex: (archiveDeepPayload.characterIndex || []).concat(window.WWAM_YEAR_CANON_2025_2026.characterIndex || []),
+      yearCanon: {
+        schema: window.WWAM_YEAR_CANON_2025_2026.schema,
+        meta: window.WWAM_YEAR_CANON_2025_2026.meta,
+        fingerprints: window.WWAM_YEAR_CANON_2025_2026.fingerprints,
+      },
+    });
     archiveDeepStreams.forEach(function (stream) {
       stream._lane = "archive";
       stream.captioned = true;
@@ -148,6 +173,7 @@
     if (archiveDeepLoadPromise) return archiveDeepLoadPromise;
     archiveDeepLoadPromise = [
       "archive-deep-distill.js","archive-deep-batch2.js","archive-deep-batch3.js","archive-deep-batch4.js",
+      "year-canon-2025-2026.js?v=1.0.0","year-canon-ui.js?v=1.0.0",
       "archive-deep-engine.js","archive-deep-portfolio.js",
     ].reduce(function(p,s){return p.then(function(){return loadDemoScript(s);});},
       Promise.resolve()).then(createArchiveDeep)
@@ -191,10 +217,10 @@
     if (archiveAtlasLoadPromise) return archiveAtlasLoadPromise;
     document.getElementById("archive").setAttribute("aria-busy", "true");
     document.getElementById("archiveStatus").textContent = "LOADING THE 472-RECORD LEDGER";
-    archiveAtlasLoadPromise = loadDemoScript("archive-atlas-data.js")
+    archiveAtlasLoadPromise = loadDemoScript("archive-atlas-data.js?v=1.4.0-year-canon")
       .then(loadArchiveDeep)
-      .then(function () { return loadDemoScript("archive-atlas-engine.js"); })
-      .then(function () { return loadDemoScript("archive-atlas-ui.js"); })
+      .then(function () { return loadDemoScript("archive-atlas-engine.js?v=1.4.0-year-canon"); })
+      .then(function () { return loadDemoScript("archive-atlas-ui.js?v=1.3.0"); })
       .then(function () {
         createArchiveAtlas();
         if (!archiveAtlasEngine || !archiveAtlasUi) throw new Error("Archive Atlas did not initialize");
@@ -218,12 +244,353 @@
     return archiveAtlasLoadPromise;
   }
 
+  function sourceDossierBindings() {
+    if(!window.ShokkerChannelPack||!window.WWAM_CHANNEL_PACK_ADAPTER)
+      throw new Error("ChannelPack boundary unavailable");
+    var pack=window.ShokkerChannelPack.compile(channelDNA,window.WWAM_CHANNEL_PACK_ADAPTER);
+    return {id:pack.identity.id,label:pack.identity.channel,packFingerprint:pack.fingerprint};
+  }
+
+  function aftermathReviewKey(sourceId) {
+    return "wwam-aftermath-review-v1:" + String(sourceId || "").trim();
+  }
+
+  function loadAftermathReview(pack) {
+    if (!aftermathPackEngine || !pack || !pack.source) return null;
+    var raw = storageGet(aftermathReviewKey(pack.source.id));
+    if (!raw) return null;
+    try {
+      return aftermathPackEngine.restoreReview(pack.source.id, JSON.parse(raw));
+    } catch (error) {
+      storageSet("wwam-aftermath-review-quarantine:" + pack.source.id + ":" + Date.now(), raw);
+      storageSet(aftermathReviewKey(pack.source.id), "");
+      var heldMessage = "A saved Aftermath route was held because its source proof changed. " +
+        "The old ledger was quarantined locally and no decision was imported.";
+      runtimeDiagnostics.push({
+        at: new Date().toISOString(),
+        operation: "Aftermath review restore held",
+        message: error && error.message ? error.message : String(error),
+      });
+      showToast("SAVED AFTERMATH ROUTE HELD // SOURCE PROOF CHANGED");
+      return { aftermathRestoreHeld: true, notice: heldMessage, review: null };
+    }
+  }
+
+  function saveAftermathReview(payload) {
+    if (!payload || !payload.review || !payload.sourceId) return false;
+    var saved = storageSet(
+      aftermathReviewKey(payload.sourceId),
+      JSON.stringify(payload.review)
+    );
+    showToast((saved ? "AFTERMATH ROUTE SAVED" : "AFTERMATH ROUTE KEPT IN THIS TAB") +
+      " // CREATOR APPROVAL STILL REQUIRED");
+    return saved;
+  }
+
+  function openAftermathInClipLab(payload) {
+    state.clipSourceId = payload && payload.sourceId || "";
+    state.clipMode = payload && payload.mode || "shorts";
+    state.clipQuery = "";
+    state.clipRisk = "";
+    var searchField = document.getElementById("clipSearch");
+    var riskField = document.getElementById("clipRisk");
+    if (searchField) searchField.value = "";
+    if (riskField) riskField.value = "";
+    closeDossier({ replaceRoute: true, restoreFocus: false });
+    renderClipLab();
+    setTimeout(function () {
+      var section = document.getElementById("clip-lab");
+      var field = document.getElementById("clipSearch");
+      if (section) section.scrollIntoView({ behavior: "instant", block: "start" });
+      if (field && typeof field.focus === "function") {
+        try { field.focus({ preventScroll: true }); } catch { field.focus(); }
+      }
+    }, 0);
+  }
+
+  function buildSourceDossierRuntime() {
+    if(!window.ShokkerSourceDossier||!window.ShokkerSourceQuery||!window.WWAMSourceDossierAdapter||
+        !window.ShokkerAftermathPack||!window.WWAMSourceDossierUI||!archiveAtlasPayload)
+      throw new Error("Source Dossier runtime held");
+    var payload = window.WWAMSourceDossierAdapter.build({
+      archiveAtlas: archiveAtlasPayload,
+      catalog: catalog,
+      deep: deep,
+      live: live,
+      popular: popular,
+      archiveDeep: archiveDeepStreams,
+      showcase: showcaseEngine,
+      clipLab: clipLabEngine,
+      curated: curated,
+      characters: characterLore,
+      dna: channelDNA,
+      channel: sourceDossierBindings(),
+      snapshotDate: archiveAtlasPayload.snapshotDate,
+    });
+    sourceDossierEngine = window.ShokkerSourceDossier.create(payload);
+    sourceQueryEngine = window.ShokkerSourceQuery.create({dossierEngine:sourceDossierEngine});
+    aftermathPackEngine = window.ShokkerAftermathPack.create({
+      dossierEngine: sourceDossierEngine,
+      clipLab: clipLabEngine,
+      showcase: showcaseEngine,
+      coldOpen: coldOpenFactory,
+    });
+    sourceDossierUi = window.WWAMSourceDossierUI.create({
+      aftermathEngine: aftermathPackEngine,
+      engine: sourceDossierEngine,
+      queryEngine: sourceQueryEngine,
+      document: document,
+      mount: document.getElementById("modalContent"),
+      escapeHtml: esc,
+      formatNumber: fmt,
+      formatDuration: duration,
+      formatDate: shortDate,
+      formatTime: timestamp,
+      onPlay: function (payload) {
+        loadPlayer(payload.sourceId, payload.at, payload.end);
+      },
+      onCopyLink: function (payload) {
+        copy(
+          sourceDossierShareUrl(payload.sourceId, payload.at, payload.section),
+          "SHOW WIKI LINK COPIED"
+        );
+      },
+      onDownload: function (payload) {
+        downloadJson(
+          payload.filename || "wwam-source-dossier-" + payload.sourceId + ".json",
+          payload.manifest || sourceDossierEngine.exportManifest(payload.sourceId)
+        );
+        showToast("SOURCE DOSSIER MANIFEST DOWNLOADED");
+      },
+      onOpenSource: function (payload) {
+        var targetAt = payload.targetAt != null && Number.isFinite(Number(payload.targetAt)) ?
+          Number(payload.targetAt) : null;
+        openSourceDossier(payload.targetSourceId, targetAt, { routeMode: "push", autoplay: false });
+      },
+      onStageIntake: function (payload) {
+        stageArchiveRecord(payload.dossier.source);
+      },
+      onOpenCompanion: function (payload) {
+        var companion = document.getElementById("companion");
+        closeDossier({ replaceRoute: true, restoreFocus: false });
+        if (!companion) return;
+        companion.setAttribute("data-companion-source", payload.sourceId);
+        companion.setAttribute("data-companion-time", Math.round(Number(payload.at || 0)));
+        companion.scrollIntoView({ behavior: "smooth", block: "start" });
+        window.WWAMFeatureLoader.hydrate(companion).then(function (ready) {
+          if (!ready) return;
+          dispatchEvent(new CustomEvent("wwam:tape-companion-open", {
+            detail: { sourceId: payload.sourceId, at: Number(payload.at || 0) },
+          }));
+        });
+      },
+      loadAftermathReview: loadAftermathReview,
+      onAftermathDecision: saveAftermathReview,
+      onAftermathExport: function (payload) {
+        downloadJson(
+          "wwam-aftermath-pack-" + payload.sourceId + ".json",
+          payload.packet
+        );
+        showToast("AFTERMATH EDITOR PACK DOWNLOADED // HUMAN REVIEW STILL REQUIRED");
+      },
+      onAftermathCopy: function (payload) {
+        copy(payload.markdown, "AFTERMATH EDITOR BRIEF COPIED // STILL A DRAFT");
+      },
+      onOpenClipLab: openAftermathInClipLab,
+      onBagReceipt: function (payload) {
+        var source = payload.dossier.source;
+        var receipt = payload.receipt;
+        addToEvidenceBag({
+          source: source.sourceType === "commentary" ? "commentary" : "livestream",
+          sourceId: source.id,
+          at:receipt.at, end:receipt.end, receiptKey:receipt.key,
+          title: source.displayTitle || source.title,
+          category: receipt.label,
+          excerpt: receipt.excerpt,
+          evidenceLevel: receipt.evidenceLevel,
+          evidenceType: receipt.evidenceType,
+          speaker: null,
+          speakerStatus: "not-diarized",
+          warnings: source.warnings,
+        });
+      },
+    });
+    return sourceDossierUi;
+  }
+
+  function loadSourceDossier() {
+    if (sourceDossierEngine && sourceDossierUi) return Promise.resolve(sourceDossierUi);
+    if (sourceDossierLoadPromise) return sourceDossierLoadPromise;
+    var loader = window.WWAMFeatureLoader;
+    if (!loader) return Promise.reject(new Error("The feature loader is unavailable."));
+    sourceDossierLoadPromise = loadArchiveAtlas()
+      .then(function (atlas) {
+        if (!atlas) throw new Error("The canonical archive registry could not be loaded.");
+        var expectedArchiveEvidenceSources = 40 + Number(
+          window.WWAM_YEAR_CANON_2025_2026 && window.WWAM_YEAR_CANON_2025_2026.streams.length || 0
+        );
+        if (!archiveDeepEngine || archiveDeepStreams.length !== expectedArchiveEvidenceSources) {
+          throw new Error("The " + expectedArchiveEvidenceSources +
+            "-source archive evidence overlay is incomplete.");
+        }
+        if (!showcaseEngine) createDeepEngines();
+        if (!showcaseEngine) {
+          throw new Error("The promoted Showcase evidence registry is unavailable.");
+        }
+        return !clipLabEngine && showcaseEngine ?
+          Promise.resolve(createCreatorEngines()).catch(function () { return null; }) :
+          null;
+      })
+      .then(function () { return loader.loadStyle("source-dossier.css?v=1.7.0"); })
+      .then(function () {
+        return ["channel-pack-contract.js", "wwam-channel-pack-adapter.js",
+          "source-dossier-engine.js?v=1.5.0", "wwam-source-dossier-adapter.js?v=1.6.0",
+          "source-query-engine.js?v=1.2.1",
+          "aftermath-pack-engine.js?v=1.0.0",
+          "source-dossier-ui.js?v=1.7.0"].reduce(function (promise, source) {
+          return promise.then(function () { return loader.load(source); });
+        }, Promise.resolve());
+      })
+      .then(buildSourceDossierRuntime)
+      .catch(function (error) {
+        runtimeDiagnostics.push({
+          at: new Date().toISOString(),
+          operation: "source dossier lazy load",
+          message: error && error.message ? error.message : String(error),
+        });
+        sourceDossierLoadPromise = null;
+        throw error;
+      });
+    return sourceDossierLoadPromise;
+  }
+  window.WWAMSourceDossierAccess=Object.freeze({cutId:"evidenceBagCut",load:loadSourceDossier,
+    get:function(){return sourceDossierEngine;},bag:function(){return state.evidenceBag.slice();},
+    play:function(p){return openSourceDossier(p.sourceId,p.at,{routeMode:"push",autoplay:false})
+      .then(function(ok){if(ok)loadPlayer(p.sourceId,p.at,p.end);return ok;});},
+    navigate:function(p){return openSourceDossier(p.sourceId,p.at,{routeMode:"push",autoplay:false});}});
+
+  var SOURCE_DOSSIER_SECTION_IDS = Object.freeze({proof:"sourceDossierProof",player:"sourceDossierPlayerSection",wiki:"sourceDossierShowWiki",inside:"sourceDossierInside",ask:"sourceDossierAsk",footprint:"sourceDossierFootprint",wake:"sourceDossierWake",chronology:"sourceDossierChronology",work:"sourceDossierWork",aftermath:"sourceDossierAftermath",boundary:"sourceDossierBoundary"});
+
+  function sourceDossierSection(value) {
+    var section = String(value == null ? "" : value).trim().toLowerCase();
+    return Object.prototype.hasOwnProperty.call(SOURCE_DOSSIER_SECTION_IDS, section) ? section : "";
+  }
+
+  function sourceDossierShareUrl(sourceId, at, section) {
+    var url = new URL(window.location.href); url.search = "";
+    url.searchParams.set("source", sourceId);
+    if (at != null && at !== "" && Number.isFinite(Number(at))) url.searchParams.set("at", Math.round(Number(at)));
+    section = sourceDossierSection(section);
+    if (section) url.searchParams.set("section", section);
+    url.hash = "archive"; return url.toString();
+  }
+
+  function sourceRouteUrl(sourceId, at, section) {
+    var url = new URL(window.location.href);
+    url.searchParams.delete("tape"); url.searchParams.delete("live");
+    url.searchParams.set("source", sourceId);
+    if (at != null && at !== "" && Number.isFinite(Number(at))) url.searchParams.set("at", Math.round(Number(at)));
+    else url.searchParams.delete("at");
+    section = sourceDossierSection(section);
+    if (section) url.searchParams.set("section", section);
+    else url.searchParams.delete("section");
+    url.hash = "archive"; return url;
+  }
+
+  function readSourceRoute() {
+    var params = new URLSearchParams(location.search);
+    var sourceId = params.get("source"), legacy = false;
+    if (!sourceId && params.get("tape")) { sourceId = params.get("tape"); legacy = true; }
+    else if (!sourceId && params.get("live")) { sourceId = params.get("live"); legacy = true; }
+    if (!/^[A-Za-z0-9_-]{11}$/.test(sourceId || "")) return null;
+    var at=params.get("at"); return { sourceId:sourceId,
+      at: at != null && Number.isFinite(Number(at)) ? Number(at) : null,
+      section:sourceDossierSection(params.get("section")), legacy: legacy };
+  }
+
+  function syncSourceRoute(sourceId, at, section, mode) {
+    if (mode === "none") return;
+    var url = sourceRouteUrl(sourceId, at, section);
+    var nextState = Object.assign({}, history.state || {}, {
+      wwamSourceDossier: true,
+      wwamSourceDossierPushed: mode === "push",
+      sourceId: sourceId,
+    });
+    if (mode === "replace") history.replaceState(nextState, "", url);
+    else history.pushState(nextState, "", url);
+  }
+
+  function showSourceDossierLoading() {
+    rememberDialogFocus();
+    var modal = document.getElementById("tapeModal");
+    modal.setAttribute("aria-busy", "true");
+    modal.setAttribute("aria-labelledby", "sourceDossierTitle");
+    modal.setAttribute("aria-describedby", "sourceDossierBoundary");
+    document.getElementById("modalContent").innerHTML =
+      '<div class="source-dossier-loading" role="status" aria-live="polite">' +
+      '<span>THE TAPE\'S WAKE // BUILDING A 510-SOURCE MEMORY FILE</span>' +
+      '<h2 id="sourceDossierTitle">OPENING THE SHOW WIKI.</h2>' +
+      '<p id="sourceDossierBoundary">The official source registry, evidence boundary, and cross-archive connections are being verified.</p></div>';
+    modal.classList.add("show");
+    modal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("modal-open");
+    syncBackgroundInert();
+    focusSoon("#modalClose");
+  }
+
+  function openSourceDossier(id, startTime, options) {
+    var settings = options || {}, sourceId = String(id == null ? "" : id).trim(),
+      section = sourceDossierSection(settings.section);
+    if (!/^[A-Za-z0-9_-]{11}$/.test(sourceId)) return Promise.resolve(false);
+    showSourceDossierLoading();
+    return loadSourceDossier().then(function (ui) {
+      if (!sourceDossierEngine.has(sourceId)) {
+        throw new Error("This source is outside the 510-upload canonical registry.");
+      }
+      var rendered = ui.render(sourceId, {at:startTime == null ? null : Number(startTime),
+        section:section, query:String(settings.query || "").slice(0, 240)});
+      if (!rendered) throw new Error("The Source Dossier failed its render boundary.");
+      document.getElementById("tapeModal").setAttribute("aria-busy", "false");
+      syncSourceRoute(
+        sourceId,
+        startTime,
+        section,
+        settings.routeMode || "push"
+      );
+      syncBagButtons();
+      if (startTime != null && settings.autoplay !== false) {
+        loadPlayer(sourceId, Number(startTime));
+      }
+      return true;
+    }).catch(function (error) {
+      var message = error && error.message ? error.message : String(error);
+      document.getElementById("tapeModal").setAttribute("aria-busy", "false");
+      document.getElementById("modalContent").innerHTML =
+        '<div class="source-dossier-loading source-dossier-error" role="alert">' +
+        '<span>THE SOURCE FILE WAS HELD</span><h2 id="sourceDossierTitle">SHOW WIKI UNAVAILABLE.</h2>' +
+        '<p id="sourceDossierBoundary">' + esc(message) +
+        '</p><a href="https://www.youtube.com/watch?v=' + encodeURIComponent(sourceId) +
+        '" target="_blank" rel="noopener">OPEN THE OFFICIAL SOURCE ON YOUTUBE &nearr;</a></div>';
+      return false;
+    });
+  }
+
   function prepareArchiveAtlasLazy() {
     var section = document.getElementById("archive");
     if (!section) return;
     Array.prototype.forEach.call(document.querySelectorAll('a[href="#archive"]'), function (link) {
       link.addEventListener("click", loadArchiveAtlas);
     });
+    var recentCanon = document.getElementById("yearCanonSpotlight");
+    var settleRecentCanon = function () {
+      loadArchiveAtlas().then(function () {
+        if (recentCanon) recentCanon.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    };
+    Array.prototype.forEach.call(document.querySelectorAll('a[href="#yearCanonSpotlight"]'), function (link) {
+      link.addEventListener("click", settleRecentCanon);
+    });
+    if (window.location.hash === "#yearCanonSpotlight") settleRecentCanon();
     if ("IntersectionObserver" in window) {
       archiveAtlasObserver = new IntersectionObserver(function (entries) {
         if (entries.some(function (entry) { return entry.isIntersecting; })) loadArchiveAtlas();
@@ -515,6 +882,8 @@
       .then(function () { return loadDemoScript("trust-engine.js"); }).then(createCreatorEngines);
     if (!window.WWAMCreatorPilotBuilder)
       return loadDemoScript("pilot-builder-engine.js").then(createCreatorEngines);
+    if (!window.WWAMCanonDeskUI)
+      return loadDemoScript("canon-desk-ui.js?v=1.0.1").then(createCreatorEngines);
     clipLabEngine = window.WWAMCreatorClipLab && window.WWAMCreatorClipLab.create && showcaseEngine ?
       attempt(function () { return window.WWAMCreatorClipLab.create({ showcase: showcaseEngine }); },
         "creator clip lab initialization") : null;
@@ -648,7 +1017,7 @@
     if (!bagItem.id) return "";
     var buttonLabel = label || "BAG THIS RECEIPT";
     var data = Object.assign(evidenceBoundary(bagItem), {
-      source: bagItem.source, id: bagItem.id, at: bagItem.at,
+      source:bagItem.source,id:bagItem.id,at:bagItem.at,end:bagItem.end,receiptKey:bagItem.receiptKey,
       title: bagItem.title, category: bagItem.category, excerpt: bagItem.excerpt,
     });
     return '<button class="bag-add" data-bag-add data-default-label="' + esc(buttonLabel + " +") +
@@ -1631,8 +2000,8 @@
         }).join(" // ") +
         '</b></div>' : '') + miniHeat(stream) + '<footer><span>' +
       (peak ? 'PEAK COMEDY // ' + timestamp(peak.t) + ' // ' + esc(peak.category) : 'ORIGINAL SOURCE READY') +
-      '</span><button aria-label="Open foundational autopsy for ' + esc(stream.title) +
-      '">OPEN FOUNDATIONAL AUTOPSY →</button></footer></div></article>';
+      '</span><button aria-label="Open show wiki for ' + esc(stream.title) +
+      '">OPEN SHOW WIKI →</button></footer></div></article>';
   }
 
   function renderPopular() {
@@ -1653,14 +2022,50 @@
     });
   }
 
+  function stageArchiveRecord(recordOrId) {
+    var record = typeof recordOrId === "string" ?
+      archiveAtlasEngine && archiveAtlasEngine.getRecord(recordOrId) :
+      recordOrId;
+    if (!record || !record.id) return;
+    var staged = {
+      id: String(record.id),
+      url: record.url || "https://www.youtube.com/watch?v=" + String(record.id),
+      title: record.displayTitle || record.title || "WWAM SOURCE",
+      date: record.date || "",
+      duration: Number(record.durationSeconds != null ? record.durationSeconds : record.duration) || 0,
+      views: Number(record.views || 0),
+      coverage: record.coverage || "metadata-only",
+      priority: record.priority || null,
+      stagedFrom: "archive-autopsy-queue",
+    };
+    window.WWAM_PENDING_INTAKE_SOURCE = staged;
+    var section = document.getElementById("fresh-intake");
+    if (!section || !window.WWAMFeatureLoader) {
+      showToast("DROP ZONE UNAVAILABLE // SOURCE REMAINS IN THE QUEUE");
+      return;
+    }
+    if (document.getElementById("tapeModal").classList.contains("show")) {
+      closeDossier({ replaceRoute: true, restoreFocus: false });
+    }
+    section.scrollIntoView({ behavior: "smooth", block: "start" });
+    showToast("SOURCE STAGED // TIMED CAPTIONS STILL REQUIRED");
+    window.WWAMFeatureLoader.hydrate(section).then(function (ready) {
+      if (!ready) {
+        showToast("DROP ZONE LOAD HELD // SOURCE REMAINS STAGED");
+        return;
+      }
+      document.dispatchEvent(new CustomEvent("wwam:stage-intake-source", {
+        detail: { source: staged },
+      }));
+    });
+  }
+
   function openArchiveRecord(recordOrId) {
     var record = typeof recordOrId === "string" ?
       archiveAtlasEngine && archiveAtlasEngine.getRecord(recordOrId) :
       recordOrId;
     if (!record) return;
-    if (itemById[record.id]) openDossier(record.id);
-    else if (streamById[record.id]) openLiveDossier(record.id);
-    else window.open(record.url, "_blank", "noopener");
+    openSourceDossier(record.id);
   }
 
   function archiveAskMarkup(query) {
@@ -1720,8 +2125,8 @@
       '</span><i class="' + (sealed ? "sealed" : "") + '">' + (sealed ? "TAPE SEALED" : "FULL DISTILL") + '</i></div>' +
       '<h3>' + esc(item.film) + '</h3><p>' + esc(tape.verdict || "Age gate prevents a defensible caption distill. The original tape remains linked.") + '</p>' +
       '<footer><span><b>' + (sealed ? "—" : tape.unhinged) + '</b>UNHINGED</span><span><b>' +
-      (sealed ? "—" : fmt(tape.wordsAudited)) + '</b>WORDS</span><button aria-label="Open tape autopsy for ' +
-      esc(item.film) + '">OPEN AUTOPSY →</button></footer>' +
+      (sealed ? "—" : fmt(tape.wordsAudited)) + '</b>WORDS</span><button aria-label="Open show wiki for ' +
+      esc(item.film) + '">OPEN SHOW WIKI →</button></footer>' +
       '</div></article>';
   }
 
@@ -1743,170 +2148,8 @@
     });
   }
 
-  function metricRows(tape) {
-    var metrics = Object.keys(categoryCopy).map(function (category) {
-      return [category, tape.metrics[category] || 0];
-    }).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 6);
-    var max = metrics.length ? metrics[0][1] || 1 : 1;
-    return metrics.map(function (metric) {
-      return '<li><div><span>' + esc(metric[0]) + '</span><b>' + metric[1] + ' SIGNALS</b></div>' +
-        '<i><em style="width:' + Math.max(3, Math.round(metric[1] / max * 100)) + '%"></em></i></li>';
-    }).join("");
-  }
-
-  function arcMarkup(tape) {
-    return tape.arc.map(function (chapter) {
-      return '<div title="Chapter ' + chapter.chapter + ': ' + esc(chapter.dominant) + '"><i style="height:' +
-        chapter.heat + '%"></i><span>' + chapter.chapter + '</span><b>' + esc(chapter.dominant) + '</b></div>';
-    }).join("");
-  }
-
-  function momentsMarkup(tape, item) {
-    if (!tape.moments.length) {
-      return '<p class="sealed-copy">This upload requires an age-confirmed YouTube session. No transcript or score is invented; open the tape.</p>';
-    }
-    return tape.moments.map(function (moment) {
-      return '<article><div><span>' + esc(moment.category) + '</span><b>' + timestamp(moment.t) + '</b></div>' +
-        '<p>“' + esc(displayQuote(moment.quote)) + '”</p><footer><button data-play="' + item.id + '" data-time="' +
-        moment.t + '">▶ PLAY</button><button data-share="' + item.id + '" data-time="' + moment.t + '">SHARE RECEIPT</button></footer></article>';
-    }).join("");
-  }
-
-  function openDossier(id, startTime) {
-    var item = itemById[id];
-    var tape = tapeById[id] || {
-      unhinged: 0, wordsAudited: 0, captionMinutes: 0, verdict: "Tape sealed by YouTube's age gate.",
-      metrics: {}, arc: [], moments: [],
-    };
-    if (!item) return;
-    rememberDialogFocus();
-    var modal = document.getElementById("tapeModal");
-    document.getElementById("modalContent").innerHTML =
-      '<div class="modal-hero" style="--accent:' + colors[item.franchise] + '">' +
-      '<img src="' + esc(item.thumbnail) + '" alt=""><div><p>' + esc(item.franchise) + ' // TAPE ' +
-      String(item.order).padStart(2, "0") + '</p><h2>' + esc(item.film) + '</h2><span>' + shortDate(item.date) +
-      ' // ' + duration(item.duration) + '</span></div></div>' +
-      '<div class="modal-grid"><section class="modal-verdict"><p class="kicker">THE MACHINE-AUDITED VERDICT</p><blockquote>' +
-      esc(tape.verdict) + '</blockquote><div class="index-dial"><i style="--score:' + tape.unhinged +
-      '"></i><b>' + (item.transcript ? tape.unhinged : "—") + '</b><span>UNHINGED<br>INDEX</span></div>' +
-      '<div class="source-actions"><a href="' + esc(item.url) + '" target="_blank" rel="noopener">OPEN ORIGINAL ON YOUTUBE ↗</a>' +
-      '<button data-share="' + item.id + '">COPY DOSSIER LINK</button></div></section>' +
-      '<section class="signal-profile"><p class="kicker">SIGNAL PROFILE // ' + fmt(tape.wordsAudited) + ' WORDS AUDITED</p>' +
-      '<ul>' + metricRows(tape) + '</ul></section></div>' +
-      (tape.arc.length ? '<section class="heat-section"><div><p class="kicker">THE EIGHT-CHAPTER HEAT ARC</p><span>DOMINANT SIGNAL BY RUNTIME OCTANT</span></div><div class="heat-arc">' +
-      arcMarkup(tape) + '</div></section>' : '') +
-      '<section class="receipt-section"><div><p class="kicker">PLAYABLE EVIDENCE LOCKER</p><span>SHORT AUTO-CAPTION FRAGMENTS // VERIFY AGAINST ORIGINAL</span></div>' +
-      '<div class="modal-player" id="modalPlayer"><div><span>SELECT A RECEIPT TO CUE THE ORIGINAL TAPE.</span></div></div>' +
-      '<div class="receipt-list">' + momentsMarkup(tape, item) + '</div></section>';
-    modal.classList.add("show");
-    modal.setAttribute("aria-hidden", "false");
-    document.body.classList.add("modal-open");
-    syncBackgroundInert();
-    focusSoon("#modalClose");
-    bindPlayButtons(document.getElementById("modalContent"), true);
-    bindShareButtons(document.getElementById("modalContent"));
-    if (startTime != null) loadPlayer(item.id, Number(startTime));
-    history.replaceState(null, "", "?tape=" + encodeURIComponent(item.id) + (startTime != null ? "&at=" + Math.round(startTime) : "") + "#autopsies");
-  }
-
-  function liveHeatMarkup(stream) {
-    if (!stream.heatmap.length) {
-      if (stream.rightsPolicy && stream.rightsPolicy.restrictedToTopicNavigation) {
-        return '<p class="sealed-copy">Captions were audited, but this source is topic-navigation-only. Comedy heat and excerpts stay withheld because captions cannot prove host speech.</p>';
-      }
-      return '<p class="sealed-copy">YouTube supplies no captions, so scoring and topic chapters stay unavailable. The upload remains playable.</p>';
-    }
-    return stream.heatmap.map(function (bin, index) {
-      return '<button style="--heat:' + bin.heat + '" data-live-play="' + stream.id + '" data-time="' + bin.from +
-        '" title="' + esc(bin.signal + (bin.topic ? " // " + bin.topic : "")) + '"><i></i><span>' +
-        (index % 5 === 0 ? timestamp(bin.from) : "") + '</span></button>';
-    }).join("");
-  }
-
-  function liveTopicsMarkup(stream) {
-    if (!stream.topics.length) return '<li class="topic-empty">NO DEFENSIBLE TOPIC CHAPTERS WITHOUT CAPTIONS.</li>';
-    return stream.topics.map(function (topic, index) {
-      return '<li><button data-live-play="' + stream.id + '" data-time="' + topic.peak + '"><span>0' + (index + 1) +
-        '</span><div><b>' + esc(topic.name) + '</b><small>' + topic.mentions + ' MENTIONS // PEAK CLUSTER ' +
-        timestamp(topic.peak) + '</small></div><i>JUMP →</i></button></li>';
-    }).join("");
-  }
-
-  function liveMomentsMarkup(stream) {
-    if (!stream.moments.length) {
-      if (stream.rightsPolicy && stream.rightsPolicy.restrictedToTopicNavigation) {
-        return '<p class="sealed-copy">No public joke or character receipts are exposed from this source. Topic times remain; excerpts await human speaker separation.</p>';
-      }
-      return '<p class="sealed-copy">No caption-derived comedy receipts are published for this stream. Open the original source to watch it in full.</p>';
-    }
-    return stream.moments.map(function (moment) {
-      return '<article><div><span>' + esc(moment.category) + ' // HEAT ' + moment.heat + '</span><b>' +
-        timestamp(moment.t) + '</b></div><p>“' + esc(displayQuote(moment.quote)) +
-        '”</p><footer><button data-live-play="' + stream.id + '" data-time="' + moment.t +
-        '">▶ PLAY</button><button data-share-live="' + stream.id + '" data-time="' + moment.t +
-        '">SHARE RECEIPT</button></footer></article>';
-    }).join("");
-  }
-
-  function openLiveDossier(id, startTime) {
-    var stream = streamById[id];
-    if (!stream) return;
-    rememberDialogFocus();
-    var isArchiveDeep = stream._lane === "archive";
-    var archiveBatch = stream.archiveBatch || {};
-    var lane = stream._lane === "popular" ? "FOUNDATIONAL 25" :
-      isArchiveDeep ? "AUTOPSIED BATCH 0" + archiveBatch.sequence : "FRESH 10";
-    var laneRank = isArchiveDeep ?
-      Number(archiveBatch.batchRank || 0) :
-      (stream._lane === "popular" ? popular.streams : live.streams).indexOf(stream) + 1;
-    var peak = stream.moments.slice().sort(function (a, b) { return b.heat - a.heat; })[0];
-    var streamSummary = safeEditorialCopy(stream.summary || stream.whyItMatters ||
-      (stream.editorial && stream.editorial.whyItMatters) ||
-      "This source remains in the archive with an honest, playable path back to the original upload.");
-    var modal = document.getElementById("tapeModal");
-    document.getElementById("modalContent").innerHTML =
-      '<div class="modal-hero live-modal-hero" style="--accent:var(--cyan)"><img src="' + esc(stream.thumbnail) +
-      '" alt=""><div><p>' + lane + ' // ' +
-      (isArchiveDeep ? "BATCH-LOCAL PRIORITY #" : "LIVE MAP ") +
-      String(laneRank).padStart(2, "0") +
-      (isArchiveDeep ? " // PORTFOLIO #" +
-        String(archiveBatch.portfolioRank || 0).padStart(2, "0") : "") +
-      '</p><h2>' + esc(stream.title) + '</h2><span>' + shortDate(stream.date) + ' // ' +
-      duration(stream.duration) + ' // ' + fmt(stream.views) +
-      (isArchiveDeep ? ' CACHED VIEWS' : ' VIEWS') + '</span></div></div>' +
-      (isArchiveDeep && stream.contentMode === "visual-ranking" ?
-        '<p class="sealed-copy">VISUAL-RANKING RESULT UNVERIFIED // CAPTIONS CANNOT ESTABLISH WHICH KILL OR DEATH WON.</p>' : '') +
-      '<div class="modal-grid live-modal-grid"><section class="modal-verdict"><p class="kicker">THE LIVE-ROOM AUTOPSY</p><blockquote>' +
-      esc(streamSummary) + '</blockquote><div class="live-peak"><b>' + (peak ? peak.heat : "—") +
-      '</b><span>PEAK<br>' + (isArchiveDeep ? "CANDIDATE HEAT" : "COMEDY HEAT") +
-      '</span></div><div class="source-actions"><a href="' + esc(stream.url) +
-      '" target="_blank" rel="noopener">OPEN ORIGINAL ON YOUTUBE ↗</a><button data-share-live="' + stream.id +
-      '">COPY LIVE MAP</button></div></section><section class="live-topic-index"><p class="kicker">JUMP TO A TOPIC // ' +
-      fmt(stream.wordsAudited) + ' WORDS AUDITED</p><ol>' + liveTopicsMarkup(stream) + '</ol></section></div>' +
-      '<section class="heat-section live-heat-section"><div><p class="kicker">' +
-      (stream.rightsPolicy && stream.rightsPolicy.restrictedToTopicNavigation ?
-        "SOURCE-AUDIO FIREWALL // TOPIC NAVIGATION ONLY" : "THE 30-CHAPTER FUNNY-MOMENT HEAT MAP") +
-      '</p><span>' + (isArchiveDeep ? "MACHINE CANDIDATES // NOT CANON // HUMAN PLAYBACK REVIEW REQUIRED" :
-        "CLICK ANY BAR TO JUMP THERE // HEIGHT = COMEDY-SIGNAL DENSITY") + '</span></div><div class="live-heatmap">' +
-      liveHeatMarkup(stream) + '</div></section>' +
-      '<section class="receipt-section"><div><p class="kicker">' +
-      (stream._lane === "popular" ? "FOUNDATIONAL CHAOS" :
-        isArchiveDeep ? "ARCHIVE DEEP // REVIEW-REQUIRED CANDIDATES" : "FRESHLY UNWELL") +
-      ' // SOURCE RECEIPTS</p><span>SHORT AUTO-CAPTION FRAGMENTS // SPEAKER NOT DIARIZED // VERIFY AGAINST ORIGINAL</span></div><div class="modal-player" id="modalPlayer">' +
-      '<div><span>SELECT A TOPIC, HEAT BAR, OR COMEDY HIT TO CUE THE STREAM.</span></div></div><div class="receipt-list">' +
-      liveMomentsMarkup(stream) + '</div></section>';
-    modal.classList.add("show");
-    modal.setAttribute("aria-hidden", "false");
-    document.body.classList.add("modal-open");
-    syncBackgroundInert();
-    focusSoon("#modalClose");
-    bindLivePlayButtons(document.getElementById("modalContent"));
-    bindLiveShareButtons(document.getElementById("modalContent"));
-    if (startTime != null) loadPlayer(stream.id, Number(startTime));
-    history.replaceState(null, "", "?live=" + encodeURIComponent(stream.id) +
-      (startTime != null ? "&at=" + Math.round(startTime) : "") +
-      (stream._lane === "popular" ? "#popular25" : isArchiveDeep ? "#archive" : "#livewire"));
-  }
+  function openDossier(id,startTime){return openSourceDossier(id,startTime,{routeMode:"push"});}
+  function openLiveDossier(id,startTime){return openSourceDossier(id,startTime,{routeMode:"push"});}
 
   function openLooseSource(id, startTime, label, endTime) {
     if (!id) return;
@@ -1946,18 +2189,36 @@
     player.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
-  function closeDossier() {
+  function closeDossier(options) {
+    var settings = options || {};
+    if (!settings.fromHistory && !settings.replaceRoute &&
+        history.state && history.state.wwamSourceDossierPushed) {
+      history.back();
+      return;
+    }
+    if(window.WWAMMemoryCutLauncher)window.WWAMMemoryCutLauncher.destroy();
     var modal = document.getElementById("tapeModal");
     modal.classList.remove("show");
     modal.setAttribute("aria-hidden", "true");
+    modal.setAttribute("aria-busy", "false");
+    modal.removeAttribute("aria-labelledby");
+    modal.removeAttribute("aria-describedby");
+    document.getElementById("modalContent").innerHTML = "";
     document.body.classList.remove("modal-open");
     syncBackgroundInert();
-    var url = new URL(window.location.href);
-    url.searchParams.delete("tape");
-    url.searchParams.delete("live");
-    url.searchParams.delete("at");
-    history.replaceState(null, "", url.pathname + url.hash);
-    restoreDialogFocus();
+    if (!settings.preserveRoute) {
+      var url = new URL(window.location.href);
+      ["source", "tape", "live", "at", "section"].forEach(function (key) {
+        url.searchParams.delete(key);
+      });
+      var nextState = Object.assign({}, history.state || {});
+      delete nextState.wwamSourceDossier;
+      delete nextState.wwamSourceDossierPushed;
+      delete nextState.sourceId;
+      history.replaceState(nextState, "", url);
+    }
+    if (settings.restoreFocus === false) lastDialogFocus = null;
+    else restoreDialogFocus();
   }
 
   function bindPlayButtons(root, inModal) {
@@ -1970,34 +2231,6 @@
         else openDossier(id, at);
       };
     });
-  }
-
-  function bindLivePlayButtons(root) {
-    Array.prototype.forEach.call(root.querySelectorAll("[data-live-play]"), function (button) {
-      button.onclick = function (event) {
-        event.stopPropagation();
-        loadPlayer(button.getAttribute("data-live-play"), Number(button.getAttribute("data-time") || 0));
-      };
-    });
-  }
-
-  function shareUrl(id, at) {
-    var url = new URL(window.location.href);
-    url.search = "";
-    url.hash = "autopsies";
-    url.searchParams.set("tape", id);
-    if (at != null) url.searchParams.set("at", Math.round(at));
-    return url.toString();
-  }
-
-  function shareLiveUrl(id, at) {
-    var url = new URL(window.location.href);
-    url.search = "";
-    url.hash = streamById[id] && streamById[id]._lane === "popular" ? "popular25" :
-      streamById[id] && streamById[id]._lane === "archive" ? "archive" : "livewire";
-    url.searchParams.set("live", id);
-    if (at != null) url.searchParams.set("at", Math.round(at));
-    return url.toString();
   }
 
   function copy(value, message) {
@@ -2042,23 +2275,6 @@
     } else {
       legacyCopy();
     }
-  }
-
-  function bindShareButtons(root) {
-    Array.prototype.forEach.call(root.querySelectorAll("[data-share]"), function (button) {
-      button.onclick = function () {
-        copy(shareUrl(button.getAttribute("data-share"), button.hasAttribute("data-time") ? Number(button.getAttribute("data-time")) : null));
-      };
-    });
-  }
-
-  function bindLiveShareButtons(root) {
-    Array.prototype.forEach.call(root.querySelectorAll("[data-share-live]"), function (button) {
-      button.onclick = function () {
-        copy(shareLiveUrl(button.getAttribute("data-share-live"),
-          button.hasAttribute("data-time") ? Number(button.getAttribute("data-time")) : null));
-      };
-    });
   }
 
   function showToast(message) {
@@ -2108,6 +2324,7 @@
   function ask(query, preservedAnalysis) {
     var statusNode = document.getElementById("askStatus");
     var resultsNode = document.getElementById("askResults");
+    resultsNode._trail = null;
     resultsNode.setAttribute("data-ask-query", String(query || "").trim());
     var redBandIntent = isRedBandRankQuery(query);
     if (redBandIntent && !redBandQueryEngine) {
@@ -2134,6 +2351,7 @@
     var rankedAnalysis = redBandIntent && redBandQueryEngine ?
       redBandQueryEngine.analyze(query, state.askContext) : null;
     var analysis = rankedAnalysis || preservedAnalysis || askEngine.ask(query, state.askContext);
+    resultsNode._trail = analysis;
     if (!redBandIntent && !archiveDeepEngine && analysis.selectionPlan &&
         analysis.selectionPlan.sourceTitleBoundary) {
       state.lastAskQuery = query;
@@ -2194,12 +2412,11 @@
       return;
     }
     var collectionStatus = askCollectionStatus(analysis);
-    var isLongitudinalHandoff = analysis.status === "longitudinal-handoff";
-    var isSurfaceHandoff = analysis.status === "surface-handoff";
-    var isAnyHandoff = isLongitudinalHandoff || isSurfaceHandoff;
+    var isAnyHandoff = /handoff$/.test(analysis.status);
     statusNode.textContent =
-      isLongitudinalHandoff ? "PREDICTION HANDOFF // OPEN THE TAPE KEEPS SCORE" :
-      isSurfaceHandoff ? "GLOBAL RANKING HANDOFF // OPEN THE SOURCE RANKING" :
+      analysis.status === "adjudication-handoff" ? "HUMAN REVIEW // VERDICT ROOM" :
+      analysis.status === "longitudinal-handoff" ? "PREDICTION HANDOFF // TAPE KEEPS SCORE" :
+      analysis.status === "surface-handoff" ? "GLOBAL RANKING HANDOFF // SOURCE RANKING" :
       analysis.status === "out-of-range" ?
         "RED BAND 100 // RANK OUT OF RANGE // NO SILENT CLAMPING" :
         analysis.status === "machine-ranked" && results.length ?
@@ -2223,8 +2440,7 @@
         '<a href="' + esc(analysis.recommendedSurface.href === "#canon-desk" ? "#canon" : analysis.recommendedSurface.href) +
         '"><b>' + esc(displayUiText(analysis.recommendedSurface.label)) + ' →</b><span>' +
         esc(displayUiText(analysis.recommendedSurface.reason)) + '</span></a>' : "") + '</section>';
-    var noMatchHeadline = isLongitudinalHandoff ? "THE TAPE KEEPS SCORE" :
-      isSurfaceHandoff ? "GLOBAL RANKING HANDOFF" :
+    var noMatchHeadline = isAnyHandoff ? analysis.recommendedSurface.label :
       analysis.status === "out-of-range" ? "THAT RANK DOES NOT EXIST." :
         "THE ARCHIVE REFUSED TO MAKE SOMETHING UP.";
     var noMatchBody = isAnyHandoff ? analysis.answer : analysis.status === "out-of-range" ?
@@ -2310,6 +2526,9 @@
       state.memoryTab = "score";
       renderMemory();
     };
+    var verdictLink = document.querySelector('#askResults a[href="#verdict-room"]');
+    if (verdictLink) verdictLink.onclick = function () { dispatchEvent(new CustomEvent(
+      "wwam:verdict-room-open", { detail: analysis.adjudicationHandoff })); };
     syncBagButtons();
   }
 
@@ -2503,17 +2722,9 @@
     var lineages = showcaseCall("getBitLineages", fallbackBitLineages);
     if (!Array.isArray(lineages)) lineages = lineages.items || lineages.bits || [];
     if (!lineages.length) return '<p class="memory-empty">NO RECURRING BIT HAS ENOUGH CURATED INDEXED SIGHTINGS YET.</p>';
-    var selected = lineages[0];
-    var events = (selected.events || selected.performances || selected.receipts || selected.sightings || []).map(enrichEvidence);
-    return '<div class="bit-intro"><span>BIT ANCESTRY // EARLIEST INDEXED TO LATEST SIGHTING</span><h3>' +
-      esc(selected.name || selected.label || selected.bit || "RECURRING BIT") + '</h3><p>' +
-      esc(selected.description || "A recurring performance or callback connected across its source appearances.") +
-      '</p></div><div class="bit-chain">' + events.slice(0, 12).map(function (event, index) {
-        var stage = index === 0 ? "EARLIEST INDEXED SIGHTING" : index === events.length - 1 ? "LATEST SIGHTING" : "MUTATION 0" + index;
-          return '<article><span>' + stage + '</span><b>' + esc(event.title || selected.name || selected.label || selected.bit) +
-          '</b><p>“' + esc(displayQuote(event.excerpt || event.quote || "")) + '”</p>' +
-          evidenceButton(event, "PLAY THE LINEAGE") + '</article>';
-      }).join("") + '</div>';
+    return window.WWAMBitBloodlineHost ?
+      window.WWAMBitBloodlineHost.view(lineages) :
+      '<p class="memory-empty">OPENING ALL FOUR SOURCE-LOCKED BIT BLOODLINES…</p>';
   }
 
   function renderChemistry() {
@@ -2709,6 +2920,7 @@
 
   function renderMemory() {
     if (window.WWAMLongitudinalDocketDemo) window.WWAMLongitudinalDocketDemo.destroy();
+    if (window.WWAMBitBloodlineHost) window.WWAMBitBloodlineHost.destroy();
     var content = state.memoryTab === "time" ? renderTimeMachine() :
       state.memoryTab === "bits" ? renderBitAncestry() :
       state.memoryTab === "chemistry" ? renderChemistry() :
@@ -3373,13 +3585,19 @@
 
   function clipCandidates() {
     if (!clipLabEngine) return [];
-    var filters = { limit: 12 };
+    var sourceLocked = Boolean(state.clipSourceId);
+    var filters = { limit: sourceLocked ? 2000 : 12 };
     if (state.clipQuery.trim()) filters.query = state.clipQuery.trim();
     if (state.clipRisk) filters.maxRisk = state.clipRisk;
     if (state.clipMode === "cold-open") {
       filters.duration = state.coldOpenDuration;
-      filters.limit = 24;
+      filters.limit = sourceLocked ? 2000 : 24;
       var boards = coldOpenFactory ? coldOpenFactory.getStoryboards(filters) : [];
+      if (sourceLocked) {
+        boards = boards.filter(function (board) {
+          return (board.sourceIds || []).indexOf(state.clipSourceId) >= 0;
+        });
+      }
       var query = state.clipQuery.trim().toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
       if (query) {
         boards = boards.slice().sort(function (a, b) {
@@ -3395,11 +3613,32 @@
             Number(a.editorialPriority || 0);
         });
       }
-      return boards.slice(0, 8);
+      return boards.slice(0, sourceLocked ? 60 : 8);
     }
-    if (state.clipMode === "supercuts") return clipLabEngine.getSupercuts(filters);
-    if (state.clipMode === "resurfacing") return clipLabEngine.getResurfacing(filters);
-    return clipLabEngine.getShorts(filters);
+    var values = state.clipMode === "supercuts" ? clipLabEngine.getSupercuts(filters) :
+      state.clipMode === "resurfacing" ? clipLabEngine.getResurfacing(filters) :
+        clipLabEngine.getShorts(filters);
+    if (sourceLocked) {
+      values = values.filter(function (item) {
+        if (item.kind === "short-candidate") return item.sourceId === state.clipSourceId;
+        if (item.kind === "supercut-bundle") {
+          return (item.segments || []).some(function (segment) {
+            return segment.sourceId === state.clipSourceId;
+          });
+        }
+        return item.archive && item.archive.sourceId === state.clipSourceId ||
+          item.current && item.current.sourceId === state.clipSourceId;
+      });
+    }
+    return values.slice(0, sourceLocked ? 60 : 12);
+  }
+
+  function clipSourceLockMarkup() {
+    if (!state.clipSourceId) return "";
+    var source = showcaseSourceById[state.clipSourceId] || streamById[state.clipSourceId] || {};
+    return '<aside class="clip-source-lock"><div><span>EXACT-SOURCE LOCK // AFTERMATH HANDOFF</span><b>' +
+      esc(source.title || state.clipSourceId) + '</b><small>' + esc(state.clipSourceId) +
+      ' // RESULTS BELOW MUST INCLUDE THIS UPLOAD</small></div><button type="button" data-clip-source-clear>RETURN TO ARCHIVE-WIDE CLIP LAB</button></aside>';
   }
 
   function clipReceiptItem(candidate) {
@@ -3623,6 +3862,11 @@
   }
 
   function bindClipLab() {
+    var clearSourceLock = document.querySelector("[data-clip-source-clear]");
+    if (clearSourceLock) clearSourceLock.onclick = function () {
+      state.clipSourceId = "";
+      renderClipLab();
+    };
     Array.prototype.forEach.call(document.querySelectorAll("[data-clip-mode]"), function (button) {
       button.onclick = function () {
         state.clipMode = button.getAttribute("data-clip-mode");
@@ -3696,21 +3940,65 @@
     }
     var metrics = clipLabEngine.metrics || {};
     var coldMetrics = coldOpenFactory && coldOpenFactory.metrics || {};
+    var exactSourceId = state.clipSourceId;
+    var exactShorts = exactSourceId ? (clipLabEngine.shorts || []).filter(function (item) {
+      return item.sourceId === exactSourceId;
+    }).length : metrics.shortCandidates;
+    var exactSupercuts = exactSourceId ? (clipLabEngine.supercuts || []).filter(function (item) {
+      return (item.sourceIds || []).indexOf(exactSourceId) >= 0 || (item.segments || []).some(function (segment) {
+        return segment.sourceId === exactSourceId;
+      });
+    }).length : metrics.supercutBundles;
+    var exactResurfacing = exactSourceId ? (clipLabEngine.resurfacing || []).filter(function (item) {
+      return (item.sourceIds || []).indexOf(exactSourceId) >= 0 ||
+        item.archive && item.archive.sourceId === exactSourceId ||
+        item.current && item.current.sourceId === exactSourceId;
+    }).length : metrics.resurfacingOpportunities;
+    var exactBoards = exactSourceId ? (coldOpenFactory && coldOpenFactory.storyboards || []).filter(function (item) {
+      return (item.sourceIds || []).indexOf(exactSourceId) >= 0;
+    }).length : coldMetrics.storyboards || 0;
+    var sourceProofLabel = exactSourceId ? "SOURCE-LOCKED " : "";
+    var representedSources = exactSourceId ?
+      (exactShorts + exactSupercuts + exactResurfacing + exactBoards > 0 ? 1 : 0) :
+      metrics.sourcesRepresented;
     document.getElementById("clipProof").innerHTML = [
-      [metrics.shortCandidates, "RECEIPT-BACKED SHORTS POOL"],
-      [metrics.supercutBundles, "SUPERCUT SPINES"],
-      [metrics.resurfacingOpportunities, "THEN / NOW PAIRS"],
-      [coldMetrics.storyboards || 0, "COLD OPEN BOARDS"],
-      [metrics.sourcesRepresented, "SOURCES REPRESENTED"],
+      [exactShorts, sourceProofLabel + "SHORTS"],
+      [exactSupercuts, sourceProofLabel + "SUPERCUT SPINES"],
+      [exactResurfacing, sourceProofLabel + "THEN / NOW PAIRS"],
+      [exactBoards, sourceProofLabel + "COLD OPEN BOARDS"],
+      [representedSources, sourceProofLabel + "SOURCES REPRESENTED"],
     ].map(function (stat) {
       return '<div><b>' + fmt(stat[0]) + '</b><span>' + stat[1] + '</span></div>';
     }).join("");
     Array.prototype.forEach.call(document.querySelectorAll("[data-clip-mode]"), function (button) {
-      var on = button.getAttribute("data-clip-mode") === state.clipMode;
+      var buttonMode = button.getAttribute("data-clip-mode");
+      if (buttonMode === "shorts") {
+        button.textContent = exactSourceId ? "THIS SHOW'S " + exactShorts : "TONIGHT'S 12";
+      }
+      var on = buttonMode === state.clipMode;
       button.classList.toggle("on", on);
       button.setAttribute("aria-pressed", on);
     });
     var values = clipCandidates();
+    var shortsShelfLabel = state.clipSourceId ?
+      "THIS SHOW'S " + values.length + " // SOURCE-LOCKED SHORTS" :
+      "TONIGHT'S 12 // MACHINE SHORTLIST";
+    var shortsShelfDescription = state.clipSourceId ?
+      "Every receipt-backed Short candidate currently tied to this exact upload and the active risk gate. " :
+      "The twelve highest-priority receipt-backed candidates under the current search and risk gate. ";
+    var lockedModeLabel = {
+      shorts: "SHORT",
+      supercuts: "SUPERCUT",
+      resurfacing: "THEN / NOW",
+      "cold-open": "COLD-OPEN"
+    }[state.clipMode] || "CLIP";
+    var clipEmptyHeading = state.clipMode === "cold-open" && !coldOpenFactory ?
+      "THE COLD OPEN FACTORY COULD NOT INITIALIZE." : state.clipSourceId ?
+        "NO " + lockedModeLabel + " OPPORTUNITIES ARE REGISTERED FOR THIS SOURCE." :
+        "THE RISK GATE ATE THAT SEARCH.";
+    var clipEmptyDetail = state.clipSourceId ?
+      "This is a real zero. Switch modes or return to the archive-wide Clip Lab." :
+      "Widen the filter or search a broader topic.";
     values.forEach(function (item) {
       clipItemById[item.id] = item;
       (item.segments || []).forEach(function (segment) { clipItemById[segment.id] = segment; });
@@ -3718,22 +4006,21 @@
       if (item.current) clipItemById[item.current.id] = item.current;
     });
     document.getElementById("clipResults").innerHTML =
+      clipSourceLockMarkup() +
       (state.clipMode === "cold-open" ? coldOpenFormatBar() : "") +
       (state.clipMode === "shorts"
-        ? '<div class="clip-shortlist-bar"><div><span>TONIGHT\'S 12 // MACHINE SHORTLIST</span>' +
-          '<b>THE FIRST EDITORIAL PASS, NOT A PUBLISH QUEUE.</b></div><p>The twelve highest-priority ' +
-          'receipt-backed candidates under the current search and risk gate. Every hook is proposed copy; ' +
-          'context, speaker, rights, and the final cut still require a human.</p></div>'
+        ? '<div class="clip-shortlist-bar"><div><span>' + esc(shortsShelfLabel) + '</span>' +
+          '<b>THE FIRST EDITORIAL PASS, NOT A PUBLISH QUEUE.</b></div><p>' +
+          esc(shortsShelfDescription) + 'Every hook is proposed copy; context, speaker, rights, and ' +
+          'the final cut still require a human.</p></div>'
         : "") +
       (values.length ? values.map(function (item) {
         if (item.kind === "cold-open-storyboard") return coldOpenCard(item);
         if (item.kind === "supercut-bundle") return supercutCard(item);
         if (item.kind === "episode-resurfacing") return resurfacingCard(item);
         return shortCard(item);
-      }).join("") : '<div class="clip-empty"><b>' +
-        (state.clipMode === "cold-open" && !coldOpenFactory ?
-          "THE COLD OPEN FACTORY COULD NOT INITIALIZE." : "THE RISK GATE ATE THAT SEARCH.") +
-        '</b><span>Widen the filter or search a broader topic.</span></div>');
+      }).join("") : '<div class="clip-empty"><b>' + esc(clipEmptyHeading) +
+        '</b><span>' + esc(clipEmptyDetail) + '</span></div>');
     renderCampaign();
     bindClipLab();
   }
@@ -3825,26 +4112,11 @@
   }
 
   function renderClaimAudit() {
-    var timelines = trustEngine.timelineAudits.slice().sort(function (a, b) {
-      return b.projectedOrAmbiguousReceiptIds.length - a.projectedOrAmbiguousReceiptIds.length;
-    }).slice(0, 8);
-    var courts = trustEngine.courtAudits.slice(0, 6);
-    return '<div class="canon-lane-head warning"><div><span>DISCOVERY CANDIDATES // NOT CREATOR-CERTIFIED CANON</span><h3>0 TAKE TIMELINES AND 0 COURTS CURRENTLY PASS THE STRICT CANON GATE.</h3></div><p>Receipt trails and machine-surfaced argument boards—not host-change claims or verdicts.</p></div>' +
-      '<div class="claim-audit"><section><header><span>TAKE TIMELINE AUDIT</span><b>' +
-      trustEngine.metrics.timelines + ' REVIEWED</b></header>' + timelines.map(function (timeline) {
-        return '<article><div><h4>' + esc(timeline.subject) + '</h4><b>' +
-          timeline.directOpinionReceiptIds.length + '/' + timeline.receipts.length + ' DIRECT</b></div><p>' +
-          esc(timeline.safePublicLabel) + '</p><small>' +
-          timeline.projectedOrAmbiguousReceiptIds.length + ' AMBIGUOUS OR PROJECTED RECEIPTS // CANON BLOCKED</small></article>';
-      }).join("") + '</section><section><header><span>COURT AUDIT</span><b>' +
-      trustEngine.metrics.courts + ' REVIEWED</b></header>' + courts.map(function (court) {
-        return '<article><div><h4>' + esc(court.title) + '</h4><b>' + esc(court.verdict) +
-          '</b></div><p>' + esc(court.safePublicLabel) + '</p><small>' +
-          court.directProsecutionReceipts.length + ' DIRECT PROSECUTION // ' +
-          court.directDefenseReceipts.length + ' DIRECT DEFENSE</small></article>';
-      }).join("") + '</section></div>';
+    if (!window.WWAMCanonDeskUI) {
+      return '<p class="memory-empty">THE CLAIM AUDIT UI IS STILL LOADING.</p>';
+    }
+    return window.WWAMCanonDeskUI.renderClaimAudit({ trustEngine: trustEngine, esc: esc });
   }
-
   function contributionPreview(packet) {
     if (!packet) return '<div class="contribution-empty"><b>NO PACKET YET.</b><span>Submit a source and time; the desk proposes, never rewrites canon.</span></div>';
     return '<article class="contribution-preview"><header><span>' + esc(packet.schema) +
@@ -3892,122 +4164,19 @@
     return storageSet("wwam-human-review-v52", humanReviewSession.exportJSON());
   }
 
-  function reviewCandidateButton(candidate) {
-    return '<button class="' + (candidate.id === state.reviewSelected ? "on" : "") +
-      '" data-review-select="' + esc(candidate.id) + '"><span>' +
-      esc(candidate.origin.toUpperCase() + " // " + candidate.severity + " // " +
-        candidate.reviewStatus.replace(/-/g, " ").toUpperCase()) +
-      '</span><b>' + esc(candidate.title) + '</b><small>' +
-      candidate.evidence.length + ' EVIDENCE RECEIPT' +
-      (candidate.evidence.length === 1 ? "" : "S") + '</small></button>';
-  }
-
   function renderHumanReviewSession() {
-    if (!humanReviewSession) {
-      return '<p class="memory-empty">THE LOCAL REVIEW SESSION COULD NOT INITIALIZE. NO DECISIONS WERE RECORDED.</p>';
+    if (!window.WWAMCanonDeskUI) {
+      return '<p class="memory-empty">THE LOCAL REVIEW DESK IS STILL LOADING.</p>';
     }
-    var filters = {
-      origin: state.reviewOrigin,
-      status: state.reviewStatus,
-      query: state.reviewQuery,
-    };
-    var allMatches = humanReviewSession.getQueue(filters);
-    var queue = allMatches.slice(0, 40);
-    if (!state.reviewSelected || !allMatches.some(function (item) {
-      return item.id === state.reviewSelected;
-    })) {
-      state.reviewSelected = queue[0] ? queue[0].id : "";
-    }
-    var candidate = state.reviewSelected ? humanReviewSession.getCandidate(state.reviewSelected) : null;
-    var history = candidate ? humanReviewSession.getLedger(candidate.id) : [];
-    var metrics = humanReviewSession.metrics;
-    var transitions = candidate && window.WWAMHumanReviewSession.TRANSITIONS[candidate.reviewStatus] || [];
-    var evidence = candidate ? candidate.evidence : [];
-    var dossier = candidate ?
-      '<article class="review-dossier"><header><div><span>' +
-      esc(candidate.origin.toUpperCase() + " FINDING // " + candidate.kind.toUpperCase()) +
-      '</span><h4>' + esc(candidate.title) + '</h4></div><b>' +
-      esc(candidate.reviewStatus.replace(/-/g, " ").toUpperCase()) +
-      '</b></header><p>' + esc(candidate.summary || candidate.claim || "No summary supplied.") +
-      '</p><blockquote>' + esc(candidate.recommendation || "Human context review required.") +
-      '</blockquote><div class="review-evidence"><span>ATTACHED PLAYABLE EVIDENCE // CHECK BEFORE POSITIVE ROUTING</span>' +
-      (evidence.length ? evidence.map(function (item, index) {
-        return '<div class="review-evidence-row"><input type="checkbox" aria-label="Include receipt ' +
-          String(index + 1) + '" data-review-evidence value="' + esc(item.id) +
-          '" ' + (item.eligibleForProgression ? "checked" : "disabled") + '><b>RECEIPT ' +
-          String(index + 1).padStart(2, "0") + '</b><span>' +
-          esc((item.sourceId || "UNRESOLVED SOURCE") + " @ " +
-            (item.t == null ? "NO TIME" : timestamp(item.t)) + " // " +
-            (item.evidenceLevel || "UNLABELED")) + '</span>' +
-          (item.sourceId && item.t != null ?
-            canonEvidenceButton(item, "OPEN FULL SOURCE CONTEXT") : "") + '</div>';
-      }).join("") :
-        '<div class="review-no-evidence">NO PLAYABLE RECEIPT ATTACHED. POSITIVE PROGRESSION IS LOCKED.</div>') +
-      '</div><form id="humanReviewForm"><div class="review-form-grid">' +
-      '<label><span>CALLER-ATTESTED HUMAN REVIEWER ROLE</span><input id="reviewRole" required placeholder="editor, researcher, owner..."></label>' +
-      '<label><span>OPTIONAL REVIEWER NAME / ID</span><input id="reviewName" placeholder="Ricky or reviewer-17"></label>' +
-      '<label><span>HUMAN-ENTERED ISO TIME + ZONE</span><input id="reviewAt" required ' +
-      'placeholder="2026-07-23T21:30:00-04:00"></label>' +
-      '<label class="wide"><span>HUMAN NOTES</span><textarea id="reviewNotes" required placeholder="What did you check, and what remains uncertain?"></textarea></label>' +
-      '<label class="wide"><span>EXACT WORDING YOU PERSONALLY CHECKED // REQUIRED FOR WORDING CHECKED</span>' +
-      '<textarea id="reviewWording" placeholder="Do not paste a certification label. Preserve the evidence boundary."></textarea></label>' +
-      '<label class="wide review-attestation"><input id="reviewAttestation" type="checkbox" required>' +
-      '<span>I ATTEST THIS DECISION WAS MADE BY A HUMAN REVIEWER. THIS LOCAL PROTOTYPE DOES NOT AUTHENTICATE IDENTITY.</span></label>' +
-      '</div><div class="review-actions">' +
-      (transitions.length ? transitions.map(function (status) {
-        var positive = status === "wording-checked" || status === "ready-for-creator-review";
-        return '<button type="button" data-review-decision="' + esc(status) +
-          '" class="' + (positive ? "positive" : status === "reject-candidate" ? "reject" : "") +
-          '" ' + (positive && !evidence.some(function (item) {
-            return item.eligibleForProgression;
-          }) ? "disabled" : "") + '>' + esc(status.replace(/-/g, " ").toUpperCase()) +
-          '</button>';
-      }).join("") : '<b>TERMINAL LOCAL STATUS // NO FURTHER TRANSITION</b>') +
-      '</div><small>Routing only. This form cannot certify a creator, identify an undiarized speaker, or mutate canon.</small></form>' +
-      (history.length ? '<div class="review-history"><span>PROOF-CHAINED LOCAL HISTORY</span>' +
-        history.map(function (decision) {
-          return '<article><b>' + esc(decision.before.status.toUpperCase() + " -> " +
-            decision.after.status.toUpperCase()) + '</b><span>' + esc(decision.at) +
-            ' // ' + esc(decision.reviewer.role.toUpperCase()) + '</span><small>' +
-            esc(decision.proofFingerprint) + '</small></article>';
-        }).join("") + '</div>' : "") + '</article>' :
-      '<div class="review-dossier review-empty"><b>NO FINDINGS MATCH THIS FILTER.</b><span>Widen the origin, status, or search terms.</span></div>';
-
-    return '<div class="canon-lane-head"><div><span>LOCAL REVIEW ROUTING // CALLER-ATTESTED, CORPUS-BOUND, ZERO SELF-CERTIFICATION</span>' +
-      '<h3>' + metrics.candidates + ' FINDINGS. ' + metrics.decisions +
-      ' CALLER-ATTESTED DECISIONS. 0 CANON MUTATIONS.</h3></div><p>Identity is not authenticated. Decisions stay local; incompatible ledgers are quarantined for export.</p></div>' +
-      '<div class="review-session-metrics">' + [
-        [metrics.unreviewed, "UNREVIEWED"],
-        [metrics.needsContext, "NEEDS CONTEXT"],
-        [metrics.wordingChecked, "WORDING CHECKED"],
-        [metrics.readyForCreatorReview, "READY FOR CREATOR REVIEW"],
-        [metrics.rejected, "REJECTED"],
-      ].map(function (item) {
-        return '<div><b>' + item[0] + '</b><span>' + item[1] + '</span></div>';
-      }).join("") + '</div>' +
-      '<div class="review-session-toolbar"><label><span>FINDING ORIGIN</span><select id="reviewOrigin">' +
-      '<option value="">TRUST + CANON</option><option value="trust" ' +
-      (state.reviewOrigin === "trust" ? "selected" : "") + '>TRUST DESK</option><option value="canon" ' +
-      (state.reviewOrigin === "canon" ? "selected" : "") + '>CANON AUDIT</option></select></label>' +
-      '<label><span>LOCAL STATUS</span><select id="reviewStatus"><option value="">ALL STATUSES</option>' +
-      ["unreviewed", "needs-context", "wording-checked", "ready-for-creator-review", "reject-candidate"].map(function (status) {
-        return '<option value="' + status + '" ' + (state.reviewStatus === status ? "selected" : "") +
-          '>' + status.replace(/-/g, " ").toUpperCase() + '</option>';
-      }).join("") + '</select></label><label><span>SEARCH FINDINGS</span><input id="reviewQuery" value="' +
-      esc(state.reviewQuery) + '" placeholder="court, character, excerpt..."></label><div><button id="reviewCopySession">COPY SESSION</button>' +
-      '<button id="reviewDownloadSession">DOWNLOAD JSON</button>' +
-      (state.reviewQuarantinedLedger ? '<button id="reviewDownloadQuarantine">EXPORT HELD LEDGER</button>' : "") +
-      '</div></div>' +
-      '<p class="review-notice" id="reviewNotice" role="status" aria-live="polite"' +
-      (state.reviewNotice || state.reviewRestoreNotice ? "" : ' hidden') + '>' +
-      esc([state.reviewRestoreNotice, state.reviewNotice].filter(Boolean).join(" ")) + '</p>' +
-      '<div class="review-session-grid"><aside><header><span>' + allMatches.length +
-      ' MATCHES // SHOWING ' + queue.length + '</span><b>' +
-      esc(humanReviewSession.corpus.reviewInputFingerprint) + '</b></header><div>' +
-      queue.map(reviewCandidateButton).join("") + '</div></aside><section>' + dossier +
-      '</section></div>';
+    return window.WWAMCanonDeskUI.renderHumanReviewSession({
+      session: humanReviewSession,
+      state: state,
+      esc: esc,
+      timestamp: timestamp,
+      evidenceButton: canonEvidenceButton,
+      transitions: window.WWAMHumanReviewSession && window.WWAMHumanReviewSession.TRANSITIONS,
+    });
   }
-
   function bindCanon() {
     Array.prototype.forEach.call(document.querySelectorAll("[data-canon-tab]"), function (button) {
       button.onclick = function () {
@@ -4218,7 +4387,24 @@
     bindCanon();
   }
 
-  function bindPilotBuilder(brief) {
+  function ensureAftermathPilot() {
+    if (aftermathPackEngine || aftermathPilotLoadPromise) return aftermathPilotLoadPromise;
+    state.pilotAftermathNotice = "VERIFYING THE THREE SOURCE-LOCKED PACKS...";
+    aftermathPilotLoadPromise = loadSourceDossier().then(function () {
+      state.pilotAftermathNotice = aftermathPackEngine ? "" :
+        "AFTERMATH OFFER HELD // SOURCE-BOUND PACKS DID NOT INITIALIZE";
+      renderPilotBuilder();
+      return aftermathPackEngine;
+    }).catch(function (error) {
+      state.pilotAftermathNotice = "AFTERMATH OFFER HELD // " +
+        (error && error.message ? error.message : "SOURCE-BOUND PACKS DID NOT INITIALIZE");
+      renderPilotBuilder();
+      return null;
+    });
+    return aftermathPilotLoadPromise;
+  }
+
+  function bindPilotBuilder(brief, aftermathPilot) {
     Array.prototype.forEach.call(document.querySelectorAll("[data-pilot-goal]"), function (button) {
       button.onclick = function () {
         state.pilotGoal = button.getAttribute("data-pilot-goal");
@@ -4227,14 +4413,22 @@
     });
     var copyButton = document.getElementById("pilotCopy");
     if (copyButton) copyButton.onclick = function () {
-      copy(
-        pilotBuilderEngine.exportMarkdown(brief),
-        "CREATOR PILOT BRIEF COPIED // STILL A DRAFT"
-      );
+      var markdown = pilotBuilderEngine.exportMarkdown(brief);
+      if (aftermathPilot) {
+        markdown += "\n\n# PROPOSED AFTERMATH PILOT\n\n" +
+          aftermathPilot.offer.label + "\n\n" + aftermathPilot.promise +
+          "\n\nNo performance promise. Mutual agreement required.\n";
+      }
+      copy(markdown, "CREATOR PILOT BRIEF COPIED // STILL A DRAFT");
     };
     var downloadButton = document.getElementById("pilotDownload");
     if (downloadButton) downloadButton.onclick = function () {
-      downloadJson("wwam-" + state.pilotGoal + "-pilot-draft.json", brief);
+      downloadJson("wwam-" + state.pilotGoal + "-pilot-draft.json",
+        aftermathPilot ? {
+          schema: "wwam.creator-pilot-handoff/v1",
+          brief: brief,
+          proposedAftermathOffer: aftermathPilot
+        } : brief);
       showToast("PILOT DRAFT DOWNLOADED // HUMAN APPROVAL STILL REQUIRED");
     };
   }
@@ -4259,6 +4453,25 @@
     }
     var verification = pilotBuilderEngine.verify(brief);
     var integrity = pilotBuilderEngine.integrity;
+    var wantsAftermathPilot = state.pilotGoal === "compilation-workflow";
+    if (wantsAftermathPilot && !aftermathPackEngine) ensureAftermathPilot();
+    var aftermathPilot = wantsAftermathPilot && aftermathPackEngine ?
+      attempt(function () {
+        return aftermathPackEngine.buildPilot({ sourceIds: ["LV2rmwEA0w4"] });
+      }, "Aftermath pilot offer rendering") : null;
+    var aftermathPilotMarkup = aftermathPilot ?
+      '<section class="pilot-fixed-offer"><div><span>PROPOSED FIXED-SCOPE CREATOR PILOT</span><h4>' +
+      esc(aftermathPilot.offer.label) + '</h4><p>' + esc(aftermathPilot.promise) +
+      '</p></div><div class="pilot-fixed-sources">' + aftermathPilot.sources.map(function (source) {
+        return '<article><span>' + esc(source.date) + '</span><b>' + esc(source.title) +
+          '</b><small>' + esc(source.opportunities) + ' REGISTERED REVIEW CANDIDATES // PACK ' +
+          esc(source.packFingerprint) + '</small></article>';
+      }).join("") + '</div><footer><b>' + esc(aftermathPilot.status) +
+      '</b><p>' + esc(aftermathPilot.commercialBoundary) + '</p></footer></section>' :
+      wantsAftermathPilot ? '<section class="pilot-fixed-offer"><div><span>PROPOSED FIXED-SCOPE CREATOR PILOT</span><h4>' +
+        (state.pilotAftermathNotice.indexOf("HELD") >= 0 ? 'PROOF HELD.' : 'VERIFYING $500 / 3 SHOWS / 14 DAYS...') +
+        '</h4><p>' + esc(state.pilotAftermathNotice || "VERIFYING THE THREE SOURCE-LOCKED PACKS...") +
+        '</p></div></section>' : "";
     stage.innerHTML =
       '<header class="pilot-head"><div><span>CREATOR PILOT BUILDER // PICK ONE JOB, THEN PROVE IT</span>' +
       '<h3>DON\'T BUY THE DREAM.<br>TEST THE MACHINE.</h3></div><div class="pilot-status"><b>' +
@@ -4270,7 +4483,7 @@
           '" data-pilot-goal="' + esc(goal.id) + '" aria-pressed="' +
           (goal.id === state.pilotGoal ? "true" : "false") + '"><span>' + esc(goal.label) +
           '</span><b>' + esc(goal.question) + '</b></button>';
-      }).join("") + '</nav>' +
+      }).join("") + '</nav>' + aftermathPilotMarkup +
       '<div class="pilot-brief">' +
       '<section class="pilot-promise"><span>THE NARROW PROMISE</span><h4>' +
       esc(brief.goal.label) + '</h4><p>' + esc(brief.pitch) +
@@ -4309,7 +4522,7 @@
       '<footer class="pilot-actions"><p>' + esc(brief.commercialBoundary) +
       '</p><div><button id="pilotCopy">COPY PILOT BRIEF</button>' +
       '<button id="pilotDownload">DOWNLOAD PROOF LEDGER</button></div></footer>';
-    bindPilotBuilder(brief);
+    bindPilotBuilder(brief, aftermathPilot);
     if (focusGoal) {
       var selectedGoal = stage.querySelector('[data-pilot-goal="' + state.pilotGoal + '"]');
       if (selectedGoal) selectedGoal.focus();
@@ -4377,9 +4590,14 @@
     }
     var openModal = document.getElementById("tapeModal").classList.contains("show");
     if (openModal) {
-      var params = new URLSearchParams(location.search);
-      if (params.get("tape")) openDossier(params.get("tape"), params.get("at"));
-      else if (params.get("live")) openLiveDossier(params.get("live"), params.get("at"));
+      var route = readSourceRoute();
+      if (route) {
+        openSourceDossier(route.sourceId, route.at, {
+          section: route.section,
+          routeMode: route.legacy ? "replace" : "none",
+          autoplay: false,
+        });
+      }
     }
     if (!preferencePersisted) showToast("LANGUAGE PREFERENCE KEPT FOR THIS TAB ONLY");
   }
@@ -4397,11 +4615,40 @@
     document.getElementById("tourNext").textContent = state.tourSlide === tourSlides.length - 1 ? "COPY DEMO LINK" : "NEXT →";
     document.querySelector("[data-tour-proof]").onclick = runTourProof;
   }
+  function updateTourLaunchers() {
+    var total = tourSlides.length || 6;
+    var canResume = Number.isInteger(state.tourResumeSlide) &&
+      state.tourResumeSlide >= 0 && state.tourResumeSlide < total;
+    var step = canResume ? (state.tourResumeSlide + 1) + "/" + total : "";
+    var mikeButton = document.getElementById("mikeButton");
+    var pitchButton = document.getElementById("pitchTourButton");
+    var footerButton = document.getElementById("footerPitch");
+    if (mikeButton) {
+      mikeButton.innerHTML = '<span></span> ' + (canResume ? "RESUME " + step : "MIKE MODE");
+      mikeButton.setAttribute("aria-label", canResume ?
+        "Resume Mike Mode at slide " + (state.tourResumeSlide + 1) + " of " + total :
+        "Open Mike Mode");
+      mikeButton.classList.toggle("tour-resume-ready", canResume);
+    }
+    if (pitchButton) {
+      pitchButton.textContent = canResume ?
+        "RESUME MIKE MODE · " + step : "START THE 60-SECOND PITCH";
+      pitchButton.classList.toggle("tour-resume-ready", canResume);
+    }
+    if (footerButton) {
+      footerButton.textContent = canResume ? "RESUME MIKE MODE · " + step : "MIKE MODE";
+      footerButton.classList.toggle("tour-resume-ready", canResume);
+    }
+  }
+
 
   function runTourProof() {
     var action = tourSlides[state.tourSlide].action;
-    closeTour();
+    closeTour({
+      resumeSlide: Math.min(state.tourSlide + 1, tourSlides.length - 1),
+    });
     var targetId = action.kind === "ask" ? "ask" :
+      (action.kind === "source" || action.kind === "aftermath") ? "archive" :
       action.kind === "lore" ? "lore" :
         action.kind === "clip" ? "clip-lab" :
           action.kind === "pilot" ? "pitch" :
@@ -4413,6 +4660,10 @@
       document.getElementById("askInput").value = action.query;
       ask(action.query);
       document.getElementById("ask").scrollIntoView({ behavior: "smooth" });
+    } else if (action.kind === "source" || action.kind === "aftermath") {
+      openSourceDossier(action.sourceId, action.at == null ? null : action.at,
+        {section:action.section || (action.kind === "aftermath" ? "aftermath" : "ask"),
+          query:action.query || "", routeMode:"push", autoplay:false});
     } else if (action.kind === "lore") {
       state.loreKind = "character";
       state.loreSelected = action.entry;
@@ -4421,6 +4672,7 @@
       renderLore();
       document.getElementById("lore").scrollIntoView({ behavior: "smooth" });
     } else if (action.kind === "clip") {
+      state.clipSourceId = action.sourceId || "";
       state.clipMode = action.mode || "shorts";
       if (action.duration) state.coldOpenDuration = action.duration;
       state.clipQuery = action.query;
@@ -4458,7 +4710,11 @@
       return;
     }
     rememberDialogFocus();
-    state.tourSlide = 0;
+    state.tourSlide = Number.isInteger(state.tourResumeSlide) &&
+      state.tourResumeSlide >= 0 && state.tourResumeSlide < tourSlides.length ?
+      state.tourResumeSlide : 0;
+    state.tourResumeSlide = null;
+    updateTourLaunchers();
     renderTour();
     document.getElementById("pitchTour").classList.add("show");
     document.getElementById("pitchTour").setAttribute("aria-hidden", "false");
@@ -4468,7 +4724,11 @@
     focusSoon("#tourClose");
   }
 
-  function closeTour() {
+  function closeTour(options) {
+    var requestedResume = options && Number.isInteger(options.resumeSlide) ?
+      options.resumeSlide : state.tourSlide;
+    state.tourResumeSlide = Math.max(0, Math.min(requestedResume, tourSlides.length - 1));
+    updateTourLaunchers();
     document.getElementById("pitchTour").classList.remove("show");
     document.getElementById("pitchTour").setAttribute("aria-hidden", "true");
     document.body.classList.remove("modal-open");
@@ -4541,41 +4801,23 @@
   }
 
   function bindPage() {
-    document.getElementById("triviaDifficulty").onchange = function (event) {
-      state.triviaDifficulty = event.target.value;
-    };
+    document.getElementById("triviaDifficulty").onchange = function (event) { state.triviaDifficulty = event.target.value; };
     document.getElementById("triviaLength").onchange = function (event) {
       state.triviaLength = Number(event.target.value);
-      document.getElementById("triviaStart").textContent =
-        "DEAL ME " + state.triviaLength + " →";
+      document.getElementById("triviaStart").textContent = "DEAL ME " + state.triviaLength + " →";
     };
-    document.getElementById("triviaFranchise").onchange = function (event) {
-      state.triviaFranchise = event.target.value;
-    };
+    document.getElementById("triviaFranchise").onchange = function (event) { state.triviaFranchise = event.target.value; };
     document.getElementById("triviaStart").onclick = function () {
-      if (!tapeTriviaEngine) return showToast("THE TRIVIA DECK IS STILL SHUFFLING");
-      startTrivia(true);
+      if (!tapeTriviaEngine) return showToast("THE TRIVIA DECK IS STILL SHUFFLING"); startTrivia(true);
     };
-    document.getElementById("loreSearch").oninput = function (event) {
-      state.loreQuery = event.target.value;
-      renderLore();
-    };
-    document.getElementById("clipSearch").oninput = function (event) {
-      state.clipQuery = event.target.value;
-      renderClipLab();
-    };
-    document.getElementById("clipRisk").onchange = function (event) {
-      state.clipRisk = event.target.value;
-      renderClipLab();
-    };
+    document.getElementById("loreSearch").oninput = function (event) { state.loreQuery = event.target.value; renderLore(); };
+    document.getElementById("clipSearch").oninput = function (event) { state.clipQuery = event.target.value; renderClipLab(); };
+    document.getElementById("clipRisk").onchange = function (event) { state.clipRisk = event.target.value; renderClipLab(); };
     document.getElementById("campaignCopy").onclick = function () {
-      if (!clipLabEngine) return showToast("THE CLIP LAB IS STILL INDEXING");
-      copy(clipLabEngine.exportManifest(campaignManifest(), 2), "EDITORIAL CAMPAIGN COPIED");
+      if (!clipLabEngine) return showToast("THE CLIP LAB IS STILL INDEXING"); copy(clipLabEngine.exportManifest(campaignManifest(), 2), "EDITORIAL CAMPAIGN COPIED");
     };
     document.getElementById("campaignDownload").onclick = function () {
-      if (!clipLabEngine) return showToast("THE CLIP LAB IS STILL INDEXING");
-      downloadJson("wwam-editorial-campaign.json", campaignManifest());
-      showToast("EDITORIAL CAMPAIGN DOWNLOADED");
+      if (!clipLabEngine) return showToast("THE CLIP LAB IS STILL INDEXING"); downloadJson("wwam-editorial-campaign.json", campaignManifest()); showToast("EDITORIAL CAMPAIGN DOWNLOADED");
     };
     document.getElementById("campaignClear").onclick = function () {
       state.campaignIds = [];
@@ -4585,22 +4827,9 @@
       showToast(persisted ? "THE CAMPAIGN TRAY IS CLEAR" :
         "CAMPAIGN CLEARED // THIS TAB ONLY");
     };
-    document.getElementById("evidenceBagOpen").onclick = function () {
-      rememberDialogFocus();
-      state.bagOpen = true;
-      renderEvidenceBag();
-      focusSoon("#evidenceBagClose");
-    };
-    document.getElementById("evidenceBagClose").onclick = function () {
-      state.bagOpen = false;
-      renderEvidenceBag();
-      restoreDialogFocus();
-    };
-    document.getElementById("evidenceBagScrim").onclick = function () {
-      state.bagOpen = false;
-      renderEvidenceBag();
-      restoreDialogFocus();
-    };
+    document.getElementById("evidenceBagOpen").onclick = function () { rememberDialogFocus(); state.bagOpen = true; renderEvidenceBag(); focusSoon("#evidenceBagClose"); };
+    document.getElementById("evidenceBagClose").onclick = function () { state.bagOpen = false; renderEvidenceBag(); restoreDialogFocus(); };
+    document.getElementById("evidenceBagScrim").onclick = function () { state.bagOpen = false; renderEvidenceBag(); restoreDialogFocus(); };
     document.getElementById("evidenceBagCopy").onclick = copyEvidenceManifest;
     document.getElementById("evidenceBagDownload").onclick = downloadEvidenceManifest;
     document.getElementById("evidenceBagClear").onclick = function () {
@@ -4649,8 +4878,7 @@
       };
     });
     document.getElementById("soundRoulette").onclick = function () {
-      var candidates = soundbytes();
-      var item = candidates[Math.floor(Math.random() * candidates.length)];
+      var candidates = soundbytes(), item = candidates[Math.floor(Math.random() * candidates.length)];
       if (item) cueSoundbyte(item);
     };
     document.getElementById("characterForm").onsubmit = function (event) {
@@ -4658,10 +4886,7 @@
       var question = document.getElementById("characterInput").value.trim();
       if (question.length > 1) askCharacter(question);
     };
-    document.getElementById("popularSearch").oninput = function (event) {
-      state.popularQuery = event.target.value;
-      renderPopular();
-    };
+    document.getElementById("popularSearch").oninput = function (event) { state.popularQuery = event.target.value; renderPopular(); };
     Array.prototype.forEach.call(document.querySelectorAll("[data-memory-tab]"), function (button) {
       button.onclick = function () {
         state.memoryTab = button.getAttribute("data-memory-tab");
@@ -4673,16 +4898,35 @@
       };
     });
     document.getElementById("memory").addEventListener("wwam:feature-ready", function () {
-      if (state.memoryTab === "score") renderMemory();
+      if (state.memoryTab === "score" || state.memoryTab === "bits") renderMemory();
     });
     addEventListener("hashchange", function () {
       if (location.hash !== "#tape-keeps-score") return;
       document.getElementById("tape-keeps-score").click();
     });
-    document.getElementById("vaultSearch").oninput = function (event) {
-      state.vaultQuery = event.target.value;
-      renderVault();
-    };
+    addEventListener("popstate", function () {
+      var route = readSourceRoute();
+      if (route) {
+        openSourceDossier(route.sourceId, route.at, {
+          section: route.section,
+          routeMode: route.legacy ? "replace" : "none",
+          autoplay: false,
+        });
+      } else if (document.getElementById("tapeModal").classList.contains("show")) {
+        closeDossier({ fromHistory: true, preserveRoute: true });
+      }
+    });
+    addEventListener("wwam:verdict-room-open", function (event) {
+      var room = document.getElementById("verdict-room");
+      room.setAttribute("data-verdict-subject",
+        event.detail && typeof event.detail.subjectId === "string" ? event.detail.subjectId : "");
+      location.hash = "verdict-room";
+      window.WWAMFeatureLoader.hydrate(room).then(function (ready) {
+        if (ready && window.WWAMVerdictRoomSurface)
+          window.WWAMVerdictRoomSurface.open(room.getAttribute("data-verdict-subject"));
+      });
+    });
+    document.getElementById("vaultSearch").oninput = function (event) { state.vaultQuery = event.target.value; renderVault(); };
     document.getElementById("askForm").onsubmit = function (event) {
       event.preventDefault();
       var query = document.getElementById("askInput").value.trim();
@@ -4704,9 +4948,7 @@
       };
     });
     document.getElementById("modalClose").onclick = closeDossier;
-    document.getElementById("tapeModal").onclick = function (event) {
-      if (event.target.id === "tapeModal") closeDossier();
-    };
+    document.getElementById("tapeModal").onclick = function (event) { if (event.target.id === "tapeModal") closeDossier(); };
     document.addEventListener("keydown", function (event) {
       trapDialogFocus(event);
       if (event.key === "Escape") {
@@ -4721,6 +4963,11 @@
     [document.getElementById("mikeButton"), document.getElementById("pitchTourButton"), document.getElementById("footerPitch")].forEach(function (button) {
       button.onclick = openTour;
     });
+    document.getElementById("latestDossierButton").onclick = function () {
+      openSourceDossier((live.streams[0] || {id:"LV2rmwEA0w4"}).id, null, {section:"ask",
+        query:"Show me the Dr. Loomis moments in this tape.",
+        routeMode:"push", autoplay:false});
+    };
     document.getElementById("copyDemoButton").onclick = function () { copy(location.origin + location.pathname + "#pitch"); };
     document.getElementById("tourClose").onclick = closeTour;
     document.getElementById("tourBack").onclick = function () {
@@ -4738,13 +4985,14 @@
     if (gate && !gate.classList.contains("gone")) return;
     state.initialRouteHandled = true;
     var params = new URLSearchParams(location.search);
-    if (params.get("tape")) {
-      setTimeout(function () { openDossier(params.get("tape"), params.get("at")); }, 50);
-    } else if (params.get("live")) {
+    var sourceRoute = readSourceRoute();
+    if (sourceRoute) {
       setTimeout(function () {
-        var id = params.get("live");
-        if (streamById[id]) openLiveDossier(id, params.get("at"));
-        else loadArchiveAtlas().then(function () { openLiveDossier(id, params.get("at")); });
+        openSourceDossier(sourceRoute.sourceId, sourceRoute.at, {
+          section: sourceRoute.section,
+          routeMode: sourceRoute.legacy ? "replace" : "none",
+          autoplay: false,
+        });
       }, 50);
     } else if (window.WWAMAskShare.read(location.search)) {
       setTimeout(function () {
@@ -4774,8 +5022,11 @@
     document.body.classList.toggle("office-bleep", !state.redBand);
     document.getElementById("bandToggle").textContent =
       "REDUCED PROFANITY: " + (state.redBand ? "OFF" : "ON");
-    document.getElementById("consoleStatus").textContent = "SCANNING " +
-      fmt((channelDNA.proofSnapshot && channelDNA.proofSnapshot.wordsAudited) ||
+    var consoleStatus = document.getElementById("consoleStatus");
+    var declaredAuditedWords = Number(consoleStatus && consoleStatus.getAttribute("data-words-audited"));
+    consoleStatus.textContent = "SCANNING " +
+      fmt(declaredAuditedWords ||
+        (channelDNA.proofSnapshot && channelDNA.proofSnapshot.wordsAudited) ||
         deep.meta.wordsAudited + live.meta.wordsAudited + (popular.meta.wordsAudited || 0)) + " WORDS";
     renderProof();
     renderMarquee();

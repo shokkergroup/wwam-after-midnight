@@ -88,6 +88,11 @@
         var trigger = function() {
             hydrate(t);
         };
+        t.dataset.featureActivate && t.addEventListener("click", function() {
+            hydrate(t).then(function(e) {
+                e && t.dispatchEvent(new CustomEvent("wwam:feature-activate"));
+            });
+        });
         if (t.addEventListener("focusin", trigger, {
             once: !0
         }), t.addEventListener("pointerdown", trigger, {

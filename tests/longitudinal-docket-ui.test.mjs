@@ -290,7 +290,7 @@ test("real V5.13 data renders an honest before/status/after evidence docket", ()
   const markup = harness.root.innerHTML;
   const state = harness.controller.getState();
 
-  assert.equal(harness.channelPack.fingerprint, "cp1-f9ad38be22481b5d");
+  assert.equal(harness.channelPack.fingerprint, "cp1-dd23bc386008689b");
   assert.equal(harness.engine.verify().ok, true);
   assert.equal(state.mounted, true);
   assert.equal(state.docketCount, 4);

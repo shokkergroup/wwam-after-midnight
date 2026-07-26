@@ -120,6 +120,7 @@
     var deep = root.WWAM_DEEP_DISTILL || {};
     var live = root.WWAM_LIVESTREAMS || {};
     var popular = root.WWAM_POPULAR_LIVE || {};
+    var atlas = root.WWAM_ARCHIVE_ATLAS || {};
     var curated = root.WWAM_CURATED || {};
     var characters = root.WWAM_CHARACTER_LORE || {};
     var dna = root.WWAM_CHANNEL_DNA || {};
@@ -150,8 +151,26 @@
           characters: characters
         })
       : null;
+    var registeredSources = (showcase.sources || []).concat(
+      (atlas.records || []).map(function (record) {
+        var lanes = Array.isArray(record.lanes) ? record.lanes.slice() : [];
+        var commentary = lanes.indexOf("commentary-catalog") >= 0;
+        return {
+          id: record.id,
+          title: record.title,
+          date: record.date,
+          durationSeconds: record.duration,
+          type: commentary ? "commentary" : "livestream",
+          lane: lanes[0] || "archive-metadata",
+          lanes: lanes,
+          url: record.url,
+          captioned: record.coverage === "deeply-indexed"
+        };
+      })
+    );
     return {
       showcase: showcase,
+      sources: registeredSources,
       deep: deep,
       live: live,
       popular: popular,
@@ -267,20 +286,31 @@
     return ytPromise;
   }
 
+  function mountIframeFallback(source, startAt, forceHostedBridge, status, copy) {
+    destroyPlayer();
+    elements.player.innerHTML =
+      '<div class="companion-player-host">' +
+      root.ShokkerYouTubePlayback.iframe(source.id, {
+        autoplay: false,
+        start: startAt,
+        forceHostedBridge: forceHostedBridge === true,
+        title: "Official YouTube Tape Companion playback"
+      }) + '</div>';
+    elements.fallback.textContent = copy;
+    setStatus(status);
+  }
+
   function mountPlayer(source, startAt) {
     destroyPlayer();
     if (!root.ShokkerYouTubePlayback.hosted()) {
-      elements.player.innerHTML =
-        '<div class="companion-player-host">' +
-        root.ShokkerYouTubePlayback.iframe(source.id, {
-          autoplay: false,
-          start: startAt,
-          title: "Official YouTube Tape Companion playback"
-        }) + '</div>';
-      elements.fallback.textContent =
+      mountIframeFallback(
+        source,
+        startAt,
+        true,
+        "HOSTED PLAYER READY // MANUAL MEMORY SYNC",
         "Local-file mode routes playback through the hosted WWAM player. " +
-        "Use the manual sync rail to move the memory system to the same second.";
-      setStatus("HOSTED PLAYER READY // MANUAL MEMORY SYNC");
+        "Use the manual sync rail to move the memory system to the same second."
+      );
       return;
     }
     elements.player.innerHTML =
@@ -321,9 +351,13 @@
             var code = Number(event && event.data);
             playerReady = false;
             if (code === 153) {
-              setStatus("PLAYER IDENTITY ERROR 153 // HOSTED FALLBACK + OFFICIAL LINK READY");
-              elements.fallback.textContent =
-                "YouTube could not verify this page's identity. Reopen the hosted wiki for on-page playback, or use the exact official-source link and manual sync rail.";
+              mountIframeFallback(
+                source,
+                currentSecond || startAt,
+                true,
+                "PLAYER IDENTITY ERROR 153 RECOVERED // HOSTED PLAYER + MANUAL MEMORY SYNC",
+                "YouTube could not verify the first player's page identity, so Tape Companion replaced it with the hosted on-page player. Use the manual sync rail to move the memory system to the same second."
+              );
             } else {
               setStatus("EMBED UNAVAILABLE // MANUAL SYNC + OFFICIAL LINK READY");
               elements.fallback.textContent =
@@ -333,10 +367,13 @@
         }
       });
     }).catch(function () {
-      playerReady = false;
-      elements.player.innerHTML =
-        '<div><i></i><span>EMBED FALLBACK</span><b>OFFICIAL SOURCE + MANUAL SYNC REMAIN READY</b></div>';
-      setStatus("EMBED UNAVAILABLE // MANUAL SYNC READY");
+      mountIframeFallback(
+        source,
+        currentSecond || startAt,
+        false,
+        "DIRECT PLAYER READY // MANUAL MEMORY SYNC",
+        "The synchronized YouTube API was unavailable, so Tape Companion loaded the same official source in a direct on-page player. Use the manual sync rail to move the memory system to the same second."
+      );
     });
   }
 
@@ -558,7 +595,24 @@
     renderSources();
     renderSnapshot(engine.snapshotAt(source.id, currentSecond), { mode: "snapshot", events: [] });
     mountPlayer(source, currentSecond);
-    setStatus(options && options.reason || "SOURCE LOADED // PRESS PLAY WHEN READY");
+    setStatus(
+      source.readiness.status === "companion-ready"
+        ? options && options.reason || "SOURCE LOADED // PRESS PLAY WHEN READY"
+        : "SOURCE-ONLY TAPE LOADED // PLAYBACK READY // TIMED MEMORY HELD"
+    );
+  }
+
+  function handleCompanionOpen(event) {
+    var detail = event && event.detail;
+    var sourceId = clean(detail && detail.sourceId);
+    var at = Number(detail && detail.at);
+    if (!sourceId || !Number.isFinite(at) || at < 0) {
+      setStatus("SOURCE DOSSIER HANDOFF HELD // INVALID SOURCE OR TIME");
+      return;
+    }
+    selectSource(sourceId, at, {
+      reason: "SOURCE DOSSIER HANDOFF // EXACT SECOND LOADED // PRESS PLAY WHEN READY"
+    });
   }
 
   function initControls() {
@@ -597,6 +651,7 @@
       url.hash = "companion";
       copy(url.toString(), "EXACT COMPANION SECOND COPIED");
     };
+    root.addEventListener("wwam:tape-companion-open", handleCompanionOpen);
     root.addEventListener("pagehide", function () { persist(true); });
   }
 
@@ -618,7 +673,12 @@
         restoreHandled = true;
         restoreToken(shared, "SHARED COMPANION SECOND RESTORED");
       }
-      if (!restoreHandled) setStatus("71 COMPANION-READY TAPES // CHOOSE ONE");
+      if (!restoreHandled) {
+        setStatus(
+          fmt(engine.metrics.sources) + " REGISTERED SOURCES // " +
+          fmt(engine.metrics.companionReady) + " MEMORY-READY // CHOOSE ONE"
+        );
+      }
     } catch (error) {
       section.setAttribute("aria-busy", "false");
       section.setAttribute("data-companion-ready", "false");

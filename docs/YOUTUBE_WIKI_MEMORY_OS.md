@@ -1,5 +1,7 @@
 # YouTube Wiki Memory OS
 
+Current WWAM demonstration release: **V5.21 / 0.5.21**.
+
 Version 1.0 — a reusable, evidence-first operating system for living channel archives.
 
 ## Product thesis
@@ -8,6 +10,8 @@ A transcript summary is a disposable output. A channel memory is a compounding a
 
 The Memory OS turns every indexed upload into:
 
+- a canonical Source Dossier that remains useful even when content evidence is
+  unavailable;
 - durable, timestamped evidence;
 - connections to people, topics, events, jokes, characters, and earlier uploads;
 - editorial work queues that improve trust;
@@ -20,12 +24,36 @@ The defensible product is not “AI made a website.” It is a source-backed mem
 ## Non-negotiable rules
 
 1. **A public factual claim must resolve to evidence.** Video ID and timestamp are the minimum viable receipt.
-2. **Inference must identify itself.** Opinion changes, joke origins, excitement scores, and humor scores are useful interpretations—not facts.
-3. **Unknown is a valid answer.** Missing captions or ambiguous speakers remain unknown until reviewed.
-4. **The machine proposes canon; people certify it.** High-value findings enter a review queue.
-5. **The archive must sound like the channel without pretending to be the channel.**
-6. **Generated character dialogue is never presented as a real quote.** Archival audio and generated text are separate surfaces.
-7. **Every new feature must improve discovery, trust, creator utility, or fan delight.** If it does none of those, it is decoration.
+2. **A relevant source is not automatically subject evidence.** Every
+   subject-bearing answer must expose how the bounded receipt is related to
+   the requested subject before ranking can use heat, curation, or popularity.
+3. **Inference must identify itself.** Opinion changes, joke origins, excitement scores, and humor scores are useful interpretations—not facts.
+4. **Unknown is a valid answer.** Missing captions or ambiguous speakers remain unknown until reviewed.
+5. **The machine proposes canon; people certify it.** High-value findings enter a review queue.
+6. **The archive must sound like the channel without pretending to be the channel.**
+7. **Generated character dialogue is never presented as a real quote.** Archival audio and generated text are separate surfaces.
+8. **Every new feature must improve discovery, trust, creator utility, or fan delight.** If it does none of those, it is decoration.
+9. **Every canonical source gets one page, but not the same depth of claim.**
+   Metadata-only and caption-limited sources must refuse unsupported semantic
+   sections rather than borrowing conclusions from titles or neighboring
+   uploads.
+10. **An exact-source question never escapes its source.** Resolve and verify
+    the requested source ID and fingerprint before interpreting the question.
+    A duplicate title, nearby upload, or stronger global result cannot
+    substitute another source.
+11. **A fan-authored sequence never becomes archive evidence.** Re-resolve
+    every ordered receipt against the canonical registry, preserve exact
+    bounds, label viewer prose as non-evidence, and fail closed rather than
+    substitute, pad, or widen a cut.
+12. **A recurrence is chronology, not continuity.** A lineage may order
+    eligible bounded receipts under a channel-supplied label. It does not prove
+    a first occurrence, mutation, intentional callback, shared speaker,
+    influence, causality, approval, rights, or Canon.
+13. **Count sources and receipts separately.** A source-set answer must report
+    unique canonical sources independently from deduplicated eligible receipts.
+    All-entity coverage inside one source proves co-presence under the policy,
+    not interaction, dialogue, influence, origin, causality, or speaker
+    identity.
 
 ## Universal evidence schema
 
@@ -79,6 +107,7 @@ The smallest replayable unit of evidence.
   "speaker": null,
   "speakerConfidence": 0,
   "entityIds": ["topic:halloween"],
+  "claimRelation": "explicit-caption-target",
   "score": 92
 }
 ```
@@ -88,8 +117,72 @@ Receipt requirements:
 - `sourceId`, `t`, and playable `url`;
 - a bounded excerpt when transcripts are used;
 - the extraction method and evidence level;
+- a closed-vocabulary receipt-to-subject relationship whenever the receipt is
+  used to answer about a resolved subject;
 - no named speaker unless the evidence supports it;
 - deterministic ID generation so corrections do not create silent duplicates.
+
+Evidence type must describe what was established, not what would make the card
+more exciting. In the current WWAM adapter:
+
+- `curated-character-performance` is reserved for 25 human-curated,
+  timestamp-validated candidates with explicit start/end windows;
+- `caption-character-signal` describes 24 machine-detected character
+  references; and
+- `caption-character-context` describes 28 machine-detected persona prompts,
+  character-name contexts, or performance discussions.
+
+The latter 52 Archive Deep records remain machine-surfaced and quarantined.
+They are not performances. Curated clip normalization must preserve explicit
+human end bounds; it may not replace a 14-second reviewed window with a
+generic 30-second fallback.
+
+### Ordered receipt cut
+
+A viewer-authored route through canonical receipts.
+
+```json
+{
+  "schema": "shokker-memory-cut-share/v1",
+  "version": "1.0.0",
+  "title": "Viewer-written title",
+  "introduction": "Viewer-written introduction",
+  "viewerTextLabel": "VIEWER-WRITTEN // NOT ARCHIVE EVIDENCE",
+  "bindings": {
+    "channelId": "channel-pack-id",
+    "channelPackFingerprint": "channel-pack-change-detector",
+    "archiveFingerprint": "archive-change-detector",
+    "registryFingerprint": "source-registry-change-detector"
+  },
+  "receiptKeys": [
+    "canonical-receipt-key-1",
+    "canonical-receipt-key-2",
+    "canonical-receipt-key-3"
+  ],
+  "cutFingerprint": "compiled-cut-change-detector",
+  "fingerprint": "share-packet-change-detector"
+}
+```
+
+Ordered-cut requirements:
+
+- three to eight unique promoted timed receipts;
+- canonical re-resolution before compile and again on share restore;
+- exact registered start/end preservation;
+- fail-closed rejection of unknown, duplicate, quarantined, withheld,
+  stale-fingerprint, ambiguous, foreign, out-of-range, or untimed selections;
+- manual in-page playback from official sources with no player before an
+  explicit command and no automatic chaining into another stop;
+- viewer title/introduction labeled as non-evidence;
+- share packets limited to keys, channel/archive/registry bindings, bounded
+  viewer prose, and deterministic cut/packet fingerprints; and
+- JSON/Markdown creator briefs treated as human-review plans rather than
+  approval, rights clearance, copied media, Canon mutation, or publication.
+
+The ordered-cut engine is universal. A comedy ChannelPack may define a
+character-archaeology preset; a racing ChannelPack may order a restart, lead
+change, booth reaction, final-lap battle, and finish. The sequence contract
+does not inherit either channel's vocabulary.
 
 ### Entity
 
@@ -149,6 +242,49 @@ Recommended universal relationships:
 - `RESULTED_IN`
 
 Do not create a factual relationship merely because a language model says it is plausible.
+
+### Evidence Relationship Gate
+
+A graph edge, matching source title, or matching franchise supplies retrieval
+context. It does not by itself prove that one bounded receipt is about the
+resolved subject. The universal answer layer therefore assigns exactly one
+`claimRelation` before a subject-bearing receipt may rank:
+
+| Relation | Meaning |
+| --- | --- |
+| `explicit-caption-target` | The bounded caption explicitly names the canonical subject or a registered alias. |
+| `exact-topic-receipt` | A structured timed topic record is canonically bound to the exact subject. |
+| `screen-referent-in-exact-commentary` | The receipt belongs to the exact resolved commentary/program and its bounded caption contains a concrete screen/event referent governed by channel vocabulary. |
+| `source-context-only` | The source context matches, but the bounded receipt supplies no eligible subject relationship. |
+
+Only the first three may answer neutral aboutness. `source-context-only` can
+help a visitor find or inspect the relevant upload, but it cannot enter the
+answer evidence chain or a playable answer projection.
+
+The classifier runs before ranking. Heat, profanity, source views, human
+curation, memorability rank, comedy score, and editorial priority cannot
+upgrade an ineligible relationship. Exact-commentary context also does not
+make every second eligible: the bounded caption must contain a concrete
+screen/event referent rather than an unrelated tangent that occurred while the
+program was playing.
+
+Relationship eligibility is not opinion evidence. A neutral aboutness route
+may use an exact topic record without implying sentiment. Evaluative answers
+also need target-proximate evaluative evidence. Change/evolution answers need
+multiple relationship-eligible, chronology-compatible evaluative receipts and
+still cannot infer speaker continuity or one person's mind change from
+undiarized captions.
+
+This is a portable accuracy contract. WWAM supplies film/franchise aliases and
+screen referents; a racing pack supplies driver/event aliases and race-event
+referents. An unrelated high-heat crash call remains `source-context-only` for
+a question about car 33 merely because car 33 was entered in that race. The
+current V5.16 neutral fixture proves relationship transport and Play rejection;
+it does not rerun the WWAM search classifier against a neutral corpus. Each
+channel still requires its own classifier adapter and query truth set.
+
+See `docs/EVIDENCE_RELATIONSHIP_GATE.md` for the reproduced V5.15 failures,
+positive controls, Play the Answer boundary, and release regressions.
 
 ### Derivation
 
@@ -325,21 +461,81 @@ Forbidden language without certification:
 - “J changed his mind on this date”;
 - “the first time ever.”
 
-### Bit Ancestry
+### Bit Bloodlines
 
-Tracks the earliest known receipt, later callbacks, sources, mutations, and
-timestamp-validated human-curated performance candidates for a recurring bit.
+Orders bounded canonical recurrence candidates under a channel-supplied
+lineage definition. It is a watch path through the current index, not proof
+that the first row originated the bit or that any later row intentionally
+called back to it.
 
-The current prototype marks the ancestry strong only when it has:
+The V5.20 WWAM projection contains:
 
-1. at least three timestamp-validated human-curated performance candidates;
-2. at least two separate sources;
-3. a human-confirmed bit label;
-4. a checked earliest-known receipt.
+| Measurement | Current value |
+| --- | ---: |
+| Lineages | 4 |
+| Curated performance candidates | 25 |
+| Unique official uploads | 12 |
+| Bounded source time | 350 seconds |
+| Challis windows / sources / seconds / days | 7 / 6 / 98 / 1,464 |
+| Slenderman windows / sources / seconds / days | 6 / 6 / 84 / 1,916 |
+| Loomis windows / sources / seconds / days | 7 / 5 / 98 / 1,433 |
+| Feldman windows / sources / seconds / days | 5 / 3 / 70 / 37 |
 
-A future production policy may additionally require authenticated
-editor-verified decisions, but that threshold is distinct from the current
-candidate tier.
+Every current performance window is exactly 14 seconds. The lineage compiler
+resolves the Source Dossier key and exact end bound; on click, the host
+rechecks canonical source availability before using those resolved coordinates.
+A complete WWAM lineage contains five to seven receipts, so it can enter the existing
+three-to-eight-stop ordered-cut contract without trimming.
+
+The 28 character contexts and 24 character signals remain a separate
+52-record machine-echo layer. All 52 are unbounded, quarantined, and forbidden
+from the performance rail and Memory Cut. Neutral labels describe the earliest
+and latest eligible windows in the current index; the UI must not call the
+middle rows mutations or confirmed callbacks.
+
+A future production policy may require authenticated editor decisions. That
+threshold is distinct from the current timestamp-validated human-curated
+candidate tier and cannot be inferred from a derived review artifact.
+
+### Receipt Matrix
+
+Projects exact eligible receipts into deterministic source sets. This answers a
+different question from free-text retrieval: not ?what result sounds most
+relevant?? but ?which canonical sources satisfy this explicit evidence
+predicate, and which exact receipts made each source qualify??
+
+The portable request is:
+
+```json
+{
+  "schema": "shokker-receipt-matrix-request/v1",
+  "entityIds": ["channel-entity-a", "channel-entity-b"],
+  "quantifier": "all",
+  "order": "receipt-count-desc"
+}
+```
+
+The core must:
+
+- canonicalize one to eight known entity IDs;
+- admit evidence only through the adapter's exact receipt policy;
+- deduplicate one shared receipt even when it matches multiple entities;
+- report `uniqueSourceCount` separately from `eligibleReceiptCount`;
+- preserve per-entity source/receipt totals and coverage inside every group;
+- retain source, dossier, registry, and policy fingerprints; and
+- keep all authority, rights, certification, and Canon flags false.
+
+The WWAM V5.21 proof is 7 Loomis receipts / 5 sources, 11 Loomis-plus-Challis
+receipts / 4 sources, and 25 four-character receipts / 12 sources. The same
+engine can answer a racing question such as ?Which Wednesday broadcasts
+contain both Driver 33 and a photo finish?? when the racing adapter supplies
+those entities and an eligible race-moment contract.
+
+Channel vocabulary belongs in the router/adapter, never the matrix compiler.
+This keeps performance, driver, recipe, guest, game, or topic semantics out of
+the universal arithmetic. A same-source intersection is intentionally weaker
+than a relationship: it proves only that each entity has eligible evidence
+somewhere in that canonical source.
 
 ### Riff Chemistry
 
@@ -378,6 +574,46 @@ Builds a playable path across receipts. Useful modes:
 
 The route must diversify sources and return exact timestamps.
 
+### Canonical Source Dossier and Ask This Tape
+
+Every canonical source receives one dossier even when it has no defensible
+content receipts. The portable dossier separates source proof, bounded
+receipts, entities, artifacts, connections, chronology, actions, and evidence
+limits.
+
+The exact-source query layer is intentionally smaller than archive-wide
+search. It must:
+
+- build the requested dossier before parsing the question;
+- optionally compare the request's source fingerprint with the freshly built
+  dossier;
+- return content results only when every result carries the requested source
+  ID;
+- treat titles as display metadata rather than source scope;
+- refuse metadata-only, caption-limited, unavailable, stale, and unsupported
+  content requests without global fallback;
+- preserve `speaker: null` and the complete authority boundary; and
+- expose typed inventory, receipt, entity, artifact, connection, metadata, and
+  registered-summary results.
+
+Connections are navigation, not replacement answers. A connection result may
+name a target source, but the answer itself remains scoped to the open source
+and cannot claim origin, causality, or content in the target.
+
+The universal Wake contract separates:
+
+- `matchingTotal`, the true number of passing relationships;
+- `displayed`, the size of the bounded returned collection; and
+- `truncated`, whether additional matches exist.
+
+The current return cap is 16. A compact UI may preview fewer cards, but it must
+never label the preview or cap as the complete total. Progressive disclosure
+and full-file mode change presentation only.
+
+Stable source routes use closed section keys rather than DOM selectors:
+`proof`, `player`, `ask`, `inside`, `footprint`, `wake`, `chronology`, `work`,
+and `boundary`. Unknown values fail to the dossier default.
+
 ### Synchronized Tape Companion
 
 Turns official playback into a second-screen memory route without copying the
@@ -396,6 +632,8 @@ Required behavior:
 - reverse, stationary, or large seeks replace the snapshot instead of firing
   a parade of skipped moments;
 - companion-limited sources remain honest source-only records;
+- the complete canonical registry remains discoverable even when only a
+  smaller subset is memory-ready;
 - manual sync and official timestamp links remain usable when the player API
   is unavailable; and
 - shared state binds channel plus the core archive/source ledgers and playback
@@ -404,9 +642,46 @@ Required behavior:
 A checksum proves deterministic consistency only. It does not prove identity,
 authorship, approval, or source availability.
 
+In the V5.18 WWAM demonstration, Tape Companion receives all 510 canonical
+sources. Seventy-one are memory-ready and 439 remain source-only. The
+historical promoted subset is still 74 sources—71 ready and three disclosed
+gaps—with 872 exact receipt members. Expanding registry breadth does not
+rewrite that frozen evidence ledger.
+
 The public `compileTimeline` audit API returns the complete compiled timeline.
 Playback code must not use it as a live feed. Optional display labels, excerpts,
 and annotations are not part of the companion's core share fingerprint.
+
+### Playable Answer Projection
+
+A structured answer may become a short, ordered watch path only when its
+existing evidence chain contains two to six unique, registered, in-range,
+timed receipts, each carrying one allowed Evidence Relationship Gate relation.
+This projection is downstream of retrieval: it preserves the answer engine's
+exact role, relationship, and receipt order and cannot rerank by heat,
+popularity, profanity, or interface position. Missing, unknown, and
+`source-context-only` relations fail closed.
+
+The portable trail stores only the question, channel/archive bindings,
+receipt keys, fixed roles, official source IDs, whole-second starts, bounded
+ends, exact claim relations, and deterministic fingerprints. It stores no
+answer prose, excerpt, caption payload, speaker, thumbnail, audio, or video.
+Restore reruns the current standalone answer and opens only after an exact
+trail match, including every relationship value.
+
+Playing adjacent receipts is navigation, not a documentary claim. It does not
+establish speaker identity or continuity, causality, opinion change, true
+origin, rights clearance, creator approval, or Canon. Context-dependent
+follow-ups, one-stop answers, metadata/summary answers, handoffs, restricted
+source-audio or visual lanes, and machine quarantine remain ineligible.
+
+Every official-source player must retain:
+
+- the exact timestamp link as a fallback;
+- explicit referrer/origin identity;
+- an in-page recovery action that reloads the same source coordinates through
+  a hosted first-party bridge when an embed rejects page identity; and
+- copy that says recovery was attempted, never that playback was verified.
 
 ### Creator Taste Calibration
 
@@ -618,6 +893,8 @@ A surface fails if any of these are true:
 - It repeats the transcript instead of explaining why the moment matters.
 - It invents a speaker, intention, consensus, or “first ever.”
 - It hides missing data.
+- It treats a matching source title or collection as proof that an unrelated
+  bounded receipt is about the requested subject.
 - It gives one result where the question requires an evidence chain.
 - Its scores have no formula or visible dimensions.
 - It uses synthetic host audio.
@@ -647,6 +924,10 @@ Every build should run deterministic contract checks and a human benchmark.
 - Receipt IDs are unique.
 - No required source is silently dropped.
 - The same input produces the same fingerprint and ordered outputs.
+- Every explicit curated playback end survives normalization unchanged.
+- Every Wake satisfies `displayed <= 16`,
+  `truncated === (matchingTotal > displayed)`, and
+  `displayed === later.length + earlier.length`.
 
 ### Search and answer quality
 
@@ -657,11 +938,15 @@ Maintain at least 25 real user questions per channel:
 - “latest” and “most popular” scope;
 - positive and negative takes;
 - topic across multiple sources;
+- neutral aboutness where the hottest receipts are unrelated source context;
 - recurring bit;
 - apparent opinion change;
 - missing-caption question;
 - ambiguous “who said” question;
-- follow-up question that depends on prior context.
+- follow-up question that depends on prior context;
+- exact-source duplicate-title isolation;
+- exact-source wrong-subject refusal;
+- metadata-only content refusal without a global-search fallback.
 
 Score:
 
@@ -669,6 +954,7 @@ Score:
 - top-3 recall;
 - correct lane;
 - exact timestamp;
+- allowed receipt-to-subject relationship;
 - faithful synthesis;
 - refusal to invent unsupported identity.
 
@@ -693,6 +979,20 @@ Score:
   fingerprints, unknown sources, out-of-range seconds, and tampering.
 - A blocked player API leaves a working manual rail and official timestamp
   fallback.
+- Every playable-answer trail preserves the structured answer's exact
+  two-to-six-stop role/key/source/start/end order; no context-dependent
+  follow-up can be restored as a standalone query.
+- Every subject-bearing playable-answer stop has
+  `explicit-caption-target`, `exact-topic-receipt`, or
+  `screen-referent-in-exact-commentary`. Missing, unknown, and
+  `source-context-only` relations fail closed even when the source and
+  timestamp are otherwise valid.
+- Player recovery preserves the same official source and exact bounded
+  coordinates. Direct, recovered, and file-mode playback all retain a visible
+  official timestamp fallback.
+- Playable-answer shares contain coordinates and bindings only. Tampering,
+  foreign or stale bindings, changed registries, and a changed fresh answer
+  fail closed before playback.
 - Neutral fixtures contain no source-channel vocabulary leakage; this check is
   narrower than the generic determinism/restore/tamper suite.
 
@@ -746,6 +1046,8 @@ Channel-specific DNA:
 - WWAM Court;
 - Dr. Loomis, Dr. Challis, Slenderman, and Corey Feldman performance dossiers;
 - Fresh 10 and Popular 25 lanes.
+- Receipt Matrix aliases and the recurring-character group, with exact
+  curated-performance eligibility and separate upload/receipt totals;
 - companion labels for topics, heat, ranked candidates, editorial selections,
   and recurring-character callbacks;
 - taste dimensions for signal/category, movie/topic, recurring entity, edit
@@ -765,6 +1067,11 @@ VRL DNA:
 - Announcer’s Curse, Great Carnac, Upside Down;
 - driver identity reconciliation;
 - excitement score and Hot 100 moments.
+- source-set questions for driver/race-event intersections, unique broadcast
+  counts, evidence rankings, and chronological driver or booth-phrase routes;
+- source-locked recurrence trails for booth phrases, rivalries, rituals, and
+  Announcer's Curse candidates; chronology cannot claim that commentary caused
+  an incident or that a later call intentionally continued an earlier one;
 - a race companion that can wake up lead changes, cautions, incidents, booth
   calls, and driver-history connections as the official broadcast plays;
 - taste dimensions for finish type, track, driver story, booth intensity,
@@ -824,6 +1131,29 @@ showcase.getControlRoom();
 
 Both Popular 25 and character data are optional. The engine still returns a complete, deterministic model and honest readiness states when they are absent.
 
+Create a channel-neutral Source Dossier registry and exact-source query layer:
+
+```js
+const dossiers = window.ShokkerSourceDossier.create(sourceDossierPayload);
+const sourceQuery = window.ShokkerSourceQuery.create({
+  dossierEngine: dossiers
+});
+
+const dossier = dossiers.build("LV2rmwEA0w4");
+const answer = sourceQuery.answer({
+  schema: "shokker-source-query/v1",
+  sourceId: dossier.source.id,
+  sourceFingerprint: dossier.source.sourceFingerprint,
+  query: "Show me Dr. Loomis moments",
+  at: 9042.64,
+  limit: 8
+});
+```
+
+The query result remains bound to the requested source and includes an explicit
+`crossSourceSubstitution: false` boundary. Channel-specific vocabulary may
+change intent detection; it cannot weaken source scope.
+
 Create a portable synchronized companion from channel-shaped inputs:
 
 ```js
@@ -867,9 +1197,68 @@ const round = session.getCurrentRound();
 session.decide(round.id, "A");
 ```
 
+Create a channel-neutral playable answer from a fresh structured-answer
+function and canonical official-source registry:
+
+```js
+const player = window.ShokkerPlayAnswer.create({
+  analyze: (query) => ask.ask(query),
+  bindings: {
+    channelId,
+    channelPackFingerprint,
+    archiveAsOf,
+    answerEngineVersion
+  },
+  sources: sourceRegistry
+});
+
+const trail = player.build("Show me the call and the finish");
+const share = player.exportShare(trail);
+const verifiedFreshTrail = player.restoreShare(share);
+```
+
+Compile a channel-supplied recurrence only after the canonical Source Dossier
+registry is available:
+
+```js
+const bloodlines = window.ShokkerBitBloodline.create({
+  dossierEngine,
+  lineages: channelAdapter.lineages
+});
+
+const lineage = bloodlines.get("channel-lineage-id");
+const exactCutRequest = bloodlines.compileCutPacket(lineage.id);
+const playableCut = memoryCut.compile(exactCutRequest);
+```
+
+The adapter may call the object Slenderman Dispatch, The Announcer's Curse, or
+a victory ritual. The pure compiler retains source IDs, receipt keys,
+fingerprints, and exact bounds; it does not inherit the adapter's mythology as
+an origin or causality claim.
+
+Compile source-set arithmetic from the same dossier registry:
+
+```js
+const matrix = window.ShokkerReceiptMatrix.create({
+  dossierEngine,
+  policy: channelAdapter.receiptMatrixPolicy
+});
+
+const result = matrix.query({
+  entityIds: ["channel-entity-a", "channel-entity-b"],
+  quantifier: "all",
+  order: "receipt-count-desc"
+});
+```
+
 ## Current implementation boundary
 
-`public/demo/showcase-engine.js`, `public/demo/tape-companion-engine.js`, and
+`public/demo/showcase-engine.js`, `public/demo/bit-bloodline-engine.js`,
+`public/demo/source-dossier-engine.js`,
+`public/demo/source-query-engine.js`,
+`public/demo/receipt-matrix-query.js`,
+`public/demo/receipt-matrix-engine.js`,
+`public/demo/tape-companion-engine.js`, and
 `public/demo/creator-taste-engine.js` are intentionally pure browser engines:
 
 - no network calls;
@@ -881,6 +1270,23 @@ session.decide(round.id, "A");
 - source IDs and timestamps retained in every derived artifact.
 
 It is a presentation-independent foundation. WWAM can render it as a horror evidence room; VRL can render the same contracts as a race-control archive.
+
+The V5.21 WWAM adapters are intentionally stricter than the universal core.
+The Source Dossier adapter fails closed unless the canonical union remains 510 sources and the receipt
+ledger remains 1,490. Its current proof is 111 caption-backed, 390
+metadata-only, nine caption-limited, zero unavailable, 928 source-bound
+artifact records, 25 exact curated windows, and a 24/28 Archive Deep
+signal/context split. Those adapter assertions are channel snapshot checks,
+not universal constants. The Bit Bloodlines adapter further pins 4 lineages,
+25 bounded performance candidates, 12 official uploads, 350 source seconds,
+and zero playable members from the separate 52-record unbounded machine-echo
+layer.
+
+The Receipt Matrix adapter admits only exact, bounded, promoted-lane,
+caption-backed curated character-performance candidates. Its release proof
+pins Loomis at 7 receipts / 5 sources, Loomis plus Challis at 11 / 4, and the
+four-character group at 25 / 12. Those values are WWAM snapshot assertions,
+not universal constants.
 
 The current companion UI stores core archive/source-ledger-bound local state;
 optional display decorations are outside that binding. Calibration stores

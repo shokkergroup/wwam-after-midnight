@@ -10,6 +10,14 @@ const demo = path.join(here, "..", "public", "demo");
 const app = fs.readFileSync(path.join(demo, "app.js"), "utf8");
 const html = fs.readFileSync(path.join(demo, "index.html"), "utf8");
 const atlasUi = fs.readFileSync(path.join(demo, "archive-atlas-ui.js"), "utf8");
+const sourceDossierAdapter = fs.readFileSync(
+  path.join(demo, "wwam-source-dossier-adapter.js"),
+  "utf8",
+);
+const sourceDossierUi = fs.readFileSync(
+  path.join(demo, "source-dossier-ui.js"),
+  "utf8",
+);
 const dnaSource = fs.readFileSync(path.join(demo, "wwam-channel-dna.js"), "utf8");
 const pitchTour = fs.readFileSync(path.join(demo, "pitch-tour-data.js"), "utf8");
 
@@ -51,7 +59,7 @@ test("the proof wall does not silently morph when deferred engines finish", () =
     /\["EDITORIAL RECEIPTS", stable\.receipts \|\| moments, "872 PROMOTED \+ 42 QUARANTINED CANDIDATES"\]/,
   );
   assert.match(app, /"74 PROMOTED \+ 10 ARCHIVE DEEP QUARANTINE"/);
-  assert.match(pitchTour, /84 INPUTS = 74 PROMOTED \+ 10 ARCHIVE DEEP QUARANTINE/);
+  assert.match(pitchTour, /510 SOURCE FILES \/\/ 99 FULLY DISTILLED \/\/ 12 TOPIC-NAVIGATION ONLY \/\/ 399 HONESTLY QUEUED \/\/ 1,490 SOURCE RECEIPTS/);
   assert.match(app, /HEALTHY · PROMOTED CORPUS/);
   assert.match(html, /This desk audits the 74-source promoted corpus/);
   assert.match(
@@ -68,7 +76,7 @@ test("the sales tour ends in a measurable pilot instead of another feature tour"
   );
   assert.match(
     pitchTour,
-    /kind: "pilot"[\s\S]{0,180}label: "BUILD THE ARCHIVE-DISCOVERY PILOT"[\s\S]{0,180}goal: "archive-discovery"/,
+    /kind: "pilot"[\s\S]{0,180}label: "OPEN THE THREE-SHOW PILOT"[\s\S]{0,180}goal: "compilation-workflow"/,
   );
   assert.match(app, /action\.kind === "pilot" \? "pitch"/);
   assert.match(app, /document\.getElementById\("pilotBuilder"\)\.scrollIntoView/);
@@ -93,9 +101,11 @@ test("a cold exact-title miss is held until Archive Deep can answer", () => {
 
 test("Clip Lab opens on a bounded, truth-labeled Tonight's 12", () => {
   assert.match(html, /data-clip-mode="shorts"[^>]*>TONIGHT'S 12/);
-  assert.match(app, /TONIGHT\\'S 12 \/\/ MACHINE SHORTLIST/);
+  assert.match(app, /"TONIGHT'S 12 \/\/ MACHINE SHORTLIST"/);
+  assert.match(app, /"THIS SHOW'S " \+ values\.length \+ " \/\/ SOURCE-LOCKED SHORTS"/);
+  assert.match(app, /button\.textContent = exactSourceId \? "THIS SHOW'S " \+ exactShorts/);
   assert.match(app, /THE FIRST EDITORIAL PASS, NOT A PUBLISH QUEUE/);
-  assert.match(app, /RECEIPT-BACKED SHORTS POOL/);
+  assert.match(app, /sourceProofLabel \+ "SHORTS"/);
 });
 
 test("the frozen V5.4 proof stays dated while the current four-batch overlay stays truthful", () => {
@@ -107,9 +117,10 @@ test("the frozen V5.4 proof stays dated while the current four-batch overlay sta
   assert.match(app, /"archive-deep-engine\.js"/);
   assert.match(app, /"archive-deep-portfolio\.js"/);
   assert.match(app, /stream\._lane = "archive"/);
-  assert.match(app, /"AUTOPSIED BATCH 0" \+ archiveBatch\.sequence/);
-  assert.match(app, /REVIEW-REQUIRED CANDIDATES/);
-  assert.match(app, /restrictedToTopicNavigation/);
+  assert.match(atlasUi, /"archive-deep-10": "AUTOPSIED BATCH 01"/);
+  assert.match(atlasUi, /"archive-deep-batch-04": "ARCHIVE DEEP BATCH 04"/);
+  assert.match(sourceDossierUi, /QUARANTINE ACTIVE/);
+  assert.match(sourceDossierAdapter, /restrictedToTopicNavigation/);
   assert.match(html, /id="archiveBatch" hidden/);
   assert.match(atlasUi, /CURRENT ' \+ meta\.streams/);
   assert.match(atlasUi, /batchCount \+ " INDEPENDENT BATCH FINGERPRINTS/);

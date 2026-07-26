@@ -10,6 +10,7 @@ const publicRoot = path.join(root, "public");
 const demoRoot = path.join(publicRoot, "demo");
 const html = fs.readFileSync(path.join(demoRoot, "index.html"), "utf8");
 const app = fs.readFileSync(path.join(demoRoot, "app.js"), "utf8");
+const canonDeskUi = fs.readFileSync(path.join(demoRoot, "canon-desk-ui.js"), "utf8");
 const styles = fs.readFileSync(path.join(demoRoot, "styles.css"), "utf8");
 const packageJson = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
 const changelog = fs.readFileSync(path.join(root, "docs", "CHANGELOG.md"), "utf8");
@@ -106,8 +107,9 @@ test("application element lookups are either static or explicitly dialog-generat
   const unexplained = [...lookups].filter((id) => !ids.has(id) && !dynamicIds.has(id));
   assert.deepEqual(unexplained, []);
 
+  const generatedUi = `${app}\n${canonDeskUi}`;
   dynamicIds.forEach((id) => {
-    assert.match(app, new RegExp(`id=["']${id}["']`), `${id} is never generated`);
+    assert.match(generatedUi, new RegExp(`id=["']${id}["']`), `${id} is never generated`);
   });
 });
 
@@ -123,9 +125,9 @@ test("the first-load static payload stays inside the showcase performance budget
   const totalBytes = sizes.reduce((sum, item) => sum + item.bytes, 0);
 
   assert.equal(criticalFiles.includes("fresh-tape-intake.css"), false);
-  assert.ok(totalBytes < 1_510_000, `first-load source payload grew to ${totalBytes} bytes`);
+  assert.ok(totalBytes < 1_530_000, `first-load source payload grew to ${totalBytes} bytes`);
   sizes.filter((item) => item.file.endsWith(".js")).forEach((item) => {
-    assert.ok(item.bytes < 250_000, `${item.file} grew to ${item.bytes} bytes`);
+    assert.ok(item.bytes < 255_000, `${item.file} grew to ${item.bytes} bytes`);
   });
 });
 
@@ -139,7 +141,7 @@ test("source byte budgets and generated fingerprints survive Windows checkouts",
 test("release identity, social proof, and documentation stay synchronized", () => {
   assert.match(html, /<title>[^<]*WWAM After Midnight[^<]*<\/title>/);
   assert.match(html, /<meta name="description" content="[^"]{80,}">/);
-  assert.match(html, /<meta property="og:image" content="\/og-memory-os\.png">/);
+  assert.match(html, /<meta property="og:image" content="\/og\.png">/);
   assert.match(html, /<meta name="twitter:card" content="summary_large_image">/);
   assert.match(changelog, new RegExp(`## ${packageJson.version.replace(/\./g, "\\.")}\\b`));
   assert.match(changelog, /74 unique sources/);

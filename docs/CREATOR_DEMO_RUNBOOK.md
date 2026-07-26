@@ -11,7 +11,7 @@ three things quickly:
 
 ## Before the call
 
-- Open the current V5.13 build or its confirmed deployment and choose either
+- Open the current V5.21 build or its confirmed deployment and choose either
   content-advisory mode.
 - Confirm YouTube playback is available in the browser.
 - Start at the hero, not halfway down the page.
@@ -49,8 +49,35 @@ Use this evidence vocabulary consistently:
   say `MAY_SUPPORT`, `MAY_BE_MIXED`, or `OPEN`; it is never a verdict, proof of
   speaker continuity, a mind-change claim, or an independently verified
   outcome.
+- **Caller-attested local adjudication** means one human operator completed all
+  twelve Verdict Room checks and locked a canonical verdict code together with
+  its exact fixed, code-specific scoped sentence on this device. Reviewer
+  identity remains unverified; the result is not creator-certified,
+  rights-cleared, written to Canon, or published to a server.
+- **Viewer-written cut context** means a fan supplied a Midnight Cut title or
+  introduction. It is presentation around canonical receipts, visibly labeled
+  `VIEWER-WRITTEN // NOT ARCHIVE EVIDENCE`, and cannot become a quote, archive
+  summary, creator claim, or Canon entry.
+- **Source-set matrix result** means the system separately counted canonical
+  official uploads and exact eligible receipts under one configured evidence
+  policy. An all-entity source group proves only same-source coverage; it does
+  not prove interaction, dialogue, influence, origin, causality, or a shared
+  speaker.
+- **Source-locked recurrence** means two or more eligible bounded receipts
+  share one channel-supplied lineage definition and survive fresh canonical
+  resolution. Chronology makes a useful watch path; it does not prove a first
+  occurrence, mutation, intentional callback, speaker continuity, influence,
+  causality, approval, rights, or Canon.
 
 ## The 60-second version
+
+For a source-first buyer demonstration, open the July 23 livestream dossier
+first: “This one new upload became a fan page, exact-source search room, and a
+creator workbench.” Show its 21 registered receipts, four bit lineages, and
+draft clip inventory. Ask for Dr. Loomis, switch to duplicate-title source
+`ag3axSC9BpU` and ask for Dr. Challis, then finish on a metadata-only source.
+The contrast between bounded answers, title isolation, and an honest refusal
+explains the product faster than a feature tour.
 
 Press **Mike Mode** and use one sentence per slide:
 
@@ -73,6 +100,288 @@ Press **Mike Mode** and use one sentence per slide:
 Use the proof button on at least two slides. A pitch that exits into working
 evidence is stronger than a complete slideshow.
 
+## V5.21 Mike path - prove the count in two minutes
+
+Use this path to show that Ask can answer an archive-wide question with a
+reviewable ledger instead of a confident estimate.
+
+### 1. Separate uploads from receipts
+
+Open **Ask WWAM** and enter:
+
+```text
+How many uploads feature Dr. Loomis?
+```
+
+Expected proof:
+
+- five unique official uploads;
+- seven eligible curated performance receipts;
+- source groups expose their individual receipt counts; and
+- no metadata mention, artifact, or machine echo enters the result.
+
+### 2. Intersect two characters honestly
+
+Ask:
+
+```text
+Which uploads contain both Dr. Loomis and Dr. Challis performances?
+```
+
+Expected proof: four source groups and 11 eligible receipts. Expand a group,
+play one exact bounded row, and point to the official-source action. Say:
+?Both characters have eligible evidence in this upload; that does not claim
+they interact or share a speaker.?
+
+### 3. Show the ranked ledger
+
+Ask:
+
+```text
+Which source has the most character performances?
+```
+
+The top three must be `LV2rmwEA0w4` with six, `ag3axSC9BpU` with five, and
+`N-UahfG8-gM` with three. Export the bounded JSON if Mike wants to see the
+handoff. It contains evidence/navigation records, not copied media, rights, or
+creator approval.
+
+## V5.20 Mike path - run the bloodline in two minutes
+
+Use this path to show that the archive remembers a recurring bit across years,
+plays every eligible window precisely, and keeps weaker machine evidence out.
+
+### 1. Open the complete recurrence
+
+Open **Memory OS**, then **Bit Bloodlines**. The default should be
+**Slenderman Dispatch**.
+
+Expected proof:
+
+- all four lineages are selectable in this existing tab;
+- Slenderman reports six performance candidates across six official uploads;
+- its bounded source time is 84 seconds;
+- its current indexed span is 1,916 days; and
+- every performance card remains labeled as a timestamp-validated curated
+  candidate with its clip speaker not diarized.
+
+Say: “This is six exact windows across five years, not six search results that
+happen to mention Slenderman.”
+
+### 2. Play proof, not a padded guess
+
+Play the earliest Slenderman window:
+
+```text
+character-receipt:slender-stomach
+Mf-0Tv_KHCE @ 541.04-555.04
+```
+
+Expected proof:
+
+- the lineage compiler has already resolved the exact Source Dossier receipt;
+- the click-time path rechecks that its canonical source still exists;
+- the in-page player receives both start and end;
+- the current window remains exactly 14 seconds;
+- no player existed before the visitor acted; and
+- the official-source recovery action remains available.
+
+Then choose **Cut This Bloodline**.
+
+Expected proof:
+
+- The Midnight Cut receives all six chronological receipt keys;
+- every selection retains source, dossier, start, and end bindings;
+- advancing to another official upload remains manual; and
+- no copied media, generated bridge dialogue, or automatic montage appears.
+
+Say: “The bloodline is a fan journey assembled from canonical evidence, not a
+new video the machine claims to own.”
+
+### 3. Show two shapes and one hard boundary
+
+Switch to **The Feldman Frequency**. It contains five windows across three
+sources, 70 source seconds, and only 37 indexed days. Compare that compact
+burst with Slenderman's 1,916-day trail.
+
+Then point to the separate machine-echo boundary:
+
+- 28 `caption-character-context` receipts;
+- 24 `caption-character-signal` receipts;
+- 52 quarantined machine records total;
+- zero end bounds; and
+- zero authority to enter playback or a cut.
+
+Say: “The system can show a five-year recurrence and a 37-day outbreak. It
+still refuses to call either a mutation, confirmed callback, or true origin.”
+
+The other current totals are:
+
+| Bloodline | Windows | Sources | Seconds | Indexed days |
+| --- | ---: | ---: | ---: | ---: |
+| The Challis Hotline | 7 | 6 | 98 | 1,464 |
+| Slenderman Dispatch | 6 | 6 | 84 | 1,916 |
+| The Loomis Alert System | 7 | 5 | 98 | 1,433 |
+| The Feldman Frequency | 5 | 3 | 70 | 37 |
+
+Across all four: 25 exact 14-second windows, 12 official uploads, and 350
+bounded seconds.
+
+## V5.19 Mike path — cut the tape in two minutes
+
+Use this path to demonstrate the loop from archive proof to fan delight to
+creator utility without adding a new homepage destination.
+
+### 1. Launch the exact preset
+
+Open the Evidence Bag and enter **The Midnight Cut**. Choose **The Character
+Ward // 2021–2026**. The rail must contain exactly:
+
+1. `character-receipt:slender-stomach` —
+   `Mf-0Tv_KHCE @ 541.04–555.04`;
+2. `character-receipt:challis-boilermaker` —
+   `lCH31VtaSeI @ 6511.44–6525.44`;
+3. `character-receipt:loomis-biscuit-job` —
+   `Qc2vVFMO4ts @ 7693.02–7707.02`;
+4. `character-receipt:feldman-atmosphere` —
+   `shoWljlgSUU @ 8097.2–8111.2`; and
+5. `character-receipt:loomis-funding` —
+   `LV2rmwEA0w4 @ 9042.64–9056.64`.
+
+Expected proof:
+
+- five unique canonical receipts survive re-resolution;
+- every window is exactly 14 seconds;
+- the current stop exposes source ID and exact bounds;
+- playback begins only after a click; and
+- advancing to the next stop is manual.
+
+Say: “This is not an AI-generated compilation. It is a fan's ordered route
+through five exact receipts, played from the official uploads.”
+
+### 2. Make authorship visible
+
+Reorder one stop and add a short title or introduction.
+
+Expected proof:
+
+- order changes without changing any receipt;
+- the prose is labeled `VIEWER-WRITTEN // NOT ARCHIVE EVIDENCE`;
+- no generated narration or speaker claim appears; and
+- the official-source/recovery action remains available.
+
+Say: “A fan can author the journey. They cannot author the archive facts.”
+
+### 3. Hand the route to a creator
+
+Copy the share packet, then export either the JSON or Markdown creator brief.
+
+Expected proof:
+
+- the reconstruction packet contains ordered keys, channel/archive/registry
+  bindings, bounded viewer prose, and deterministic cut/packet fingerprints;
+- it contains no excerpt, transcript, caption payload, speaker, generated
+  dialogue, or media;
+- restore re-resolves every receipt against the canonical registry; and
+- the production brief supplies official URLs and exact edit coordinates for
+  human review.
+
+Say: “The same fan experience becomes useful editorial prep, but no button
+pretends to clear rights, approve a clip, prove origin, or publish.”
+
+If a source will not embed, use the in-page recovery action and official link.
+Do not describe third-party player availability as guaranteed.
+
+## V5.18 Mike path — exact-source proof in two minutes
+
+Use this path before a long feature tour. It demonstrates delight, accuracy,
+and refusal with three canonical source IDs.
+
+### 1. Latest tape: Loomis stays bounded
+
+Open:
+
+```text
+?source=LV2rmwEA0w4&at=9043&section=ask#archive
+```
+
+Ask:
+
+> Show me Dr. Loomis moments
+
+Expected proof:
+
+- the source lock reads `LV2rmwEA0w4`;
+- the answer returns only Loomis receipts registered to this source;
+- `loomis-funding` retains `9042.64–9056.64`;
+- `loomis-pepto` retains `10734.88–10748.88`;
+- each window is exactly 14 seconds; and
+- playback remains on the official July 23 upload.
+
+Say: “This is not a 30-second guess around a timestamp. The human-curated end
+bound survives all the way into the page.”
+
+### 2. Duplicate title: Challis cannot leak across tapes
+
+Open:
+
+```text
+?source=ag3axSC9BpU&section=ask#archive
+```
+
+This July 9 upload uses the same generic **We Watched A Movie LIVE! Movie News
+and More** title pattern as the latest source. Ask:
+
+> Show me Dr. Challis moments
+
+Expected proof:
+
+- the source lock reads `ag3axSC9BpU`;
+- `challis-miguel` returns at `3860.72–3874.72`;
+- `challis-doctor` returns at `9851.76–9865.76`;
+- every result repeats `ag3axSC9BpU`; and
+- `challis-birthday` from `LV2rmwEA0w4` does not appear.
+
+Say: “The title can be duplicated. The answer cannot. Scope is the source ID
+and fingerprint, not whatever text search thinks is close.”
+
+### 3. Metadata-only tape: absence is a product result
+
+Open:
+
+```text
+?source=FVuwRHM0kcc&section=ask#archive
+```
+
+Ask:
+
+> Who won the Marvel vs DC bracket?
+
+Expected proof:
+
+- coverage reads `metadata-only`;
+- the answer returns zero source-content receipts;
+- no winner is inferred from the title; and
+- source proof and official navigation remain available.
+
+Say: “It knows which upload this is. It does not pretend that knowing the title
+means knowing what happened inside.”
+
+### Optional 30-second scale proof
+
+Return to `LV2rmwEA0w4` and show:
+
+- **138** true Wake matches;
+- **16** connections in the bounded display collection;
+- `truncated: true`;
+- the compact Director's Cut and per-section/full-file disclosure; and
+- Tape Companion's **510 registered sources: 71 memory-ready and 439
+  source-only**.
+
+Close the sequence with: “The moat is not that AI can search video. The moat is
+that every answer, refusal, clip boundary, relationship total, and handoff is
+bound to the same auditable source file.”
+
 ## The under-five-minute version
 
 The core route is designed for 4:20, leaving 40 seconds for load time or one
@@ -82,7 +391,7 @@ question. Do not add optional features until the close.
 | --- | --- | --- |
 | 0:00–0:30 | Night Shift | A daily route connects newest source, archive callback, choice, and payoff |
 | 0:30–1:05 | Archive Atlas + Time Capsule | The whole-feed map becomes an honest, playable 2019 capsule without merging its two source ledgers |
-| 1:05–2:05 | Ask + Comedy Black Box + The Tape Keeps Score | Answers, ranked riffs, and prediction/outcome handoffs exit into timestamped, inspectable proof |
+| 1:05–2:05 | Ask + Play the Answer + The Tape Keeps Score | A written answer becomes an ordered official-source watch path; prediction/outcome questions retain their separate review handoff |
 | 2:05–3:20 | Clip Lab | Evidence becomes a reviewable Short and an exact campaign ledger |
 | 3:20–4:00 | Trust Desk | Character mapping is separated from clip-level speaker proof |
 | 4:00–4:20 | Close | Ask which workflow deserves a production pilot |
@@ -126,6 +435,16 @@ Return to the hero and choose **Follow the Lore**.
 
 - Use the top navigation to open Ask WWAM and ask:
 
+> What do they say about Halloween?
+
+Point out that V5.15 could put the unrelated `4UokRLETypU @ 809` and
+`Q6SN-Om1gIo @ 2835` soundbytes first merely because they occurred inside
+Halloween commentaries. V5.16 excludes both as `source-context-only`. Every
+returned aboutness receipt must expose an allowed relationship to Halloween;
+heat and human curation cannot buy an unrelated moment back into the answer.
+
+Then ask:
+
 > What did they say about the mask in Halloween 5?
 
 Follow with:
@@ -142,7 +461,7 @@ Then ask:
 
 > What made them laugh hardest?
 
-The status must say **OPEN THE SOURCE RANKING** and hand off to the Comedy
+The status must say **SOURCE RANKING** and hand off to the Comedy
 Black Box instead of inventing an independent funniest-ever winner. Open one
 Riff Autopsy and show the six reproducible dimensions.
 
@@ -159,6 +478,10 @@ comedy.”
 
 What it proves:
 
+- a relevant source is no longer accepted as proof that a bounded remark is
+  about the requested subject;
+- every surviving aboutness receipt exposes one typed relationship basis;
+- heat, profanity, and curation rank only after relationship eligibility;
 - direct-answer retrieval instead of correct-source / wrong-moment matching;
 - exact follow-up context anchored to a source and second;
 - honest abstention when the requested subtopic is not indexed;
@@ -268,7 +591,9 @@ too early to reveal.”
 
 What it proves:
 
-- 71 companion-ready promoted sources and 3 honest source-only gaps;
+- 510 registered sources: 71 memory-ready and 439 honest source-only records;
+- within the historical 74-source promoted subset, the same 71 are ready and
+  the same 3 caption gaps remain source-only;
 - 872 exact receipt members preserved inside 869 conservative incidents;
 - manual sync and official timestamp fallback when the player API is blocked;
 - no copied media or autoplay, and no future-event text leak through the
@@ -338,7 +663,8 @@ What it proves:
 - independent batches can compose behind one defensive read-only API;
 - source coverage can grow while the V5.4 sales proof remains frozen;
 - each batch retains independent selection and caption fingerprints;
-- 52 source-level character signals do not become 52 claimed performances;
+- 24 source-level character signals plus 28 character contexts do not become
+  52 claimed performances;
 - all 166 current candidates remain outside the promoted 872.
 
 ## V5.13 The Tape Keeps Score proof — 90 seconds
@@ -381,15 +707,123 @@ What it proves:
 - the same ChannelPack contract runs against a neutral racing fixture without
   importing WWAM names, labels, or comedy voice.
 
+## V5.14 The Verdict Room proof — 2 minutes
+
+Use this branch when the buyer asks what happens after machine retrieval finds
+a plausible before/after pair.
+
+1. Enter **Verdict Room** from The Tape Keeps Score. Start on a clean docket
+   and point to **0/12 PASS** and the absence of formal or comedy verdict copy.
+2. Keep the two official source panes visible. Explain that the room
+   independently re-resolves the current canonical packet; it does not accept a
+   pasted replacement take or caller-authored comedy label.
+3. Walk through the twelve checks. Call out the relied-on receipts,
+   counterweight, chronology, source-audio and visual limits, speaker and
+   causality restraint, and independent outcome review.
+4. Select one of the only three codes. Show that the twelfth check locks it
+   together with its exact fixed, code-specific scoped sentence, then read the
+   confirmation dialog aloud. After confirmation, show the formal result beside
+   its WWAM comedy label and the explicit **identity unverified / local
+   overlay** boundary.
+5. Export JSON or Markdown, then revoke the decision. Show that the visible
+   verdict disappears while the append-only adjudication and revoke history
+   remain in the ledger.
+6. If useful, switch to reduced-profanity mode and explain that only the display
+   label changes. The canonical code, evidence, and authority boundary do not.
+
+Say: “The moat is not an AI confidently declaring that an old take came true.
+The machine opens a source-bound case, a human crosses twelve explicit gates,
+and even then the product records exactly what that local decision can—and
+cannot—mean.”
+
+What it proves:
+
+- a machine pairing cannot manufacture a verdict or comedy label;
+- one exact human review can create one scoped, revocable local overlay;
+- contradiction, provenance, and revocation survive export and restore;
+- stale, foreign, malformed, and hostile imports fail closed;
+- ChannelPack owns the voice while the core engine stays portable; and
+- identity, rights, speaker, causality, creator approval, Canon, and public
+  publication remain outside the prototype's authority.
+
+## V5.16 Evidence Relationship Gate proof — 60 seconds
+
+Use this branch when the buyer says any chatbot can search a relevant video.
+
+1. Ask **What do they say about Halloween?**
+2. Explain the reproduced V5.15 result honestly: the system previously ranked
+   `4UokRLETypU @ 13:29` (“Would you suck your own dick?”) and
+   `Q6SN-Om1gIo @ 47:15`. Both were precise and memorable, but neither bounded
+   remark established Halloween as its subject.
+3. Show that both are absent. Open one surviving result and point to its
+   `claimRelation`: `explicit-caption-target`, `exact-topic-receipt`, or
+   `screen-referent-in-exact-commentary`.
+4. Ask **What did they say about the mask in Halloween 5?** Show that the
+   direct `AtcRT3Xkk6E @ 22:07` mask receipt survives.
+5. Ask **What did they say about the ending in Scream 3?** Show the
+   `insufficient-evidence` answer with zero receipts and no Play the Answer
+   action.
+
+Say: “A relevant title tells us where to look. This layer still has to prove
+why the exact second is evidence for what you asked. Funny, popular, and
+human-curated moments cannot skip that test.”
+
+What it proves:
+
+- the accuracy failure is reproduced and regression-pinned instead of hidden;
+- typed receipt-to-subject relationships precede ranking;
+- a good direct receipt survives while an unsupported subtopic refuses;
+- `source-context-only` cannot enter an evidence chain or playable trail; and
+- the same playable/rejection contract accepts neutral racing vocabulary; a
+  production racing classifier must still supply driver/event aliases and
+  race-referent rules.
+
+## V5.15 Play the Answer proof — 60 seconds
+
+Use this branch when the buyer says a chatbot can also return links.
+
+1. Ask **How did their opinion on Halloween change?**
+2. Read the visible boundary first: these franchise-wide receipts cannot prove
+   a host changed their mind.
+3. Select **PLAY THIS ANSWER**. Show the exact ordered rail:
+   `6VXSBDZ-3WE @ 26:37` as the earliest indexed receipt and
+   `I6QKteG_hK0 @ 1:39:53` as the latest.
+   Under V5.16 both stops must expose
+   `screen-referent-in-exact-commentary`; a merely source-context stop would
+   make the trail ineligible.
+4. Play the first official upload in-page, choose **NEXT RECEIPT**, and play
+   the second. Point out that the evidence tier, speaker warning, and complete
+   Ask limitations remain visible.
+5. Copy the trail link. Explain that the share contains only bindings and
+   coordinates plus the exact relationship codes; opening it reruns Ask and
+   rejects a changed, reordered, or relationship-drifted trail.
+6. If a player is blocked, use **RECOVER PLAYER** to reopen the same bounded
+   source window through the hosted bridge.
+
+Say: “The answer is not AI prose with citations bolted on. It is a reproducible
+watch path through the channel's own uploads, and the warning survives the
+transition from reading to playback.”
+
+What it proves:
+
+- one answer can become an immersive multi-source experience without copied
+  media or synthetic narration;
+- Ask's evidence-chain order, not heat or popularity, controls the cut;
+- the official source remains the player and traffic destination;
+- share restore treats the current archive as authority rather than trusting
+  imported answer copy; and
+- the portable core can play a race evidence chain without importing WWAM's
+  vocabulary.
+
 ## Optional ten-minute branches
 
 Use only the branch the audience cares about:
 
 - **Fan community:** Tape Companion, Night Shift, Red Band 100, WWAM UP IN YA,
   Personalized Descent, Evidence Bag, Trivia.
-- **Back-catalog discovery:** Ask WWAM, Popular 25, Fresh 10, franchise reports,
-  Lore Galaxy, The Tape Keeps Score, and Archive Atlas's four-batch Archive
-  Deep Portfolio.
+- **Back-catalog discovery:** Ask WWAM, Play the Answer, Popular 25, Fresh 10,
+  franchise reports, Lore Galaxy, The Tape Keeps Score, The Verdict Room, and
+  Archive Atlas's four-batch Archive Deep Portfolio.
 - **Editorial operations:** Clip Lab, Creator Taste Calibration, Live
   Aftermath, Control Room, Human Review Session, and correction packets.
 - **Recurring characters:** Ask the Character, then immediately show the
@@ -399,6 +833,27 @@ Use only the branch the audience cares about:
 
 ## Claims to use
 
+- “The current Source Dossier registry contains 510 canonical sources: 111
+  caption-backed, 390 metadata-only, nine caption-limited, and zero
+  unavailable.”
+- “The current dossier registry contains 1,490 source receipts and 928
+  source-bound artifact records. Those are not the same ledger as the frozen
+  V5.4 872 promoted receipts.”
+- “Ask This Tape resolves the exact source ID and fingerprint before it parses
+  the question. Duplicate titles and stronger receipts in another upload
+  cannot replace the requested tape.”
+- “All 25 curated character-performance clips retain explicit 14-second end
+  bounds; Loomis funding remains `9042.64–9056.64`.”
+- “Archive Deep's character evidence is 24 machine character signals plus 28
+  machine character contexts. None of those 52 records is a curated
+  performance.”
+- “The July 23 dossier has 138 matching Wake sources. The returned display is
+  capped at 16 and says `truncated: true` instead of calling 16 the total.”
+- “Tape Companion registers all 510 sources: 71 are memory-ready and 439
+  remain visibly source-only.”
+- “The dossier's compact view and section expansion change presentation only;
+  they do not change evidence, source scope, or authority.”
+
 - “The immutable V5.4 proof covers 84 source inputs, 2,175,344 audited caption
   words, 194.9 caption-audited hours, 872 promoted receipts, 42
   then-quarantined Batch 01 candidates, and 168 promoted core memory nodes.”
@@ -407,14 +862,22 @@ Use only the branch the audience cares about:
   across about 268.9 hours.”
 - “Every item labeled as a moment returns to an exact indexed source
   timestamp.”
+- “V5.16 also requires a typed receipt-to-subject relationship. A timestamp in
+  a relevant upload is not automatically evidence about the requested
+  subject.”
+- “The relationship gate reproduced and removed unrelated Halloween, Scream,
+  and Friday the 13th answers without sacrificing the direct Halloween 5 mask
+  receipt or inventing a Scream 3 ending result.”
+- “Heat, curation, comedy, popularity, and profanity rank only after
+  relationship eligibility; none can upgrade `source-context-only`.”
 - “The promoted corpus contains 872 bounded editorial receipts and 168 core
   memory nodes.”
 - “Archive Deep Portfolio currently overlays 40 caption-audited sources, 97.7
   hours, 1,216,993 words, 173,675 parsed caption events, 400 topic lanes across
   48 distinct topics, and 445,949 cached snapshot views.”
-- “Its 166 machine moments remain quarantined, its 52 character-signal records
-  are source-level signals rather than performances, and its twelve
-  source-audio-sensitive records remain topic-navigation-only.”
+- “Its 166 machine moments remain quarantined; its character records are 24
+  machine signals plus 28 machine contexts rather than performances; and its
+  twelve source-audio-sensitive records remain topic-navigation-only.”
 - “Twelve Archive Deep sources occupy the special visual-ranking quarantine lane,
   and all 40 forbid visual claims. The 12-count does not mean the other 28 have
   verified visual context; a caption timestamp never identifies which visual
@@ -435,6 +898,14 @@ Use only the branch the audience cares about:
 - “The Tape Keeps Score contains four typed dockets across eight distinct
   official sources and nine short timestamped receipts. Every machine-paired
   case remains unresolved, and the public verdict count is zero.”
+- “The Verdict Room requires twelve explicit caller-attested human checks
+  before it can render one `SUPPORTED`, `CONTRADICTED`, or `MIXED` result for
+  one exact docket on this device.”
+- “Revocation removes the active local verdict without deleting its history.
+  The original machine docket remains immutable and unresolved.”
+- “WWAM's formal, comedy, and reduced-profanity verdict labels live in the
+  fingerprint-bound ChannelPack. A neutral racing pack supplies different
+  labels through the same engine.”
 - “Prediction/outcome questions can hand off from Ask to an exact docket
   subject. Unsupported entities open the global review surface instead of
   receiving an invented match.”
@@ -451,8 +922,9 @@ Use only the branch the audience cares about:
 - “The owner mapping identifies the recurring performer; individual
   auto-caption clips remain not speaker-diarized.”
 - “The Popular 25 is ranked by observed views at the snapshot date.”
-- “Tape Companion preserves 872 exact receipt members across 71
-  companion-ready sources; three disclosed gaps remain source-only.”
+- “Tape Companion lists all 510 sources: 71 are memory-ready and 439 remain
+  source-only. The historical promoted subset retains 872 exact receipt
+  members across the 71 ready sources and three disclosed gaps.”
 - “Companion heat is deterministic navigation derived from indexed evidence,
   not a measurement of audience sentiment. The playback UI's snapshot-safe and
   crossed-event path keeps future event text sealed until its timestamp is
@@ -477,7 +949,12 @@ Use only the branch the audience cares about:
   moments.”
 - “An Archive Deep batch is ranked by views” or “priority #1 means most
   watched.”
-- “The 52 character signals are verified performances.”
+- “The 24 character signals or 28 character contexts are verified
+  performances.”
+- “All 1,490 Source Dossier receipts are promoted, curated, or
+  human-verified.”
+- “Ask This Tape can borrow an answer from a better-matching upload.”
+- “The Wake displays 16, so only 16 matching relationships exist.”
 - “The captions prove which tier, poster, death, or matchup was on screen.”
 - “A source-level summary is what the hosts said at that timestamp.”
 - “Owner-mapped character means this individual clip has a verified speaker.”
@@ -485,6 +962,11 @@ Use only the branch the audience cares about:
 - “Their opinion definitely changed.”
 - “The prediction came true,” “they called it,” or “the take aged badly” based
   only on a Tape Keeps Score machine signal.
+- “A Verdict Room result is creator-approved, authenticated, public, or
+  authoritative because a human checked the boxes.”
+- “The local ledger verifies who reviewed it, clears rights, assigns a speaker,
+  proves causality, updates Canon, or publishes itself.”
+- “Revoking a local decision deletes the original adjudication.”
 - “The same speaker made both statements,” “this proves a mind change,” or
   “the before statement caused the later result.”
 - “The edit brief is a finished or rights-cleared cut.”

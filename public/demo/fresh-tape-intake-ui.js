@@ -262,6 +262,7 @@
   var artifact = null;
   var artifactIsSample = false;
   var sampleActive = false;
+  var stagedSource = null;
   var visibleCandidates = 36;
   var lastNotice = "";
 
@@ -335,6 +336,18 @@
   }
 
   function emptyMarkup() {
+    if (stagedSource) {
+      return '<div class="intake-empty is-staged" data-fresh-staged="' +
+        esc(stagedSource.id) + '">' +
+        '<span>AUTOPSY QUEUE SOURCE STAGED</span><h3 tabindex="-1" ' +
+        'data-fresh-result-focus>' + esc(stagedSource.title) + '</h3><p>' +
+        esc(stagedSource.id + " // " + stagedSource.date + " // " +
+          timecode(stagedSource.duration)) +
+        '</p><ol><li>Acquire a timed WebVTT, SRT, or YouTube JSON3 caption file.</li>' +
+        '<li>Choose or paste it below; the source metadata is already bound.</li>' +
+        '<li>Run local intake. Every candidate remains quarantined and speaker-unknown.</li></ol>' +
+        '<b>TRANSCRIPT FIELD INTENTIONALLY EMPTY // NOTHING AUTO-RUNS</b></div>';
+    }
     return '<div class="intake-empty">' +
       '<div class="intake-radar" aria-hidden="true"><i></i><i></i><i></i></div>' +
       '<span>LOCAL DROP ZONE ARMED</span>' +
@@ -724,7 +737,55 @@
     section.setAttribute("data-fresh-sample", sampleActive ? "true" : "false");
   }
 
+  function stageSource(source) {
+    var incoming = source && typeof source === "object" ? source : {};
+    var id = youtubeId(incoming.id || incoming.url);
+    var title = clean(incoming.title || incoming.displayTitle);
+    var date = clean(incoming.date);
+    var seconds = Number(incoming.durationSeconds != null ?
+      incoming.durationSeconds : incoming.duration);
+    if (!id || !title || !/^\d{4}-\d{2}-\d{2}$/.test(date) ||
+        !Number.isFinite(seconds) || seconds <= 0) {
+      announce("SOURCE STAGE HELD // CANONICAL ID, TITLE, DATE, AND RUNTIME REQUIRED");
+      return false;
+    }
+    stagedSource = {
+      id: id,
+      url: "https://www.youtube.com/watch?v=" + id,
+      title: title,
+      date: date,
+      duration: seconds,
+      views: Number(incoming.views || 0),
+      priority: incoming.priority || null
+    };
+    elements.id.value = stagedSource.id;
+    elements.url.value = stagedSource.url;
+    elements.title.value = stagedSource.title;
+    elements.date.value = stagedSource.date;
+    elements.duration.value = String(stagedSource.duration);
+    if (Array.prototype.some.call(elements.lane.options, function (option) {
+      return option.value === "archive-deep-10";
+    })) elements.lane.value = "archive-deep-10";
+    elements.format.value = "youtube-json3";
+    elements.transcript.value = "";
+    elements.file.value = "";
+    artifact = null;
+    artifactIsSample = false;
+    visibleCandidates = 36;
+    setSampleState(false);
+    section.setAttribute("data-fresh-staged-source", stagedSource.id);
+    root.WWAM_PENDING_INTAKE_SOURCE = null;
+    elements.output.innerHTML = emptyMarkup();
+    announce("SOURCE STAGED // ADD TIMED CAPTIONS // NOTHING AUTO-RUNS");
+    var target = elements.file || elements.transcript;
+    if (target && typeof target.focus === "function") target.focus();
+    return true;
+  }
+
   function loadSample() {
+    stagedSource = null;
+    section.removeAttribute("data-fresh-staged-source");
+    root.WWAM_PENDING_INTAKE_SOURCE = null;
     elements.id.value = SAMPLE.id;
     elements.url.value = SAMPLE.url;
     elements.title.value = SAMPLE.title;
@@ -754,6 +815,9 @@
   }
 
   function clearAll() {
+    stagedSource = null;
+    section.removeAttribute("data-fresh-staged-source");
+    root.WWAM_PENDING_INTAKE_SOURCE = null;
     elements.form.reset();
     renderLaneOptions();
     elements.format.value = "webvtt";
@@ -816,6 +880,9 @@
         setSampleState(false);
       }
     });
+    doc.addEventListener("wwam:stage-intake-source", function (event) {
+      stageSource(event && event.detail && event.detail.source);
+    });
   }
 
   function init() {
@@ -838,10 +905,12 @@
       renderRules();
       renderProof();
       bind();
-      elements.output.innerHTML = emptyMarkup();
       section.setAttribute("aria-busy", "false");
       section.setAttribute("data-fresh-intake-ready", "true");
-      announce("LOCAL DROP ZONE READY // NOTHING LEAVES THIS BROWSER");
+      if (!stageSource(root.WWAM_PENDING_INTAKE_SOURCE)) {
+        elements.output.innerHTML = emptyMarkup();
+        announce("LOCAL DROP ZONE READY // NOTHING LEAVES THIS BROWSER");
+      }
     } catch (error) {
       section.setAttribute("aria-busy", "false");
       section.setAttribute("data-fresh-intake-ready", "false");

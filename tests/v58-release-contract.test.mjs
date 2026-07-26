@@ -21,12 +21,12 @@ const html = read("public/demo/index.html");
 const batch3 = read("public/demo/archive-deep-batch3.js");
 
 test("the historical V5.8 entry remains while current identity stays synchronized", () => {
-  assert.equal(packageJson.version, "0.5.13");
-  assert.equal(packageLock.version, "0.5.13");
-  assert.equal(packageLock.packages[""].version, "0.5.13");
-  assert.match(readme, /Current documented release: \*\*V5\.13 \/ 0\.5\.13\*\*/);
-  assert.match(overview, /^# WWAM After Midnight V5\.13/m);
-  assert.match(runbook, /current V5\.13 build/i);
+  assert.equal(packageJson.version, "0.5.21");
+  assert.equal(packageLock.version, "0.5.21");
+  assert.equal(packageLock.packages[""].version, "0.5.21");
+  assert.match(readme, /Current documented release: \*\*V5\.21 \/ 0\.5\.21\*\*/);
+  assert.match(overview, /^# WWAM After Midnight V5\.21/m);
+  assert.match(runbook, /current V5\.21 build/i);
   assert.match(changelog, /^## 0\.5\.8 .*V5\.8/m);
 });
 
@@ -40,13 +40,18 @@ test("the current four-batch portfolio publishes one exact measured vocabulary",
     /400 topic lanes/i,
     /48 distinct/i,
     /166 quarantined/i,
-    /52 (?:source-level )?character-signal/i,
+    /24 (?:machine )?character signals/i,
+    /28 (?:machine )?character contexts/i,
     /12 topic-only/i,
     /12 (?:special )?visual-ranking quarantine/i,
     /445,949 cached/i,
   ]) {
     assert.match(proof, expected);
   }
+  assert.match(
+    proof,
+    /all 52[\s\S]{0,160}none[\s\S]{0,80}curated performance/i,
+  );
   assert.match(portfolio, /fnv1a32:14050c7a/);
   assert.match(portfolio, /fnv1a32:17045a51/);
   assert.match(portfolio, /fnv1a32:bcea5692/);
@@ -100,8 +105,8 @@ test("Batch 03 is integrated quarantine with independently pinned evidence", () 
 });
 
 test("Ask Review is a lazy, local proposal lane with no silent authority", () => {
-  assert.match(html, /data-feature-scripts="ask-review-engine\.js,ask-review-ui\.js"/);
-  assert.match(html, /data-feature-styles="ask-review\.css"/);
+  assert.match(html, /data-feature-scripts="ask-review-engine\.js,ask-review-ui\.js,[^"]*play-answer-engine\.js,play-answer-ui\.js[^"]*"/);
+  assert.match(html, /data-feature-styles="ask-review\.css,play-answer\.css[^"]*"/);
   assert.match(reviewEngine, /shokker-youtube-wiki\/ask-review\/v1/);
   assert.match(reviewEngine, /corpusMutation:\s*"NONE"/);
   assert.match(reviewEngine, /canonMutation:\s*"NONE"/);

@@ -56,12 +56,30 @@
       unresolved: "THE TAPE PLEADS THE FIFTH",
       editBrief: "BEFORE / AFTER EDIT BRIEF"
     }),
+    adjudicationVocabulary: Object.freeze({
+      SUPPORTED: Object.freeze({
+        formal: "SUPPORTED WITHIN REVIEWED SCOPE",
+        comedy: "CALLED THAT SHIT.",
+        bleep: "CALLED THAT [BLEEP]."
+      }),
+      CONTRADICTED: Object.freeze({
+        formal: "CONTRADICTED WITHIN REVIEWED SCOPE",
+        comedy: "AGED LIKE ROADKILL.",
+        bleep: "AGED LIKE ROADKILL."
+      }),
+      MIXED: Object.freeze({
+        formal: "MIXED WITHIN REVIEWED SCOPE",
+        comedy: "HALF PROPHET. HALF JACKASS.",
+        bleep: "HALF PROPHET. HALF [BLEEP]."
+      })
+    }),
     capabilities: Object.freeze([
       "ask-the-tape",
       "character-studio",
       "creator-clip-lab",
       "creator-taste-calibration",
       "fresh-tape-intake",
+      "human-adjudication-ledger",
       "longitudinal-claim-ledger",
       "memory-graph",
       "red-band-candidate-index",

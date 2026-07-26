@@ -337,8 +337,101 @@ test("neutral franchise-opinion questions use explicit take evidence, not comedy
     assert.ok(takeCategories.includes(result.category), result.category);
     assert.equal(result.curatedRank, null);
     assert.equal(result.curatedLabel, null);
+    assert.equal(result.claimRelation, "screen-referent-in-exact-commentary");
     assert.match(result.reasons.join(" "), /evaluative take evidence/i);
     assert.ok(result.takeEvidence.evaluativeTerms.length > 0);
     assert.ok(result.takeEvidence.targetTerms.length > 0);
   }
+});
+
+test("neutral franchise aboutness requires a caption-to-target relationship", async () => {
+  const engine = await createEngine();
+  const unsafeLegacyKeys = new Set([
+    "moment-4UokRLETypU-809",
+    "moment-Q6SN-Om1gIo-2835",
+    "moment-2G8lpFaeIdw-1585",
+    "moment-jLIfEdg8Oc0-4366",
+    "moment-BIbyzMlstmM-1528",
+  ]);
+  const scenarios = [
+    ["What do they say about Halloween?", "Halloween"],
+    ["What do they say about Scream?", "Scream"],
+    ["What do they say about Friday the 13th?", "Friday the 13th"],
+  ];
+
+  for (const [query, entity] of scenarios) {
+    const answer = plain(engine.ask(query));
+    assert.equal(answer.intent, "topic", query);
+    assert.equal(answer.entity, entity, query);
+    assert.equal(answer.status, "supported", query);
+    assert.ok(answer.results.length >= 2, query);
+    assert.ok(answer.evidenceChain.length >= 2, query);
+    assert.ok(
+      answer.results.every((result) => (
+        result.claimRelation === "exact-topic-receipt" &&
+        result.kind === "topic" &&
+        result.curatedRank == null &&
+        /exact topic receipt/i.test(result.reasons.join(" "))
+      )),
+      `${query}: source-context-only or curated collateral escaped`,
+    );
+    assert.ok(
+      answer.evidenceChain.every((entry) => (
+        entry.result.claimRelation === "exact-topic-receipt" &&
+        !unsafeLegacyKeys.has(entry.result.key)
+      )),
+      `${query}: unsafe legacy receipt entered the evidence chain`,
+    );
+  }
+});
+
+test("neutral Elm Street remake opinion recovers both bounded critical receipts", async () => {
+  const engine = await createEngine();
+  const answer = plain(engine.ask("What do they think about the Elm Street remake?"));
+
+  assert.equal(answer.intent, "opinion");
+  assert.equal(answer.status, "archive-boundary");
+  assert.equal(answer.entity, "A Nightmare on Elm Street (2010)");
+  assert.equal(answer.entityType, "film");
+  assert.deepEqual(
+    new Set(answer.results.map((result) => `${result.sourceId}@${result.at}`)),
+    new Set(["qTQdWKcwn4A@1132", "qTQdWKcwn4A@2101"]),
+  );
+  assert.deepEqual(
+    new Set(answer.evidenceChain.map((entry) => `${entry.result.sourceId}@${entry.result.at}`)),
+    new Set(["qTQdWKcwn4A@1132", "qTQdWKcwn4A@2101"]),
+  );
+  assert.deepEqual(
+    answer.evidenceChain.map((entry) => entry.role),
+    ["CRITICAL-LANGUAGE RECEIPT", "SUPPORTING RECEIPT"],
+  );
+  for (const result of answer.results) {
+    assert.equal(result.kind, "moment");
+    assert.equal(result.category, "FRANCHISE FELONY");
+    assert.equal(result.claimRelation, "screen-referent-in-exact-commentary");
+    assert.equal(result.curatedRank, null);
+    assert.ok(result.takeEvidence.proximityPairs.length > 0);
+  }
+  assert.match(answer.answer, /specific evaluative moment, not one settled host opinion/i);
+});
+
+test("selected-source term consumption cannot bypass the aboutness relationship gate", async () => {
+  const engine = await createEngine();
+  const answer = plain(engine.ask(
+    "What did they say about Ranking HALLOWEEN + SCREAM + ANOES + FRIDAY THE 13th Live?",
+  ));
+
+  assert.equal(answer.status, "insufficient-evidence");
+  assert.equal(answer.selectionPlan.source.sourceId, "kX3wb5pBRDo");
+  assert.deepEqual(answer.results, []);
+  assert.deepEqual(answer.evidenceChain, []);
+  assert.match(answer.answer, /archive gap, not proof/i);
+
+  const overview = plain(engine.ask("What are they talking about in the latest livestream?"));
+  assert.equal(overview.status, "supported");
+  assert.ok(overview.results.length > 0);
+  assert.ok(overview.results.every((result) => (
+    result.claimRelation === "exact-topic-receipt" &&
+    /exact topic receipt/i.test(result.reasons.join(" "))
+  )));
 });
