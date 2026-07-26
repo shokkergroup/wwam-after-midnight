@@ -74,12 +74,25 @@ function digest(value) {
   return crypto.createHash("sha256").update(value).digest("hex");
 }
 
+function stripProviderHtmlInstrumentation(source) {
+  const marker = "<script>(function(){function c(){";
+  const start = source.lastIndexOf(marker);
+  if (start < 0) return source;
+  const end = source.indexOf("</script>", start);
+  const injected = end >= 0 ? source.slice(start, end) : "";
+  if (!injected.includes("window.__CF$cv$params")) return source;
+  return source.slice(0, start) + source.slice(end + "</script>".length);
+}
+
 function verifyCurrentAsset(source, filename, label) {
   const expected = fs.readFileSync(path.join(DEMO_DIR, filename), "utf8");
+  const deployed = /\.html?$/i.test(filename)
+    ? stripProviderHtmlInstrumentation(source)
+    : source;
   invariant(
-    source === expected,
+    deployed === expected,
     `${label} does not match this release ` +
-      `(deployed ${digest(source)}, expected ${digest(expected)}).`,
+      `(deployed ${digest(deployed)}, expected ${digest(expected)}).`,
   );
 }
 
