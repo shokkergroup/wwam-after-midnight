@@ -217,7 +217,7 @@
     if (archiveAtlasEngine) return Promise.resolve(archiveAtlasEngine);
     if (archiveAtlasLoadPromise) return archiveAtlasLoadPromise;
     document.getElementById("archive").setAttribute("aria-busy", "true");
-    document.getElementById("archiveStatus").textContent = "LOADING THE 472-RECORD LEDGER";
+    document.getElementById("archiveStatus").textContent = "LOADING THE LIVING ARCHIVE LEDGER";
     archiveAtlasLoadPromise = loadDemoScript("archive-atlas-data.js?v=1.4.0-year-canon")
       .then(loadArchiveDeep)
       .then(function () { return loadDemoScript("archive-atlas-engine.js?v=1.4.0-year-canon"); })
@@ -427,12 +427,20 @@
     sourceDossierLoadPromise = loadArchiveAtlas()
       .then(function (atlas) {
         if (!atlas) throw new Error("The canonical archive registry could not be loaded.");
-        var expectedArchiveEvidenceSources = 40 + Number(
-          window.WWAM_YEAR_CANON_2025_2026 && window.WWAM_YEAR_CANON_2025_2026.streams.length || 0
+        var yearCanonIds = new Set(
+          (window.WWAM_YEAR_CANON_2025_2026 &&
+            window.WWAM_YEAR_CANON_2025_2026.streams || []).map(function (stream) {
+            return stream.id;
+          })
         );
-        if (!archiveDeepEngine || archiveDeepStreams.length !== expectedArchiveEvidenceSources) {
-          throw new Error("The " + expectedArchiveEvidenceSources +
-            "-source archive evidence overlay is incomplete.");
+        var archiveEvidenceIds = new Set(archiveDeepStreams.map(function (stream) {
+          return stream.id;
+        }));
+        var missingYearCanon = Array.from(yearCanonIds).filter(function (id) {
+          return !archiveEvidenceIds.has(id);
+        });
+        if (!archiveDeepEngine || archiveDeepStreams.length < 40 || missingYearCanon.length) {
+          throw new Error("The living archive evidence overlay is incomplete.");
         }
         if (!showcaseEngine) createDeepEngines();
         if (!showcaseEngine) {
@@ -445,7 +453,7 @@
       .then(function () { return loader.loadStyle("source-dossier.css?v=1.7.0"); })
       .then(function () {
         return ["channel-pack-contract.js", "wwam-channel-pack-adapter.js",
-          "source-dossier-engine.js?v=1.5.0", "wwam-source-dossier-adapter.js?v=1.6.0",
+          "source-dossier-engine.js?v=1.5.0", "wwam-source-dossier-adapter.js?v=1.7.0",
           "source-query-engine.js?v=1.2.1",
           "aftermath-pack-engine.js?v=1.0.0",
           "source-dossier-ui.js?v=1.7.0"].reduce(function (promise, source) {
@@ -529,7 +537,7 @@
     modal.setAttribute("aria-describedby", "sourceDossierBoundary");
     document.getElementById("modalContent").innerHTML =
       '<div class="source-dossier-loading" role="status" aria-live="polite">' +
-      '<span>THE TAPE\'S WAKE // BUILDING A 510-SOURCE MEMORY FILE</span>' +
+      '<span>THE TAPE\'S WAKE // VERIFYING THE LIVING MEMORY FILE</span>' +
       '<h2 id="sourceDossierTitle">OPENING THE SHOW WIKI.</h2>' +
       '<p id="sourceDossierBoundary">The official source registry, evidence boundary, and cross-archive connections are being verified.</p></div>';
     modal.classList.add("show");
@@ -546,7 +554,7 @@
     showSourceDossierLoading();
     return loadSourceDossier().then(function (ui) {
       if (!sourceDossierEngine.has(sourceId)) {
-        throw new Error("This source is outside the 510-upload canonical registry.");
+        throw new Error("This source is outside the current canonical registry.");
       }
       var rendered = ui.render(sourceId, {at:startTime == null ? null : Number(startTime),
         section:section, query:String(settings.query || "").slice(0, 240)});

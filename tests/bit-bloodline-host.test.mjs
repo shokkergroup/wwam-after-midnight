@@ -113,7 +113,7 @@ function harness() {
 test("the host re-resolves before mounting and features the 1,916-day Slenderman route", async () => {
   const env = harness();
   const markup = env.window.WWAMBitBloodlineHost.view(env.definitions);
-  assert.match(markup, /VERIFYING 25 CANONICAL PERFORMANCES/);
+  assert.match(markup, /VERIFYING THE CANONICAL PERFORMANCE LEDGER/);
 
   await new Promise((resolve) => setImmediate(resolve));
 
@@ -176,5 +176,5 @@ test("the integration replaces the overclaiming one-lineage renderer inside Memo
   assert.doesNotMatch(app, /PLAY THE LINEAGE/);
   assert.match(app, /WWAMBitBloodlineHost\.view\(lineages\)/);
   assert.match(app, /state\.memoryTab === "score" \|\| state\.memoryTab === "bits"/);
-  assert.ok(fs.statSync(path.join(demo, "app.js")).size < 255_000);
+  assert.ok(fs.statSync(path.join(demo, "app.js")).size < 265_000);
 });

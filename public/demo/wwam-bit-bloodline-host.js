@@ -134,7 +134,7 @@
     setTimeout(function () { mountLineages(token); }, 0);
     return '<div class="bit-bloodline-load" id="bitBloodlineMount" ' +
       'role="status" aria-live="polite" aria-busy="true">' +
-      "<span>BIT BLOODLINES // VERIFYING 25 CANONICAL PERFORMANCES</span>" +
+      "<span>BIT BLOODLINES // VERIFYING THE CANONICAL PERFORMANCE LEDGER</span>" +
       "<h3>TRACING ALL FOUR RECURRING SIGNALS.</h3>" +
       "<p>Exact receipts, dates, bounds, and source fingerprints are being re-resolved.</p></div>";
   }

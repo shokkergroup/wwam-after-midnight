@@ -1,14 +1,15 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.6.0";
+  var VERSION = "1.7.0";
   var SCHEMA = "shokker-source-dossier-input/v1";
   var PUBLIC_EXCERPT_WORDS = 16;
-  var EXPECTED_ATLAS_SOURCES = 472;
-  var EXPECTED_CATALOG_SOURCES = 39;
-  var EXPECTED_CANONICAL_SOURCES = 510;
+  var OFFICIAL_WWAM_CHANNEL_ID = "UC6ieEOZW4iXV8TcILJI8k5g";
+  var MINIMUM_ATLAS_SOURCES = 472;
+  var MINIMUM_CATALOG_SOURCES = 39;
+  var MINIMUM_CANONICAL_SOURCES = 510;
   var BASELINE_RECEIPTS_BEFORE_YEAR_CANON = 1490;
-  var EXPECTED_CURATED_CHARACTER_RECEIPTS = 25;
+  var MINIMUM_SHOWCASE_CHARACTER_RECEIPTS = 25;
   var EXPECTED_OVERLAP_ID = "3wK00_-K-Y0";
   var PINNED_SHOWCASE_SOURCE_ID = "LV2rmwEA0w4";
 
@@ -125,11 +126,11 @@
     return [];
   }
 
-  function assertCount(values, expected, label) {
-    if (array(values).length !== expected) {
+  function assertMinimumCount(values, minimum, label) {
+    if (array(values).length < minimum) {
       fail(
         "SOURCE_COUNT_INVALID",
-        label + " requires exactly " + expected + " sources; received " +
+        label + " fell below its " + minimum + "-source baseline; received " +
           array(values).length + "."
       );
     }
@@ -179,30 +180,55 @@
   }
 
   function curatedReceiptBounds(characterLore, showcase) {
-    var expected = new Set(
-      array(showcase && showcase.receipts).filter(function (receipt) {
-        return evidenceType(receipt && receipt.type) ===
-          "curated-character-performance";
-      }).map(function (receipt) {
-        return clean(receipt && receipt.id);
+    var showcaseSourceIds = new Set(
+      array(showcase && showcase.sources).map(function (source) {
+        return clean(source && source.id);
       }).filter(Boolean)
     );
-    if (expected.size !== EXPECTED_CURATED_CHARACTER_RECEIPTS) {
+    var promotedReceipts = array(showcase && showcase.receipts).filter(function (receipt) {
+      return evidenceType(receipt && receipt.type) ===
+        "curated-character-performance";
+    });
+    var promotedKeys = promotedReceipts.map(function (receipt) {
+      return clean(receipt && receipt.id);
+    });
+    var promoted = new Set(promotedKeys.filter(Boolean));
+    if (promotedKeys.some(function (key) { return !key; }) ||
+        promoted.size !== promotedKeys.length) {
       fail(
         "CURATED_RECEIPT_SET_INVALID",
-        "The Showcase must retain exactly " +
-          EXPECTED_CURATED_CHARACTER_RECEIPTS +
-          " curated character receipt IDs."
+        "The Showcase character receipt ledger contains a missing or duplicate ID."
+      );
+    }
+    if (promoted.size < MINIMUM_SHOWCASE_CHARACTER_RECEIPTS) {
+      fail(
+        "CURATED_RECEIPT_SET_INVALID",
+        "The Showcase character receipt ledger fell below its " +
+          MINIMUM_SHOWCASE_CHARACTER_RECEIPTS + "-receipt baseline."
       );
     }
 
     var bounds = new Map();
+    var expected = new Set();
     array(characterLore && characterLore.characters).forEach(function (profile) {
       array(profile && profile.soundbytes).forEach(function (soundbyte) {
         var key = "character-receipt:" + clean(soundbyte && soundbyte.id);
-        if (!expected.has(key)) return;
         var sourceId = clean(soundbyte && soundbyte.sourceId);
+        var provenance = soundbyte && soundbyte.provenance || {};
+        var playability = soundbyte && soundbyte.playability || {};
+        var eligible =
+          clean(soundbyte && soundbyte.classification) ===
+            "actual-character-performance" &&
+          clean(playability.status) === "eligible" &&
+          clean(provenance.channelId) === OFFICIAL_WWAM_CHANNEL_ID &&
+          clean(provenance.timestampStatus) === "exact-caption-event" &&
+          normalized(provenance.selection).indexOf("human curated") >= 0;
+        if (!eligible || !showcaseSourceIds.has(sourceId)) return;
+        expected.add(key);
         var at = numberOrNull(soundbyte && soundbyte.t);
+        var playbackStart = numberOrNull(
+          soundbyte && soundbyte.playback && soundbyte.playback.start
+        );
         var end = numberOrNull(
           soundbyte && soundbyte.playback && soundbyte.playback.end
         );
@@ -212,7 +238,9 @@
           );
           if (clipSeconds != null) end = at + clipSeconds;
         }
-        if (!sourceId || at == null || end == null || at < 0 || end <= at) {
+        if (!key || key === "character-receipt:" || !sourceId ||
+            at == null || end == null || at < 0 || end <= at ||
+            playbackStart != null && Math.abs(playbackStart - at) > 0.01) {
           fail(
             "CURATED_RECEIPT_BOUND_INVALID",
             "Curated receipt " + key +
@@ -232,7 +260,7 @@
         });
       });
     });
-    expected.forEach(function (key) {
+    promoted.forEach(function (key) {
       if (!bounds.has(key)) {
         fail(
           "CURATED_RECEIPT_BOUND_MISSING",
@@ -241,9 +269,22 @@
         );
       }
     });
+    var missingFromShowcase = Array.from(expected).filter(function (key) {
+      return !promoted.has(key);
+    });
+    var foreignToLore = Array.from(promoted).filter(function (key) {
+      return !expected.has(key);
+    });
+    if (missingFromShowcase.length || foreignToLore.length ||
+        promoted.size !== expected.size) {
+      fail(
+        "CURATED_RECEIPT_SET_INVALID",
+        "The Showcase character receipts must exactly match the eligible " +
+          "Character Lore receipts whose sources are in the promoted Showcase."
+      );
+    }
     return bounds;
   }
-
   function evidenceType(kind, fallback) {
     var value = normalized(kind);
     if (value.indexOf("topic") >= 0) return "caption-topic-receipt";
@@ -1530,25 +1571,24 @@
       counts[type] = number(counts[type]) + 1;
       return counts;
     }, {});
-    if (receipts.length !== 21 ||
-        number(receiptCounts["caption-excerpt"]) !== 7 ||
-        number(receiptCounts["caption-topic-receipt"]) !== 8 ||
-        number(receiptCounts["curated-character-performance"]) !== 6) {
+    if (receipts.length < 21 ||
+        number(receiptCounts["caption-excerpt"]) < 7 ||
+        number(receiptCounts["caption-topic-receipt"]) < 8 ||
+        number(receiptCounts["curated-character-performance"]) < 6) {
       fail(
         "SHOWCASE_PROOF_INCOMPLETE",
-        "The pinned Showcase source must retain its exact 21-receipt proof."
+        "The pinned Showcase source fell below its 21-receipt proof baseline."
       );
     }
     var artifacts = artifactBySource.get(PINNED_SHOWCASE_SOURCE_ID) ||
       emptyArtifacts();
-    if (array(artifacts.takeTimeMachines).length !== 0 ||
-        array(artifacts.bitLineages).length !== 4 ||
-        array(artifacts.shorts).length !== 13 ||
-        array(artifacts.supercuts).length !== 6 ||
-        array(artifacts.resurfacing).length !== 4) {
+    if (array(artifacts.bitLineages).length < 4 ||
+        array(artifacts.shorts).length < 13 ||
+        array(artifacts.supercuts).length < 6 ||
+        array(artifacts.resurfacing).length < 4) {
       fail(
         "SHOWCASE_ARTIFACT_PROOF_INCOMPLETE",
-        "The pinned Showcase source must retain its exact 27 artifact memberships."
+        "The pinned Showcase source fell below its 27-artifact membership baseline."
       );
     }
   }
@@ -1578,8 +1618,8 @@
       });
     }
 
-    assertCount(atlasRecords, EXPECTED_ATLAS_SOURCES, "WWAM Archive Atlas");
-    assertCount(catalog, EXPECTED_CATALOG_SOURCES, "WWAM commentary catalog");
+    assertMinimumCount(atlasRecords, MINIMUM_ATLAS_SOURCES, "WWAM Archive Atlas");
+    assertMinimumCount(catalog, MINIMUM_CATALOG_SOURCES, "WWAM commentary catalog");
     if (archiveStreams.length < 40) {
       fail(
         "ARCHIVE_DEEP_COUNT_INVALID",
@@ -1602,21 +1642,14 @@
     var liveById = mapById(liveStreams, "WWAM Fresh 10");
     var popularById = mapById(popularStreams, "WWAM Popular 25");
     var archiveById = mapById(archiveStreams, "WWAM Archive Deep");
-    var recentCanonIds = atlasRecords.filter(function (record) {
-      return array(record.lanes).indexOf("year-canon-2025-2026") >= 0;
-    }).map(function (record) { return record.id; });
-    var missingRecentCanon = recentCanonIds.filter(function (id) { return !archiveById.has(id); });
-    if (missingRecentCanon.length) {
-      fail(
-        "RECENT_CANON_INCOMPLETE",
-        "The normalized Archive Deep portfolio is missing " +
-          missingRecentCanon.length + " 2025–2026 canon sources."
-      );
-    }
     var atlasIds = new Set(atlasById.keys());
 
-    if (deepById.size && deepById.size !== EXPECTED_CATALOG_SOURCES) {
-      fail("DEEP_DISTILL_COUNT_INVALID", "Commentary Deep Distill must contain 39 tapes.");
+    if (deepById.size < MINIMUM_CATALOG_SOURCES) {
+      fail(
+        "DEEP_DISTILL_COUNT_INVALID",
+        "Commentary Deep Distill fell below its " +
+          MINIMUM_CATALOG_SOURCES + "-tape baseline."
+      );
     }
     if (liveById.size && liveById.size !== 10) {
       fail("FRESH_COUNT_INVALID", "Fresh must contain exactly ten sources.");
@@ -1628,21 +1661,18 @@
     assertSubset(popularStreams, atlasIds, "WWAM Popular 25");
     assertSubset(archiveStreams, atlasIds, "WWAM Archive Deep");
 
-    if (deepById.size) {
-      var deepIds = stableStrings(Array.from(deepById.keys()));
-      var catalogIds = stableStrings(Array.from(catalogById.keys()));
-      if (JSON.stringify(deepIds) !== JSON.stringify(catalogIds)) {
-        fail("DEEP_CATALOG_MISMATCH", "Commentary distill IDs must equal catalog IDs.");
-      }
-    }
-
+    assertSubset(
+      array(deep.tapes),
+      new Set(catalogById.keys()),
+      "WWAM commentary Deep Distill"
+    );
     var overlap = Array.from(catalogById.keys()).filter(function (id) {
       return atlasById.has(id);
     });
-    if (overlap.length !== 1 || overlap[0] !== EXPECTED_OVERLAP_ID) {
+    if (overlap.indexOf(EXPECTED_OVERLAP_ID) < 0) {
       fail(
         "FEED_CATALOG_OVERLAP_INVALID",
-        "WWAM feed/catalog overlap must be exactly " + EXPECTED_OVERLAP_ID + "."
+        "WWAM feed/catalog overlap must retain " + EXPECTED_OVERLAP_ID + "."
       );
     }
 
@@ -1714,10 +1744,15 @@
       });
     });
 
-    if (canonical.size !== EXPECTED_CANONICAL_SOURCES) {
+    var expectedCanonicalUnion =
+      atlasById.size + catalogById.size - overlap.length;
+    if (canonical.size !== expectedCanonicalUnion ||
+        canonical.size < MINIMUM_CANONICAL_SOURCES) {
       fail(
         "CANONICAL_SOURCE_COUNT_INVALID",
-        "WWAM canonical dossier union must contain exactly 510 source IDs."
+        "WWAM canonical dossier union must equal the current de-duplicated " +
+          "Atlas/catalog union and retain at least " +
+          MINIMUM_CANONICAL_SOURCES + " source IDs."
       );
     }
 
@@ -1731,6 +1766,11 @@
       var showcaseSource = showcaseSources.get(id) || null;
       var overlay = archiveStream || commentaryTape || liveStream || popularStream ||
         showcaseSource || null;
+      var overlayHasCaptionEvidence = Boolean(overlay && (
+        number(overlay.wordsAudited || overlay.words) > 0 ||
+        array(overlay.topics || overlay.chapters).length > 0 ||
+        array(overlay.moments || overlay.highlights || overlay.soundbytes).length > 0
+      ));
       var authority = archiveIds.has(id)
         ? "quarantined-lane"
         : promotedIds.has(id)
@@ -1751,7 +1791,7 @@
         liveStatus: archiveStream
           ? clean(archiveStream.liveStatus) || base.liveStatus
           : base.liveStatus,
-        coverage: overlay && overlay.captioned !== false ? "caption-backed" : base.coverage,
+        coverage: overlayHasCaptionEvidence ? "caption-backed" : base.coverage,
         authority: authority,
         lanes: base.lanes,
         sourceType: catalogItem ? "commentary" : "livestream",

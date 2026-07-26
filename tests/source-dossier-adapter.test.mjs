@@ -123,7 +123,7 @@ function wordCount(value) {
 test("adapter exposes the universal schema and exact 510-source WWAM union", () => {
   const { window, result } = buildFixture();
 
-  assert.equal(window.WWAMSourceDossierAdapter.VERSION, "1.6.0");
+  assert.equal(window.WWAMSourceDossierAdapter.VERSION, "1.7.0");
   assert.deepEqual(Object.keys(result), [
     "schema",
     "channel",
@@ -154,8 +154,8 @@ test("adapter exposes the universal schema and exact 510-source WWAM union", () 
     ["commentary-catalog", "streams-feed"],
   );
   assert.deepEqual(countBy(result.sources, "coverage"), {
-    "caption-backed": 210,
-    "caption-limited": 8,
+    "caption-backed": 209,
+    "caption-limited": 9,
     "metadata-only": 292,
   });
   assert.deepEqual(countBy(result.sources, "authority"), {
@@ -417,7 +417,7 @@ test("all dossiers retain canonical metadata and fail honest outside caption evi
       assert.ok(entityBases.has(entity.basis), entity.basis);
     });
   });
-  assert.equal(receiptKeys.size, 3310);
+  assert.equal(receiptKeys.size, 3315);
 });
 
 test("every source gets an honest Show Wiki shell with rigorously gated lanes", () => {
@@ -654,9 +654,10 @@ test("every source gets an honest Show Wiki shell with rigorously gated lanes", 
       source.showWiki.status,
       source.coverage === "caption-backed" &&
         Boolean(source.summary || source.receipts.length)
-        ? source.receipts.some((receipt) => receipt.kind.includes("moment"))
-          ? "distilled"
-          : "topic-nav-only"
+        ? source.receipts.some((receipt) => receipt.kind.includes("topic")) &&
+            !source.receipts.some((receipt) => receipt.kind.includes("moment"))
+          ? "topic-nav-only"
+          : "distilled"
         : "source-brief",
       source.id,
     );
@@ -856,17 +857,17 @@ test("every source gets an honest Show Wiki shell with rigorously gated lanes", 
     }
   });
 
-  assert.equal(distilledRecapCount, 99);
-  assert.equal(topicNavOnlyRecapCount, 12);
-  assert.equal(sourceBriefShowWikiCount, 300);
-  assert.equal(readyMomentRouteCount, 99);
-  assert.equal(readyTopicRouteCount, 12);
-  assert.equal(emptyRouteCount, 300);
+  assert.equal(distilledRecapCount, 193);
+  assert.equal(topicNavOnlyRecapCount, 16);
+  assert.equal(sourceBriefShowWikiCount, 301);
+  assert.equal(readyMomentRouteCount, 193);
+  assert.equal(readyTopicRouteCount, 16);
+  assert.equal(emptyRouteCount, 301);
   assert.ok(upInYaCount > 0, "expected exact UP IN YA receipts");
-  assert.equal(stevesSourceCount, 15);
-  assert.equal(stevesCount, 15);
-  assert.equal(characterSourceCount, 37);
-  assert.equal(characterCount, 77);
+  assert.equal(stevesSourceCount, 29);
+  assert.equal(stevesCount, 30);
+  assert.equal(characterSourceCount, 126);
+  assert.equal(characterCount, 264);
   assert.ok(rejectedNegativeCandidates > 0, "expected strict gate rejections");
 
   for (const [sourceId, at] of [
@@ -1061,28 +1062,33 @@ test("every Show Wiki query-alias bundle is present, bounded, and normalized-uni
 });
 
 
-test("the 3,310 receipts retain the exact evidence taxonomy", () => {
+test("the 3,315 receipts retain the exact evidence taxonomy", () => {
   const { result } = buildFixture();
   const receipts = result.sources.flatMap((source) => source.receipts);
 
-  assert.equal(receipts.length, 3310);
+  assert.equal(receipts.length, 3315);
   assert.deepEqual(countBy(receipts, "evidenceType"), {
-    "caption-excerpt": 701,
-    "caption-topic-receipt": 592,
-    "curated-character-performance": 25,
-    "caption-character-context": 28,
+    "caption-excerpt": 1359,
+    "caption-topic-receipt": 1532,
+    "curated-character-performance": 30,
+    "caption-character-context": 210,
     "caption-character-signal": 24,
-    "caption-topic-navigation": 120,
+    "caption-topic-navigation": 160,
   });
 });
 
-test("all 25 human-curated character clips retain their exact 14-second bounds", () => {
-  const { result, window } = buildFixture();
-  const soundbytes = window.WWAM_CHARACTER_LORE.characters.flatMap(
+test("all 30 promoted human-curated character clips retain exact 14-second bounds", () => {
+  const { result, window, showcase } = buildFixture();
+  const allSoundbytes = window.WWAM_CHARACTER_LORE.characters.flatMap(
     (character) => character.soundbytes,
   );
+  const showcaseSourceIds = new Set(showcase.sources.map((source) => source.id));
+  const soundbytes = allSoundbytes.filter(
+    (soundbyte) => showcaseSourceIds.has(soundbyte.sourceId),
+  );
 
-  assert.equal(soundbytes.length, 25);
+  assert.equal(allSoundbytes.length, 60);
+  assert.equal(soundbytes.length, 30);
   soundbytes.forEach((soundbyte) => {
     const receipt = byId(result, soundbyte.sourceId).receipts.find(
       (candidate) => candidate.key === `character-receipt:${soundbyte.id}`,
@@ -1227,7 +1233,7 @@ test("sealed and metadata-only fixtures never inherit unsafe semantic copy", () 
   assert.ok(metadata.warnings.some((warning) => /METADATA ONLY/.test(warning)));
 });
 
-test("Archive Deep remains quarantined and all 12 source-audio firewalls are topic-only", () => {
+test("Archive Deep remains quarantined and all 16 source-audio firewalls are topic-only", () => {
   const { result } = buildFixture();
   const archive = result.sources.filter(
     (source) => source.authority === "quarantined-lane",
@@ -1240,17 +1246,17 @@ test("Archive Deep remains quarantined and all 12 source-audio firewalls are top
     (source) => source.rightsPolicy.restrictedToTopicNavigation,
   );
 
-  assert.equal(archive.length, 40);
-  assert.equal(restricted.length, 12);
+  assert.equal(archive.length, 138);
+  assert.equal(restricted.length, 16);
   assert.equal(
     archiveReceipts.filter(
       (receipt) => receipt.evidenceType === "curated-character-performance",
     ).length,
     0,
   );
-  assert.equal(characterEvidence.length, 52);
+  assert.equal(characterEvidence.length, 234);
   assert.deepEqual(countBy(characterEvidence, "evidenceType"), {
-    "caption-character-context": 28,
+    "caption-character-context": 210,
     "caption-character-signal": 24,
   });
   assert.ok(characterEvidence.every(
@@ -1352,8 +1358,8 @@ test("the exact 510-source adapter payload compiles through the generic engine",
 
   assert.equal(stats.sources, 510);
   assert.deepEqual(stats.coverage, {
-    "caption-backed": 210,
-    "caption-limited": 8,
+    "caption-backed": 209,
+    "caption-limited": 9,
     "metadata-only": 292,
   });
   assert.deepEqual(stats.authority, {
@@ -1361,14 +1367,14 @@ test("the exact 510-source adapter payload compiles through the generic engine",
     "quarantined-lane": 138,
     "source-only": 298,
   });
-  assert.equal(stats.receipts, 3310);
-  assert.equal(stats.artifacts, 928);
+  assert.equal(stats.receipts, 3315);
+  assert.equal(stats.artifacts, 944);
 
   const live = engine.build("LV2rmwEA0w4");
   assert.equal(live.source.receipts.length, 21);
   assert.equal(live.source.artifacts.length, 27);
-  assert.equal(live.wake.total, 138);
-  assert.equal(live.wake.matchingTotal, 138);
+  assert.equal(live.wake.total, 236);
+  assert.equal(live.wake.matchingTotal, 236);
   assert.equal(live.wake.displayed, 16);
   assert.equal(live.wake.truncated, true);
   assert.equal(live.wake.later.length, 0);
@@ -1401,6 +1407,123 @@ test("the exact 510-source adapter payload compiles through the generic engine",
   });
 });
 
+test("additive character growth is accepted only when Lore and Showcase agree", () => {
+  const fixture = buildFixture();
+  const characters = plain(fixture.window.WWAM_CHARACTER_LORE);
+  const showcase = plain(fixture.showcase);
+  const loomis = characters.characters.find((character) => character.id === "loomis");
+  const seed = loomis.soundbytes.find((soundbyte) => soundbyte.id === "loomis-funding");
+  const start = seed.t + 20;
+  const added = {
+    ...seed,
+    id: "loomis-growth-proof",
+    t: start,
+    url: `https://www.youtube.com/watch?v=${seed.sourceId}&t=${Math.floor(start)}s`,
+    playback: {
+      ...seed.playback,
+      start,
+      end: start + 14,
+      clipSeconds: 14,
+      embedUrl: `https://www.youtube.com/embed/${seed.sourceId}?start=${Math.floor(start)}&end=${Math.floor(start + 14)}&autoplay=1`,
+    },
+    excerpt: "The living ledger accepts a new exact performance without freezing the archive.",
+  };
+  loomis.soundbytes.push(added);
+
+  const showcaseSeed = showcase.receipts.find(
+    (receipt) => receipt.id === "character-receipt:loomis-funding",
+  );
+  showcase.receipts.push({
+    ...showcaseSeed,
+    id: "character-receipt:loomis-growth-proof",
+    t: start,
+    timecode: "2:31:23",
+    url: added.url,
+    excerpt: added.excerpt,
+  });
+
+  const result = fixture.window.WWAMSourceDossierAdapter.build({
+    ...fixture.input,
+    showcase,
+    characters,
+  });
+  const receipts = result.sources.flatMap((source) => source.receipts);
+  const growth = byId(result, added.sourceId).receipts.find(
+    (receipt) => receipt.key === "character-receipt:loomis-growth-proof",
+  );
+
+  assert.equal(
+    receipts.filter((receipt) =>
+      receipt.evidenceType === "curated-character-performance").length,
+    31,
+  );
+  assert.ok(growth);
+  assert.equal(growth.at, start);
+  assert.equal(growth.end, start + 14);
+});
+
+test("a valid next Atlas upload grows the canonical union instead of holding every Wiki", () => {
+  const fixture = buildFixture();
+  const atlas = plain(fixture.input.atlas);
+  const id = "NEXTSHOW001";
+  atlas.records.push({
+    id,
+    title: "Future WWAM Live Archive Intake",
+    date: "2026-07-30",
+    duration: 7200,
+    views: 0,
+    thumbnail: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
+    url: `https://www.youtube.com/watch?v=${id}`,
+    availability: "public",
+    liveStatus: "not_live",
+    coverage: "metadata-only",
+    lanes: ["streams-feed", "year-canon-2025-2026"],
+  });
+
+  const result = fixture.window.WWAMSourceDossierAdapter.build({
+    ...fixture.input,
+    atlas,
+  });
+  const added = byId(result, id);
+
+  assert.equal(result.sources.length, 511);
+  assert.equal(added.coverage, "metadata-only");
+  assert.equal(added.showWiki.status, "source-brief");
+  assert.equal(added.receipts.length, 0);
+});
+
+test("a newly registered commentary can open honestly before Deep Distill catches up", () => {
+  const fixture = buildFixture();
+  const catalog = plain(fixture.input.catalog);
+  const id = "NEWCOMMENT1";
+  catalog.push({
+    id,
+    franchise: "Future Proof",
+    film: "Undistilled Commentary",
+    order: 1,
+    title: "UNDISTILLED COMMENTARY SOURCE",
+    date: "2026-07-30",
+    duration: 7200,
+    views: 0,
+    thumbnail: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
+    transcript: false,
+    availability: "public",
+    liveStatus: "not_live",
+    url: `https://www.youtube.com/watch?v=${id}`,
+  });
+
+  const result = fixture.window.WWAMSourceDossierAdapter.build({
+    ...fixture.input,
+    catalog,
+  });
+  const added = byId(result, id);
+
+  assert.equal(result.sources.length, 511);
+  assert.equal(added.authority, "promoted-lane");
+  assert.equal(added.coverage, "caption-limited");
+  assert.equal(added.showWiki.status, "source-brief");
+  assert.equal(added.receipts.length, 0);
+});
 test("adapter fails closed if the feed/catalog reconciliation drifts", () => {
   const fixture = buildFixture();
   const brokenAtlas = plain(fixture.input.atlas);
