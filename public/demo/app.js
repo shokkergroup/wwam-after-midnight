@@ -4950,6 +4950,11 @@
       });
     };
     document.getElementById("loadMore").onclick = function () { state.hotLimit += 12; renderHot100(); };
+    var rouletteButton = document.getElementById("rouletteButton");
+    if (rouletteButton) rouletteButton.onclick = function () {
+      var moment = redBandMoments[Math.floor(Math.random() * redBandMoments.length)];
+      if (moment) openRedMoment(moment.sourceId || moment.tapeId, moment.t);
+    };
     Array.prototype.forEach.call(document.querySelectorAll("[data-sound-source]"), function (button) {
       button.onclick = function () {
         state.soundSource = button.getAttribute("data-sound-source");
