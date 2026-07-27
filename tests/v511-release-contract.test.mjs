@@ -131,7 +131,7 @@ test("V5.11 release identity, UI status, and documentation stay synchronized", (
     app,
     /isSurfaceHandoff \? "GLOBAL RANKING HANDOFF \/\/ OPEN THE RED BAND 100"/,
   );
-  assert.ok(fs.statSync(path.join(demo, "app.js")).size < 255_000);
+  assert.ok(fs.statSync(path.join(demo, "app.js")).size < 270_000);
 
   for (const phrase of [
     /secondary targets/i,

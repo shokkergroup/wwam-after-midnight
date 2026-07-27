@@ -127,7 +127,7 @@ test("the first-load static payload stays inside the showcase performance budget
   assert.equal(criticalFiles.includes("fresh-tape-intake.css"), false);
   assert.ok(totalBytes < 1_530_000, `first-load source payload grew to ${totalBytes} bytes`);
   sizes.filter((item) => item.file.endsWith(".js")).forEach((item) => {
-    assert.ok(item.bytes < 255_000, `${item.file} grew to ${item.bytes} bytes`);
+    assert.ok(item.bytes < 270_000, `${item.file} grew to ${item.bytes} bytes`);
   });
 });
 

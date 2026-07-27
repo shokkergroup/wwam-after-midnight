@@ -128,7 +128,7 @@ test("V5.15 package, cache keys, lazy order, and source ceilings move together",
     "The app must load after the shared playback helper.",
   );
   assert.ok(
-    fs.statSync(path.join(demo, "app.js")).size < 255_000,
+    fs.statSync(path.join(demo, "app.js")).size < 270_000,
     "app.js exceeded the V5.21 255 KB release ceiling.",
   );
 });

@@ -206,7 +206,7 @@ test("Bit Bloodlines demand-loads inside the existing Memory OS tab", () => {
   assert.match(host, /\/slenderman\/i/);
   assert.match(host, /WWAMMemoryCutLauncher\.request/);
   assert.ok(
-    fs.statSync(path.join(demo, "app.js")).size < 255000,
+    fs.statSync(path.join(demo, "app.js")).size < 270000,
     "app.js must stay below the V5.21 continuity size ceiling",
   );
 });

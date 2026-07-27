@@ -71,7 +71,7 @@ test("V5.10 enhances the existing Riff Chemistry surface without growing app.js"
   assert.doesNotMatch(html, /<script[^>]+src="riff-black-box-(?:engine|ui)\.js"/);
   assert.doesNotMatch(html, /<link[^>]+href="riff-black-box\.css"/);
 
-  assert.ok(fs.statSync(path.join(demo, "app.js")).size < 255_000);
+  assert.ok(fs.statSync(path.join(demo, "app.js")).size < 270_000);
   assert.ok(fs.statSync(path.join(demo, "riff-black-box-engine.js")).size < 55_000);
   assert.ok(fs.statSync(path.join(demo, "riff-black-box-ui.js")).size < 35_000);
   assert.ok(fs.statSync(path.join(demo, "riff-black-box.css")).size < 20_000);

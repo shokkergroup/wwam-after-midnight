@@ -131,7 +131,7 @@ test("ships the complete independent WWAM memory-system surface", async () => {
     /RIFF CHEMISTRY/,
     /WWAM COURT/,
     /PERSONALIZED DESCENT/,
-    /ASK WWAM \/\/ MULTI-RECEIPT INTELLIGENCE/,
+    /SEARCH THE WWAM ARCHIVE/,
     /WWAM UP IN YA/,
     /THE LIVE[\s\S]*WIRE/,
     /THE CREATOR[\s\S]*CONTROL ROOM/,

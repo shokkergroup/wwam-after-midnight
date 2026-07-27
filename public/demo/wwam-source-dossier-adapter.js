@@ -884,17 +884,18 @@
     }
     var topicPhrase = showWikiList(topicLabels, "the subjects indexed on this tape");
     var momentPhrase = showWikiList(momentLabels, "the registered source moments");
-    var overview = title + " is mapped as a " + format.label.toLowerCase() +
-      " running " + showWikiRuntime(source.duration) + ". Its exact caption map centers on " +
-      topicPhrase + (moments.length ? ", while its highest-ranked playable beats carry " +
-      momentPhrase + "." : ". This tape is intentionally limited to topic navigation because no public moment lane is registered.");
+    var overview = title + " runs " + showWikiRuntime(source.duration) + ". " +
+      (format.id === "movie-commentary" ? "The commentary keeps coming back to " :
+        "Most of the night revolves around ") + topicPhrase +
+      (moments.length ? ". The best jump-in points are " + momentPhrase + "." :
+        ". This show has topic jumps, but no public highlight lane yet.");
     var blocks = [];
     if (topics.length) {
       blocks.push({
         id: "on-the-slab",
         label: format.id === "movie-commentary" ? "WHAT THE COMMENTARY KEEPS CIRCLING" : "WHAT IS ON THE SLAB",
-        body: "The source-local topic doors move through " + topicPhrase +
-          ". Each door below stays on this upload and opens at its registered timestamp.",
+        body: "Start with " + topicPhrase +
+          ". Every button below opens this same upload where that conversation begins.",
         basis: "source-local-topic-navigation-receipts",
         receiptKeys: recapTopics.map(function (receipt) { return receipt.key; }),
       });

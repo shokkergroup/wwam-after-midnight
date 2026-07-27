@@ -14,20 +14,20 @@ test("Ask the Character exposes a complete, controllable tape shelf", () => {
   assert.match(html, /id="characterReceiptRotate"/);
   assert.match(html, /id="characterReceiptMore"/);
   assert.match(html, /aria-controls="characterReceipts"/);
-  assert.match(html, /THE TAPE SHELF/);
+  assert.match(html, /THE REAL CLIPS/);
   assert.ok(app.includes("characterEngine.getReceiptLibrary(profile.id)"));
   assert.ok(app.includes("state.characterReceiptLimit = characterReceiptLibrary(profile).length"));
   assert.ok(app.includes("state.characterReceiptOffset = (offset + 1) % total"));
-  assert.ok(app.includes('"OPEN ALL " + total + " TAPES"'));
+  assert.ok(app.includes('"SEE ALL " + total + " CLIPS"'));
 });
 
 test("matched receipts surface first without blurring generated riff and source proof", () => {
   assert.ok(app.includes("state.characterMatchedReceipt = matchedReceiptId"));
   assert.ok(app.includes("renderCharacterReceiptShelf(profile, matchedReceiptId)"));
   assert.ok(app.includes("MATCHED TO YOUR RIFF"));
-  assert.ok(app.includes("PLAY MATCHED SOURCE CANDIDATE CLIP"));
-  assert.ok(app.includes("TIMESTAMP-VALIDATED HUMAN-CURATED CANDIDATE // SPEAKER NOT DIARIZED"));
-  assert.ok(html.includes("FAN-MADE RIFF // SOURCE CLIPS STAY SEPARATE"));
+  assert.ok(app.includes("PLAY THE MATCHED CLIP"));
+  assert.ok(app.includes("OFFICIAL WWAM UPLOAD // AUTO-CAPTIONS CAN MISHEAR"));
+  assert.ok(html.includes("FAN-MADE RIFF // REAL CLIPS BELOW"));
   assert.doesNotMatch(
     `${html}
 ${app}`,

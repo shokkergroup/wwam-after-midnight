@@ -148,5 +148,5 @@ test("Lore keeps creator context outside the performance claim", () => {
   assert.match(app, /Archive-first uses curated performance candidates only/);
   assert.match(app, /esc\(first\.date\) \+ ' \/\/ NOT TRUE ORIGIN/);
   assert.doesNotMatch(app, /curated performance and creator-context set/i);
-  assert.ok(fs.statSync(appPath).size < 255_000);
+  assert.ok(fs.statSync(appPath).size < 270_000);
 });

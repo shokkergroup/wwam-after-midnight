@@ -88,7 +88,7 @@ test("every metadata-only Show Wiki exposes the same evidence-safe runway", () =
 
   assert.match(ui, /onStageIntake/);
   assert.match(ui, /data-source-dossier-action="stage-intake"/);
-  assert.match(ui, /STAGE IN DROP ZONE/);
+  assert.match(ui, /QUEUE THE DEEP DIVE/);
   assert.match(ui, /callbacks\.stageIntake\(payload\)/);
-  assert.match(ui, /TRANSCRIPT-DERIVED CONTENT LANES SEALED/);
+  assert.match(ui, /not enough usable captions for an honest recap/i);
 });

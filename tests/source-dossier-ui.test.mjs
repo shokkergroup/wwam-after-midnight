@@ -752,8 +752,8 @@ test("exports the per-show Wiki UI, keeps curated lanes first, and destroys clea
   const { api, ui, mount, engine, dossier } = setup();
   const rendered = ui.render("SOURCE00001", { at: 333 });
 
-  assert.equal(api.VERSION, "1.7.0");
-  assert.equal(ui.version, "1.7.0");
+  assert.equal(api.VERSION, "1.7.1");
+  assert.equal(ui.version, "1.7.1");
   assert.equal(rendered, dossier);
   assert.deepEqual(engine.buildCalls, ["SOURCE00001"]);
   assert.equal(mount.getAttribute("data-source-dossier-state"), "ready");
@@ -770,14 +770,14 @@ test("exports the per-show Wiki UI, keeps curated lanes first, and destroys clea
     ).length,
     7,
   );
-  assert.match(mount.innerHTML, /21 PLAYABLE SOURCE RECEIPTS/);
-  assert.match(mount.innerHTML, /0 OF 21 RECEIPTS VISIBLE/);
-  assert.match(mount.innerHTML, /SHOW ALL 21 RECEIPTS/);
-  assert.match(mount.innerHTML, /OPEN FULL FILE/);
-  assert.match(mount.innerHTML, /ASK THIS TAPE/);
+  assert.match(mount.innerHTML, /21 EXACT TIMESTAMPS FROM THIS SHOW/);
+  assert.match(mount.innerHTML, /0 OF 21 TIMESTAMPS VISIBLE/);
+  assert.match(mount.innerHTML, /SHOW ALL 21 TIMESTAMPS/);
+  assert.match(mount.innerHTML, /SHOW ALL ARCHIVE DETAILS/);
+  assert.match(mount.innerHTML, /FIND IT WITHOUT SCRUBBING FOR HOURS/);
   assert.match(mount.innerHTML, /MEMORY OS FOOTPRINT/);
   assert.match(mount.innerHTML, /PUT THE ARCHIVE TO WORK/);
-  assert.match(mount.innerHTML, /WHAT THIS PAGE CAN PROVE/);
+  assert.match(mount.innerHTML, /HOW THIS PAGE STAYS HONEST/);
   assert.match(mount.innerHTML, /SOURCE-SPECIFIC EVIDENCE WARNINGS/);
   assert.match(mount.innerHTML, /Speakers are not diarized/);
 
@@ -946,11 +946,11 @@ test("metadata-only sources render a permanent refusal instead of invented conte
   }));
   ui.render("SOURCE00001");
 
-  assert.match(mount.innerHTML, /METADATA-ONLY REFUSAL/);
-  assert.match(mount.innerHTML, /THE ARCHIVE REFUSES TO INVENT THE MISSING TAPE/);
-  assert.match(mount.innerHTML, /0 transcript-derived receipts/);
-  assert.match(mount.innerHTML, /0 transcript-derived content summaries/);
-  assert.match(mount.innerHTML, /0 speaker claims/);
+  assert.match(mount.innerHTML, /UPLOAD DETAILS ONLY/);
+  assert.match(mount.innerHTML, /THE UPLOAD IS HERE. THE CONVERSATION IS NOT READY/);
+  assert.match(mount.innerHTML, /No caption-backed moments/);
+  assert.match(mount.innerHTML, /No caption-backed recap/);
+  assert.match(mount.innerHTML, /No guessed speakers/);
   assert.doesNotMatch(mount.innerHTML, /SOURCE-BOUNDED SUMMARY \x2F\x2F/);
   assert.doesNotMatch(mount.innerHTML, /class="source-dossier-receipt"/);
   assert.match(mount.innerHTML, /No topic, quote, character, or event claim/);
@@ -966,16 +966,16 @@ test("rich sources become navigable per-show Wikis with recap, Topic Hop, and ex
   ui.render("SOURCE00001");
   const html = mount.innerHTML;
 
-  assert.ok(html.includes("SHOW WIKI // CANONICAL SOURCE // CAPTION-BACKED SOURCE"));
+  assert.ok(html.includes("WWAM AFTER MIDNIGHT // SHOW WIKI // FULL CAPTIONS INDEXED"));
   assert.match(html, /aria-label="Explore this show"/);
-  assert.ok(html.includes('href="#sourceDossierPlayerSection">WATCH</a>'));
+  assert.ok(html.includes('href="#sourceDossierPlayerSection">WATCH THE SHOW</a>'));
   assert.ok(html.includes('href="#sourceDossierShowWikiSummary">SHOW SUMMARY</a>'));
   assert.ok(html.includes('href="#sourceDossierShowWikiExperience">THE MIDNIGHT CUT</a>'));
-  assert.match(html, /COPY SHOW WIKI LINK/);
-  assert.match(html, /EPISODE RECAP/);
-  assert.match(html, /THIS IS A LIVE AFTERSHOW/);
+  assert.match(html, /COPY PAGE LINK/);
+  assert.match(html, /THE SHOW IN PLAIN ENGLISH/);
+  assert.match(html, /<h4>LIVE AFTERSHOW<\/h4>/);
   assert.match(html, /A chaotic franchise aftershow/);
-  assert.equal((html.match(/RECAP FILE /g) ?? []).length, 3);
+  assert.equal((html.match(/<span>CHAPTER /g) ?? []).length, 3);
   assert.match(html, /THE OPENING ARGUMENT/);
   assert.match(html, /THE ROOM BREAKS/);
   assert.match(html, /THE LAST WORD/);
@@ -990,27 +990,27 @@ test("rich sources become navigable per-show Wikis with recap, Topic Hop, and ex
     (html.match(/class="source-dossier-wiki-route-stop"/g) ?? []).length,
     5,
   );
-  assert.match(html, /BAG ALL 5 CUTS/);
+  assert.match(html, /SAVE ALL 5 MOMENTS/);
   assert.ok(
     html.includes("REGISTERED HEAT + TOPIC SPREAD + RECURRING-CHARACTER COVERAGE"),
   );
-  assert.match(html, /THE SHOW, DISTILLED TO PLAYABLE PROOF/);
-  assert.match(html, /A bounded description assembled only from this source file/);
+  assert.match(html, /THE WHOLE NIGHT, CUT TO THE PARTS WORTH REVISITING/);
+  assert.match(html, /A recap, watch path, and timestamped moments from this exact upload/);
   assert.match(html, /TOPICS DISCUSSED/);
   assert.match(html, /BEST MOMENTS/);
   assert.match(html, /WWAM UP IN YA/);
   assert.match(html, /STRAIGHT TO STEVE&#39;S ASSHOLE/);
   assert.match(html, /CHARACTER BITS/);
   assert.match(html, /data-show-wiki-lane="best-moments" data-show-wiki-receipt-count="2"/);
-  assert.match(html, /ARCHIVE HEAT 94.6/);
+  assert.match(html, /MOMENT HEAT 94.6/);
   assert.ok(html.includes("CAPTION DENSITY + ROOM REACTION"));
-  assert.match(html, /Every jump resolves to an exact receipt in this upload/);
+  assert.match(html, /Every jump opens this exact upload at a saved time/);
   assert.equal(
     (html.match(/class="source-dossier-receipt source-dossier-wiki-receipt"/g) ?? []).length,
     7,
   );
   assert.equal((html.match(/class="source-dossier-wiki-crosslinks"/g) ?? []).length, 1);
-  assert.ok(html.includes("ALREADY ON THE TABLE // QUICK JUMPS"));
+  assert.ok(html.includes("ALSO FEATURED ABOVE"));
   assert.ok(
     html.indexOf('id="sourceDossierPlayerSection"') <
       html.indexOf('id="sourceDossierShowWiki"'),
@@ -1060,6 +1060,61 @@ test("rich sources become navigable per-show Wikis with recap, Topic Hop, and ex
   assert.ok(bags.every((payload) => payload.section === "wiki"));
 });
 
+test("deep-linked Show Wiki and player views reset the modal and focus short headings without scroll drift", () => {
+  for (const [section, sectionId, headingId] of [
+    ["wiki", "sourceDossierShowWiki", "sourceDossierShowWikiTitle"],
+    ["player", "sourceDossierPlayerSection", "sourceDossierPlayerTitle"],
+  ]) {
+    const makeNode = () => ({
+      attributes: new Map(),
+      scrollCalls: [],
+      focusCalls: [],
+      hasAttribute(name) {
+        return this.attributes.has(name);
+      },
+      setAttribute(name, value) {
+        this.attributes.set(name, String(value));
+      },
+      getAttribute(name) {
+        return this.attributes.get(name) ?? null;
+      },
+      scrollIntoView(options) {
+        this.scrollCalls.push(options);
+      },
+      focus(options) {
+        this.focusCalls.push(options);
+      },
+    });
+    const modal = { scrollTop: 6707, scrollLeft: 19 };
+    const sectionNode = makeNode();
+    const headingNode = makeNode();
+    const nodes = new Map([
+      ["tapeModal", modal],
+      [sectionId, sectionNode],
+      [headingId, headingNode],
+    ]);
+    const document = {
+      getElementById(id) {
+        return nodes.get(id) ?? null;
+      },
+    };
+    const { ui } = setup(makeDossier(), { document });
+
+    ui.render("SOURCE00001", { section });
+
+    assert.equal(modal.scrollTop, 0);
+    assert.equal(modal.scrollLeft, 0);
+    assert.equal(sectionNode.scrollCalls.length, 1);
+    assert.equal(sectionNode.focusCalls.length, 0);
+    assert.equal(headingNode.getAttribute("tabindex"), "-1");
+    assert.equal(headingNode.scrollCalls.length, 0);
+    assert.equal(sectionNode.scrollCalls[0].behavior, "auto");
+    assert.equal(sectionNode.scrollCalls[0].block, "start");
+    assert.equal(headingNode.focusCalls.length, 1);
+    assert.equal(headingNode.focusCalls[0].preventScroll, true);
+  }
+});
+
 test("metadata-only Show Wikis expose a canonical Source Brief without fake moments", () => {
   const dossier = makeDossier({ metadataOnly: true, receiptCount: 0 });
   const staged = [];
@@ -1069,19 +1124,19 @@ test("metadata-only Show Wikis expose a canonical Source Brief without fake mome
   ui.render("SOURCE00001");
   const html = mount.innerHTML;
 
-  assert.match(html, /SOURCE BRIEF \/\/ CONTENT NOT DISTILLED/);
+  assert.match(html, /SHOW PAGE STARTED \/\/ DEEP DIVE NOT READY/);
   assert.match(html, /data-source-show-wiki-status="source-brief"/);
   assert.match(html, /data-show-wiki-brief="source-metadata-brief"/);
   assert.match(html, /THE TAPE THAT REFUSED TO DIE/);
   assert.match(html, /MOVIE COMMENTARY/);
   assert.match(html, /UPLOAD DATE<\/small><b>07\.23\.2026/);
   assert.match(html, /RUNTIME<\/small><b>2H 03M/);
-  assert.match(html, /CACHED VIEWS<\/small><b>987,654/);
-  assert.match(html, /EVIDENCE DEPTH<\/small><b>SOURCE METADATA ONLY/);
-  assert.match(html, /FORMAT BASIS \/\/ REGISTERED-SOURCE-TYPE-AND-TITLE/);
-  assert.match(html, /TRANSCRIPT-DERIVED CONTENT LANES SEALED/);
-  assert.match(html, /STAGE IN DROP ZONE/);
-  assert.match(html, /OPEN OFFICIAL UPLOAD/);
+  assert.match(html, /VIEWS WHEN INDEXED<\/small><b>987,654/);
+  assert.match(html, /CAPTION COVERAGE<\/small><b>UPLOAD DETAILS ONLY/);
+  assert.match(html, /WHY THIS PAGE IS LIMITED \/\/ REGISTERED-SOURCE-TYPE-AND-TITLE/);
+  assert.match(html, /NO FAKE RECAP/);
+  assert.match(html, /QUEUE THE DEEP DIVE/);
+  assert.match(html, /WATCH ON YOUTUBE/);
   mount.click("stage-intake", { "data-owner-section": "wiki" });
   assert.equal(staged.length, 1);
   assert.equal(staged[0].sourceId, dossier.source.id);
@@ -1149,9 +1204,7 @@ test("Show Wiki adapter labels, descriptions, empty states, and heat basis are e
   const html = mount.innerHTML;
 
   assert.match(html, /&lt;img src=x onerror=&quot;wikiBoom&quot;&gt;/);
-  assert.ok(
-    html.includes("&lt;script&gt;alert(&quot;description&quot;)&lt;/script&gt;"),
-  );
+  assert.doesNotMatch(html, /description&quot;/);
   assert.match(html, /&lt;svg onload=&quot;labelBoom&quot;&gt;/);
   assert.match(html, /&lt;img src=x onerror=&quot;emptyBoom&quot;&gt;/);
   assert.match(html, /&lt;IMG SRC=X ONERROR=&quot;HEATBOOM&quot;&gt;/);
@@ -1182,7 +1235,7 @@ test("render stays media-dormant until the app receives an explicit play callbac
 
   assert.equal(plays.length, 0);
   assert.match(mount.innerHTML, /id="modalPlayer"/);
-  assert.match(mount.innerHTML, /THE PLAYER STAYS DORMANT UNTIL YOU ASK FOR IT/);
+  assert.match(mount.innerHTML, /THE PLAYER LOADS WHEN YOU PRESS PLAY/);
   assert.doesNotMatch(mount.innerHTML, /<(iframe|video|audio)\b/i);
   assert.doesNotMatch(mount.innerHTML, /\bautoplay\b/i);
   assert.equal(mount.click("play-source"), true);
@@ -1408,7 +1461,7 @@ test("episode-aware answers validate registered recap, experience, and lane rece
   assert.match(mount.innerHTML, /5 REGISTERED \/\/ 5 MATCHED \/\/ 3 SHOWN/);
   assert.ok(
     mount.innerHTML.includes(
-      'href="#sourceDossierShowWikiSummary">OPEN FULL EPISODE RECAP',
+      'href="#sourceDossierShowWikiSummary">OPEN THE FULL RECAP',
     ),
   );
 
@@ -1420,7 +1473,7 @@ test("episode-aware answers validate registered recap, experience, and lane rece
   assert.match(mount.innerHTML, /5 REGISTERED \/\/ 5 MATCHED \/\/ 3 SHOWN/);
   assert.ok(
     mount.innerHTML.includes(
-      'href="#sourceDossierShowWikiExperience">OPEN ALL REGISTERED CUTS',
+      'href="#sourceDossierShowWikiExperience">OPEN THE FULL WATCH PATH',
     ),
   );
 
@@ -1497,7 +1550,7 @@ test("episode-aware answers fail closed when lane identity or registered counts 
       "held",
       entry.label,
     );
-    assert.match(mount.innerHTML, /THE LOCK REFUSED THE RESULT/, entry.label);
+    assert.match(mount.innerHTML, /THIS RESULT DID NOT PASS THE SOURCE CHECK/, entry.label);
     assert.match(
       mount.innerHTML,
       /did not preserve its registered Show Wiki lane/,
@@ -1546,12 +1599,12 @@ test("registered Source Brief answers re-read canonical facts and ignore forged 
   mount.submit("Show me the registered source brief.");
 
   assert.match(mount.innerHTML, /REGISTERED-SOURCE-BRIEF/);
-  assert.match(mount.innerHTML, /SOURCE BRIEF \/\/ CONTENT NOT DISTILLED/);
+  assert.match(mount.innerHTML, /SHOW DETAILS \/\/ DEEP DIVE NOT READY/);
   assert.match(mount.innerHTML, /MOVIE COMMENTARY/);
   assert.match(mount.innerHTML, /07\.23\.2026/);
   assert.match(mount.innerHTML, /2H 03M/);
   assert.match(mount.innerHTML, /987,654/);
-  assert.match(mount.innerHTML, /BASIS \/\/ REGISTERED-SOURCE-TYPE-AND-TITLE/);
+  assert.match(mount.innerHTML, /FOUND FROM \/\/ REGISTERED-SOURCE-TYPE-AND-TITLE/);
   assert.doesNotMatch(mount.innerHTML, /FORGED CONTENT SUMMARY/);
   assert.doesNotMatch(mount.innerHTML, /forged-query-basis/i);
   assert.doesNotMatch(mount.innerHTML, /forged-scope/i);
@@ -1572,8 +1625,8 @@ test("Source Brief inventory exposes the safe page beside zero content receipts"
   mount.submit("What is actually indexed in this tape?");
 
   assert.equal(mount.getAttribute("data-source-query-state"), "inventory");
-  assert.match(mount.innerHTML, /<b>AVAILABLE<\/b>SOURCE BRIEF/);
-  assert.match(mount.innerHTML, /<b>0<\/b>RECEIPTS/);
+  assert.match(mount.innerHTML, /<b>AVAILABLE<\/b>SHOW DETAILS/);
+  assert.match(mount.innerHTML, /<b>0<\/b>TIMESTAMPS/);
   assert.doesNotMatch(mount.innerHTML, /EPISODE RECAP/);
 });
 test("registered-summary answers render as an Episode Recap card", () => {
@@ -1725,9 +1778,9 @@ test("ASK THIS TAPE renders metadata refusals and rejects cross-source substitut
   metadata.mount.submit("Summarize the jokes in this tape.");
 
   assert.match(metadata.mount.innerHTML, /data-source-query-status="metadata-only"/);
-  assert.match(metadata.mount.innerHTML, /METADATA-ONLY REFUSAL/);
-  assert.match(metadata.mount.innerHTML, /0 SUPPORTED SOURCE RESULTS/);
-  assert.match(metadata.mount.innerHTML, /CROSS-SOURCE SUBSTITUTION: BLOCKED/);
+  assert.match(metadata.mount.innerHTML, /THIS SHOW NEEDS CAPTIONS/);
+  assert.match(metadata.mount.innerHTML, /NO MATCH IN THIS SHOW/);
+  assert.match(metadata.mount.innerHTML, /OTHER SHOWS NOT INCLUDED/);
   assert.doesNotMatch(metadata.mount.innerHTML, /source-dossier-query-receipt/);
 
   const dossier = makeDossier();
@@ -1751,7 +1804,7 @@ test("ASK THIS TAPE renders metadata refusals and rejects cross-source substitut
   hostile.mount.submit("Show the registered moments in this tape.");
 
   assert.equal(hostile.mount.getAttribute("data-source-query-state"), "held");
-  assert.match(hostile.mount.innerHTML, /THE LOCK REFUSED THE RESULT/);
+  assert.match(hostile.mount.innerHTML, /THIS RESULT DID NOT PASS THE SOURCE CHECK/);
   assert.match(hostile.mount.innerHTML, /attempted to cross the source lock/);
   assert.doesNotMatch(hostile.mount.innerHTML, /source-dossier-query-receipt/);
 });
@@ -1809,7 +1862,7 @@ test("typed non-receipt answers render safely without becoming source claims", (
   assert.match(mount.innerHTML, /data-source-query-result-type="artifact"/);
   assert.match(mount.innerHTML, /&lt;img src=x onerror=boom&gt;/);
   assert.doesNotMatch(mount.innerHTML, /<img src=x onerror=boom>/);
-  assert.ok(mount.innerHTML.includes("SHOW WIKI // CANONICAL SOURCE"));
+  assert.ok(mount.innerHTML.includes("WWAM AFTER MIDNIGHT // SHOW WIKI"));
   assert.match(mount.innerHTML, /HUMAN-REVIEW-REQUIRED/);
 });
 
@@ -1823,14 +1876,14 @@ test("progressive disclosure and deep render options preserve the full source fi
   assert.match(mount.innerHTML, /data-source-dossier-density="compact"/);
   mount.click("toggle-section", { "data-section": "inside" });
   assert.equal(receiptCount(), 21);
-  assert.match(mount.innerHTML, /RETURN TO COMPACT RECEIPTS/);
+  assert.match(mount.innerHTML, /RETURN TO COMPACT TIMESTAMPS/);
   mount.click("toggle-section", { "data-section": "inside" });
   assert.equal(receiptCount(), 0);
 
   mount.click("open-full-file");
   assert.equal(receiptCount(), 21);
   assert.match(mount.innerHTML, /data-source-dossier-density="full"/);
-  assert.match(mount.innerHTML, /RETURN TO COMPACT FILE/);
+  assert.match(mount.innerHTML, /BACK TO QUICK VIEW/);
   mount.click("close-full-file");
   assert.equal(receiptCount(), 0);
 
@@ -1963,7 +2016,7 @@ test("destroy invalidates an in-flight source query and removes both delegates",
   const { ui, mount } = setup(dossier, { queryEngine });
   ui.render("SOURCE00001");
   mount.submit("Show the registered moments in this tape.");
-  assert.match(mount.innerHTML, /INTERROGATING THIS TAPE ONLY/);
+  assert.match(mount.innerHTML, /CHECKING THE TIMESTAMPS/);
 
   ui.destroy();
   resolveAnswer(makeQueryAnswer(dossier));
@@ -2003,7 +2056,7 @@ test("receipt playback persists an exact Now Playing receipt with return, copy, 
   assert.match(html, /<time>05:44—06:06<\/time>/);
   assert.match(html, /&ldquo;Bounded source excerpt 5\.&rdquo;/);
   assert.match(html, /THE MIDNIGHT CUT/);
-  assert.match(html, /EXACT SOURCE SOURCE00001/);
+  assert.match(html, /FROM THIS SHOW \/\/ SOURCE00001/);
   assert.match(
     html,
     /data-receipt-key="SOURCE00001:receipt-2"[^>]*>[^<]*PREVIOUS<\/button>/,
@@ -2104,7 +2157,7 @@ test("local Show Wiki navigation includes only populated lanes and keeps Source 
   assert.ok(briefNav.includes('href="#sourceDossierAsk">ASK SOURCE FACTS</a>'));
   assert.doesNotMatch(briefNav, /sourceDossierShowWikiExperience/);
   assert.doesNotMatch(briefNav, /sourceDossierShowWikiLane-/);
-  assert.match(briefSetup.mount.innerHTML, /TRANSCRIPT-DERIVED CONTENT LANES SEALED/);
+  assert.match(briefSetup.mount.innerHTML, /NO FAKE RECAP/);
   assert.doesNotMatch(briefSetup.mount.innerHTML, /6 SIGNATURE LANES CHECKED/);
   assert.doesNotMatch(briefSetup.mount.innerHTML, /source-dossier-wiki-empty-lanes/);
 });
@@ -2181,4 +2234,40 @@ test("responsive stylesheet preserves touch targets, focus, and reduced motion",
     /@media \(max-width:\s*600px\)[\s\S]*\.source-dossier-wiki-recap[\s\S]*\.source-dossier-wiki-route[\s\S]*grid-template-columns:\s*1fr/,
   );
   assert.doesNotMatch(cssSource, /@import/i);
+});
+test("Show Wiki keeps the archive truth but removes machine-room language and duplicate sticky UI", () => {
+  const { ui, mount } = setup(makeDossier());
+  ui.render("SOURCE00001");
+  const html = mount.innerHTML;
+  const wikiStart = html.indexOf('class="source-dossier-show-wiki"');
+  const askStart = html.indexOf('class="source-dossier-ask"');
+  const proofStart = html.indexOf('class="source-dossier-proof"');
+  const wiki = html.slice(wikiStart, askStart);
+  const ask = html.slice(askStart, proofStart);
+
+  assert.match(wiki, /THE WHOLE NIGHT, CUT TO THE PARTS WORTH REVISITING/);
+  assert.match(wiki, /THE SHOW IN PLAIN ENGLISH/);
+  assert.match(wiki, /PLAYABLE MOMENTS/);
+  assert.match(wiki, /HOW THESE TIMESTAMPS WORK/);
+  assert.doesNotMatch(
+    wiki,
+    /SOURCE-LOCAL CAPTION EVIDENCE|SOURCE-LOCKED RECEIPT|DISTILLATION STATUS|THE SHOW, DISTILLED TO PLAYABLE PROOF/,
+  );
+  assert.match(ask, /FIND IT WITHOUT SCRUBBING FOR HOURS/);
+  assert.match(ask, /THIS SHOW\. NO OTHER UPLOADS/);
+  assert.doesNotMatch(ask, /SOURCE-LOCKED INTERROGATION|EXHUME THIS TAPE/);
+
+  assert.match(
+    cssSource,
+    /\.source-dossier-wiki-local-nav\s*\{[^}]*display:\s*none[^}]*position:\s*static/s,
+  );
+  assert.match(
+    cssSource,
+    /\.source-dossier-wiki-recap-blocks > article\s*\{[^}]*grid-template-areas:/s,
+  );
+  assert.match(
+    cssSource,
+    /\.source-dossier-wiki-receipt\s*\{[^}]*grid-template-areas:/s,
+  );
+  assert.match(cssSource, /\.source-dossier-wiki-pulse\s*\{[^}]*overflow:\s*hidden/s);
 });

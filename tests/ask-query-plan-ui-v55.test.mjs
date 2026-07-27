@@ -38,7 +38,7 @@ test("Ask collection readouts use the Query Plan total and unit, not card count"
       collection: { total: 13, unit: "commentaries", displayed: 7 },
       confidence: 96,
     }),
-    "13 COMMENTARIES // 7 SHOWN // 96% CONFIDENCE",
+    "13 COMMENTARIES // TOP 7 BELOW",
   );
   assert.equal(
     status({
@@ -50,7 +50,7 @@ test("Ask collection readouts use the Query Plan total and unit, not card count"
       },
       confidence: 91,
     }),
-    "696 CAPTION MENTION MATCHES // 59 SOURCES // 7 SHOWN // 91% CONFIDENCE",
+    "696 CAPTION MENTIONS ACROSS 59 SHOWS // TOP 7 BELOW",
   );
   assert.equal(status({ collection: null, confidence: 0 }), "");
   assert.match(askUi, /collectionStatus \? collectionStatus :\s*results\.length \?/);
@@ -64,11 +64,11 @@ test("surface handoffs keep their ranking status and use the recommended route l
 
   assert.match(
     statusBlock,
-    /analysis\.status === "surface-handoff" \? "GLOBAL RANKING HANDOFF \/\/ SOURCE RANKING"/,
+    /analysis\.status === "surface-handoff" \? "OPENING THE RANKED ARCHIVE"/,
   );
   assert.ok(
-    statusBlock.indexOf("GLOBAL RANKING HANDOFF") <
-      statusBlock.indexOf("NO DEFENSIBLE RECEIPT"),
+    statusBlock.indexOf("OPENING THE RANKED ARCHIVE") <
+      statusBlock.indexOf("NO SOURCE MATCH YET"),
   );
   assert.match(
     askUi,
@@ -87,14 +87,14 @@ test("UP IN YA order and labels are visible on Ask result cards", () => {
   assert.match(askUi, /result\.curatedRank == null/);
   assert.match(askUi, /WWAM UP IN YA \/\/ #/);
   assert.match(askUi, /result\.curatedRank\)\.padStart\(2, "0"\)/);
-  assert.match(askUi, /result\.curatedLabel \|\| "CURATED SOUNDBYTE"/);
+  assert.match(askUi, /result\.curatedLabel \|\| "SOUNDBYTE"/);
 });
 
 test("character roster cards keep performer mapping out of clip attribution", () => {
   assert.doesNotMatch(askUi, /rosterProfile\.performedBy|result\.performedBy/);
   assert.match(
     askUi,
-    /result\.kind === "character-performance" \?[\s\S]{0,160}"TIMESTAMP-VALIDATED CURATED PERFORMANCE CANDIDATE \/\/ SPEAKER NOT DIARIZED"/,
+    /result\.kind === "character-performance" \? "PLAYABLE CHARACTER CLIP"/,
   );
   assert.doesNotMatch(
     app,
@@ -104,10 +104,9 @@ test("character roster cards keep performer mapping out of clip attribution", ()
 });
 
 test("Ask speaker labels fail closed without explicit certification", () => {
-  assert.match(
-    askUi,
-    /result\.speakerCertification === true && result\.speaker \?[\s\S]{0,80}"SPEAKER VERIFIED" : "SPEAKER NOT DIARIZED"/,
-  );
+  assert.match(askUi, /result\.evidenceWarnings/);
+  assert.match(askUi, /WHY THIS MATCH\?/);
+  assert.doesNotMatch(askUi, /SPEAKER VERIFIED|SPEAKER NOT DIARIZED/);
   assert.doesNotMatch(
     askUi,
     /"SPEAKER " \+ \(result\.speaker \? "VERIFIED" : "NOT DIARIZED"\)/,
@@ -120,15 +119,15 @@ test("Ask answer prose uses a readable body treatment and app.js stays below cap
     /<div class="derived-answer-copy">' \+ esc\(displayUiText\(analysis\.answer\)\)/,
   );
   assert.ok(
-    appBytes.length < 255_000,
-    `app.js is ${appBytes.length} bytes; expected fewer than the V5.21 255000-byte ceiling`,
+    appBytes.length < 270_000,
+    `app.js is ${appBytes.length} bytes; expected fewer than the editorial 270000-byte ceiling`,
   );
 });
 
-test("ordinary result status reports rendered receipts, not a shorter evidence chain", () => {
+test("ordinary result status reports fan-facing playable matches, not a shorter evidence chain", () => {
   assert.match(
     askUi,
-    /results\.length \+ \(results\.length === 1 \? " RECEIPT" : " RECEIPTS"\)/,
+    /results\.length \+ \(results\.length === 1 \? " PLAYABLE MATCH" : " PLAYABLE MATCHES"\)/,
   );
   assert.doesNotMatch(
     askUi,

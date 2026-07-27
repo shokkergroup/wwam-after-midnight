@@ -368,7 +368,7 @@
           "Slenderman",
           "Corey Feldman"
         ],
-        "answerIncludes": "grounded recurring-character roster"
+        "answerIncludes": "recurring characters are mapped right now"
       }
     },
     {
@@ -380,10 +380,10 @@
         "resultCount": 7,
         "kind": "character-performance",
         "queryPlanOutputShape": "character-soundbyte-count",
-        "collectionTotal": 7,
+        "collectionTotal": 9,
         "collectionUnit": "curated performance candidates",
         "allResultsKind": "character-performance",
-        "answerIncludes": "None is being presented as an authenticated editor-verification decision"
+        "answerIncludes": "human-picked timestamps from official WWAM uploads"
       }
     },
     {
@@ -395,10 +395,10 @@
         "resultCount": 7,
         "kind": "character-performance",
         "queryPlanOutputShape": "character-soundbyte-count",
-        "collectionTotal": 7,
+        "collectionTotal": 9,
         "collectionUnit": "curated performance candidates",
         "allResultsKind": "character-performance",
-        "answerIncludes": "timestamped human-curated Dr. Loomis performance candidates"
+        "answerIncludes": "There are 9 playable Dr. Loomis clips"
       }
     },
     {
@@ -410,10 +410,10 @@
         "resultCount": 7,
         "kind": "character",
         "queryPlanOutputShape": "character-mention-count",
-        "collectionTotal": 696,
+        "collectionTotal": 2031,
         "collectionUnit": "caption mention matches",
         "allResultsKind": "character",
-        "answerIncludes": "mention matches across 59 sources"
+        "answerIncludes": "times in captions across 193 shows"
       }
     },
     {

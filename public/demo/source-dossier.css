@@ -3093,3 +3093,585 @@
     animation-iteration-count: 1 !important;
   }
 }
+/* V5.22 // SHOW WIKI EDITORIAL PASS
+   The show leads. Archive methodology stays available without becoming the page voice. */
+.source-dossier {
+  overflow: visible;
+  background: #090809;
+}
+
+.source-dossier > *,
+.source-dossier > * > * {
+  min-width: 0;
+}
+
+#sourceDossierShowWikiTitle:focus {
+  outline: 2px solid rgba(216, 255, 56, .78);
+  outline-offset: 8px;
+}
+
+.source-dossier-hero {
+  min-height: clamp(360px, 50vh, 590px);
+}
+
+.source-dossier-hero-shade {
+  background:
+    linear-gradient(90deg, rgba(5,4,6,.97) 0%, rgba(5,4,6,.72) 52%, rgba(5,4,6,.22) 100%),
+    linear-gradient(0deg, #080709 0%, transparent 68%);
+}
+
+.source-dossier-hero-copy {
+  max-width: 1040px;
+  padding: clamp(34px, 5vw, 70px) clamp(22px, 5vw, 72px);
+}
+
+.source-dossier-hero h2 {
+  max-width: 930px;
+  font-size: clamp(48px, 7vw, 102px);
+  line-height: .84;
+  text-shadow: 0 10px 34px rgba(0,0,0,.8);
+}
+
+.source-dossier-hero-copy > p {
+  margin-top: 17px;
+  color: #c4bbc3;
+  font-size: 10px;
+  letter-spacing: .08em;
+}
+
+.source-dossier-density {
+  gap: 18px;
+  padding-block: 13px;
+  border-color: #29262a;
+  background: #0d0b0e;
+}
+
+.source-dossier-density > div > span {
+  color: #c5bdc3;
+  font-size: 9px;
+}
+
+.source-dossier-density p {
+  color: #898087;
+  font: 500 12px/1.5 var(--body, sans-serif);
+}
+
+.source-dossier-density button {
+  min-width: 0;
+  border-color: #4a444b;
+  color: #c7bec5;
+  background: transparent;
+}
+
+.source-dossier > .source-dossier-explore {
+  max-width: 100%;
+  overflow: visible;
+  border-color: #2d292e;
+  background: #0b0a0c;
+}
+
+.source-dossier-explore > div,
+.source-dossier .wwam-dossier-more,
+.source-dossier .wwam-dossier-more-tray {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.source-dossier .wwam-dossier-more-tray {
+  width: min(620px, calc(100vw - 56px));
+}
+
+.source-dossier-player-section > header h3,
+.source-dossier-show-wiki > header h3,
+.source-dossier-ask > header h3,
+.source-dossier-proof > header h3,
+.source-dossier-inside > header h3 {
+  max-width: 900px;
+  font-size: clamp(38px, 5vw, 72px);
+  line-height: .88;
+}
+
+.source-dossier-player-section > header > a {
+  align-self: center;
+}
+
+.source-dossier-player {
+  border-color: #302c31;
+  background: #100e11;
+}
+
+.source-dossier-player::before {
+  content: "OFFICIAL YOUTUBE PLAYER";
+}
+
+.source-dossier-show-wiki {
+  background:
+    linear-gradient(180deg, rgba(216,255,56,.035), transparent 260px),
+    #0b0a0b;
+}
+
+.source-dossier-show-wiki > header {
+  align-items: start;
+}
+
+.source-dossier-show-wiki > header > p {
+  max-width: 540px;
+  color: #c0b7be;
+  font: 500 16px/1.62 var(--body, sans-serif);
+}
+
+.source-dossier-wiki-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px 18px;
+  align-items: baseline;
+  margin-top: 4px;
+  padding: 15px 0;
+  border: 0;
+  border-top: 1px solid #343035;
+  border-bottom: 1px solid #343035;
+  background: transparent;
+}
+
+.source-dossier-wiki-status span,
+.source-dossier-wiki-status small {
+  color: #8e858b;
+  font-size: 9px;
+}
+
+.source-dossier-wiki-status b {
+  color: var(--dossier-acid);
+  font: 800 15px/1.25 var(--body, sans-serif);
+  letter-spacing: .015em;
+}
+
+.source-dossier-wiki-status small {
+  margin-left: auto;
+}
+
+/* The top three actions + Explore All already cover these links. */
+.source-dossier-wiki-local-nav {
+  display: none;
+  position: static;
+  top: auto;
+}
+
+.source-dossier-wiki-summary,
+.source-dossier-wiki-brief,
+.source-dossier-wiki-recap,
+.source-dossier-wiki-experience {
+  scroll-margin-top: 24px;
+}
+
+.source-dossier-wiki-recap {
+  margin-top: 30px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.source-dossier-wiki-recap > header {
+  align-items: start;
+  padding-bottom: 22px;
+  border-bottom: 1px solid #47323d;
+}
+
+.source-dossier-wiki-recap > header h4 {
+  font-size: clamp(36px, 4vw, 58px);
+}
+
+.source-dossier-wiki-recap > header small {
+  color: #9c8f96;
+  text-align: left;
+}
+
+.source-dossier-wiki-overview {
+  max-width: 980px;
+  margin: 25px 0 30px;
+  font-size: clamp(19px, 2vw, 26px);
+  line-height: 1.52;
+}
+
+.source-dossier-wiki-recap-blocks {
+  display: block;
+  border-top: 1px solid #372a31;
+}
+
+.source-dossier-wiki-recap-blocks > article {
+  display: grid;
+  grid-template-columns: 90px minmax(180px, .55fr) minmax(0, 1.35fr);
+  grid-template-areas:
+    "index title copy"
+    "index jumps proof";
+  gap: 8px 24px;
+  align-items: start;
+  padding: 24px 0;
+  border: 0;
+  border-bottom: 1px solid #372a31;
+  background: transparent;
+}
+
+.source-dossier-wiki-recap-blocks > article > span { grid-area: index; }
+.source-dossier-wiki-recap-blocks h5 { grid-area: title; margin: 0; }
+.source-dossier-wiki-recap-blocks p { grid-area: copy; min-height: 0; margin: 0; font-size: 14px; }
+.source-dossier-wiki-recap-blocks > article > div { grid-area: jumps; margin: 5px 0 0; }
+.source-dossier-wiki-recap-blocks > article > small { grid-area: proof; align-self: center; color: #7f747a; }
+
+.source-dossier-wiki-experience {
+  margin-top: 42px;
+  padding: clamp(24px, 3.5vw, 40px);
+  border: 1px solid #3d4326;
+  border-left: 5px solid var(--dossier-acid);
+  border-top-width: 1px;
+  background: #0a0c08;
+}
+
+.source-dossier-wiki-experience::after {
+  opacity: .4;
+}
+
+.source-dossier-wiki-experience > p,
+.source-dossier-wiki-lane-description {
+  color: #b5adb2;
+  font: 500 15px/1.65 var(--body, sans-serif);
+}
+
+.source-dossier-wiki-pulse {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.source-dossier-wiki-pulse-track {
+  min-width: 0;
+}
+
+.source-dossier-wiki-route-stop {
+  padding: 15px;
+  border-color: #30351d;
+  background: transparent;
+}
+
+.source-dossier-wiki-route-stop p {
+  color: #c9c2c6;
+  font-size: 13px;
+}
+
+.source-dossier-wiki-route-actions {
+  align-items: flex-start;
+}
+
+.source-dossier-wiki-method {
+  flex: 1 1 360px;
+  min-width: 0;
+  margin-left: auto;
+  text-align: right;
+}
+
+.source-dossier-wiki-method summary,
+.source-dossier-wiki-evidence summary,
+.source-dossier-receipt-proof summary {
+  color: #8e858b;
+  cursor: pointer;
+  font: 800 9px/1.45 var(--mono, monospace);
+  letter-spacing: .07em;
+  list-style-position: inside;
+}
+
+.source-dossier-wiki-method small {
+  display: block;
+  margin-top: 8px;
+  color: #77706f;
+  font: 700 8px/1.5 var(--mono, monospace);
+}
+
+.source-dossier-wiki-lanes {
+  gap: 0;
+  margin-top: 42px;
+  border-top: 1px solid #373238;
+}
+
+.source-dossier-wiki-lane {
+  padding: clamp(34px, 4vw, 52px) 0;
+  border: 0;
+  border-bottom: 1px solid #373238;
+  background: transparent;
+  scroll-margin-top: 24px;
+}
+
+.source-dossier-wiki-lane > header > b {
+  color: #b9b0b7;
+  font-size: 10px;
+}
+
+.source-dossier-wiki-receipts {
+  display: block;
+  margin-top: 24px;
+  border-top: 1px solid #2f2a30;
+}
+
+.source-dossier-wiki-receipt {
+  display: grid;
+  grid-template-columns: minmax(170px, .48fr) minmax(0, 1.25fr) auto;
+  grid-template-areas:
+    "head quote actions"
+    "proof proof proof";
+  gap: 14px 24px;
+  min-height: 0;
+  padding: 22px 0;
+  border: 0;
+  border-bottom: 1px solid #2f2a30;
+  background: transparent;
+}
+
+.source-dossier-wiki-receipt > header {
+  grid-area: head;
+  display: grid;
+  align-content: start;
+  justify-content: stretch;
+  gap: 8px;
+}
+
+.source-dossier-wiki-receipt > header time {
+  margin: 0;
+  font-size: 26px;
+}
+
+.source-dossier-wiki-receipt .source-dossier-receipt-signal {
+  text-align: left;
+}
+
+.source-dossier-wiki-receipt > p {
+  grid-area: quote;
+  align-self: start;
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.source-dossier-wiki-receipt > footer {
+  grid-area: actions;
+  display: grid;
+  align-content: start;
+  justify-content: stretch;
+  gap: 7px;
+}
+
+.source-dossier-wiki-receipt > footer button {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.source-dossier-receipt-proof {
+  grid-area: proof;
+  margin: 0;
+  padding-top: 10px;
+  border-top: 1px solid #252226;
+}
+
+.source-dossier-receipt-proof > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 9px;
+}
+
+.source-dossier-receipt-proof span {
+  padding: 4px 6px;
+  border: 1px solid #383239;
+  color: #7d757b;
+  font: 700 7px/1.3 var(--mono, monospace);
+  letter-spacing: .06em;
+}
+
+.source-dossier-wiki-evidence {
+  margin-top: 14px;
+  padding: 13px 0 0;
+  border: 0;
+  border-top: 1px solid #29262a;
+  background: transparent;
+}
+
+.source-dossier-wiki-evidence p {
+  max-width: 830px;
+  margin: 10px 0 0;
+  color: #898187;
+  font: 500 12px/1.6 var(--body, sans-serif);
+}
+
+.source-dossier-wiki-crosslinks {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 14px 0 0;
+  border: 0;
+  border-top: 1px dashed #403a40;
+  background: transparent;
+}
+
+.source-dossier-wiki-empty-lanes {
+  margin-top: 24px;
+  padding: 18px 0;
+  border-inline: 0;
+  background: transparent;
+}
+
+.source-dossier-query-prompts {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.source-dossier-query-prompts button {
+  flex: 1 1 220px;
+  min-height: 48px;
+  border-color: #343b40;
+  background: transparent;
+  color: #c2d0d3;
+  font: 650 12px/1.4 var(--body, sans-serif);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.source-dossier-source-lock {
+  grid-template-columns: auto auto minmax(0, 1fr);
+  border: 0;
+  border-block: 1px solid #29383c;
+  background: transparent;
+}
+
+.source-dossier-source-lock small {
+  text-align: right;
+}
+
+.source-dossier-query-form {
+  background: #0b0d0f;
+}
+
+.source-dossier-proof-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-left: 0;
+}
+
+.source-dossier-proof-grid article {
+  display: grid;
+  grid-template-columns: minmax(130px, .46fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: center;
+  min-height: 84px;
+  padding: 17px 0;
+  border-right: 0;
+  border-color: #302c31;
+  background: transparent;
+}
+
+.source-dossier-proof-grid article:nth-child(odd) {
+  padding-right: 22px;
+}
+
+.source-dossier-proof-grid article:nth-child(even) {
+  padding-left: 22px;
+}
+
+.source-dossier-proof-grid article span,
+.source-dossier-proof-grid article b {
+  margin: 0;
+}
+
+.source-dossier-proof-grid article b {
+  font-size: clamp(18px, 2vw, 28px);
+}
+
+@media (max-width: 900px) {
+  .source-dossier-wiki-recap-blocks > article {
+    grid-template-columns: 76px minmax(0, 1fr);
+    grid-template-areas:
+      "index title"
+      "copy copy"
+      "jumps jumps"
+      "proof proof";
+  }
+
+  .source-dossier-wiki-route {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .source-dossier-wiki-receipt {
+    grid-template-columns: minmax(150px, .48fr) minmax(0, 1fr);
+    grid-template-areas:
+      "head quote"
+      "actions actions"
+      "proof proof";
+  }
+
+  .source-dossier-wiki-receipt > footer {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .source-dossier-wiki-receipt > footer button {
+    width: auto;
+  }
+}
+
+@media (max-width: 600px) {
+  .source-dossier-hero {
+    min-height: 440px;
+  }
+
+  .source-dossier-hero h2 {
+    font-size: clamp(44px, 15vw, 70px);
+  }
+
+  .source-dossier-player {
+    aspect-ratio: 16 / 9;
+  }
+
+  .source-dossier-wiki-status small {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .source-dossier-wiki-recap-blocks > article {
+    grid-template-columns: 1fr;
+    grid-template-areas: "index" "title" "copy" "jumps" "proof";
+    gap: 8px;
+  }
+
+  .source-dossier-wiki-route,
+  .source-dossier-wiki-crosslinks,
+  .source-dossier-proof-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .source-dossier-wiki-receipt {
+    grid-template-columns: 1fr;
+    grid-template-areas: "head" "quote" "actions" "proof";
+    gap: 14px;
+  }
+
+  .source-dossier-wiki-receipt > footer {
+    display: grid;
+  }
+
+  .source-dossier-wiki-receipt > footer button {
+    width: 100%;
+  }
+
+  .source-dossier-wiki-method {
+    flex-basis: 100%;
+    margin-left: 0;
+    text-align: left;
+  }
+
+  .source-dossier-source-lock {
+    grid-template-columns: 1fr;
+  }
+
+  .source-dossier-source-lock small {
+    text-align: left;
+  }
+
+  .source-dossier-proof-grid article,
+  .source-dossier-proof-grid article:nth-child(odd),
+  .source-dossier-proof-grid article:nth-child(even) {
+    grid-template-columns: 1fr;
+    padding-inline: 0;
+  }
+}

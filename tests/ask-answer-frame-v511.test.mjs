@@ -163,7 +163,7 @@ test("character profile, performance, and mention requests remain distinct", asy
 
   assert.equal(feldman.queryPlan.outputShape, "character-profile");
   assert.match(feldman.answer, /fictional Wolf Pack/i);
-  assert.match(feldman.answer, /Grounded Character Lore profile/i);
+  assert.match(feldman.answer, /Here is the Corey Feldman pattern/i);
 
   assert.equal(slender.status, "supported");
   assert.equal(slender.queryPlan.outputShape, "character-profile");

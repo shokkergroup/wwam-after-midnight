@@ -171,20 +171,20 @@ test("character roster, profiles, curated candidates, and broad mentions remain 
 
   assert.equal(profile.queryPlan.outputShape, "character-profile");
   assert.match(profile.answer, /Wolf Pack/i);
-  assert.match(profile.answer, /not a fabricated quote.*clip-level speaker claim/i);
+  assert.match(profile.answer, /fan riff; the clips are the real source/i);
 
   for (const answer of [curated, plainClips, howOften]) {
     assert.equal(answer.queryPlan.outputShape, "character-soundbyte-count");
-    assert.equal(answer.collection.total, 7);
+    assert.equal(answer.collection.total, 9);
     assert.equal(answer.collection.unit, "curated performance candidates");
     assert.equal(answer.collection.authenticatedEditorVerified, 0);
-    assert.match(answer.answer, /none is being presented as an authenticated editor-verification/i);
+    assert.match(answer.answer, /human-picked timestamps.*does not guess which host is speaking/i);
     assert.ok(answer.results.every((result) => result.kind === "character-performance"));
   }
 
-  assert.equal(mentions.collection.total, 696);
-  assert.equal(mentions.collection.sourceTotal, 59);
-  assert.match(mentions.answer, /not a count of curated performance candidates/i);
+  assert.equal(mentions.collection.total, 2031);
+  assert.equal(mentions.collection.sourceTotal, 193);
+  assert.match(mentions.answer, /mixes casual discussion, jokes and possible impressions/i);
 });
 
 test("WWAM Up In Ya top-N follows all 25 curated receipt keys exactly", async () => {

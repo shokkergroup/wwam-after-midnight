@@ -21,6 +21,8 @@
   <link rel="stylesheet" href="styles.css?v=0.5.27-year-canon">
   <link rel="stylesheet" href="year-canon.css?v=1.0.0">
   <link rel="stylesheet" href="guided-shell.css?v=1.0.0">
+  <link rel="stylesheet" href="wwam-editorial-v2.css?v=1.0.0-editorial6">
+  <link rel="stylesheet" href="wwam-night-guide.css?v=2.0.1">
 </head>
 <body>
   <div class="content-gate" id="contentGate" role="dialog" aria-modal="true" aria-labelledby="contentGateTitle">
@@ -38,33 +40,135 @@
     </div>
   </div>
 
-  <nav class="topbar guided-topbar" aria-label="Primary">
-    <a class="brand" href="#top" aria-label="WWAM After Midnight home">
-      <i>W</i><span>WWAM<b>AFTER MIDNIGHT</b></span>
-    </a>
-    <div class="nav-links guided-primary-links">
-      <a href="#top" data-journey-link="home">HOME</a>
-      <a class="nav-halloween-universe" href="#halloween-universe" data-journey-link="watchalongs">HALLOWEEN UNIVERSE</a>
-      <a href="#livewire" data-journey-link="shows">NEWEST</a>
-      <a href="#archive" data-journey-link="shows">SHOW WIKIS</a>
-      <a href="#franchises" data-journey-link="watchalongs">WATCHALONGS</a>
-      <a href="#characters" data-journey-link="characters">CHARACTERS</a>
-      <a href="#ask" data-journey-link="ask">ASK WWAM</a>
+  <a class="wwam-skip-link" href="#wwamTonight">SKIP TO TONIGHT'S PICKS</a>
+  <header class="wwam-site-header">
+    <nav class="topbar guided-topbar" aria-label="Primary">
+      <a class="brand" href="#top" data-journey-link="home" aria-label="WWAM After Midnight home">
+        <i>W</i><span>WWAM<b>AFTER MIDNIGHT</b></span>
+      </a>
+      <div class="nav-links guided-primary-links">
+        <a class="nav-halloween-universe" href="#halloween-universe" data-journey-link="watchalongs">HALLOWEEN</a>
+        <a href="#livewire" data-journey-link="shows">NEWEST</a>
+        <a href="#archive" data-journey-link="shows">SHOWS</a>
+        <a href="#franchises" data-journey-link="watchalongs">WATCHALONGS</a>
+        <a href="#characters" data-journey-link="characters">CHARACTERS</a>
+        <a href="#ask" data-journey-link="ask">ASK WWAM</a>
+      </div>
+      <div class="guided-topbar-actions">
+        <button class="guided-more-button" id="guidedMoreButton" type="button"
+          aria-controls="guidedMorePanel" aria-expanded="false">
+          ALL ROOMS <span aria-hidden="true">+</span>
+        </button>
+      </div>
+    </nav>
+    <nav class="wwam-signature-rail" aria-label="WWAM signature shortcuts">
+      <span class="wwam-signature-label">CUT TO:</span>
+      <a href="?source=LV2rmwEA0w4&amp;section=wiki#archive"><i>NEW</i> JULY 23 SHOW WIKI</a>
+      <a href="#upinya" data-journey-link="highlights"><i>18+</i> WWAM UP IN YA</a>
+      <a class="wwam-steve-shortcut" href="#steves-asshole" data-journey-link="highlights"><i>&darr;</i> STEVE'S ASSHOLE</a>
+      <a href="#halloween-universe" data-journey-link="watchalongs"><i>H4</i> HALLOWEEN UNIVERSE</a>
+    </nav>
+  </header>
+  <aside class="guided-more-panel wwam-room-directory" id="guidedMorePanel"
+    aria-hidden="true" inert aria-label="Everything in WWAM After Midnight">
+    <div class="wwam-room-directory-intro">
+      <span>THE WHOLE VIDEO STORE</span>
+      <h2>WHAT ARE YOU<br>IN THE MOOD FOR?</h2>
+      <p>No mystery meat. Every room says what it does before you walk in.</p>
     </div>
-    <div class="guided-topbar-actions">
-      <button class="guided-more-button" id="guidedMoreButton" type="button" aria-controls="guidedMorePanel" aria-expanded="false">MORE <span>+</span></button>
-      <button class="mike-button" id="mikeButton"><span></span> SHOWCASE MODE</button>
+    <div>
+      <span>WATCH SOMETHING</span>
+      <a href="#livewire" data-journey-link="shows"><b>Newest Show</b><small>Catch up without sitting through three hours.</small></a>
+      <a href="#archive" data-journey-link="shows"><b>Show Wikis</b><small>Recaps, topic jumps, and the best parts.</small></a>
+      <a href="#franchises" data-journey-link="watchalongs"><b>Watchalong Vault</b><small>Every mapped movie commentary.</small></a>
+      <a href="#popular25" data-journey-link="shows"><b>Popular 25</b><small>The big archived livestreams.</small></a>
     </div>
-  </nav>
-  <aside class="guided-more-panel" id="guidedMorePanel" aria-hidden="true" inert>
-    <div><span>WATCH + BINGE</span><a href="#companion" data-journey-link="shows">TAPE COMPANION</a><a href="#comedy-vault" data-journey-link="watchalongs">COMEDY VAULT</a><a href="#popular25" data-journey-link="shows">POPULAR 25</a><a href="#time-capsules" data-journey-link="shows">TIME CAPSULES</a></div>
-    <div><span>THE UNHINGED SIDE</span><a href="#red100" data-journey-link="highlights">RED BAND 100</a><a href="#upinya" data-journey-link="highlights">WWAM UP IN YA</a><a href="#night-shift" data-journey-link="highlights">NIGHT SHIFT</a><a href="#trivia" data-journey-link="highlights">TAPE TRIVIA</a></div>
-    <div><span>THE DEEP END</span><a href="#lore" data-journey-link="characters">LORE GALAXY</a><a href="#memory" data-journey-link="studio">MEMORY OS</a><a href="#verdict-room" data-journey-link="studio">VERDICT ROOM</a></div>
-    <div><span>CREATOR WORKBENCH</span><a href="#clip-lab" data-journey-link="studio">CLIP LAB</a><a href="#fresh-intake" data-journey-link="studio">DROP ZONE</a><a href="#canon" data-journey-link="studio">CANON DESK</a><a href="#pitch" data-journey-link="studio">GUIDED SHOWCASE</a><a href="#top" data-journey-link="all">SHOW EVERYTHING</a></div>
+    <div>
+      <span>GET WEIRD FAST</span>
+      <a href="#upinya" data-journey-link="highlights"><b>WWAM Up In Ya</b><small>The lines no normal mouth should make.</small></a>
+      <a href="#steves-asshole" data-journey-link="highlights"><b>Straight to Steve's Asshole</b><small>The stuff that earned a one-way trip.</small></a>
+      <a href="#red100" data-journey-link="highlights"><b>Red Band 100</b><small>The archive's wildest playable candidates.</small></a>
+      <a href="#characters" data-journey-link="characters"><b>Ask a Character</b><small>Loomis, Challis, Slenderman, and Feldman.</small></a>
+    </div>
+    <div>
+      <span>GO DOWN THE RABBIT HOLE</span>
+      <a href="#halloween-universe" data-journey-link="watchalongs"><b>Halloween Universe</b><small>WWAM's home turf, mapped end to end.</small></a>
+      <a href="#comedy-vault" data-journey-link="watchalongs"><b>Comedy Vault</b><small>Scary Movie, Waiting, Harold &amp; Kumar.</small></a>
+      <a href="#lore" data-journey-link="characters"><b>Lore Galaxy</b><small>Recurring bits and the tapes that connect them.</small></a>
+      <a href="#time-capsules" data-journey-link="shows"><b>Time Capsules</b><small>Drop into the channel by year and era.</small></a>
+      <a href="#ask" data-journey-link="ask"><b>Ask WWAM</b><small>Search the archive like a fan would.</small></a>
+    </div>
+    <div class="wwam-room-directory-backroom">
+      <span>BEHIND THE COUNTER</span>
+      <a href="#companion" data-journey-link="shows"><b>Tape Companion</b><small>Turn a long show into a guided watch.</small></a>
+      <a href="#memory" data-journey-link="studio"><b>Memory OS</b><small>See how the channel's history connects.</small></a>
+      <a href="#clip-lab" data-journey-link="studio"><b>Clip Lab</b><small>Build a cut from source-backed moments.</small></a>
+      <button class="mike-button" id="mikeButton" type="button"><span></span> TAKE THE GUIDED TOUR</button>
+      <a href="#top" data-journey-link="all"><b>Open Every Room</b><small>For the people who want the whole basement.</small></a>
+    </div>
   </aside>
 
   <main id="top" tabindex="-1">
-    <section class="hero">
+    <section class="hero wwam-editorial-hero" aria-labelledby="wwamHeroTitle">
+      <div class="hero-grain"></div>
+      <div class="hero-copy">
+        <div class="live-pill"><i></i> THE CHANNEL, WITH A MEMORY</div>
+        <h1 id="wwamHeroTitle">THE WHOLE SHOW.<br><em>CUT TO THE GOOD PART.</em></h1>
+        <p class="hero-dek">Missed a livestream? Pick the movie, rant, running bit, or deranged sentence you came for. Every path lands on the right moment in the original WWAM upload.</p>
+        <div class="hero-actions">
+          <a class="primary" href="?source=LV2rmwEA0w4&amp;section=wiki#archive">OPEN THE JULY 23 SHOW <span>&rarr;</span></a>
+          <a href="#archive" data-journey-link="shows">FIND A SHOW <span>&rarr;</span></a>
+          <a class="hero-halloween-universe" href="#halloween-universe" data-journey-link="watchalongs">ENTER HALLOWEEN <span>&rarr;</span></a>
+        </div>
+        <div class="wwam-hero-question">
+          <span>OR JUST ASK IT:</span>
+          <a href="#ask" data-journey-link="ask">&ldquo;When did they lose their minds over Halloween Ends?&rdquo; <b>&rarr;</b></a>
+        </div>
+        <p class="receipt-note">131 current livestreams. 39 watchalongs. Millions of captioned words. <span>The proof stays under the hood until you want it.</span></p>
+      </div>
+      <article class="wwam-tonights-tape" id="wwamTonight">
+        <a class="wwam-tonights-art" href="?source=LV2rmwEA0w4&amp;section=wiki#archive"
+          aria-label="Open the July 23, 2026 show wiki">
+          <img src="https://i.ytimg.com/vi/LV2rmwEA0w4/maxresdefault.jpg"
+            alt="Thumbnail for the July 23, 2026 We Watched A Movie livestream">
+          <span>NEWEST TAPE</span>
+          <b aria-hidden="true">PLAY</b>
+        </a>
+        <div class="wwam-tonights-copy">
+          <p>JULY 23, 2026 &bull; 3:33:05</p>
+          <h2>YOUR THREE-HOUR SHOW<br>NOW HAS CHAPTERS.</h2>
+          <ul aria-label="Topics in the newest show">
+            <li>Avengers</li><li>Clayface</li><li>Spider-Man</li><li>Hellraiser</li>
+          </ul>
+          <a href="?source=LV2rmwEA0w4&amp;section=wiki#archive">RECAP IT, SKIM IT, OR HIT PLAY <span>&rarr;</span></a>
+        </div>
+      </article>
+    </section>
+    <section class="wwam-pick-your-poison" aria-labelledby="wwamPoisonTitle">
+      <header>
+        <div><span>THE FAST WAY IN</span><h2 id="wwamPoisonTitle">PICK YOUR POISON.</h2></div>
+        <p>Pick a bit, a rant, a movie, or a character. We will drop you at the good part.</p>
+      </header>
+      <div class="wwam-poison-grid">
+        <a class="wwam-poison-card wwam-poison-up" href="#upinya" data-journey-link="highlights">
+          <small>PLAYABLE SOUNDBYTES</small><h3>WWAM<br>UP IN YA</h3>
+          <p>The most deranged things said on tape, ready to play.</p><b>RUIN THE SILENCE <span>&rarr;</span></b>
+        </a>
+        <a class="wwam-poison-card wwam-poison-steve" href="#steves-asshole" data-journey-link="highlights">
+          <small>THE STUFF THEY HATED</small><h3>STRAIGHT TO<br>STEVE'S ASSHOLE</h3>
+          <p>Bad ideas, franchise crimes, and one-way tickets.</p><b>FLUSH THE TAKES <span>&darr;</span></b>
+        </a>
+        <a class="wwam-poison-card wwam-poison-halloween" href="#halloween-universe" data-journey-link="watchalongs">
+          <small>THE HOME FRANCHISE</small><h3>HALLOWEEN<br>UNIVERSE</h3>
+          <p>Every mapped commentary, version, character, and callback.</p><b>ENTER HADDONFIELD <span>&rarr;</span></b>
+        </a>
+        <a class="wwam-poison-card wwam-poison-character" href="#characters" data-journey-link="characters">
+          <small>LOOMIS &bull; CHALLIS &bull; FELDMAN</small><h3>ASK A<br>CHARACTER</h3>
+          <p>Follow the bits, hear the performances, then ask the lunatic.</p><b>PICK A VOICE <span>&rarr;</span></b>
+        </a>
+      </div>
+    </section>
+    <section class="hero legacy-machine-hero" hidden aria-hidden="true">
       <div class="hero-grain"></div>
       <div class="hero-copy">
         <div class="live-pill"><i></i> THE LIVING WWAM ARCHIVE // UPDATED JULY 23, 2026</div>
@@ -184,6 +288,19 @@
       </div>
     </section>
 
+    <section class="section steves-asshole-room" id="steves-asshole"
+      aria-label="Straight to Steve's Asshole" aria-busy="true"
+      data-feature-styles="steves-asshole.css?v=1.0.3"
+      data-feature-scripts="steves-asshole.js?v=1.0.3">
+      <div id="stevesAssholeMount" data-steves-asshole-mount>
+        <div class="steve-empty steve-loading" role="status" aria-live="polite">
+          <span>OPENING THE REJECTION CHUTE</span>
+          <h3>FINDING THE CLIPS.</h3>
+          <p>The bad masks, rotten twists, and one-way tickets are loading.</p>
+        </div>
+      </div>
+    </section>
+
     <section class="tape-companion" id="companion" aria-busy="true"
       data-feature-styles="tape-companion.css"
       data-feature-scripts="archive-atlas-data.js,red-band-ranking-v2.js,tape-companion-engine.js,tape-companion-ui.js">
@@ -252,12 +369,12 @@
           <p class="kicker">ASK A CHARACTER // THEN OPEN THE REAL TAPE</p>
           <h2>ASK THE<br><em>CHARACTER.</em></h2>
         </div>
-        <p>Pick Loomis, Challis, Slenderman, or Corey Feldman and ask anything. You get a clearly labeled fan-made riff, a matched source clip, and the complete playable tape shelf for that recurring bit.</p>
+        <p>Pick Loomis, Challis, Slenderman, or Corey Feldman and ask anything. You get a clearly labeled fan-made riff, then the real WWAM clips that taught the archive the joke.</p>
       </header>
       <div class="character-roster" id="characterRoster"></div>
       <div class="character-console">
         <section class="character-terminal">
-          <div class="character-terminal-top"><i></i><span id="characterLine">PICK A CHARACTER</span><b>FAN-MADE RIFF // SOURCE CLIPS STAY SEPARATE</b></div>
+          <div class="character-terminal-top"><i></i><span id="characterLine">PICK A CHARACTER</span><b>FAN-MADE RIFF // REAL CLIPS BELOW</b></div>
           <div class="character-portrait" id="characterPortrait"></div>
           <form id="characterForm">
             <span>ASK_</span>
@@ -270,9 +387,9 @@
         </section>
         <aside class="character-receipts" aria-labelledby="characterShelfTitle" tabindex="-1">
           <div class="character-shelf-head">
-            <span id="characterShelfTitle">THE TAPE SHELF</span>
-            <b id="characterReceiptLabel" role="status" aria-live="polite">LOADING TIMESTAMP-VALIDATED CANDIDATES</b>
-            <button id="characterReceiptRotate" type="button" aria-controls="characterReceipts">ROTATE FIRST TAPE</button>
+            <span id="characterShelfTitle">THE REAL CLIPS</span>
+            <b id="characterReceiptLabel" role="status" aria-live="polite">LOADING PLAYABLE CLIPS</b>
+            <button id="characterReceiptRotate" type="button" aria-controls="characterReceipts">PLAY ANOTHER CLIP</button>
             <button id="characterReceiptMore" type="button" aria-controls="characterReceipts">OPEN FULL SHELF</button>
           </div>
           <div id="characterReceipts"></div>
@@ -331,7 +448,7 @@
           <div>
             <p class="kicker">EVERY OFFICIAL LIVESTREAM // 2025 + 2026 // ONE PLAYABLE MEMORY WINDOW</p>
             <h3>THE LIVING<br><em>CANON.</em></h3>
-            <p>This is the Mike-ready proof: not a handpicked top ten, but every livestream in the two-year feed window. Open any show as its own Wiki, jump by topic, hit the strongest machine-surfaced moment, or go straight to the red-band and negative-take lanes.</p>
+            <p>This is the complete two-year feed view: every livestream in the window, not a handpicked top ten. Open any show as its own Wiki, jump by topic, hit the strongest surfaced moment, or go straight to the red-band and negative-take lanes.</p>
           </div>
           <aside class="year-canon-lock">
             <span>CANON COVERAGE LOCK</span>
@@ -759,17 +876,21 @@
       data-feature-styles="ask-review.css,play-answer.css,receipt-matrix.css"
       data-feature-scripts="ask-review-engine.js,ask-review-ui.js,channel-pack-contract.js,wwam-channel-pack-adapter.js,play-answer-engine.js,play-answer-ui.js,receipt-matrix-query.js?v=0.5.21-1,receipt-matrix-engine.js,receipt-matrix-ui.js,wwam-receipt-matrix-host.js">
       <div class="ask-copy">
-        <p class="kicker">ASK WWAM // MULTI-RECEIPT INTELLIGENCE</p>
-        <h2>ASK A HARDER<br>QUESTION.</h2>
-        <p>The answer leads with a conclusion, follows with supporting receipts, surfaces a counterpoint when one exists, remembers follow-up context, and tells you exactly why every source earned its place. Ask can also separate receipt counts from unique uploads, intersect recurring-character evidence across sources, and build exact chronological performance routes.</p>
+        <p class="kicker">SEARCH THE WWAM ARCHIVE</p>
+        <h2>ASK IT LIKE<br>A FAN WOULD.</h2>
+        <p>Ask about a movie, bit, character, or show. Get the answer first, then jump straight to the playable moments behind it.</p>
         <div class="prompt-chips" id="askExamples"></div>
+        <details class="ask-how">
+          <summary>HOW DO THE ANSWERS WORK?</summary>
+          <p>The archive compares source-linked moments, keeps follow-up context, and shows uncertainty when the tape cannot prove something.</p>
+        </details>
       </div>
       <div class="ask-machine">
         <form id="askForm">
           <span>QUERY_</span><input id="askInput" autocomplete="off" placeholder="Ask the entire WWAM memory anything…" aria-label="Ask WWAM"><button>EXHUME</button>
         </form>
         <div class="ask-readout">
-          <div><i></i><span id="askStatus" role="status" aria-live="polite">THE MACHINE IS LISTENING</span><b>SOURCE-FIRST MODE</b></div>
+          <div><i></i><span id="askStatus" role="status" aria-live="polite">READY WHEN YOU ARE</span><b>EVERY ANSWER LINKS BACK</b></div>
           <div id="askResults" class="ask-results">
             <p class="empty-state">Try a specific movie, a live topic, “latest,” “who,” a strong opinion, or a request for the funniest thing. The machine will show its work—and refuse to fake what the captions cannot prove.</p>
           </div>
@@ -966,22 +1087,22 @@
     <div><a href="https://www.youtube.com/@WeWatchedAMovie" target="_blank" rel="noopener">ORIGINAL CHANNEL ↗</a><button id="footerPitch">SHOWCASE MODE</button></div>
   </footer>
 
-  <button class="evidence-bag-toggle" id="evidenceBagOpen" aria-controls="evidenceBag" aria-expanded="false" aria-label="Open evidence bag; 0 saved receipts">
-    <span>MY EVIDENCE BAG</span><b id="evidenceBagCount">0</b>
+  <button class="evidence-bag-toggle" id="evidenceBagOpen" aria-controls="evidenceBag" aria-expanded="false" aria-label="Open saved clips; 0 clips">
+    <span>SAVED CLIPS</span><b id="evidenceBagCount">0</b>
   </button>
   <div class="evidence-bag-scrim" id="evidenceBagScrim"></div>
   <aside class="evidence-bag" id="evidenceBag" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="evidenceBagTitle" inert>
-    <header><div><span>PERSONAL NIGHTMARE QUEUE</span><h2 id="evidenceBagTitle">THE EVIDENCE BAG</h2></div><button id="evidenceBagClose" aria-label="Close evidence bag">×</button></header>
-    <p>Save receipts while you explore. Build a personal binge cut, reopen every exact second, or export the source manifest. This queue stays on this device.</p>
+    <header><div><span>KEEP THE GOOD PARTS</span><h2 id="evidenceBagTitle">SAVED CLIPS</h2></div><button id="evidenceBagClose" aria-label="Close evidence bag">×</button></header>
+    <p>Save the moments you want to replay. Open every clip at the right second, build a binge cut, or take the list with you. It stays on this device.</p>
     <div class="evidence-bag-list" id="evidenceBagList"></div>
     <footer>
       <button class="evidence-bag-cut" id="evidenceBagCut"
         data-feature-activate="memory-cut"
         data-feature-styles="memory-cut.css"
-        data-feature-scripts="memory-cut-engine.js,memory-cut-ui.js,wwam-memory-cut-launcher.js">CUT THE TAPE // OPEN THE CUT ROOM</button>
-      <button id="evidenceBagCopy">COPY CLIP MANIFEST</button>
+        data-feature-scripts="memory-cut-engine.js,memory-cut-ui.js,wwam-memory-cut-launcher.js">MAKE A BINGE CUT</button>
+      <button id="evidenceBagCopy">COPY CLIP LIST</button>
       <button id="evidenceBagDownload">DOWNLOAD JSON</button>
-      <button id="evidenceBagClear">BURN THE BAG</button>
+      <button id="evidenceBagClear">CLEAR SAVED CLIPS</button>
     </footer>
   </aside>
 
@@ -1038,13 +1159,15 @@
   <script src="cold-open-engine.js"></script>
   <script src="canon-integrity-engine.js"></script>
   <script src="human-review-session-engine.js"></script>
-  <script src="search-engine.js?v=0.5.28-year-canon-ask"></script>
+  <script src="search-engine.js?v=0.5.28-year-canon-ask-ux3"></script>
   <script src="ask-share.js"></script>
   <script src="youtube-playback.js?v=0.5.28-year-canon-player2"></script>
   <script src="feature-loader.js"></script>
-  <script src="app.js?v=0.5.28-year-canon"></script>
+  <script src="app.js?v=0.5.28-year-canon-ux13"></script>
   <script src="context-atlas.js?v=1.0.0"></script>
   <script src="context-companion.js?v=1.0.0"></script>
-  <script src="guided-shell.js?v=1.0.0"></script>
+  <script src="guided-shell.js?v=1.0.0-editorial4"></script>
+  <script src="wwam-dossier-editorial.js?v=1.0.1"></script>
+  <script src="wwam-night-guide.js?v=2.0.2"></script>
 </body>
 </html>

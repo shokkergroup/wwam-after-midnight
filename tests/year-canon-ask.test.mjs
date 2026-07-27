@@ -71,7 +71,7 @@ test("understands natural character-moment wording without pretending machine si
   assert.ok(answer.results.every((result) => (
     result.kind === "character" || result.kind === "character-performance"
   )));
-  assert.match(answer.answer, /speaker-undiarized|does not identify a performer/i);
+  assert.match(answer.answer, /speaker-undiarized|does not identify a performer|does not guess which host is speaking/i);
 });
 
 test("reports topic prevalence inside the requested year, not across the unfiltered archive", () => {

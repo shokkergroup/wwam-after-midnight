@@ -2748,63 +2748,61 @@
     }
     if (intent.queryPlan && intent.queryPlan.outputShape === "source-count" &&
       intent.collection) {
-      return "The current bounded index contains " + intent.collection.total + " unique indexed " +
-        intent.collection.unit + (entity ? " for " + entityLabel : "") +
-        ". This count is computed before the display limit and does not count multiple moments from one source as separate uploads.";
+      return (entity ? entityLabel : "That subject") + " appears in " + intent.collection.total +
+        " unique indexed " + intent.collection.unit + ". Here are the " +
+        Math.min(intent.collection.total, intent.collection.displayed || ranked.length) +
+        " strongest matches. Each upload is counted once.";
     }
     if (intent.queryPlan && intent.queryPlan.outputShape === "source-list" &&
       intent.collection) {
-      return "The current bounded index contains " + intent.collection.total + " matching " +
-        intent.collection.unit + (entity ? " for " + entityLabel : "") +
-        ". " + Math.min(intent.collection.total, intent.collection.displayed || ranked.length) +
-        " source-level records are shown in the requested order; moment receipts are not being counted as separate uploads.";
+      return (entity ? entityLabel : "That subject") + " appears in " + intent.collection.total +
+        " matching " + intent.collection.unit + ". Here are the " +
+        Math.min(intent.collection.total, intent.collection.displayed || ranked.length) +
+        " best matches in the order you asked for. Each upload is counted once.";
     }
     if (intent.queryPlan && intent.queryPlan.outputShape === "curated-soundbytes" &&
       intent.collection) {
-      return "WWAM UP IN YA contains " + intent.collection.total +
-        " curated timestamped soundbytes in the current set. Showing the first " +
+      return "WWAM Up In Ya has " + intent.collection.total +
+        " timestamped soundbytes. Here are the first " +
         (intent.collection.displayed || ranked.length) +
-        " in explicit curated order; this order is not being presented as a Mike/J vote.";
+        " in the archive's hand-picked order.";
     }
     if (intent.queryPlan && intent.queryPlan.outputShape === "character-roster" &&
       intent.collection) {
-      return "The grounded recurring-character roster contains " + intent.collection.total +
-        " profiles: " + ranked.map(function (result) {
+      return intent.collection.total + " recurring characters are mapped right now: " +
+        ranked.map(function (result) {
           var profile = result.rosterProfile || {};
           return (profile.name || result.character || result.title) + " (" +
-            Number(profile.curatedPerformanceCandidates || 0) +
-            " curated performance candidates)";
+            Number(profile.curatedPerformanceCandidates || 0) + " playable clips)";
         }).join("; ") +
-        ". Locked candidates are excluded, every playable clip remains speaker-undiarized, and none carries an authenticated editor-verification decision.";
+        ". Every clip opens the official WWAM upload at the saved timestamp; the page does not guess which host is speaking.";
     }
     if (intent.queryPlan && intent.queryPlan.outputShape === "character-profile" &&
       intent.characterProfile) {
       var behaviorLabels = (intent.characterProfile.behaviorPatterns || [])
         .slice(0, 4).map(function (pattern) { return pattern.label; });
-      return "Grounded Character Lore profile for " + intent.characterProfile.name + ": " +
+      return "Here is the " + intent.characterProfile.name + " pattern: " +
         intent.characterProfile.profile +
         (behaviorLabels.length ? " Recurring moves: " + behaviorLabels.join("; ") + "." : "") +
-        " This derived profile resolves to " +
+        " There are " +
         Number(intent.characterProfile.metrics && intent.characterProfile.metrics.curatedPerformanceCandidates ||
           (intent.characterProfile.soundbytes || []).length) +
-        " timestamped human-curated performance candidates; it is not a fabricated quote, an authenticated editor-verification decision, or a clip-level speaker claim.";
+        " playable WWAM clips below. The generated character reply is a fan riff; the clips are the real source.";
     }
     if (intent.queryPlan && intent.queryPlan.outputShape === "character-soundbyte-count" &&
       intent.collection && intent.characterProfile) {
-      return "The current Character Lore set contains " + intent.collection.total +
-        " timestamped human-curated " + intent.characterProfile.name +
-        " performance candidates. None is being presented as an authenticated editor-verification decision. This is not " +
+      return "There are " + intent.collection.total + " playable " +
+        intent.characterProfile.name + " clips in the current archive. These are human-picked timestamps from official WWAM uploads; the page does not guess which host is speaking. A separate caption search finds " +
         Number(intent.characterProfile.metrics && intent.characterProfile.metrics.archiveMentions || 0) +
-        " broad caption mentions or " +
+        " mentions across " +
         Number(intent.characterProfile.metrics && intent.characterProfile.metrics.sourcesWithMentions || 0) +
-        " sources with mentions.";
+        " shows.";
     }
     if (intent.queryPlan && intent.queryPlan.outputShape === "character-mention-count" &&
       intent.collection && intent.characterProfile) {
-      return "The broad caption index contains " + intent.collection.total + " " +
-        intent.characterProfile.name + " mention matches across " +
-        Number(intent.collection.sourceTotal || 0) +
-        " sources. Mention matches include ordinary discussion and are not a count of curated performance candidates.";
+      return intent.characterProfile.name + " turns up " + intent.collection.total +
+        " times in captions across " + Number(intent.collection.sourceTotal || 0) +
+        " shows. That total mixes casual discussion, jokes and possible impressions; use the playable character clips when you want the actual bit.";
     }
     if (intent.topicOverviewRequest && intent.selectedSource) {
       var overviewLabel = intent.temporal === "earliest" ?
@@ -4312,20 +4310,20 @@
           "result speakers remain not diarized",
         ] : results.length ? (intent.name === "trajectory" ? [
           "receipt retrieval confidence; change claim not established",
-          entity ? "recognized archive entity" : "archive text match",
+          entity ? "exact subject match" : "matching tape language",
           results[0].evidenceLevel.toLowerCase(),
         ] : intent.name === "opinion" ? [
           "receipt retrieval confidence; settled opinion not established",
-          entity ? "recognized archive entity" : "archive text match",
+          entity ? "exact subject match" : "matching tape language",
           results[0].evidenceLevel.toLowerCase(),
         ] : intent.name === "negative" || intent.name === "positive" ? [
           "target-proximate evaluative receipt",
-          entity ? "recognized archive entity" : "archive text match",
+          entity ? "exact subject match" : "matching tape language",
           results[0].evidenceLevel.toLowerCase(),
         ] : [
-          entity ? "recognized archive entity" : "archive text match",
+          entity ? "exact subject match" : "matching tape language",
           results[0].evidenceLevel.toLowerCase(),
-          intent.metric !== "relevance" ? "explicit selector: " + intent.metric : "relevance ranking",
+          intent.metric !== "relevance" ? "ranked by " + intent.metric : "best source matches",
         ]) : ["no matching indexed receipt"],
         status: status,
         answer: answer,

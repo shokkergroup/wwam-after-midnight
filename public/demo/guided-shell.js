@@ -6,18 +6,18 @@
     yearCanonSpotlight: "shows", "time-capsules": "shows", franchises: "watchalongs", autopsies: "watchalongs",
     "halloween-universe": "watchalongs", "comedy-vault": "watchalongs",
     characters: "characters", lore: "characters", loreDossier: "characters", ask: "ask", red100: "highlights",
-    upinya: "highlights", "night-shift": "highlights", trivia: "highlights", memory: "studio",
+    upinya: "highlights", "steves-asshole": "highlights", "night-shift": "highlights", trivia: "highlights", memory: "studio",
     "verdict-room": "studio", "fresh-intake": "studio", labs: "studio", control: "studio",
     "clip-lab": "studio", "cut-test": "studio", canon: "studio", pitch: "studio"
   };
 
   var groupSelectors = {
-    home: [".hero", "#proof", ".scope-strip", ".guided-home"],
+    home: [".hero", ".wwam-pick-your-poison", "#proof", ".scope-strip", ".guided-home"],
     shows: ["#companion", "#livewire", "#popular25", "#archive", "#yearCanonSpotlight", ".archive-browser", "#time-capsules"],
     watchalongs: ["#halloween-universe", "#comedy-vault", "#franchises", "#autopsies"],
     characters: ["#characters", ".character-terminal", "#lore", "#loreDossier"],
     ask: ["#ask"],
-    highlights: ["#red100", "#upinya", "#night-shift", "#trivia"],
+    highlights: ["#red100", "#upinya", "#steves-asshole", "#night-shift", "#trivia"],
     studio: ["#fresh-intake", ".intake-output", "#memory", "#verdict-room", "#labs", "#control", "#clip-lab", "#cut-test", "#canon", ".method", "#pitch"]
   };
 
@@ -44,13 +44,13 @@
         '<a class="guided-door guided-door-movie" href="?source=28PfRNKoSCA&section=wiki#archive"><span>02 // WATCHALONG</span><h3>HALLOWEEN 4, DEEPER</h3><p>WWAM commentary plus the film ledger: budget, box office, production context, public-domain art and cited receipts.</p><b>OPEN THE MOVIE PAGE →</b></a>' +
         '<a class="guided-door guided-door-lore" href="#characters" data-journey-link="characters"><span>03 // RUNNING BITS</span><h3>FOLLOW THE CHARACTERS</h3><p>Dr. Loomis, Dr. Challis, Slenderman and Corey Feldman—performances, source clips and evidence-bounded character answers.</p><b>ENTER THE LORE →</b></a>' +
       '</div>' +
-      '<div class="guided-shelf-head"><div><span class="guided-section-label">LIVE WIRE // LAST FIVE</span><h2>THE NEW STUFF, ALREADY MAPPED.</h2></div><a href="#archive" data-journey-link="shows">SEE EVERY SHOW →</a></div>' +
+      '<div class="guided-shelf-head"><div><span class="guided-section-label">LIVE WIRE // LAST FIVE</span><h2>THE LATEST FIVE.</h2></div><a href="#archive" data-journey-link="shows">SEE EVERY SHOW →</a></div>' +
       '<div class="guided-latest-grid">' +
-        recentCard("LV2rmwEA0w4", "JUL 23, 2026", "MOVIE NEWS + MORE", "Batman, Marvel and Hellraiser lead the map. Four sourced context doors connect the show to the exact trailers and games under discussion.", "AVENGERS • CLAYFACE • SPIDER-MAN • HELLRAISER", "4 CONTEXT DOORS") +
-        recentCard("iz0WFhe6LYM", "JUL 16, 2026", "MOVIE NEWS + MORE", "The Batman Part II, A Nightmare on Elm Street, Crystal Lake and Halloween get a source-linked companion trail.", "BATMAN • ANOES • CRYSTAL LAKE • HALLOWEEN", "5 CONTEXT DOORS") +
-        recentCard("ag3axSC9BpU", "JUL 9, 2026", "MOVIE NEWS + MORE", "Legend of the White Dragon, Soulm8te, Dune and Evil Dead become playable topic chapters instead of a three-hour wall.", "DUNE • SOULM8TE • EVIL DEAD • HALLOWEEN", "5 CONTEXT DOORS") +
-        recentCard("x6tvsGRHgU0", "JUN 30, 2026", "HORROR BOX OFFICE TIER LIST", "A playable registered source with a visible trust gap: YouTube exposes no usable English captions, so the archive refuses to invent the discussion.", "CAPTION-LIMITED SOURCE", "NO FAKE SUMMARY") +
-        recentCard("7PzSj-oIRjA", "JUN 25, 2026", "MOVIE NEWS + MORE", "Spider-Man, Halloween, Evil Dead and Batman are split into sourced doors, with rumor status shown before the reader clicks.", "SPIDER-MAN • HALLOWEEN • BATMAN", "5 CONTEXT DOORS") +
+        recentCard("LV2rmwEA0w4", "JUL 23, 2026", "MOVIE NEWS + MORE", "Batman, Marvel and Hellraiser lead the night. Jump straight to four of the biggest conversations.", "AVENGERS • CLAYFACE • SPIDER-MAN • HELLRAISER", "4 TOPICS") +
+        recentCard("iz0WFhe6LYM", "JUL 16, 2026", "MOVIE NEWS + MORE", "The Batman Part II, A Nightmare on Elm Street, Crystal Lake and Halloween. Pick a topic and skip the dead air.", "BATMAN • ANOES • CRYSTAL LAKE • HALLOWEEN", "5 TOPICS") +
+        recentCard("ag3axSC9BpU", "JUL 9, 2026", "MOVIE NEWS + MORE", "Legend of the White Dragon, Soulm8te, Dune and Evil Dead. Search the night or jump straight to a topic.", "DUNE • SOULM8TE • EVIL DEAD • HALLOWEEN", "5 TOPICS") +
+        recentCard("x6tvsGRHgU0", "JUN 30, 2026", "HORROR BOX OFFICE TIER LIST", "YouTube did not provide usable English captions for this one, so it stays watch-only for now.", "CAPTION-LIMITED SOURCE", "WATCH-ONLY") +
+        recentCard("7PzSj-oIRjA", "JUN 25, 2026", "MOVIE NEWS + MORE", "Spider-Man, Halloween, Evil Dead and Batman. Every topic opens at the part you actually came for.", "SPIDER-MAN • HALLOWEEN • BATMAN", "5 TOPICS") +
       '</div>' +
       '<div class="guided-shelf-head guided-franchise-head"><div><span class="guided-section-label">THE WATCHALONG VAULT // 39 SHOW WIKIS</span><h2>PICK YOUR NIGHTMARE.</h2></div><a href="#franchises" data-journey-link="watchalongs">OPEN THE FULL VAULT →</a></div>' +
       '<div class="guided-franchise-grid">' +
@@ -59,8 +59,49 @@
         '<a href="?source=2G8lpFaeIdw&section=wiki#archive" style="--franchise-img:url(https://i.ytimg.com/vi/2G8lpFaeIdw/maxresdefault.jpg)"><span>6 COMMENTARIES</span><h3>SCREAM</h3><b>PICK UP THE PHONE →</b></a>' +
         '<a href="?source=7qgebnDYVi4&section=wiki#archive" style="--franchise-img:url(https://i.ytimg.com/vi/7qgebnDYVi4/maxresdefault.jpg)"><span>8 COMMENTARIES</span><h3>ELM STREET</h3><b>DON’T FALL ASLEEP →</b></a>' +
       '</div>';
-    var hero = document.querySelector("main > .hero");
-    if (hero) hero.insertAdjacentElement("afterend", host);
+    var lead = document.querySelector("main > .wwam-pick-your-poison") || document.querySelector("main > .hero");
+    if (lead) lead.insertAdjacentElement("afterend", host);
+  }
+
+  function arrangeFanFirstControls() {
+    var askCopy = document.querySelector("#ask .ask-copy");
+    var askForm = document.getElementById("askForm");
+    var examples = document.getElementById("askExamples");
+    if (askCopy && askForm && examples && askForm.parentElement !== askCopy) {
+      askCopy.insertBefore(askForm, examples);
+    }
+    var askInput = document.getElementById("askInput");
+    if (askInput) askInput.placeholder = "Which show, movie, bit, or character are you looking for?";
+    var emptyAsk = document.querySelector("#askResults .empty-state");
+    if (emptyAsk) emptyAsk.textContent = "Try \"What did they think of Halloween Ends?\", \"How many shows mention Batman?\", or \"Show me the funniest Loomis bit.\" If the archive cannot prove it, it will say so.";
+    var terminal = document.querySelector("#characters .character-terminal");
+    var characterForm = document.getElementById("characterForm");
+    var portrait = document.getElementById("characterPortrait");
+    if (terminal && characterForm && portrait && characterForm.previousElementSibling === portrait) {
+      terminal.insertBefore(characterForm, portrait);
+  }
+  }
+
+
+  function tuckEditorTools() {
+    var askSection = document.getElementById("ask");
+    if (!askSection) return;
+    function tuck() {
+      var review = askSection.querySelector(".ask-review");
+      if (!review || review.closest(".ask-review-disclosure")) return;
+      var disclosure = document.createElement("details");
+      disclosure.className = "ask-review-disclosure";
+      var summary = document.createElement("summary");
+      summary.textContent = "HELP IMPROVE THIS ANSWER";
+      review.parentNode.insertBefore(disclosure, review);
+      disclosure.appendChild(summary);
+      disclosure.appendChild(review);
+    }
+    tuck();
+    if (!askSection.__wwamEditorObserver && typeof MutationObserver === "function") {
+      askSection.__wwamEditorObserver = new MutationObserver(tuck);
+      askSection.__wwamEditorObserver.observe(askSection, { childList: true, subtree: true });
+    }
   }
 
   function assignGroups() {
@@ -112,6 +153,7 @@
     panel.setAttribute("aria-hidden", "true");
     panel.setAttribute("inert", "");
     panel.classList.remove("is-open");
+    document.body.classList.remove("wwam-directory-open");
   }
 
   var guidedMikeIndex = 0;
@@ -188,6 +230,10 @@
       panel.setAttribute("aria-hidden", String(!open));
       if (open) panel.removeAttribute("inert"); else panel.setAttribute("inert", "");
       panel.classList.toggle("is-open", open);
+      document.body.classList.toggle("wwam-directory-open", open);
+      if (open) window.setTimeout(function () {
+        var first = panel.querySelector("a,button"); if (first) first.focus();
+      }, 0);
     });
     document.addEventListener("click", function (event) {
       var mikeLauncher = event.target.closest("#mikeButton,#footerPitch,#pitchTourButton");
@@ -211,6 +257,9 @@
         closeMore();
       } else if (panel && panel.classList.contains("is-open") && !event.target.closest("#guidedMorePanel") && !event.target.closest("#guidedMoreButton")) closeMore();
     });
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && panel && panel.classList.contains("is-open")) { closeMore(); if (button) button.focus(); }
+    });
     window.addEventListener("hashchange", function () {
       var target = (location.hash || "#top").slice(1);
       setJourney(journeyFromLocation(), target);
@@ -220,6 +269,8 @@
   function boot() {
     buildGuidedHome();
     assignGroups();
+    arrangeFanFirstControls();
+    tuckEditorTools();
     wireNavigation();
     setJourney(journeyFromLocation(), null);
   }

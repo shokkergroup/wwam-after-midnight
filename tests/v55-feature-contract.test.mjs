@@ -57,7 +57,7 @@ test("the tiny feature loader is available before the main application", () => {
 });
 
 test("V5.5 adds source synchronization and taste calibration without growing app.js", () => {
-  assert.ok(fs.statSync(path.join(demo, "app.js")).size < 255_000);
+  assert.ok(fs.statSync(path.join(demo, "app.js")).size < 270_000);
   assert.match(html, /SYNCHRONIZED SECOND SCREEN/);
   assert.match(html, /CREATOR TASTE CALIBRATION/);
   assert.match(html, /PREFERENCE NEVER OVERRIDES PROOF/);

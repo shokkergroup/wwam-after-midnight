@@ -206,7 +206,7 @@ test("source nouns also disambiguate character source counts from raw mention co
   assert.equal(mentions.queryPlan.outputShape, "character-mention-count");
   assert.equal(mentions.collection.unit, "caption mention matches");
   assert.ok(mentions.collection.total > streams.collection.total);
-  assert.match(mentions.answer, /mention matches across/i);
+  assert.match(mentions.answer, /times in captions across/i);
 });
 
 test("last-night result limits lock to one exact livestream and never backfill", () => {

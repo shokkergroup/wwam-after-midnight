@@ -450,13 +450,13 @@
           Promise.resolve(createCreatorEngines()).catch(function () { return null; }) :
           null;
       })
-      .then(function () { return loader.loadStyle("source-dossier.css?v=1.7.0"); })
+      .then(function () { return loader.loadStyle("source-dossier.css?v=1.7.1-human4"); })
       .then(function () {
         return ["channel-pack-contract.js", "wwam-channel-pack-adapter.js",
-          "source-dossier-engine.js?v=1.5.0", "wwam-source-dossier-adapter.js?v=1.7.0",
+          "source-dossier-engine.js?v=1.5.0", "wwam-source-dossier-adapter.js?v=1.7.1-fan",
           "source-query-engine.js?v=1.2.1",
           "aftermath-pack-engine.js?v=1.0.0",
-          "source-dossier-ui.js?v=1.7.0"].reduce(function (promise, source) {
+          "source-dossier-ui.js?v=1.7.1-human6"].reduce(function (promise, source) {
           return promise.then(function () { return loader.load(source); });
         }, Promise.resolve());
       })
@@ -1094,8 +1094,8 @@
     document.getElementById("evidenceBagCount").textContent = count;
     var bagOpen = document.getElementById("evidenceBagOpen");
     bagOpen.setAttribute("aria-expanded", state.bagOpen ? "true" : "false");
-    bagOpen.setAttribute("aria-label", "Open evidence bag; " + count +
-      " saved receipt" + (count === 1 ? "" : "s"));
+    bagOpen.setAttribute("aria-label", "Open saved clips; " + count +
+      " clip" + (count === 1 ? "" : "s"));
     bag.classList.toggle("show", state.bagOpen);
     bag.setAttribute("aria-hidden", state.bagOpen ? "false" : "true");
     if (state.bagOpen) bag.removeAttribute("inert");
@@ -1115,7 +1115,7 @@
         (isCaptionReceipt ? '“' + esc(evidenceCopy) + '”' : esc(evidenceCopy)) +
         '</p><footer><button data-bag-play="' + esc(bagKey(item)) + '">PLAY RECEIPT →</button><button data-bag-remove="' +
         esc(bagKey(item)) + '">REMOVE</button></footer></article>';
-    }).join("") : '<div class="evidence-bag-empty"><b>THE BAG IS EMPTY.</b><span>Bag receipts from Ask, Memory OS, Lore, or creator tools.</span></div>';
+    }).join("") : '<div class="evidence-bag-empty"><b>NO SAVED CLIPS YET.</b><span>Tap SAVE on a moment you want to keep.</span></div>';
     Array.prototype.forEach.call(document.querySelectorAll("[data-bag-play]"), function (button) {
       button.onclick = function () {
         var item = state.evidenceBag.filter(function (candidate) {
@@ -1752,26 +1752,25 @@
     var label = document.getElementById("characterReceiptLabel");
     label.textContent = total ?
       "SHOWING " + receipts.length + " OF " + total +
-        " TAPES // TIMESTAMP-VALIDATED CANDIDATES // CLIP SPEAKERS NOT DIARIZED" :
-      "NO TIMESTAMP-VALIDATED CHARACTER CANDIDATES";
+        " PLAYABLE CLIPS // CHECK THE ORIGINAL CONTEXT" :
+      "NO PLAYABLE CHARACTER CLIPS YET";
     document.getElementById("characterReceipts").innerHTML = receipts.length ? receipts.map(function (receipt) {
       var position = Number(receipt.libraryIndex) || allReceipts.indexOf(receipt) + 1;
       var matched = receipt.performanceReceiptId === state.characterMatchedReceipt;
       return '<article class="' + (matched ? "matched" : "") + '" data-character-receipt="' +
         esc(receipt.performanceReceiptId) + '"><div><span>TAPE ' + String(position).padStart(2, "0") +
-        ' OF ' + String(total).padStart(2, "0") + ' // PATTERN RECEIPT ' +
-        String(position).padStart(2, "0") + '</span><b>' + timestamp(receipt.t) + '</b></div>' +
+        ' OF ' + String(total).padStart(2, "0") + '</span><b>' + timestamp(receipt.t) + '</b></div>' +
         (matched ? '<em>MATCHED TO YOUR RIFF</em>' : '') +
         '<small>' + esc(receipt.date ? shortDate(receipt.date) : "DATE UNLISTED") + ' // ' +
         esc(displayUiText(receipt.title)) + '</small><h3>' + esc(displayUiText(receipt.label)) +
         '</h3><p>“' + esc(displayQuote(receipt.quote)) + '</p><footer><span>' +
-        'TIMESTAMP-VALIDATED HUMAN-CURATED CANDIDATE // SPEAKER NOT DIARIZED' +
+        'OFFICIAL WWAM UPLOAD // AUTO-CAPTIONS CAN MISHEAR' +
         '</span><button data-character-source="' + esc(receipt.source) + '" data-id="' + esc(receipt.id) +
         '" data-time="' + receipt.t + '" data-end="' + receipt.end + '" data-label="' +
         esc(displayUiText(receipt.label)) + '">PLAY ' +
-        (receipt.clipSeconds ? receipt.clipSeconds + '-SEC' : 'THE') + ' SOURCE CLIP →</button>' +
-        bagButton(receipt, "BAG THE BIT") + '</footer></article>';
-    }).join("") : '<p class="character-empty">No public candidate yet; the archive will not counterfeit proof.</p>';
+        'SOURCE CLIP →</button>' +
+        bagButton(receipt, "SAVE CLIP") + '</footer></article>';
+    }).join("") : '<p class="character-empty">No playable clip is available for this character yet.</p>';
     var rotate = document.getElementById("characterReceiptRotate");
     var more = document.getElementById("characterReceiptMore");
     rotate.hidden = total <= 1;
@@ -1783,7 +1782,7 @@
       renderCharacterReceiptShelf(profile);
     };
     more.hidden = total <= 3;
-    more.textContent = limit >= total ? "SHOW 3 TAPES" : "OPEN ALL " + total + " TAPES";
+    more.textContent = limit >= total ? "SHOW 3 CLIPS" : "SEE ALL " + total + " CLIPS";
     more.onclick = function () {
       state.characterReceiptLimit = limit >= total ? 3 : total;
       renderCharacterReceiptShelf(profile);
@@ -1798,10 +1797,10 @@
     var behaviors = (profile.behaviors || []).slice(0, 5);
     var triggers = (profile.triggers || []).slice(0, 4);
     document.getElementById("characterLine").textContent =
-      displayUiText(profile.name + " // RECURRING BIT MAPPED TO " + profile.performer);
+      displayUiText(profile.name + " // " + profile.performer + "’S RECURRING CHARACTER");
     document.getElementById("characterPortrait").innerHTML =
       '<div><span>RECURRING BIT PROFILE</span><b>' + esc(displayUiText(profile.name)) + '</b><i>' +
-      esc(displayUiText(profile.performer + " // RECURRING-BIT MAPPING; CLIP SPEAKERS NOT DIARIZED")) +
+      esc(displayUiText(profile.performer + " // RECURRING WWAM CHARACTER")) +
       '</i></div><p>' + esc(displayUiText(profile.description)) + '</p><ul>' +
       behaviors.map(function (behavior) {
         return '<li>' + esc(displayUiText(typeof behavior === "string" ?
@@ -1862,25 +1861,25 @@
     state.characterMatchedReceipt = matchedReceiptId;
     if (response) renderCharacterReceiptShelf(profile, matchedReceiptId);
     document.getElementById("characterAnswer").innerHTML =
-      '<div><span>FAN-MADE GENERATED RIFF' +
+      '<div><span>FAN-MADE CHARACTER RIFF' +
       (response ? ' // ' + esc(response.intent.toUpperCase()) : '') +
-      '</span><b>NOT AN ARCHIVAL QUOTE // NOT THE HOST SPEAKING</b></div>' +
+      '</span><b>THE REAL WWAM CLIPS ARE RIGHT BELOW</b></div>' +
       '<blockquote>“' + esc(displayGeneratedText(riff)) + '”</blockquote><footer><span>BEHAVIORAL INGREDIENTS</span><b>' +
       esc(displayUiText(behaviors.length ?
         behaviors.join(" + ").toUpperCase() : "RECURRING CHARACTER PATTERN")) +
-      '</b></footer>' + (response ? '<section class="character-grounding"><div><span>WHY THIS TAPE MATCHED</span><b>' +
+      '</b></footer>' + (response ? '<section class="character-grounding"><div><span>WHY THIS CLIP</span><b>' +
         esc(displayUiText(response.continuedFrom ? "FOLLOW-UP MEMORY KEPT THE SAME SUBJECT" :
           "SUBJECT // " + response.subject.toUpperCase())) + '</b><i>' +
-        response.readiness.confidence + '% RIFF-READINESS // ' +
+        response.readiness.confidence + '% CHARACTER MATCH // ' +
         response.readiness.timestampValidatedReceipts +
-        ' TAPES IN THE SHELF // INDIVIDUAL CLIP SPEAKERS NOT DIARIZED</i></div>' +
+        ' PLAYABLE CLIPS</i></div>' +
         '<div class="character-grounding-actions">' +
         (receipt ? '<button data-character-source="' + esc(receipt.source) +
         '" data-id="' + esc(receipt.id) + '" data-time="' + receipt.t + '" data-end="' + receipt.end +
         '" data-label="' + esc(displayUiText(receipt.label)) +
-        '">PLAY MATCHED SOURCE CANDIDATE CLIP →</button>' : '') +
-        '<button data-character-shelf-jump>OPEN ALL ' +
-        response.readiness.timestampValidatedReceipts + ' TAPES →</button></div></section>' : '');
+        '">PLAY THE MATCHED CLIP →</button>' : '') +
+        '<button data-character-shelf-jump>SEE ALL ' +
+        response.readiness.timestampValidatedReceipts + ' CLIPS →</button></div></section>' : '');
     bindCharacterReceipts();
   }
 
@@ -2369,7 +2368,7 @@
   }
 
   function renderAskExamples() {
-    var examples = (askEngine.examples || curated.askExamples || []).slice(0, 8);
+    var examples = (askEngine.examples || curated.askExamples || []).slice(0, 3);
     document.getElementById("askExamples").innerHTML = examples.map(function (example) {
       return '<button>' + esc(example) + '</button>';
     }).join("");
@@ -2387,11 +2386,14 @@
   function askCollectionStatus(analysis) {
     var c = analysis.collection;
     if (!c || c.total == null) return "";
-    var unit = String(c.unit || "RESULTS").toUpperCase();
+    var rawUnit = String(c.unit || "RESULTS").toUpperCase();
+    var unit = /PERFORMANCE/.test(rawUnit) ? "PLAYABLE CLIPS" :
+      /MENTION/.test(rawUnit) ? "CAPTION MENTIONS" :
+      /(LIVESTREAM|STREAM|UPLOAD|SOURCE RECORD)/.test(rawUnit) ? "SHOWS" : rawUnit;
     var text = c.total + " " + unit;
-    if (c.sourceTotal != null) text += " // " + c.sourceTotal + " SOURCES";
-    if (c.displayed < c.total) text += " // " + c.displayed + " SHOWN";
-    return text + " // " + analysis.confidence + "% CONFIDENCE";
+    if (c.sourceTotal != null && !/SHOWS/.test(unit)) text += " ACROSS " + c.sourceTotal + " SHOWS";
+    if (c.displayed < c.total) text += " // TOP " + c.displayed + " BELOW";
+    return text;
   }
 
   function askShareUrl(query) {
@@ -2478,15 +2480,13 @@
     state.longitudinalSubject = analysis.longitudinalHandoff &&
       analysis.longitudinalHandoff.subjectId || "";
     if (archiveFallback) {
-      statusNode.textContent =
-        "TITLE-METADATA DISCOVERY // REQUESTED ORDER APPLIED // NO CONTENT CLAIM";
+      statusNode.textContent = "SHOWS FOUND // TITLE SEARCH ONLY";
       resultsNode.innerHTML =
-        '<section class="answer-brief"><div><span>INTENT // SOURCE DISCOVERY</span>' +
-        '<b>ENTITY // CACHED STREAMS FEED</b><i>TITLE METADATA ONLY</i>' +
-        '<button class="ask-share" type="button" data-copy-ask>COPY ANSWER LINK</button></div>' +
-        '<h3>Showing cached upload records in the order you requested—not guessing what happened inside them.</h3>' +
-        '<div class="confidence-track"><i style="width:100%"></i></div></section>' +
-        archiveFallback;
+        '<section class="answer-brief"><div><span>THE SHORT ANSWER</span>' +
+        '<b>SHOW SEARCH</b><i>TITLE + DATE MATCHES</i>' +
+        '<button class="ask-share" type="button" data-copy-ask>COPY LINK</button></div>' +
+        '<h3>Here are the matching uploads in the order you asked for. Open one to see what happened inside.</h3>' +
+        '</section>' + archiveFallback;
       var archiveShare = document.querySelector("#askResults [data-copy-ask]");
       if (archiveShare) {
         archiveShare.onclick = function () {
@@ -2498,21 +2498,20 @@
     var collectionStatus = askCollectionStatus(analysis);
     var isAnyHandoff = /handoff$/.test(analysis.status);
     statusNode.textContent =
-      analysis.status === "adjudication-handoff" ? "HUMAN REVIEW // VERDICT ROOM" :
-      analysis.status === "longitudinal-handoff" ? "PREDICTION HANDOFF // TAPE KEEPS SCORE" :
-      analysis.status === "surface-handoff" ? "GLOBAL RANKING HANDOFF // SOURCE RANKING" :
-      analysis.status === "out-of-range" ?
-        "RED BAND 100 // RANK OUT OF RANGE // NO SILENT CLAMPING" :
-        analysis.status === "machine-ranked" && results.length ?
-        "MEMORABILITY CANDIDATE INDEX V2.1 // EXACT RANK KEY // MACHINE-RANKED, NOT A CREATOR VOTE" :
+      analysis.status === "adjudication-handoff" ? "THIS ONE NEEDS A HUMAN CALL" :
+      analysis.status === "longitudinal-handoff" ? "OPENING THE PREDICTION TRACKER" :
+      analysis.status === "surface-handoff" ? "OPENING THE RANKED ARCHIVE" :
+      analysis.status === "out-of-range" ? "PICK A NUMBER FROM 1 TO 100" :
+      analysis.status === "machine-ranked" && results.length ?
+        "MEMORABILITY LIST // MACHINE-SURFACED" :
         collectionStatus ? collectionStatus :
         results.length ?
-          results.length + (results.length === 1 ? " RECEIPT" : " RECEIPTS") + " // " + analysis.confidence +
-          (analysis.status === "archive-boundary" ? "% RETRIEVAL // CLAIM NOT ESTABLISHED" : "% CONFIDENCE") :
-          "NO DEFENSIBLE RECEIPT";
-    var boundary = '<section class="ask-boundary ' + esc(analysis.status || "unknown") +
-      '"><header><span>ANSWER STATUS // ' + esc(String(analysis.status || "UNKNOWN").toUpperCase()) +
-      '</span><b>' + esc(String(analysis.questionType || analysis.intent || "QUERY").toUpperCase()) +
+          results.length + (results.length === 1 ? " PLAYABLE MATCH" : " PLAYABLE MATCHES") :
+          "NO SOURCE MATCH YET";
+    var boundary = '<details class="ask-method"><summary>HOW THIS ANSWER WAS CHECKED</summary>' +
+      '<section class="ask-boundary ' + esc(analysis.status || "unknown") +
+      '"><header><span>ARCHIVE CHECK</span><b>' +
+      esc(String(analysis.questionType || analysis.intent || "QUERY").toUpperCase()) +
       ' // ' + esc(String(analysis.metric || "RELEVANCE").toUpperCase()) + '</b></header><div class="ask-basis">' +
       (analysis.confidenceBasis || []).map(function (basis) {
         return '<span>' + esc(displayUiText(basis)) + '</span>';
@@ -2523,7 +2522,7 @@
         '</ul>' : "") + (analysis.recommendedSurface ?
         '<a href="' + esc(analysis.recommendedSurface.href === "#canon-desk" ? "#canon" : analysis.recommendedSurface.href) +
         '"><b>' + esc(displayUiText(analysis.recommendedSurface.label)) + ' →</b><span>' +
-        esc(displayUiText(analysis.recommendedSurface.reason)) + '</span></a>' : "") + '</section>';
+        esc(displayUiText(analysis.recommendedSurface.reason)) + '</span></a>' : "") + '</section></details>';
     var noMatchHeadline = isAnyHandoff ? analysis.recommendedSurface.label :
       analysis.status === "out-of-range" ? "THAT RANK DOES NOT EXIST." :
         "THE ARCHIVE REFUSED TO MAKE SOMETHING UP.";
@@ -2531,19 +2530,19 @@
       "Choose #001 through #100; the engine will not swap your request for a different rank." :
       "No confident match in the current source scope.";
     resultsNode.innerHTML =
-      '<section class="answer-brief"><div><span>INTENT // ' + esc(analysis.intent.toUpperCase()) + '</span><b>' +
-      (analysis.entity ? 'ENTITY // ' + esc(displayUiText(analysis.entity.toUpperCase())) : 'ENTITY // OPEN') + '</b><i>' +
-      esc((analysis.source === "all" ? "ALL SOURCES" : analysis.source).toUpperCase()) +
-      (analysis.continuedFrom ? ' // FOLLOW-UP MEMORY' : '') +
-      '</i><button class="ask-share" type="button" data-copy-ask>COPY ANSWER LINK</button></div>' +
+      '<section class="answer-brief"><div><span>THE SHORT ANSWER</span><b>' +
+      (analysis.entity ? esc(displayUiText(analysis.entity.toUpperCase())) : 'WWAM ARCHIVE') + '</b><i>' +
+      (collectionStatus || (results.length ? results.length +
+        (results.length === 1 ? ' PLAYABLE MATCH' : ' PLAYABLE MATCHES') : 'SOURCE-CHECKED ANSWER')) +
+      (analysis.continuedFrom ? ' // FOLLOW-UP' : '') +
+      '</i><button class="ask-share" type="button" data-copy-ask>COPY LINK</button></div>' +
       '<div class="derived-answer-copy">' + esc(displayUiText(analysis.answer)) +
-      '</div><div class="confidence-track"><i style="width:' + analysis.confidence +
-      '%"></i></div></section>' + boundary +
+      '</div></section>' + boundary +
       (results.length ? results.map(function (result, index) {
         var role = result.curatedRank == null ?
-          roleByKey[result.key] || (index === 0 ? "DIRECT HIT" : result.label) :
+          (index === 0 ? "BEST MATCH" : "MORE FROM THE ARCHIVE") :
           "WWAM UP IN YA // #" + String(result.curatedRank).padStart(2, "0") + " // " +
-            (result.curatedLabel || "CURATED SOUNDBYTE");
+            (result.curatedLabel || "SOUNDBYTE");
         var excerpt = askExcerpt(result);
         var isCaptionReceipt = String(result.evidenceType || "").indexOf("caption") >= 0 ||
           result.evidenceLevel === "TIMESTAMPED CAPTION RECEIPT" ||
@@ -2551,38 +2550,46 @@
         var excerptMarkup = isCaptionReceipt ?
           "“" + esc(displayQuote(excerpt)) + "”" :
           '<b class="derived-answer-copy">' + esc(displayQuote(excerpt)) + '</b>';
+        var momentLabel = result.kind === "character-performance" ? "PLAYABLE CHARACTER CLIP" :
+          result.kind === "livestream" ? "PLAYABLE SHOW MOMENT" : "PLAYABLE SOURCE MOMENT";
         return '<article class="' + (index === 0 ? "best" : "") + '"><div><span>' +
-          esc(displayUiText(role)) + '</span><b>' +
-          esc(displayUiText((result.laneLabel ||
-            (result.lane === "popular" ? "POPULAR 25" : result.source)).toUpperCase())) +
+          esc(displayUiText(role)) + '</span><b>' + esc(displayUiText(momentLabel)) +
           '</b></div><h3>' + esc(displayUiText(result.title)) + '</h3><p><span>' +
-          esc(displayUiText(result.evidenceLevel || "TIMESTAMPED SOURCE RECEIPT")) + '</span>' +
-          excerptMarkup + '</p><div class="why-row"><span>WHY THIS RANKED</span><b>' +
+          timestamp(result.at || 0) + '</span>' +
+          excerptMarkup + '</p><details class="why-details"><summary>WHY THIS MATCH?</summary>' +
+          '<div class="why-row"><span>MATCH SIGNALS</span><b>' +
           esc(displayUiText(result.reasons.length ?
             result.reasons.join(" + ").toUpperCase() : "TEXTUAL EVIDENCE")) +
           '</b></div>' + ((result.evidenceWarnings || []).length ? '<ul class="result-warnings">' +
             result.evidenceWarnings.slice(0, 3).map(function (warning) {
               return '<li>' + esc(displayUiText(warning)) + '</li>';
-            }).join("") + '</ul>' : "") + (result.trajectoryEvidence ?
+            }).join("") + '</ul>' : "") + '</details>' + (result.trajectoryEvidence ?
             '<div class="trajectory-signal"><span>MACHINE-SURFACED TAKE SIGNAL</span><b>' +
             esc(displayUiText((result.trajectoryEvidence.evaluativeTerms || []).join(" + ").toUpperCase())) +
             ' // TARGET: ' +
             esc(displayUiText((result.trajectoryEvidence.targetTerms || []).join(" + ").toUpperCase())) +
           '</b><i>NOT A HOST-LEVEL OPINION CLAIM</i></div>' : "") +
-          '<footer><span>' + esc(displayUiText(result.category)) + ' // ' +
-          timestamp(result.at || 0) + ' // ' + (result.kind === "character-performance" ?
-            "TIMESTAMP-VALIDATED CURATED PERFORMANCE CANDIDATE // SPEAKER NOT DIARIZED" :
-            (result.speakerCertification === true && result.speaker ?
-              "SPEAKER VERIFIED" : "SPEAKER NOT DIARIZED")) +
+          '<footer><span>' + timestamp(result.at || 0) + ' // ' +
+          (index === 0 ? 'START HERE' : 'MORE FROM THIS ANSWER') +
           '</span><button data-ask-source="' + esc(result.source) + '" data-id="' + esc(result.sourceId) +
-          '" data-time="' + Number(result.at || 0) + '">SHOW ME →</button>' +
-          bagButton(Object.assign({}, result, { excerpt: excerpt }), "BAG IT") +
+          '" data-time="' + Number(result.at || 0) + '">PLAY THIS PART &rarr;</button>' +
+          bagButton(Object.assign({}, result, { excerpt: excerpt }), "SAVE CLIP") +
           '</footer></article>';
       }).join("") : '<div class="ask-no-match"><b>' + noMatchHeadline + '</b><p>' + noMatchBody + '</p>' +
         (isAnyHandoff ? [] : analysis.suggestions || []).map(function (suggestion) {
           return '<button data-ask-suggestion="' + esc(suggestion) + '">' +
             esc(displayUiText(suggestion)) + '</button>';
         }).join("") + '</div>');
+    var askCards = Array.prototype.slice.call(document.querySelectorAll("#askResults > article"));
+    if (askCards.length > 3) {
+      var askMore = document.createElement("details");
+      askMore.className = "ask-more-results";
+      var askMoreSummary = document.createElement("summary");
+      askMoreSummary.textContent = "SEE " + (askCards.length - 3) + " MORE PLAYABLE MATCHES";
+      askMore.appendChild(askMoreSummary);
+      askCards[3].parentNode.insertBefore(askMore, askCards[3]);
+      askCards.slice(3).forEach(function (card) { askMore.appendChild(card); });
+    }
     Array.prototype.forEach.call(document.querySelectorAll("#askResults [data-ask-source]"), function (button) {
       button.onclick = function () {
         if (button.getAttribute("data-ask-source") === "livestream") {
@@ -4856,7 +4863,7 @@
   function syncBackgroundInert() {
     var blocked = Boolean(activeDialog());
     Array.prototype.forEach.call(document.querySelectorAll(
-      "body > nav, body > main, body > footer, #evidenceBagOpen"
+      "body > nav, body > header, body > main, body > footer, #evidenceBagOpen"
     ), function (element) {
       if (blocked) element.setAttribute("inert", "");
       else element.removeAttribute("inert");

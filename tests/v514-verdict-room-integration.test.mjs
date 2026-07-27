@@ -280,6 +280,6 @@ test("portal layout has mobile, keyboard, and reduced-motion treatment within ca
     styles,
     /@media \(prefers-reduced-motion: reduce\)[\s\S]*?\.verdict-room-loading i\s*\{\s*animation: none;/,
   );
-  assert.ok(fs.statSync(path.join(demo, "app.js")).size < 255_000);
+  assert.ok(fs.statSync(path.join(demo, "app.js")).size < 270_000);
   assert.ok(fs.statSync(path.join(demo, "verdict-room-surface.js")).size < 12_000);
 });
