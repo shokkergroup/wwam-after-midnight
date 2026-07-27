@@ -226,7 +226,7 @@ test("Tape Companion lazy-loads as one coherent synchronized surface", () => {
   ]) {
     assert.match(html, new RegExp(`id="${id}"`));
   }
-  assert.match(html, /href="#companion"[^>]*data-journey-link="shows"><b>Tape Companion<\/b>/);
+  assert.match(html, /href="#companion"[^>]*data-journey-link="shows"><b>WATCH WITH A GUIDE<\/b>/);
   assert.match(html, /SEARCH THE SHOWS/);
 });
 

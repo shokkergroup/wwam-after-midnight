@@ -39,6 +39,9 @@
       return true;
     } catch { return false; }
   }
+  function optionalElement(id) {
+    return document.getElementById(id);
+  }
 
   var state = {
     redBand: storageGet("wwam-band") !== "bleep", hotCategory: "ALL MOMENTS",
@@ -721,6 +724,9 @@
   }
 
   function createFanEngines() {
+    if (!window.WWAMLoreEngine) return loadDemoScript("lore-engine.js").then(createFanEngines);
+    if (!window.WWAMTapeTriviaEngine) return loadDemoScript("tape-trivia-engine.js").then(createFanEngines);
+    if (!window.WWAMNightShiftEngine) return loadDemoScript("night-shift-engine.js").then(createFanEngines);
     loreEngine = window.WWAMLoreEngine && window.WWAMLoreEngine.create ?
       attempt(function () { return window.WWAMLoreEngine.create({
         catalog: catalog,
@@ -887,6 +893,14 @@
   }
 
   function createCreatorEngines() {
+    if (!window.WWAMCreatorClipLab)
+      return loadDemoScript("creator-studio-engine.js").then(createCreatorEngines);
+    if (!window.WWAMColdOpenFactory)
+      return loadDemoScript("cold-open-engine.js").then(createCreatorEngines);
+    if (!window.WWAMCanonIntegrity)
+      return loadDemoScript("canon-integrity-engine.js").then(createCreatorEngines);
+    if (!window.WWAMHumanReviewSession)
+      return loadDemoScript("human-review-session-engine.js").then(createCreatorEngines);
     if (!window.WWAMTrustEngine) return loadDemoScript("correction-ripple-engine.js")
       .then(function () { return loadDemoScript("trust-engine.js"); }).then(createCreatorEngines);
     if (!window.WWAMCreatorPilotBuilder)
@@ -1117,6 +1131,7 @@
         esc(bagKey(item)) + '">REMOVE</button></footer></article>';
     }).join("") : '<div class="evidence-bag-empty"><b>NO SAVED CLIPS YET.</b><span>Tap SAVE on a moment you want to keep.</span></div>';
     Array.prototype.forEach.call(document.querySelectorAll("[data-bag-play]"), function (button) {
+      button.innerHTML = "PLAY CLIP &rarr;";
       button.onclick = function () {
         var item = state.evidenceBag.filter(function (candidate) {
           return bagKey(candidate) === button.getAttribute("data-bag-play");
@@ -1170,12 +1185,12 @@
         " // SPEAKER: " + clip.speakerStatus + " // EDITOR-AUTH: " +
         (clip.authenticatedEditorVerified ? "YES" : "NO") + " // " + clip.url;
     }));
-    copy(lines.join("\n"), "EVIDENCE MANIFEST COPIED");
+    copy(lines.join("\n"), "CLIP LIST COPIED");
   }
 
   function downloadEvidenceManifest() {
     downloadJson("wwam-evidence-bag.json", evidenceManifest());
-    showToast("EVIDENCE MANIFEST DOWNLOADED");
+    showToast("CLIP LIST SAVED");
   }
 
   function fmt(value) {
@@ -1324,6 +1339,15 @@
     });
   }
 
+  function openFranchiseAutopsies(franchise) {
+    state.lab = franchise;
+    setFranchise(franchise);
+    if (location.hash !== "#autopsies") {
+      history.pushState(null, "", location.pathname + location.search + "#autopsies");
+    }
+    window.dispatchEvent(new Event("hashchange"));
+  }
+
   function renderMarquee() {
     var items = deep.franchises.map(function (franchise) {
       return '<button data-franchise="' + esc(franchise.name) + '"><b>' + esc(franchise.killer) + '</b><span>' +
@@ -1333,8 +1357,7 @@
     document.getElementById("franchiseMarquee").innerHTML = items.concat(items).join("");
     Array.prototype.forEach.call(document.querySelectorAll("#franchiseMarquee button"), function (button) {
       button.onclick = function () {
-        setFranchise(button.getAttribute("data-franchise"));
-        document.getElementById("autopsies").scrollIntoView({ behavior: "smooth" });
+        openFranchiseAutopsies(button.getAttribute("data-franchise"));
       };
     });
   }
@@ -2208,11 +2231,7 @@
     }).join("");
     Array.prototype.forEach.call(document.querySelectorAll("#franchiseGrid [data-franchise]"), function (button) {
       button.onclick = function () {
-        var franchise = button.getAttribute("data-franchise");
-        state.lab = franchise;
-        setFranchise(franchise);
-        var shelf = document.getElementById("autopsies");
-        if (shelf) shelf.scrollIntoView({ behavior: "smooth", block: "start" });
+        openFranchiseAutopsies(button.getAttribute("data-franchise"));
       };
     });
   }
@@ -4799,7 +4818,7 @@
     var canResume = Number.isInteger(state.tourResumeSlide) &&
       state.tourResumeSlide >= 0 && state.tourResumeSlide < total;
     var step = canResume ? (state.tourResumeSlide + 1) + "/" + total : "";
-    var mikeButton = document.getElementById("mikeButton");
+    var mikeButton = optionalElement("mikeButton");
     var pitchButton = document.getElementById("pitchTourButton");
     var footerButton = document.getElementById("footerPitch");
     if (mikeButton) {
@@ -4835,6 +4854,7 @@
             action.kind === "night" ? "night-shift" :
               action.kind === "archive" ? "archive" : "trivia";
     history.replaceState(null, "", location.pathname + location.search + "#" + targetId);
+    window.dispatchEvent(new Event("hashchange"));
     if (action.kind === "ask") {
       document.getElementById("askInput").value = action.query;
       ask(action.query);
@@ -5045,7 +5065,7 @@
       });
     };
     document.getElementById("loadMore").onclick = function () { state.hotLimit += 12; renderHot100(); };
-    var rouletteButton = document.getElementById("rouletteButton");
+    var rouletteButton = optionalElement("rouletteButton");
     if (rouletteButton) rouletteButton.onclick = function () {
       var moment = redBandMoments[Math.floor(Math.random() * redBandMoments.length)];
       if (moment) openRedMoment(moment.sourceId || moment.tapeId, moment.t);
@@ -5161,7 +5181,7 @@
         else if (document.getElementById("tapeModal").classList.contains("show")) closeDossier();
       }
     });
-    [document.getElementById("mikeButton"), document.getElementById("pitchTourButton"), document.getElementById("footerPitch")].forEach(function (button) {
+    [optionalElement("mikeButton"), document.getElementById("pitchTourButton"), document.getElementById("footerPitch")].filter(Boolean).forEach(function (button) {
       button.onclick = openTour;
     });
     document.getElementById("latestDossierButton").onclick = function () {

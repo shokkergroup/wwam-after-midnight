@@ -44,6 +44,7 @@ test("requested Scary Movie, Harold and Kumar, and Waiting pages stay exact", ()
 
 test("default shelf reads like a movie-night guide instead of an audit dashboard", () => {
   const markup = ui.renderMarkup(payload, { filter: "all", query: "", openFilm: "" });
+  assert.match(markup, /class="cv-shelf-summary"/);
   assert.match(markup, /MOVIE NIGHT/);
   assert.match(markup, /4 MOVIES/);
   assert.match(markup, /6 WWAM VERSIONS/);
@@ -82,13 +83,15 @@ test("host and journey wiring lazy-load the fan-facing comedy shelf", () => {
   const css = read("comedy-vault.css");
   assert.match(html, /id="comedy-vault"/);
   assert.match(html, /id="comedyVaultMount"/);
-  assert.match(html, /comedy-vault\.css\?v=1\.1\.0/);
-  assert.match(html, /comedy-vault-data\.js\?v=1\.1\.0,comedy-vault-ui\.js\?v=1\.1\.0/);
-  assert.match(html, /href="#comedy-vault"[^>]+data-journey-link="watchalongs"/);
+  assert.match(html, /comedy-vault\.css\?v=1\.2\.2/);
+  assert.match(html, /comedy-vault-data\.js\?v=1\.1\.0,comedy-vault-ui\.js\?v=1\.2\.0/);
+  assert.match(guided, /\["#comedy-vault", "watchalongs", "COMEDY SHELF"/);
   assert.match(guided, /"comedy-vault": "watchalongs"/);
   assert.match(css, /\.cv-coming-strip/);
   assert.match(css, /\.cv-source-proof summary/);
   assert.match(css, /grid-template-columns: repeat\(2,minmax\(0,1fr\)\)/);
   assert.match(css, /@media \(max-width: 760px\)/);
   assert.match(css, /min-height: 46px/);
+  assert.doesNotMatch(css, /calc\(\(100vw - 1400px\)\/2\)/);
+  assert.match(css, /grid-template-columns: minmax\(210px,42%\) minmax\(0,1fr\)/);
 });

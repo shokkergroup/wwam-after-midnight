@@ -12,11 +12,23 @@ const app = read("public/demo/app.js");
 const guidedShell = read("public/demo/guided-shell.js");
 const styles = read("public/demo/styles.css");
 const editorial = read("public/demo/wwam-editorial-v2.css");
+const nightGuide = read("public/demo/wwam-night-guide.js");
+const nightGuideCss = read("public/demo/wwam-night-guide.css");
 
 assert.match(
   guidedShell,
-  /addEventListener\("hashchange", function \(\) \{\s*closeMore\(\);/,
-  "Route changes must close the All Rooms drawer instead of leaving it over the destination.",
+  /dispatchEvent\(new CustomEvent\("wwam:journey-change"/,
+  "Every route change should publish one shared journey state.",
+);
+assert.doesNotMatch(
+  guidedShell,
+  /guidedMoreButton|guidedMorePanel|closeMore/,
+  "The removed rooms overlay must not leave dead shell wiring behind.",
+);
+assert.match(
+  nightGuide,
+  /addEventListener\("wwam:journey-change", handleJourneyChange\)/,
+  "The mobile dock should follow route changes made with history.pushState.",
 );
 
 assert.match(
@@ -47,14 +59,24 @@ assert.match(
 );
 
 assert.match(
-  editorial,
-  /\.wwam-signature-rail\s*\{[^}]*min-height:\s*44px;/,
-  "The horizontally scrolling signature shortcuts must remain tappable.",
+  nightGuide,
+  /label: "Shows"[\s\S]*label: "Watchalongs"[\s\S]*label: "Best Bits"[\s\S]*label: "Characters"[\s\S]*label: "Search"/,
+  "The phone dock must mirror the five public destinations.",
+);
+assert.doesNotMatch(
+  nightGuide,
+  /All Rooms|guidedMoreButton|guidedMorePanel/,
+  "Phones must not reintroduce the removed rooms menu.",
+);
+assert.match(
+  nightGuideCss,
+  /\.wwam-night-guide-mobile__item\s*\{[\s\S]*?min-height:\s*48px;/,
+  "Every phone destination must own a full-size touch target.",
 );
 assert.match(
   editorial,
-  /\.wwam-signature-label,\s*\.wwam-signature-rail a\s*\{[^}]*min-height:\s*44px;/,
-  "Every signature shortcut must own a full-height tap target.",
+  /\.wwam-route-local-nav a\s*\{[\s\S]*?min-height:\s*84px;/,
+  "Contextual destination links must remain comfortably tappable.",
 );
 assert.match(
   editorial,
@@ -66,5 +88,10 @@ assert.match(
   /@media \(max-width: 680px\)[\s\S]*?\.wwam-editorial-hero\s*\{[^}]*overflow-x:\s*clip;/,
   "The decorative mobile hero watermark must not widen the page.",
 );
+assert.match(
+  editorial,
+  /@media \(max-width: 760px\)[\s\S]*?\.wwam-home-search > div\s*\{\s*grid-template-columns:\s*1fr;/,
+  "The homepage search must stack cleanly on phones.",
+);
 
-console.log("WWAM mobile accessibility contract verified.");
+console.log("WWAM coherent mobile accessibility contract verified.");

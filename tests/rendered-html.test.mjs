@@ -122,7 +122,7 @@ test("ships the complete independent WWAM memory-system surface", async () => {
     /WWAM After Midnight/,
     /THE CHANNEL[\s\S]*REMEMBERS ITSELF/,
     /THE RED BAND <em>100<\/em>/,
-    /THE TAPE AUTOPSIES/,
+    /EVERY COMMENTARY,[\s\S]*OPENED UP/,
     /ASK THE[\s\S]*CHARACTER/,
     /THE POPULAR[\s\S]*TWENTY-FIVE/,
     /THE WWAM[\s\S]*MEMORY OS/,
@@ -480,7 +480,7 @@ test("Ask understands evidence chains, Popular 25, follow-ups, recency, and unce
   assert.equal(popularHalloween.results[0].sourceId, "jG93HvyP420");
   assert.equal(popularHalloween.results[0].lane, "popular");
   assert.equal(popularHalloween.results[0].views, 203_603);
-  assert.match(popularHalloween.answer, /203,603 official views/);
+  assert.match(popularHalloween.answer, /saved view-count snapshot[\s\S]*203,603 views/);
 
   const batman = plain(engine.ask("Where did they talk about Batman recently?"));
   assert.equal(batman.entity, "Batman");
@@ -491,7 +491,7 @@ test("Ask understands evidence chains, Popular 25, follow-ups, recency, and unce
   assert.match(newestFunny.results[0].reasons.join(" "), /newest stream/);
 
   const speaker = plain(engine.ask("Who hated Scream 3?"));
-  assert.match(speaker.answer, /won't invent a name/);
+  assert.match(speaker.answer, /captions don't reliably say who is speaking[\s\S]*won't guess/);
 
   const deranged = plain(engine.ask("Show me the most deranged thing they said"));
   assert.equal(deranged.status, "surface-handoff");

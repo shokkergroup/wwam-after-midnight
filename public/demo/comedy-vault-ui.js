@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.1.0";
+  var VERSION = "1.2.0";
 
   function clean(value) {
     return String(value == null ? "" : value).trim();
@@ -124,10 +124,12 @@
         return entry.filmId === open.id;
       }), payload) : "";
     }
-    return '<div class="comedy-vault-shell" data-cv-root><header class="cv-hero"><div><p>WWAM COMEDY COMMENTARIES</p>' +
-      '<h2>MOVIE NIGHT<br><em>GETS STUPID.</em></h2><span>SCARY MOVIE // HAROLD &amp; KUMAR // WAITING...</span></div>' +
-      '<aside><span>ON THIS SHELF</span><b>' + esc(payload.meta.films) + ' MOVIES.<br>' +
-      esc(payload.meta.officialSourceRecords) + ' WWAM VERSIONS.</b><p>The official pages are linked. The members-only commentary audio is not public in this demo yet.</p></aside></header>' +
+    return '<div class="comedy-vault-shell" data-cv-root><header class="cv-shelf-summary"><div><p>THE COMEDY SHELF</p>' +
+      '<b>MOVIE NIGHT GETS STUPID.</b><span>Scary Movie, Harold &amp; Kumar, and Waiting&mdash;all in one place.</span></div>' +
+      '<div class="cv-shelf-counts" aria-label="' + esc(payload.meta.films) + ' MOVIES, ' +
+      esc(payload.meta.officialSourceRecords) + ' WWAM VERSIONS"><span><b>' + esc(payload.meta.films) +
+      ' MOVIES</b><small>ON THIS SHELF</small></span><span><b>' + esc(payload.meta.officialSourceRecords) +
+      ' WWAM VERSIONS</b><small>OFFICIAL PAGES FOUND</small></span></div></header>' +
       '<div class="cv-command"><label><span>FIND A MOVIE</span><input type="search" data-cv-search value="' +
       esc(state.query) + '" placeholder="Scary Movie, Waiting, Harold..."></label><div role="group" aria-label="Comedy vault filters">' +
       '<button type="button" data-cv-filter="all" class="' + (state.filter === "all" ? "is-active" : "") +

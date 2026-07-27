@@ -8,51 +8,103 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const demo = path.join(here, "..", "public", "demo");
 const read = (name) => fs.readFileSync(path.join(demo, name), "utf8");
 
-test("the fan-facing shell exposes signature WWAM destinations without a mystery More menu", () => {
+test("the fan-facing shell exposes five plain destinations and no competing rooms menu", () => {
   const html = read("index.html");
   const shell = read("guided-shell.js");
+  const css = read("wwam-editorial-v2.css");
 
-  assert.match(html, /wwam-editorial-v2\.css\?v=1\.0\.0-editorial7/);
-  assert.match(html, />\s*ALL ROOMS\s*<span/);
-  assert.doesNotMatch(html, />MORE\s*<span>\+<\/span>/);
-  assert.match(html, /class="wwam-signature-rail"/);
-  assert.match(html, /href="#upinya"[^>]*>.*WWAM UP IN YA/s);
-  assert.match(html, /href="#steves-asshole"[^>]*>.*STEVE'S ASSHOLE/s);
+  assert.match(html, /wwam-editorial-v2\.css\?v=1\.1\.3-coherent/);
+  assert.match(html, /href="#shows-hub"[^>]*>SHOWS<\/a>/);
+  assert.match(html, /href="#watchalongs-hub"[^>]*>WATCHALONGS<\/a>/);
+  assert.match(html, /href="#best-bits"[^>]*>BEST BITS<\/a>/);
+  assert.match(html, /href="#characters-hub"[^>]*>CHARACTERS<\/a>/);
+  assert.match(html, /href="#ask"[^>]*>SEARCH<\/a>/);
+  assert.doesNotMatch(html, /ALL ROOMS|wwam-signature-rail|guidedMoreButton|guidedMorePanel/);
+  assert.match(css, /--wwam-content-max:\s*1440px/);
+  assert.match(css, /--wwam-header-max:\s*1540px/);
+  assert.match(css, /\/\* WWAM coherent shell v3 \*\//);
+  assert.match(css, /\.evidence-bag-toggle\[aria-label\*="0 clips"\]/);
+  assert.match(html, />SAVE CLIP LIST<\/button>/);
   assert.match(shell, /"steves-asshole": "highlights"/);
-  assert.match(shell, /Escape/);
-  assert.match(shell, /wwam-directory-open/);
   assert.match(shell, /__wwamRoutePinTimer/);
   assert.match(shell, /__wwamReleaseRoutePin/);
   assert.match(shell, /pointerdown/);
   assert.match(shell, /keydown/);
-  assert.match(shell, /12000/);
-  assert.match(shell, /setJourney\(journeyFromLocation\(\), initialTarget\)/);
+  assert.match(shell, /5000/);
+  assert.doesNotMatch(shell, /12000/);
+  assert.match(shell, /window\.scrollTo\(\{/);
+  assert.match(shell, /setJourney\(journeyFromLocation\(\), initialTarget, \{ behavior: "auto" \}\)/);
   assert.match(shell, /root\.style\.scrollBehavior = "auto"/);
 });
 
-test("the homepage leads with one real tape and moves duplicate onboarding out of view", () => {
-  const html = read("index.html");
+test("destination hubs expose local navigation while detail routes show one focused section", () => {
+  const shell = read("guided-shell.js");
   const css = read("wwam-editorial-v2.css");
 
-  assert.match(html, /id="wwamHeroTitle">THE WHOLE SHOW\.<br><em>CUT TO THE GOOD PART\.<\/em>/);
+  assert.match(shell, /id: "shows-hub"/);
+  assert.match(shell, /id: "watchalongs-hub"/);
+  assert.match(shell, /id: "best-bits"/);
+  assert.match(shell, /id: "characters-hub"/);
+  assert.match(shell, /var primaryViewSelectors/);
+  assert.match(shell, /function sectionsForView/);
+  assert.match(shell, /var isMatchingDetail/);
+  assert.match(shell, /else allowed\.add\(targetSection\)/);
+  assert.match(shell, /document\.body\.dataset\.guidedDetail/);
+  assert.match(css, /\.wwam-route-local-nav/);
+  assert.match(css, /body\[data-guided-detail="true"\] \.wwam-route-hub/);
+  assert.match(css, /repeat\(auto-fit, minmax\(180px, 1fr\)\)/);
+  assert.match(shell, /WWAM UP IN YA/);
+  assert.match(shell, /STEVE'S ASSHOLE/);
+});
+
+test("the homepage leads with one real tape, a working archive search, and four fan jobs", () => {
+  const html = read("index.html");
+  const shell = read("guided-shell.js");
+  const css = read("wwam-editorial-v2.css");
+
+  assert.match(html, /id="wwamHeroTitle">EVERY SHOW\.<br><em>RIGHT TO THE GOOD PART\.<\/em>/);
+  assert.match(html, /id="wwamHomeSearch"/);
   assert.match(html, /id="wwamTonight"/);
   assert.match(html, /\?source=LV2rmwEA0w4&amp;section=wiki#archive/);
   assert.match(html, /class="wwam-pick-your-poison"/);
-  assert.match(html, /STRAIGHT TO<br>STEVE'S ASSHOLE/);
+  assert.match(html, /CATCH UP<br>FAST/);
+  assert.match(html, /OPEN A<br>WATCHALONG/);
+  assert.match(html, /PLAY THE<br>BEST BITS/);
+  assert.match(html, /FOLLOW A<br>CHARACTER/);
   assert.match(html, /class="hero legacy-machine-hero" hidden aria-hidden="true"/);
-  assert.match(css, /\.guided-home-head,\s*\n\.guided-door-grid \{ display: none !important; \}/);
+  assert.match(shell, /function wireHomeSearch/);
+  assert.match(shell, /askForm\.requestSubmit/);
+  assert.match(css, /\.wwam-home-search/);
 });
 
-test("franchise doors open the commentary shelf instead of a hidden studio lab", () => {
+test("franchise doors reveal the focused commentary shelf before opening it", () => {
   const app = read("app.js");
-  const start = app.indexOf("function renderFranchises()");
-  const end = app.indexOf("function renderFranchiseFilters()", start);
-  const renderer = app.slice(start, end);
+  const helperStart = app.indexOf("function openFranchiseAutopsies(franchise)");
+  const helperEnd = app.indexOf("function renderMarquee()", helperStart);
+  const helper = app.slice(helperStart, helperEnd);
+  const rendererStart = app.indexOf("function renderFranchises()");
+  const rendererEnd = app.indexOf("function renderFranchiseFilters()", rendererStart);
+  const renderer = app.slice(rendererStart, rendererEnd);
 
-  assert.match(renderer, /setFranchise\(franchise\)/);
-  assert.match(renderer, /getElementById\("autopsies"\)/);
+  assert.ok(helperStart >= 0);
+  assert.match(helper, /setFranchise\(franchise\)/);
+  assert.match(helper, /#autopsies/);
+  assert.match(helper, /dispatchEvent\(new Event\("hashchange"\)\)/);
+  assert.match(renderer, /openFranchiseAutopsies\(button\.getAttribute\("data-franchise"\)\)/);
   assert.doesNotMatch(renderer, /getElementById\("labs"\)/);
 });
+
+test("Showcase Mode has one controller and makes proof destinations visible", () => {
+  const app = read("app.js");
+  const shell = read("guided-shell.js");
+
+  assert.match(app, /function openTour\(\)/);
+  assert.match(app, /function closeTour\(options\)/);
+  assert.match(app, /data-tour-proof/);
+  assert.match(app, /history\.replaceState[\s\S]{0,180}dispatchEvent\(new Event\("hashchange"\)\)/);
+  assert.doesNotMatch(shell, /guidedMike|openGuidedMike|data-guided-tour-proof/);
+});
+
 test("Ask and Character put the action first and avoid nested result scrollers", () => {
   const html = read("index.html");
   const app = read("app.js");
@@ -98,11 +150,14 @@ test("public fan copy contains no pricing or private Mike-ready language", () =>
 
   assert.doesNotMatch(visible, /\$\s*\d|pricing|price list|buy now|paid pilot|Mike-ready/i);
 });
-test("the room directory stays fan-facing instead of exposing the internal firehose", () => {
+
+test("internal studio surfaces remain available to engines but outside public navigation", () => {
   const html = read("index.html");
   const shell = read("guided-shell.js");
 
+  assert.doesNotMatch(html, /data-journey-link="studio"/);
   assert.doesNotMatch(html, /data-journey-link="all"/);
-  assert.match(html, /Back to Tonight's Picks/);
+  assert.match(shell, /studio:\s*\["#fresh-intake"/);
+  assert.match(shell, /"#proof", "\.scope-strip", "\.legacy-machine-hero"/);
   assert.doesNotMatch(shell, /machinery is still here|film ledger|evidence-bounded/i);
 });

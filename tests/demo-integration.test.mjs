@@ -26,13 +26,6 @@ test("the complete browser script chain exists in dependency order", () => {
     "character-engine.js",
     "wwam-channel-dna.js",
     "showcase-engine.js",
-    "lore-engine.js",
-    "tape-trivia-engine.js",
-    "night-shift-engine.js",
-    "creator-studio-engine.js",
-    "cold-open-engine.js",
-    "canon-integrity-engine.js",
-    "human-review-session-engine.js",
     "search-engine.js",
     "ask-share.js",
     "youtube-playback.js",
@@ -46,6 +39,20 @@ test("the complete browser script chain exists in dependency order", () => {
   ];
   assert.deepEqual(scripts, required);
   required.forEach((file) => assert.equal(fs.existsSync(path.join(demo, file)), true, `${file} is missing`));
+  const deferred = [
+    "lore-engine.js",
+    "tape-trivia-engine.js",
+    "night-shift-engine.js",
+    "creator-studio-engine.js",
+    "cold-open-engine.js",
+    "canon-integrity-engine.js",
+    "human-review-session-engine.js",
+  ];
+  deferred.forEach((file) => {
+    assert.doesNotMatch(index, new RegExp(`<script[^>]+${file.replace(".", "\\.")}`, "i"));
+    assert.equal(fs.existsSync(path.join(demo, file)), true, `${file} is missing`);
+    assert.match(app, new RegExp(`loadDemoScript\\("${file.replace(".", "\\.")}\\"\\)`));
+  });
   ["correction-ripple-engine.js", "trust-engine.js"].forEach((file) => {
     assert.doesNotMatch(index, new RegExp(`<script[^>]+${file.replace(".", "\\.")}`, "i"));
     assert.equal(fs.existsSync(path.join(demo, file)), true);

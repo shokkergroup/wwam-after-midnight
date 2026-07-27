@@ -25,7 +25,7 @@ test("V5.9 publishes the lazy Time Capsule surface without growing app.js", () =
     assert.ok(fs.statSync(path.join(root, relative)).size > 0, `${relative} is empty`);
   });
 
-  assert.match(html, /href="#time-capsules"[^>]*><b>Time Capsules<\/b>/);
+  assert.match(html, /href="#time-capsules"[^>]*data-journey-link="shows"><b>BY YEAR<\/b>/);
   assert.match(
     html,
     /<section class="era-capsule" id="time-capsules"[\s\S]{0,240}data-feature-styles="era-capsule\.css"/

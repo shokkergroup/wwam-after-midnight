@@ -40,7 +40,8 @@ test("Steve is a visible first-class room with lazy, local assets", () => {
   assert.match(html, /id="steves-asshole"/);
   assert.ok(html.includes('data-feature-styles="steves-asshole.css?v=1.0.4"'));
   assert.ok(html.includes('data-feature-scripts="steves-asshole.js?v=1.2.1"'));
-  assert.ok((html.match(/href="#steves-asshole"/g) || []).length >= 3);
+  assert.ok((html.match(/href="#steves-asshole"/g) || []).length >= 1);
+  assert.match(html, /href="#best-bits"[^>]*data-journey-link="highlights">BEST BITS<\/a>/);
   assert.match(source, /WWAMSourceDossierAccess/);
   assert.match(source, /mountWhenReady/);
 });

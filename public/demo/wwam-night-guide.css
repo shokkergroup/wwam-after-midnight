@@ -76,8 +76,7 @@
   }
 
   .wwam-night-guide-mobile__item:hover,
-  .wwam-night-guide-mobile__item[aria-current="page"],
-  .wwam-night-guide-mobile__rooms[aria-expanded="true"] {
+  .wwam-night-guide-mobile__item[aria-current="page"] {
     background: rgba(200, 255, 25, .075);
     color: #f8f3ec;
   }
@@ -88,10 +87,6 @@
     box-shadow: 0 0 12px rgba(200, 255, 25, .42);
   }
 
-  .wwam-night-guide-mobile__rooms::before,
-  .wwam-night-guide-mobile__rooms[aria-expanded="true"]::before {
-    background: #ff397f;
-  }
 
   .wwam-night-guide-mobile__item:focus-visible {
     z-index: 1;

@@ -6,7 +6,7 @@
   --cv-panel: #101014;
   --cv-border: rgba(255,255,255,.16);
   position: relative;
-  padding: clamp(64px,8vw,128px) max(24px,calc((100vw - 1400px)/2));
+  padding: clamp(72px,7vw,104px) clamp(28px,4vw,56px);
   overflow: clip;
   background:
     radial-gradient(circle at 85% 4%,rgba(255,45,121,.18),transparent 28%),
@@ -390,3 +390,158 @@
   .cv-dossier-hero h2 { font-size: clamp(50px,17vw,82px); }
 }
 
+
+/* Comedy vault v1.2: readable proportions inside the site's existing content frame. */
+.comedy-vault-entry,
+.comedy-vault-shell { min-width: 0; }
+.cv-hero {
+  grid-template-columns: minmax(0,1fr) minmax(270px,360px);
+  gap: clamp(28px,4vw,54px);
+  padding: clamp(30px,4vw,50px);
+}
+.cv-hero h2 {
+  max-width: 760px;
+  font-size: clamp(54px,5.6vw,88px);
+  line-height: .86;
+  letter-spacing: -.035em;
+}
+.cv-hero aside {
+  min-width: 0;
+  padding: clamp(22px,2.6vw,34px);
+}
+.cv-hero aside > b {
+  font-size: clamp(28px,3vw,44px);
+  line-height: .98;
+  overflow-wrap: normal;
+}
+.cv-command { grid-template-columns: minmax(280px,.85fr) minmax(0,1.65fr); }
+.cv-command label,
+.cv-command > div { min-width: 0; }
+.cv-film-grid { gap: 16px; }
+.cv-film-card {
+  grid-template-columns: minmax(210px,42%) minmax(0,1fr);
+  min-width: 0;
+  min-height: 500px;
+}
+.cv-film-art,
+.cv-dossier-art {
+  min-width: 0;
+  min-height: 360px;
+}
+.cv-film-art img,
+.cv-dossier-art img { object-position: center top; }
+.cv-film-copy {
+  min-width: 0;
+  padding: clamp(22px,2.4vw,32px);
+}
+.cv-film-copy h3 {
+  font-size: clamp(30px,2.65vw,44px);
+  line-height: .96;
+  letter-spacing: -.02em;
+  overflow-wrap: normal;
+}
+.cv-film-facts span {
+  min-width: 0;
+  padding: 11px 8px;
+  font-size: 8px;
+}
+.cv-film-facts b {
+  font-size: 10px;
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
+.cv-film-copy footer {
+  display: grid;
+  gap: 12px;
+  align-items: start;
+}
+.cv-film-copy footer button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+}
+@media (max-width: 1180px) {
+  .cv-film-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
+  .comedy-vault { padding: 70px 14px 84px; }
+  .cv-command,
+  .cv-film-card { grid-template-columns: 1fr; }
+  .cv-hero { padding: 26px; }
+  .cv-hero h2 { font-size: clamp(48px,15vw,72px); }
+  .cv-hero aside {
+    border-top: 3px solid var(--cv-pink);
+    border-left: 0;
+  }
+  .cv-boundary {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}
+@media (max-width: 520px) {
+  .cv-command > div {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .cv-command button { width: 100%; }
+  .cv-film-copy { padding: 24px; }
+  .cv-film-facts { grid-template-columns: 1fr 1fr; }
+  .cv-film-facts span:first-child { grid-column: 1 / -1; }
+}
+/* Compact shelf summary replaces the second full-scale hero. */
+.cv-shelf-summary {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  gap: clamp(24px,4vw,56px);
+  align-items: center;
+  padding: 24px clamp(24px,3vw,38px);
+  border: 1px solid var(--cv-border);
+  background: linear-gradient(110deg,rgba(255,45,121,.09),rgba(255,255,255,.018));
+}
+.cv-shelf-summary > div:first-child { min-width: 0; }
+.cv-shelf-summary p {
+  margin: 0 0 7px;
+  color: var(--cv-lime);
+  font: 800 9px/1.2 monospace;
+  letter-spacing: .14em;
+}
+.cv-shelf-summary > div:first-child > b {
+  display: block;
+  color: var(--cv-cream);
+  font-size: clamp(22px,2.2vw,34px);
+  line-height: 1;
+}
+.cv-shelf-summary > div:first-child > span {
+  display: block;
+  margin-top: 8px;
+  color: rgba(255,255,255,.58);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.cv-shelf-counts { display: flex; align-items: stretch; }
+.cv-shelf-counts > span {
+  display: grid;
+  min-width: 132px;
+  align-content: center;
+  padding: 5px 22px;
+  border-left: 1px solid rgba(255,255,255,.14);
+}
+.cv-shelf-counts b {
+  color: var(--cv-pink);
+  font-size: 18px;
+  line-height: 1.05;
+}
+.cv-shelf-counts small {
+  margin-top: 6px;
+  color: rgba(255,255,255,.42);
+  font: 700 8px/1.3 monospace;
+  letter-spacing: .08em;
+}
+@media (max-width: 760px) {
+  .cv-shelf-summary { grid-template-columns: 1fr; }
+  .cv-shelf-counts { display: grid; grid-template-columns: 1fr 1fr; }
+  .cv-shelf-counts > span { min-width: 0; padding-inline: 12px; }
+  .cv-shelf-counts > span:first-child { border-left: 0; }
+}

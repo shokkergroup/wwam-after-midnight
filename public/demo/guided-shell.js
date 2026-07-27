@@ -2,23 +2,44 @@
   "use strict";
 
   var journeyByTarget = {
-    top: "home", livewire: "shows", companion: "shows", popular25: "shows", archive: "shows",
-    yearCanonSpotlight: "shows", "time-capsules": "shows", franchises: "watchalongs", autopsies: "watchalongs",
+    top: "home",
+    "shows-hub": "shows", livewire: "shows", companion: "shows", popular25: "shows", archive: "shows",
+    yearCanonSpotlight: "shows", "archive-browser": "shows", "time-capsules": "shows",
+    "watchalongs-hub": "watchalongs", franchises: "watchalongs", autopsies: "watchalongs",
     "halloween-universe": "watchalongs", "comedy-vault": "watchalongs",
-    characters: "characters", lore: "characters", loreDossier: "characters", ask: "ask", red100: "highlights",
-    upinya: "highlights", "steves-asshole": "highlights", "night-shift": "highlights", trivia: "highlights", memory: "studio",
+    "characters-hub": "characters", characters: "characters", lore: "characters", loreDossier: "characters", memory: "characters",
+    "tape-keeps-score": "characters",
+    ask: "ask",
+    "best-bits": "highlights", red100: "highlights", upinya: "highlights",
+    "steves-asshole": "highlights", "night-shift": "highlights", trivia: "highlights",
     "verdict-room": "studio", "fresh-intake": "studio", labs: "studio", control: "studio",
     "clip-lab": "studio", "cut-test": "studio", canon: "studio", pitch: "studio"
   };
 
   var groupSelectors = {
-    home: [".hero", ".wwam-pick-your-poison", "#proof", ".scope-strip", ".guided-home"],
-    shows: ["#companion", "#livewire", "#popular25", "#archive", "#yearCanonSpotlight", ".archive-browser", "#time-capsules"],
-    watchalongs: ["#halloween-universe", "#comedy-vault", "#franchises", "#autopsies"],
-    characters: ["#characters", ".character-terminal", "#lore", "#loreDossier"],
+    home: [".wwam-editorial-hero", ".wwam-pick-your-poison", ".guided-home"],
+    shows: ["#shows-hub", "#companion", "#livewire", "#popular25", "#archive", "#yearCanonSpotlight", ".archive-browser", "#time-capsules"],
+    watchalongs: ["#watchalongs-hub", "#halloween-universe", "#comedy-vault", "#franchises", "#autopsies"],
+    characters: ["#characters-hub", "#characters", "#lore", "#loreDossier", "#memory"],
     ask: ["#ask"],
-    highlights: ["#red100", "#upinya", "#steves-asshole", "#night-shift", "#trivia"],
-    studio: ["#fresh-intake", ".intake-output", "#memory", "#verdict-room", "#labs", "#control", "#clip-lab", "#cut-test", "#canon", ".method", "#pitch"]
+    highlights: ["#best-bits", "#red100", "#upinya", "#steves-asshole", "#night-shift", "#trivia"],
+    studio: ["#fresh-intake", ".intake-output", "#verdict-room", "#labs", "#control", "#clip-lab", "#cut-test", "#canon", ".method", "#pitch", "#proof", ".scope-strip", ".legacy-machine-hero"]
+  };
+
+  var primaryViewSelectors = {
+    home: [".wwam-editorial-hero", ".wwam-pick-your-poison", ".guided-home"],
+    shows: ["#shows-hub", "#livewire", "#archive"],
+    watchalongs: ["#watchalongs-hub", "#franchises", "#autopsies"],
+    characters: ["#characters-hub", "#characters", "#lore"],
+    ask: ["#ask"],
+    highlights: ["#best-bits", "#upinya", "#steves-asshole"]
+  };
+
+  var routeHubIds = {
+    shows: "shows-hub",
+    watchalongs: "watchalongs-hub",
+    characters: "characters-hub",
+    highlights: "best-bits"
   };
 
   function recentCard(id, date, title, summary, topics, state) {
@@ -36,33 +57,93 @@
     if (document.querySelector(".guided-home")) return;
     var host = document.createElement("section");
     host.className = "guided-home";
-    host.setAttribute("aria-label", "WWAM archive starting points");
+    host.setAttribute("aria-label", "More ways to begin exploring WWAM");
     host.innerHTML =
-      '<div class="guided-home-head"><div><span>THREE DOORS. NO HOMEWORK.</span><h2>WHAT DO YOU WANT TO DO?</h2></div><p>Pick a door and land on the good stuff first. The full archive is waiting whenever you want to dig deeper.</p></div>' +
-      '<div class="guided-door-grid">' +
-        '<a class="guided-door guided-door-new" href="?source=LV2rmwEA0w4&section=wiki#archive"><span>01 // CATCH UP</span><h3>OPEN THE NEWEST SHOW</h3><p>Recap July 23, jump to Avengers, Clayface, Spider-Man or Hellraiser, then play the source at the exact moment.</p><b>ENTER THE SHOW WIKI →</b></a>' +
-        '<a class="guided-door guided-door-movie" href="?source=28PfRNKoSCA&section=wiki#archive"><span>02 // WATCHALONG</span><h3>HALLOWEEN 4, DEEPER</h3><p>WWAM commentary plus the movie story: budget, box office, production lore, artwork, and every mapped show moment.</p><b>OPEN THE MOVIE PAGE →</b></a>' +
-        '<a class="guided-door guided-door-lore" href="#characters" data-journey-link="characters"><span>03 // RUNNING BITS</span><h3>FOLLOW THE CHARACTERS</h3><p>Dr. Loomis, Dr. Challis, Slenderman and Corey Feldman—performances, real source clips, and clearly marked fan-made riffs.</p><b>ENTER THE LORE →</b></a>' +
-      '</div>' +
-      '<div class="guided-shelf-head"><div><span class="guided-section-label">LIVE WIRE // LAST FIVE</span><h2>THE LATEST FIVE.</h2></div><a href="#archive" data-journey-link="shows">SEE EVERY SHOW →</a></div>' +
+      '<div class="guided-shelf-head"><div><span class="guided-section-label">02 // THE LATEST FIVE</span><h2>FIVE NIGHTS. FIVE CLEAN ENTRIES.</h2></div><a href="#shows-hub" data-journey-link="shows">SEE ALL SHOWS &rarr;</a></div>' +
+      '<p class="guided-shelf-dek">Each show opens as its own wiki with a recap, topics, best moments, and exact jumps back to the source.</p>' +
       '<div class="guided-latest-grid">' +
-        recentCard("LV2rmwEA0w4", "JUL 23, 2026", "MOVIE NEWS + MORE", "Batman, Marvel and Hellraiser lead the night. Jump straight to four of the biggest conversations.", "AVENGERS • CLAYFACE • SPIDER-MAN • HELLRAISER", "4 TOPICS") +
-        recentCard("iz0WFhe6LYM", "JUL 16, 2026", "MOVIE NEWS + MORE", "The Batman Part II, A Nightmare on Elm Street, Crystal Lake and Halloween. Pick a topic and skip the dead air.", "BATMAN • ANOES • CRYSTAL LAKE • HALLOWEEN", "5 TOPICS") +
-        recentCard("ag3axSC9BpU", "JUL 9, 2026", "MOVIE NEWS + MORE", "Legend of the White Dragon, Soulm8te, Dune and Evil Dead. Search the night or jump straight to a topic.", "DUNE • SOULM8TE • EVIL DEAD • HALLOWEEN", "5 TOPICS") +
+        recentCard("LV2rmwEA0w4", "JUL 23, 2026", "MOVIE NEWS + MORE", "Batman, Marvel and Hellraiser lead the night. Jump straight to four of the biggest conversations.", "AVENGERS &bull; CLAYFACE &bull; SPIDER-MAN &bull; HELLRAISER", "4 TOPICS") +
+        recentCard("iz0WFhe6LYM", "JUL 16, 2026", "MOVIE NEWS + MORE", "The Batman Part II, A Nightmare on Elm Street, Crystal Lake and Halloween. Pick a topic and skip the dead air.", "BATMAN &bull; ANOES &bull; CRYSTAL LAKE &bull; HALLOWEEN", "5 TOPICS") +
+        recentCard("ag3axSC9BpU", "JUL 9, 2026", "MOVIE NEWS + MORE", "Legend of the White Dragon, Soulm8te, Dune and Evil Dead. Search the night or jump straight to a topic.", "DUNE &bull; SOULM8TE &bull; EVIL DEAD &bull; HALLOWEEN", "5 TOPICS") +
         recentCard("x6tvsGRHgU0", "JUN 30, 2026", "HORROR BOX OFFICE TIER LIST", "YouTube did not provide usable English captions for this one, so it stays watch-only for now.", "CAPTION-LIMITED SOURCE", "WATCH-ONLY") +
-        recentCard("7PzSj-oIRjA", "JUN 25, 2026", "MOVIE NEWS + MORE", "Spider-Man, Halloween, Evil Dead and Batman. Every topic opens at the part you actually came for.", "SPIDER-MAN • HALLOWEEN • BATMAN", "5 TOPICS") +
+        recentCard("7PzSj-oIRjA", "JUN 25, 2026", "MOVIE NEWS + MORE", "Spider-Man, Halloween, Evil Dead and Batman. Every topic opens at the part you actually came for.", "SPIDER-MAN &bull; HALLOWEEN &bull; BATMAN", "5 TOPICS") +
       '</div>' +
-      '<div class="guided-shelf-head guided-franchise-head"><div><span class="guided-section-label">THE WATCHALONG VAULT // 39 SHOW WIKIS</span><h2>PICK YOUR NIGHTMARE.</h2></div><a href="#franchises" data-journey-link="watchalongs">OPEN THE FULL VAULT →</a></div>' +
+      '<div class="guided-shelf-head guided-franchise-head"><div><span class="guided-section-label">03 // PICK A FRANCHISE</span><h2>CHOOSE THE MOVIE WORLD.</h2></div><a href="#watchalongs-hub" data-journey-link="watchalongs">ALL WATCHALONGS &rarr;</a></div>' +
       '<div class="guided-franchise-grid">' +
-        '<a href="?source=6VXSBDZ-3WE&section=wiki#archive" style="--franchise-img:url(https://i.ytimg.com/vi/6VXSBDZ-3WE/maxresdefault.jpg)"><span>13 COMMENTARIES</span><h3>HALLOWEEN</h3><b>START IN 1978 →</b></a>' +
-        '<a href="?source=WkYLphAdlYc&section=wiki#archive" style="--franchise-img:url(https://i.ytimg.com/vi/WkYLphAdlYc/maxresdefault.jpg)"><span>12 COMMENTARIES</span><h3>FRIDAY THE 13TH</h3><b>GO TO CAMP →</b></a>' +
-        '<a href="?source=2G8lpFaeIdw&section=wiki#archive" style="--franchise-img:url(https://i.ytimg.com/vi/2G8lpFaeIdw/maxresdefault.jpg)"><span>6 COMMENTARIES</span><h3>SCREAM</h3><b>PICK UP THE PHONE →</b></a>' +
-        '<a href="?source=7qgebnDYVi4&section=wiki#archive" style="--franchise-img:url(https://i.ytimg.com/vi/7qgebnDYVi4/maxresdefault.jpg)"><span>8 COMMENTARIES</span><h3>ELM STREET</h3><b>DON’T FALL ASLEEP →</b></a>' +
+        '<a href="?source=6VXSBDZ-3WE&section=wiki#archive" style="--franchise-img:url(https://i.ytimg.com/vi/6VXSBDZ-3WE/maxresdefault.jpg)"><span>13 COMMENTARIES</span><h3>HALLOWEEN</h3><b>START IN 1978 &rarr;</b></a>' +
+        '<a href="?source=WkYLphAdlYc&section=wiki#archive" style="--franchise-img:url(https://i.ytimg.com/vi/WkYLphAdlYc/maxresdefault.jpg)"><span>12 COMMENTARIES</span><h3>FRIDAY THE 13TH</h3><b>GO TO CAMP &rarr;</b></a>' +
+        '<a href="?source=2G8lpFaeIdw&section=wiki#archive" style="--franchise-img:url(https://i.ytimg.com/vi/2G8lpFaeIdw/maxresdefault.jpg)"><span>6 COMMENTARIES</span><h3>SCREAM</h3><b>PICK UP THE PHONE &rarr;</b></a>' +
+        '<a href="?source=7qgebnDYVi4&section=wiki#archive" style="--franchise-img:url(https://i.ytimg.com/vi/7qgebnDYVi4/maxresdefault.jpg)"><span>8 COMMENTARIES</span><h3>ELM STREET</h3><b>DON&rsquo;T FALL ASLEEP &rarr;</b></a>' +
       '</div>';
     var lead = document.querySelector("main > .wwam-pick-your-poison") || document.querySelector("main > .hero");
     if (lead) lead.insertAdjacentElement("afterend", host);
   }
 
+  function buildRouteHubs() {
+    if (document.getElementById("shows-hub")) return;
+    var configs = [
+      {
+        id: "shows-hub", group: "shows", number: "01", eyebrow: "THE LIVESTREAM ARCHIVE",
+        title: "PICK A NIGHT.<br><em>OPEN ITS WIKI.</em>",
+        copy: "Start with the newest show or search the full archive. Every show file keeps the recap, topics, best moments, and original tape together.",
+        links: [
+          ["#livewire", "shows", "NEWEST SHOWS", "The latest mapped broadcasts"],
+          ["#archive", "shows", "ALL SHOW WIKIS", "Search every indexed night"],
+          ["#popular25", "shows", "MOST WATCHED", "The foundational live canon"],
+          ["#time-capsules", "shows", "BY YEAR", "Browse the channel by era"],
+          ["#companion", "shows", "WATCH WITH A GUIDE", "Follow a long show live"]
+        ]
+      },
+      {
+        id: "watchalongs-hub", group: "watchalongs", number: "01", eyebrow: "THE COMMENTARY SHELF",
+        title: "PICK A MOVIE.<br><em>ENTER ITS WORLD.</em>",
+        copy: "Choose a franchise or a one-off commentary. The movie context, WWAM versions, playable moments, and source record stay in one place.",
+        links: [
+          ["#franchises", "watchalongs", "ALL COMMENTARIES", "Halloween, Friday, Scream, Elm Street"],
+          ["#halloween-universe", "watchalongs", "HALLOWEEN UNIVERSE", "WWAM's deepest franchise map"],
+          ["#comedy-vault", "watchalongs", "COMEDY SHELF", "Scary Movie, Waiting, Harold & Kumar"],
+          ["#autopsies", "watchalongs", "COMMENTARY WIKIS", "Open the individual movie files"]
+        ]
+      },
+      {
+        id: "best-bits", group: "highlights", number: "01", eyebrow: "THE GOOD PARTS",
+        title: "SKIP THE SETUP.<br><em>PLAY THE MOMENT.</em>",
+        copy: "The funniest lines, the hardest rejections, and the archive's wildest playable moments now live under one obvious roof.",
+        links: [
+          ["#upinya", "highlights", "WWAM UP IN YA", "The most deranged things said on tape"],
+          ["#steves-asshole", "highlights", "STEVE'S ASSHOLE", "Everything Mike and J sent straight to hell"],
+          ["#red100", "highlights", "RED BAND 100", "The ranked wall of memorable chaos"],
+          ["#night-shift", "highlights", "NIGHT SHIFT", "A guided late-night cut"]
+        ]
+      },
+      {
+        id: "characters-hub", group: "characters", number: "01", eyebrow: "THE RECURRING CAST",
+        title: "FOLLOW THE BIT.<br><em>HEAR THE REAL TAPE.</em>",
+        copy: "Loomis, Challis, Slenderman, and Corey Feldman get one coherent home: fan-made riffs up front, real performance clips directly underneath.",
+        links: [
+          ["#characters", "characters", "ASK A CHARACTER", "Pick a voice and open its clip shelf"],
+          ["#lore", "characters", "LORE GALAXY", "See how the recurring bits connect"],
+          ["#memory", "characters", "MEMORY TRAILS", "Follow callbacks across the archive"]
+        ]
+      }
+    ];
+    var firstContent = document.querySelector("main > #halloween-universe") || document.querySelector("main > section:nth-of-type(4)");
+    configs.forEach(function (config) {
+      var section = document.createElement("section");
+      section.className = "wwam-route-hub";
+      section.id = config.id;
+      section.dataset.routeHub = config.group;
+      section.innerHTML =
+        '<a class="wwam-route-home" href="#top" data-journey-link="home">WWAM AFTER MIDNIGHT / HOME</a>' +
+        '<div class="wwam-route-hub-copy"><p>' + config.number + ' // ' + config.eyebrow + '</p><h1>' + config.title + '</h1><span>' + config.copy + '</span></div>' +
+        '<nav class="wwam-route-local-nav" aria-label="' + config.eyebrow + ' sections">' +
+          config.links.map(function (link) {
+            return '<a href="' + link[0] + '" data-journey-link="' + link[1] + '"><b>' + link[2] + '</b><small>' + link[3] + '</small></a>';
+          }).join("") +
+        '</nav>';
+      if (firstContent) firstContent.parentNode.insertBefore(section, firstContent);
+    });
+  }
   function arrangeFanFirstControls() {
     var askCopy = document.querySelector("#ask .ask-copy");
     var askForm = document.getElementById("askForm");
@@ -113,6 +194,8 @@
   }
 
   function assignGroups() {
+    var archiveBrowser = document.querySelector(".archive-browser");
+    if (archiveBrowser && !archiveBrowser.id) archiveBrowser.id = "archive-browser";
     var sections = Array.prototype.slice.call(document.querySelectorAll("main > section"));
     sections.forEach(function (section) { section.dataset.guidedGroup = "all"; });
     Object.keys(groupSelectors).forEach(function (group) {
@@ -126,37 +209,113 @@
 
   function journeyFromLocation() {
     var target = (location.hash || "#top").slice(1);
-    if (new URLSearchParams(location.search).has("source")) return "shows";
+    var sourceId = new URLSearchParams(location.search).get("source");
+    if (sourceId) {
+      var catalog = Array.isArray(window.WWAM_CATALOG) ? window.WWAM_CATALOG : [];
+      return catalog.some(function (item) { return item && item.id === sourceId; }) ? "watchalongs" : "shows";
+    }
     return journeyByTarget[target] || "home";
   }
 
-  function setJourney(group, targetId) {
+  function routeScrollTop(target) {
+    if (!target || target.id === "top") return 0;
+    var header = document.querySelector(".wwam-site-header");
+    var headerBottom = header ? Math.max(0, header.getBoundingClientRect().bottom) : 0;
+    var currentTop = window.pageYOffset || document.documentElement.scrollTop || 0;
+    return Math.max(0, Math.round(
+      currentTop + target.getBoundingClientRect().top - headerBottom - 16
+    ));
+  }
+
+  function moveRouteTarget(target, behavior) {
+    if (!target || target.dataset.guidedHidden === "true") return;
+    var root = document.documentElement;
+    var previousScrollBehavior = root.style.scrollBehavior;
+    if (behavior !== "smooth") root.style.scrollBehavior = "auto";
+    window.scrollTo({
+      top: routeScrollTop(target),
+      left: 0,
+      behavior: behavior === "smooth" ? "smooth" : "auto"
+    });
+    root.style.scrollBehavior = previousScrollBehavior;
+  }
+
+  function focusRouteTarget(target) {
+    if (!target || typeof target.focus !== "function") return;
+    if (!target.hasAttribute("tabindex")) {
+      target.setAttribute("tabindex", "-1");
+      target.setAttribute("data-route-focus-target", "");
+    }
+    try { target.focus({ preventScroll: true }); }
+    catch (error) { target.focus(); }
+  }
+
+  function sectionsForView(active, targetId) {
+    var allowed = new Set();
+
+    function addSelector(selector) {
+      document.querySelectorAll(selector).forEach(function (node) {
+        var section = node.matches && node.matches("main > section") ? node : node.closest && node.closest("main > section");
+        if (section) allowed.add(section);
+      });
+    }
+
+    function addPrimary(group) {
+      (primaryViewSelectors[group] || []).forEach(addSelector);
+    }
+
+    if (active === "all") {
+      document.querySelectorAll("main > section").forEach(function (section) { allowed.add(section); });
+      return allowed;
+    }
+
+    if (active === "home" || active === "ask") {
+      addPrimary(active);
+      return allowed;
+    }
+
+    var hubId = routeHubIds[active];
+    if (hubId) addSelector("#" + hubId);
+
+    var target = targetId ? document.getElementById(targetId) : null;
+    var targetSection = target && target.closest ? target.closest("main > section") : null;
+    var isRouteHome = !targetId || targetId === hubId;
+    var isMatchingDetail = targetSection && targetSection.dataset.guidedGroup === active && targetSection.id !== hubId;
+
+    if (isRouteHome || !isMatchingDetail) addPrimary(active);
+    else allowed.add(targetSection);
+
+    if (!allowed.size && targetSection) allowed.add(targetSection);
+    return allowed;
+  }
+  function setJourney(group, targetId, options) {
     var active = group || "home";
+    var routeOptions = options || {};
+    var visibleSections = sectionsForView(active, targetId);
     document.querySelectorAll("main > section").forEach(function (section) {
-      section.dataset.guidedHidden = active === "all" || section.dataset.guidedGroup === active ? "false" : "true";
+      section.dataset.guidedHidden = visibleSections.has(section) ? "false" : "true";
     });
     document.documentElement.classList.add("guided-shell-ready");
     document.body.dataset.guidedJourney = active;
+    document.body.dataset.guidedTarget = targetId || "top";
+    document.body.dataset.guidedDetail = Boolean(routeHubIds[active] && targetId !== routeHubIds[active]) ? "true" : "false";
     document.querySelectorAll("[data-journey-link]").forEach(function (link) {
       if (link.closest(".guided-primary-links")) {
-        if (link.dataset.journeyLink === active || (active === "highlights" && link.dataset.journeyLink === "home") || (active === "studio" && link.dataset.journeyLink === "home")) link.setAttribute("aria-current", "page");
+        if (link.dataset.journeyLink === active) link.setAttribute("aria-current", "page");
         else link.removeAttribute("aria-current");
       }
     });
-    if (targetId && targetId !== "top") {
+    document.querySelectorAll(".wwam-route-local-nav a").forEach(function (link) {
+      if ((link.getAttribute("href") || "") === "#" + targetId) link.setAttribute("aria-current", "page");
+      else link.removeAttribute("aria-current");
+    });
+    document.dispatchEvent(new CustomEvent("wwam:journey-change", {
+      detail: { group: active, targetId: targetId || "top" }
+    }));
+    if (targetId) {
       var move = function (behavior) {
         var target = document.getElementById(targetId);
-        if (target && target.dataset.guidedHidden !== "true") {
-          if (behavior === "smooth") {
-            target.scrollIntoView({ behavior: "smooth", block: "start" });
-            return;
-          }
-          var root = document.documentElement;
-          var previousScrollBehavior = root.style.scrollBehavior;
-          root.style.scrollBehavior = "auto";
-          target.scrollIntoView({ behavior: "auto", block: "start" });
-          root.style.scrollBehavior = previousScrollBehavior;
-        }
+        moveRouteTarget(target, behavior);
       };
       var target = document.getElementById(targetId);
       var targetSection = target && target.closest ? target.closest("main > section") : null;
@@ -168,7 +327,10 @@
       var blockers = targetIndex < 0 ? [] : sections.slice(0, targetIndex + 1).filter(function (section) {
         return section.dataset.guidedHidden !== "true" && section.hasAttribute("data-feature-scripts");
       });
-      requestAnimationFrame(function () { move("smooth"); });
+      requestAnimationFrame(function () {
+        move(routeOptions.behavior === "auto" ? "auto" : "smooth");
+        if (routeOptions.focus) focusRouteTarget(target);
+      });
       window.setTimeout(function () { move("auto"); }, 360);
       if (typeof window.__wwamReleaseRoutePin === "function") {
         window.__wwamReleaseRoutePin();
@@ -214,7 +376,7 @@
         if (!routePinActive) return;
         move("auto");
         releaseRoutePin();
-      }, 12000);
+      }, 5000);
       if (typeof ResizeObserver === "function" && visibleBeforeTarget.length) {
         var routeObserver = new ResizeObserver(function () {
           if (!routePinActive) return;
@@ -231,7 +393,7 @@
             window.__wwamRouteResizeObserver = null;
             move("auto");
           }
-        }, 11800);
+        }, 4800);
       } else {
         window.setTimeout(function () {
           if (routePinActive) move("auto");
@@ -253,76 +415,28 @@
     }
   }
 
-  function closeMore() {
-    var button = document.getElementById("guidedMoreButton");
-    var panel = document.getElementById("guidedMorePanel");
-    if (!button || !panel) return;
-    button.setAttribute("aria-expanded", "false");
-    panel.setAttribute("aria-hidden", "true");
-    panel.setAttribute("inert", "");
-    panel.classList.remove("is-open");
-    document.body.classList.remove("wwam-directory-open");
+  function wireHomeSearch() {
+    var form = document.getElementById("wwamHomeSearch");
+    var input = document.getElementById("wwamHomeSearchInput");
+    if (!form || !input) return;
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+      var query = input.value.trim();
+      history.pushState(null, "", location.pathname + "#ask");
+      setJourney("ask", "ask", { behavior: "smooth", focus: true });
+      window.setTimeout(function () {
+        var askInput = document.getElementById("askInput");
+        var askForm = document.getElementById("askForm");
+        if (!askInput) return;
+        askInput.value = query;
+        askInput.focus();
+        if (query && askForm) {
+          if (typeof askForm.requestSubmit === "function") askForm.requestSubmit();
+          else askForm.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+        }
+      }, 120);
+    });
   }
-
-  var guidedMikeIndex = 0;
-  var guidedMikeSlides = null;
-
-  function closeGuidedMike() {
-    var tour = document.getElementById("pitchTour");
-    if (!tour) return;
-    tour.classList.remove("show");
-    tour.setAttribute("aria-hidden","true");
-    document.body.classList.remove("modal-open");
-  }
-
-  function runGuidedMikeAction(action) {
-    var route = action || {};
-    closeGuidedMike();
-    if (route.kind === "source" || route.kind === "aftermath") {
-      location.assign(location.pathname + "?source=" + encodeURIComponent(route.sourceId || "LV2rmwEA0w4") + "&section=" + encodeURIComponent(route.section || "wiki") + "#archive");
-      return;
-    }
-    var targets = {night:["highlights","night-shift"],archive:["shows","archive"],lore:["characters","lore"],pilot:["studio","pitch"]};
-    var target = targets[route.kind] || ["home","top"];
-    setJourney(target[0],target[1]);
-    var node = document.getElementById(target[1]);
-    if (node) node.scrollIntoView({behavior:"smooth",block:"start"});
-  }
-
-  function renderGuidedMike() {
-    var slides = guidedMikeSlides || [];
-    var slide = slides[guidedMikeIndex];
-    if (!slide) return;
-    document.getElementById("tourBody").innerHTML = '<div class="tour-number">' + slide.number + '</div><div><p>' + slide.eyebrow + '</p><h2>' + slide.title + '</h2><span>' + slide.body + '</span><blockquote>' + slide.proof + '</blockquote><button class="tour-proof-button" data-guided-tour-proof>' + slide.action.label + ' →</button></div>';
-    document.getElementById("tourProgress").style.width = ((guidedMikeIndex + 1) / slides.length * 100) + "%";
-    document.getElementById("tourCounter").textContent = (guidedMikeIndex + 1) + " / " + slides.length;
-    document.getElementById("tourBack").disabled = guidedMikeIndex === 0;
-    document.getElementById("tourNext").textContent = guidedMikeIndex === slides.length - 1 ? "COPY DEMO LINK" : "NEXT →";
-  }
-
-  function revealGuidedMike() {
-    guidedMikeSlides = window.WWAM_PITCH_TOUR || [];
-    if (!guidedMikeSlides.length) return;
-    guidedMikeIndex = 0;
-    renderGuidedMike();
-    var tour = document.getElementById("pitchTour");
-    tour.classList.add("show");
-    tour.setAttribute("aria-hidden","false");
-    document.body.classList.add("modal-open");
-    var close = document.getElementById("tourClose");
-    if (close) close.focus();
-  }
-
-  function openGuidedMike() {
-    if (window.WWAM_PITCH_TOUR && window.WWAM_PITCH_TOUR.length) { revealGuidedMike(); return; }
-    var existing = document.querySelector('script[src*="pitch-tour-data.js"]');
-    if (existing) { existing.addEventListener("load",revealGuidedMike,{once:true}); return; }
-    var script = document.createElement("script");
-    script.src = "pitch-tour-data.js";
-    script.onload = revealGuidedMike;
-    document.head.appendChild(script);
-  }
-
   function wireNavigation() {
     var latestButton = document.getElementById("latestDossierButton");
     if (latestButton) latestButton.addEventListener("click", function (event) {
@@ -330,59 +444,36 @@
       event.stopImmediatePropagation();
       location.assign(location.pathname + "?source=LV2rmwEA0w4&section=wiki#archive");
     }, true);
-    var button = document.getElementById("guidedMoreButton");
-    var panel = document.getElementById("guidedMorePanel");
-    if (button && panel) button.addEventListener("click", function () {
-      var open = button.getAttribute("aria-expanded") !== "true";
-      button.setAttribute("aria-expanded", String(open));
-      panel.setAttribute("aria-hidden", String(!open));
-      if (open) panel.removeAttribute("inert"); else panel.setAttribute("inert", "");
-      panel.classList.toggle("is-open", open);
-      document.body.classList.toggle("wwam-directory-open", open);
-      if (open) window.setTimeout(function () {
-        var first = panel.querySelector("a,button"); if (first) first.focus();
-      }, 0);
-    });
+
     document.addEventListener("click", function (event) {
-      var mikeLauncher = event.target.closest("#mikeButton,#footerPitch,#pitchTourButton");
-      var tourControl = event.target.closest("#tourClose,#tourBack,#tourNext,[data-guided-tour-proof]");
-      if (mikeLauncher) {
-        event.preventDefault(); event.stopImmediatePropagation(); openGuidedMike(); return;
-      }
-      if (tourControl) {
-        event.preventDefault(); event.stopImmediatePropagation();
-        if (tourControl.id === "tourClose") closeGuidedMike();
-        else if (tourControl.id === "tourBack") { guidedMikeIndex = Math.max(0,guidedMikeIndex-1); renderGuidedMike(); }
-        else if (tourControl.id === "tourNext") {
-          if (guidedMikeSlides && guidedMikeIndex < guidedMikeSlides.length-1) { guidedMikeIndex += 1; renderGuidedMike(); }
-          else if (navigator.clipboard) navigator.clipboard.writeText(location.origin + location.pathname);
-        } else if (tourControl.hasAttribute("data-guided-tour-proof")) runGuidedMikeAction(guidedMikeSlides[guidedMikeIndex].action);
-        return;
-      }
       var link = event.target.closest("[data-journey-link]");
       if (link) {
-        setJourney(link.dataset.journeyLink, (link.getAttribute("href") || "#top").split("#")[1] || "top");
-        closeMore();
-      } else if (panel && panel.classList.contains("is-open") && !event.target.closest("#guidedMorePanel") && !event.target.closest("#guidedMoreButton")) closeMore();
+        var href = link.getAttribute("href") || "#top";
+        var targetId = href.split("#")[1] || "top";
+        if (href.charAt(0) === "#") {
+          event.preventDefault();
+          if (location.hash !== href || location.search) history.pushState(null, "", location.pathname + href);
+        }
+        setJourney(link.dataset.journeyLink, targetId, { behavior: "smooth", focus: true });
+      }
     });
-    document.addEventListener("keydown", function (event) {
-      if (event.key === "Escape" && panel && panel.classList.contains("is-open")) { closeMore(); if (button) button.focus(); }
-    });
+
     window.addEventListener("hashchange", function () {
-      closeMore();
       var target = (location.hash || "#top").slice(1);
-      setJourney(journeyFromLocation(), target);
+      setJourney(journeyFromLocation(), target, { behavior: "auto" });
     });
   }
 
   function boot() {
     buildGuidedHome();
+    buildRouteHubs();
     assignGroups();
     arrangeFanFirstControls();
     tuckEditorTools();
+    wireHomeSearch();
     wireNavigation();
     var initialTarget = (location.hash || "#top").slice(1);
-    setJourney(journeyFromLocation(), initialTarget);
+    setJourney(journeyFromLocation(), initialTarget, { behavior: "auto" });
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);

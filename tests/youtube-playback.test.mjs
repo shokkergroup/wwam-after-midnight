@@ -81,7 +81,7 @@ test("file launches keep playback on-page through the hosted player bridge", () 
   assert.match(markup, /video=5et_A1tYnio/);
   assert.match(markup, /referrerpolicy="strict-origin-when-cross-origin"/);
   assert.match(companion, /!root\.ShokkerYouTubePlayback\.hosted\(\)/);
-  assert.match(companion, /HOSTED PLAYER READY \/\/ MANUAL MEMORY SYNC/);
+  assert.match(companion, /HOSTED PLAYER READY \/\/ USE THE TIMELINE IF NEEDED/);
 });
 
 test("HTTP pages can force the hosted bridge after YouTube identity error 153", () => {
@@ -104,10 +104,8 @@ test("HTTP pages can force the hosted bridge after YouTube identity error 153", 
   assert.match(markup, /start=5406/);
   assert.match(markup, /end=5432/);
   assert.doesNotMatch(markup, /origin=https%3A%2F%2Fwiki\.example/);
-  assert.match(
-    companion,
-    /PLAYER IDENTITY ERROR 153 RECOVERED \/\/ HOSTED PLAYER \+ MANUAL MEMORY SYNC/
-  );
+  assert.match(companion, /if \(code === 153\)/);
+  assert.match(companion, /PLAYER SWITCHED \/\/ USE THE TIMELINE IF THE SECOND SCREEN DRIFTS/);
   assert.match(companion, /forceHostedBridge:\s*forceHostedBridge === true/);
 });
 
@@ -181,7 +179,8 @@ test("the document and both direct player paths cannot suppress YouTube's referr
       index.indexOf('app.js?v=')
   );
   assert.equal((app.match(/ShokkerYouTubePlayback\.iframe/g) || []).length, 2);
-  assert.match(companion, /PLAYER IDENTITY ERROR 153/);
+  assert.match(companion, /if \(code === 153\)/);
+  assert.match(companion, /PLAYER SWITCHED \/\/ USE THE TIMELINE/);
   assert.doesNotMatch(
     index + app + companion + source,
     /referrerpolicy=["']no-referrer|referrerPolicy\s*=\s*["']no-referrer/i
