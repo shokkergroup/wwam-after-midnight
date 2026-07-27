@@ -191,10 +191,10 @@ test("Cold Open Factory is a working fourth Clip Lab mode with source-ledgered e
 
 test("trust-sensitive public copy keeps archive boundaries visible", () => {
   assert.match(search, /EARLIEST MACHINE-INDEXED CHARACTER SIGNAL|machine-indexed character signal/i);
-  assert.match(app, /EARLIEST TIMESTAMP-VALIDATED CURATED PERFORMANCE RECEIPT/);
+  assert.match(app, /EARLIEST PLAYABLE CHARACTER CLIP ON THIS SHELF/);
   assert.match(app, /MACHINE-SURFACED ARGUMENT BOARD/);
   assert.match(app, /not speaker-diarized/i);
-  assert.match(index, /Graph receipt links/i);
+  assert.match(index, /shows uncertainty when the tape cannot prove something/i);
 });
 
 test("Trust Desk correction exports make the dry-run ripple visible", () => {
@@ -235,6 +235,14 @@ test("direct links wait for the advisory and short overlays remain operable", ()
   assert.match(app, /function openInitialRoute\(\)/);
   assert.match(app, /if \(gate && !gate\.classList\.contains\("gone"\)\) return/);
   assert.match(app, /openInitialRoute\(\);/);
+  assert.match(app, /String\(location\.hash \|\| ""\)\.replace\(\/\^#\/, ""\)/);
+  assert.match(app, /document\.getElementById\(targetId\)/);
+  assert.match(app, /routeTarget\.scrollIntoView\(\)/);
+  assert.match(app, /else \{\s*focusSoon\("#top"\);\s*\}/);
+  assert.doesNotMatch(
+    app,
+    /gate\.setAttribute\("aria-hidden", "true"\);\s*syncBackgroundInert\(\);\s*focusSoon\("#top"\);\s*openInitialRoute\(\);/,
+  );
   assert.match(styles, /\.content-gate[\s\S]*overflow-y: auto/);
   assert.match(styles, /@media \(max-height: 620px\)/);
   assert.match(styles, /\.tour-shell[\s\S]*height: 100dvh/);
@@ -286,7 +294,7 @@ test("reduced mode masks source, derived, and user text without changing evidenc
 
   assert.match(app, /displayUiText\(analysis\.answer\)/);
   assert.match(app, /displayUiText\(analysis\.entity\.toUpperCase\(\)\)/);
-  assert.match(app, /displayUiText\([\s\S]{0,160}response\.subject\.toUpperCase\(\)/);
+  assert.match(app, /data-character-riff-subject/);
   assert.match(app, /displayUiText\(item\.label\)/);
   assert.match(app, /displayUiText\(reveal\.explanation\)/);
   assert.match(app, /displayUiText\(round\.prompt\)/);

@@ -12,7 +12,7 @@ test("the fan-facing shell exposes signature WWAM destinations without a mystery
   const html = read("index.html");
   const shell = read("guided-shell.js");
 
-  assert.match(html, /wwam-editorial-v2\.css\?v=1\.0\.0-editorial6/);
+  assert.match(html, /wwam-editorial-v2\.css\?v=1\.0\.0-editorial7/);
   assert.match(html, />\s*ALL ROOMS\s*<span/);
   assert.doesNotMatch(html, />MORE\s*<span>\+<\/span>/);
   assert.match(html, /class="wwam-signature-rail"/);
@@ -21,6 +21,13 @@ test("the fan-facing shell exposes signature WWAM destinations without a mystery
   assert.match(shell, /"steves-asshole": "highlights"/);
   assert.match(shell, /Escape/);
   assert.match(shell, /wwam-directory-open/);
+  assert.match(shell, /__wwamRoutePinTimer/);
+  assert.match(shell, /__wwamReleaseRoutePin/);
+  assert.match(shell, /pointerdown/);
+  assert.match(shell, /keydown/);
+  assert.match(shell, /12000/);
+  assert.match(shell, /setJourney\(journeyFromLocation\(\), initialTarget\)/);
+  assert.match(shell, /root\.style\.scrollBehavior = "auto"/);
 });
 
 test("the homepage leads with one real tape and moves duplicate onboarding out of view", () => {
@@ -36,6 +43,16 @@ test("the homepage leads with one real tape and moves duplicate onboarding out o
   assert.match(css, /\.guided-home-head,\s*\n\.guided-door-grid \{ display: none !important; \}/);
 });
 
+test("franchise doors open the commentary shelf instead of a hidden studio lab", () => {
+  const app = read("app.js");
+  const start = app.indexOf("function renderFranchises()");
+  const end = app.indexOf("function renderFranchiseFilters()", start);
+  const renderer = app.slice(start, end);
+
+  assert.match(renderer, /setFranchise\(franchise\)/);
+  assert.match(renderer, /getElementById\("autopsies"\)/);
+  assert.doesNotMatch(renderer, /getElementById\("labs"\)/);
+});
 test("Ask and Character put the action first and avoid nested result scrollers", () => {
   const html = read("index.html");
   const app = read("app.js");
@@ -54,7 +71,8 @@ test("Ask and Character put the action first and avoid nested result scrollers",
   assert.match(app, /<details class="ask-method"><summary>HOW THIS ANSWER WAS CHECKED<\/summary>/);
   assert.match(app, /askMore\.className = "ask-more-results"/);
   assert.match(app, /PLAY THIS PART/);
-  assert.match(shell, /HELP IMPROVE THIS ANSWER/);
+  assert.match(shell, /REPORT A WRONG ANSWER/);
+  assert.match(shell, /disclosure\.hidden = !hasAnswer/);
   assert.match(css, /\.ask-review-disclosure/);
   assert.match(search, /Each upload is counted once\./);
   assert.match(search, /exact subject match/);
@@ -79,4 +97,12 @@ test("public fan copy contains no pricing or private Mike-ready language", () =>
     .join("\n");
 
   assert.doesNotMatch(visible, /\$\s*\d|pricing|price list|buy now|paid pilot|Mike-ready/i);
+});
+test("the room directory stays fan-facing instead of exposing the internal firehose", () => {
+  const html = read("index.html");
+  const shell = read("guided-shell.js");
+
+  assert.doesNotMatch(html, /data-journey-link="all"/);
+  assert.match(html, /Back to Tonight's Picks/);
+  assert.doesNotMatch(shell, /machinery is still here|film ledger|evidence-bounded/i);
 });

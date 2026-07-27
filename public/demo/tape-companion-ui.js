@@ -112,7 +112,7 @@
   }
 
   function setStatus(message) {
-    elements.status.textContent = clean(message || "COMPANION READY");
+    elements.status.textContent = clean(message || "FULL COMPANIONS");
   }
 
   function buildInputs() {
@@ -186,14 +186,14 @@
     lastProofCount = crossedIds.size;
     var metrics = engine.metrics;
     var cards = [
-      [metrics.companionReady + " / " + metrics.sources, "COMPANION READY",
-        metrics.limited + " sources remain visibly source-only"],
-      [fmt(metrics.exactReceiptMembers), "EXACT RECEIPT MEMBERS",
-        fmt(metrics.exactIncidents) + " synchronized incidents after bounded fusion"],
-      [fmt(metrics.heatWindows), "DERIVED HEAT WINDOWS",
-        "Machine-derived temperature, never audience truth"],
-      [crossedIds.size, "CROSSED THIS SESSION",
-        "Future exact-receipt text remains sealed"]
+      [metrics.companionReady + " / " + metrics.sources, "FULL COMPANIONS",
+        metrics.limited + " shows stay watch-only"],
+      [fmt(metrics.exactReceiptMembers), "PLAYABLE MOMENTS",
+        fmt(metrics.exactIncidents) + " moments tied to an exact second"],
+      [fmt(metrics.heatWindows), "SHOW ENERGY WINDOWS",
+        "A rough guide to where the night gets loud"],
+      [crossedIds.size, "MOMENTS WE'VE PASSED",
+        "Upcoming moments stay out of sight"]
     ];
     elements.proof.innerHTML = cards.map(function (card) {
       return "<article><span>" + esc(card[1]) + "</span><b>" + esc(card[0]) +
@@ -221,7 +221,7 @@
         '" data-companion-source="' + esc(source.id) + '"><span>' +
         esc(source.date || "UNDATED") + " // " +
         esc(limited ? source.readiness.label : source.counts.exactReceiptMembers +
-          " RECEIPTS · " + source.counts.heatWindows + " HEAT") +
+          " MOMENTS · " + source.counts.heatWindows + " ENERGY WINDOWS") +
         "</span><b>" + esc(source.title) + "</b></button>";
     }).join("") || '<p class="companion-fallback">NO SOURCE TITLE MATCHES THAT SEARCH.</p>';
     Array.prototype.forEach.call(
@@ -229,7 +229,7 @@
       function (button) {
         button.onclick = function () {
           selectSource(button.getAttribute("data-companion-source"), 0, {
-            reason: "SOURCE SELECTED // PRESS PLAY WHEN READY"
+            reason: "SHOW READY // PRESS PLAY"
           });
         };
       }
@@ -307,7 +307,7 @@
         source,
         startAt,
         true,
-        "HOSTED PLAYER READY // MANUAL MEMORY SYNC",
+        "HOSTED PLAYER READY // USE THE TIMELINE IF NEEDED",
         "Local-file mode routes playback through the hosted WWAM player. " +
         "Use the manual sync rail to move the memory system to the same second."
       );
@@ -317,7 +317,7 @@
       '<div class="companion-player-host"><div id="companionYoutubePlayer"></div></div>';
     setStatus(source.readiness.status === "companion-ready"
       ? "LOADING OFFICIAL YOUTUBE PLAYER"
-      : "SOURCE-ONLY MODE // TIMED CLAIMS HELD");
+      : "WATCH-ONLY SHOW // NO TIMED MOMENTS");
     loadYouTubeApi().then(function (YT) {
       if (!activeSource || activeSource.id !== source.id) return;
       player = new YT.Player("companionYoutubePlayer", {
@@ -331,20 +331,20 @@
             playerReady = true;
             if (startAt > 0) player.seekTo(startAt, true);
             setStatus(source.readiness.status === "companion-ready"
-              ? "PLAYER READY // MEMORY RAIL ARMED"
-              : "PLAYER READY // SOURCE-ONLY EVIDENCE BOUNDARY");
+              ? "PLAYER READY // SECOND SCREEN READY"
+              : "PLAYER READY // WATCH-ONLY SHOW");
             ticker = setInterval(tickPlayer, 500);
           },
           onStateChange: function (event) {
             if (!root.YT || !root.YT.PlayerState) return;
             if (event.data === root.YT.PlayerState.PLAYING) {
-              setStatus("PLAYBACK LIVE // MEMORY RAIL SYNCHRONIZED");
+              setStatus("SHOW PLAYING // SECOND SCREEN IN SYNC");
             } else if (event.data === root.YT.PlayerState.PAUSED) {
               persist(true);
-              setStatus("PLAYBACK PAUSED // MEMORY HELD AT " + timecode(currentSecond));
+              setStatus("SHOW PAUSED AT " + timecode(currentSecond));
             } else if (event.data === root.YT.PlayerState.ENDED) {
               persist(true);
-              setStatus("TAPE COMPLETE // " + crossedIds.size + " INCIDENTS CROSSED");
+              setStatus("SHOW COMPLETE // " + crossedIds.size + " MOMENTS PASSED");
             }
           },
           onError: function (event) {
@@ -355,13 +355,13 @@
                 source,
                 currentSecond || startAt,
                 true,
-                "PLAYER IDENTITY ERROR 153 RECOVERED // HOSTED PLAYER + MANUAL MEMORY SYNC",
-                "YouTube could not verify the first player's page identity, so Tape Companion replaced it with the hosted on-page player. Use the manual sync rail to move the memory system to the same second."
+                "PLAYER SWITCHED // USE THE TIMELINE IF THE SECOND SCREEN DRIFTS",
+                "YouTube could not start the first player, so Tape Companion switched players. If the second screen drifts, move the timeline to the same second."
               );
             } else {
               setStatus("EMBED UNAVAILABLE // MANUAL SYNC + OFFICIAL LINK READY");
               elements.fallback.textContent =
-                "YouTube could not play this source in the embedded player. Use the exact official-source link and move the manual sync rail to the same second.";
+                "YouTube could not play this show here. Open the original, then move this timeline to the same second.";
             }
           }
         }
@@ -371,7 +371,7 @@
         source,
         currentSecond || startAt,
         false,
-        "DIRECT PLAYER READY // MANUAL MEMORY SYNC",
+        "PLAYER READY // USE THE TIMELINE IF NEEDED",
         "The synchronized YouTube API was unavailable, so Tape Companion loaded the same official source in a direct on-page player. Use the manual sync rail to move the memory system to the same second."
       );
     });
@@ -393,7 +393,7 @@
         badges.push({
           className: "is-red",
           label: "RED BAND #" + String(annotation.rank).padStart(3, "0") +
-            " // MACHINE CANDIDATE"
+            " // ARCHIVE PICK"
         });
       } else if (annotation.type === "editorial-selection") {
         badges.push({
@@ -404,7 +404,7 @@
         badges.push({
           className: "is-character",
           label: clean(annotation.displayLabel || "RECURRING CHARACTER") +
-            " // CLIP SPEAKER NOT DIARIZED"
+            " // VOICE NOT CONFIRMED"
         });
       }
     });
@@ -415,7 +415,7 @@
       badges.push({
         className: "",
         label: "ARCHIVE CONNECTION // " + clean(connection.displayLabel) +
-          " // " + Number(connection.evidenceCount || 0) + " RECEIPTS"
+          " // " + Number(connection.evidenceCount || 0) + " LINKS"
       });
     }
     return badges;
@@ -436,22 +436,22 @@
 
   function renderEvent(event) {
     if (!event) {
-      return "<span>CURRENT INDEXED STATE</span><p>No exact receipt is active in this 18-second window. The heat model may still be running.</p>";
+      return "<span>ON SCREEN NOW</span><p>Nothing is mapped in this 18-second stretch. Keep watching.</p>";
     }
     var subject = presentationMember(event);
     var badges = annotationBadges(event);
-    return "<span>" + esc(subject.label || "INDEXED RECEIPT") + " // " +
+    return "<span>" + esc(subject.label || "SHOW MOMENT") + " // " +
       esc(timecode(subject.at)) + "</span>" +
       (subject.excerpt
         ? "<blockquote>“" + esc(displayText(subject.excerpt)) + "”</blockquote>"
-        : "<p>Timestamped signal crossed. No public excerpt is required for this event.</p>") +
+        : "<p>This moment is mapped without showing an automatic-caption fragment.</p>") +
       (badges.length
         ? '<div class="companion-badges">' + badges.map(function (badge) {
             return '<b class="' + badge.className + '">' + esc(badge.label) + "</b>";
           }).join("") + "</div>"
         : "") +
       '<a href="' + esc(subject.url || sourceUrl(activeSource.id, subject.at)) +
-      '" target="_blank" rel="noopener">PLAY THIS RECEIPT ON THE OFFICIAL TAPE ↗</a>';
+      '" target="_blank" rel="noopener">PLAY THIS MOMENT IN THE ORIGINAL SHOW ↗</a>';
   }
 
   function uniqueEvents(events) {
@@ -473,8 +473,8 @@
     elements.official.href = sourceUrl(snapshot.source.id, currentSecond);
     elements.share.disabled = false;
     if (crossingEvents.length) {
-      setStatus(crossingEvents.length + " INDEXED " +
-        (crossingEvents.length === 1 ? "MEMORY" : "MEMORIES") + " CROSSED");
+      setStatus(crossingEvents.length + " " +
+        (crossingEvents.length === 1 ? "MOMENT" : "MOMENTS") + " PASSED");
     }
 
     var signature = [
@@ -496,12 +496,14 @@
     lastRenderSignature = signature;
 
     var heat = snapshot.currentHeat && snapshot.currentHeat.heat;
-    elements.heat.innerHTML = "<span>DERIVED HEAT WINDOW // NOT AUDIENCE TRUTH</span><b>" +
-      (heat ? Math.round(Number(heat.score || 0)) + " / 100" : "NO MODEL HERE") +
-      '</b><i style="--companion-heat:' +
-      (heat ? Math.round(Number(heat.score || 0)) : 0) + '%"></i>' +
+    var heatScore = heat ? Math.round(Number(heat.score || 0)) : 0;
+    var heatLabel = !heat ? "QUIET STRETCH" :
+      heatScore >= 75 ? "OFF THE RAILS" :
+        heatScore >= 45 ? "GETTING LOUD" : "LOW BOIL";
+    elements.heat.innerHTML = "<span>SHOW ENERGY // ROUGH GUIDE</span><b>" +
+      heatLabel + '</b><i style="--companion-heat:' + heatScore + '%"></i>' +
       (heat
-        ? "<small>" + esc(clean(heat.signal || "WINDOW TEXT SEALED")) +
+        ? "<small>" + esc(clean(heat.signal || "SHOW MOMENT")) +
           (heat.topic ? " // " + esc(clean(heat.topic)) : "") + "</small>"
         : "");
 
@@ -510,14 +512,14 @@
     var primarySubject = presentationMember(primary);
     elements.now.innerHTML = renderEvent(primary);
     elements.memoryTitle.textContent = primarySubject
-      ? clean(primarySubject.label || "INDEXED INCIDENT") + " CROSSED."
+      ? clean(primarySubject.label || "SHOW MOMENT") + " JUST PASSED."
       : snapshot.readiness.status === "companion-ready"
-        ? "THE RAIL IS LISTENING."
-        : "SOURCE-ONLY MODE.";
+        ? "THE SECOND SCREEN IS READY."
+        : "WATCH-ONLY SHOW.";
 
     var next = snapshot.future && snapshot.future.next;
-    elements.next.innerHTML = "<span>NEXT INDEXED DISTURBANCE // TEXT SEALED</span><b>" +
-      (next ? "IN " + timecode(next.secondsUntil) + " // " + timecode(next.at) : "END OF INDEXED RAIL") +
+    elements.next.innerHTML = "<span>COMING UP // DETAILS STAY HIDDEN</span><b>" +
+      (next ? "IN " + timecode(next.secondsUntil) + " // " + timecode(next.at) : "END OF SHOW MAP") +
       "</b>";
 
     var history = uniqueEvents((snapshot.history || []).concat(snapshot.activeEvents || []))
@@ -527,9 +529,9 @@
       var subject = presentationMember(event);
       var badges = annotationBadges(event);
       return "<li><time>" + esc(timecode(subject.at)) + "</time><b>" +
-        esc(displayText(subject.label || "INDEXED RECEIPT")) + "</b><small>" +
+        esc(displayText(subject.label || "SHOW MOMENT")) + "</b><small>" +
         esc(subject.excerpt ? displayText(subject.excerpt) :
-          badges[0] ? badges[0].label : "SOURCE-LINKED SIGNAL") + "</small></li>";
+          badges[0] ? badges[0].label : "MAPPED TO THE ORIGINAL SHOW") + "</small></li>";
     }).join("");
     renderProof();
     persist(false);
@@ -575,7 +577,7 @@
       return candidate.id === sourceId;
     })[0];
     if (!source) {
-      setStatus("SOURCE NOT PRESENT IN THIS COMPANION SNAPSHOT");
+      setStatus("THAT SHOW IS NOT IN THIS COMPANION");
       return;
     }
     activeSource = source;
@@ -598,7 +600,7 @@
     setStatus(
       source.readiness.status === "companion-ready"
         ? options && options.reason || "SOURCE LOADED // PRESS PLAY WHEN READY"
-        : "SOURCE-ONLY TAPE LOADED // PLAYBACK READY // TIMED MEMORY HELD"
+        : "WATCH-ONLY SHOW LOADED // PRESS PLAY"
     );
   }
 
@@ -607,11 +609,11 @@
     var sourceId = clean(detail && detail.sourceId);
     var at = Number(detail && detail.at);
     if (!sourceId || !Number.isFinite(at) || at < 0) {
-      setStatus("SOURCE DOSSIER HANDOFF HELD // INVALID SOURCE OR TIME");
+      setStatus("SHOW WIKI MOMENT COULD NOT LOAD // TRY ANOTHER");
       return;
     }
     selectSource(sourceId, at, {
-      reason: "SOURCE DOSSIER HANDOFF // EXACT SECOND LOADED // PRESS PLAY WHEN READY"
+      reason: "SHOW WIKI MOMENT LOADED // PRESS PLAY"
     });
   }
 
@@ -622,13 +624,13 @@
         return source.readiness.status === "companion-ready";
       })[0] || sources[0];
       if (latest) selectSource(latest.id, 0, {
-        reason: "LATEST INDEXED TAPE LOADED // PRESS PLAY"
+        reason: "NEWEST SHOW LOADED // PRESS PLAY"
       });
     };
     elements.resume.onclick = function () {
       var saved = "";
       try { saved = localStorage.getItem(storageKey) || ""; } catch {}
-      if (!saved || !restoreToken(saved, "LOCAL COMPANION STATE RESTORED")) {
+      if (!saved || !restoreToken(saved, "LAST WATCH RESTORED")) {
         setStatus(saved ? "SAVED STATE HELD // SNAPSHOT CHANGED" : "NO SAVED TAPE YET");
       }
     };
@@ -640,7 +642,7 @@
       previousSecond = at;
       updateAt(at, true);
       persist(true);
-      setStatus("MANUAL SYNC // " + timecode(at));
+      setStatus("TIMELINE MOVED TO " + timecode(at));
     });
     elements.share.onclick = function () {
       if (!activeSource) return;
@@ -649,7 +651,7 @@
       var url = new URL(location.href);
       url.searchParams.set("companion", token);
       url.hash = "companion";
-      copy(url.toString(), "EXACT COMPANION SECOND COPIED");
+      copy(url.toString(), "THIS SECOND COPIED");
     };
     root.addEventListener("wwam:tape-companion-open", handleCompanionOpen);
     root.addEventListener("pagehide", function () { persist(true); });
@@ -675,15 +677,15 @@
       }
       if (!restoreHandled) {
         setStatus(
-          fmt(engine.metrics.sources) + " REGISTERED SOURCES // " +
-          fmt(engine.metrics.companionReady) + " MEMORY-READY // CHOOSE ONE"
+          fmt(engine.metrics.sources) + " SHOWS // " +
+          fmt(engine.metrics.companionReady) + " FULL COMPANIONS // PICK ONE"
         );
       }
     } catch (error) {
       section.setAttribute("aria-busy", "false");
       section.setAttribute("data-companion-ready", "false");
       elements.proof.innerHTML =
-        "<article><span>COMPANION HELD</span><b>THE MEMORY RAIL FAILED CLOSED</b><p>" +
+        "<article><span>SECOND SCREEN UNAVAILABLE</span><b>THIS ROOM COULD NOT OPEN</b><p>" +
         esc(error && error.message ? error.message : String(error)) + "</p></article>";
       setStatus("COMPANION INITIALIZATION FAILED");
     }

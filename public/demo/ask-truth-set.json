@@ -60,7 +60,7 @@
         "status": "supported",
         "sourceId": "G2m0effDrwI",
         "kind": "moment",
-        "answerIncludes": "target-proximate"
+        "answerIncludes": "one moment, not their final word"
       }
     },
     {
@@ -95,7 +95,7 @@
         "sourceId": "BIbyzMlstmM",
         "kind": "moment",
         "at": 1528,
-        "answerIncludes": "won't invent a name"
+        "answerIncludes": "won't guess"
       }
     },
     {
@@ -106,7 +106,7 @@
         "intent": "opinion",
         "resultCount": 0,
         "confidence": 0,
-        "answerIncludes": "No target-proximate evaluative receipt"
+        "answerIncludes": "answer that take honestly"
       }
     },
     {
@@ -132,7 +132,7 @@
         "selectionSourceId": "LV2rmwEA0w4",
         "selectionMatchMode": "latest-indexed-livestream",
         "allResultsSameSource": true,
-        "answerIncludes": "not blended streams or invented dialogue"
+        "answerIncludes": "Every jump stays inside that one show"
       }
     },
     {
@@ -146,7 +146,7 @@
         "at": 8057.28,
         "performanceReceiptId": "loomis-dj",
         "trueOriginClaim": false,
-        "answerIncludes": "not a claim that the bit or portrayal originated there"
+        "answerIncludes": "may not be the first time they ever did the bit"
       }
     },
     {
@@ -161,7 +161,7 @@
         "selectionMode": "next",
         "selectionResolvedFrom": "named-result",
         "allResultsSameSource": true,
-        "answerIncludes": "next indexed highlight"
+        "answerIncludes": "next saved moment"
       }
     },
     {
@@ -187,7 +187,7 @@
         "resultCount": 0,
         "selectionSourceId": "fpNtQMexZiw",
         "selectionMatchMode": "exact",
-        "answerIncludes": "will not substitute adjacent franchise content"
+        "answerIncludes": "won't swap in a different franchise video"
       }
     },
     {
@@ -197,7 +197,7 @@
       "expect": {
         "status": "speaker-unknown",
         "resultCount": 0,
-        "answerIncludes": "cannot identify a host"
+        "answerIncludes": "don't reliably say who is speaking"
       }
     },
     {
@@ -281,7 +281,7 @@
         "collectionTotal": 13,
         "collectionUnit": "commentaries",
         "allResultsKind": "tape",
-        "answerIncludes": "13 unique indexed commentaries"
+        "answerIncludes": "13 different commentaries"
       }
     },
     {
@@ -326,7 +326,7 @@
         "views": 5067,
         "direction": "ascending",
         "queryPlanOutputShape": "source-ranking",
-        "answerIncludes": "least-viewed indexed livestream"
+        "answerIncludes": "least-viewed livestream here"
       }
     },
     {
@@ -368,7 +368,7 @@
           "Slenderman",
           "Corey Feldman"
         ],
-        "answerIncludes": "recurring characters are mapped right now"
+        "answerIncludes": "recurring characters are ready to explore"
       }
     },
     {
@@ -449,7 +449,7 @@
         "at": 1090,
         "selectionMode": "previous",
         "selectionResolvedFrom": "named-result",
-        "answerIncludes": "previous indexed highlight"
+        "answerIncludes": "previous saved moment"
       }
     },
     {

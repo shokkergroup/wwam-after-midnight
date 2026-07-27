@@ -356,7 +356,7 @@ test("unknown subjects fail closed without collateral archive results", async ()
     assert.equal(answer.confidence, 0, query);
     assert.deepEqual(answer.results, [], query);
     assert.deepEqual(answer.evidenceChain, [], query);
-    assert.match(answer.answer, /archive gap|no verified/i, query);
+    assert.match(answer.answer, /doesn't prove.*never discussed/i, query);
     assert.ok(answer.suggestions.length > 0, query);
   }
 });
@@ -369,7 +369,7 @@ test("speaker and owner-shaped questions preserve receipts but refuse invented a
     assert.equal(answer.questionType, "speaker", query);
     assert.equal(answer.status, "speaker-unknown", query);
     assert.equal(answer.recommendedSurface.href, "#canon", query);
-    assert.match(answer.answer, /speaker|host|attribution|identify/i, query);
+    assert.match(answer.answer, /won't guess|don't reliably say who is speaking/i, query);
     assert.doesNotMatch(
       answer.answer,
       /\b(?:Mike|J) (?:did|does|performed|portrayed|said)\b/i,
@@ -400,7 +400,7 @@ test("character-origin questions expose an archive-first receipt without claimin
     );
     assert.equal(answer.results[0].archiveBoundary.trueOriginClaim, false, scenario.query);
     assert.match(answer.evidenceChain[0].role, /EARLIEST MACHINE-INDEXED/i, scenario.query);
-    assert.match(answer.answer, /not a claim.*originated/i, scenario.query);
+    assert.match(answer.answer, /not proof.*started there/i, scenario.query);
     assert.equal(answer.recommendedSurface.href, "#lore", scenario.query);
     assertPlayableReceipts(answer, scenario.query);
   }
@@ -426,7 +426,7 @@ test("explicit sentiment and trajectory questions return take evidence, not come
     assert.equal(answer.intent, "trajectory", query);
     assert.equal(answer.status, "archive-boundary", query);
     assert.equal(answer.recommendedSurface.href, "#canon", query);
-    assert.match(answer.answer, /cannot prove|not enough evidence/i, query);
+    assert.match(answer.answer, /not proof|not enough tape/i, query);
     assert.ok(answer.results.length > 0, query);
     for (const result of answer.results) {
       assert.equal(result.kind, "moment", query);

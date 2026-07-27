@@ -73,10 +73,10 @@ test("collection counts and lists use unique source records before the display c
   assert.equal(halloween.collection.displayed, 7);
   assert.equal(halloween.selectionPlan.collection.total, 13);
   assert.ok(halloween.results.every((result) => result.kind === "tape"));
-  assert.match(halloween.answer, /13 unique indexed commentaries/i);
+  assert.match(halloween.answer, /13 different commentaries/i);
 
   assert.equal(friday.collection.total, 12);
-  assert.match(friday.answer, /12 unique indexed commentaries/i);
+  assert.match(friday.answer, /12 different commentaries/i);
 
   assert.equal(list.queryPlan.outputShape, "source-list");
   assert.equal(list.collection.total, 13);
@@ -108,7 +108,7 @@ test("year-scoped source rankings filter before applying view and date selectors
   assert.equal(leastViewedLive.queryPlan.controls.direction, "ascending");
   assert.equal(leastViewedLive.results[0].sourceId, "LV2rmwEA0w4");
   assert.equal(leastViewedLive.results[0].views, 5067);
-  assert.match(leastViewedLive.answer, /least-viewed indexed livestream/i);
+  assert.match(leastViewedLive.answer, /least-viewed livestream/i);
 });
 
 test("least-favorite language is negative and still requires target-proximate evidence", async () => {
@@ -254,9 +254,9 @@ test("new planning routes leave exact-title, speaker, and source-audio firewalls
   assert.equal(restricted.status, "topic-only-boundary");
   assert.equal(restricted.selectionPlan.source.sourceId, "fpNtQMexZiw");
   assert.deepEqual(restricted.results, []);
-  assert.match(restricted.answer, /will not substitute adjacent franchise content/i);
+  assert.match(restricted.answer, /won't swap in a different franchise video/i);
 
   assert.equal(speaker.status, "speaker-unknown");
   assert.deepEqual(speaker.results, []);
-  assert.match(speaker.answer, /cannot identify a host/i);
+  assert.match(speaker.answer, /auto-captions don't reliably say who is speaking/i);
 });

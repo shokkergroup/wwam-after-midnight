@@ -100,7 +100,7 @@ test("character roster cards keep performer mapping out of clip attribution", ()
     app,
     /EARLIEST VERIFIED CURRENT-SET RECEIPT|>VERIFIED PERFORMANCE RECEIPTS</,
   );
-  assert.match(app, /EARLIEST TIMESTAMP-VALIDATED CURATED PERFORMANCE RECEIPT/);
+  assert.match(app, /EARLIEST PLAYABLE CHARACTER CLIP ON THIS SHELF/);
 });
 
 test("Ask speaker labels fail closed without explicit certification", () => {

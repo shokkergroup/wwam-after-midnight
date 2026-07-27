@@ -41,6 +41,14 @@
       'data-night-guide-open-rooms aria-expanded="false"><span>All Rooms</span></button></nav>';
   }
 
+  function delegateRoomsControl(event, control) {
+    if (event && typeof event.preventDefault === "function") event.preventDefault();
+    if (event && typeof event.stopPropagation === "function") event.stopPropagation();
+    if (!control || typeof control.click !== "function") return false;
+    control.click();
+    return true;
+  }
+
   function create(options) {
     options = options || {};
     var documentRef = options.document || root.document;
@@ -95,10 +103,8 @@
     }
 
     function openExistingRooms(event) {
-      event.preventDefault();
       var control = currentRoomsControl();
-      if (!control) return;
-      control.click();
+      if (!delegateRoomsControl(event, control)) return;
       windowRef.setTimeout(syncRoomsState, 0);
     }
 
@@ -188,6 +194,7 @@
     MEDIA_QUERY: MEDIA_QUERY,
     ROUTES: ROUTES,
     renderMarkup: renderMarkup,
+    delegateRoomsControl: delegateRoomsControl,
     create: create,
     autoMount: autoMount
   });

@@ -61,7 +61,7 @@ test("the companion preserves source separation, retry mounting, and in-modal na
   const shell = await readFile(new URL("guided-shell.js", demo), "utf8");
   const css = await readFile(new URL("guided-shell.css", demo), "utf8");
   assert.match(script, /ABOUT THE MOVIE \/\/ EXTERNAL CONTEXT/);
-  assert.match(script, /SYNC CALIBRATION REQUIRED/);
+  assert.match(script, /MOVIE SYNC NOT SET YET/);
   assert.match(script, /MutationObserver/);
   assert.match(script, /setInterval/);
   assert.match(script, /modal\.scrollTo/);

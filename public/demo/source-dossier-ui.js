@@ -13,6 +13,7 @@
     neighborhood: 3,
     artifacts: 6
   });
+  var COMPACT_SHOW_WIKI_RECEIPTS = 2;
   var SECTION_IDS = Object.freeze({
     proof: "sourceDossierProof",
     player: "sourceDossierPlayerSection",
@@ -53,6 +54,10 @@
 
   function clean(value) {
     return String(value == null ? "" : value).replace(/\s+/g, " ").trim();
+  }
+
+  function cleanCaptionExcerpt(value) {
+    return clean(value).replace(/^(?:>>\s*)+/, "").trim();
   }
 
   function array(value) {
@@ -119,7 +124,7 @@
 
   function coverageLabel(value) {
     return {
-      "caption-backed": "FULL CAPTIONS INDEXED",
+      "caption-backed": "FULL SHOW WIKI",
       "caption-limited": "PARTIAL CAPTIONS",
       "metadata-only": "UPLOAD DETAILS ONLY",
       unavailable: "UPLOAD RECORD INCOMPLETE"
@@ -280,14 +285,15 @@
     function densityMarkup() {
       return '<aside class="source-dossier-density" data-source-dossier-density="' +
         (state.fullFile ? "full" : "compact") + '" aria-label="Source dossier display depth">' +
-        '<div><span>' + (state.fullFile ? "ALL ARCHIVE DETAILS" : "QUICK VIEW") +
+        '<div><span>' + (state.fullFile ? "THE FULL SHOW FILE" : "SHOW HIGHLIGHTS") +
         '</span><p>' + (state.fullFile ?
-          "Every saved timestamp, related show, and archive note is visible." :
-          "The recap and strongest moments stay up front. The deeper archive notes are still one click away.") +
+          "Every saved timestamp, related show, and research note is visible." :
+          "Start with the recap and signature moments. The full research file is one click away.") +
         '</p></div><button type="button" data-source-dossier-action="' +
         (state.fullFile ? "close-full-file" : "open-full-file") + '" aria-expanded="' +
-        (state.fullFile ? "true" : "false") + '">' +
-        (state.fullFile ? "BACK TO QUICK VIEW" : "SHOW ALL ARCHIVE DETAILS") +
+        (state.fullFile ? "true" : "false") + '"' +
+        (state.fullFile ? "" : ' aria-controls="sourceDossierDeepResearch"') + '>' +
+        (state.fullFile ? "BACK TO SHOW HIGHLIGHTS" : "EXPLORE ALL") +
         '</button></aside>';
     }
 
@@ -559,8 +565,9 @@
         sequence[position + 1] : "";
       var returnId = lane ? showWikiLaneId(lane, laneIndex) :
         "sourceDossierShowWikiExperience";
-      var excerpt = receipt.publicExcerptAllowed && clean(receipt.excerpt)
-        ? '<p>&ldquo;' + esc(receipt.excerpt) + '&rdquo;</p>'
+      var excerptText = cleanCaptionExcerpt(receipt.excerpt);
+      var excerpt = receipt.publicExcerptAllowed && excerptText
+        ? '<p>&ldquo;' + esc(excerptText) + '&rdquo;</p>'
         : '<p class="is-withheld">The timestamp is saved, but this excerpt is not shown publicly.</p>';
       return '<aside class="source-dossier-now-playing" id="sourceDossierNowPlaying" ' +
         'data-now-playing-receipt="' + esc(receipt.key) + '"><header><div><span>NOW PLAYING</span><b>' +
@@ -593,37 +600,39 @@
         nowPlayingReceiptMarkup(dossier) + '</section>';
     }
 
-    function signalScoreLabel(value) {
-      if (value == null || value === "") return "";
-      var score = Number(value);
-      if (!Number.isFinite(score)) return "";
-      return String(Math.round(score * 100) / 100);
+    function publicReceiptEvidenceLabel(receipt) {
+      var evidence = token(clean(receipt.evidenceType) + " " + clean(receipt.evidenceLevel));
+      return evidence.indexOf("caption") >= 0 ?
+        "CAPTION-BACKED TIMESTAMP" : "REGISTERED TIMESTAMP";
+    }
+
+    function publicReceiptReviewLabel(receipt) {
+      var review = token(receipt.reviewState);
+      return review.indexOf("human") >= 0 || review.indexOf("editor") >= 0 ?
+        "EDITOR REVIEWED" : "TIMESTAMP REGISTERED";
     }
 
     function receiptMarkup(receipt, extraClass) {
-      var excerpt = receipt.publicExcerptAllowed && receipt.excerpt ?
-        '&ldquo;' + esc(receipt.excerpt) + '&rdquo;' :
+      var excerptText = cleanCaptionExcerpt(receipt.excerpt);
+      var excerpt = receipt.publicExcerptAllowed && excerptText ?
+        '&ldquo;' + esc(excerptText) + '&rdquo;' :
         '<span class="source-dossier-withheld">The timestamp is saved; the excerpt is not public.</span>';
       var label = clean(receipt.label) || "SAVED MOMENT";
       var time = formatTime(receipt.at);
-      var signalScore = signalScoreLabel(receipt.signalScore);
-      var signalBasis = clean(receipt.signalBasis);
-      var signal = signalScore ? '<span class="source-dossier-receipt-signal" data-signal-score="' +
-        esc(signalScore) + '"><b>MOMENT HEAT ' + esc(signalScore) + '</b>' +
-        (signalBasis ? '<small>' + esc(signalBasis.toUpperCase()) + '</small>' : '') +
-        '</span>' : '';
+      var signal = Number.isFinite(Number(receipt.signalScore)) ?
+        '<span class="source-dossier-receipt-signal"><b>FEATURED HERE</b></span>' : '';
       return '<article class="source-dossier-receipt' +
         (extraClass ? ' ' + esc(extraClass) : '') + '" data-receipt-key="' +
         esc(receipt.key) + '"><header><span>' + esc(label) + '</span><time>' +
         esc(time) + '</time>' + signal + '</header><p>' + excerpt +
         '</p><details class="source-dossier-receipt-proof"><summary>ABOUT THIS TIMESTAMP</summary><div>' +
-        '<span>' + esc(clean(receipt.evidenceLevel).toUpperCase()) + '</span><span>' +
-        esc(clean(receipt.reviewState).toUpperCase()) + '</span><span>SPEAKER NOT CONFIRMED</span></div></details>' +
+        '<span>' + esc(publicReceiptEvidenceLabel(receipt)) + '</span><span>' +
+        esc(publicReceiptReviewLabel(receipt)) + '</span><span>SPEAKER NOT CONFIRMED</span></div></details>' +
         '<footer><button type="button" data-source-dossier-action="play-receipt" data-receipt-key="' +
         esc(receipt.key) + '" aria-label="Play ' + esc(label) + ' at ' + esc(time) +
         '">&#9654; JUMP TO ' + esc(time) + '</button><button type="button" data-source-dossier-action="bag-receipt" ' +
         'data-receipt-key="' + esc(receipt.key) + '" aria-label="Save ' + esc(label) +
-        ' to the evidence bag">SAVE MOMENT</button></footer></article>';
+        ' to saved clips">SAVE MOMENT</button></footer></article>';
     }
 
     function showWikiLaneId(lane, index) {
@@ -640,6 +649,39 @@
         seen[receipt.key] = true;
         return true;
       });
+    }
+
+    function isShowWikiHighlightLane(lane) {
+      var id = token(clean(lane.id) || clean(lane.label));
+      return id === "best-moments" || id === "up-in-ya" ||
+        id === "straight-to-steves-asshole" ||
+        (id.indexOf("steve") >= 0 && id.indexOf("asshole") >= 0);
+    }
+
+    function showWikiLaneDescription(lane) {
+      var id = token(clean(lane.id) || clean(lane.label));
+      if (id === "best-moments") {
+        return "A short set of standout jumps from this show.";
+      }
+      if (id === "up-in-ya") {
+        return "The out-of-pocket turns saved from this show, ready to play.";
+      }
+      if (id === "straight-to-steves-asshole" ||
+          (id.indexOf("steve") >= 0 && id.indexOf("asshole") >= 0)) {
+        return "The strongest negative takes saved from this show.";
+      }
+      if (id === "topics") {
+        return "Jump straight to the subjects covered in this upload.";
+      }
+      if (id === "funny-moments") {
+        return "Comedy turns saved from this upload, with the original timestamps.";
+      }
+      if (id === "character-bits") {
+        return "Recurring characters and bits saved from this upload.";
+      }
+      var description = clean(lane.description);
+      return /(machine|operator|showcase[- ]receipt[- ]score|signal score)/i.test(description) ?
+        "Playable moments saved from this exact upload." : description;
     }
 
     function isSourceBrief(dossier) {
@@ -688,6 +730,7 @@
       var lanes = array(wiki.lanes).map(record);
       var experience = record(wiki.experience);
       var sourceBrief = isSourceBrief(dossier);
+      var compact = !state.fullFile;
       var links = [
         { id: SECTION_IDS.player, label: "WATCH THE SHOW" },
         {
@@ -695,19 +738,22 @@
           label: sourceBrief ? "SOURCE BRIEF" : "SHOW SUMMARY"
         }
       ];
-      if (!sourceBrief &&
+      if (!compact && !sourceBrief &&
           showWikiExperienceReceipts(dossier, experience.routeReceiptKeys).length) {
         links.push({ id: "sourceDossierShowWikiExperience", label: clean(experience.title) });
       }
-      links = links.concat((sourceBrief ? [] : lanes).map(function (lane, index) {
+      links = links.concat((sourceBrief ? [] : lanes).filter(function (lane) {
+        return !compact || isShowWikiHighlightLane(lane);
+      }).map(function (lane) {
         return {
-          id: showWikiLaneId(lane, index),
+          id: showWikiLaneId(lane, lanes.indexOf(lane)),
           label: clean(lane.label),
           populated: showWikiLaneReceipts(dossier, lane).length > 0
         };
       }).filter(function (link) {
         return link.label && link.populated;
-      })).concat([
+      }));
+      if (!compact) links = links.concat([
         {
           id: SECTION_IDS.ask,
           label: sourceBrief ? "ASK SOURCE FACTS" : "ASK THIS TAPE"
@@ -716,7 +762,8 @@
         { id: SECTION_IDS.inside, label: "ALL TIMESTAMPS" }
       ]);
       return '<nav class="source-dossier-explore" aria-label="Explore this show">' +
-        '<span>GO STRAIGHT TO</span><div>' + links.map(function (link) {
+        '<span>' + (compact ? "SHOW HIGHLIGHTS" : "GO STRAIGHT TO") +
+        '</span><div>' + links.map(function (link) {
           return '<a href="#' + esc(link.id) + '">' + esc(link.label) + '</a>';
         }).join("") + '</div></nav>';
     }
@@ -778,8 +825,9 @@
       }).join("");
       var routeMarkup = route.map(function (receipt, index) {
         var time = formatTime(receipt.at);
-        var excerpt = receipt.publicExcerptAllowed && clean(receipt.excerpt)
-          ? '<p>“' + esc(receipt.excerpt) + '”</p>' :
+        var excerptText = cleanCaptionExcerpt(receipt.excerpt);
+        var excerpt = receipt.publicExcerptAllowed && excerptText
+          ? '<p>“' + esc(excerptText) + '”</p>' :
             '<p class="is-withheld">The timestamp is ready; the excerpt is not public.</p>';
         return '<article class="source-dossier-wiki-route-stop"><header><span>STOP ' +
           esc(String(index + 1).padStart(2, "0")) + '</span><time>' + esc(time) +
@@ -793,7 +841,7 @@
         '" data-show-wiki-route-count="' + esc(route.length) + '"><header><div><span>' +
         esc(experience.label) + '</span><h4>' + esc(experience.title) +
         '</h4></div><b>' + esc(route.length) + ' MOMENTS. NO HUNTING.</b></header><p>' +
-        esc(experience.description) + '</p><div class="source-dossier-wiki-pulse" ' +
+        'A playable route through saved moments from this exact upload, spaced across the runtime.</p><div class="source-dossier-wiki-pulse" ' +
         'aria-label="Where the saved moments land in this show"><div class="source-dossier-wiki-pulse-track" style="--pulse-extra-height:' +
         esc(maximumPulseRow * 48) + 'px">' +
         pulseMarkup + '</div><footer><span>00:00</span><b>THE NIGHT’S PULSE</b><span>' +
@@ -803,8 +851,8 @@
         esc(route[0].key) + '">&#9654; START THE WATCH PATH</button><button type="button" ' +
         'data-source-dossier-action="bag-experience">SAVE ALL ' + esc(route.length) +
         ' MOMENTS</button><details class="source-dossier-wiki-method"><summary>HOW THIS WATCH PATH WAS PICKED</summary><small>' +
-        esc(clean(experience.selectionBasis).toUpperCase()) +
-        ' // MACHINE-SURFACED, HUMAN REVIEW REQUIRED</small></details></footer></section>';
+        'Built only from saved timestamps on this exact upload. Speaker identity, intent, and creator approval are not inferred.' +
+        '</small></details></footer></section>';
     }
 
     function showWikiBriefMarkup(dossier) {
@@ -830,15 +878,13 @@
         '<div class="source-dossier-wiki-brief-facts">' + facts.map(function (fact) {
           return '<span><small>' + esc(fact[0]) + '</small><b>' +
             esc(fact[1] || "NOT REGISTERED") + '</b></span>';
-        }).join("") + '</div><footer><small>WHY THIS PAGE IS LIMITED // ' +
-        esc(clean(brief.formatBasis).toUpperCase()) +
-        ' // UPLOAD DETAILS ONLY</small><button type="button" ' +
+        }).join("") + '</div><footer><small>WHY THIS PAGE IS LIMITED // VERIFIED UPLOAD DETAILS ONLY</small><button type="button" ' +
         'data-source-dossier-action="stage-intake">QUEUE THE DEEP DIVE &#8594;</button><a href="' +
         esc(source.url) + '" target="_blank" rel="noopener">WATCH ON YOUTUBE &#8599;</a>' +
         '</footer></article>';
     }
 
-    function showWikiRecapMarkup(dossier) {
+    function showWikiRecapMarkup(dossier, compact) {
       var source = dossier.source;
       var recap = record(record(source.showWiki).recap);
       var blocks = array(recap.blocks).map(record);
@@ -852,10 +898,11 @@
       return '<section class="source-dossier-wiki-recap" id="sourceDossierShowWikiSummary" ' +
         'data-show-wiki-format="' + esc(token(recap.format)) + '"><header><div><span>THE SHOW IN PLAIN ENGLISH</span>' +
         '<h4>' + esc(recap.format) + '</h4></div><small>FROM THE OFFICIAL WWAM UPLOAD</small>' +
-        '<details class="source-dossier-wiki-method"><summary>HOW THIS FORMAT WAS IDENTIFIED</summary><small>' +
-        esc(clean(recap.formatBasis).toUpperCase()) + '</small></details></header>' +
+        (compact ? '' : '<details class="source-dossier-wiki-method"><summary>HOW THIS FORMAT WAS IDENTIFIED</summary><small>' +
+          'Based on the registered source type and timestamped material from this upload.</small></details>') +
+        '</header>' +
         '<p class="source-dossier-wiki-overview">' +
-        esc(recap.overview) + '</p><div class="source-dossier-wiki-recap-blocks">' +
+        esc(recap.overview) + '</p>' + (compact ? '' : '<div class="source-dossier-wiki-recap-blocks">' +
         blocks.map(function (block, index) {
           var receipts = showWikiExperienceReceipts(dossier, block.receiptKeys);
           return '<article><span>CHAPTER ' + esc(String(index + 1).padStart(2, "0")) +
@@ -867,15 +914,17 @@
                 esc(time) + '">&#9654; ' + esc(time) + '</button>';
             }).join("") + '</div><details class="source-dossier-wiki-method">' +
             '<summary>WHY THESE MOMENTS?</summary><small>' +
-            esc(clean(block.basis).toUpperCase()) + '</small></details></article>';
-        }).join("") + '</div></section>';
+            'Linked to the saved timestamps shown in this chapter.</small></details></article>';
+        }).join("") + '</div>') + '</section>';
     }
 
-    function showWikiLaneMarkup(dossier, lane, index, seenReceipts) {
+    function showWikiLaneMarkup(dossier, lane, index, seenReceipts, compact) {
       var receipts = showWikiLaneReceipts(dossier, lane);
+      var displayedReceipts = compact ?
+        receipts.slice(0, COMPACT_SHOW_WIKI_RECEIPTS) : receipts;
       var primary = [];
       var crossLinks = [];
-      receipts.forEach(function (receipt) {
+      displayedReceipts.forEach(function (receipt) {
         if (seenReceipts[receipt.key]) crossLinks.push(receipt);
         else {
           seenReceipts[receipt.key] = true;
@@ -883,10 +932,12 @@
         }
       });
       var label = clean(lane.label);
-      var description = clean(lane.description);
+      var description = showWikiLaneDescription(lane);
       var emptyState = clean(lane.emptyState);
       var laneId = showWikiLaneId(lane, index);
-      return '<article class="source-dossier-wiki-lane has-receipts" id="' +
+      return '<article class="source-dossier-wiki-lane has-receipts' +
+        (isShowWikiHighlightLane(lane) ? ' is-show-wiki-highlight' : ' is-show-wiki-research') +
+        '" id="' +
         esc(laneId) + '" data-show-wiki-lane="' +
         esc(clean(lane.id) || token(label)) + '" data-show-wiki-receipt-count="' +
         esc(receipts.length) + '"><header><div><span>PART ' +
@@ -905,8 +956,13 @@
               esc(receipt.key) + '"><b>' + esc(receipt.label) + '</b><small>&#9654; ' +
               esc(time) + '</small></button>';
           }).join("") + '</div>' : '') +
+        (compact && receipts.length > displayedReceipts.length ?
+          '<p class="source-dossier-wiki-more"><b>' +
+          esc(receipts.length - displayedReceipts.length) + ' MORE SAVED MOMENT' +
+          (receipts.length - displayedReceipts.length === 1 ? '' : 'S') +
+          '.</b> Choose Explore All for the complete lane.</p>' : '') +
         '<details class="source-dossier-wiki-evidence"><summary>HOW THESE TIMESTAMPS WORK</summary><p>' +
-        'Every jump opens this exact upload at a saved time. Moment heat is archive ranking data, not speaker attribution, creator approval, or a verdict from Mike or J.</p></details>' +
+        'Every jump opens this exact upload at a saved time. These page labels are not speaker attribution, creator approval, or a verdict from Mike or J.</p></details>' +
         (emptyState && !receipts.length ? '<p class="source-dossier-wiki-empty">' + esc(emptyState) + '</p>' : '') +
         '</article>';
     }
@@ -948,6 +1004,18 @@
         else empty.push(entry);
       });
       var seenReceipts = {};
+      var compact = !state.fullFile;
+      var highlightEntries = populated.filter(function (entry) {
+        return isShowWikiHighlightLane(entry.lane);
+      });
+      if (!highlightEntries.length) highlightEntries = populated.slice(0, 2);
+      var visibleEntries = compact ? highlightEntries : populated;
+      var visibleMomentCount = visibleEntries.reduce(function (total, entry) {
+        return total + Math.min(
+          showWikiLaneReceipts(dossier, entry.lane).length,
+          compact ? COMPACT_SHOW_WIKI_RECEIPTS : Number.MAX_SAFE_INTEGER
+        );
+      }, 0);
       var headerTitle = sourceBrief ? "THE SHOW IS HERE. THE DEEP DIVE IS NOT READY YET." :
         status === "topic-nav-only" ? "WHAT THEY COVERED, WITH A WAY BACK TO EACH PART." :
           hasMappedContent ? "THE WHOLE NIGHT, CUT TO THE PARTS WORTH REVISITING." :
@@ -959,7 +1027,8 @@
       var statusLabel = sourceBrief ?
         "DEEP DIVE NOT READY" : queued ? "WAITING FOR CAPTIONS" :
           status === "topic-nav-only" ? "TOPICS READY" :
-            receiptCount ? "READY TO EXPLORE" : "SHOW PAGE STARTED";
+            receiptCount ? (compact ? "SHOW HIGHLIGHTS" : "FULL SHOW FILE") :
+              "SHOW PAGE STARTED";
       var body = showWikiLocalNavMarkup(dossier);
       if (sourceBrief) {
         body += showWikiBriefMarkup(dossier) +
@@ -967,14 +1036,17 @@
           'NO FAKE RECAP.</b><span>This page will not turn a title and thumbnail into made-up topics, ' +
           'quotes, character bits, or comedy verdicts.</span></aside>';
       } else {
-        body += showWikiRecapMarkup(dossier) + showWikiExperienceMarkup(dossier) +
-          (populated.length ? '<div class="source-dossier-wiki-lanes">' +
-            populated.map(function (entry) {
-              return showWikiLaneMarkup(dossier, entry.lane, entry.index, seenReceipts);
+        body += showWikiRecapMarkup(dossier, compact) +
+          (compact ? '' : showWikiExperienceMarkup(dossier)) +
+          (visibleEntries.length ? '<div class="source-dossier-wiki-lanes">' +
+            visibleEntries.map(function (entry) {
+              return showWikiLaneMarkup(
+                dossier, entry.lane, entry.index, seenReceipts, compact
+              );
             }).join("") + '</div>' : '') +
           (queued
             ? '<p class="source-dossier-wiki-queued-note"><b>THE CATEGORIES ARE READY.</b> They stay empty until this exact upload has captions strong enough to support them.</p>'
-            : showWikiEmptyLanesMarkup(empty));
+            : compact ? '' : showWikiEmptyLanesMarkup(empty));
       }
       return '<section class="source-dossier-show-wiki"' + sectionAttributes("wiki") +
         ' aria-labelledby="sourceDossierShowWikiTitle" data-source-show-wiki-status="' +
@@ -983,7 +1055,10 @@
         '</h3></div>' + (headerDescription ? '<p>' + esc(headerDescription) + '</p>' : '') +
         '</header><div class="source-dossier-wiki-status" role="status"><span>' +
         'ON THIS PAGE</span><b>' + esc(statusLabel) +
-        '</b><small>' + esc(receiptCount) + ' PLAYABLE MOMENT' +
+        '</b><small>' + (compact && !sourceBrief ?
+          esc(visibleMomentCount) + ' HIGHLIGHT' +
+          (visibleMomentCount === 1 ? '' : 'S') + ' SHOWN // ' : '') +
+        esc(receiptCount) + ' PLAYABLE MOMENT' +
         (receiptCount === 1 ? '' : 'S') + '</small></div>' + body + '</section>';
     }
     function refusalMarkup(dossier) {
@@ -1683,9 +1758,18 @@
 
     function renderMarkup(dossier) {
       var source = dossier.source;
+      var deepResearch = askMarkup(dossier) + proofMarkup(dossier) +
+        insideMarkup(dossier) + footprintMarkup(dossier) + wakeMarkup(dossier) +
+        '<nav class="source-dossier-chronology"' + sectionAttributes("chronology") +
+        ' aria-label="Source chronology">' +
+        chronologyButton(dossier.chronology.previous, "previous") +
+        chronologyButton(dossier.chronology.next, "next") + '</nav>' +
+        aftermathMarkup(dossier) + workMarkup(dossier) + boundaryMarkup(dossier);
       return '<article class="source-dossier is-' + esc(token(source.coverage)) +
-        ' is-' + esc(token(source.authority)) + '" aria-labelledby="sourceDossierTitle" ' +
-        'aria-describedby="sourceDossierBoundary"><header class="source-dossier-hero">' +
+        ' is-' + esc(token(source.authority)) + '" data-source-dossier-view="' +
+        (state.fullFile ? "full" : "compact") + '" aria-labelledby="sourceDossierTitle" ' +
+        (state.fullFile ? 'aria-describedby="sourceDossierBoundary"' : '') +
+        '><header class="source-dossier-hero">' +
         '<img src="' + esc(source.thumbnail) + '" alt="' +
         esc((source.displayTitle || source.title) + ' source thumbnail') + '"><div class="source-dossier-hero-shade"></div>' +
         '<div class="source-dossier-hero-copy"><span>WWAM AFTER MIDNIGHT // SHOW WIKI // ' +
@@ -1697,20 +1781,16 @@
         '<button type="button" data-source-dossier-action="copy-link">COPY PAGE LINK</button>' +
         '<a href="' + esc(source.url) + '" target="_blank" rel="noopener">WATCH ON YOUTUBE &#8599;</a>' +
         '</div></div></header>' + densityMarkup() + exploreMarkup(dossier) +
-        playerMarkup(dossier) + showWikiMarkup(dossier) + askMarkup(dossier) +
-        proofMarkup(dossier) + insideMarkup(dossier) +
-        footprintMarkup(dossier) + wakeMarkup(dossier) +
-        '<nav class="source-dossier-chronology"' + sectionAttributes("chronology") +
-        ' aria-label="Source chronology">' +
-        chronologyButton(dossier.chronology.previous, "previous") +
-        chronologyButton(dossier.chronology.next, "next") + '</nav>' +
-        aftermathMarkup(dossier) + workMarkup(dossier) + boundaryMarkup(dossier) + '</article>';
+        playerMarkup(dossier) + showWikiMarkup(dossier) +
+        (state.fullFile ? deepResearch :
+          '<div class="source-dossier-deep-research" id="sourceDossierDeepResearch" hidden>' +
+          deepResearch + '</div>') + '</article>';
     }
 
     function errorMarkup(error) {
       var message = clean(error && error.message) || "The source dossier could not be verified.";
       return '<section class="source-dossier-error" role="alert"><span>SOURCE DOSSIER HELD</span>' +
-        '<h2>THE PAGE FAILED CLOSED.</h2><p>' + esc(message) +
+        '<h2>THIS SHOW WIKI COULD NOT OPEN.</h2><p>' + esc(message) +
         '</p><small>No metadata, content, relationship, or authority claim was rendered.</small></section>';
     }
 
@@ -2097,7 +2177,9 @@
         Number.isFinite(Number(settings.at));
       state.at = state.hasAnchor ? Math.max(0, Number(settings.at)) : 0;
       state.section = safeSection(settings.section);
-      state.fullFile = settings.fullFile === true || settings.full === true;
+      state.fullFile = settings.fullFile === true || settings.full === true ||
+        Boolean(state.section && ["player", "wiki"].indexOf(state.section) < 0) ||
+        Boolean(clean(settings.query));
       state.expanded = {};
       var deepSection = safeSection(settings.deepSection || settings.section);
       if (EXPANDABLE_SECTIONS.indexOf(deepSection) >= 0) {

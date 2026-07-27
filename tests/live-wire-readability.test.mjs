@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const html = fs.readFileSync(path.join(root, "public", "demo", "index.html"), "utf8");
 const css = fs.readFileSync(path.join(root, "public", "demo", "styles.css"), "utf8");
+const app = fs.readFileSync(path.join(root, "public", "demo", "app.js"), "utf8");
 
 function rule(selector) {
   const start = css.indexOf(`${selector} {`);
@@ -33,7 +34,8 @@ test("Live Wire keeps its rolling source map and topic controls intact", () => {
     assert.match(section, new RegExp(`id="${id}"`));
   }
   assert.match(section, /THE TEN NEWEST LIVESTREAMS/);
-  assert.match(section, /one honest/);
+  assert.match(section, /Missed a night/);
+  assert.doesNotMatch(section, /archive can understand|comedy heat|mapping unavailable/i);
 });
 
 test("Live Wire pins readable artwork, copy, controls, and sealed-state truth", () => {
@@ -53,6 +55,7 @@ test("Live Wire pins readable artwork, copy, controls, and sealed-state truth", 
   assert.match(rule(".stream-body > p"), /font-size:\s*var\(--live-copy\)/);
   assert.match(rule(".stream-topics button"), /min-height:\s*var\(--live-hit\)/);
   assert.match(rule(".live-proof span"), /var\(--live-micro\)/);
+  assert.match(rule(".live-proof"), /repeat\(5,\s*1fr\)/);
 
   assert.match(rule(".stream-card.unmapped"), /opacity:\s*1/);
   assert.match(rule(".stream-card.unmapped"), /filter:\s*none/);
@@ -74,5 +77,25 @@ test("Live Wire becomes one readable column before cards become cramped", () => 
   const mobile = mediaBlock("max-width: 600px", ".stream-body");
   assert.match(mobile, /\.stream-body\s*\{\s*padding:\s*18px 16px 20px/);
   assert.match(mobile, /\.stream-body > div:first-child, \.stream-body > footer\s*\{[^}]*flex-direction:\s*column/);
-  assert.match(html, /href="styles\.css\?v=0\.5\.21-ui5"/);
+  assert.match(html, /href="styles\.css\?v=0\.5\.28-mobile-p3"/);
+});
+test("Live Wire reads like a catch-up shelf instead of an analysis dashboard", () => {
+  const start = app.indexOf("  function renderLiveProof() {");
+  const end = app.indexOf("  function popularTopicNames() {", start);
+  assert.ok(start >= 0 && end > start, "Live Wire render block is missing");
+  const renderBlock = app.slice(start, end);
+  for (const phrase of [
+    "SHOW WIKI READY",
+    "WATCH ONLY",
+    "START WITH THIS MOMENT",
+    "OPEN SHOW WIKI",
+    "PLAYABLE MOMENTS",
+  ]) {
+    assert.match(renderBlock, new RegExp(phrase));
+  }
+  assert.doesNotMatch(
+    renderBlock,
+    /WORDS AUDITED|FULL LIVE MAP|COMEDY SPIKES|TRACKED TOPICS|PEAK COMEDY|MENTIONS \/\//,
+  );
+  assert.match(renderBlock, /showCount \+.*SHOW/s, "topic filters should count shows, not mentions");
 });

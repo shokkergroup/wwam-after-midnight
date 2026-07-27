@@ -67,9 +67,9 @@ test("natural latest-livestream questions return one source-scoped topic map", a
       answer.results.map((result) => result.at).sort((a, b) => a - b),
       query,
     );
-    assert.match(answer.answer, /source-scoped topic map/i, query);
-    assert.match(answer.answer, /not blended streams or invented dialogue/i, query);
-    assert.match(answer.answer, /captured caption evidence/i, query);
+    assert.match(answer.answer, /newest show in this part of the archive/i, query);
+    assert.match(answer.answer, /Every jump stays inside that one show/i, query);
+    assert.match(answer.answer, /Play any one to hear what was actually said/i, query);
   }
 });
 
@@ -103,8 +103,8 @@ test("first appearance means earliest curated performance in the bounded current
     );
     assert.equal(answer.results[0].archiveBoundary.trueOriginClaim, false, query);
     assert.ok(answer.results.every((result) => result.speaker === null), query);
-    assert.match(answer.answer, /current bounded set/i, query);
-    assert.match(answer.answer, /not a claim.*originated/i, query);
+    assert.match(answer.answer, /earliest playable Dr\. Loomis performance currently mapped/i, query);
+    assert.match(answer.answer, /may not be the first time they ever did the bit/i, query);
     assert.match(answer.limitations.join(" "), /not a claim of true origin/i, query);
   }
 });
@@ -126,8 +126,8 @@ test("a resolvable named bit can anchor an in-source after query without prior c
   assert.ok(answer.results.every((result) => (
     result.sourceId === "BIbyzMlstmM" && result.at > 1528
   )));
-  assert.match(answer.answer, /next indexed receipt in the same source after 25:28/i);
-  assert.match(answer.answer, /not a claim about the literal next spoken line/i);
+  assert.match(answer.answer, /next saved moment in the same show after 25:28/i);
+  assert.match(answer.answer, /not necessarily the literal next spoken line/i);
   assert.match(answer.limitations.join(" "), /next indexed highlight/i);
 
   const nextAgain = plain(engine.ask("What happened next?", answer.context));
@@ -146,5 +146,5 @@ test("new natural routes leave source-title and speaker firewalls closed", async
   assert.ok(title.results.every((result) => result.sourceId === "WKs1uPGMQvw"));
   assert.equal(orphanSpeaker.status, "speaker-unknown");
   assert.deepEqual(orphanSpeaker.results, []);
-  assert.match(orphanSpeaker.answer, /cannot identify a host/i);
+  assert.match(orphanSpeaker.answer, /auto-captions don't reliably say who is speaking.*couldn't find a clip/i);
 });

@@ -2673,44 +2673,44 @@
         entity.label) :
       subjectTerms.join(" ");
     if (intent.visualContextRefusal && intent.selectedSource) {
-      return "The captions can route you inside " + intent.selectedSource.sourceTitle +
-        ", but they cannot verify which on-screen kill or death won the visual ranking. " +
-        "Open the original for that result; Ask the Tape will not convert caption text into a visual verdict.";
+      return "The captions can take you to moments inside " + intent.selectedSource.sourceTitle +
+        ", but they cannot tell which on-screen kill or death wins this question. " +
+        "Open the original video to judge it; Ask the Tape will not turn caption text into a visual answer.";
     }
     if (intent.titleBoundary) {
       if (intent.titleBoundary.reason === "unresolved-numbered-title") {
-        return "No indexed source title matches \"" +
+        return "I couldn't find a show titled \"" +
           intent.titleBoundary.queryTerms.join(" ") +
-          "\". The sequel number is being kept exact, so I will not substitute an older franchise entry.";
+          "\". I kept the sequel number exact instead of swapping in an older movie from the franchise.";
       }
-      return "That wording matches more than one indexed source title, so I will not choose one arbitrarily. " +
+      return "That title could mean more than one show, so I don't want to guess. " +
         "Add a date or a distinguishing title phrase such as trailer reaction, spoiler review, or breakdown.";
     }
     if (intent.selectedSource && intent.selectedSource.restrictedToTopicNavigation) {
       return intent.selectedSource.sourceTitle +
-        " is available only as topic navigation under the source-audio firewall. " +
-        "This source cannot supply comedy excerpts, character clips, or soundbytes, and I will not substitute adjacent franchise content.";
+        " can only offer topic jumps here. The audio isn't available for comedy moments, character clips, or soundbytes, " +
+        "so I won't swap in a different franchise video.";
     }
     if (intent.refusesSpeakerGuess) {
-      return "The available auto-captions are not speaker-diarized, so I cannot identify a host, and I found no defensible matching receipt to point to.";
+      return "The auto-captions don't reliably say who is speaking, and I couldn't find a clip I could safely point you to.";
     }
     if (intent.queryPlan && intent.queryPlan.controls.relativeDate) {
-      return "No indexed " + sourceNoun(intent.source) + " dated " +
+      return "I couldn't find a " + sourceNoun(intent.source) + " from " +
         intent.queryPlan.controls.relativeDate +
-        " matches this question. The explicit source lane was preserved, and the engine did not substitute a livestream or an older upload.";
+        " that matches this question. I kept the show type and date you asked for instead of swapping in another upload.";
     }
     if (intent.performanceRequested && entity && entity.type === "character") {
-      return "I found no timestamped curated performance candidate for " + entity.label +
-        " in this search index. Ordinary character mentions are not being promoted into impressions.";
+      return "I couldn't find a playable " + entity.label +
+        " performance for that request. Regular mentions don't count as the bit.";
     }
     if (intent.name === "negative" || intent.name === "positive" || intent.name === "opinion") {
-      return "No target-proximate evaluative receipt supports" +
-        (subject ? ' "' + subject + '"' : " that opinion question") +
-        " in the current index. Unrelated profanity, jokes, and isolated sentiment words were rejected. " +
-        "That is an archive gap, not proof the subject was never discussed.";
+      return "I couldn't find a clip close enough to" +
+        (subject ? ' "' + subject + '"' : " that question") +
+        " to answer that take honestly. Unrelated swearing, jokes, and one-off reactions were left out. " +
+        "That doesn't prove they never discussed it.";
     }
-    return "No defensible indexed receipt matches" + (subject ? ' "' + subject + '"' : " that question") +
-      " in the current commentary and livestream scope. That is an archive gap, not proof it was never discussed.";
+    return "I couldn't find a strong match for" + (subject ? ' "' + subject + '"' : " that question") +
+      " in the shows currently mapped. That doesn't prove they never discussed it.";
   }
 
   function buildAnswer(intent, entity, ranked, live, chain, subjectTerms, allRanked) {
@@ -2720,56 +2720,56 @@
     var location = resultLocation(top);
 
     if (intent.refusesSpeakerGuess) {
-      return "The auto-captions do not identify speakers reliably, so I won't invent a name or host attribution. The strongest matching source jump is " +
-        location + "; treat it as a receipt, not a speaker attribution.";
+      return "The captions don't reliably say who is speaking, so I won't guess. Start with " +
+        location + "; play it below for the full context.";
     }
     if (top.restrictedToTopicNavigation) {
-      return "Topic-only navigation inside " + (top.sourceTitle || top.title) +
-        " points to " + location +
-        ". Excerpts, comedy moments, character clips, and soundbytes remain withheld by the source-audio firewall.";
+      return "" + (top.sourceTitle || top.title) +
+        " only has topic navigation here. Start with " + location +
+        ". The audio isn't available for comedy clips, character clips, or soundbytes.";
     }
     if (intent.anchorMode === "exact" && intent.resultAnchor) {
-      return "Exact receipt replay: " + location +
-        ". The result stays on the same indexed source and timestamp; speaker attribution remains unavailable.";
+      return "Here is the same saved moment: " + location +
+        ". It stays on the same show and timestamp; the captions still don't reliably say who is speaking.";
     }
     if (intent.anchorMode === "previous" && intent.resultAnchor) {
-      return "The previous indexed receipt in the same source before " +
+      return "The previous saved moment in the same show before " +
         formatTime(intent.resultAnchor.at) + " is " + location +
-        ". This is the previous indexed highlight, not a claim about the literal previous caption line.";
+        ". This is the previous saved moment, not necessarily the literal previous spoken line.";
     }
     if (intent.anchorMode === "next" && intent.resultAnchor) {
-      return "The next indexed receipt in the same source after " +
+      return "The next saved moment in the same show after " +
         formatTime(intent.resultAnchor.at) + " is " + location +
-        ". This is the next indexed highlight, not a claim about the literal next spoken line.";
+        ". This is the next saved moment, not necessarily the literal next spoken line.";
     }
     if (intent.anchorMode === "similar" && intent.resultAnchor) {
-      return "Another indexed receipt from the same source is " + location +
-        ". The original receipt was excluded; category similarity is a retrieval signal, not a claim that the moments are identical.";
+      return "Another moment from the same show is " + location +
+        ". The first moment was left out, and this is a similar stop - not a claim that the two moments are identical.";
     }
     if (intent.queryPlan && intent.queryPlan.outputShape === "source-count" &&
       intent.collection) {
       return (entity ? entityLabel : "That subject") + " appears in " + intent.collection.total +
-        " unique indexed " + intent.collection.unit + ". Here are the " +
+        " different " + intent.collection.unit + ". Here are the " +
         Math.min(intent.collection.total, intent.collection.displayed || ranked.length) +
-        " strongest matches. Each upload is counted once.";
+        " best matches. Each upload is counted once.";
     }
     if (intent.queryPlan && intent.queryPlan.outputShape === "source-list" &&
       intent.collection) {
       return (entity ? entityLabel : "That subject") + " appears in " + intent.collection.total +
-        " matching " + intent.collection.unit + ". Here are the " +
+        " " + intent.collection.unit + ". Here are the " +
         Math.min(intent.collection.total, intent.collection.displayed || ranked.length) +
         " best matches in the order you asked for. Each upload is counted once.";
     }
     if (intent.queryPlan && intent.queryPlan.outputShape === "curated-soundbytes" &&
       intent.collection) {
       return "WWAM Up In Ya has " + intent.collection.total +
-        " timestamped soundbytes. Here are the first " +
+        " playable soundbytes. Here are the first " +
         (intent.collection.displayed || ranked.length) +
         " in the archive's hand-picked order.";
     }
     if (intent.queryPlan && intent.queryPlan.outputShape === "character-roster" &&
       intent.collection) {
-      return intent.collection.total + " recurring characters are mapped right now: " +
+      return intent.collection.total + " recurring characters are ready to explore: " +
         ranked.map(function (result) {
           var profile = result.rosterProfile || {};
           return (profile.name || result.character || result.title) + " (" +
@@ -2812,53 +2812,44 @@
       }).map(function (result) {
         return result.title + " at " + formatTime(result.at);
       });
-      return overviewLabel + " indexed livestream in the current " +
-        (intent.archiveRequested ? "Archive Deep" : "promoted") + " scope: " +
-        intent.selectedSource.sourceTitle + " on " + intent.selectedSource.date +
-        ". Its source-scoped topic map includes " + topicRoutes.join("; ") +
-        ". These are indexed chapter receipts from that one source, not blended streams or invented dialogue; " +
-        "open a route to inspect the captured caption evidence.";
+      return "The " + overviewLabel.toLowerCase() + " show in this part of the archive is " +
+        intent.selectedSource.sourceTitle + " from " + intent.selectedSource.date +
+        ". Jump to " + topicRoutes.join("; ") +
+        ". Every jump stays inside that one show. Play any one to hear what was actually said.";
     }
     if (intent.queryPlan && intent.queryPlan.temporalSourceContent &&
       intent.selectedSource) {
       var temporalContentLabel = intent.temporal === "earliest" ?
         "earliest" : "newest";
-      return "Inside the " + temporalContentLabel + " indexed " +
-        sourceNoun(intent.selectedSource.source) + ", " +
-        intent.selectedSource.sourceTitle + " on " + intent.selectedSource.date +
-        ", the strongest available timestamped receipt is " + location +
-        ", filed as " + top.category +
-        ". This is a source-scoped archive route, not an invented plot summary.";
+      return "In the " + temporalContentLabel + " " +
+        sourceNoun(intent.selectedSource.source) + " here, " +
+        intent.selectedSource.sourceTitle + " from " + intent.selectedSource.date +
+        ", start with " + location + ". It is marked " + top.category +
+        ". Play it below for the full context.";
     }
     if (intent.name === "comedy" && intent.selectedSource) {
       if (intent.selectedSource.mode === "indexed-title") {
-        return "Inside the " + intent.selectedSource.titleMatchMode +
-          " indexed source-title match " + intent.selectedSource.sourceTitle +
-          ", the strongest available comedy route is " + location +
-          ", filed as " + top.category + ".";
+        return "Inside " + intent.selectedSource.sourceTitle +
+          ", start with " + location + ". It is marked " + top.category + ".";
       }
       var sourceExtreme = intent.selectedSource.direction === "ascending" ?
         "least-viewed" : "most-viewed";
-      return "Inside " + intent.selectedSource.sourceTitle + " — the " + sourceExtreme +
-        " indexed " + sourceNoun(intent.selectedSource.source) + " at " +
+      return "Inside " + intent.selectedSource.sourceTitle + " - the " + sourceExtreme +
+        " " + sourceNoun(intent.selectedSource.source) + " here at " +
         Number(intent.selectedSource.views || 0).toLocaleString("en-US") +
-        " official views — the strongest indexed comedy route is " + location +
-        ", filed as " + top.category + ".";
+        " views - start with " + location + ". It is marked " + top.category + ".";
     }
     if (intent.originRequest) {
       if (entity && entity.type === "character") {
         if (top.kind === "character-performance") {
-          return "Archive boundary: the earliest curated " + entityLabel +
-            " performance candidate in the current bounded set is " + location +
-            ". This is an archive-first receipt for the bounded set, not a claim that the bit or portrayal originated there.";
+          return "The earliest playable " + entityLabel + " performance currently mapped is " + location +
+            ". It may not be the first time they ever did the bit - it is simply the earliest one this archive can play right now.";
         }
-        return "Archive boundary: the earliest machine-indexed " + entityLabel +
-          " character signal in this broad caption index is " + location +
-          ". This machine-indexed signal is not the same as Lore's timestamped human-curated performance candidate for the current bounded set. " +
-          "It is not a claim that the bit or character portrayal originated there.";
+        return "The earliest caption hit for " + entityLabel + " is " + location +
+          ". That is a mention worth checking, not proof that the character bit started there.";
       }
-      return "Archive boundary: the earliest indexed " + entityLabel + " receipt in this dataset is " +
-        location + ". This is not a claim that the bit, topic, or character portrayal originated there.";
+      return "The earliest " + entityLabel + " moment I can play is " + location +
+        ". That is the first one this archive can show, not necessarily the true origin.";
     }
     if (intent.name === "trajectory") {
       var earliest = chain.filter(function (entry) { return entry.role === "EARLIEST INDEXED RECEIPT"; })[0];
@@ -2867,15 +2858,14 @@
         return entry.result.source + "|" + entry.result.sourceId;
       })).length;
       if (distinctSources < 2) {
-        return "Archive boundary: I found indexed " + entityLabel +
-          " receipts inside one source, but not a defensible before-and-after pair. " +
-          "That is not enough evidence to claim they changed their mind.";
+        return "I found " + entityLabel + " moments in one show, but not enough tape for a real before-and-after. Start with " +
+          location + "; the archive cannot honestly claim they changed their mind from that alone.";
       }
       var span = latest ? " through " + resultLocation(latest.result) : "";
       var trajectoryCaveat = entity && entity.type === "franchise" ?
-        " These franchise-wide receipts may concern different films, scenes, or evaluative targets and cannot prove a host changed their mind." :
-        " These receipts can reveal an archive timeline, but captions alone cannot prove a host changed their mind.";
-      return "Archive boundary: the index has explicit evaluative " + entityLabel + " receipts from " +
+        " Those moments may be about different movies or scenes, so they show a timeline - not proof that either host changed his mind." :
+        " Those moments show a timeline, but captions alone cannot prove that either host changed his mind.";
+      return "The archive tracks " + entityLabel + " from " +
         (earliest ? resultLocation(earliest.result) : location) + span + "." + trajectoryCaveat;
     }
     if (intent.name === "opinion") {
@@ -2885,29 +2875,33 @@
       var hasCriticalReceipt = chain.some(function (entry) {
         return entry.role === "CRITICAL-LANGUAGE RECEIPT";
       });
-      var polarityNote = hasPositiveReceipt && hasCriticalReceipt ?
-        " The result window deliberately includes both positive- and critical-language receipts." : "";
-      var opinionCaveat = entity && entity.type === "franchise" ?
-        " Franchise-wide receipts may concern different films, scenes, or review targets, so this does not establish one settled host opinion about the franchise." :
-        " This receipt supports a specific evaluative moment, not one settled host opinion.";
-      return "Archive boundary: the index contains explicit evaluative receipts for " + entityLabel +
-        ", including " + location + "." + polarityNote + opinionCaveat;
-    }
-    if (intent.existenceRequest) {
+      var opinionLead = hasPositiveReceipt && hasCriticalReceipt ?
+        "The tape catches both praise and criticism for " + entityLabel + "." :
+        hasCriticalReceipt ?
+          "The tape catches a clear criticism of " + entityLabel + "." :
+          hasPositiveReceipt ?
+            "The tape catches a positive take on " + entityLabel + "." :
+            "The archive has a playable " + entityLabel + " discussion.";
+      var opinionRead = hasPositiveReceipt && hasCriticalReceipt ?
+        " The honest read is mixed, not one clean final verdict." :
+        " It is one real moment from the show, not a claim about every take they have ever had.";
+      var opinionScope = entity && entity.type === "franchise" ?
+        " Because this covers a whole franchise, the matches may be about different movies or scenes." : "";
+      return opinionLead + " The best first stop is " + location + "." + opinionRead + opinionScope +
+        " Play the matches below to hear the full context.";
+    }    if (intent.existenceRequest) {
       if (intent.negativeExistence) {
-        return "No — they did cover it. The current bounded index contains a defensible " +
-          entityLabel + " receipt at " + location +
-          ". That resolves the negated coverage question inside this archive; it is not an exhaustive claim about every broadcast.";
+        return "No - they did cover it. Start at " + location +
+          ". That answers the question for the shows mapped here, though it does not account for every broadcast.";
       }
-      return "Yes — the current bounded index contains a defensible " + entityLabel +
-        " receipt at " + location + ".";
+      return "Yes - they cover " + entityLabel + " at " + location + ".";
     }
     if (intent.metric === "views") {
       var viewExtreme = intent.direction === "ascending" ? "least-viewed" : "most-viewed";
-      return "By the captured official view snapshot, " + (top.sourceTitle || top.title) +
-        " is the " + viewExtreme + " indexed " + sourceNoun(top.source) +
-        (entity ? " match for " + entityLabel : "") + " at " +
-        Number(top.views || 0).toLocaleString("en-US") + " official views.";
+      return "From the saved view-count snapshot, " + (top.sourceTitle || top.title) +
+        " is the " + viewExtreme + " " + sourceNoun(top.source) + " here" +
+        (entity ? " for " + entityLabel : "") + " at " +
+        Number(top.views || 0).toLocaleString("en-US") + " views.";
     }
     if (intent.metric === "unhinged") {
       var extreme = intent.direction === "ascending" ? "lowest" : "highest";
@@ -2915,82 +2909,78 @@
         return Number(result.unhinged || 0) === Number(top.unhinged || 0);
       });
       if (tied.length > 1) {
-        return "Direct answer: " + tied.slice(0, 3).map(function (result) {
+        return tied.slice(0, 3).map(function (result) {
           return result.title;
         }).join(" and ") + " tie for the " + extreme +
-          " indexed Unhinged Index in this scope at " + Number(top.unhinged || 0) + ".";
+          " Unhinged Index here at " + Number(top.unhinged || 0) + ".";
       }
-      return "Direct answer: " + top.title + " has the " + extreme +
-        " indexed Unhinged Index in this scope at " + Number(top.unhinged || 0) + ".";
+      return top.title + " has the " + extreme +
+        " Unhinged Index here at " + Number(top.unhinged || 0) + ".";
     }
     if (intent.metric === "live-heat") {
       var liveExtreme = intent.direction === "ascending" ? "lowest" : "highest";
-      return "Direct answer: " + (top.sourceTitle || top.title) +
-        " has the " + liveExtreme + " indexed live heat score in this scope at " +
-        Number(top.liveHeat || 0) + "/100. The score is the average of its three hottest indexed moments.";
+      return (top.sourceTitle || top.title) +
+        " has the " + liveExtreme + " show-energy score here at " +
+        Number(top.liveHeat || 0) + "/100. That score averages its three hottest moments.";
     }
     if (intent.metric === "mentions") {
-      return "Direct answer: " + top.title + " has the strongest indexed mention count in this scope at " +
-        Number(top.mentions || 0).toLocaleString("en-US") + " caption matches.";
+      return top.title + " has the most caption mentions here: " +
+        Number(top.mentions || 0).toLocaleString("en-US") + ".";
     }
     if (intent.name === "comedy") {
       if (top.kind === "character-performance") {
-        return "Strongest source-grounded comedy route in the current curated " + entityLabel +
-          " performance set: " + location + ". This is a timestamped curated candidate route, not an objective claim that one bit is the funniest and not an authenticated verification.";
+        return "For " + entityLabel + ", start with " + location +
+          ". It is the closest playable match for this question, not a claim that it is objectively the funniest.";
       }
-      return "Fastest evidence-backed route to chaos: " + location + ", filed as " + top.category + ".";
+      return "Fastest route to the chaos: " + location + ". It is marked " + top.category + ".";
     }
     if (intent.temporal === "latest") {
       if (top.kind === "character-performance") {
-        return "Latest curated " + entityLabel + " performance candidate in the current bounded set: " +
-          location + ".";
+        return "The newest playable " + entityLabel + " clip here is " + location + ".";
       }
-      return "Most recent indexed " + sourceNoun(top.source) + " match: " + location + ".";
+      return "The newest " + sourceNoun(top.source) + " match here is " + location + ".";
     }
     if (intent.temporal === "earliest") {
       if (top.kind === "character-performance") {
-        return "Earliest curated " + entityLabel + " performance candidate in the current bounded set: " +
-          location + ". This describes the bounded archive, not an all-time origin.";
+        return "The earliest playable " + entityLabel + " clip here is " + location +
+          ". It may not be the first time they ever did the bit.";
       }
-      return "Earliest indexed " + sourceNoun(top.source) + " match: " + location +
-        ". This describes the current archive, not an all-time origin.";
+      return "The earliest " + sourceNoun(top.source) + " match here is " + location +
+        ". It may not be the first time the subject came up.";
     }
     if (intent.questionType === "count") {
       var sourceCount = unique(ranked.map(function (result) {
         return result.source + "|" + result.sourceId;
       })).length;
-      return "The current result window contains " + sourceCount + " indexed source" +
-        (sourceCount === 1 ? "" : "s") + " with defensible " + entityLabel + " receipts.";
+      return "I found " + sourceCount + " show" +
+        (sourceCount === 1 ? "" : "s") + " with " + entityLabel + ". Here are the best places to start.";
     }
     if (intent.questionType === "when") {
-      return "The strongest indexed match is dated " + (top.date || "date unavailable") +
-        (top.at ? ", with the source jump at " + formatTime(top.at) : "") + ": " +
+      return "The best match is dated " + (top.date || "date unavailable") +
+        (top.at ? ", with the show jump at " + formatTime(top.at) : "") + ": " +
         (top.sourceTitle || top.title) + ".";
     }
     if (intent.questionType === "where") {
-      return "The strongest indexed jump is " + location + ".";
+      return "Start with " + location + ".";
     }
     if (intent.name === "negative") {
-      return "The strongest target-proximate negative-language receipt for " + entityLabel + " is " + location +
-        ". It supports this moment only; it is not being promoted into a settled host opinion" +
-        (intent.opinionComparison ? " or authenticated “most hated” verdict." : ".");
+      return "The clearest criticism of " + entityLabel + " is at " + location +
+        ". That is one moment, not their final word on " + entityLabel + ".";
     }
     if (intent.name === "positive") {
-      return "The strongest target-proximate positive-language receipt for " + entityLabel + " is " + location +
-        ". It supports this moment only; it is not being promoted into a settled host opinion" +
-        (intent.opinionComparison ? " or authenticated “best” verdict." : ".");
+      return "The clearest praise of " + entityLabel + " is at " + location +
+        ". That is one moment, not their final word on " + entityLabel + ".";
     }
     if (entity && entity.type === "character") {
       if (top.kind === "character-performance") {
-        return "Strongest curated " + entityLabel + " performance receipt: " + location +
-          ", grounded by the timestamp-validated Lore set. The clip remains speaker-undiarized.";
+        return "For " + entityLabel + ", start with " + location +
+          ". It is a hand-picked playable WWAM clip; the captions do not reliably say who is speaking.";
       }
-      return "Strongest indexed " + entityLabel + " character signal: " + location +
-        ", labeled " + String(top.characterStatus || "character reference") +
-        ". The label does not identify a performer.";
+      return entityLabel + " comes up at " + location +
+        ". This is a mention worth checking; the captions do not reliably say who is speaking.";
     }
     if (entity && entity.type === "bit") {
-      return "Direct curated soundbyte match: " + entity.label + " in " + location + ".";
+      return "Start with " + entity.label + " at " + location + ".";
     }
     if (intent.name === "topic" && top.kind === "topic") {
       var scopedTopicSources = unique((allRanked || ranked).filter(function (candidate) {
@@ -2998,15 +2988,14 @@
           normalize(candidate.title) === normalize(top.title);
       }).map(function (candidate) { return candidate.sourceId; }).filter(Boolean));
       var scopedTopicCount = scopedTopicSources.length || 1;
-      return top.title + " appears across " + scopedTopicCount +
-        " indexed stream" + (scopedTopicCount !== 1 ? "s" : "") +
-        ". The strongest matching jump is " + location + ".";
+      return top.title + " comes up in " + scopedTopicCount +
+        " show" + (scopedTopicCount !== 1 ? "s" : "") +
+        ". Start with " + location + ".";
     }
     if (intent.questionType === "which") {
-      return "Strongest supported match: " + location + ".";
+      return "Start with " + location + ".";
     }
-    return "Best-supported indexed answer: " + location +
-      ". Open the receipt to judge the caption context directly.";
+    return "Start with " + location + ". Play the clip below for the full context.";
   }
 
   function combineLiveData(live, popular, archiveDeep) {

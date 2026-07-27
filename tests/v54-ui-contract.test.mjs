@@ -39,14 +39,14 @@ test("V5.4 publishes its showcase surfaces without putting deferred ledgers on f
   assert.match(app, /loadDemoScript\("red-band-query\.js"\)/);
   assert.match(app, /loadDemoScript\("archive-atlas-data\.js\?v=1\.4\.0-year-canon"\)/);
   assert.match(app, /loadDemoScript\("archive-atlas-engine\.js\?v=1\.4\.0-year-canon"\)/);
-  assert.match(app, /loadDemoScript\("archive-atlas-ui\.js\?v=1\.3\.0"\)/);
+  assert.match(app, /loadDemoScript\("archive-atlas-ui\.js\?v=1\.4\.1"\)/);
   const archiveAssets = [
     "archive-deep-distill.js",
     "archive-deep-batch2.js",
     "archive-deep-batch3.js",
     "archive-deep-batch4.js",
     "year-canon-2025-2026.js?v=1.0.0",
-    "year-canon-ui.js?v=1.0.0",
+    "year-canon-ui.js?v=1.1.1",
     "archive-deep-engine.js",
     "archive-deep-portfolio.js",
   ];
@@ -57,35 +57,35 @@ test("V5.4 publishes its showcase surfaces without putting deferred ledgers on f
 });
 
 test("Archive Atlas keeps metadata scope and incomplete coverage visible in static copy", () => {
-  assert.match(html, /THE WHOLE CACHED STREAMS FEED/);
-  assert.match(html, /SEARCH TITLE METADATA/);
-  assert.match(html, /Only a deep-indexed badge means its available captions were actually distilled/i);
-  assert.match(html, /Metadata-only status controls eligibility; it does not add points/i);
+  assert.match(html, /THE WHOLE LIVESTREAM SHELF/);
+  assert.match(html, /SEARCH SHOW TITLES/);
+  assert.match(html, /Shows with usable captions open as full Wikis/i);
+  assert.match(html, /<div class="archive-queue" hidden aria-hidden="true">/);
   assert.match(html, /id="archive" aria-busy="true"/);
   assert.match(html, /id="archiveStatus" role="status" aria-live="polite"/);
-  assert.match(atlasUi, /availability was not rechecked/i);
+  assert.match(atlasUi, /watch-only instead of pretending/i);
   assert.match(atlasUi, /no transcript, speaker, sentiment, humor, or topic score/i);
 });
 
 test("the Red Band export and exact-rank Ask path expose the scoring boundary", () => {
-  assert.match(html, /id="redExport"[^>]*>DOWNLOAD INDEX JSON/);
+  assert.match(html, /id="redExport"[^>]*hidden>DOWNLOAD RANKING DATA/);
   assert.match(app, /engine\.exportSnapshot\(\)/);
   assert.match(app, /wwam-red-band-100-v2\.json/);
   assert.match(app, /redBandQueryEngine\.analyze\(query,\s*state\.askContext\)/);
   assert.match(redQuery, /ranking\.getByRank\(rank\)/);
-  assert.match(app, /MACHINE-RANKED, NOT A CREATOR VOTE/);
+  assert.match(app, /SOURCE LOCKED/);
   assert.match(redQuery, /Speaker not diarized; the receipt makes no host-authorship or true-origin claim/);
   assert.match(redEngine, /RECENCY EXCLUDED/);
   assert.match(redEngine, /ZERO DEFAULT · NO EDITORIAL VOTE SUPPLIED/);
 });
 
 test("every rendered Memorability Index card explains and opens its receipt", () => {
-  assert.match(app, /moment\.whyMemorableSummary/);
-  assert.match(app, /redSignalMarkup\(moment\)/);
+  assert.match(app, /function fanRedReason\(moment\)/);
+  assert.match(app, /WHY IT MADE THE LIST/);
   assert.match(app, /data-red-open=/);
-  assert.match(app, /SPEAKER NOT DIARIZED/);
+  assert.match(app, /PLAY THE MOMENT/);
+  assert.match(app, /AUTO-CAPTIONS CAN MISHEAR/);
   assert.match(styles, /\.evidence-why/);
-  assert.match(styles, /\.evidence-signals/);
 });
 
 test("Showcase Mode has six coherent beats and opens Archive Atlas as live proof", () => {

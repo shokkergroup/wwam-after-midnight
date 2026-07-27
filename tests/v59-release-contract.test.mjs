@@ -32,7 +32,7 @@ test("V5.9 publishes the lazy Time Capsule surface without growing app.js", () =
   );
   assert.match(
     html,
-    /data-feature-scripts="archive-deep-distill\.js,archive-deep-batch2\.js,archive-deep-batch3\.js,archive-deep-batch4\.js,archive-deep-engine\.js,archive-deep-portfolio\.js,archive-atlas-data\.js,archive-atlas-engine\.js,era-capsule-engine\.js,era-capsule-ui\.js"/
+    /data-feature-scripts="archive-deep-distill\.js,archive-deep-batch2\.js,archive-deep-batch3\.js,archive-deep-batch4\.js,archive-deep-engine\.js,archive-deep-portfolio\.js,archive-atlas-data\.js,archive-atlas-engine\.js,era-capsule-engine\.js,era-capsule-ui\.js\?v=1\.1\.0-human"/
   );
   assert.doesNotMatch(html, /<script[^>]+src="era-capsule-(?:engine|ui)\.js"/);
   assert.ok(

@@ -882,7 +882,7 @@
         return showWikiProseLabel(receipt.label);
       });
     }
-    var topicPhrase = showWikiList(topicLabels, "the subjects indexed on this tape");
+    var topicPhrase = showWikiList(topicLabels, format.id === "movie-commentary" ? "the movie itself" : "the night itself");
     var momentPhrase = showWikiList(momentLabels, "the registered source moments");
     var overview = title + " runs " + showWikiRuntime(source.duration) + ". " +
       (format.id === "movie-commentary" ? "The commentary keeps coming back to " :
@@ -907,8 +907,8 @@
         label: format.id === "ranking-show" ? "WHERE THE BRACKET GETS BLOODY" :
           format.id === "movie-commentary" ? "WHERE THE COMMENTARY BITES" :
             format.id === "trailer-reaction" ? "WHERE THE REACTION SPIKES" : "WHERE THE NIGHT SPIKES",
-        body: "The strongest registered beat lands at " + showWikiClock(first.at) +
-          " under “" + showWikiProseLabel(first.label) + ".” The rest of this block preserves the next highest source-local signals without turning machine heat into a creator verdict.",
+        body: "The first stop is " + showWikiClock(first.at) +
+          " for '" + showWikiProseLabel(first.label) + "'. The other jumps below are the next strongest moments from this show.",
         basis: "source-local-moment-receipts-ranked-by-preserved-signal",
         receiptKeys: moments.slice(0, 4).map(function (receipt) { return receipt.key; }),
       });
@@ -917,8 +917,8 @@
       blocks.push({
         id: "characters-walk-in",
         label: "WHEN THE CHARACTERS WALK IN",
-        body: "Registered character evidence on this tape includes " +
-          showWikiList(characterLabels) + ". These are performance candidates or caption signals; the individual clip speakers remain undiarized.",
+        body: "This tape pulls in " + showWikiList(characterLabels) +
+          ". The timestamps below are where those bits surface; the captions do not reliably identify which host is speaking.",
         basis: "source-local-character-receipts-with-speaker-firewall",
         receiptKeys: characters.slice(0, 4).map(function (receipt) { return receipt.key; }),
       });
@@ -929,9 +929,9 @@
           id: steves.length ? "what-gets-condemned" : "what-breaks-the-room",
           label: steves.length ? "WHAT GETS SENT TO STEVE" : "WHAT BREAKS THE ROOM",
           body: steves.length
-            ? "This tape contains strict negative-take candidates tied to explicit movie-related language. They remain evidence candidates, not a claim about who said them."
-            : "The comedy map is led by " + showWikiList(flavor.slice(0, 4).map(function (receipt) { return showWikiProseLabel(receipt.label); })) +
-              ". The exact caption fragments stay attached below rather than being rewritten as quotes.",
+            ? "This tape has some of the night's hardest negative takes. The exact timestamps are below; playback is the final word on who said what."
+            : "The comedy map starts with " + showWikiList(flavor.slice(0, 4).map(function (receipt) { return showWikiProseLabel(receipt.label); })) +
+              ". Each line below stays attached to its original timestamp.",
           basis: steves.length ? "strict-source-local-negative-take-gate" : "canonical-source-local-comedy-categories",
           receiptKeys: flavor.slice(0, 4).map(function (receipt) { return receipt.key; }),
         });

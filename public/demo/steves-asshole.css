@@ -65,7 +65,7 @@
 .steve-hero p,
 .steve-controls span,
 .steve-results-header,
-.steve-proof,
+.steve-flush-deck,
 .steve-card header > span {
   font-family: "IBM Plex Mono", Consolas, monospace;
   letter-spacing: 0.09em;
@@ -307,8 +307,7 @@
   transform: scale(1.025);
 }
 
-.steve-card-image span,
-.steve-card-image b {
+.steve-card-image span {
   position: absolute;
   z-index: 1;
   bottom: 0.75rem;
@@ -324,11 +323,6 @@
   left: 0.75rem;
 }
 
-.steve-card-image b {
-  right: 0.75rem;
-  color: #fff;
-  background: var(--steve-pink);
-}
 
 .steve-card-body {
   display: flex;
@@ -351,29 +345,94 @@
   text-transform: uppercase;
 }
 
-.steve-card blockquote,
-.steve-card-withheld {
+.steve-flush-deck {
+  margin: 1rem 0 0.7rem;
+  padding: 0.9rem;
+  background: rgba(207, 255, 25, 0.07);
+  border-left: 4px solid var(--steve-acid);
+}
+
+.steve-flush-deck > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.75rem;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.steve-flush-deck span {
+  color: var(--steve-acid);
+  font-size: 0.63rem;
+  font-weight: 800;
+}
+
+.steve-flush-deck b {
+  color: var(--steve-pink);
+  font-size: 0.63rem;
+}
+
+.steve-flush-deck p {
+  margin: 0.45rem 0 0;
+  color: var(--steve-paper);
+  font-family: "DM Sans", Arial, sans-serif;
+  font-size: 0.94rem;
+  font-weight: 650;
+  letter-spacing: 0;
+  line-height: 1.5;
+  text-transform: none;
+}
+
+.steve-caption-preview {
   flex: 1;
-  margin: 1rem 0;
+  margin: 0 0 0.9rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.steve-caption-preview summary {
+  padding: 0.7rem 0;
+  color: var(--steve-muted);
+  cursor: pointer;
+  font: 750 0.62rem/1.2 "IBM Plex Mono", Consolas, monospace;
+  letter-spacing: 0.08em;
+  list-style: none;
+}
+
+.steve-caption-preview summary::-webkit-details-marker {
+  display: none;
+}
+
+.steve-caption-preview summary::after {
+  content: "+";
+  float: right;
+  color: var(--steve-acid);
+  font-size: 0.9rem;
+}
+
+.steve-caption-preview[open] summary::after {
+  content: "−";
+}
+
+.steve-caption-preview blockquote,
+.steve-card-withheld {
+  margin: 0 0 0.65rem;
   padding-left: 0.85rem;
   color: #e9dee7;
   border-left: 3px solid var(--steve-pink);
-  font-size: 0.94rem;
+  font-size: 0.9rem;
 }
 
-.steve-proof {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  margin-bottom: 0.8rem;
+.steve-card-withheld {
+  flex: 1;
+  margin-top: 0;
 }
 
-.steve-proof span {
-  padding: 0.28rem 0.4rem;
-  color: var(--steve-muted);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.13);
-  font-size: 0.61rem;
+.steve-caption-preview small {
+  display: block;
+  margin: 0 0 0.75rem;
+  color: #8e838d;
+  font: 0.58rem/1.4 "IBM Plex Mono", Consolas, monospace;
+  letter-spacing: 0.06em;
 }
 
 .steve-card footer {

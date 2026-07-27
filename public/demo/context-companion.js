@@ -48,14 +48,14 @@
     var disputes = (item.disputes || []).map(function (fact) { return '<li><b>CONTEXT FLAG</b>' + esc(fact) + '</li>'; }).join("");
     var sourceLinks = '<a href="' + esc(item.financialSource) + '" target="_blank" rel="noopener">BOX OFFICE SOURCE ↗</a>' +
       (item.officialUrl ? '<a href="' + esc(item.officialUrl) + '" target="_blank" rel="noopener">' + esc(item.officialLabel || "OFFICIAL / PRIMARY SOURCE") + ' ↗</a>' : "") +
-      '<a href="' + esc(imageLink) + '" target="_blank" rel="noopener">IMAGE PROVENANCE ↗</a>';
+      '<a href="' + esc(imageLink) + '" target="_blank" rel="noopener">IMAGE SOURCE ↗</a>';
     return '<section class="source-context-companion source-context-movie" id="sourceDossierContext" aria-labelledby="sourceContextTitle">' +
-      '<header class="context-head"><div><span>ABOUT THE MOVIE // EXTERNAL CONTEXT</span><h4 id="sourceContextTitle">THE FILM AROUND THE COMMENTARY.</h4></div><p>Film facts live in this green lane. WWAM quotes, jokes and opinions stay in the source-evidence lanes below.</p></header>' +
+      '<header class="context-head"><div><span>ABOUT THE MOVIE // EXTERNAL CONTEXT</span><h4 id="sourceContextTitle">THE FILM AROUND THE COMMENTARY.</h4></div><p>Film facts live in this green lane. WWAM quotes, jokes, and opinions stay with their original moments below.</p></header>' +
       '<div class="context-movie-hero"><figure><img src="' + esc(image) + '" alt="Context artwork for ' + esc(item.film) + '" loading="lazy" referrerpolicy="no-referrer"><figcaption><a href="' + esc(imageLink) + '" target="_blank" rel="noopener">' + esc(imageLabel) + ' ↗</a></figcaption></figure>' +
       '<div class="context-movie-copy"><p>' + esc(item.franchise) + ' // ' + esc(item.year) + '</p><h5>' + esc(item.film) + '</h5><div class="context-stat-grid"><div><span>RUNTIME</span><b>' + esc(item.runtime) + '</b></div><div><span>DIRECTOR</span><b>' + esc(item.director) + '</b></div><div><span>REPORTED BUDGET</span><b>' + esc(item.budget) + '</b></div><div><span>WORLDWIDE GROSS</span><b>' + esc(item.worldwide) + '</b></div></div><ul class="context-facts">' + facts + '</ul><div class="context-source-links">' + sourceLinks + '</div></div></div>' +
       (disputes ? '<ul class="context-disputes">' + disputes + '</ul>' : "") +
       trailerMarkup(item) +
-      '<aside class="context-sync-lock"><span>POP-UP WATCHALONG COMPANION</span><b>SYNC CALIBRATION REQUIRED</b><p>The commentary upload and movie cut need one human-verified offset before film-timed cards can fire honestly. The feature is designed, but it will not pretend those clocks are synchronized.</p></aside>' +
+      '<aside class="context-sync-lock"><span>POP-UP WATCHALONG COMPANION</span><b>MOVIE SYNC NOT SET YET</b><p>One quick sync point between the commentary and this movie cut is still needed before scene cards can pop up at the right second.</p></aside>' +
     '</section>';
   }
 
@@ -87,7 +87,7 @@
   function recentMarkup(sourceId, show) {
     var cards = (show.cards || []).map(function (card,index) { return cardMarkup(sourceId,card,index); }).join("");
     return '<section class="source-context-companion source-context-live" id="sourceDossierContext" aria-labelledby="sourceContextTitle">' +
-      '<header class="context-head"><div><span>POP-UP COMPANION // TOPIC CONTEXT</span><h4 id="sourceContextTitle">WHEN THEY SAY IT, THE WORLD AROUND IT OPENS.</h4></div><p>Every card is locked to a WWAM caption timestamp. Trailers, games, articles and rumors are separately labeled so a host opinion never turns into a fake fact.</p></header>' +
+      '<header class="context-head"><div><span>POP-UP COMPANION // TOPIC CONTEXT</span><h4 id="sourceContextTitle">WHEN THEY SAY IT, THE WORLD AROUND IT OPENS.</h4></div><p>Every card starts at a real moment in this WWAM upload. Trailers, games, articles, and rumors are labeled separately so the hosts&#39; takes never become fake facts.</p></header>' +
       '<div class="context-live-intro"><div><span>' + esc(show.date) + '</span><h5>' + esc(show.title) + '</h5><p>' + esc(show.summary) + '</p></div><aside><span>COVERAGE</span><b>' + esc(show.coverage === "caption-backed" ? "TIMED + SOURCE-LINKED" : "SOURCE ONLY") + '</b><small>' + (show.cards || []).length + ' CONTEXT DOORS</small></aside></div>' +
       (show.gap ? '<div class="context-trust-gap"><span>VISIBLE TRUST GAP</span><h5>NO CAPTIONS. NO INVENTED WIKI.</h5><p>' + esc(show.gap) + '</p><a href="https://www.youtube.com/watch?v=' + esc(sourceId) + '" target="_blank" rel="noopener">PLAY THE OFFICIAL UPLOAD ↗</a></div>' : '<div class="context-popup-timeline">' + cards + '</div>') +
     '</section>';

@@ -122,8 +122,8 @@ function renderedPortfolio() {
 test("publishes a compact isolated UI controller with lifecycle and Ask APIs", () => {
   const { window, ui } = load();
 
-  assert.ok(fs.statSync(uiPath).size < 32_000);
-  assert.equal(window.WWAMArchiveAtlasUI.VERSION, "1.3.0");
+  assert.ok(fs.statSync(uiPath).size < 36_000);
+  assert.equal(window.WWAMArchiveAtlasUI.VERSION, "1.4.1");
   for (const method of [
     "mount",
     "setEngine",
@@ -154,10 +154,10 @@ test("snapshot and queue copy describe exactly what the evidence and formula pro
   const { ui } = load();
   const copy = ui.getCopy();
 
-  assert.match(copy.snapshot, /present in the official Streams-feed snapshot/i);
+  assert.match(copy.snapshot, /Browse every WWAM livestream/i);
   assert.match(copy.snapshot, /2026-07-23/);
-  assert.match(copy.snapshot, /availability was not rechecked/i);
-  assert.match(copy.boundary, /not what anyone said/i);
+  assert.match(copy.boundary, /usable captions open as full Wikis/i);
+  assert.match(copy.boundary, /watch-only instead of pretending/i);
   assert.match(copy.queue, /archive-distill-priority\/v1/);
   assert.match(copy.queue, /0–50/);
   assert.match(copy.queue, /0–30/);
@@ -248,61 +248,49 @@ test("source contract includes live status, busy state, disabled controls, and f
   assert.doesNotMatch(source, /scheduleIdle|IntersectionObserver|createElement\("script"\)/);
 });
 
-test("Archive Deep overlay derives all four-batch proof instead of freezing showcase totals", () => {
+test("Archive Deep overlay keeps all forty source doors without exposing production scoring", () => {
   const source = fs.readFileSync(uiPath, "utf8");
 
-  assert.match(source, /batchCount = meta\.batches \|\| batches\.length/);
-  assert.match(source, /CURRENT ' \+ meta\.streams/);
-  assert.match(source, /batches\.map\(function \(batch\)/);
-  assert.match(source, /batch\.publicFnv1a/);
-  assert.match(source, /BATCH-LOCAL PRIORITY #/);
-  assert.match(source, /PORTFOLIO #/);
-  assert.match(source, /ATLAS SCORE/);
-  assert.match(source, /CACHED VIEWS/);
-  assert.match(source, /TOPIC-ONLY/);
-  assert.match(source, /VISUAL RESULT UNVERIFIED/);
-  assert.match(source, /"archive-deep-batch-03": "ARCHIVE DEEP BATCH 03"/);
-  assert.doesNotMatch(source, /CURRENT 20-SOURCE|TWO INDEPENDENTLY FINGERPRINTED/);
+  assert.match(source, /40 OLDER SHOWS WITH EXTRA CHAPTERS/);
+  assert.match(source, /THE DEEP-DIVE SHELF/);
+  assert.match(source, /DEEP DIVE #/);
+  assert.match(source, /VIEWS WHEN ADDED/);
+  assert.match(source, /TOPIC JUMPS ONLY/);
+  assert.match(source, /ARTWORK NEEDS A LOOK/);
+  assert.doesNotMatch(source, /BATCH-LOCAL PRIORITY|PORTFOLIO #|ATLAS SCORE|publicFnv1a|VISUAL RESULT UNVERIFIED/);
 });
 
-test("renders all 40 autopsies with dynamic proof, ranks, checksums, and firewalls", () => {
+test("renders all 40 deep-dive show doors with fan-facing labels", () => {
   const { batch: markup } = renderedPortfolio();
 
-  assert.match(markup, /CURRENT 40-SOURCE OVERLAY \/\/ 4 INDEPENDENT BATCH FINGERPRINTS/);
-  assert.match(markup, /97\.7H \/\/ 1,216,993 WORDS \/\/ 173,675 EVENTS \/\/ 166 QUARANTINED CANDIDATES/);
+  assert.match(markup, /40 OLDER SHOWS WITH EXTRA CHAPTERS/);
+  assert.match(markup, /THE DEEP-DIVE SHELF/);
+  assert.match(markup, /445,949/);
   assert.equal((markup.match(/data-archive-open=/g) || []).length, 40);
-  assert.equal((markup.match(/BATCH 03/g) || []).length, 10);
-  assert.equal((markup.match(/BATCH 04/g) || []).length, 10);
-  assert.match(markup, /B01 fnv1a32:17045a51/);
-  assert.match(markup, /B02 fnv1a32:bcea5692/);
-  assert.match(markup, /B03 fnv1a32:f79f2399/);
-  assert.match(markup, /B04 fnv1a32:56ca74df/);
-  assert.match(markup, /BATCH-LOCAL PRIORITY #10/);
-  assert.match(markup, /PORTFOLIO #40/);
-  assert.match(markup, /TOPIC-ONLY/);
-  assert.match(markup, /VISUAL RESULT UNVERIFIED/);
+  assert.equal((markup.match(/DEEP DIVE #/g) || []).length, 40);
+  assert.match(markup, /TOPIC JUMPS ONLY/);
+  assert.match(markup, /ARTWORK NEEDS A LOOK/);
   assert.equal((markup.match(/OPEN SHOW WIKI &rarr;/g) || []).length, 40);
   assert.equal((markup.match(/aria-label="Open show wiki for /g) || []).length, 40);
-  assert.doesNotMatch(markup, /NaN|undefined/);
+  assert.doesNotMatch(markup, /QUARANTINED|FINGERPRINT|BATCH-LOCAL|ATLAS SCORE|NaN|undefined/);
 });
 
-test("main Atlas cards show only registered Archive Deep summaries and preserve every source door", () => {
-  const { grid, deepRecord, metadataRecord, deepSummary } = renderedPortfolio();
-  const escapedSummary = deepSummary.replace(/&/g, "&amp;").replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+test("main Atlas cards turn registered data into natural show summaries and preserve every source door", () => {
+  const { grid, deepRecord, metadataRecord } = renderedPortfolio();
   const cards = grid.match(/<article class="archive-card[\s\S]*?<\/article>/g) || [];
 
   assert.equal(cards.length, 2);
   assert.equal((grid.match(/data-archive-open=/g) || []).length, 2);
   assert.equal((grid.match(/class="archive-card-summary"/g) || []).length, 1);
-  assert.match(grid, /WHAT IS INSIDE \/\/ REGISTERED DISTILL/);
-  assert.ok(grid.includes(escapedSummary));
+  assert.match(grid, /WHAT THIS NIGHT WAS ABOUT/);
+  assert.match(grid, /Start with/);
+  assert.doesNotMatch(grid, /machine-surfaced|REGISTERED DISTILL|source-locked|unverified until human review/);
 
   const deepCard = cards.find((card) => card.includes(deepRecord.title));
   const metadataCard = cards.find((card) => card.includes(metadataRecord.title));
   assert.match(deepCard, /archive-card-summary/);
   assert.doesNotMatch(metadataCard, /archive-card-summary/);
-  assert.match(metadataCard, /TITLE \/ DATE \/ DURATION \/ VIEWS ONLY/);
+  assert.match(metadataCard, /WATCH ONLY/);
 });
 
 test("deep cards may receive a registered summary from another indexed lane without leaking to metadata cards", () => {
@@ -353,7 +341,7 @@ test("deep cards may receive a registered summary from another indexed lane with
   const markup = nodes.get("archiveGrid").innerHTML;
   const cards = markup.match(/<article class="archive-card[\s\S]*?<\/article>/g) || [];
   assert.equal((markup.match(/class="archive-card-summary"/g) || []).length, 1);
-  assert.ok(cards.find((card) => card.includes(fresh.title)).includes(registered));
+  assert.match(cards.find((card) => card.includes(fresh.title)), /This Show Wiki has a recap, topic jumps, and a few good places to start/);
   assert.doesNotMatch(cards.find((card) => card.includes(metadata.title)), /archive-card-summary/);
 });
 

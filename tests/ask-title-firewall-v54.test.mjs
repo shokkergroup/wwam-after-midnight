@@ -65,9 +65,9 @@ test("a restricted exact title fails at the firewall instead of escaping to fran
   assert.equal(answer.selectionPlan.source.sourceId, "fpNtQMexZiw");
   assert.equal(answer.selectionPlan.source.matchMode, "exact");
   assert.deepEqual(answer.results, []);
-  assert.match(answer.answer, /topic navigation/i);
-  assert.match(answer.answer, /source-audio firewall/i);
-  assert.match(answer.answer, /will not substitute adjacent franchise content/i);
+  assert.match(answer.answer, /can only offer topic jumps here/i);
+  assert.match(answer.answer, /audio isn't available for comedy moments, character clips, or soundbytes/i);
+  assert.match(answer.answer, /won't swap in a different franchise video/i);
 });
 
 test("near-exact title recovery permits one text typo but never changes a sequel number", async () => {
@@ -88,7 +88,7 @@ test("near-exact title recovery permits one text typo but never changes a sequel
     "unresolved-numbered-title",
   );
   assert.deepEqual(unknownNumber.results, []);
-  assert.match(unknownNumber.answer, /sequel number is being kept exact/i);
+  assert.match(unknownNumber.answer, /kept the sequel number exact/i);
   assert.doesNotMatch(unknownNumber.answer, /Scream \(1996\)/);
 });
 
@@ -122,11 +122,11 @@ test("duplicate indexed titles and unknown speaker follow-ups fail closed", asyn
   );
   assert.ok(collision.selectionPlan.sourceTitleBoundary.matches.length > 1);
   assert.deepEqual(collision.results, []);
-  assert.match(collision.answer, /will not choose one arbitrarily/i);
+  assert.match(collision.answer, /don't want to guess/i);
 
   assert.equal(orphan.status, "speaker-unknown");
   assert.deepEqual(orphan.results, []);
-  assert.match(orphan.answer, /cannot identify a host/i);
+  assert.match(orphan.answer, /auto-captions don't reliably say who is speaking/i);
 });
 
 test("contextual speaker follow-ups retain the exact result and Archive Deep lane", async () => {

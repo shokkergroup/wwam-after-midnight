@@ -768,12 +768,13 @@ test("exports the per-show Wiki UI, keeps curated lanes first, and destroys clea
         /class="source-dossier-receipt source-dossier-wiki-receipt"/g,
       ) ?? []
     ).length,
-    7,
+    4,
   );
   assert.match(mount.innerHTML, /21 EXACT TIMESTAMPS FROM THIS SHOW/);
   assert.match(mount.innerHTML, /0 OF 21 TIMESTAMPS VISIBLE/);
   assert.match(mount.innerHTML, /SHOW ALL 21 TIMESTAMPS/);
-  assert.match(mount.innerHTML, /SHOW ALL ARCHIVE DETAILS/);
+  assert.match(mount.innerHTML, /EXPLORE ALL/);
+  assert.match(mount.innerHTML, /id="sourceDossierDeepResearch" hidden/);
   assert.match(mount.innerHTML, /FIND IT WITHOUT SCRUBBING FOR HOURS/);
   assert.match(mount.innerHTML, /MEMORY OS FOOTPRINT/);
   assert.match(mount.innerHTML, /PUT THE ARCHIVE TO WORK/);
@@ -781,6 +782,15 @@ test("exports the per-show Wiki UI, keeps curated lanes first, and destroys clea
   assert.match(mount.innerHTML, /SOURCE-SPECIFIC EVIDENCE WARNINGS/);
   assert.match(mount.innerHTML, /Speakers are not diarized/);
 
+  mount.click("open-full-file");
+  assert.match(mount.innerHTML, /data-source-dossier-view="full"/);
+  assert.equal(
+    (mount.innerHTML.match(
+      /class="source-dossier-receipt source-dossier-wiki-receipt"/g,
+    ) ?? []).length,
+    7,
+
+  );
   ui.destroy();
   assert.equal(mount.innerHTML, "");
   assert.equal(mount.listeners.has("click"), false);
@@ -963,10 +973,10 @@ test("rich sources become navigable per-show Wikis with recap, Topic Hop, and ex
     onPlay: (payload) => plays.push(payload),
     onBagReceipt: (payload) => bags.push(payload),
   });
-  ui.render("SOURCE00001");
+  ui.render("SOURCE00001", { fullFile: true });
   const html = mount.innerHTML;
 
-  assert.ok(html.includes("WWAM AFTER MIDNIGHT // SHOW WIKI // FULL CAPTIONS INDEXED"));
+  assert.ok(html.includes("WWAM AFTER MIDNIGHT // SHOW WIKI // FULL SHOW WIKI"));
   assert.match(html, /aria-label="Explore this show"/);
   assert.ok(html.includes('href="#sourceDossierPlayerSection">WATCH THE SHOW</a>'));
   assert.ok(html.includes('href="#sourceDossierShowWikiSummary">SHOW SUMMARY</a>'));
@@ -991,9 +1001,7 @@ test("rich sources become navigable per-show Wikis with recap, Topic Hop, and ex
     5,
   );
   assert.match(html, /SAVE ALL 5 MOMENTS/);
-  assert.ok(
-    html.includes("REGISTERED HEAT + TOPIC SPREAD + RECURRING-CHARACTER COVERAGE"),
-  );
+  assert.match(html, /Built only from saved timestamps on this exact upload/);
   assert.match(html, /THE WHOLE NIGHT, CUT TO THE PARTS WORTH REVISITING/);
   assert.match(html, /A recap, watch path, and timestamped moments from this exact upload/);
   assert.match(html, /TOPICS DISCUSSED/);
@@ -1002,8 +1010,10 @@ test("rich sources become navigable per-show Wikis with recap, Topic Hop, and ex
   assert.match(html, /STRAIGHT TO STEVE&#39;S ASSHOLE/);
   assert.match(html, /CHARACTER BITS/);
   assert.match(html, /data-show-wiki-lane="best-moments" data-show-wiki-receipt-count="2"/);
-  assert.match(html, /MOMENT HEAT 94.6/);
-  assert.ok(html.includes("CAPTION DENSITY + ROOM REACTION"));
+  assert.match(html, /FEATURED HERE/);
+  assert.doesNotMatch(html, /MOMENT HEAT|data-signal-score|SHOWCASE-RECEIPT-SCORE/);
+  assert.doesNotMatch(html, /CAPTION DENSITY \+ ROOM REACTION/);
+  assert.doesNotMatch(html, /MACHINE-SURFACED|OPERATOR/);
   assert.match(html, /Every jump opens this exact upload at a saved time/);
   assert.equal(
     (html.match(/class="source-dossier-receipt source-dossier-wiki-receipt"/g) ?? []).length,
@@ -1058,6 +1068,23 @@ test("rich sources become navigable per-show Wikis with recap, Topic Hop, and ex
     ],
   );
   assert.ok(bags.every((payload) => payload.section === "wiki"));
+});
+
+test("caption excerpts drop only leading YouTube speaker markers across cards and playback", () => {
+  const dossier = makeDossier();
+  dossier.source.receipts[2].excerpt = ">>   >> A bounded caption line.";
+  const { ui, mount } = setup(dossier);
+  ui.render("SOURCE00001");
+
+  assert.match(mount.innerHTML, /&ldquo;A bounded caption line\.&rdquo;/);
+  assert.doesNotMatch(mount.innerHTML, /&gt;&gt;|>>/);
+
+  mount.click("play-receipt", {
+    "data-receipt-key": "SOURCE00001:receipt-2",
+    "data-owner-section": "wiki",
+  });
+  assert.match(mount.innerHTML, /&ldquo;A bounded caption line\.&rdquo;/);
+  assert.doesNotMatch(mount.innerHTML, /&gt;&gt;|>>/);
 });
 
 test("deep-linked Show Wiki and player views reset the modal and focus short headings without scroll drift", () => {
@@ -1133,7 +1160,7 @@ test("metadata-only Show Wikis expose a canonical Source Brief without fake mome
   assert.match(html, /RUNTIME<\/small><b>2H 03M/);
   assert.match(html, /VIEWS WHEN INDEXED<\/small><b>987,654/);
   assert.match(html, /CAPTION COVERAGE<\/small><b>UPLOAD DETAILS ONLY/);
-  assert.match(html, /WHY THIS PAGE IS LIMITED \/\/ REGISTERED-SOURCE-TYPE-AND-TITLE/);
+  assert.match(html, /WHY THIS PAGE IS LIMITED \/\/ VERIFIED UPLOAD DETAILS ONLY/);
   assert.match(html, /NO FAKE RECAP/);
   assert.match(html, /QUEUE THE DEEP DIVE/);
   assert.match(html, /WATCH ON YOUTUBE/);
@@ -1151,7 +1178,7 @@ test("metadata-only Show Wikis expose a canonical Source Brief without fake mome
   assert.doesNotMatch(html, /class="source-dossier-receipt(?: |")/);
   assert.ok(html.includes(dossier.source.url));
 });
-test("Show Wiki adapter labels, descriptions, empty states, and heat basis are escaped", () => {
+test("Show Wiki adapter copy is escaped while internal scoring and selection notes stay private", () => {
   const dossier = makeDossier();
   dossier.source.showWiki = {
     label: '<img src=x onerror="wikiBoom">',
@@ -1200,25 +1227,22 @@ test("Show Wiki adapter labels, descriptions, empty states, and heat basis are e
   dossier.source.receipts[0].signalScore = 88;
   dossier.source.receipts[0].signalBasis = '<img src=x onerror="heatBoom">';
   const { ui, mount } = setup(dossier);
-  ui.render("SOURCE00001");
+  ui.render("SOURCE00001", { fullFile: true });
   const html = mount.innerHTML;
 
   assert.match(html, /&lt;img src=x onerror=&quot;wikiBoom&quot;&gt;/);
   assert.doesNotMatch(html, /description&quot;/);
   assert.match(html, /&lt;svg onload=&quot;labelBoom&quot;&gt;/);
   assert.match(html, /&lt;img src=x onerror=&quot;emptyBoom&quot;&gt;/);
-  assert.match(html, /&lt;IMG SRC=X ONERROR=&quot;HEATBOOM&quot;&gt;/);
+  assert.doesNotMatch(html, /HEATBOOM/i);
   assert.match(html, /&lt;b onmouseover=&quot;formatBoom&quot;&gt;/);
-  assert.match(html, /&lt;IMG SRC=X ONERROR=&quot;FORMATBASISBOOM&quot;&gt;/);
+  assert.doesNotMatch(html, /FORMATBASISBOOM/i);
   assert.ok(html.includes("&lt;script&gt;alert(&quot;overview&quot;)&lt;/script&gt;"));
   assert.match(html, /&lt;svg onload=&quot;recapLabelBoom&quot;&gt;/);
   assert.match(html, /&lt;img src=x onerror=&quot;recapBodyBoom&quot;&gt;/);
   assert.match(html, /&lt;svg onload=&quot;experienceLabelBoom&quot;&gt;/);
   assert.match(html, /&lt;img src=x onerror=&quot;experienceTitleBoom&quot;&gt;/);
-  assert.ok(
-    html.includes("&lt;script&gt;alert(&quot;experienceDescription&quot;)&lt;/script&gt;"),
-  );
-  assert.match(html, /&lt;B ONMOUSEOVER=&quot;SELECTIONBOOM&quot;&gt;/);
+  assert.doesNotMatch(html, /experienceDescription|SELECTIONBOOM/i);
   assert.doesNotMatch(html, /<script>alert/);
   assert.doesNotMatch(html, /<svg onload="labelBoom">/);
   assert.doesNotMatch(html, /onerror="(?:wiki|empty|heat)Boom"/);
@@ -1883,7 +1907,7 @@ test("progressive disclosure and deep render options preserve the full source fi
   mount.click("open-full-file");
   assert.equal(receiptCount(), 21);
   assert.match(mount.innerHTML, /data-source-dossier-density="full"/);
-  assert.match(mount.innerHTML, /BACK TO QUICK VIEW/);
+  assert.match(mount.innerHTML, /BACK TO SHOW HIGHLIGHTS/);
   mount.click("close-full-file");
   assert.equal(receiptCount(), 0);
 
@@ -1952,11 +1976,11 @@ test("the Tape's Wake visibly separates dual-ended evidence from metadata and ea
 
 test("markup exposes landmarks, accessible control names, and safe official links", () => {
   const { ui, mount } = setup();
-  ui.render("SOURCE00001");
+  ui.render("SOURCE00001", { fullFile: true });
 
   assert.match(
     mount.innerHTML,
-    /<article class="source-dossier[^"]*" aria-labelledby="sourceDossierTitle" aria-describedby="sourceDossierBoundary">/,
+    /<article class="source-dossier[^"]*" data-source-dossier-view="full" aria-labelledby="sourceDossierTitle" aria-describedby="sourceDossierBoundary">/,
   );
   assert.match(
     mount.innerHTML,
@@ -1972,7 +1996,7 @@ test("markup exposes landmarks, accessible control names, and safe official link
   );
   assert.match(
     mount.innerHTML,
-    /aria-label="Save INDEXED MOMENT 1 to the evidence bag"/,
+    /aria-label="Save INDEXED MOMENT 1 to saved clips"/,
   );
   assert.match(
     mount.innerHTML,
@@ -1998,7 +2022,7 @@ test("invalid engine output fails closed and renders no unverified source claim"
 
   assert.equal(ui.render("BAD"), null);
   assert.equal(mount.getAttribute("data-source-dossier-state"), "failed");
-  assert.match(mount.innerHTML, /THE PAGE FAILED CLOSED/);
+  assert.match(mount.innerHTML, /THIS SHOW WIKI COULD NOT OPEN/);
   assert.match(mount.innerHTML, /No metadata, content, relationship, or authority claim/);
   assert.doesNotMatch(mount.innerHTML, /source-dossier-hero/);
 });
@@ -2164,7 +2188,7 @@ test("local Show Wiki navigation includes only populated lanes and keeps Source 
 
 test("the pulse map separates close timestamps into deterministic rows and expands its track", () => {
   const { ui, mount } = setup(makeDossier());
-  ui.render("SOURCE00001");
+  ui.render("SOURCE00001", { fullFile: true });
   const html = mount.innerHTML;
 
   assert.match(
@@ -2233,6 +2257,18 @@ test("responsive stylesheet preserves touch targets, focus, and reduced motion",
     cssSource,
     /@media \(max-width:\s*600px\)[\s\S]*\.source-dossier-wiki-recap[\s\S]*\.source-dossier-wiki-route[\s\S]*grid-template-columns:\s*1fr/,
   );
+  assert.match(
+    cssSource,
+    /\.source-dossier-deep-research\[hidden\]\s*\{[^}]*display:\s*none\s*!important/s,
+  );
+  assert.match(
+    cssSource,
+    /@media \(max-width:\s*600px\)[\s\S]*\.source-dossier-density\s*\{[^}]*position:\s*static\s*!important[^}]*max-height:\s*76px/s,
+  );
+  assert.match(
+    cssSource,
+    /@media \(max-width:\s*600px\)[\s\S]*\.source-dossier > \.source-dossier-explore\s*\{[^}]*position:\s*static\s*!important[^}]*max-height:\s*68px/s,
+  );
   assert.doesNotMatch(cssSource, /@import/i);
 });
 test("Show Wiki keeps the archive truth but removes machine-room language and duplicate sticky UI", () => {
@@ -2249,6 +2285,20 @@ test("Show Wiki keeps the archive truth but removes machine-room language and du
   assert.match(wiki, /THE SHOW IN PLAIN ENGLISH/);
   assert.match(wiki, /PLAYABLE MOMENTS/);
   assert.match(wiki, /HOW THESE TIMESTAMPS WORK/);
+  assert.match(html, /data-source-dossier-view="compact"/);
+  assert.match(html, /id="sourceDossierDeepResearch" hidden/);
+  assert.match(html, />EXPLORE ALL<\/button>/);
+  assert.equal(
+    (wiki.match(/is-show-wiki-highlight/g) ?? []).length,
+    3,
+  );
+  assert.doesNotMatch(wiki, /is-show-wiki-research/);
+  assert.doesNotMatch(wiki, /source-dossier-wiki-experience/);
+  assert.doesNotMatch(wiki, /source-dossier-wiki-recap-blocks/);
+  assert.doesNotMatch(
+    wiki,
+    /MOMENT HEAT|SHOWCASE-RECEIPT-SCORE|data-signal-score|MACHINE|OPERATOR/i,
+  );
   assert.doesNotMatch(
     wiki,
     /SOURCE-LOCAL CAPTION EVIDENCE|SOURCE-LOCKED RECEIPT|DISTILLATION STATUS|THE SHOW, DISTILLED TO PLAYABLE PROOF/,

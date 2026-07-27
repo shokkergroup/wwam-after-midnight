@@ -220,7 +220,7 @@ test("Time Capsules hydrate as one ordered lazy feature and stay off the eager p
   assert.match(html, /href="#time-capsules"[^>]*><b>Time Capsules<\/b>/);
   assert.match(
     html,
-    /<section class="era-capsule" id="time-capsules"[\s\S]{0,180}data-feature-styles="era-capsule\.css"[\s\S]{0,500}data-feature-scripts="[^"]*archive-deep-distill\.js[^"]*archive-atlas-data\.js[^"]*era-capsule-engine\.js,era-capsule-ui\.js"/,
+    /<section class="era-capsule" id="time-capsules"[\s\S]{0,180}data-feature-styles="era-capsule\.css"[\s\S]{0,500}data-feature-scripts="[^"]*archive-deep-distill\.js[^"]*archive-atlas-data\.js[^"]*era-capsule-engine\.js,era-capsule-ui\.js\?v=1\.1\.0-human"/,
   );
   assert.doesNotMatch(html, /<script[^>]+src="era-capsule-(?:engine|ui)\.js"/);
   assert.doesNotMatch(html, /<link[^>]+href="era-capsule\.css"/);
@@ -247,8 +247,8 @@ test("the static surface is accessible before its lazy controller arrives", () =
     html,
     /id="eraCapsuleStatus" role="status"\s+aria-live="polite" aria-atomic="true"/,
   );
-  assert.match(html, /CACHED FEED IS METADATA/);
-  assert.match(html, /QUARANTINE CANNOT PROMOTE ITSELF/);
+  assert.match(html, /UPLOAD LIST FROM THE WWAM FEED/);
+  assert.match(html, /UNCHECKED MOMENTS STAY OFF THE MAIN LIST/);
   assert.match(html, /NO AUTOPLAY/);
 });
 
@@ -271,7 +271,7 @@ test("public helpers keep year routing and time display deterministic", () => {
   );
 });
 
-test("the controller opens the requested verified year and leaves two ledgers visible", () => {
+test("the controller opens the requested year with fan labels and folds internal review data away", () => {
   const harness = mountedController(2025);
   const state = harness.controller.getState();
   const markup = harness.nodes.get("eraCapsuleStage").innerHTML;
@@ -279,21 +279,21 @@ test("the controller opens the requested verified year and leaves two ledgers vi
   assert.equal(state.mounted, true);
   assert.equal(state.year, 2025);
   assert.equal(state.error, "");
-  assert.match(markup, /94<\/b><span>CACHED FEED UPLOADS/);
-  assert.match(markup, /222\.4H<\/b><span>CACHED FEED RUNTIME/);
-  assert.match(markup, /637,619<\/b><span>CACHED VIEWS \/\/ NOT CURRENT/);
-  assert.match(markup, /14 DEEP \/\/ 80 METADATA-ONLY/);
-  assert.match(markup, /NO TOPICS, TAKES, OR QUOTES WERE INFERRED FROM METADATA/);
-  assert.match(markup, /68 CANDIDATES/);
-  assert.match(markup, /PROMOTION FORBIDDEN/);
-  assert.match(markup, /SPEAKER UNKNOWN \/ NOT DIARIZED/);
+  assert.match(markup, /94<\/b><span>SHOWS FOUND/);
+  assert.match(markup, /222\.4H<\/b><span>HOURS ON AIR/);
+  assert.match(markup, /637,619<\/b><span>VIEWS AT OUR LAST CHECK/);
+  assert.match(markup, /14 SHOW WIKIS \/\/ 80 WATCH ONLY/);
+  assert.match(markup, /NOTHING WAS FILLED IN FROM TITLES ALONE/);
+  assert.match(markup, /hidden aria-hidden="true"/);
+  assert.match(markup, /MOMENTS STILL BEING CHECKED/);
+  assert.match(markup, /VOICE NOT CONFIRMED/);
   assert.match(markup, /ARCHIVE-DEEP-BATCH-02/);
   assert.doesNotMatch(markup, /\[OBJECT OBJECT\]/);
   assert.equal(
     (markup.match(/PLAY ON YOUTUBE/g) || []).length,
     5,
   );
-  assert.match(markup, /QUARANTINED STOP \/\/ PROMOTION FORBIDDEN/);
+  assert.match(markup, /MOMENT TO CHECK/);
   assert.doesNotMatch(markup, /autoplay\s*=\s*["']?true/i);
 });
 
@@ -302,10 +302,10 @@ test("2019 can expose indexed memory without pretending it belongs to the feed l
   const markup = harness.nodes.get("eraCapsuleStage").innerHTML;
 
   assert.match(markup, /WHAT THE TAPES REMEMBER/);
-  assert.match(markup, /12 INDEXED SOURCES \/\/ 96 PLAYABLE RECEIPTS/);
-  assert.match(markup, /can include indexed sources outside the cached Streams-feed snapshot/i);
-  assert.match(markup, /PLAYABLE INDEXED RECEIPT/);
-  assert.match(markup, /SPEAKER WITHHELD/);
+  assert.match(markup, /12 MAPPED SHOWS \/\/ 96 PLAYABLE MOMENTS/);
+  assert.match(markup, /moments and running bits this archive can open at the right second/i);
+  assert.match(markup, /PLAYABLE MOMENT/);
+  assert.match(markup, /VOICE NOT CONFIRMED/);
 });
 
 test("copy and export reverify the capsule and emit only bounded engine output", async () => {
@@ -342,14 +342,14 @@ test("runtime construction is closure-independent and optional enrichment fails 
   assert.match(uiSource, /lore:\s*lore/);
   assert.match(uiSource, /archiveDeep:\s*archiveDeep/);
   assert.match(uiSource, /The cached archive ledger did not initialize/);
-  assert.match(uiSource, /FAILED CLOSED/);
-  assert.match(uiSource, /No metadata or content claim was rendered/);
+  assert.match(uiSource, /TIME CAPSULE PAUSED/);
+  assert.match(uiSource, /We could not open the yearbook right now/);
 });
 
 test("manifest, playback, and dynamic-copy boundaries are explicit in source", () => {
   assert.match(uiSource, /engine\.verify\(state\.capsule\)/);
   assert.match(uiSource, /engine\.serialize\(state\.capsule\)/);
-  assert.match(uiSource, /NO RAW CAPTIONS OR MEDIA/);
+  assert.match(uiSource, /never raw captions or media/i);
   assert.match(uiSource, /target="_blank" rel="noopener"/);
   assert.match(uiSource, /displayText\(upload\.title, documentRef\)/);
   assert.match(uiSource, /esc\(displayText\(stop\.excerpt \|\| stop\.sourceTitle, documentRef\)\)/);

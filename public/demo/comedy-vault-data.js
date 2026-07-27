@@ -16,7 +16,7 @@
       numbersUrl: "https://www.the-numbers.com/movie/Scary-Movie",
       contextLabel: "HORROR SPOOF BREAKOUT",
       fact: "The first film launched the franchise and earned more than fourteen times its reported production budget worldwide.",
-      status: "third-party film context; separate from WWAM source evidence"
+      status: "Movie facts come from the linked movie and box-office pages, not from a WWAM review."
     },
     "scary-movie-2": {
       id: "scary-movie-2",
@@ -31,8 +31,8 @@
       contextUrl: "https://www.miramax.com/movie/scary-movie-2/",
       numbersUrl: "https://www.the-numbers.com/movie/Scary-Movie-2",
       contextLabel: "HAUNTED-HOUSE SEQUEL",
-      fact: "The sequel moved the spoof machine into an exorcism and haunted-house framework.",
-      status: "third-party film context; separate from WWAM source evidence"
+      fact: "The sequel moved the spoof chaos into an exorcism and haunted-house framework.",
+      status: "Movie facts come from the linked movie and box-office pages, not from a WWAM review."
     },
     "harold-kumar": {
       id: "harold-kumar",
@@ -47,9 +47,9 @@
       image: "https://media.the-numbers.com/images/movie-posters/Harold-and-Kumar-Go-to-White-Castle.jpg",
       contextUrl: "https://www.the-numbers.com/movie/Harold-and-Kumar-Go-to-White-Castle",
       numbersUrl: "https://www.the-numbers.com/movie/Harold-and-Kumar-Go-to-White-Castle",
-      contextLabel: "STONER ROAD-TRIP CANON",
+      contextLabel: "STONER ROAD-TRIP CLASSIC",
       fact: "Its estimated domestic disc sales later exceeded its theatrical worldwide gross.",
-      status: "third-party film context; separate from WWAM source evidence"
+      status: "Movie facts come from the linked movie and box-office pages, not from a WWAM review."
     },
     "waiting": {
       id: "waiting",
@@ -66,7 +66,7 @@
       numbersUrl: "https://www.the-numbers.com/movie/Waiting",
       contextLabel: "RESTAURANT-COMEDY PRESSURE COOKER",
       fact: "Its reported worldwide theatrical gross was about sixteen times its reported production budget.",
-      status: "third-party film context; separate from WWAM source evidence"
+      status: "Movie facts come from the linked movie and box-office pages, not from a WWAM review."
     }
   };
 
@@ -84,7 +84,7 @@
       wikiStatus: "sealed-source-brief",
       version: "2026 member commentary post",
       relationshipStatus: "official post verified; media not available to this public build",
-      sourceSummary: "The official WWAM Patreon record identifies a Scary Movie commentary published June 10, 2026. The source audio was not supplied to this build, so no scene, quote, speaker, or timestamp is asserted.",
+      sourceSummary: "WWAM published this Scary Movie commentary on Patreon on June 10, 2026. The recording is not available in this public demo, so there are no guessed quotes or scene jumps.",
       sourceProof: ["official WWAM Patreon post id 160733511", "publication date verified", "post media type recorded as podcast"]
     },
     {
@@ -100,7 +100,7 @@
       wikiStatus: "sealed-source-brief",
       version: "restored / audio-upgraded member upload",
       relationshipStatus: "possible same-day source family; equivalence to Patreon post is not certified",
-      sourceSummary: "An official-channel member upload identifies a restored or audio-upgraded Scary Movie commentary. Public playback is unavailable and its relationship to the Patreon post remains intentionally unmerged.",
+      sourceSummary: "WWAM also posted this restored or audio-upgraded Scary Movie commentary for YouTube members. It may be related to the same-day Patreon post, but the unavailable recordings cannot be compared here.",
       sourceProof: ["official YouTube source id iMA-ZL5mi3I", "title and date verified", "member access no longer available in the current public session"]
     },
     {
@@ -116,7 +116,7 @@
       wikiStatus: "sealed-source-brief",
       version: "2020 Patreon-only commentary",
       relationshipStatus: "separate official post; no duplicate claim",
-      sourceSummary: "The official WWAM Patreon record identifies an earlier Scary Movie commentary. Without the member source, this version remains separate from the later restored upload.",
+      sourceSummary: "This is WWAM's earlier Patreon-only Scary Movie commentary from 2020. It stays listed separately from the 2026 pages because the recordings cannot be compared here.",
       sourceProof: ["official WWAM Patreon post id 43329578", "publication date verified", "separate version retained"]
     },
     {
@@ -132,7 +132,7 @@
       wikiStatus: "sealed-source-brief",
       version: "2022 full commentary",
       relationshipStatus: "official post verified; media not available to this public build",
-      sourceSummary: "The official WWAM Patreon record identifies a full Scary Movie 2 commentary. No timestamped joke or verdict is promoted without the member media.",
+      sourceSummary: "WWAM published this full Scary Movie 2 commentary on Patreon in 2022. Its member recording is not available in this public demo, so the guide stops short of quotes and timestamps.",
       sourceProof: ["official WWAM Patreon post id 63242334", "publication date verified", "post media type recorded as video embed"]
     },
     {
@@ -148,7 +148,7 @@
       wikiStatus: "sealed-source-brief",
       version: "2020 patron-only full commentary",
       relationshipStatus: "official post verified; media not available to this public build",
-      sourceSummary: "The official WWAM Patreon record verifies a full Harold and Kumar commentary. The page supplies film context now and holds every WWAM-specific lane until source evidence arrives.",
+      sourceSummary: "WWAM published this full Harold & Kumar commentary for patrons in 2020. You can open the official page now; exact jokes and scene jumps need the recording.",
       sourceProof: ["official WWAM Patreon post id 34416138", "publication date verified", "post media type recorded as video embed"]
     },
     {
@@ -164,7 +164,7 @@
       wikiStatus: "sealed-source-brief",
       version: "2023 full commentary",
       relationshipStatus: "official post verified; media not available to this public build",
-      sourceSummary: "The official WWAM Patreon record verifies a full Waiting commentary. No review, quote, or running gag is invented from the movie title alone.",
+      sourceSummary: "WWAM published this full Waiting... commentary for patrons in 2023. You can open the official page now; the demo does not turn the movie title into made-up WWAM takes.",
       sourceProof: ["official WWAM Patreon post id 77725076", "publication date verified", "post media type recorded as video embed"]
     }
   ];
@@ -180,7 +180,7 @@
   root.WWAM_COMEDY_VAULT = Object.freeze({
     schema: "wwam-comedy-watchalong-vault/v1",
     generated: "2026-07-26",
-    evidenceBoundary: "Official post metadata and independent film context are verified. Member media was not accessed, so WWAM recap, moment, quote, speaker, character-performance, and verdict lanes remain empty.",
+    evidenceBoundary: "We found six official WWAM commentary pages, but none exposes a recording to this public demo. Movie facts and official links are ready now; exact WWAM quotes, reactions, and scene jumps wait for an accessible track.",
     meta: {
       films: Object.keys(filmContext).length,
       officialSourceRecords: entries.length,
@@ -203,7 +203,7 @@
         filmId: "scary-movie",
         label: "SCARY MOVIE VERSION FILE",
         entryIds: ["patreon-43329578", "patreon-160733511", "youtube-iMA-ZL5mi3I"],
-        rule: "Three official records stay separate until media comparison establishes their relationship."
+        rule: "These three official pages stay separate because this demo cannot compare the members-only recordings to confirm whether any of them contain the same commentary track."
       }
     ],
     contextSources: [

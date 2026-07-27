@@ -440,7 +440,7 @@
       evidenceLevel: firstText([
         candidate.evidenceLevel,
         candidate.evidenceType,
-        "SOURCE-BOUNDED RECEIPT"
+        "ORIGINAL SHOW MOMENT"
       ], 180),
       warnings: Object.freeze(warnings)
     });
@@ -772,7 +772,7 @@
       button.setAttribute("data-play-answer-launch", "");
       button.innerHTML =
         "<span>PLAY THIS ANSWER</span><b>" +
-        trail.stops.length + " SOURCE-BOUNDED STOPS</b><i aria-hidden=\"true\">&#9654;</i>";
+        trail.stops.length + " MOMENTS IN THIS ANSWER</b><i aria-hidden=\"true\">&#9654;</i>";
       button.addEventListener("click", function () {
         var latest = compileCurrent();
         if (!latest || !latest.valid || latest.signature !== trail.signature) {
@@ -1009,7 +1009,7 @@
       theater.innerHTML =
         '<div class="play-answer-shell">' +
           '<header class="play-answer-header">' +
-            '<div><span>ASK WWAM // SOURCE-BOUNDED THEATER</span>' +
+            '<div><span>ASK WWAM // PLAYLIST</span>' +
               '<h2 id="playAnswerTitle" tabindex="-1">PLAY THE ANSWER.</h2>' +
               '<p data-play-answer-query></p></div>' +
             '<button type="button" class="play-answer-close" data-play-answer-close ' +
@@ -1032,7 +1032,7 @@
                   '</div></div>' +
                 '<aside class="play-answer-receipt">' +
                   '<div><span data-play-answer-step>STOP 00 / 00</span>' +
-                    '<b data-play-answer-level>SOURCE-BOUNDED RECEIPT</b></div>' +
+                    '<b data-play-answer-level>ORIGINAL SHOW MOMENT</b></div>' +
                   '<h3 data-play-answer-role></h3>' +
                   '<h4 data-play-answer-source-title></h4>' +
                   '<time data-play-answer-time></time>' +

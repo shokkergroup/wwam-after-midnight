@@ -3675,3 +3675,76 @@
     padding-inline: 0;
   }
 }
+
+/* Compact Show Wiki: one editorial page first; the research file opens on demand. */
+.source-dossier-deep-research[hidden] {
+  display: none !important;
+}
+
+.source-dossier-wiki-more {
+  margin: 14px 0 0;
+  padding: 11px 13px;
+  border-left: 3px solid #596323;
+  color: #9d969f;
+  background: rgba(216, 255, 56, .025);
+  font: 500 12px/1.5 var(--body, sans-serif);
+}
+
+.source-dossier-wiki-more b {
+  color: #cbc4c8;
+  font-weight: 750;
+}
+
+@media (max-width: 600px) {
+  .source-dossier-density {
+    position: static !important;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    min-height: 0;
+    max-height: 76px;
+    padding: 10px 12px;
+    overflow: hidden;
+  }
+
+  .source-dossier-density p {
+    display: none;
+  }
+
+  .source-dossier-density button {
+    width: auto;
+    max-width: 148px;
+    min-height: 44px;
+    padding-inline: 12px;
+  }
+
+  .source-dossier > .source-dossier-explore {
+    position: static !important;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 8px;
+    max-height: 68px;
+    padding: 8px 12px;
+    overflow: hidden;
+  }
+
+  .source-dossier-explore > span {
+    font-size: 7px;
+  }
+
+  .source-dossier-explore > div {
+    display: flex;
+    width: auto;
+    flex-wrap: nowrap;
+    gap: 6px;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
+  }
+
+  .source-dossier-explore a {
+    width: auto;
+    min-height: 44px;
+    flex: 0 0 auto;
+    padding-inline: 11px;
+    white-space: nowrap;
+  }
+}

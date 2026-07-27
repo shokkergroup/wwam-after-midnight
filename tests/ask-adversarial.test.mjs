@@ -325,22 +325,22 @@ const cases = [
     entity: "Batman", existenceAnswer: /^No\b/i,
   }),
   scenario("absence", "unknown-zzyzx", "Did they ever cover Zzyzx Moon Quasar?", {
-    empty: true, answerPattern: /archive gap|not proof|no defensible/i,
+    empty: true, answerPattern: /couldn't find a strong match|doesn't prove.*never/i,
   }),
   scenario("absence", "unknown-turnip", "Have they talked about Galactic Turnip Massacre?", {
-    empty: true, answerPattern: /archive gap|not proof|no defensible/i,
+    empty: true, answerPattern: /couldn't find a strong match|doesn't prove.*never/i,
   }),
   scenario("absence", "unknown-moon-goblin", "Is there a commentary for Moon Goblin 9?", {
-    empty: true, answerPattern: /archive gap|not proof|no defensible/i,
+    empty: true, answerPattern: /couldn't find a strong match|doesn't prove.*never/i,
   }),
   scenario("absence", "unknown-zebra", "Did they discuss Zebra Dracula?", {
-    empty: true, answerPattern: /archive gap|not proof|no defensible/i,
+    empty: true, answerPattern: /couldn't find a strong match|doesn't prove.*never/i,
   }),
   scenario("absence", "unknown-quantum", "Was Quantum Slasher in a livestream?", {
-    empty: true, answerPattern: /archive gap|not proof|no defensible/i,
+    empty: true, answerPattern: /couldn't find a strong match|doesn't prove.*never/i,
   }),
   scenario("absence", "unknown-never", "They never covered Turbo Possum Blood Moon, right?", {
-    empty: true, answerPattern: /archive gap|not proof|no defensible/i,
+    empty: true, answerPattern: /couldn't find a strong match|doesn't prove.*never/i,
   }),
   scenario("absence", "substring-jasonville", "Did they cover Jasonville?", {
     empty: true, entity: null,
@@ -529,7 +529,7 @@ const cases = [
   }),
   scenario("unsupported", "loomis-performance-date", "Was the Dr. Loomis performance in 2018?", {
     entity: "Dr. Loomis", empty: true,
-    answerPattern: /no timestamped curated performance candidate/i,
+    answerPattern: /couldn't find a playable Dr\. Loomis performance|regular mentions don't count/i,
   }),
   scenario("unsupported", "burp-origin", "Where did The Burp Defense originate?", {
     entityType: "bit", originBoundary: true, topId: "BIbyzMlstmM",
@@ -541,7 +541,7 @@ const cases = [
     status: "speaker-unknown", entity: "Halloween", speakerBoundary: true,
   }),
   scenario("unsupported", "guarantee-hate", "Guarantee they hated the Elm Street remake.", {
-    entityType: "film", intent: "negative", answerPattern: /moment only|not being promoted/i,
+    entityType: "film", intent: "negative", answerPattern: /one moment|not their final word/i,
   }),
   scenario("unsupported", "prove-never-batman", "Prove they never discussed Batman.", {
     entity: "Batman", existenceAnswer: /^No\b/i,
@@ -606,11 +606,11 @@ function verifyResult(answer, expected, label) {
     assert.match(answer.answer, expected.directionAnswer, `${label}: selector direction`);
   }
   if (expected.originBoundary) {
-    assert.match(answer.answer, /not a claim.*origin|archive boundary/i, `${label}: origin boundary`);
+    assert.match(answer.answer, /(?:not (?:proof|necessarily)|may not be).*?(?:origin|start|first)|archive boundary/i, `${label}: origin boundary`);
   }
   if (expected.speakerBoundary) {
     assert.equal(answer.questionType, "speaker", `${label}: speaker question type`);
-    assert.match(answer.answer, /speaker|host|attribution|identify/i, `${label}: speaker boundary`);
+    assert.match(answer.answer, /speaking|speaker|host|attribution|identify/i, `${label}: speaker boundary`);
     assert.doesNotMatch(
       answer.answer,
       /\b(?:Mike|J) (?:did|does|invented|performed|portrayed|said|voiced)\b/i,

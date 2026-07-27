@@ -15,7 +15,7 @@ vm.runInContext(read("comedy-vault-ui.js"), sandbox, { filename: "comedy-vault-u
 const payload = sandbox.window.WWAM_COMEDY_VAULT;
 const ui = sandbox.window.WWAMComedyVaultUI;
 
-test("verified comedy canon keeps all official member records separate", () => {
+test("comedy shelf keeps all six official member listings separate", () => {
   assert.equal(payload.schema, "wwam-comedy-watchalong-vault/v1");
   assert.equal(payload.meta.films, 4);
   assert.equal(payload.meta.officialSourceRecords, 6);
@@ -31,7 +31,7 @@ test("verified comedy canon keeps all official member records separate", () => {
   ));
 });
 
-test("requested Scary Movie, Harold and Kumar, and Waiting sources are exact", () => {
+test("requested Scary Movie, Harold and Kumar, and Waiting pages stay exact", () => {
   const ids = new Set(payload.entries.map((entry) => entry.sourceId));
   for (const id of ["160733511", "63242334", "43329578", "34416138", "77725076", "iMA-ZL5mi3I"]) {
     assert.ok(ids.has(id), id);
@@ -42,43 +42,53 @@ test("requested Scary Movie, Harold and Kumar, and Waiting sources are exact", (
   assert.equal(payload.filmContext.waiting.worldwideBoxOffice, 18673274);
 });
 
-test("comedy vault shell is visual, searchable, and evidence honest", () => {
+test("default shelf reads like a movie-night guide instead of an audit dashboard", () => {
   const markup = ui.renderMarkup(payload, { filter: "all", query: "", openFilm: "" });
-  assert.match(markup, /THE JOKES ARE/);
-  assert.match(markup, /SCARY MOVIE/);
+  assert.match(markup, /MOVIE NIGHT/);
+  assert.match(markup, /4 MOVIES/);
+  assert.match(markup, /6 WWAM VERSIONS/);
+  assert.match(markup, /WHERE ARE THE PLAY BUTTONS/);
+  assert.match(markup, /OPEN MOVIE \+ SHOW GUIDE/g);
   assert.match(markup, /Harold &amp; Kumar/);
-  assert.match(markup, /Waiting/);
   assert.equal((markup.match(/data-cv-film=/g) || []).length, 4);
+  assert.doesNotMatch(markup, /\b(?:VERIFIED|CANON|RECEIPTS?|SOURCE-LOCKED|UNDER SEAL|VERSION CONTROL|QUEUED LANES?)\b/i);
   assert.doesNotMatch(markup, /<iframe\b/i);
   assert.doesNotMatch(markup, /\b(?:price|pricing|buy now|sales package)\b/i);
 });
 
-test("each sealed Show Wiki exposes context, versions, and all queued signature lanes", () => {
+test("movie guide keeps proof folded away and uses one concise future strip", () => {
   const scary = ui.renderMarkup(payload, { filter: "all", query: "", openFilm: "scary-movie" });
-  assert.match(scary, /SEALED SHOW WIKI/);
-  assert.match(scary, /KEEP EVERY RECORD SEPARATE/);
-  assert.match(scary, /BEST MOMENTS/);
-  assert.match(scary, /WWAM UP IN YA/);
-  assert.match(scary, /STRAIGHT TO STEVE&#39;S ASSHOLE/);
-  assert.match(scary, /CHARACTER CALLBACKS/);
-  assert.match(scary, /SCENE DOORS/);
-  assert.match(scary, /0 INVENTED RECEIPTS/);
-  assert.match(scary, /patreon-only-43329578/);
-  assert.match(scary, /iMA-ZL5mi3I/);
+  assert.match(scary, /MOVIE \+ WWAM SHOW GUIDE/);
+  assert.match(scary, /COMMENTARY AUDIO IS NOT PUBLICLY PLAYABLE HERE YET/);
+  assert.match(scary, /PICK YOUR VERSION/);
+  assert.equal((scary.match(/class="cv-coming-strip"/g) || []).length, 1);
+  assert.doesNotMatch(scary, /class="cv-queued-lane"/);
+  for (const label of ["BEST MOMENTS", "WWAM UP IN YA", "STRAIGHT TO STEVE&#39;S ASSHOLE", "CHARACTER CALLBACKS", "SCENE DOORS"]) {
+    assert.match(scary, new RegExp(label));
+  }
+  assert.match(scary, /OPEN OFFICIAL PAGE/);
+  assert.match(scary, /<details class="cv-version-file"[^>]+data-source-family="scary-movie-version-family"/);
+  assert.equal((scary.match(/<details class="cv-source-proof">/g) || []).length, 3);
+  assert.match(scary, /<summary>ABOUT THIS LISTING<\/summary>/);
+  assert.match(scary, /PAGE ID <code>43329578<\/code>/);
+  assert.match(scary, /PAGE ID <code>iMA-ZL5mi3I<\/code>/);
+  assert.doesNotMatch(scary, /0 INVENTED RECEIPTS|EMPTY LANES|WHAT UNSEALS NEXT/);
   assert.doesNotMatch(scary, /data-(?:play|time|timestamp)/i);
 });
 
-test("host and journey wiring lazy-load the sealed comedy wing", () => {
+test("host and journey wiring lazy-load the fan-facing comedy shelf", () => {
   const html = read("index.html");
   const guided = read("guided-shell.js");
   const css = read("comedy-vault.css");
   assert.match(html, /id="comedy-vault"/);
   assert.match(html, /id="comedyVaultMount"/);
-  assert.match(html, /comedy-vault-data\.js\?v=1\.0\.0,comedy-vault-ui\.js\?v=1\.0\.0/);
+  assert.match(html, /comedy-vault\.css\?v=1\.1\.0/);
+  assert.match(html, /comedy-vault-data\.js\?v=1\.1\.0,comedy-vault-ui\.js\?v=1\.1\.0/);
   assert.match(html, /href="#comedy-vault"[^>]+data-journey-link="watchalongs"/);
   assert.match(guided, /"comedy-vault": "watchalongs"/);
+  assert.match(css, /\.cv-coming-strip/);
+  assert.match(css, /\.cv-source-proof summary/);
   assert.match(css, /grid-template-columns: repeat\(2,minmax\(0,1fr\)\)/);
   assert.match(css, /@media \(max-width: 760px\)/);
   assert.match(css, /min-height: 46px/);
 });
-

@@ -9,10 +9,16 @@ const projectRoot = path.resolve(here, "..");
 const scriptPath = path.join(projectRoot, "public", "demo", "wwam-night-guide.js");
 const cssPath = path.join(projectRoot, "public", "demo", "wwam-night-guide.css");
 const indexPath = path.join(projectRoot, "public", "demo", "index.html");
+const guidedShellPath = path.join(projectRoot, "public", "demo", "guided-shell.js");
+const demoStylesPath = path.join(projectRoot, "public", "demo", "styles.css");
+const dossierPath = path.join(projectRoot, "public", "demo", "source-dossier-ui.js");
 
 const source = fs.readFileSync(scriptPath, "utf8");
 const css = fs.readFileSync(cssPath, "utf8");
 const index = fs.readFileSync(indexPath, "utf8");
+const guidedShellSource = fs.readFileSync(guidedShellPath, "utf8");
+const demoStyles = fs.readFileSync(demoStylesPath, "utf8");
+const dossierSource = fs.readFileSync(dossierPath, "utf8");
 const context = { console };
 context.globalThis = context;
 vm.runInNewContext(source, context, { filename: scriptPath });
@@ -53,6 +59,64 @@ assert.match(source, /control\.click\(\)/, "The dock should delegate opening to 
 assert.match(source, /matchMedia/, "Mounting should respond to the mobile breakpoint.");
 assert.match(source, /aria-current/, "Direct links should expose current state.");
 assert.doesNotMatch(source, /guided-topbar|guidedMorePanel|renderDirectory|role=.?dialog/i, "The mobile asset must not replace or duplicate desktop navigation.");
+
+assert.equal(typeof guide.delegateRoomsControl, "function", "All Rooms delegation should be independently testable.");
+assert.match(
+  guidedShellSource,
+  /panel\.classList\.contains\("is-open"\)[\s\S]{0,180}!event\.target\.closest\("#guidedMorePanel"\)[\s\S]{0,120}!event\.target\.closest\("#guidedMoreButton"\)[\s\S]{0,40}closeMore\(\)/,
+  "The regression must stay coupled to the shared shell outside-click behavior.",
+);
+
+let roomsPanelOpen = false;
+let documentCloseCount = 0;
+const roomsEvent = {
+  defaultPrevented: false,
+  propagationStopped: false,
+  preventDefault() {
+    this.defaultPrevented = true;
+  },
+  stopPropagation() {
+    this.propagationStopped = true;
+  },
+};
+const sharedHeaderControl = {
+  click() {
+    roomsPanelOpen = true;
+  },
+};
+
+assert.equal(guide.delegateRoomsControl(roomsEvent, sharedHeaderControl), true);
+// This models guided-shell.js's document listener: the dock trigger is outside
+// the header button and panel, so the delegated event must never reach it.
+if (!roomsEvent.propagationStopped && roomsPanelOpen) {
+  documentCloseCount += 1;
+  roomsPanelOpen = false;
+}
+assert.equal(roomsEvent.defaultPrevented, true);
+assert.equal(roomsEvent.propagationStopped, true);
+assert.equal(documentCloseCount, 0);
+assert.equal(roomsPanelOpen, true, "All Rooms must stay open after the dock handoff.");
+
+assert.match(
+  index,
+  /id="tapeModal"[\s\S]{0,180}<div class="modal-shell">[\s\S]{0,120}class="modal-close" id="modalClose"/,
+  "The close control must remain inside the scrolling modal shell.",
+);
+assert.match(demoStyles, /\.tape-modal\s*\{[\s\S]{0,220}overflow-y:\s*auto;/);
+assert.match(
+  dossierSource,
+  /sectionTarget\.scrollIntoView\(\{\s*behavior:\s*"auto",\s*block:\s*"start"\s*\}\)/,
+  "The modal regression must cover the deep-link path that scrolls to a Show Wiki section.",
+);
+const modalCloseRules = [...demoStyles.matchAll(/(?:^|\n)\s*\.modal-close\s*\{([^}]*)\}/g)]
+  .map((match) => match[1]);
+assert.ok(modalCloseRules.length >= 2, "Base and phone close-control rules should exist.");
+assert.match(modalCloseRules[0], /position:\s*sticky;/);
+assert.match(modalCloseRules[0], /top:\s*25px;/);
+assert.match(modalCloseRules[0], /float:\s*right;/);
+assert.doesNotMatch(modalCloseRules.join("\n"), /position:\s*fixed;/);
+assert.match(modalCloseRules.at(-1), /top:\s*10px;/);
+assert.match(modalCloseRules.at(-1), /margin-right:\s*10px;/);
 
 assert.match(css, /^\.wwam-night-guide-mobile\s*\{\s*display:\s*none;/s, "Dock should have no desktop presentation.");
 assert.match(css, /@media \(max-width: 760px\)/);

@@ -38,11 +38,11 @@
     host.className = "guided-home";
     host.setAttribute("aria-label", "WWAM archive starting points");
     host.innerHTML =
-      '<div class="guided-home-head"><div><span>THREE DOORS. NO HOMEWORK.</span><h2>WHAT DO YOU WANT TO DO?</h2></div><p>The machinery is still here. The front door now gets you to a show, a movie, or a running bit before asking you to learn the archive.</p></div>' +
+      '<div class="guided-home-head"><div><span>THREE DOORS. NO HOMEWORK.</span><h2>WHAT DO YOU WANT TO DO?</h2></div><p>Pick a door and land on the good stuff first. The full archive is waiting whenever you want to dig deeper.</p></div>' +
       '<div class="guided-door-grid">' +
         '<a class="guided-door guided-door-new" href="?source=LV2rmwEA0w4&section=wiki#archive"><span>01 // CATCH UP</span><h3>OPEN THE NEWEST SHOW</h3><p>Recap July 23, jump to Avengers, Clayface, Spider-Man or Hellraiser, then play the source at the exact moment.</p><b>ENTER THE SHOW WIKI →</b></a>' +
-        '<a class="guided-door guided-door-movie" href="?source=28PfRNKoSCA&section=wiki#archive"><span>02 // WATCHALONG</span><h3>HALLOWEEN 4, DEEPER</h3><p>WWAM commentary plus the film ledger: budget, box office, production context, public-domain art and cited receipts.</p><b>OPEN THE MOVIE PAGE →</b></a>' +
-        '<a class="guided-door guided-door-lore" href="#characters" data-journey-link="characters"><span>03 // RUNNING BITS</span><h3>FOLLOW THE CHARACTERS</h3><p>Dr. Loomis, Dr. Challis, Slenderman and Corey Feldman—performances, source clips and evidence-bounded character answers.</p><b>ENTER THE LORE →</b></a>' +
+        '<a class="guided-door guided-door-movie" href="?source=28PfRNKoSCA&section=wiki#archive"><span>02 // WATCHALONG</span><h3>HALLOWEEN 4, DEEPER</h3><p>WWAM commentary plus the movie story: budget, box office, production lore, artwork, and every mapped show moment.</p><b>OPEN THE MOVIE PAGE →</b></a>' +
+        '<a class="guided-door guided-door-lore" href="#characters" data-journey-link="characters"><span>03 // RUNNING BITS</span><h3>FOLLOW THE CHARACTERS</h3><p>Dr. Loomis, Dr. Challis, Slenderman and Corey Feldman—performances, real source clips, and clearly marked fan-made riffs.</p><b>ENTER THE LORE →</b></a>' +
       '</div>' +
       '<div class="guided-shelf-head"><div><span class="guided-section-label">LIVE WIRE // LAST FIVE</span><h2>THE LATEST FIVE.</h2></div><a href="#archive" data-journey-link="shows">SEE EVERY SHOW →</a></div>' +
       '<div class="guided-latest-grid">' +
@@ -88,11 +88,19 @@
     if (!askSection) return;
     function tuck() {
       var review = askSection.querySelector(".ask-review");
-      if (!review || review.closest(".ask-review-disclosure")) return;
+      if (!review) return;
+      var results = document.getElementById("askResults");
+      var hasAnswer = Boolean(results && results.getAttribute("data-ask-query"));
+      var existing = review.closest(".ask-review-disclosure");
+      if (existing) {
+        existing.hidden = !hasAnswer;
+        return;
+      }
       var disclosure = document.createElement("details");
       disclosure.className = "ask-review-disclosure";
+      disclosure.hidden = !hasAnswer;
       var summary = document.createElement("summary");
-      summary.textContent = "HELP IMPROVE THIS ANSWER";
+      summary.textContent = "REPORT A WRONG ANSWER";
       review.parentNode.insertBefore(disclosure, review);
       disclosure.appendChild(summary);
       disclosure.appendChild(review);
@@ -136,12 +144,112 @@
       }
     });
     if (targetId && targetId !== "top") {
-      var move = function () {
+      var move = function (behavior) {
         var target = document.getElementById(targetId);
-        if (target && target.dataset.guidedHidden !== "true") target.scrollIntoView({behavior:"smooth", block:"start"});
+        if (target && target.dataset.guidedHidden !== "true") {
+          if (behavior === "smooth") {
+            target.scrollIntoView({ behavior: "smooth", block: "start" });
+            return;
+          }
+          var root = document.documentElement;
+          var previousScrollBehavior = root.style.scrollBehavior;
+          root.style.scrollBehavior = "auto";
+          target.scrollIntoView({ behavior: "auto", block: "start" });
+          root.style.scrollBehavior = previousScrollBehavior;
+        }
       };
-      requestAnimationFrame(move);
-      window.setTimeout(move, 360);
+      var target = document.getElementById(targetId);
+      var targetSection = target && target.closest ? target.closest("main > section") : null;
+      var sections = Array.prototype.slice.call(document.querySelectorAll("main > section"));
+      var targetIndex = targetSection ? sections.indexOf(targetSection) : -1;
+      var visibleBeforeTarget = targetIndex < 0 ? [] : sections.slice(0, targetIndex).filter(function (section) {
+        return section.dataset.guidedHidden !== "true";
+      });
+      var blockers = targetIndex < 0 ? [] : sections.slice(0, targetIndex + 1).filter(function (section) {
+        return section.dataset.guidedHidden !== "true" && section.hasAttribute("data-feature-scripts");
+      });
+      requestAnimationFrame(function () { move("smooth"); });
+      window.setTimeout(function () { move("auto"); }, 360);
+      if (typeof window.__wwamReleaseRoutePin === "function") {
+        window.__wwamReleaseRoutePin();
+      }
+      if (window.__wwamRoutePinTimer) window.clearInterval(window.__wwamRoutePinTimer);
+      if (window.__wwamRouteResizeObserver) {
+        window.__wwamRouteResizeObserver.disconnect();
+        window.__wwamRouteResizeObserver = null;
+      }
+      var routePinActive = true;
+      var releaseRoutePin;
+      var releaseRoutePinFromKeyboard = function (event) {
+        if (["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "].indexOf(event.key) >= 0) {
+          releaseRoutePin();
+        }
+      };
+      releaseRoutePin = function () {
+        if (!routePinActive) return;
+        routePinActive = false;
+        if (window.__wwamRoutePinTimer) window.clearInterval(window.__wwamRoutePinTimer);
+        window.__wwamRoutePinTimer = null;
+        if (window.__wwamRouteResizeObserver) {
+          window.__wwamRouteResizeObserver.disconnect();
+          window.__wwamRouteResizeObserver = null;
+        }
+        window.removeEventListener("wheel", releaseRoutePin);
+        window.removeEventListener("touchstart", releaseRoutePin);
+        window.removeEventListener("pointerdown", releaseRoutePin);
+        window.removeEventListener("keydown", releaseRoutePinFromKeyboard);
+        if (window.__wwamReleaseRoutePin === releaseRoutePin) {
+          window.__wwamReleaseRoutePin = null;
+        }
+      };
+      window.__wwamReleaseRoutePin = releaseRoutePin;
+      window.__wwamRoutePinTimer = window.setInterval(function () {
+        if (routePinActive) move("auto");
+      }, 180);
+      window.addEventListener("wheel", releaseRoutePin, { passive: true });
+      window.addEventListener("touchstart", releaseRoutePin, { passive: true });
+      window.addEventListener("pointerdown", releaseRoutePin, { passive: true });
+      window.addEventListener("keydown", releaseRoutePinFromKeyboard);
+      window.setTimeout(function () {
+        if (!routePinActive) return;
+        move("auto");
+        releaseRoutePin();
+      }, 12000);
+      if (typeof ResizeObserver === "function" && visibleBeforeTarget.length) {
+        var routeObserver = new ResizeObserver(function () {
+          if (!routePinActive) return;
+          requestAnimationFrame(function () {
+            if (routePinActive) move("auto");
+          });
+        });
+        visibleBeforeTarget.forEach(function (section) { routeObserver.observe(section); });
+        window.__wwamRouteResizeObserver = routeObserver;
+        window.setTimeout(function () {
+          if (!routePinActive) return;
+          if (window.__wwamRouteResizeObserver === routeObserver) {
+            routeObserver.disconnect();
+            window.__wwamRouteResizeObserver = null;
+            move("auto");
+          }
+        }, 11800);
+      } else {
+        window.setTimeout(function () {
+          if (routePinActive) move("auto");
+        }, 1800);
+      }
+      if (window.WWAMFeatureLoader && blockers.length) {
+        Promise.all(blockers.map(function (section) {
+          return window.WWAMFeatureLoader.hydrate(section);
+        })).then(function () {
+          if (!routePinActive) return;
+          requestAnimationFrame(function () {
+            if (routePinActive) move("auto");
+          });
+          window.setTimeout(function () {
+            if (routePinActive) move("auto");
+          }, 120);
+        });
+      }
     }
   }
 
@@ -261,6 +369,7 @@
       if (event.key === "Escape" && panel && panel.classList.contains("is-open")) { closeMore(); if (button) button.focus(); }
     });
     window.addEventListener("hashchange", function () {
+      closeMore();
       var target = (location.hash || "#top").slice(1);
       setJourney(journeyFromLocation(), target);
     });
@@ -272,7 +381,8 @@
     arrangeFanFirstControls();
     tuckEditorTools();
     wireNavigation();
-    setJourney(journeyFromLocation(), null);
+    var initialTarget = (location.hash || "#top").slice(1);
+    setJourney(journeyFromLocation(), initialTarget);
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);

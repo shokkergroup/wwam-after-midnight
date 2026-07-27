@@ -123,11 +123,11 @@ test("latest and funniest character routes stay honest about the bounded archive
     const latest = plain(modernSearch.ask(`latest ${character} performance`));
     assert.equal(latest.results[0].kind, "character-performance", character);
     assert.equal(latest.results[0].date, "2026-07-23", character);
-    assert.match(latest.answer, /current bounded set/i, character);
+    assert.match(latest.answer, /newest playable/i, character);
 
     const funniest = plain(modernSearch.ask(`funniest ${character} bit`));
     assert.equal(funniest.results[0].kind, "character-performance", character);
-    assert.match(funniest.answer, /not an objective claim/i, character);
+    assert.match(funniest.answer, /not a claim.*objectively.*funniest/i, character);
   }
 });
 
@@ -135,7 +135,7 @@ test("receipt annotations make specific recurring material findable", () => {
   const funding = plain(modernSearch.ask("Dr. Loomis funding clip"));
   assert.equal(funding.results[0].performanceReceiptId, "loomis-funding");
   assert.match(funding.results[0].reasons.join(" "), /human-curated character performance/i);
-  assert.match(funding.answer, /curated Dr\. Loomis performance receipt/i);
+  assert.match(funding.answer, /hand-picked playable WWAM clip/i);
 });
 
 test("lore aliases resolve misspellings without changing the canonical entity", () => {
@@ -177,7 +177,7 @@ test("recurring-character ownership is separate from clip-speaker attribution", 
     assert.equal(answer.ownerMapping, null, query);
     assert.ok(answer.results.length > 0, query);
     assert.ok(answer.results.every((result) => result.speaker === null), query);
-    assert.match(answer.answer, /won't invent a name or host attribution/i, query);
+    assert.match(answer.answer, /captions don't reliably say who is speaking/i, query);
   }
 });
 
@@ -197,7 +197,7 @@ test("performance chronology is bounded and never rewritten as true origin", () 
     ],
   );
   assert.equal(earliest.results[0].archiveBoundary.trueOriginClaim, false);
-  assert.match(earliest.answer, /not a claim.*originated/i);
+  assert.match(earliest.answer, /may not be the first time.*earliest one this archive/i);
 
   const impossibleYear = plain(modernSearch.ask("Was Dr. Loomis performance in 2018?"));
   assert.equal(impossibleYear.requestedYear, 2018);

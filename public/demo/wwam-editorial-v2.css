@@ -117,7 +117,7 @@ button, a { touch-action: manipulation; }
 
 .wwam-signature-rail {
   display: flex;
-  min-height: 42px;
+  min-height: 44px;
   align-items: stretch;
   justify-content: center;
   overflow-x: auto;
@@ -130,6 +130,7 @@ button, a { touch-action: manipulation; }
 .wwam-signature-label,
 .wwam-signature-rail a {
   display: inline-flex;
+  min-height: 44px;
   align-items: center;
   padding: 0 18px;
   border-right: 1px solid rgba(255,255,255,.08);
@@ -428,7 +429,7 @@ button, a { touch-action: manipulation; }
 .wwam-poison-card b span { color: var(--wwam-acid); }
 .wwam-poison-up { --poison-art: url("https://i.ytimg.com/vi/2FlxuJxv81s/maxresdefault.jpg"); }
 .wwam-poison-steve { --poison-art: url("https://i.ytimg.com/vi/I6QKteG_hK0/maxresdefault.jpg"); }
-.wwam-poison-halloween { --poison-art: url("https://i.ytimg.com/vi/28PfRNKoSCA/maxresdefault.jpg"); }
+.wwam-poison-halloween { --poison-art: url("https://i.ytimg.com/vi/CFUHyfcJDTg/maxresdefault.jpg"); }
 .wwam-poison-character { --poison-art: url("https://i.ytimg.com/vi/6VXSBDZ-3WE/maxresdefault.jpg"); }
 
 /* Remove the duplicate onboarding wall. Keep the strong latest-show and franchise shelves. */
@@ -507,6 +508,7 @@ body[data-guided-journey="home"] .scope-strip { display: none !important; }
 @media (max-width: 680px) {
   body { padding-bottom: 64px; }
   .wwam-site-header .topbar { grid-template-columns: auto 1fr auto; padding: 0 13px; }
+  .wwam-site-header .brand { min-width: 44px; min-height: 44px; }
   .wwam-site-header .brand span { font-size: 21px; }
   .wwam-site-header .brand i { width: 36px; height: 36px; font-size: 29px; }
   .guided-primary-links { justify-content: flex-end; }
@@ -542,7 +544,7 @@ body[data-guided-journey="home"] .scope-strip { display: none !important; }
   .guided-more-panel.wwam-room-directory { top: 106px; grid-template-columns: 1fr !important; padding-inline: 8px; }
   .wwam-room-directory-intro { min-height: 160px; }
   .wwam-room-directory > div { padding: 24px; }
-  .wwam-editorial-hero { gap: 52px; padding: 52px 19px 72px; }
+  .wwam-editorial-hero { gap: 52px; padding: 52px 19px 72px; overflow-x: clip; }
   .wwam-editorial-hero h1 { font-size: clamp(62px, 18vw, 88px); }
   .wwam-editorial-hero .hero-dek { font-size: 16px; }
   .wwam-editorial-hero .hero-actions { display: grid; }

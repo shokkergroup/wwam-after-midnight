@@ -1,10 +1,40 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.0.0";
+  var VERSION = "1.2.1";
   var PLAY_EVENT = "wwam:halloween-play";
   var LANE_ID = "straight-to-steves-asshole";
   var cache = null;
+  var EDITOR_NOTES = Object.freeze({
+    "rLXnU3Rsj-4@1145":
+      "The junkyard talk turns into a blunt rejection of this Dream Master franchise turn.",
+    "c15otfZ8HkU@3918":
+      "Neil's scene gets rejected hard, with John Saxon invoked in the same breath.",
+    "jG93HvyP420@12774":
+      "Showing Michael without the mask is the Halloween Ends choice this clip cannot forgive.",
+    "AtcRT3Xkk6E@1327":
+      "The Halloween 5 mask takes the hit here, dismissed as terrible on the tape.",
+    "YaE7bkZ2JAM@8475":
+      "The remake-tier takedown singles out both the writing and the pacing.",
+    "jLIfEdg8Oc0@374":
+      "One Scream 3 sound effect earns an immediate apology and an awful verdict.",
+    "Q6SN-Om1gIo@4387":
+      "H20's so-called alien mask comparison sends the design down the chute.",
+    "kX3wb5pBRDo@5635":
+      "The franchise-ranking discussion turns into a blunt rejection of the whole movie.",
+    "hQu1Y1GZozI@5660":
+      "The Scream twist takes the beating while Jack Quaid's acting is spared.",
+    "2en5C2sNAN8@5251":
+      "This tier-list verdict skips the fine print and rejects the movie itself.",
+    "G2m0effDrwI@470":
+      "The Jason Takes Manhattan commentary reaches for its harshest possible verdict.",
+    "28PfRNKoSCA@980":
+      "A bus-scene complaint is what gets singled out in this Halloween 4 clip.",
+    "M2iupVAFWt8@3664":
+      "The role gets a quick nod; the movie immediately gets the opposite verdict.",
+    "N-UahfG8-gM@5227":
+      "The live-show warning is unambiguous: the reveal is what sends this one down the chute.",
+  });
 
   function array(value) {
     if (Array.isArray(value)) return value;
@@ -34,6 +64,40 @@
 
   function normalize(value) {
     return clean(value).toLowerCase();
+  }
+
+  function reducedLanguage(documentRef) {
+    return Boolean(documentRef && documentRef.body &&
+      documentRef.body.classList &&
+      documentRef.body.classList.contains("office-bleep"));
+  }
+
+  function displayText(value, documentRef) {
+    var text = clean(value);
+    if (!reducedLanguage(documentRef)) return text;
+    return text.replace(
+      /\b(fuck\w*|shit\w*|bitch\w*|asshole\w*|ass|dick\w*|motherfucker\w*|goddamn\w*)\b/gi,
+      "••••"
+    );
+  }
+
+  function observeLanguage(documentRef, onChange, ObserverConstructor) {
+    var body = documentRef && documentRef.body;
+    var Observer = ObserverConstructor ||
+      documentRef && documentRef.defaultView &&
+        documentRef.defaultView.MutationObserver ||
+      root.MutationObserver;
+    if (!body || typeof Observer !== "function" ||
+        typeof onChange !== "function") return null;
+    var previous = reducedLanguage(documentRef);
+    var observer = new Observer(function () {
+      var current = reducedLanguage(documentRef);
+      if (current === previous) return;
+      previous = current;
+      onChange(current);
+    });
+    observer.observe(body, { attributes: true, attributeFilter: ["class"] });
+    return observer;
   }
 
   function timecode(value) {
@@ -86,11 +150,29 @@
     return "livestream";
   }
 
-  function evidenceLabel(receipt) {
-    var state = clean(receipt && receipt.reviewState);
-    if (/quarantined/i.test(state)) return "NEEDS A HUMAN LISTEN";
-    if (/machine/i.test(state)) return "CHECK THE TAPE";
-    return "ARCHIVE FIND";
+  function editorNote(item) {
+    var noteKey = youtubeId(item && item.sourceId) + "@" +
+      Math.max(0, Math.floor(Number(item && item.at) || 0));
+    if (EDITOR_NOTES[noteKey]) return EDITOR_NOTES[noteKey];
+
+    var excerpt = normalize(item && item.excerpt);
+    var title = clean(item && item.title) || "this show";
+    if (excerpt.indexOf("mask") >= 0) {
+      return "The mask is the specific " + title + " choice that lands in the chute.";
+    }
+    if (excerpt.indexOf("reveal") >= 0 || excerpt.indexOf("twist") >= 0) {
+      return "The reveal is the " + title + " choice taking the hit in this clip.";
+    }
+    if (excerpt.indexOf("pacing") >= 0 || excerpt.indexOf("writing") >= 0) {
+      return "The complaint in " + title + " lands on the writing and pacing.";
+    }
+    if (excerpt.indexOf("sound effect") >= 0) {
+      return "A sound effect is what sends this " + title + " moment down the chute.";
+    }
+    if (clean(item && item.originalLabel) === "FRANCHISE FELONY") {
+      return "This " + title + " clip puts one franchise choice in the rejection chute.";
+    }
+    return "This " + title + " clip turns one specific complaint into a full rejection.";
   }
 
   function inventory(payload) {
@@ -152,7 +234,6 @@
           excerpt: clean(receipt.excerpt),
           evidenceLevel: clean(receipt.evidenceLevel) || "machine",
           reviewState: clean(receipt.reviewState) || "machine-surfaced",
-          evidenceLabel: evidenceLabel(receipt),
           speakerStatus: "not-diarized",
           score: score,
           signalBasis: clean(receipt.signalBasis),
@@ -166,6 +247,7 @@
 
     items.forEach(function (item) {
       item.route = routeFor(item);
+      item.editorNote = editorNote(item);
     });
     items.sort(function (left, right) {
       var date = right.date.localeCompare(left.date);
@@ -185,7 +267,7 @@
     });
     return {
       schema: "wwam-straight-to-steve/v1",
-      evidenceBoundary: "Strict source-local negative-language candidates from official WWAM uploads. Automatic captions do not establish speaker identity, intent, or creator certification.",
+      evidenceBoundary: "Every clip comes from an official WWAM upload and keeps its exact timestamp. The rough transcript can mishear words or mix up who is talking.",
       items: items,
       metrics: {
         candidates: items.length,
@@ -292,45 +374,52 @@
     return output;
   }
 
-  function cardMarkup(item) {
-    var score = item.score == null ? "CLIP" : "HEAT " + Math.round(item.score);
-    var excerpt = item.excerpt ?
-      "<blockquote>&ldquo;" + esc(item.excerpt) + "&rdquo;</blockquote>" :
+  function cardMarkup(item, documentRef) {
+    var caption = item.excerpt ?
+      '<details class="steve-caption-preview"><summary>ROUGH TRANSCRIPT</summary>' +
+      "<blockquote>&ldquo;" + esc(displayText(item.excerpt, documentRef)) +
+      "&rdquo;</blockquote>" +
+      '<small>TRANSCRIPT MAY MISS A WORD // PLAY THE CLIP FOR FULL CONTEXT</small></details>' :
       '<p class="steve-card-withheld">PLAY THE CLIP TO HEAR THIS ONE IN CONTEXT.</p>';
     return '<article class="steve-card" data-steve-record="' + esc(item.id) + '">' +
       '<a class="steve-card-image" href="' + esc(item.route) +
-      '" aria-label="Open the full Show Wiki for ' + esc(item.title) + '">' +
+      '" aria-label="Open the full Show Wiki for ' +
+      esc(displayText(item.title, documentRef)) + '">' +
       '<img src="' + esc(item.thumbnail) + '" alt="" loading="lazy" decoding="async">' +
-      '<span>' + esc(item.timecode) + '</span><b>' + esc(String(score)) +
-      '</b></a><div class="steve-card-body"><header><span>' +
+      '<span>' + esc(item.timecode) +
+      '</span></a><div class="steve-card-body"><header><span>' +
       esc(item.sourceType.toUpperCase()) + ' // ' + esc(item.date || "DATE UNKNOWN") +
-      '</span><h3>' + esc(item.title) + '</h3></header>' + excerpt +
-      '<div class="steve-proof"><span>' + esc(item.originalLabel) +
-      '</span><span>' + esc(item.evidenceLabel) +
-      '</span></div><footer>' +
+      '</span><h3>' + esc(displayText(item.title, documentRef)) + '</h3></header>' +
+      '<div class="steve-flush-deck"><div><span>WHY IT GOT FLUSHED</span><b>' +
+      esc(displayText(item.originalLabel, documentRef)) + '</b></div><p>' +
+      esc(displayText(item.editorNote || editorNote(item), documentRef)) +
+      '</p></div>' + caption + '<footer>' +
       '<button type="button" data-steve-play="' + esc(item.id) +
       '">&#9654; PLAY THE CLIP</button><a href="' + esc(item.route) +
       '">OPEN SHOW WIKI &#8599;</a></footer></div></article>';
   }
 
-  function resultsMarkup(items) {
+  function resultsMarkup(items, documentRef) {
     if (!items.length) {
       return '<div class="steve-empty"><span>NOTHING IN THIS PART OF THE CHUTE</span>' +
         '<h3>TRY ANOTHER MOVIE, SHOW, OR YEAR.</h3>' +
-        '<p>No fake filler. If the tape is not there, it is not there.</p></div>';
+        '<p>No filler clips. If the tape is not here, try another shelf.</p></div>';
     }
-    return items.map(cardMarkup).join("");
+    return items.map(function (item) {
+      return cardMarkup(item, documentRef);
+    }).join("");
   }
 
-  function shellMarkup(dataset, state) {
+  function shellMarkup(dataset, state, documentRef) {
     var metrics = dataset.metrics;
     return '<section class="steve-experience" aria-labelledby="steveExperienceTitle">' +
       '<header class="steve-hero"><div><p>THE WWAM REJECTION CHUTE // THE STUFF THEY HATED</p>' +
-      '<h2 id="steveExperienceTitle">STRAIGHT TO<br><em>STEVE&#39;S ASSHOLE.</em></h2></div>' +
+      '<h2 id="steveExperienceTitle">' + esc(displayText("STRAIGHT TO", documentRef)) +
+      '<br><em>' + esc(displayText("STEVE\'S ASSHOLE.", documentRef)) + '</em></h2></div>' +
       '<aside><b>WHAT THE HELL IS THIS?</b><p>A bad mask. A rotten twist. A franchise decision nobody can defend. ' +
       'If the take earns a one-way ticket, it lands here.</p></aside></header>' +
       '<div class="steve-boundary"><b>PLAY IT BEFORE YOU QUOTE IT.</b>' +
-      '<p>These clips come from official WWAM uploads. Auto-captions can mishear names and cannot identify the speaker, ' +
+      '<p>These clips come from official WWAM uploads. The rough transcript can mishear names and cannot identify the speaker, ' +
       'so the original tape always gets the last word.</p></div>' +
       '<div class="steve-metrics"><div><strong>' + esc(metrics.candidates) +
       '</strong><span>CLIPS IN THE CHUTE</span></div><div><strong>' +
@@ -340,14 +429,15 @@
       '<div class="steve-controls"><label><span>SEARCH THE REJECTION CHUTE</span>' +
       '<input type="search" data-steve-search value="' + esc(state.query) +
       '" placeholder="Halloween, mask, reveal, movie title..." autocomplete="off"></label>' +
-      '<div class="steve-filter-bank" role="group" aria-label="Filter rejection candidates">' +
+      '<div class="steve-filter-bank" role="group" aria-label="' +
+      esc(displayText("Filter clips in Steve\'s Asshole", documentRef)) + '">' +
       [["all", "ALL"], ["commentary", "COMMENTARIES"], ["livestream", "LIVESTREAMS"],
         ["2026", "2026"], ["classic", "CLASSIC"]].map(function (pair) {
         return '<button type="button" data-steve-filter="' + pair[0] +
           '" aria-pressed="' + (state.type === pair[0] ? "true" : "false") +
           '">' + pair[1] + '</button>';
       }).join("") + '</div><label class="steve-sort"><span>SORT</span><select data-steve-sort>' +
-      [["newest", "NEWEST FIRST"], ["hottest", "MOST HEATED FIRST"],
+      [["newest", "NEWEST FIRST"], ["hottest", "BIGGEST REJECTIONS FIRST"],
         ["oldest", "OLDEST FIRST"]].map(function (pair) {
         return '<option value="' + pair[0] + '"' +
           (state.sort === pair[0] ? " selected" : "") + '>' + pair[1] + '</option>';
@@ -356,7 +446,6 @@
       '<span>PLAY THE CLIP // OPEN THE FULL SHOW</span></div>' +
       '<div class="steve-grid" data-steve-results></div></section>';
   }
-
   function playDetail(item) {
     return {
       sourceId: item.sourceId,
@@ -400,14 +489,15 @@
       byId[item.id] = item;
     });
 
-    node.innerHTML = shellMarkup(dataset, state);
     var documentRef = node.ownerDocument || root.document;
+    node.innerHTML = shellMarkup(dataset, state, documentRef);
+    var bleepObserver = null;
 
     function paint() {
       var shown = filterItems(dataset, state);
       var resultNode = node.querySelector("[data-steve-results]");
       var countNode = node.querySelector("[data-steve-count]");
-      if (resultNode) resultNode.innerHTML = resultsMarkup(shown);
+      if (resultNode) resultNode.innerHTML = resultsMarkup(shown, documentRef);
       if (countNode) {
         countNode.textContent = shown.length + " OF " + dataset.metrics.candidates +
           " CLIPS";
@@ -416,6 +506,11 @@
         button.setAttribute("aria-pressed",
           button.getAttribute("data-steve-filter") === state.type ? "true" : "false");
       });
+    }
+
+    function repaintLanguage() {
+      node.innerHTML = shellMarkup(dataset, state, documentRef);
+      paint();
     }
 
     function onInput(event) {
@@ -451,6 +546,8 @@
     node.addEventListener("input", onInput);
     node.addEventListener("change", onChange);
     node.addEventListener("click", onClick);
+    bleepObserver = observeLanguage(documentRef, repaintLanguage,
+      options.MutationObserver);
     node.setAttribute("data-steves-asshole-ready", "true");
     var section = node.closest && node.closest("[aria-busy]");
     if (section) section.setAttribute("aria-busy", "false");
@@ -465,6 +562,7 @@
         node.removeEventListener("input", onInput);
         node.removeEventListener("change", onChange);
         node.removeEventListener("click", onClick);
+        if (bleepObserver) bleepObserver.disconnect();
         node.removeAttribute("data-steves-asshole-ready");
       },
     };
@@ -528,14 +626,17 @@
     inventory: inventory,
     buildPayloadFromGlobals: buildPayloadFromGlobals,
     filterItems: filterItems,
-    render: function (dataset, state) {
+    render: function (dataset, state, documentRef) {
       state = Object.assign({ query: "", type: "all", sort: "hottest" }, state || {});
-      return shellMarkup(dataset, state).replace(
+      documentRef = documentRef || root.document;
+      return shellMarkup(dataset, state, documentRef).replace(
         '<div class="steve-grid" data-steve-results></div>',
         '<div class="steve-grid" data-steve-results>' +
-          resultsMarkup(filterItems(dataset, state)) + '</div>'
+          resultsMarkup(filterItems(dataset, state), documentRef) + '</div>'
       );
     },
+    displayText: displayText,
+    observeLanguage: observeLanguage,
     routeFor: routeFor,
     playDetail: playDetail,
     dispatchPlayback: dispatchPlayback,

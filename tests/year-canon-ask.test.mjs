@@ -71,13 +71,13 @@ test("understands natural character-moment wording without pretending machine si
   assert.ok(answer.results.every((result) => (
     result.kind === "character" || result.kind === "character-performance"
   )));
-  assert.match(answer.answer, /speaker-undiarized|does not identify a performer|does not guess which host is speaking/i);
+  assert.match(answer.answer, /captions do not reliably say who is speaking/i);
 });
 
 test("reports topic prevalence inside the requested year, not across the unfiltered archive", () => {
   const answer = load().ask("What did they say about Batman in 2025?");
   assert.equal(answer.status, "supported");
-  assert.match(answer.answer, /Batman appears across 49 indexed streams/);
-  assert.doesNotMatch(answer.answer, /94 indexed streams/);
+  assert.match(answer.answer, /Batman comes up in 49 shows/);
+  assert.doesNotMatch(answer.answer, /Batman comes up in 94 shows/);
   assert.ok(answer.results.every((result) => result.date.startsWith("2025")));
 });

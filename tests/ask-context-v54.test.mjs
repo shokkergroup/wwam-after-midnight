@@ -60,8 +60,8 @@ test("compound view-plus-comedy questions select the source before ranking momen
   assert.ok(answer.results.every((result) => result.sourceId === "jG93HvyP420"));
   assert.ok(answer.results.every((result) => result.kind === "moment"));
   assert.ok(answer.results.every((result) => comedyCategories.has(result.category)));
-  assert.match(answer.answer, /most-viewed indexed livestream/i);
-  assert.match(answer.answer, /203,603 official views/i);
+  assert.match(answer.answer, /most-viewed livestream here at 203,603 views/i);
+  assert.match(answer.answer, /203,603 views/i);
 });
 
 test("speaker and content follow-ups remain anchored to the winning source", async () => {
@@ -78,7 +78,7 @@ test("speaker and content follow-ups remain anchored to the winning source", asy
   assert.equal(speaker.results[0].sourceId, "ISDlaQ9DWSM");
   assert.equal(speaker.results[0].kind, newestScream.results[0].kind);
   assert.equal(speaker.results[0].at, newestScream.results[0].at);
-  assert.match(speaker.answer, /won't invent a name/i);
+  assert.match(speaker.answer, /captions don't reliably say who is speaking.*won't guess/i);
 
   const content = plain(engine.ask("What did they say about it?", newestScream.context));
   assert.equal(content.continuedFrom, true);
@@ -109,7 +109,7 @@ test("that-one and next follow-ups stay inside the prior source", async () => {
   assert.equal(next.selectionPlan.mode, "next");
   assert.equal(next.results[0].sourceId, burp.results[0].sourceId);
   assert.ok(next.results[0].at > burp.results[0].at);
-  assert.match(next.answer, /next indexed receipt/i);
+  assert.match(next.answer, /next saved moment in the same show/i);
   assert.match(next.limitations.join(" "), /next indexed highlight/i);
 });
 
@@ -152,7 +152,7 @@ test("opinion phrasing requires target-proximate evaluative receipts", async () 
     result.takeEvidence.proximityPairs.every((pair) => pair.distance <= 8)
   )));
   assert.ok(halloween.results.every((result) => result.category !== "OUT OF POCKET"));
-  assert.match(halloween.answer, /Archive boundary/i);
+  assert.match(halloween.answer, /The tape catches both praise and criticism/i);
 
   for (const query of [
     "How do they feel about Halloween Ends?",
@@ -181,7 +181,7 @@ test("comparative hate and do-they-like questions reject lexical comedy collater
   assert.ok(
     friday.results.every((result) => !/garbage men think|pick up your trash/i.test(result.excerpt)),
   );
-  assert.match(friday.answer, /target-proximate negative-language receipt/i);
+  assert.match(friday.answer, /clearest criticism of Friday the 13th/i);
   assert.match(friday.limitations.join(" "), /does not authenticate.*most-hated/i);
 
   const scream = plain(engine.ask("Do they like Scream 3?"));
@@ -208,6 +208,6 @@ test("opinion questions fail honestly when no target-proximate receipt exists", 
   assert.equal(answer.intent, "opinion");
   assert.equal(answer.confidence, 0);
   assert.deepEqual(answer.results, []);
-  assert.match(answer.answer, /No target-proximate evaluative receipt/i);
-  assert.match(answer.answer, /Unrelated profanity, jokes, and isolated sentiment words were rejected/i);
+  assert.match(answer.answer, /couldn't find a clip close enough.*answer that take honestly/i);
+  assert.match(answer.answer, /Unrelated swearing, jokes, and one-off reactions were left out/i);
 });

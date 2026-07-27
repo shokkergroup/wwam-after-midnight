@@ -42,13 +42,13 @@ test("direct selectors respect explicit source, date, view, and archive metrics"
   assert.equal(mostViewedCommentary.metric, "views");
   assert.equal(mostViewedCommentary.results[0].sourceId, "6VXSBDZ-3WE");
   assert.equal(mostViewedCommentary.results[0].views, 60_727);
-  assert.match(mostViewedCommentary.answer, /captured official view snapshot/i);
+  assert.match(mostViewedCommentary.answer, /saved view-count snapshot.*most-viewed commentary here at 60,727 views/i);
 
   const latestCommentary = plain(engine.ask("What is the latest commentary?"));
   assert.equal(latestCommentary.results[0].sourceId, "ISDlaQ9DWSM");
   assert.equal(latestCommentary.results[0].kind, "tape");
   assert.equal(latestCommentary.results[0].date, "2023-04-25");
-  assert.match(latestCommentary.answer, /Most recent indexed commentary/);
+  assert.match(latestCommentary.answer, /newest commentary match here is Scream VI on 2023-04-25/i);
 
   const newestScream = plain(engine.ask("Which Scream commentary is newest?"));
   assert.equal(newestScream.entity, "Scream");
@@ -59,14 +59,14 @@ test("direct selectors respect explicit source, date, view, and archive metrics"
   assert.equal(unhinged.metric, "unhinged");
   assert.equal(unhinged.results[0].kind, "tape");
   assert.equal(unhinged.results[0].unhinged, 98);
-  assert.match(unhinged.answer, /tie for the highest indexed Unhinged Index/i);
+  assert.match(unhinged.answer, /tie for the highest Unhinged Index here at 98/i);
 
   const liveHeat = plain(engine.ask("What is the most unhinged livestream?"));
   assert.equal(liveHeat.source, "livestream");
   assert.equal(liveHeat.metric, "live-heat");
   assert.equal(liveHeat.results[0].kind, "livestream");
   assert.ok(liveHeat.results[0].liveHeat >= 90);
-  assert.match(liveHeat.answer, /average of its three hottest indexed moments/i);
+  assert.match(liveHeat.answer, /score averages its three hottest moments/i);
 });
 
 test("exact film, franchise, topic, character, and curated-bit entities stay in scope", async () => {
@@ -76,7 +76,7 @@ test("exact film, franchise, topic, character, and curated-bit entities stay in 
   assert.equal(remake.entityType, "film");
   assert.equal(remake.results[0].sourceId, "qTQdWKcwn4A");
   assert.equal(remake.results[0].category, "FRANCHISE FELONY");
-  assert.match(remake.answer, /not being promoted into a settled host opinion/i);
+  assert.match(remake.answer, /clearest criticism of A Nightmare on Elm Street \(2010\).*one moment, not their final word/i);
 
   const screamFour = plain(engine.ask("What did they say about Scream 4?"));
   assert.equal(screamFour.entity, "Scream 4");
@@ -122,7 +122,7 @@ test("unknown subjects and missing curated performances fail closed instead of r
   assert.equal(unknown.confidence, 0);
   assert.deepEqual(unknown.results, []);
   assert.deepEqual(unknown.evidenceChain, []);
-  assert.match(unknown.answer, /archive gap, not proof/i);
+  assert.match(unknown.answer, /couldn't find a clip close enough.*doesn't prove they never discussed it/i);
   assert.ok(unknown.suggestions.length >= 4);
 
   const wolfPack = plain(engine.ask("Where did Wolf Pack bit begin?"));
@@ -134,8 +134,8 @@ test("unknown subjects and missing curated performances fail closed instead of r
   assert.equal(performance.results.length, 0);
   assert.equal(performance.confidence, 0);
   assert.equal(performance.recommendedSurface.href, "#lore");
-  assert.match(performance.answer, /no timestamped curated performance candidate/i);
-  assert.match(performance.answer, /not being promoted into impressions/i);
+  assert.match(performance.answer, /couldn't find a playable Dr\. Challis performance/i);
+  assert.match(performance.answer, /regular mentions don't count as the bit/i);
 });
 
 test("origin and change questions use bounded timeline language", async () => {
@@ -154,18 +154,15 @@ test("origin and change questions use bounded timeline language", async () => {
   );
   assert.equal(origin.results[0].label, "EARLIEST MACHINE-INDEXED CHARACTER SIGNAL");
   assert.equal(origin.results[0].archiveBoundary.trueOriginClaim, false);
-  assert.match(origin.answer, /earliest machine-indexed Dr\. Loomis character signal/i);
-  assert.match(
-    origin.answer,
-    /not the same as Lore's timestamped human-curated performance candidate for the current bounded set/i,
-  );
-  assert.match(origin.answer, /not a claim.*originated/i);
+  assert.match(origin.answer, /earliest caption hit for Dr\. Loomis/i);
+  assert.match(origin.answer, /mention worth checking/i);
+  assert.match(origin.answer, /not proof.*started there/i);
   assert.equal(origin.recommendedSurface.href, "#lore");
 
   const changed = plain(engine.ask("Did they change their mind about Halloween Ends?"));
   assert.equal(changed.intent, "trajectory");
   assert.equal(changed.recommendedSurface.href, "#canon");
-  assert.match(changed.answer, /not enough evidence to claim they changed their mind/i);
+  assert.match(changed.answer, /not enough tape.*changed their mind/i);
   assert.ok(changed.limitations.some((warning) => /speaker identity/i.test(warning)));
 });
 
@@ -192,9 +189,9 @@ test("opinion-change wording stays a Canon-routed trajectory with an archive bou
       query,
     );
     assert.equal(answer.recommendedSurface.href, "#canon", query);
-    assert.match(answer.answer, /^Archive boundary:/i, query);
-    assert.match(answer.answer, /franchise-wide receipts may concern different films/i, query);
-    assert.match(answer.answer, /cannot prove a host changed their mind/i, query);
+    assert.match(answer.answer, /^The archive tracks/i, query);
+    assert.match(answer.answer, /different movies or scenes/i, query);
+    assert.match(answer.answer, /not proof that either host changed his mind/i, query);
     assert.deepEqual(
       answer.evidenceChain.map((entry) => entry.role),
       ["EARLIEST INDEXED RECEIPT", "LATEST INDEXED RECEIPT"],
@@ -239,20 +236,20 @@ test("speaker questions preserve receipts but never invent Mike, J, or another h
   assert.equal(who.status, "speaker-unknown");
   assert.ok(who.results.length > 0);
   assert.ok(who.results.every((result) => result.speaker === null));
-  assert.match(who.answer, /won't invent a name/i);
+  assert.match(who.answer, /captions don't reliably say who is speaking.*won't guess/i);
   assert.equal(who.recommendedSurface.href, "#canon");
 
   const mike = plain(engine.ask("What did Mike say about Scream?"));
   assert.equal(mike.questionType, "speaker");
   assert.equal(mike.status, "speaker-unknown");
   assert.ok(mike.results.length > 0);
-  assert.match(mike.answer, /not a speaker attribution/i);
+  assert.match(mike.answer, /captions don't reliably say who is speaking.*won't guess/i);
 
   const jPerformance = plain(engine.ask("Show me J doing Dr. Loomis"));
   assert.equal(jPerformance.questionType, "speaker");
   assert.equal(jPerformance.status, "speaker-unknown");
   assert.equal(jPerformance.results.length, 0);
-  assert.match(jPerformance.answer, /not speaker-diarized/i);
+  assert.match(jPerformance.answer, /auto-captions don't reliably say who is speaking.*couldn't find a clip/i);
 });
 
 test("follow-ups retain the subject and source while allowing a new selector", async () => {
@@ -320,9 +317,9 @@ test("neutral franchise-opinion questions use explicit take evidence, not comedy
     answer.confidenceBasis[0],
     "receipt retrieval confidence; settled opinion not established",
   );
-  assert.match(answer.answer, /^Archive boundary:/i);
-  assert.match(answer.answer, /both positive- and critical-language receipts/i);
-  assert.match(answer.answer, /does not establish one settled host opinion/i);
+  assert.match(answer.answer, /^The tape catches/i);
+  assert.match(answer.answer, /both praise and criticism/i);
+  assert.match(answer.answer, /mixed, not one clean final verdict/i);
   assert.ok(answer.results.length > 0);
   assert.deepEqual(
     answer.evidenceChain.map((entry) => entry.role),
@@ -412,7 +409,7 @@ test("neutral Elm Street remake opinion recovers both bounded critical receipts"
     assert.equal(result.curatedRank, null);
     assert.ok(result.takeEvidence.proximityPairs.length > 0);
   }
-  assert.match(answer.answer, /specific evaluative moment, not one settled host opinion/i);
+  assert.match(answer.answer, /one real moment from the show/i);
 });
 
 test("selected-source term consumption cannot bypass the aboutness relationship gate", async () => {
@@ -425,7 +422,7 @@ test("selected-source term consumption cannot bypass the aboutness relationship 
   assert.equal(answer.selectionPlan.source.sourceId, "kX3wb5pBRDo");
   assert.deepEqual(answer.results, []);
   assert.deepEqual(answer.evidenceChain, []);
-  assert.match(answer.answer, /archive gap, not proof/i);
+  assert.match(answer.answer, /couldn't find a strong match.*doesn't prove they never discussed it/i);
 
   const overview = plain(engine.ask("What are they talking about in the latest livestream?"));
   assert.equal(overview.status, "supported");

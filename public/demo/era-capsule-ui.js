@@ -77,7 +77,12 @@
   }
 
   function coverageLabel(value) {
-    return clean(value || "metadata-only").replace(/-/g, " ").toUpperCase();
+    return {
+      "deeply-indexed": "SHOW WIKI READY",
+      "metadata-only": "WATCH ONLY",
+      "caption-limited": "PARTIAL SHOW WIKI",
+      unavailable: "UNAVAILABLE"
+    }[clean(value || "metadata-only")] || "WATCH ONLY";
   }
 
   function validEngine(engine) {
@@ -157,11 +162,11 @@
       var coverage = feed.coverage || {};
       var quarantine = capsule.quarantine || {};
       var cards = [
-        [formatNumber(feed.uploads), "CACHED FEED UPLOADS"],
-        [formatHours(feed.totalDurationSeconds, feed.hours), "CACHED FEED RUNTIME"],
-        [formatNumber(feed.cachedViews), "CACHED VIEWS // NOT CURRENT"],
-        [formatNumber(coverage.deeplyIndexed), "DEEP IN THE FEED LEDGER"],
-        [formatNumber(quarantine.candidateCount), "QUARANTINED CANDIDATES"]
+        [formatNumber(feed.uploads), "SHOWS FOUND"],
+        [formatHours(feed.totalDurationSeconds, feed.hours), "HOURS ON AIR"],
+        [formatNumber(feed.cachedViews), "VIEWS AT OUR LAST CHECK"],
+        [formatNumber(coverage.deeplyIndexed), "SHOW WIKIS READY"],
+        [formatNumber(quarantine.candidateCount), "MOMENTS STILL BEING CHECKED"]
       ];
       return '<div class="era-capsule-proof">' + cards.map(function (card) {
         return "<article><b>" + esc(card[0]) + "</b><span>" +
@@ -173,15 +178,14 @@
       var feed = capsule.feed || {};
       var uploads = array(feed.topUploads);
       var coverage = feed.coverage || {};
-      var summary = formatNumber(coverage.deeplyIndexed) + " DEEP // " +
-        formatNumber(coverage.metadataOnly) + " METADATA-ONLY // " +
-        formatNumber(coverage.captionLimited) + " LIMITED // " +
+      var summary = formatNumber(coverage.deeplyIndexed) + " SHOW WIKIS // " +
+        formatNumber(coverage.metadataOnly) + " WATCH ONLY // " +
+        formatNumber(coverage.captionLimited) + " PARTIAL // " +
         formatNumber(coverage.unavailable) + " UNAVAILABLE";
       return '<section class="era-capsule-marquee" aria-labelledby="eraMarqueeTitle">' +
-        '<header class="era-panel-head"><div><span>CACHED STREAMS-FEED SNAPSHOT</span>' +
+        '<header class="era-panel-head"><div><span>THE YEAR&rsquo;S BIGGEST UPLOADS</span>' +
         '<h4 id="eraMarqueeTitle">THE MARQUEE.</h4></div><p>' + esc(summary) +
-        ". Titles, dates, runtimes, thumbnails, and cached views are metadata. " +
-        "They do not prove what happened inside an undistilled upload.</p></header>" +
+        ". View counts come from our last archive check. A watch-only show stays linked without a made-up recap.</p></header>" +
         (uploads.length ? '<ol class="era-upload-list">' + uploads.map(function (upload) {
           var title = displayText(upload.title, documentRef);
           var image = clean(upload.thumbnail);
@@ -190,13 +194,13 @@
             '" alt="">' : "") + "<div><span>" +
             esc(clean(upload.date) + " // " + coverageLabel(upload.coverage)) +
             "</span><b>" + esc(title) + "</b><small>" +
-            formatNumber(upload.cachedViews) + " CACHED VIEWS // " +
+            formatNumber(upload.cachedViews) + " VIEWS AT LAST CHECK // " +
             esc(formatHours(upload.durationSeconds)) + "</small>" +
             (url ? '<a href="' + esc(url) +
-              '" target="_blank" rel="noopener">OPEN UPLOAD &nearr;</a>' : "") +
+              '" target="_blank" rel="noopener">WATCH ON YOUTUBE &nearr;</a>' : "") +
             "</div></li>";
         }).join("") + "</ol>" :
-          '<div class="era-empty-ledger">NO TOP-UPLOAD METADATA IS AVAILABLE FOR THIS YEAR.</div>') +
+          '<div class="era-empty-ledger">NO UPLOADS ARE AVAILABLE FOR THIS YEAR.</div>') +
         "</section>";
     }
 
@@ -204,39 +208,38 @@
       var at = Number(receipt.t != null ? receipt.t : receipt.at) || 0;
       var timestamp = clean(receipt.timecode) || timecode(at);
       var title = displayText(
-        receipt.sourceTitle || receipt.title || "INDEXED SOURCE",
+        receipt.sourceTitle || receipt.title || "WWAM SHOW",
         documentRef
       );
       var excerpt = displayText(
-        receipt.excerpt || receipt.label || "Playable indexed receipt",
+        receipt.excerpt || receipt.label || "Playable show moment",
         documentRef
       );
       var url = clean(receipt.url);
-      return "<li><span>PLAYABLE INDEXED RECEIPT // " +
+      return "<li><span>PLAYABLE MOMENT // " +
         esc(clean(receipt.date) || "DATE HELD") + "</span><b>" + esc(excerpt) +
-        "</b><small>" + esc(title) + " // " +
-        esc(clean(receipt.evidenceLevel) || "TIMESTAMP-BOUND") +
-        " // SPEAKER WITHHELD</small>" + (url ?
+        "</b><small>" + esc(title) +
+        " // ORIGINAL SHOW LINKED // VOICE NOT CONFIRMED</small>" + (url ?
           '<a href="' + esc(url) + '" target="_blank" rel="noopener">' +
-          esc(timestamp) + " OPEN OFFICIAL TAPE &nearr;</a>" : "") + "</li>";
+          esc(timestamp) + " OPEN ORIGINAL SHOW &nearr;</a>" : "") + "</li>";
     }
 
     function loreMarkup(entry) {
       var label = displayText(
-        entry.label || entry.title || entry.name || entry.id || "INDEXED LORE ARRIVAL",
+        entry.label || entry.title || entry.name || entry.id || "RUNNING BIT",
         documentRef
       );
       var detail = clean(
-        entry.kind || entry.type || entry.evidenceLevel || "source-linked index entry"
+        entry.kind || entry.type || "RUNNING BIT"
       ).toUpperCase();
       var url = clean(entry.url);
       var at = Number(entry.t != null ? entry.t : entry.at) || 0;
-      return "<li><span>LORE ARRIVAL // INDEXED, NOT DEFINITIVE ORIGIN</span><b>" +
+      return "<li><span>RUNNING BIT SPOTTED HERE // NOT A FIRST-EVER CLAIM</span><b>" +
         esc(label) + "</b><small>" + esc(detail) +
-        " // CONNECTION MEANS PRESENT IN THIS BOUNDED ARCHIVE</small>" +
+        " // FOUND IN THIS WWAM SHOW</small>" +
         (url ? '<a href="' + esc(url) +
           '" target="_blank" rel="noopener">' + esc(timecode(at)) +
-          " OPEN RECEIPT &nearr;</a>" : "") + "</li>";
+          " OPEN ORIGINAL SHOW &nearr;</a>" : "") + "</li>";
     }
 
     function memoryMarkup(capsule) {
@@ -245,21 +248,17 @@
       var lore = array(memory.loreArrivals);
       var items = receipts.slice(0, 6).map(receiptMarkup)
         .concat(lore.slice(0, 3).map(loreMarkup));
-      var metrics = formatNumber(memory.sourceCount) + " INDEXED SOURCES // " +
-        formatNumber(memory.receiptCount) + " PLAYABLE RECEIPTS // " +
-        formatNumber(memory.loreArrivalCount) + " LORE ARRIVALS";
+      var metrics = formatNumber(memory.sourceCount) + " MAPPED SHOWS // " +
+        formatNumber(memory.receiptCount) + " PLAYABLE MOMENTS // " +
+        formatNumber(memory.loreArrivalCount) + " BIT SIGHTINGS";
       return '<section class="era-memory" aria-labelledby="eraMemoryTitle">' +
-        '<header class="era-panel-head"><div><span>PROMOTED-CORPUS MEMORY // SOURCE-BOUND</span>' +
+        '<header class="era-panel-head"><div><span>MOMENTS WE CAN PLAY</span>' +
         '<h4 id="eraMemoryTitle">WHAT THE TAPES REMEMBER.</h4></div><p>' +
-        esc(metrics) + ". This ledger can include indexed sources outside the cached " +
-        "Streams-feed snapshot; the two ledgers are intentionally not collapsed.</p></header>" +
+        esc(metrics) + ". These are the moments and running bits this archive can open at the right second.</p></header>" +
         (memory.available && items.length ? '<ol class="era-memory-list">' +
           items.join("") + "</ol>" :
-          '<div class="era-empty-ledger">THIS YEAR EXISTS IN THE FEED LEDGER, BUT NO ' +
-          "PLAYABLE PROMOTED-CORPUS MEMORY IS AVAILABLE HERE. NO TOPICS, TAKES, OR " +
-          "QUOTES WERE INFERRED FROM METADATA.</div>") + "</section>";
+          '<div class="era-empty-ledger">THIS YEAR HAS UPLOADS, BUT NO PLAYABLE SHOW MOMENTS ARE READY HERE YET. NOTHING WAS FILLED IN FROM TITLES ALONE.</div>') + "</section>";
     }
-
     function quarantineCandidateMarkup(candidate) {
       var title = displayText(
         candidate.sourceTitle || candidate.title || "ARCHIVE DEEP SOURCE",
@@ -282,7 +281,7 @@
       var quarantine = capsule.quarantine || {};
       var candidates = array(quarantine.candidates);
       var topics = array(quarantine.topics);
-      return '<aside class="era-capsule-drawer" aria-labelledby="eraDrawerTitle">' +
+      return '<aside class="era-capsule-drawer" aria-labelledby="eraDrawerTitle" hidden aria-hidden="true">' +
         '<header class="era-panel-head"><div><span>SEPARATE MACHINE-CANDIDATE LEDGER</span>' +
         '<h4 id="eraDrawerTitle">THE QUARANTINE DRAWER.</h4></div><p>' +
         esc(formatNumber(quarantine.sourceCount) + " SOURCES // " +
@@ -307,45 +306,34 @@
       var route = capsule.route || {};
       var stops = array(route.stops).slice(0, 5);
       return '<section class="era-route" aria-labelledby="eraRouteTitle">' +
-        '<header class="era-panel-head"><div><span>DETERMINISTIC FIVE-STOP OFFICIAL-YOUTUBE ROUTE</span>' +
+        '<header class="era-panel-head"><div><span>FIVE STOPS THROUGH THE YEAR</span>' +
         '<h4 id="eraRouteTitle">PLAY THE YEAR.</h4></div><p>' +
-        esc(formatNumber(route.count) + " STOPS // AUTOPLAY " +
-          (route.autoplay === false ? "OFF" : "FORBIDDEN") + " // BASIS " +
-          (clean(route.basis) || "HELD")) +
-        ". Each door opens the original upload at the exact indexed second. " +
-        "The order is reproducible; it is not a definitive best-of list.</p></header>" +
+        esc(formatNumber(stops.length) + " STOPS // AUTOPLAY OFF") +
+        ". Each stop opens the original show at the right second. This is a guided route, not a definitive best-of list.</p></header>" +
         (route.available && stops.length ?
           '<ol class="era-route-list">' + stops.map(function (stop) {
             var at = Number(stop.t) || 0;
             var routeEvidence = clean(stop.evidenceLevel);
-            var quarantined = /quarant|archive[\s-]*deep/i.test(
+            var needsCheck = /quarant|archive[\s-]*deep/i.test(
               clean(stop.label) + " " + routeEvidence
             );
-            var routeState = quarantined
-              ? "QUARANTINED STOP // PROMOTION FORBIDDEN"
-              : "PLAYABLE INDEXED RECEIPT";
-            return "<li><span>" + esc(routeState) +
+            return "<li><span>" + (needsCheck ? "MOMENT TO CHECK" : "PLAYABLE MOMENT") +
               " // " + esc(clean(stop.date) || "DATE HELD") + "</span><b>" +
               esc(displayText(stop.excerpt || stop.sourceTitle, documentRef)) +
               "</b><p>" + esc(displayText(stop.sourceTitle, documentRef)) +
-              " // " + esc(clean(stop.label) || "DETERMINISTIC STOP") +
-              " // " + esc(routeEvidence || "TIMESTAMP-BOUND") +
-              (quarantined
-                ? " // MACHINE CANDIDATE // SPEAKER UNKNOWN"
-                : " // SPEAKER WITHHELD") + "</p>" +
+              " // " + esc(clean(stop.label) || "SHOW MOMENT") +
+              " // AUTO-CAPTIONS // VOICE NOT CONFIRMED</p>" +
               (clean(stop.url) ? '<a href="' + esc(stop.url) +
                 '" target="_blank" rel="noopener">' +
                 esc(clean(stop.timecode) || timecode(at)) +
                 " PLAY ON YOUTUBE &nearr;</a>" : "") + "</li>";
           }).join("") + "</ol>" :
-          '<div class="era-empty-ledger">A FIVE-STOP ROUTE CANNOT BE BUILT FROM THIS ' +
-          "YEAR'S CURRENT PLAYABLE RECEIPTS. THE CAPSULE REMAINS A FACTUAL METADATA VIEW.</div>") +
+          '<div class="era-empty-ledger">THIS YEAR DOES NOT HAVE ENOUGH PLAYABLE MOMENTS FOR A FIVE-STOP ROUTE YET.</div>') +
         "</section>";
     }
-
     function fingerprintMarkup(capsule) {
       var provenance = capsule.provenance || {};
-      return '<footer class="era-capsule-footnote"><span>BOUNDED CAPSULE // NO RAW ' +
+      return '<footer class="era-capsule-footnote" hidden aria-hidden="true"><span>BOUNDED CAPSULE // NO RAW ' +
         "CAPTIONS // NO MEDIA // CACHED VIEWS ARE NOT CURRENT</span><code>" +
         esc(clean(capsule.fingerprint) || "FINGERPRINT HELD") + " // ATLAS " +
         esc(clean(provenance.atlasFingerprint) || "N/A") + " // INDEX " +
@@ -358,31 +346,30 @@
       var year = integer(capsule.year);
       elements.stage.innerHTML =
         '<article class="era-capsule-result"><header data-year="' + esc(year) +
-        '"><div><span>YEAR ' + esc(year) + " // SOURCE-GROUNDED TIME CAPSULE</span>" +
+        '"><div><span>YEAR ' + esc(year) + " // WWAM TIME CAPSULE</span>" +
         '<h3 tabindex="-1" data-era-result-focus>' + esc(year) +
         "<em>THE YEAR BIT BACK.</em></h3></div>" +
         '<div class="era-capsule-actions"><button type="button" data-era-copy>' +
-        "COPY YEAR LINK</button><button type=\"button\" data-era-download>" +
-        "DOWNLOAD BOUNDED MANIFEST</button><small>Manifest contains source coordinates, " +
-        "counts, evidence labels, and fingerprints&mdash;never raw captions or media.</small>" +
+        "COPY YEAR LINK</button><button type=\"button\" data-era-download hidden aria-hidden=\"true\">" +
+        "DOWNLOAD SHOW LIST</button><small hidden>Manifest contains source coordinates, " +
+        "counts, labels, and fingerprints&mdash;never raw captions or media.</small>" +
         "</div></header>" + proofMarkup(capsule) +
         '<div class="era-capsule-split">' + topUploadsMarkup(capsule) +
         quarantineMarkup(capsule) + "</div>" + memoryMarkup(capsule) +
         routeMarkup(capsule) + fingerprintMarkup(capsule) + "</article>";
       bindResultActions();
       announce(year + " CAPSULE OPEN // " + formatNumber(feed.uploads) +
-        " FEED RECORDS // " + formatNumber((capsule.memory || {}).receiptCount) +
-        " INDEXED RECEIPTS // ALL BLIND SPOTS LEFT VISIBLE");
+        " SHOWS // " + formatNumber((capsule.memory || {}).receiptCount) +
+        " PLAYABLE MOMENTS // GAPS LEFT HONEST");
       if (shouldFocus) focusResult();
     }
 
     function renderHeld(message, shouldFocus) {
-      elements.stage.innerHTML = '<div class="era-capsule-held"><span>CAPSULE HELD // ' +
-        'FAILED CLOSED</span><h3 tabindex="-1" data-era-result-focus>THE YEAR WOULD NOT ' +
-        "OPEN.</h3><p>" + esc(clean(message) ||
-          "The source ledgers did not reconcile, so no plausible-looking capsule was rendered.") +
+      elements.stage.innerHTML = '<div class="era-capsule-held"><span>TIME CAPSULE PAUSED</span>' +
+        '<h3 tabindex="-1" data-era-result-focus>THAT YEAR WOULD NOT OPEN.</h3><p>' +
+        esc(clean(message) || "We could not load that year’s show memories right now.") +
         "</p></div>";
-      announce("TIME CAPSULE HELD // NO CLAIMS RENDERED");
+      announce("TIME CAPSULE UNAVAILABLE // TRY ANOTHER YEAR");
       if (shouldFocus) focusResult();
     }
 
@@ -464,7 +451,7 @@
             clean(state.capsule.fingerprint).replace(/[^a-z0-9_-]+/gi, "-") +
             ".json", serialized);
           announce(state.year +
-            " BOUNDED EVIDENCE MANIFEST DOWNLOADED // NO RAW CAPTIONS OR MEDIA");
+            " SHOW LIST DOWNLOADED");
           exportButton.focus();
         } catch (error) {
           announce("EXPORT HELD // " + clean(error.message || error));
@@ -482,7 +469,7 @@
         return null;
       }
       setBusy(true);
-      announce("OPENING " + selected + " // RECONCILING FEED, MEMORY, AND QUARANTINE");
+      announce("OPENING " + selected + " // FINDING THE SHOWS AND PLAYABLE MOMENTS");
       try {
         var capsule = engine.build(selected);
         var verification = engine.verify(capsule);
@@ -686,10 +673,9 @@
       var stage = root.document.getElementById("eraCapsuleStage");
       var status = root.document.getElementById("eraCapsuleStatus");
       if (stage) {
-        stage.innerHTML = '<div class="era-capsule-held"><span>CAPSULE HELD // ' +
-          'FAILED CLOSED</span><h3>THE YEARS STAY SEALED.</h3><p>' +
-          esc(clean(error && error.message ? error.message : error)) +
-          " No metadata or content claim was rendered.</p></div>";
+        stage.innerHTML = '<div class="era-capsule-held"><span>TIME CAPSULE PAUSED</span>' +
+          '<h3>THE YEARS STAY SEALED.</h3><p>We could not open the yearbook right now. ' +
+          esc(clean(error && error.message ? error.message : error)) + "</p></div>";
       }
       if (status) status.textContent =
         "TIME CAPSULE INITIALIZATION HELD // NO PLAUSIBLE EMPTY STATE";

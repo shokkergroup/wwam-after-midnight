@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const html = fs.readFileSync(path.join(root, "public", "demo", "index.html"), "utf8");
 const css = fs.readFileSync(path.join(root, "public", "demo", "styles.css"), "utf8");
+const app = fs.readFileSync(path.join(root, "public", "demo", "app.js"), "utf8");
 
 function sectionById(id) {
   const match = html.match(
@@ -44,6 +45,8 @@ test("Popular 25 exposes labeled controls and a polite live status", () => {
   );
   assert.match(section, /<label>[^<]*<span>[^<]+<\/span><input id="popularSearch"/);
   assert.match(section, /id="popularTopics"[^>]*aria-label="Filter popular livestreams by topic"/);
+  assert.match(section, /The shows fans watched most/);
+  assert.doesNotMatch(section, /comedy topography|indexed livestream|foundational live archive/i);
 });
 
 test("Popular 25 pins a readable desktop floor and preserves full thumbnail art", () => {
@@ -67,6 +70,7 @@ test("Popular 25 pins a readable desktop floor and preserves full thumbnail art"
 
   assert.match(cssRule(".popular-why"), /font-size:\s*var\(--popular-copy\)/);
   assert.match(cssRule(".popular-proof span"), /var\(--popular-micro\)/);
+  assert.match(cssRule(".popular-proof"), /repeat\(5,\s*1fr\)/);
   assert.match(cssRule("#popularTopics button"), /min-height:\s*var\(--popular-hit\)/);
   assert.match(cssRule(".popular-topic-row button"), /min-height:\s*var\(--popular-hit\)/);
   assert.match(css, /\.popular-vault button\s*\{[^}]*font-size:\s*var\(--popular-micro\)\s*!important/);
@@ -86,4 +90,27 @@ test("Popular 25 collapses before enlarged cards become cramped", () => {
   assert.match(mobile, /\.popular-card\s*\{\s*grid-template-columns:\s*minmax\(0,\s*1fr\)/);
   assert.match(mobile, /\.popular-rank\s*\{[^}]*flex-direction:\s*row/);
   assert.match(mobile, /\.popular-rank b, \.popular-rank span\s*\{[^}]*writing-mode:\s*horizontal-tb/);
+});
+test("Popular 25 explains each show in fan language", () => {
+  const start = app.indexOf("  function renderPopularProof() {");
+  const end = app.indexOf("  function stageArchiveRecord(recordOrId) {", start);
+  assert.ok(start >= 0 && end > start, "Popular 25 render block is missing");
+  const renderBlock = app.slice(start, end);
+  for (const phrase of [
+    "COMBINED VIEWS",
+    "SHOW WIKIS",
+    "PLAYABLE MOMENTS",
+    "WHY THIS SHOW",
+    "CHARACTERS THAT COME UP",
+    "START WITH THIS MOMENT",
+    "OPEN SHOW WIKI",
+  ]) {
+    assert.match(renderBlock, new RegExp(phrase));
+  }
+  assert.doesNotMatch(
+    renderBlock,
+    /WORDS AUDITED|COMEDY RECEIPTS|FULL LIVE MAP|CHARACTER INDEX SIGNALS|PEAK COMEDY|machine-detected|caption map concentrates/i,
+  );
+  assert.match(renderBlock, /ranks #.*views/s, "the reason should preserve rank and view context");
+  assert.match(renderBlock, /Start with .* at /s, "the reason should recommend a natural first moment");
 });

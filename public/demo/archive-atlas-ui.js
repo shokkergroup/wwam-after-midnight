@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.3.0";
+  var VERSION = "1.4.1";
   var REQUIRED_ENGINE_METHODS = (
     "getStats getCoverage getBuckets getFilterOptions getRecord browse search getDistillQueue getProvenance"
   ).split(" ");
@@ -11,20 +11,20 @@
     "recent show shows stream streamed streams the their them they to upload uploaded uploads " +
     "video videos viewed was watched we were what when where which who with year").split(" "));
   var COVERAGE_COPY = {
-    "deeply-indexed": "CAPTION-BACKED DISTILL AVAILABLE",
-    "metadata-only": "TITLE / DATE / DURATION / VIEWS ONLY",
-    "caption-limited": "SOURCE KNOWN // NO USABLE CAPTION PATH",
-    "unavailable": "SOURCE RECORD INCOMPLETE",
+    "deeply-indexed": "SHOW WIKI READY",
+    "metadata-only": "WATCH ONLY",
+    "caption-limited": "WATCH ONLY // NO TOPIC JUMPS YET",
+    "unavailable": "OFFICIAL SOURCE UNAVAILABLE",
   };
   var LANE_COPY = {
-    "fresh-10": "FRESH 10",
+    "fresh-10": "NEWEST SHOWS",
     "popular-25": "POPULAR 25",
-    "archive-deep-10": "AUTOPSIED BATCH 01",
-    "archive-deep-batch-02": "ARCHIVE DEEP BATCH 02",
-    "archive-deep-batch-03": "ARCHIVE DEEP BATCH 03",
-    "archive-deep-batch-04": "ARCHIVE DEEP BATCH 04",
-    "commentary-catalog": "COMMENTARY",
-    "archive-metadata": "ARCHIVE RECORD",
+    "archive-deep-10": "DEEP-DIVE SHELF",
+    "archive-deep-batch-02": "DEEP-DIVE SHELF",
+    "archive-deep-batch-03": "DEEP-DIVE SHELF",
+    "archive-deep-batch-04": "DEEP-DIVE SHELF",
+    "commentary-catalog": "WATCHALONG",
+    "archive-metadata": "OLDER SHOW",
   };
 
   function clean(value) { return String(value == null ? "" : value).replace(/\s+/g, " ").trim(); }
@@ -43,6 +43,36 @@
     var hours = Math.floor(total / 3600);
     var minutes = Math.floor((total % 3600) / 60);
     return hours ? hours + "H " + String(minutes).padStart(2, "0") + "M" : minutes + "M";
+  }
+
+  function fallbackClock(seconds) {
+    var total = Math.max(0, Math.round(Number(seconds) || 0));
+    var hours = Math.floor(total / 3600);
+    var minutes = Math.floor((total % 3600) / 60);
+    var remainder = total % 60;
+    return hours
+      ? hours + ":" + String(minutes).padStart(2, "0") + ":" + String(remainder).padStart(2, "0")
+      : minutes + ":" + String(remainder).padStart(2, "0");
+  }
+
+  function humanList(values) {
+    var items = (values || []).map(clean).filter(Boolean);
+    if (items.length < 2) return items[0] || "";
+    if (items.length === 2) return items[0] + " and " + items[1];
+    return items.slice(0, -1).join(", ") + ", and " + items[items.length - 1];
+  }
+
+  function humanShowIntro(value) {
+    var shape = clean(value).toUpperCase();
+    var copy = {
+      "OPEN-LINE MOVIE NEWS": "A loose movie-news night",
+      "RANKING NIGHT": "A ranking night",
+      "RETRO REWIND": "A Retro Rewind hangout",
+      "TOURNAMENT NIGHT": "A head-to-head movie fight",
+      "SPOILER COURT": "A spoiler-heavy deep dive",
+      "TRAILER EMERGENCY": "A trailer reaction night",
+    };
+    return copy[shape] || "A WWAM livestream";
   }
 
   function fallbackDate(value) { return clean(value); }
@@ -119,9 +149,8 @@
     function getCopy() {
       var date = snapshotDate();
       return {
-        snapshot: "Every card below was present in the official Streams-feed snapshot cached through "
-          + date + ". Current availability was not rechecked.",
-        boundary: "A cached title, thumbnail and upload date establish a snapshot record, not what anyone said inside it.",
+        snapshot: "Browse every WWAM livestream we have on the shelf through " + date + ".",
+        boundary: "Shows with usable captions open as full Wikis; the rest stay watch-only instead of pretending we know what happened inside.",
         queue: queueFormulaCopy(),
       };
     }
@@ -133,8 +162,7 @@
       var description = documentRef.querySelector(".archive-atlas > .section-head > p");
       var queueDescription = documentRef.querySelector(".archive-queue > header > p");
       if (kicker) {
-        kicker.textContent = "OFFICIAL STREAMS-FEED SNAPSHOT // CACHED THROUGH "
-          + snapshotDate().toUpperCase() + " // BLIND SPOTS LEFT VISIBLE";
+        kicker.textContent = "THE WHOLE LIVESTREAM SHELF // EVERY SHOW WE CAN MAP";
       }
       if (description) description.textContent = copy.snapshot + " " + copy.boundary;
       if (queueDescription) queueDescription.textContent = copy.queue;
@@ -210,8 +238,40 @@
       if (!item || item.coverage !== "deeply-indexed") return "";
       var hit = archiveDeepEngine && archiveDeepEngine.getStream &&
         archiveDeepEngine.getStream(item.id);
-      return clean(hit && hit.summary || typeof input.getSourceSummary === "function" &&
+      if (!hit && root.WWAM_YEAR_CANON_2025_2026 &&
+          Array.isArray(root.WWAM_YEAR_CANON_2025_2026.streams)) {
+        hit = root.WWAM_YEAR_CANON_2025_2026.streams.find(function (stream) {
+          return stream.id === item.id;
+        });
+      }
+      if (hit) {
+        var topics = (hit.topics || []).slice(0, 3).map(function (topic) {
+          return clean(topic && topic.name);
+        }).filter(Boolean);
+        var moment = (hit.moments || [])[0] || hit.editorial && hit.editorial.bestEntry;
+        var summary = humanShowIntro(hit.editorial && hit.editorial.showShape || hit.contentMode);
+        summary += topics.length ? " with " + humanList(topics) + " on the table." : ".";
+        if (moment && Number.isFinite(Number(moment.t))) {
+          summary += " Start with " + clean(moment.category || moment.label || "the first big moment") +
+            " at " + fallbackClock(moment.t) + ".";
+        } else {
+          summary += " Open the Show Wiki for the recap and topic jumps.";
+        }
+        return summary;
+      }
+      var registered = clean(typeof input.getSourceSummary === "function" &&
         input.getSourceSummary(item.id) || "");
+      var structured = registered.match(/^This (.+?) maps .*? across (.+?)\. Its strongest .*? route is (.+?) at ([0-9:]+)\./i);
+      if (structured) {
+        return humanShowIntro(structured[1]) + " with " + structured[2] +
+          " on the table. Start with " + structured[3] + " at " + structured[4] + ".";
+      }
+      var liveRoom = registered.match(/^A live-room map led by (.+?)\. The comedy alarm peaks at ([0-9:]+) with (?:an? )?(.+?) signal\./i);
+      if (liveRoom) {
+        return "A WWAM livestream with " + liveRoom[1] +
+          " on the table. Start with " + liveRoom[3].toUpperCase() + " at " + liveRoom[2] + ".";
+      }
+      return registered ? "This Show Wiki has a recap, topic jumps, and a few good places to start in the original upload." : "";
     }
 
     function card(record) {
@@ -228,9 +288,9 @@
         + escapeHtml(formatDuration(record.duration)) + "</span></div>"
         + '<div class="archive-card-body"><div class="archive-card-kicker"><span>'
         + escapeHtml(formatDate(record.date)) + "</span><b>"
-        + escapeHtml(formatNumber(record.views)) + " CACHED VIEWS</b></div><h4>"
+        + escapeHtml(formatNumber(record.views)) + " VIEWS WHEN ADDED</b></div><h4>"
         + escapeHtml(record.title) + "</h4>"
-        + (summary ? '<p class="archive-card-summary"><span>WHAT IS INSIDE // REGISTERED DISTILL</span>'
+        + (summary ? '<p class="archive-card-summary"><span>WHAT THIS NIGHT WAS ABOUT</span>'
           + escapeHtml(summary) + "</p>" : "")
         + '<div class="archive-depth"><i></i><span>'
         + escapeHtml(coverageLabel(record)) + "</span></div><footer><span>"
@@ -247,12 +307,12 @@
       var stats = engine.getStats();
       var coverage = stats.coverage || {};
       var rows = [
-        [formatNumber(stats.records), "CACHED FEED RECORDS", ""],
-        [formatNumber(stats.viewsAtSnapshot), "CACHED VIEW SNAPSHOT", ""],
-        [formatNumber(stats.hours) + "H", "CACHED RUNTIME", ""],
-        [coverage["deeply-indexed"] || 0, "CAPTION-BACKED DISTILLS", "archive-proof-cold"],
-        [coverage["metadata-only"] || 0, "METADATA-ONLY RECORDS", ""],
-        [stats.deepCoveragePercent + "%", "DEEP COVERAGE // GAPS VISIBLE", "archive-proof-cold"],
+        [formatNumber(stats.records), "SHOWS ON THE SHELF", ""],
+        [formatNumber(stats.viewsAtSnapshot), "VIEWS WHEN ADDED", ""],
+        [formatNumber(stats.hours) + "H", "HOURS TO EXPLORE", ""],
+        [coverage["deeply-indexed"] || 0, "SHOW WIKIS", "archive-proof-cold"],
+        [coverage["metadata-only"] || 0, "WATCH-ONLY SHOWS", ""],
+        [stats.deepCoveragePercent + "%", "WITH SHOW WIKIS", "archive-proof-cold"],
       ];
       node.innerHTML = rows.map(function (row) {
         return '<div class="' + row[2] + '"><b>' + escapeHtml(row[0])
@@ -314,17 +374,17 @@
       if (depths) {
         depths.innerHTML = '<button type="button" class="' + (!state.coverage ? "on" : "")
           + '" data-archive-coverage="" aria-pressed="' + String(!state.coverage)
-          + '">ALL DEPTHS <b>' + engine.getStats().records + "</b></button>"
+          + '">ALL SHOWS <b>' + engine.getStats().records + "</b></button>"
           + options.coverage.map(function (row) {
             var active = state.coverage === row.value;
             return '<button type="button" class="' + (active ? "on" : "")
               + '" data-archive-coverage="' + escapeHtml(row.value)
-              + '" aria-pressed="' + String(active) + '">' + escapeHtml(row.label)
+              + '" aria-pressed="' + String(active) + '">' + escapeHtml(COVERAGE_COPY[row.value] || row.label)
               + " <b>" + Number(coverageCounts[row.value] || 0) + "</b></button>";
           }).join("");
       }
       var scope = byId("archiveScope");
-      if (scope) scope.textContent = String(state.month || state.year || "ALL CACHED YEARS").toUpperCase();
+      if (scope) scope.textContent = String(state.month || state.year || "ALL YEARS").toUpperCase();
       setControlsDisabled(state.busy || Boolean(state.error));
     }
 
@@ -351,13 +411,13 @@
       var total = Number(result.total || 0);
       state.lastTotal = total;
       state.lastShown = records.length;
-      announce(records.length + " SHOWN // " + total + " MATCHED // CACHED SNAPSHOT " + snapshotDate());
+      announce(records.length + " SHOWN // " + total + " MATCH THIS VIEW // CATALOG UPDATED " + snapshotDate());
       var grid = byId("archiveGrid");
       if (grid) {
         grid.innerHTML = records.length
           ? records.map(card).join("")
-          : '<p class="archive-empty">THE TELESCOPE FOUND NO CACHED-TITLE MATCH. '
-            + "TRY ANOTHER TITLE TERM, YEAR, MONTH, OR EVIDENCE DEPTH.</p>";
+          : '<p class="archive-empty">THE TELESCOPE FOUND NO SHOW-TITLE MATCH. '
+            + "TRY ANOTHER TITLE, YEAR, MONTH, OR WIKI STATUS.</p>";
       }
       var more = byId("archiveLoadMore");
       if (more) {
@@ -404,47 +464,35 @@
     }
 
     function renderBatch() {
-      var node = byId("archiveBatch"), meta, batches, streams, metrics, batchCount;
+      var node = byId("archiveBatch"), meta, streams, metrics;
       if (!node || !archiveDeepEngine) return;
       meta = archiveDeepEngine.getMetrics();
-      batches = archiveDeepEngine.getSelection();
       streams = archiveDeepEngine.browse({ sort: "priority" }).records;
       if (!streams.length) return;
-      batchCount = meta.batches || batches.length;
       metrics = [
-        [meta.streams, "SOURCES DISTILLED"], [formatNumber(meta.snapshotViews), "CACHED SNAPSHOT VIEWS"],
-        [meta.topicLanes + " / " + meta.distinctTopics, "TOPIC LANES / DISTINCT TOPICS"],
-        [meta.characterSignals, "CHARACTER-SIGNAL RECORDS"], [meta.restricted, "TOPIC-ONLY FIREWALLS"],
-        [meta.visualRankingQuarantines, "VISUAL-RANKING QUARANTINES"],
+        [meta.streams, "SHOW WIKIS"],
+        [formatNumber(meta.snapshotViews), "VIEWS WHEN ADDED"],
+        [meta.topicLanes, "TOPIC JUMPS"],
+        [meta.characterSignals, "CHARACTER CALLBACKS"],
+        [meta.restricted, "TOPIC-ONLY PAGES"],
+        [meta.visualRankingQuarantines, "ARTWORK CHECKS LEFT"],
       ].map(function (metric) {
         return "<div><b>" + escapeHtml(metric[0]) + "</b><span>" + metric[1] + "</span></div>";
       }).join("");
       node.hidden = false;
-      node.innerHTML = '<header><div><span>CURRENT ' + meta.streams +
-        "-SOURCE OVERLAY // " + batchCount + " INDEPENDENT BATCH FINGERPRINTS</span>" +
-        '<h3>THE ARCHIVE DEEP PORTFOLIO.</h3></div><p>' + Number(meta.hours || 0).toFixed(1) +
-        "H // " + escapeHtml(formatNumber(meta.wordsAudited || 0)) + " WORDS // " +
-        escapeHtml(formatNumber(meta.captionEvents || 0)) + " EVENTS // " +
-        escapeHtml(formatNumber(meta.publicMomentCandidates || 0)) +
-        " QUARANTINED CANDIDATES.</p></header>" +
+      node.innerHTML = '<header><div><span>40 OLDER SHOWS WITH EXTRA CHAPTERS</span>' +
+        '<h3>THE DEEP-DIVE SHELF.</h3></div><p>These are the older nights with the richest maps: recaps, topic jumps, character callbacks, and playable starting points.</p></header>' +
         '<div class="archive-batch-metrics">' + metrics + "</div>" +
-        '<p class="archive-batch-fingerprints">' + batches.map(function (batch) {
-          return "B0" + batch.sequence + " " + batch.publicFnv1a;
-        }).join(" // ") + " // CHANGE DETECTION, NOT AUTHENTICATION.</p>" +
         '<div class="archive-batch-strip">' + streams.map(function (stream) {
-          var batch = stream.archiveBatch;
-          var warning = (stream.rightsPolicy.restrictedToTopicNavigation ? " // TOPIC-ONLY" : "") +
+          var warning = (stream.rightsPolicy.restrictedToTopicNavigation ? " // TOPIC JUMPS ONLY" : "") +
             (stream.rightsPolicy.mode === "visual-context-unverified" ?
-              " // VISUAL RESULT UNVERIFIED" : "");
+              " // ARTWORK NEEDS A LOOK" : "");
           return '<button type="button" data-archive-open="' + escapeHtml(stream.id) +
             '" aria-label="Open show wiki for ' + escapeHtml(stream.title) +
-            '"><img loading="lazy" src="' + escapeHtml(stream.thumbnail) + '" alt=""><span>BATCH 0' +
-            batch.sequence +
-            " // BATCH-LOCAL PRIORITY #" + String(batch.batchRank).padStart(2, "0") +
-            " // PORTFOLIO #" + String(batch.portfolioRank).padStart(2, "0") +
-            '</span><b>' + escapeHtml(stream.title) + "</b><small>ATLAS SCORE " +
-            Number(stream.archivePriority.score || 0).toFixed(1) + " // " +
-            escapeHtml(formatNumber(stream.views || 0)) + " CACHED VIEWS" +
+            '"><img loading="lazy" src="' + escapeHtml(stream.thumbnail) +
+            '" alt=""><span>DEEP DIVE #' + String(stream.archiveBatch.portfolioRank).padStart(2, "0") +
+            '</span><b>' + escapeHtml(stream.title) + "</b><small>" +
+            escapeHtml(formatNumber(stream.views || 0)) + " VIEWS WHEN ADDED" +
             escapeHtml(warning) +
             '</small><span class="archive-batch-door">OPEN SHOW WIKI &rarr;</span></button>';
         }).join("") + "</div>";

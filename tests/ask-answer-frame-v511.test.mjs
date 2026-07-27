@@ -86,7 +86,7 @@ test("coverage negation and command predicates keep their grammar", async () => 
   assert.equal(coverage.status, "supported");
   assert.equal(coverage.entity, "Alien");
   assert.deepEqual(coverage.queryPlan.subjectTerms, []);
-  assert.match(coverage.answer, /^No — they did cover it\./);
+  assert.match(coverage.answer, /^No - they did cover it\./);
 
   assert.equal(play.selectionPlan.source.sourceId, "WKs1uPGMQvw");
   assert.equal(play.selectionPlan.source.matchMode, "exact");
@@ -148,8 +148,8 @@ test("newest-source content selects the source before ranking its receipts", asy
   assert.ok(answer.results.every((result) => (
     result.sourceId === "ISDlaQ9DWSM" && result.kind === "moment"
   )));
-  assert.match(answer.answer, /source-scoped archive route/i);
-  assert.match(answer.answer, /not an invented plot summary/i);
+  assert.match(answer.answer, /In the newest commentary here, Scream VI from 2023-04-25/i);
+  assert.match(answer.answer, /Play it below for the full context/i);
 });
 
 test("character profile, performance, and mention requests remain distinct", async () => {
@@ -176,7 +176,7 @@ test("character profile, performance, and mention requests remain distinct", asy
   assert.ok(mentions.results.every((result) => (
     result.evidenceType === "caption-character-signal"
   )));
-  assert.match(mentions.answer, /character signal/i);
+  assert.match(mentions.answer, /Corey Feldman comes up at.*mention worth checking/i);
 
   assert.ok(performance.results.length > 0);
   assert.ok(performance.results.every((result) => (

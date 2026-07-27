@@ -35,28 +35,29 @@ const model = (overrides = {}) => ui.buildModel(engine, {
 
 test("renders a readable world shell with six clear entry modes", () => {
   const markup = ui.renderMarkup(model());
-  assert.match(markup, /THE HADDONFIELD MEMORY WORLD/);
+  assert.match(markup, /WELCOME TO THE HALLOWEEN AISLE/);
   assert.match(markup, /13 SHOW WIKIS/);
-  assert.match(markup, /PLAYABLE PATHS/);
+  assert.match(markup, /BINGE PATHS/);
   assert.match(markup, /LOOMIS \+ CHALLIS/);
   assert.match(markup, /UP IN YA/);
-  assert.match(markup, /STEVE REVIEW/);
-  assert.match(markup, /79-SOURCE CANON/);
-  assert.match(markup, /EVIDENCE/);
-  assert.match(markup, /13 TAPES\. 12 CAPTION MAPS\. ZERO INVENTED RECEIPTS\./);
+  assert.match(markup, /STEVE'S INBOX/);
+  assert.match(markup, /ALL HALLOWEEN/);
+  assert.match(markup, /HOW IT WORKS/);
+  assert.match(markup, /13 MOVIES\. 13 SHOW WIKIS\. START ANYWHERE\./);
   assert.equal((markup.match(/data-hu-film=/g) || []).length, 13);
   assert.doesNotMatch(markup, /<iframe\b/i);
+  assert.doesNotMatch(markup, /MACHINE-SURFACED|SOURCE-LOCAL|speaker-diarized|navigation candidates/i);
   assert.doesNotMatch(markup, /\b(?:price|pricing|buy|purchase|revenue|sales)\b/i);
 });
 
 test("each film expands into a show wiki with playable evidence lanes", () => {
   const markup = ui.renderMarkup(model({ filmId: "6VXSBDZ-3WE" }));
-  assert.match(markup, /SHOW WIKI \/\/ TAPE 01/);
+  assert.match(markup, /COMMENTARY WIKI \/\/ TAPE 01/);
   assert.match(markup, /BEST MOMENTS/);
-  assert.match(markup, /SCENE & TOPIC DOORS/);
-  assert.match(markup, /CHARACTER REFERENCES/);
-  assert.match(markup, /REFERENCE FIREWALL ON/);
-  assert.match(markup, /CHARACTER REFERENCE ONLY \/\/ A PERFORMANCE IS NOT ESTABLISHED/);
+  assert.match(markup, /QUICK JUMPS BY SUBJECT/);
+  assert.match(markup, /CHARACTER MENTIONS/);
+  assert.match(markup, /LOOMIS, CHALLIS & FRIENDS/);
+  assert.match(markup, /A NAME MENTION - NOT A CONFIRMED CHARACTER BIT/);
   assert.match(markup, /data-hu-play/);
   assert.match(markup, /data-source-id="6VXSBDZ-3WE"/);
   assert.match(markup, /OPEN FULL OFFICIAL TAPE/);
@@ -64,22 +65,22 @@ test("each film expands into a show wiki with playable evidence lanes", () => {
 
 test("held tapes render the original source but no fake highlight card", () => {
   const markup = ui.renderMarkup(model({ filmId: "AzrcgoyE7C4" }));
-  assert.match(markup, /SOURCE VISIBLE \/\/ MOMENTS HELD/);
-  assert.match(markup, /no defensible caption map/i);
+  assert.match(markup, /WATCH IT NOW \/\/ TIMESTAMPS COMING LATER/);
+  assert.match(markup, /needs a careful timestamp pass/i);
   assert.match(markup, /https:\/\/www\.youtube\.com\/watch\?v=AzrcgoyE7C4/);
   assert.doesNotMatch(markup, /data-source-id="AzrcgoyE7C4"/);
 });
 
 test("doctor and Steve lanes state their evidence boundaries visibly", () => {
   const doctors = ui.renderMarkup(model({ activeTab: "doctors" }));
-  assert.match(doctors, /30 EXACT 14-SECOND RECEIPTS/);
+  assert.match(doctors, /THE DOCTORS ARE IN/);
   assert.match(doctors, /DR\. LOOMIS \/\/ 15/);
   assert.match(doctors, /DR\. CHALLIS \/\/ 15/);
-  assert.match(doctors, /clip audio is not speaker-diarized/i);
+  assert.match(doctors, /Thirty playable Loomis and Challis bits/i);
   const steve = ui.renderMarkup(model({ activeTab: "steve" }));
-  assert.match(steve, /NO VERDICTS PROMOTED/);
-  assert.match(steve, /CONTEXT REVIEW STILL REQUIRED/);
-  assert.match(steve, /REVIEW QUEUE/);
+  assert.match(steve, /THE MAYBE-PILE/);
+  assert.match(steve, /PLAY THE SURROUNDING MINUTE FIRST/);
+  assert.match(steve, /PLAY BEFORE CANON/);
 });
 
 test("search markup escapes source text and preserves exact playback data", () => {

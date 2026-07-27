@@ -277,7 +277,7 @@ test("Batch 04 source-audio firewalls expose only topic navigation", async () =>
     assert.equal(answer.status, "topic-only-boundary", query);
     assert.equal(answer.selectionPlan.source.sourceId, id, query);
     assert.deepEqual(answer.results, [], query);
-    assert.match(answer.answer, /source-audio firewall/i, query);
+    assert.match(answer.answer, /audio isn't available for comedy moments, character clips, or soundbytes/i, query);
   }
 });
 
@@ -307,7 +307,7 @@ test("Batch 04 visual-result questions fail closed at the exact source", async (
     assert.deepEqual(answer.results, [], query);
     assert.match(
       answer.answer,
-      /cannot verify which on-screen kill or death won/i,
+      /cannot tell which on-screen kill or death wins/i,
       query,
     );
   }
@@ -332,7 +332,7 @@ test("Batch 04 character signals never become performance candidates", async () 
   assert.ok(signals.results.every((result) => result.speaker === null));
   assert.ok(signals.results.every((result) => result.originInferred === false));
   assert.ok(signals.results.every((result) => result.curatedRank === null));
-  assert.match(signals.answer, /does not identify a performer/i);
+  assert.match(signals.answer, /captions do not reliably say who is speaking/i);
 
   const performance = plain(expanded.ask(
     "Show Batch04 Archive Deep verified Dr Challis performances",
@@ -341,7 +341,7 @@ test("Batch 04 character signals never become performance candidates", async () 
   assert.deepEqual(performance.results, []);
   assert.match(
     performance.answer,
-    /ordinary character mentions are not being promoted into impressions/i,
+    /regular mentions don't count as the bit/i,
   );
 });
 

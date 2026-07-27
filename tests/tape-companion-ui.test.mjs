@@ -209,7 +209,7 @@ function loadCompanionRuntime() {
 test("Tape Companion lazy-loads as one coherent synchronized surface", () => {
   assert.match(
     html,
-    /id="companion"[\s\S]{0,180}data-feature-styles="tape-companion\.css"[\s\S]{0,180}data-feature-scripts="archive-atlas-data\.js,red-band-ranking-v2\.js,tape-companion-engine\.js,tape-companion-ui\.js"/,
+    /id="companion"[\s\S]{0,180}data-feature-styles="tape-companion\.css"[\s\S]{0,180}data-feature-scripts="archive-atlas-data\.js,red-band-ranking-v2\.js,tape-companion-engine\.js,tape-companion-ui\.js\?v=1\.1\.0-human"/,
   );
   for (const id of [
     "companionProof",
@@ -226,8 +226,8 @@ test("Tape Companion lazy-loads as one coherent synchronized surface", () => {
   ]) {
     assert.match(html, new RegExp(`id="${id}"`));
   }
-  assert.match(html, /href="#companion">WATCH WITH MEMORY/);
-  assert.match(html, /SEARCH ALL 510 REGISTERED SOURCES/);
+  assert.match(html, /href="#companion"[^>]*data-journey-link="shows"><b>Tape Companion<\/b>/);
+  assert.match(html, /SEARCH THE SHOWS/);
 });
 
 test("the UI binds official playback to snapshot-safe engine calls", () => {
@@ -238,7 +238,7 @@ test("the UI binds official playback to snapshot-safe engine calls", () => {
   assert.match(ui, /engine\.crossedEvents\(activeSource\.id, previousSecond, nextSecond\)/);
   assert.match(ui, /engine\.snapshotAt\(activeSource\.id, nextSecond\)/);
   assert.match(ui, /future && snapshot\.future\.next/);
-  assert.match(ui, /NEXT INDEXED DISTURBANCE \/\/ TEXT SEALED/);
+  assert.match(ui, /COMING UP \/\/ DETAILS STAY HIDDEN/);
   assert.doesNotMatch(ui, /compileTimeline\(/);
   assert.match(
     ui,
@@ -248,9 +248,9 @@ test("the UI binds official playback to snapshot-safe engine calls", () => {
   assert.match(ui, /Math\.abs\(currentSecond - lastPersistSecond\) < 5/);
   assert.match(ui, /root\.addEventListener\("pagehide"/);
   assert.match(ui, /sourceUrl\(snapshot\.source\.id, currentSecond\)/);
-  assert.match(ui, /MANUAL SYNC/);
+  assert.match(ui, /USE THE TIMELINE/);
   assert.match(ui, /if \(code === 153\)/);
-  assert.match(ui, /PLAYER IDENTITY ERROR 153 RECOVERED/);
+  assert.match(ui, /PLAYER SWITCHED/);
   assert.match(html, /id="companionStatus" role="status" aria-live="polite"/);
   assert.doesNotMatch(html, /id="companionProof" aria-live/);
   assert.doesNotMatch(html, /id="companionHistory" aria-live/);
@@ -273,7 +273,7 @@ test("Source Dossier handoffs select only a registered source at the exact secon
   assert.match(runtime.elements.get("companionOfficial").href, /5et_A1tYnio&t=5406s$/);
   assert.equal(
     runtime.elements.get("companionStatus").textContent,
-    "SOURCE DOSSIER HANDOFF // EXACT SECOND LOADED // PRESS PLAY WHEN READY",
+    "SHOW WIKI MOMENT LOADED // PRESS PLAY",
   );
 
   runtime.emit("wwam:tape-companion-open", {
@@ -283,7 +283,7 @@ test("Source Dossier handoffs select only a registered source at the exact secon
   assert.equal(runtime.playbackCalls.length, 1, "unknown sources must fail closed");
   assert.equal(
     runtime.elements.get("companionStatus").textContent,
-    "SOURCE NOT PRESENT IN THIS COMPANION SNAPSHOT",
+    "THAT SHOW IS NOT IN THIS COMPANION",
   );
 
   runtime.emit("wwam:tape-companion-open", {
@@ -295,7 +295,7 @@ test("Source Dossier handoffs select only a registered source at the exact secon
   assert.equal(runtime.playbackCalls[1].options.start, 0);
   assert.equal(
     runtime.elements.get("companionStatus").textContent,
-    "SOURCE-ONLY TAPE LOADED // PLAYBACK READY // TIMED MEMORY HELD",
+    "WATCH-ONLY SHOW LOADED // PRESS PLAY",
   );
 
   runtime.emit("wwam:tape-companion-open", {
@@ -305,7 +305,7 @@ test("Source Dossier handoffs select only a registered source at the exact secon
   assert.equal(runtime.playbackCalls.length, 2, "invalid times must not remount the player");
   assert.equal(
     runtime.elements.get("companionStatus").textContent,
-    "SOURCE DOSSIER HANDOFF HELD // INVALID SOURCE OR TIME",
+    "SHOW WIKI MOMENT COULD NOT LOAD // TRY ANOTHER",
   );
 });
 
@@ -319,11 +319,12 @@ test("share and resume state use the engine's bound restore contract", () => {
 
 test("annotations preserve ranking, curation, character, and Lore semantics", () => {
   assert.match(ui, /RED BAND #/);
-  assert.match(ui, /MACHINE CANDIDATE/);
+  assert.doesNotMatch(ui, /MACHINE CANDIDATE/);
+  assert.match(ui, /ARCHIVE PICK/);
   assert.match(ui, /UP IN YA \/\/ EDITORIAL SELECTION/);
-  assert.match(ui, /CLIP SPEAKER NOT DIARIZED/);
+  assert.match(ui, /VOICE NOT CONFIRMED/);
   assert.match(ui, /ARCHIVE CONNECTION/);
-  assert.match(ui, /DERIVED HEAT WINDOW \/\/ NOT AUDIENCE TRUTH/);
+  assert.match(ui, /SHOW ENERGY \/\/ ROUGH GUIDE/);
   assert.match(ui, /displayText\(subject\.excerpt\)/);
 });
 

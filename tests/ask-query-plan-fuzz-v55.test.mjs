@@ -112,7 +112,7 @@ test("explicit commentary lanes beat relative-time livestream shorthand", () => 
     assert.equal(answer.queryPlan.controls.relativeDate, "2026-07-23", query);
     assert.equal(answer.status, "insufficient-evidence", query);
     assert.deepEqual(answer.results, [], query);
-    assert.match(answer.answer, /did not substitute a livestream or an older upload/i, query);
+    assert.match(answer.answer, /kept the show type and date you asked for/i, query);
   }
 });
 
@@ -155,7 +155,7 @@ test("plural source mention questions count unique streams instead of caption ma
     answer.collection.total,
     answer.explanation.resultCountBeforeDisplayLimit,
   );
-  assert.match(answer.answer, /unique indexed livestreams/i);
+  assert.match(answer.answer, /different livestreams/i);
   assert.ok(answer.results.every((result) => (
     result.kind === "topic" && result.title === "Batman"
   )));
@@ -222,7 +222,7 @@ test("last-night result limits lock to one exact livestream and never backfill",
   assert.ok(answer.results.every((result) => (
     result.sourceId === "LV2rmwEA0w4" && result.kind === "moment"
   )));
-  assert.match(answer.answer, /inside the newest indexed livestream/i);
+  assert.match(answer.answer, /in the newest livestream here/i);
 });
 
 test("every funny moment in the newest livestream is a result list, not a source list", () => {

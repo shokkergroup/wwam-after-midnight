@@ -130,7 +130,7 @@ test("loads the canon into the product, Ask layer, and Mike-facing proof", () =>
   assert.match(app, /year-canon-2025-2026\.js/);
   assert.match(app, /topicIndex:.*WWAM_YEAR_CANON_2025_2026\.topicIndex/);
   assert.match(app, /characterIndex:.*WWAM_YEAR_CANON_2025_2026\.characterIndex/);
-  assert.match(html, /THE LIVING\s*<br><em>CANON\./);
-  assert.match(html, /3,310 bounded receipts/);
+  assert.match(html, /TWO YEARS\.\s*<br><em>ONE SHELF\./);
+  assert.match(html, /ONE WATCH-ONLY SHOW/);
   assert.match(adapter, /year-canon-2025-2026/);
 });
