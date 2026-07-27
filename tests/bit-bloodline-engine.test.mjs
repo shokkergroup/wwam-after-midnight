@@ -810,7 +810,9 @@ test("requires both configured entity memberships on every performance", () => {
 
 test("verifies exact review-only artifact authority and source/receipt membership", () => {
   const authorityInput = neutralInput();
-  authorityInput.sources[1].artifacts[0].authority = "creator-draft";
+  authorityInput.sources.forEach((item) => {
+    item.artifacts[0].authority = "creator-draft";
+  });
   {
     const { createEngine } = neutralRuntime(authorityInput);
     assert.throws(
@@ -820,7 +822,9 @@ test("verifies exact review-only artifact authority and source/receipt membershi
   }
 
   const reviewInput = neutralInput();
-  reviewInput.sources[1].artifacts[0].reviewState = "machine-candidate";
+  reviewInput.sources.forEach((item) => {
+    item.artifacts[0].reviewState = "machine-candidate";
+  });
   {
     const { createEngine } = neutralRuntime(reviewInput);
     assert.throws(
@@ -840,8 +844,24 @@ test("verifies exact review-only artifact authority and source/receipt membershi
   }
 
   const sourceInput = neutralInput();
-  sourceInput.sources[1].artifacts[0].sourceIds =
-    sourceInput.sources[1].artifacts[0].sourceIds.slice(1);
+  const extraSourceId = "RACEFILE04D";
+  const expandedSourceIds = sourceInput.sources[0].artifacts[0].sourceIds
+    .concat(extraSourceId);
+  sourceInput.sources.forEach((item) => {
+    item.artifacts[0].sourceIds = expandedSourceIds.slice();
+  });
+  sourceInput.sources.push(source({
+    id: extraSourceId,
+    date: "2026-07-15",
+    item: receipt({
+      key: "recurrence:car-33:4",
+      at: 440,
+      entityIds: ["pattern:late-charge", "driver:car-33"],
+    }),
+    entityIds: ["pattern:late-charge", "driver:car-33"],
+    lineageId: "recurrence:car-33",
+    lineageSourceIds: expandedSourceIds,
+  }));
   {
     const { createEngine } = neutralRuntime(sourceInput);
     assert.throws(

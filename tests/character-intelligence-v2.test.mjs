@@ -248,6 +248,7 @@ test("subject extraction and follow-up memory distinguish pronouns from topic sw
   assert.equal(api.extractSubject("What do you think about Halloween Ends?"), "Halloween Ends");
   assert.equal(api.extractSubject("What about phones?"), "phones");
   assert.equal(api.extractSubject("Who wins, Freddy or Jason?"), "Freddy or Jason");
+  assert.equal(api.extractSubject("What do you think?"), "this entire situation");
 
   const first = characterEngine.answer(
     "loomis",

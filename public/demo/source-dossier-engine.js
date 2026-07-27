@@ -10,7 +10,7 @@
    * captions, promote evidence, clear rights, or publish anything.
    */
 
-  var VERSION = "1.1.0";
+  var VERSION = "1.5.0";
   var INPUT_SCHEMA = "shokker-source-dossier-input/v1";
   var DOSSIER_SCHEMA = "shokker-source-dossier/v1";
   var EXPORT_SCHEMA = "shokker-source-dossier-export/v1";
@@ -46,6 +46,18 @@
     "caption-character-signal": true,
     "caption-character-context": true,
     "curated-character-performance": true
+  });
+  var SHOW_WIKI_BRIEF_FORMAT_BASIS = Object.freeze({
+    "source-title-metadata": true,
+    "registered-source-type": true,
+    "registered-source-type-and-title": true
+  });
+  var SHOW_WIKI_BRIEF_FIELDS = Object.freeze({
+    kind: true,
+    scope: true,
+    format: true,
+    formatBasis: true,
+    queryAliases: true
   });
   var PROHIBITED_AUTHORITY =
     /\b(?:creator[- ]approved|rights?[- ]cleared|speaker[- ]verified|canon[- ]promoted|published|authenticated creator|official verdict)\b/i;
@@ -184,6 +196,31 @@
     return output;
   }
 
+  function normalizeSignal(raw, path) {
+    if (raw.signalScore == null) {
+      if (clean(raw.signalBasis)) {
+        fail(
+          "SIGNAL_BASIS_WITHOUT_SCORE",
+          path + ".signalBasis requires a signalScore.",
+          path + ".signalBasis"
+        );
+      }
+      return { signalScore: null, signalBasis: null };
+    }
+    var score = Number(raw.signalScore);
+    if (!Number.isFinite(score) || score < 0 || score > 100) {
+      fail(
+        "INVALID_SIGNAL_SCORE",
+        path + ".signalScore must be between 0 and 100.",
+        path + ".signalScore"
+      );
+    }
+    return {
+      signalScore: score,
+      signalBasis: requiredText(raw.signalBasis, path + ".signalBasis", 160)
+    };
+  }
+
   function wordCount(value) {
     return clean(value).split(/\s+/).filter(Boolean).length;
   }
@@ -273,6 +310,7 @@
         raw.speakerStatus !== "not-diarized") {
       fail("SPEAKER_BOUNDARY", path + " must remain explicitly non-diarized.", path);
     }
+    var signal = normalizeSignal(raw, path);
     var entityIds = stringList(raw.entityIds || [], path + ".entityIds", { max: 160 });
     entityIds.forEach(function (entityId, entityIndex) {
       if (!ENTITY_ID.test(entityId)) {
@@ -295,6 +333,8 @@
       speakerStatus: "not-diarized",
       promotionAllowed: raw.promotionAllowed === true,
       publicExcerptAllowed: publicExcerptAllowed,
+      signalScore: signal.signalScore,
+      signalBasis: signal.signalBasis,
       entityIds: entityIds,
       url: "https://www.youtube.com/watch?v=" + source.id + "&t=" + Math.round(at) + "s"
     };
@@ -367,6 +407,326 @@
     };
   }
 
+  function normalizeShowWikiAliases(value, path) {
+    var aliases = stringList(value || [], path, { max: 160 });
+    if (aliases.length > 16) {
+      fail(
+        "SHOW_WIKI_QUERY_ALIAS_LIMIT",
+        path + " cannot contain more than 16 aliases.",
+        path
+      );
+    }
+    var normalizedAliases = aliases.map(function (alias) {
+      return alias.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+    });
+    if (new Set(normalizedAliases).size !== normalizedAliases.length) {
+      fail(
+        "DUPLICATE_SHOW_WIKI_QUERY_ALIAS",
+        path + " must not contain normalized duplicates.",
+        path
+      );
+    }
+    return aliases;
+  }
+
+  function normalizeShowWiki(raw, source, receiptMap) {
+    if (raw == null) return null;
+    var path = "sources[" + source._index + "].showWiki";
+    if (!isRecord(raw)) fail("INVALID_SHOW_WIKI", path + " must be an object or null.", path);
+    if (!Array.isArray(raw.lanes) || !raw.lanes.length) {
+      fail("SHOW_WIKI_LANES_REQUIRED", path + ".lanes must contain at least one lane.", path + ".lanes");
+    }
+    var laneIds = new Set();
+    var lanes = raw.lanes.map(function (lane, index) {
+      var lanePath = path + ".lanes[" + index + "]";
+      if (!isRecord(lane)) fail("INVALID_SHOW_WIKI_LANE", lanePath + " must be an object.", lanePath);
+      var id = requiredText(lane.id, lanePath + ".id", 80);
+      if (!KEBAB_ID.test(id)) {
+        fail("INVALID_SHOW_WIKI_LANE_ID", lanePath + ".id must be a kebab-case ID.", lanePath + ".id");
+      }
+      if (laneIds.has(id)) {
+        fail("DUPLICATE_SHOW_WIKI_LANE", path + " contains duplicate lane " + id + ".", lanePath + ".id");
+      }
+      laneIds.add(id);
+      var receiptKeys = stringList(lane.receiptKeys || [], lanePath + ".receiptKeys", { max: 240 });
+      receiptKeys.forEach(function (key, receiptIndex) {
+        if (!receiptMap.has(key)) {
+          fail(
+            "UNKNOWN_SHOW_WIKI_RECEIPT",
+            lanePath + ".receiptKeys[" + receiptIndex + "] is not local to this source.",
+            lanePath + ".receiptKeys[" + receiptIndex + "]"
+          );
+        }
+      });
+      return {
+        id: id,
+        label: requiredText(lane.label, lanePath + ".label", 180),
+        description: requiredText(lane.description, lanePath + ".description", 420),
+        emptyState: requiredText(lane.emptyState, lanePath + ".emptyState", 420),
+        queryAliases: normalizeShowWikiAliases(
+          lane.queryAliases,
+          lanePath + ".queryAliases"
+        ),
+        receiptKeys: receiptKeys
+      };
+    });
+    var experience = null;
+    if (raw.experience != null) {
+      var experiencePath = path + ".experience";
+      if (!isRecord(raw.experience)) {
+        fail(
+          "INVALID_SHOW_WIKI_EXPERIENCE",
+          experiencePath + " must be an object or null.",
+          experiencePath
+        );
+      }
+      var experienceId = requiredText(
+        raw.experience.id,
+        experiencePath + ".id",
+        80
+      );
+      if (!KEBAB_ID.test(experienceId)) {
+        fail(
+          "INVALID_SHOW_WIKI_EXPERIENCE_ID",
+          experiencePath + ".id must be a kebab-case ID.",
+          experiencePath + ".id"
+        );
+      }
+      var routeReceiptKeys = stringList(
+        raw.experience.routeReceiptKeys || [],
+        experiencePath + ".routeReceiptKeys",
+        { max: 240 }
+      );
+      var pulseReceiptKeys = stringList(
+        raw.experience.pulseReceiptKeys || [],
+        experiencePath + ".pulseReceiptKeys",
+        { max: 240 }
+      );
+      routeReceiptKeys.concat(pulseReceiptKeys).forEach(function (key, receiptIndex) {
+        if (!receiptMap.has(key)) {
+          fail(
+            "UNKNOWN_SHOW_WIKI_EXPERIENCE_RECEIPT",
+            experiencePath + " references a receipt outside this source.",
+            experiencePath + ".receiptKeys[" + receiptIndex + "]"
+          );
+        }
+      });
+      if (routeReceiptKeys.length > 8) {
+        fail(
+          "SHOW_WIKI_EXPERIENCE_ROUTE_LIMIT",
+          experiencePath + ".routeReceiptKeys cannot exceed eight stops.",
+          experiencePath + ".routeReceiptKeys"
+        );
+      }
+      if (pulseReceiptKeys.length > 32) {
+        fail(
+          "SHOW_WIKI_EXPERIENCE_PULSE_LIMIT",
+          experiencePath + ".pulseReceiptKeys cannot exceed 32 signals.",
+          experiencePath + ".pulseReceiptKeys"
+        );
+      }
+      experience = {
+        id: experienceId,
+        label: requiredText(raw.experience.label, experiencePath + ".label", 180),
+        title: requiredText(raw.experience.title, experiencePath + ".title", 240),
+        description: requiredText(
+          raw.experience.description,
+          experiencePath + ".description",
+          600
+        ),
+        selectionBasis: requiredText(
+          raw.experience.selectionBasis,
+          experiencePath + ".selectionBasis",
+          240
+        ),
+        emptyState: requiredText(
+          raw.experience.emptyState,
+          experiencePath + ".emptyState",
+          420
+        ),
+        queryAliases: normalizeShowWikiAliases(
+          raw.experience.queryAliases,
+          experiencePath + ".queryAliases"
+        ),
+        routeReceiptKeys: routeReceiptKeys,
+        pulseReceiptKeys: pulseReceiptKeys
+      };
+    }
+    var brief = null;
+    if (raw.brief != null) {
+      var briefPath = path + ".brief";
+      if (!isRecord(raw.brief)) {
+        fail(
+          "INVALID_SHOW_WIKI_BRIEF",
+          briefPath + " must be a constrained metadata object or null.",
+          briefPath
+        );
+      }
+      Object.keys(raw.brief).forEach(function (field) {
+        if (!own(SHOW_WIKI_BRIEF_FIELDS, field)) {
+          fail(
+            "SHOW_WIKI_BRIEF_FIELD_OVERREACH",
+            briefPath + "." + field +
+              " is not canonical source metadata and cannot enter a Source Brief.",
+            briefPath + "." + field
+          );
+        }
+      });
+      var briefKind = requiredText(raw.brief.kind, briefPath + ".kind", 80);
+      if (briefKind !== "source-metadata-brief") {
+        fail(
+          "INVALID_SHOW_WIKI_BRIEF_KIND",
+          briefPath + ".kind must be source-metadata-brief.",
+          briefPath + ".kind"
+        );
+      }
+      var briefScope = requiredText(raw.brief.scope, briefPath + ".scope", 80);
+      if (briefScope !== "canonical-source-metadata-only") {
+        fail(
+          "INVALID_SHOW_WIKI_BRIEF_SCOPE",
+          briefPath + ".scope must be canonical-source-metadata-only.",
+          briefPath + ".scope"
+        );
+      }
+      var briefFormatBasis = requiredText(
+        raw.brief.formatBasis,
+        briefPath + ".formatBasis",
+        180
+      );
+      if (!own(SHOW_WIKI_BRIEF_FORMAT_BASIS, briefFormatBasis)) {
+        fail(
+          "INVALID_SHOW_WIKI_BRIEF_FORMAT_BASIS",
+          briefPath + ".formatBasis is not an allowed canonical metadata basis.",
+          briefPath + ".formatBasis"
+        );
+      }
+      var briefAliases = normalizeShowWikiAliases(
+        raw.brief.queryAliases,
+        briefPath + ".queryAliases"
+      );
+      if (!briefAliases.length) {
+        fail(
+          "SHOW_WIKI_BRIEF_QUERY_ALIASES_REQUIRED",
+          briefPath + ".queryAliases must contain at least one metadata-only question.",
+          briefPath + ".queryAliases"
+        );
+      }
+      brief = {
+        kind: briefKind,
+        scope: briefScope,
+        format: requiredText(raw.brief.format, briefPath + ".format", 100),
+        formatBasis: briefFormatBasis,
+        queryAliases: briefAliases
+      };
+    }
+    var recap = null;
+    if (raw.recap != null) {
+      var recapPath = path + ".recap";
+      if (!isRecord(raw.recap)) {
+        fail("INVALID_SHOW_WIKI_RECAP", recapPath + " must be an object or null.", recapPath);
+      }
+      if (!Array.isArray(raw.recap.blocks) || !raw.recap.blocks.length ||
+          raw.recap.blocks.length > 4) {
+        fail(
+          "SHOW_WIKI_RECAP_BLOCKS_REQUIRED",
+          recapPath + ".blocks must contain between one and four blocks.",
+          recapPath + ".blocks"
+        );
+      }
+      var recapBlockIds = new Set();
+      var recapBlocks = raw.recap.blocks.map(function (block, blockIndex) {
+        var blockPath = recapPath + ".blocks[" + blockIndex + "]";
+        if (!isRecord(block)) {
+          fail("INVALID_SHOW_WIKI_RECAP_BLOCK", blockPath + " must be an object.", blockPath);
+        }
+        var blockId = requiredText(block.id, blockPath + ".id", 80);
+        if (!KEBAB_ID.test(blockId)) {
+          fail("INVALID_SHOW_WIKI_RECAP_BLOCK_ID", blockPath + ".id is invalid.", blockPath + ".id");
+        }
+        if (recapBlockIds.has(blockId)) {
+          fail("DUPLICATE_SHOW_WIKI_RECAP_BLOCK", recapPath + " contains duplicate block " + blockId + ".", blockPath + ".id");
+        }
+        recapBlockIds.add(blockId);
+        var blockReceiptKeys = stringList(
+          block.receiptKeys || [],
+          blockPath + ".receiptKeys",
+          { max: 240, minimum: 1 }
+        );
+        blockReceiptKeys.forEach(function (key, keyIndex) {
+          if (!receiptMap.has(key)) {
+            fail(
+              "UNKNOWN_SHOW_WIKI_RECAP_RECEIPT",
+              blockPath + ".receiptKeys[" + keyIndex + "] is not local to this source.",
+              blockPath + ".receiptKeys[" + keyIndex + "]"
+            );
+          }
+        });
+        return {
+          id: blockId,
+          label: requiredText(block.label, blockPath + ".label", 180),
+          body: requiredText(block.body, blockPath + ".body", 600),
+          basis: requiredText(block.basis, blockPath + ".basis", 180),
+          receiptKeys: blockReceiptKeys
+        };
+      });
+      recap = {
+        format: requiredText(raw.recap.format, recapPath + ".format", 100),
+        formatBasis: requiredText(raw.recap.formatBasis, recapPath + ".formatBasis", 180),
+        overview: requiredText(raw.recap.overview, recapPath + ".overview", 800),
+        queryAliases: normalizeShowWikiAliases(
+          raw.recap.queryAliases,
+          recapPath + ".queryAliases"
+        ),
+        blocks: recapBlocks
+      };
+    }
+    if (source.coverage !== "caption-backed" && recap) {
+      fail(
+        "COVERAGE_SHOW_WIKI_RECAP_OVERREACH",
+        path + " cannot expose a semantic recap under " + source.coverage + " coverage.",
+        path + ".recap"
+      );
+    }
+    if (source.coverage === "caption-backed" && brief) {
+      fail(
+        "COVERAGE_SHOW_WIKI_BRIEF_MISMATCH",
+        path + " cannot substitute a metadata-only Source Brief for a caption-backed Show Wiki.",
+        path + ".brief"
+      );
+    }
+    var status = requiredText(raw.status, path + ".status", 80);
+    if ((status === "source-brief") !== Boolean(brief)) {
+      fail(
+        "SHOW_WIKI_BRIEF_STATUS_MISMATCH",
+        path + ".status and .brief must declare the Source Brief state together.",
+        path
+      );
+    }
+    if (source.coverage !== "caption-backed" && (
+      lanes.some(function (lane) { return lane.receiptKeys.length > 0; }) ||
+      experience && (
+        experience.routeReceiptKeys.length > 0 ||
+        experience.pulseReceiptKeys.length > 0
+      )
+    )) {
+      fail(
+        "COVERAGE_SHOW_WIKI_OVERREACH",
+        path + " cannot expose semantic Show Wiki receipts under " +
+          source.coverage + " coverage.",
+        path
+      );
+    }
+    return {
+      label: requiredText(raw.label, path + ".label", 180),
+      status: status,
+      description: requiredText(raw.description, path + ".description", 600),
+      experience: experience,
+      brief: brief,
+      recap: recap,
+      lanes: lanes
+    };
+  }
+
   function normalizeSource(raw, index) {
     var path = "sources[" + index + "]";
     if (!isRecord(raw)) fail("INVALID_SOURCE", path + " must be an object.", path);
@@ -405,6 +765,7 @@
       rightsPolicy: isRecord(raw.rightsPolicy) ? serial(raw.rightsPolicy) : {},
       warnings: stringList(raw.warnings || [], path + ".warnings", { max: 420 }),
       metrics: isRecord(raw.metrics) ? serial(raw.metrics) : {},
+      showWiki: null,
       receipts: [],
       entities: [],
       artifacts: []
@@ -429,6 +790,7 @@
       }
       receiptMap.set(receipt.key, receipt);
     });
+    source.showWiki = normalizeShowWiki(raw.showWiki, source, receiptMap);
     source.entities = (raw.entities || []).map(function (entity, entityIndex) {
       return normalizeEntity(entity, source, receiptMap, entityIndex);
     });
@@ -475,16 +837,30 @@
       authority: source.authority,
       lanes: source.lanes,
       receiptKeys: source.receipts.map(function (receipt) {
-        return [receipt.key, receipt.at, receipt.end, receipt.evidenceType];
+        return [receipt.key, receipt.at, receipt.end, receipt.evidenceType,
+          receipt.signalScore, receipt.signalBasis];
       }),
+      showWiki: source.showWiki,
       entities: source.entities.map(function (entity) {
         return [entity.id, entity.basis, entity.receiptKeys];
       }),
       artifacts: source.artifacts.map(function (artifact) {
-        return [artifact.id, artifact.kind, artifact.authority, artifact.sourceIds,
-          artifact.receiptKeys];
+        return [artifact.id, artifact.kind, artifact.label, artifact.authority,
+          artifact.reviewState, artifact.sourceIds, artifact.receiptKeys,
+          artifact.at, artifact.targetSection, artifact.risk];
       })
     }));
+  }
+
+  function artifactIdentity(artifact) {
+    return {
+      kind: artifact.kind,
+      label: artifact.label,
+      authority: artifact.authority,
+      reviewState: artifact.reviewState,
+      targetSection: artifact.targetSection,
+      risk: artifact.risk
+    };
   }
 
   function basisRank(value) {
@@ -608,39 +984,105 @@
     }
     var sources = payload.sources.map(normalizeSource);
     var sourceById = new Map();
-    var globalReceiptKeys = new Set();
+    var receiptSourceByKey = new Map();
+    var artifactCopiesById = new Map();
     sources.forEach(function (source) {
       if (sourceById.has(source.id)) {
         fail("DUPLICATE_SOURCE", "Source Dossier contains duplicate source " + source.id + ".");
       }
       source.receipts.forEach(function (receipt) {
-        if (globalReceiptKeys.has(receipt.key)) {
+        if (receiptSourceByKey.has(receipt.key)) {
           fail("DUPLICATE_GLOBAL_RECEIPT", "Receipt key " + receipt.key + " is not globally unique.");
         }
-        globalReceiptKeys.add(receipt.key);
+        receiptSourceByKey.set(receipt.key, source.id);
       });
-      delete source._index;
-      source.sourceFingerprint = sourceFingerprint(source);
       sourceById.set(source.id, source);
     });
     sources.forEach(function (source) {
-      source.artifacts.forEach(function (artifact) {
-        artifact.sourceIds.forEach(function (sourceId) {
+      source.artifacts.forEach(function (artifact, artifactIndex) {
+        var artifactPath = "sources[" + source._index + "].artifacts[" +
+          artifactIndex + "]";
+        artifact.sourceIds.forEach(function (sourceId, sourceIndex) {
           if (!sourceById.has(sourceId)) {
             fail("UNKNOWN_ARTIFACT_SOURCE",
-              "Artifact " + artifact.id + " references unknown source " + sourceId + ".");
+              "Artifact " + artifact.id + " references unknown source " + sourceId + ".",
+              artifactPath + ".sourceIds[" + sourceIndex + "]");
           }
         });
-        artifact.receiptKeys.forEach(function (receiptKey) {
-          if (!globalReceiptKeys.has(receiptKey)) {
+        artifact.receiptKeys.forEach(function (receiptKey, receiptIndex) {
+          if (!receiptSourceByKey.has(receiptKey)) {
             fail("UNKNOWN_ARTIFACT_RECEIPT",
-              "Artifact " + artifact.id + " references unknown receipt " + receiptKey + ".");
+              "Artifact " + artifact.id + " references unknown receipt " + receiptKey + ".",
+              artifactPath + ".receiptKeys[" + receiptIndex + "]");
+          }
+          if (receiptSourceByKey.get(receiptKey) !== source.id) {
+            fail(
+              "FOREIGN_ARTIFACT_RECEIPT",
+              "Artifact " + artifact.id + " must keep receipt " + receiptKey +
+                " on its owning source copy.",
+              artifactPath + ".receiptKeys[" + receiptIndex + "]"
+            );
           }
         });
         if (artifact.at != null && artifact.at > source.duration + 1) {
-          fail("ARTIFACT_OUT_OF_RANGE", "Artifact " + artifact.id + " is outside its source.");
+          fail(
+            "ARTIFACT_OUT_OF_RANGE",
+            "Artifact " + artifact.id + " is outside its source.",
+            artifactPath + ".at"
+          );
+        }
+        if (!artifactCopiesById.has(artifact.id)) {
+          artifactCopiesById.set(artifact.id, []);
+        }
+        artifactCopiesById.get(artifact.id).push({
+          sourceId: source.id,
+          artifact: artifact,
+          path: artifactPath
+        });
+      });
+    });
+    artifactCopiesById.forEach(function (copies, artifactId) {
+      var ordered = copies.slice().sort(function (left, right) {
+        return left.sourceId.localeCompare(right.sourceId);
+      });
+      var canonicalCopy = ordered[0];
+      var declaredSourceIds = canonicalCopy.artifact.sourceIds.slice().sort();
+      var canonicalIdentity = stableJson(artifactIdentity(canonicalCopy.artifact));
+
+      ordered.forEach(function (copy) {
+        if (stableJson(copy.artifact.sourceIds.slice().sort()) !==
+            stableJson(declaredSourceIds)) {
+          fail(
+            "ARTIFACT_MEMBERSHIP_MISMATCH",
+            "Artifact " + artifactId +
+              " declares inconsistent cross-source memberships across owner copies.",
+            copy.path + ".sourceIds"
+          );
+        }
+        if (stableJson(artifactIdentity(copy.artifact)) !== canonicalIdentity) {
+          fail(
+            "ARTIFACT_IDENTITY_MISMATCH",
+            "Artifact " + artifactId +
+              " has inconsistent identity fields across owner copies.",
+            copy.path
+          );
         }
       });
+
+      declaredSourceIds.forEach(function (sourceId) {
+        if (!ordered.some(function (copy) { return copy.sourceId === sourceId; })) {
+          fail(
+            "MISSING_ARTIFACT_OWNER_COPY",
+            "Artifact " + artifactId + " declares source " + sourceId +
+              " without an owner copy on that source.",
+            canonicalCopy.path + ".sourceIds"
+          );
+        }
+      });
+    });
+    sources.forEach(function (source) {
+      delete source._index;
+      source.sourceFingerprint = sourceFingerprint(source);
     });
     sources.sort(function (left, right) {
       return right.date.localeCompare(left.date) || left.id.localeCompare(right.id);
@@ -793,6 +1235,8 @@
             reviewState: receipt.reviewState,
             speaker: null,
             speakerStatus: "not-diarized",
+            signalScore: receipt.signalScore,
+            signalBasis: receipt.signalBasis,
             entityIds: receipt.entityIds.slice(),
             url: receipt.url
           };

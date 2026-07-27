@@ -1,6 +1,6 @@
 # YouTube Wiki Memory OS
 
-Current WWAM demonstration release: **V5.20 / 0.5.20**.
+Current WWAM demonstration release: **V5.21 / 0.5.21**.
 
 Version 1.0 — a reusable, evidence-first operating system for living channel archives.
 
@@ -49,6 +49,11 @@ The defensible product is not “AI made a website.” It is a source-backed mem
     eligible bounded receipts under a channel-supplied label. It does not prove
     a first occurrence, mutation, intentional callback, shared speaker,
     influence, causality, approval, rights, or Canon.
+13. **Count sources and receipts separately.** A source-set answer must report
+    unique canonical sources independently from deduplicated eligible receipts.
+    All-entity coverage inside one source proves co-presence under the policy,
+    not interaction, dialogue, influence, origin, causality, or speaker
+    identity.
 
 ## Universal evidence schema
 
@@ -491,6 +496,46 @@ middle rows mutations or confirmed callbacks.
 A future production policy may require authenticated editor decisions. That
 threshold is distinct from the current timestamp-validated human-curated
 candidate tier and cannot be inferred from a derived review artifact.
+
+### Receipt Matrix
+
+Projects exact eligible receipts into deterministic source sets. This answers a
+different question from free-text retrieval: not ?what result sounds most
+relevant?? but ?which canonical sources satisfy this explicit evidence
+predicate, and which exact receipts made each source qualify??
+
+The portable request is:
+
+```json
+{
+  "schema": "shokker-receipt-matrix-request/v1",
+  "entityIds": ["channel-entity-a", "channel-entity-b"],
+  "quantifier": "all",
+  "order": "receipt-count-desc"
+}
+```
+
+The core must:
+
+- canonicalize one to eight known entity IDs;
+- admit evidence only through the adapter's exact receipt policy;
+- deduplicate one shared receipt even when it matches multiple entities;
+- report `uniqueSourceCount` separately from `eligibleReceiptCount`;
+- preserve per-entity source/receipt totals and coverage inside every group;
+- retain source, dossier, registry, and policy fingerprints; and
+- keep all authority, rights, certification, and Canon flags false.
+
+The WWAM V5.21 proof is 7 Loomis receipts / 5 sources, 11 Loomis-plus-Challis
+receipts / 4 sources, and 25 four-character receipts / 12 sources. The same
+engine can answer a racing question such as ?Which Wednesday broadcasts
+contain both Driver 33 and a photo finish?? when the racing adapter supplies
+those entities and an eligible race-moment contract.
+
+Channel vocabulary belongs in the router/adapter, never the matrix compiler.
+This keeps performance, driver, recipe, guest, game, or topic semantics out of
+the universal arithmetic. A same-source intersection is intentionally weaker
+than a relationship: it proves only that each entity has eligible evidence
+somewhere in that canonical source.
 
 ### Riff Chemistry
 
@@ -1001,6 +1046,8 @@ Channel-specific DNA:
 - WWAM Court;
 - Dr. Loomis, Dr. Challis, Slenderman, and Corey Feldman performance dossiers;
 - Fresh 10 and Popular 25 lanes.
+- Receipt Matrix aliases and the recurring-character group, with exact
+  curated-performance eligibility and separate upload/receipt totals;
 - companion labels for topics, heat, ranked candidates, editorial selections,
   and recurring-character callbacks;
 - taste dimensions for signal/category, movie/topic, recurring entity, edit
@@ -1020,6 +1067,8 @@ VRL DNA:
 - Announcer’s Curse, Great Carnac, Upside Down;
 - driver identity reconciliation;
 - excitement score and Hot 100 moments.
+- source-set questions for driver/race-event intersections, unique broadcast
+  counts, evidence rankings, and chronological driver or booth-phrase routes;
 - source-locked recurrence trails for booth phrases, rivalries, rituals, and
   Announcer's Curse candidates; chronology cannot claim that commentary caused
   an incident or that a later call intentionally continued an earlier one;
@@ -1187,11 +1236,28 @@ a victory ritual. The pure compiler retains source IDs, receipt keys,
 fingerprints, and exact bounds; it does not inherit the adapter's mythology as
 an origin or causality claim.
 
+Compile source-set arithmetic from the same dossier registry:
+
+```js
+const matrix = window.ShokkerReceiptMatrix.create({
+  dossierEngine,
+  policy: channelAdapter.receiptMatrixPolicy
+});
+
+const result = matrix.query({
+  entityIds: ["channel-entity-a", "channel-entity-b"],
+  quantifier: "all",
+  order: "receipt-count-desc"
+});
+```
+
 ## Current implementation boundary
 
 `public/demo/showcase-engine.js`, `public/demo/bit-bloodline-engine.js`,
 `public/demo/source-dossier-engine.js`,
 `public/demo/source-query-engine.js`,
+`public/demo/receipt-matrix-query.js`,
+`public/demo/receipt-matrix-engine.js`,
 `public/demo/tape-companion-engine.js`, and
 `public/demo/creator-taste-engine.js` are intentionally pure browser engines:
 
@@ -1205,7 +1271,7 @@ an origin or causality claim.
 
 It is a presentation-independent foundation. WWAM can render it as a horror evidence room; VRL can render the same contracts as a race-control archive.
 
-The V5.20 WWAM adapters are intentionally stricter than the universal core.
+The V5.21 WWAM adapters are intentionally stricter than the universal core.
 The Source Dossier adapter fails closed unless the canonical union remains 510 sources and the receipt
 ledger remains 1,490. Its current proof is 111 caption-backed, 390
 metadata-only, nine caption-limited, zero unavailable, 928 source-bound
@@ -1215,6 +1281,12 @@ not universal constants. The Bit Bloodlines adapter further pins 4 lineages,
 25 bounded performance candidates, 12 official uploads, 350 source seconds,
 and zero playable members from the separate 52-record unbounded machine-echo
 layer.
+
+The Receipt Matrix adapter admits only exact, bounded, promoted-lane,
+caption-backed curated character-performance candidates. Its release proof
+pins Loomis at 7 receipts / 5 sources, Loomis plus Challis at 11 / 4, and the
+four-character group at 25 / 12. Those values are WWAM snapshot assertions,
+not universal constants.
 
 The current companion UI stores core archive/source-ledger-bound local state;
 optional display decorations are outside that binding. Calibration stores

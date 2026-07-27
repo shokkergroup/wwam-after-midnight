@@ -49,6 +49,7 @@ window.WWAM_CURATED = {
     "Which commentary has the highest Unhinged Index?",
     "Which predictions came true?",
     "What is funniest in the newest stream?",
-    "Who hated Scream 3?"
+    "Who hated Scream 3?",
+    "Which uploads contain both Dr. Loomis and Dr. Challis performances?"
   ]
 };

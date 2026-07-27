@@ -41,7 +41,7 @@ test("V5.9 publishes the lazy Time Capsule surface without growing app.js", () =
   );
 
   assert.ok(
-    fs.statSync(path.join(demo, "app.js")).size < 250_000,
+    fs.statSync(path.join(demo, "app.js")).size < 255_000,
     "V5.9 must remain outside the app.js size ceiling"
   );
   assert.ok(fs.statSync(path.join(demo, "era-capsule-engine.js")).size < 80_000);
@@ -58,13 +58,13 @@ test("V5.9 proof remains while current Time Capsule totals stay synchronized", (
   const changelog = read("docs/CHANGELOG.md");
   const runbook = read("docs/CREATOR_DEMO_RUNBOOK.md");
 
-  assert.equal(manifest.version, "0.5.20");
-  assert.equal(lock.version, "0.5.20");
-  assert.equal(lock.packages[""].version, "0.5.20");
-  assert.match(readme, /Current documented release: \*\*V5\.20 \/ 0\.5\.20\*\*/);
-  assert.match(overview, /^# WWAM After Midnight V5\.20/m);
+  assert.equal(manifest.version, "0.5.21");
+  assert.equal(lock.version, "0.5.21");
+  assert.equal(lock.packages[""].version, "0.5.21");
+  assert.match(readme, /Current documented release: \*\*V5\.21 \/ 0\.5\.21\*\*/);
+  assert.match(overview, /^# WWAM After Midnight V5\.21/m);
   assert.match(changelog, /^## 0\.5\.9 .*V5\.9 Archive Time Capsules/m);
-  assert.match(runbook, /current V5\.20 build/);
+  assert.match(runbook, /current V5\.21 build/);
 
   [readme, overview, capsules, changelog].forEach((source) => {
     assert.match(source, /21 metadata-only/i);

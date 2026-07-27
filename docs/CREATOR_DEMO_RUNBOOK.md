@@ -11,7 +11,7 @@ three things quickly:
 
 ## Before the call
 
-- Open the current V5.20 build or its confirmed deployment and choose either
+- Open the current V5.21 build or its confirmed deployment and choose either
   content-advisory mode.
 - Confirm YouTube playback is available in the browser.
 - Start at the hero, not halfway down the page.
@@ -58,6 +58,11 @@ Use this evidence vocabulary consistently:
   introduction. It is presentation around canonical receipts, visibly labeled
   `VIEWER-WRITTEN // NOT ARCHIVE EVIDENCE`, and cannot become a quote, archive
   summary, creator claim, or Canon entry.
+- **Source-set matrix result** means the system separately counted canonical
+  official uploads and exact eligible receipts under one configured evidence
+  policy. An all-entity source group proves only same-source coverage; it does
+  not prove interaction, dialogue, influence, origin, causality, or a shared
+  speaker.
 - **Source-locked recurrence** means two or more eligible bounded receipts
   share one channel-supplied lineage definition and survive fresh canonical
   resolution. Chronology makes a useful watch path; it does not prove a first
@@ -94,6 +99,52 @@ Press **Mike Mode** and use one sentence per slide:
 
 Use the proof button on at least two slides. A pitch that exits into working
 evidence is stronger than a complete slideshow.
+
+## V5.21 Mike path - prove the count in two minutes
+
+Use this path to show that Ask can answer an archive-wide question with a
+reviewable ledger instead of a confident estimate.
+
+### 1. Separate uploads from receipts
+
+Open **Ask WWAM** and enter:
+
+```text
+How many uploads feature Dr. Loomis?
+```
+
+Expected proof:
+
+- five unique official uploads;
+- seven eligible curated performance receipts;
+- source groups expose their individual receipt counts; and
+- no metadata mention, artifact, or machine echo enters the result.
+
+### 2. Intersect two characters honestly
+
+Ask:
+
+```text
+Which uploads contain both Dr. Loomis and Dr. Challis performances?
+```
+
+Expected proof: four source groups and 11 eligible receipts. Expand a group,
+play one exact bounded row, and point to the official-source action. Say:
+?Both characters have eligible evidence in this upload; that does not claim
+they interact or share a speaker.?
+
+### 3. Show the ranked ledger
+
+Ask:
+
+```text
+Which source has the most character performances?
+```
+
+The top three must be `LV2rmwEA0w4` with six, `ag3axSC9BpU` with five, and
+`N-UahfG8-gM` with three. Export the bounded JSON if Mike wants to see the
+handoff. It contains evidence/navigation records, not copied media, rights, or
+creator approval.
 
 ## V5.20 Mike path - run the bloodline in two minutes
 

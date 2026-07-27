@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.2.0";
+  var VERSION = "1.3.0";
   var REQUIRED_ENGINE_METHODS = (
     "getStats getCoverage getBuckets getFilterOptions getRecord browse search getDistillQueue getProvenance"
   ).split(" ");
@@ -81,6 +81,7 @@
       formatDate = typeof input.formatDate === "function" ? input.formatDate : fallbackDate,
       escapeHtml = typeof input.escapeHtml === "function" ? input.escapeHtml : fallbackEscape,
       openRecord = typeof input.openRecord === "function" ? input.openRecord : function () {},
+      stageRecord = typeof input.stageRecord === "function" ? input.stageRecord : function () {},
       downloadJson = typeof input.downloadJson === "function" ? input.downloadJson : function () {},
       showToast = typeof input.showToast === "function" ? input.showToast : function () {},
       documentRef = input.document || (typeof document !== "undefined" ? document : null);
@@ -152,7 +153,7 @@
       if (!documentRef) return;
       Array.prototype.forEach.call(
         documentRef.querySelectorAll(
-          "[data-archive-year], [data-archive-month], [data-archive-coverage], [data-archive-open]"
+          "[data-archive-year], [data-archive-month], [data-archive-coverage], [data-archive-open], [data-archive-stage]"
         ),
         function (control) {
           control.disabled = Boolean(disabled);
@@ -205,12 +206,21 @@
       }).join(" + ");
     }
 
+    function sourceSummary(item) {
+      if (!item || item.coverage !== "deeply-indexed") return "";
+      var hit = archiveDeepEngine && archiveDeepEngine.getStream &&
+        archiveDeepEngine.getStream(item.id);
+      return clean(hit && hit.summary || typeof input.getSourceSummary === "function" &&
+        input.getSourceSummary(item.id) || "");
+    }
+
     function card(record) {
       var action = '<button type="button" data-archive-open="' + escapeHtml(record.id) + '">'
-        + "OPEN SOURCE DOSSIER &rarr;</button>";
+        + "OPEN SHOW WIKI &rarr;</button>";
       var depthClass = record.coverage === "deeply-indexed"
         ? "deep"
         : record.coverage === "caption-limited" ? "limited" : "metadata";
+      var summary = sourceSummary(record);
       return '<article class="archive-card is-' + depthClass + '">'
         + '<div class="archive-card-media"><img loading="lazy" src="'
         + escapeHtml(record.thumbnail) + '" alt="'
@@ -219,7 +229,10 @@
         + '<div class="archive-card-body"><div class="archive-card-kicker"><span>'
         + escapeHtml(formatDate(record.date)) + "</span><b>"
         + escapeHtml(formatNumber(record.views)) + " CACHED VIEWS</b></div><h4>"
-        + escapeHtml(record.title) + '</h4><div class="archive-depth"><i></i><span>'
+        + escapeHtml(record.title) + "</h4>"
+        + (summary ? '<p class="archive-card-summary"><span>WHAT IS INSIDE // REGISTERED DISTILL</span>'
+          + escapeHtml(summary) + "</p>" : "")
+        + '<div class="archive-depth"><i></i><span>'
         + escapeHtml(coverageLabel(record)) + "</span></div><footer><span>"
         + escapeHtml(laneLabel(record)) + "</span>" + action + "</footer></div></article>";
     }
@@ -365,19 +378,28 @@
         var signals = (priority.signals || []).map(function (signal) {
           return signal.label;
         }).join(" + ") || "NO CONFIGURED FRANCHISE TITLE MATCH";
-        return '<article class="archive-queue-card"><div><span>#'
-          + String(priority.rank || 0).padStart(2, "0") + " NEXT</span><b>"
-          + Number(priority.score || 0).toFixed(1) + "</b></div><h4>"
-          + escapeHtml(record.title) + "</h4><p>" + escapeHtml(signals)
-          + " // CACHED TITLE METADATA ONLY</p>"
-          + '<div class="archive-queue-signals"><span>VIEW GRAVITY <b>'
-          + Number(breakdown.popularity || 0).toFixed(1)
-          + " / 50</b></span><span>RECENCY <b>"
-          + Number(breakdown.recency || 0).toFixed(1)
-          + " / 30</b></span><span>FRANCHISE TITLE <b>"
-          + Number(breakdown.franchise || 0).toFixed(1)
-          + ' / 20</b></span></div><a href="' + escapeHtml(record.url)
-          + '" target="_blank" rel="noopener">INSPECT ORIGINAL &#8599;</a></article>';
+        return '<article class="archive-queue-card" data-archive-queue-source="' +
+          escapeHtml(record.id) + '"><div><span>#' +
+          String(priority.rank || 0).padStart(2, "0") + " OF " +
+          formatNumber(queue.eligible) + " WAITING</span><b>" +
+          Number(priority.score || 0).toFixed(1) + "</b></div><h4>" +
+          escapeHtml(record.title) + "</h4><p>" + escapeHtml(signals) +
+          " // CACHED TITLE METADATA ONLY</p>" +
+          '<div class="archive-queue-source"><span>' + escapeHtml(record.id) +
+          "</span><b>" + escapeHtml(formatDate(record.date)) + " // " +
+          escapeHtml(formatNumber(record.views)) + " CACHED VIEWS</b></div>" +
+          '<div class="archive-queue-signals"><span>VIEW GRAVITY <b>' +
+          Number(breakdown.popularity || 0).toFixed(1) +
+          " / 50</b></span><span>RECENCY <b>" +
+          Number(breakdown.recency || 0).toFixed(1) +
+          " / 30</b></span><span>FRANCHISE TITLE <b>" +
+          Number(breakdown.franchise || 0).toFixed(1) +
+          ' / 20</b></span></div><div class="archive-queue-card-actions">' +
+          '<button type="button" data-archive-open="' + escapeHtml(record.id) +
+          '">OPEN SOURCE BRIEF</button><button type="button" data-archive-stage="' +
+          escapeHtml(record.id) + '">STAGE FOR DISTILL</button><a href="' +
+          escapeHtml(record.url) +
+          '" target="_blank" rel="noopener">INSPECT ORIGINAL &#8599;</a></div></article>';
       }).join("");
     }
 
@@ -415,6 +437,7 @@
             (stream.rightsPolicy.mode === "visual-context-unverified" ?
               " // VISUAL RESULT UNVERIFIED" : "");
           return '<button type="button" data-archive-open="' + escapeHtml(stream.id) +
+            '" aria-label="Open show wiki for ' + escapeHtml(stream.title) +
             '"><img loading="lazy" src="' + escapeHtml(stream.thumbnail) + '" alt=""><span>BATCH 0' +
             batch.sequence +
             " // BATCH-LOCAL PRIORITY #" + String(batch.batchRank).padStart(2, "0") +
@@ -422,7 +445,8 @@
             '</span><b>' + escapeHtml(stream.title) + "</b><small>ATLAS SCORE " +
             Number(stream.archivePriority.score || 0).toFixed(1) + " // " +
             escapeHtml(formatNumber(stream.views || 0)) + " CACHED VIEWS" +
-            escapeHtml(warning) + "</small></button>";
+            escapeHtml(warning) +
+            '</small><span class="archive-batch-door">OPEN SHOW WIKI &rarr;</span></button>';
         }).join("") + "</div>";
     }
 
@@ -470,6 +494,9 @@
         renderFilters();
         renderGrid();
         focusGenerated("data-archive-coverage", state.coverage);
+      } else if (target.hasAttribute("data-archive-stage")) {
+        var staged = engine.getRecord(target.getAttribute("data-archive-stage"));
+        if (staged) stageRecord(serialCopy(staged));
       } else if (target.hasAttribute("data-archive-open")) {
         var record = engine.getRecord(target.getAttribute("data-archive-open"));
         if (record) openRecord(serialCopy(record));
@@ -517,12 +544,21 @@
           showToast("ARCHIVE LEDGER IS STILL LOADING");
           return;
         }
+        var completeQueue = engine.getDistillQueue({ limit: 500 });
         downloadJson("wwam-archive-autopsy-queue.json", {
-          schema: "wwam-archive-autopsy-queue/v1",
+          schema: "wwam-archive-autopsy-queue/v2",
           provenance: engine.getProvenance(),
-          queue: engine.getDistillQueue({ limit: 100 }),
+          workflow: {
+            stage: "acquire-timed-captions",
+            intake: "Fresh Tape Intake",
+            outputState: "quarantine",
+            promotionAllowed: false,
+            batchSize: 10,
+            contentClaimsFromMetadata: false,
+          },
+          queue: completeQueue,
         });
-        showToast("AUTOPSY QUEUE DOWNLOADED");
+        showToast(completeQueue.records.length + "-SOURCE AUTOPSY QUEUE DOWNLOADED");
       });
       listen(byId("archive"), "click", handleSectionClick);
       listen(documentRef, "click", handleDocumentClick);
@@ -603,7 +639,7 @@
         + "They do not establish what anyone said inside it.</p><div>"
         + plan.records.map(function (record) {
           var action = '<button type="button" data-ask-archive="'
-            + escapeHtml(record.id) + '">OPEN SOURCE DOSSIER &rarr;</button>';
+            + escapeHtml(record.id) + '">OPEN SHOW WIKI &rarr;</button>';
           return "<article><span>" + escapeHtml(formatDate(record.date)) + " // "
             + escapeHtml(record.coverage.replace(/-/g, " ").toUpperCase())
             + "</span><h4>" + escapeHtml(record.title)

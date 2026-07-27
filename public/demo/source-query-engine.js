@@ -10,7 +10,7 @@
    * question, and every content result remains inside that exact source.
    */
 
-  var VERSION = "1.0.0";
+  var VERSION = "1.2.1";
   var REQUEST_SCHEMA = "shokker-source-query/v1";
   var RESULT_SCHEMA = "shokker-source-query-result/v1";
   var DOSSIER_SCHEMA = "shokker-source-dossier/v1";
@@ -43,6 +43,7 @@
   var DEFAULT_VOCABULARY = Object.freeze({
     inventory: Object.freeze([
       "what is indexed",
+      "what is actually indexed",
       "whats indexed",
       "show the inventory",
       "source inventory",
@@ -120,12 +121,20 @@
       "source proof",
       "upload proof",
       "official url",
+      "where is the official upload",
+      "where can i watch the official upload",
       "source id",
       "upload date",
+      "when was this uploaded",
+      "when did this go up",
       "date",
       "runtime",
       "duration",
+      "how long is this tape",
+      "how long is this show",
+      "how long is this upload",
       "views",
+      "how many views",
       "coverage",
       "authority"
     ]),
@@ -655,7 +664,8 @@
       entityCount: source.entities.length,
       artifactCount: source.artifacts.length,
       connectionCount: dossier.wake.later.length + dossier.wake.earlier.length,
-      summaryAvailable: Boolean(source.summary)
+      summaryAvailable: Boolean(source.summary),
+      sourceBriefAvailable: Boolean(source.showWiki && source.showWiki.brief)
     };
   }
 
@@ -737,7 +747,10 @@
           later: dossier.wake.later.length,
           earlier: dossier.wake.earlier.length
         },
-        summaryAvailable: Boolean(dossier.source.summary)
+        summaryAvailable: Boolean(dossier.source.summary),
+        sourceBriefAvailable: Boolean(
+          dossier.source.showWiki && dossier.source.showWiki.brief
+        )
       },
       "registered-dossier-inventory"
     );
@@ -752,6 +765,31 @@
         basis: dossier.source.summary.basis
       },
       dossier.source.summary.basis
+    );
+  }
+
+  function sourceBriefResult(dossier) {
+    var source = dossier.source;
+    var brief = source.showWiki.brief;
+    return metadataResult(
+      dossier,
+      "registered-source-brief",
+      {
+        title: source.displayTitle || source.title,
+        date: source.date,
+        duration: source.duration,
+        views: source.views,
+        coverage: source.coverage,
+        authority: source.authority,
+        sourceType: source.sourceType,
+        availability: source.availability,
+        liveStatus: source.liveStatus,
+        officialUrl: source.url,
+        format: brief.format,
+        formatBasis: brief.formatBasis,
+        scope: brief.scope
+      },
+      "canonical-source-metadata-only"
     );
   }
 
@@ -971,10 +1009,184 @@
     });
   }
 
+  function showWikiCandidates(dossier) {
+    var showWiki = dossier.source.showWiki;
+    if (!showWiki || typeof showWiki !== "object") return [];
+    var output = [];
+    function add(kind, id, label, aliases, receiptKeys, order) {
+      var cleanAliases = unique((Array.isArray(aliases) ? aliases : []).map(normalize).filter(Boolean));
+      if (!cleanAliases.length) return;
+      output.push({
+        kind: kind,
+        id: clean(id),
+        label: clean(label),
+        aliases: cleanAliases,
+        receiptKeys: unique((Array.isArray(receiptKeys) ? receiptKeys : []).map(function (key) {
+          return clean(key);
+        }).filter(Boolean)),
+        order: order
+      });
+    }
+    if (showWiki.brief) {
+      add(
+        "brief", "source-brief", "SOURCE BRIEF",
+        showWiki.brief.queryAliases, [], 1
+      );
+    }
+    if (showWiki.recap) {
+      var recapKeys = [];
+      (Array.isArray(showWiki.recap.blocks) ? showWiki.recap.blocks : []).forEach(function (block) {
+        recapKeys = recapKeys.concat(Array.isArray(block.receiptKeys) ? block.receiptKeys : []);
+      });
+      add(
+        "recap", "episode-recap", "EPISODE RECAP",
+        showWiki.recap.queryAliases, recapKeys, 1
+      );
+    }
+    if (showWiki.experience) {
+      add(
+        "experience", clean(showWiki.experience.id) || "watch-path",
+        clean(showWiki.experience.title || showWiki.experience.label || "WATCH PATH"),
+        showWiki.experience.queryAliases,
+        showWiki.experience.routeReceiptKeys,
+        2
+      );
+    }
+    (Array.isArray(showWiki.lanes) ? showWiki.lanes : []).forEach(function (lane) {
+      add("lane", lane.id, lane.label, lane.queryAliases, lane.receiptKeys, 3);
+    });
+    return output;
+  }
+
+  function matchShowWikiIntent(dossier, query) {
+    var normalizedQuery = normalize(query);
+    var matches = [];
+    showWikiCandidates(dossier).forEach(function (candidate) {
+      candidate.aliases.forEach(function (alias) {
+        if (!hasPhrase(normalizedQuery, alias)) return;
+        matches.push({
+          kind: candidate.kind,
+          id: candidate.id,
+          label: candidate.label,
+          receiptKeys: candidate.receiptKeys.slice(),
+          matchedAlias: alias,
+          aliasTokens: tokens(alias).length,
+          order: candidate.order
+        });
+      });
+    });
+    matches.sort(function (left, right) {
+      return right.aliasTokens - left.aliasTokens ||
+        right.matchedAlias.length - left.matchedAlias.length ||
+        right.order - left.order ||
+        left.id.localeCompare(right.id);
+    });
+    return matches[0] || null;
+  }
+
+  function showWikiSubjectTerms(query, match, vocabulary) {
+    var controls = new Set(controlTerms(vocabulary).concat(tokens(match.matchedAlias)).concat([
+      "any", "anything", "appear", "appeared", "appears", "broadcast", "can",
+      "could", "episode", "got", "have", "has", "had", "indexed", "lane", "lanes",
+      "may", "might", "part", "parts", "registered", "see", "sent", "show",
+      "some", "something", "stream", "talk", "talked", "talking", "tell", "there",
+      "wiki", "will", "would"
+    ]));
+    return unique(tokens(query).filter(function (token) {
+      return token.length > 1 && !controls.has(token);
+    }));
+  }
+
+  function showWikiAnswer(dossier, request, match, vocabulary) {
+    if (match.kind === "brief") {
+      return {
+        status: "supported",
+        intent: "episode-brief",
+        episode: {
+          kind: "brief",
+          id: "source-brief",
+          label: "SOURCE BRIEF",
+          matchedAlias: match.matchedAlias,
+          totalReceipts: 0,
+          matchedReceipts: 0,
+          shownReceipts: 0
+        },
+        results: [sourceBriefResult(dossier)],
+        message: "This is the canonical Source Brief for the exact upload; it is metadata only, not a transcript-derived episode summary or playable moment.",
+        limitations: [
+          "The Source Brief exposes canonical upload facts only. Topics, quotes, reactions, rankings, speakers, and moments remain sealed until source-local evidence is registered."
+        ]
+      };
+    }
+    var receiptByKey = new Map(dossier.source.receipts.map(function (receipt) {
+      return [receipt.key, receipt];
+    }));
+    var allReceipts = match.receiptKeys.map(function (key) {
+      return receiptByKey.get(key);
+    }).filter(Boolean);
+    var terms = showWikiSubjectTerms(request.query, match, vocabulary);
+    var selectedReceipts = allReceipts;
+    if (terms.length) {
+      var entities = exactEntityMatches(dossier, request.query, terms);
+      var matchingKeys = new Set(receiptMatches(
+        dossier, request.query, terms, entities, request.at
+      ).map(function (entry) { return entry.receipt.key; }));
+      selectedReceipts = allReceipts.filter(function (receipt) {
+        return matchingKeys.has(receipt.key);
+      });
+    }
+    var results = [];
+    var receiptLimit = request.limit;
+    if (match.kind === "recap" && dossier.source.summary) {
+      results.push(summaryResult(dossier));
+      receiptLimit = Math.max(0, request.limit - 1);
+    }
+    results = results.concat(selectedReceipts.slice(0, receiptLimit).map(function (receipt) {
+      return receiptResult(dossier, receipt, "show-wiki-" + match.kind);
+    }));
+    var shownReceipts = results.filter(function (result) {
+      return result.type === "receipt";
+    }).length;
+    var supported = match.kind === "recap"
+      ? results.length > 0
+      : selectedReceipts.length > 0;
+    var message;
+    if (!allReceipts.length) {
+      message = "I checked this exact show’s registered " + match.label +
+        " lane. It has no playable receipt yet.";
+    } else if (terms.length && !selectedReceipts.length) {
+      message = "I checked all " + allReceipts.length + " registered " + match.label +
+        " receipt" + (allReceipts.length === 1 ? "" : "s") +
+        " on this exact show; none match the requested subject.";
+    } else {
+      message = "This exact show has " + allReceipts.length + " registered " + match.label +
+        " receipt" + (allReceipts.length === 1 ? "" : "s") + "; " +
+        shownReceipts + " playable result" + (shownReceipts === 1 ? " is" : "s are") + " shown.";
+    }
+    return {
+      status: supported ? "supported" : "insufficient-evidence",
+      intent: "episode-" + match.kind,
+      episode: {
+        kind: match.kind,
+        id: match.id,
+        label: match.label,
+        matchedAlias: match.matchedAlias,
+        totalReceipts: allReceipts.length,
+        matchedReceipts: selectedReceipts.length,
+        shownReceipts: shownReceipts
+      },
+      results: results,
+      message: message,
+      limitations: [
+        "This answer uses the registered Show Wiki lane for this exact source; its labels and order are navigation, not a creator verdict or speaker attribution."
+      ]
+    };
+  }
+
   function resultMessage(status, dossier, count) {
     var source = dossier.source;
     if (status === "inventory") {
-      return "This exact source has " + source.receipts.length + " registered receipt" +
+      var inventoryMessage = "This exact source has " + source.receipts.length + " registered receipt" +
         (source.receipts.length === 1 ? "" : "s") + ", " +
         source.entities.length + " entit" + (source.entities.length === 1 ? "y" : "ies") +
         ", " + source.artifacts.length + " artifact" +
@@ -982,6 +1194,10 @@
         (dossier.wake.later.length + dossier.wake.earlier.length) +
         " typed archive connection" +
         ((dossier.wake.later.length + dossier.wake.earlier.length) === 1 ? "" : "s") + ".";
+      if (source.showWiki && source.showWiki.brief) {
+        inventoryMessage += " A canonical Source Brief is registered.";
+      }
+      return inventoryMessage;
     }
     if (status === "proof") {
       return "This is canonical source proof, not a claim about the source contents.";
@@ -1049,6 +1265,8 @@
       var limitations = baseLimitations(dossier);
       var status;
       var intent = "unparsed";
+      var episode = null;
+      var customMessage = "";
       var results = [];
 
       if (request.sourceFingerprint &&
@@ -1059,10 +1277,25 @@
         );
       } else {
         intent = queryIntent(request.query, vocabulary);
+        var showWikiMatch = matchShowWikiIntent(dossier, request.query);
 
         if (intent === "metadata") {
           status = "proof";
           results = [proofResult(dossier)];
+        } else if (intent === "inventory") {
+          status = "inventory";
+          results = [inventoryResult(dossier)];
+        } else if (showWikiMatch && showWikiMatch.kind === "brief" &&
+            intent !== "summary" && intent !== "speaker") {
+          var sourceBriefAnswer = showWikiAnswer(
+            dossier, request, showWikiMatch, vocabulary
+          );
+          status = sourceBriefAnswer.status;
+          intent = sourceBriefAnswer.intent;
+          episode = sourceBriefAnswer.episode;
+          results = sourceBriefAnswer.results;
+          customMessage = sourceBriefAnswer.message;
+          limitations = limitations.concat(sourceBriefAnswer.limitations);
         } else if (dossier.source.coverage === "metadata-only") {
           status = "metadata-only";
           limitations.push(
@@ -1098,6 +1331,16 @@
           limitations.push(
             "Any returned receipt is navigation only and cannot answer who spoke."
           );
+        } else if (showWikiMatch) {
+          var episodeAnswer = showWikiAnswer(
+            dossier, request, showWikiMatch, vocabulary
+          );
+          status = episodeAnswer.status;
+          intent = episodeAnswer.intent;
+          episode = episodeAnswer.episode;
+          results = episodeAnswer.results;
+          customMessage = episodeAnswer.message;
+          limitations = limitations.concat(episodeAnswer.limitations);
         } else if (intent === "ranking") {
           status = "ranking-refused";
           limitations.push(
@@ -1113,9 +1356,6 @@
               "No registered source-level summary exists for this exact source."
             );
           }
-        } else if (intent === "inventory") {
-          status = "inventory";
-          results = [inventoryResult(dossier)];
         } else if (intent === "artifact") {
           var artifactTerms = subjectTerms(request.query, vocabulary);
           results = matchingArtifacts(
@@ -1216,6 +1456,7 @@
         version: VERSION,
         status: status,
         intent: intent,
+        episode: episode,
         scope: {
           exactSource: true,
           sourceId: request.sourceId,
@@ -1230,7 +1471,7 @@
           limit: request.limit
         },
         sourceProof: proof,
-        message: resultMessage(status, dossier, results.length),
+        message: customMessage || resultMessage(status, dossier, results.length),
         results: results,
         resultCount: results.length,
         limitations: unique(limitations),

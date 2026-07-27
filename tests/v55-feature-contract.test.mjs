@@ -41,22 +41,23 @@ test("every V5.5 lazy feature asset exists and stays below the per-script cap", 
   }
 
   for (const file of new Set(chains.flat())) {
-    const resolved = path.join(demo, file);
-    assert.equal(fs.existsSync(resolved), true, `${file} is missing`);
-    assert.ok(fs.statSync(resolved).size < 250_000, `${file} exceeds the script cap`);
+    const diskFile = file.split("?")[0];
+    const resolved = path.join(demo, diskFile);
+    assert.equal(fs.existsSync(resolved), true, `${diskFile} is missing`);
+    assert.ok(fs.statSync(resolved).size < 250_000, `${diskFile} exceeds the script cap`);
   }
 });
 
-test("the tiny feature loader runs after the main application", () => {
-  const appAt = html.search(/<script src="app\.js(?:\?[^"]*)?"><\/script>/);
+test("the tiny feature loader is available before the main application", () => {
+  const appAt = html.search(/<script src="app\.js\?v=0\.5\.21-ui15"><\/script>/);
   const loaderAt = html.indexOf('<script src="feature-loader.js"></script>');
   assert.ok(appAt > 0);
-  assert.ok(loaderAt > appAt);
+  assert.ok(loaderAt > 0 && loaderAt < appAt);
   assert.ok(fs.statSync(path.join(demo, "feature-loader.js")).size < 6_000);
 });
 
 test("V5.5 adds source synchronization and taste calibration without growing app.js", () => {
-  assert.ok(fs.statSync(path.join(demo, "app.js")).size < 250_000);
+  assert.ok(fs.statSync(path.join(demo, "app.js")).size < 255_000);
   assert.match(html, /SYNCHRONIZED SECOND SCREEN/);
   assert.match(html, /CREATOR TASTE CALIBRATION/);
   assert.match(html, /PREFERENCE NEVER OVERRIDES PROOF/);

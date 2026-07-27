@@ -46,7 +46,7 @@ test("all four Archive Deep batches and their portfolio are lazy-loaded before A
   const atlasData = app.indexOf('loadDemoScript("archive-atlas-data.js")');
   const deep = app.indexOf(".then(loadArchiveDeep)", atlasData);
   const atlasEngine = app.indexOf('loadDemoScript("archive-atlas-engine.js")', deep);
-  const atlasView = app.indexOf('loadDemoScript("archive-atlas-ui.js")', atlasEngine);
+  const atlasView = app.indexOf('loadDemoScript("archive-atlas-ui.js?v=0.5.21-2")', atlasEngine);
   assert.ok(atlasData >= 0 && atlasData < deep && deep < atlasEngine && atlasEngine < atlasView);
 
   const deepData = app.indexOf('"archive-deep-distill.js"');

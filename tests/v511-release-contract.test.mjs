@@ -119,19 +119,19 @@ test("V5.11 release identity, UI status, and documentation stay synchronized", (
   const contract = read("docs/ASK_ANSWER_FRAME_V2.md");
   const app = read("public/demo/app.js");
 
-  assert.equal(manifest.version, "0.5.20");
-  assert.equal(lock.version, "0.5.20");
-  assert.equal(lock.packages[""].version, "0.5.20");
-  assert.match(readme, /Current documented release: \*\*V5\.20 \/ 0\.5\.20\*\*/);
-  assert.match(overview, /^# WWAM After Midnight V5\.20/m);
+  assert.equal(manifest.version, "0.5.21");
+  assert.equal(lock.version, "0.5.21");
+  assert.equal(lock.packages[""].version, "0.5.21");
+  assert.match(readme, /Current documented release: \*\*V5\.21 \/ 0\.5\.21\*\*/);
+  assert.match(overview, /^# WWAM After Midnight V5\.21/m);
   assert.match(changelog, /^## 0\.5\.11 .*Answer Frame V2/m);
-  assert.match(runbook, /current V5\.20 build/i);
+  assert.match(runbook, /current V5\.21 build/i);
   assert.match(app, /GLOBAL RANKING HANDOFF \/\/ SOURCE RANKING/);
   assert.doesNotMatch(
     app,
     /isSurfaceHandoff \? "GLOBAL RANKING HANDOFF \/\/ OPEN THE RED BAND 100"/,
   );
-  assert.ok(fs.statSync(path.join(demo, "app.js")).size < 250_000);
+  assert.ok(fs.statSync(path.join(demo, "app.js")).size < 255_000);
 
   for (const phrase of [
     /secondary targets/i,

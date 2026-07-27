@@ -53,9 +53,7 @@ function build(window, options = {}) {
     showcase,
     lore,
     clip: clipLab,
-    characters: window.WWAMCharacterEngine?.create
-      ? window.WWAMCharacterEngine.create(sourceInput)
-      : { characters: [] }
+    characters: window.WWAM_CHARACTER_LORE
   });
   assert.equal(integrityReport.ok, true);
   const builder = window.WWAMCreatorPilotBuilder.create({
@@ -83,7 +81,7 @@ function plain(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
-test("Pilot Builder mirrors the current engine snapshot without invented metrics", () => {
+test("Workflow Builder mirrors the current engine snapshot without invented metrics", () => {
   const window = load();
   const current = build(window);
   const { builder, showcase, lore, clipLab, coldOpen, trust } = current;
@@ -126,7 +124,7 @@ test("all four goal briefs are deterministic, source-ledgered drafts", () => {
     assert.deepEqual(plain(a), plain(b));
     assert.equal(a.status, "DRAFT / HUMAN APPROVAL REQUIRED");
     assert.equal(a.creatorDecisionState, "NOT REVIEWED");
-    assert.equal(a.measurementPlan.status, "MEASURE DURING PILOT");
+    assert.equal(a.measurementPlan.status, "MEASURE DURING REVIEW");
     assert.equal(a.measurementPlan.observedResults.length, 0);
     assert.ok(a.deliverables.length >= 3);
     assert.ok(a.workflow.length >= 5);
@@ -198,7 +196,7 @@ test("invalid goals, missing engines, corrupt metrics, and failing integrity sto
         trust: current.trust,
         integrityReport: { ok: false, status: "FAIL", fingerprint: "bad" }
       }),
-    (error) => error.name === "PilotIntegrityError"
+    (error) => error.name === "WorkflowIntegrityError"
   );
 });
 
@@ -223,7 +221,7 @@ test("JSON and Markdown exports carry acceptance boundaries and the proof ledger
   const window = load();
   const { builder } = build(window);
   const brief = builder.build("compilation-workflow", {
-    title: "WWAM Compilation Workflow Pilot",
+    title: "WWAM Compilation Workflow Review",
     sourceLane: "TEN CREATOR-SELECTED LIVESTREAMS",
     sourceLimit: 10
   });
@@ -231,10 +229,10 @@ test("JSON and Markdown exports carry acceptance boundaries and the proof ledger
   const markdown = builder.exportMarkdown(brief);
 
   assert.deepEqual(JSON.parse(json), plain(brief));
-  assert.match(markdown, /^# WWAM Compilation Workflow Pilot/m);
+  assert.match(markdown, /^# WWAM Compilation Workflow Review/m);
   assert.match(markdown, /DRAFT \/ HUMAN APPROVAL REQUIRED/);
-  assert.match(markdown, /MEASURE DURING PILOT/);
-  assert.match(markdown, /These are snapshot counts, not performance or business results/);
+  assert.match(markdown, /MEASURE DURING REVIEW/);
+  assert.match(markdown, /These are snapshot counts, not verified performance results/);
   assert.match(markdown, /Proof ledger/);
   assert.match(markdown, new RegExp(brief.fingerprint));
   assert.match(markdown, new RegExp(brief.proofLedger.inputFingerprint));

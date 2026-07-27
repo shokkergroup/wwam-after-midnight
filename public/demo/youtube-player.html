@@ -4,63 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <title>WWAM official YouTube playback</title>
-  <style>
-    html, body, #player { width: 100%; height: 100%; margin: 0; background: #080608; }
-    body { overflow: hidden; }
-    iframe { display: block; width: 100%; height: 100%; border: 0; }
-    p { box-sizing: border-box; margin: 0; padding: 24px; color: #f4f0e8;
-      font: 700 14px/1.5 ui-monospace, monospace; }
-  </style>
+  <title>WWAM player bridge moved</title>
+  <style>html,body{margin:0;min-height:100%;background:#080608;color:#f4f0e8;font:700 14px/1.5 ui-monospace,monospace}body{display:grid;place-items:center}a{color:#d8ff38}</style>
 </head>
 <body>
-  <div id="player"><p>LOADING OFFICIAL YOUTUBE PLAYBACK&hellip;</p></div>
+  <p>LOADING THE UPDATED MEDIA BRIDGE&hellip; <a id="fallback" href="media-bridge.html">CONTINUE</a></p>
   <script>
     (function () {
       "use strict";
-      var query = new URLSearchParams(location.search);
-      var id = query.get("video") || "";
-      var host = document.getElementById("player");
-      if (!/^[A-Za-z0-9_-]{11}$/.test(id)) {
-        host.textContent = "INVALID OR MISSING YOUTUBE VIDEO ID.";
-        return;
-      }
-      var parameters = new URLSearchParams();
-      parameters.set("autoplay", query.get("autoplay") === "1" ? "1" : "0");
-      parameters.set("enablejsapi", "1");
-      parameters.set("rel", "0");
-      parameters.set("playsinline", "1");
-      parameters.set("origin", location.origin);
-      function safeWebReferrer(value) {
-        try {
-          var parsed = new URL(String(value || ""), location.href);
-          if (!/^https?:$/.test(parsed.protocol)) return "";
-          return parsed.origin + parsed.pathname;
-        } catch (error) {
-          return "";
-        }
-      }
-      var widgetReferrer = safeWebReferrer(
-        query.get("widget_referrer") || document.referrer
-      );
-      if (widgetReferrer) {
-        parameters.set("widget_referrer", widgetReferrer);
-      }
-      var start = Number(query.get("start"));
-      var safeStart = Number.isFinite(start) && start >= 0 ? Math.round(start) : 0;
-      if (safeStart > 0) parameters.set("start", String(safeStart));
-      var end = Number(query.get("end"));
-      if (Number.isFinite(end) && end > safeStart) {
-        parameters.set("end", String(Math.round(end)));
-      }
-      var frame = document.createElement("iframe");
-      frame.src = "https://www.youtube.com/embed/" + encodeURIComponent(id) +
-        "?" + parameters.toString();
-      frame.title = "Official YouTube source playback";
-      frame.referrerPolicy = "strict-origin-when-cross-origin";
-      frame.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
-      frame.setAttribute("allowfullscreen", "");
-      host.replaceChildren(frame);
+      var target = new URL("media-bridge.html", location.href);
+      target.search = location.search;
+      document.getElementById("fallback").href = target.toString();
+      location.replace(target.toString());
     })();
   </script>
 </body>

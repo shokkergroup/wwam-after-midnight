@@ -107,6 +107,7 @@ test("canonical source URLs use ?source=ID&at=SECONDS#archive and retain route-s
     SOURCE_DOSSIER_SECTION_IDS: {
       proof: "sourceDossierProof",
       player: "sourceDossierPlayerSection",
+      wiki: "sourceDossierShowWiki",
       inside: "sourceDossierInside",
       ask: "sourceDossierAsk",
       footprint: "sourceDossierFootprint",
@@ -196,6 +197,7 @@ test("canonical, legacy tape, and legacy live source routes remain readable", ()
     SOURCE_DOSSIER_SECTION_IDS: {
       proof: "sourceDossierProof",
       player: "sourceDossierPlayerSection",
+      wiki: "sourceDossierShowWiki",
       inside: "sourceDossierInside",
       ask: "sourceDossierAsk",
       footprint: "sourceDossierFootprint",
@@ -257,6 +259,8 @@ test("the app consumes every Source Dossier UI callback as one bounded payload o
     "onDownload",
     "onOpenSource",
     "onOpenCompanion",
+    "onAftermathExport",
+    "onAftermathCopy",
     "onBagReceipt",
   ];
   for (const callback of callbacks) {
@@ -267,6 +271,8 @@ test("the app consumes every Source Dossier UI callback as one bounded payload o
     );
   }
 
+  assert.match(runtime, /onAftermathDecision:\s*saveAftermathReview/);
+  assert.match(namedFunction(app, "saveAftermathReview"), /function saveAftermathReview\(payload\)/);
   assert.match(runtime, /loadPlayer\(payload\.sourceId,\s*payload\.at,\s*payload\.end\)/);
   assert.match(
     runtime,
@@ -277,7 +283,7 @@ test("the app consumes every Source Dossier UI callback as one bounded payload o
   assert.match(runtime, /queryEngine:\s*sourceQueryEngine/);
   assert.doesNotMatch(runtime, /onAskSource/);
   assert.doesNotMatch(runtime, /What is indexed for/);
-  assert.match(runtime, /openSourceDossier\(payload\.targetSourceId/);
+  assert.match(runtime, /openSourceDossier\(payload\.targetSourceId, targetAt/);
   assert.match(runtime, /data-companion-source",\s*payload\.sourceId/);
   assert.match(runtime, /data-companion-time",\s*Math\.round\(Number\(payload\.at/);
   assert.match(runtime, /var source = payload\.dossier\.source/);
@@ -286,6 +292,50 @@ test("the app consumes every Source Dossier UI callback as one bounded payload o
     runtime,
     /on(?:Play|CopyLink|Download|AskSource|OpenSource|OpenCompanion|BagReceipt):\s*function\s*\(\s*sourceId\s*,/,
   );
+});
+
+test("Aftermath handoff clears hidden Clip Lab filters before exact-source rendering", () => {
+  const state = { clipSourceId: "", clipMode: "supercuts", clipQuery: "old", clipRisk: "LOW" };
+  let focusCalls = 0;
+  const fields = {
+    clipSearch: { value: "Loomis", focus() { focusCalls += 1; } },
+    clipRisk: { value: "LOW" },
+    "clip-lab": { scrollIntoViewCalls: 0, scrollIntoView() { this.scrollIntoViewCalls += 1; } },
+  };
+  let closed = 0;
+  let closeOptions = null;
+  let rendered = 0;
+  const open = evaluateNamed("openAftermathInClipLab", {
+    state,
+    document: { getElementById(id) { return fields[id] ?? null; } },
+    closeDossier(options) { closed += 1; closeOptions = options; },
+    renderClipLab() { rendered += 1; },
+    setTimeout(callback) { callback(); },
+  });
+
+  open({ sourceId: "ABCDEFGHIJK", mode: "shorts" });
+  assert.deepEqual(state, {
+    clipSourceId: "ABCDEFGHIJK",
+    clipMode: "shorts",
+    clipQuery: "",
+    clipRisk: "",
+  });
+  assert.equal(fields.clipSearch.value, "");
+  assert.equal(fields.clipRisk.value, "");
+  assert.equal(closed, 1);
+  assert.deepEqual(plain(closeOptions), { replaceRoute: true, restoreFocus: false });
+  assert.equal(focusCalls, 1);
+  assert.equal(rendered, 1);
+  assert.equal(fields["clip-lab"].scrollIntoViewCalls, 1);
+});
+
+test("the compilation workflow hydrates source-bound Aftermath proof on first entry", () => {
+  const ensure = namedFunction(app, "ensureAftermathPilot");
+  const render = namedFunction(app, "renderPilotBuilder");
+  assert.match(ensure, /loadSourceDossier\(\)\.then/);
+  assert.match(ensure, /renderPilotBuilder\(\)/);
+  assert.match(render, /wantsAftermathPilot && !aftermathPackEngine\) ensureAftermathPilot\(\)/);
+  assert.match(render, /VERIFYING THREE SOURCE-LOCKED SHOWS/);
 });
 
 test("all 472 Atlas records pass through one card-to-dossier route", () => {
@@ -378,6 +428,7 @@ test("dossier CSS and scripts load lazily through the feature loader, never eage
       "source-dossier-engine.js",
       "wwam-source-dossier-adapter.js",
       "source-query-engine.js",
+      "aftermath-pack-engine.js",
       "source-dossier-ui.js",
   ];
   assert.equal(eagerStyles.includes("source-dossier.css"), false);
@@ -385,13 +436,17 @@ test("dossier CSS and scripts load lazily through the feature loader, never eage
     assert.equal(eagerScripts.includes(asset), false, `${asset} must remain lazy`);
   }
   assert.ok(eagerScripts.includes("feature-loader.js"));
+  assert.ok(
+    eagerScripts.indexOf("feature-loader.js") < eagerScripts.indexOf("app.js"),
+    "the lazy loader must exist before app.js handles copied Show Wiki routes",
+  );
 
   const loader = namedFunction(app, "loadSourceDossier");
-  assert.match(loader, /loader\.loadStyle\("source-dossier\.css"\)/);
+  assert.match(loader, /loader\.loadStyle\("source-dossier\.css\?v=1\.7\.0"\)/);
   const scriptList = loader
     .match(/return \[([\s\S]*?)\]\.reduce/)?.[1]
-    .match(/"[^"]+\.js"/g)
-    ?.map((asset) => asset.slice(1, -1));
+    .match(/"[^"]+\.js(?:\?[^"]*)?"/g)
+    ?.map((asset) => asset.slice(1, -1).split("?")[0]);
   assert.deepEqual(scriptList, dossierScripts);
   assert.match(loader, /return promise\.then\(function \(\) \{ return loader\.load\(source\); \}\)/);
   assert.match(featureLoader, /function loadStyle\(/);

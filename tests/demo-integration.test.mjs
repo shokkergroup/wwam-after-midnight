@@ -36,8 +36,11 @@ test("the complete browser script chain exists in dependency order", () => {
     "search-engine.js",
     "ask-share.js",
     "youtube-playback.js",
-    "app.js",
     "feature-loader.js",
+    "app.js",
+    "context-atlas.js",
+    "context-companion.js",
+    "guided-shell.js",
   ];
   assert.deepEqual(scripts, required);
   required.forEach((file) => assert.equal(fs.existsSync(path.join(demo, file)), true, `${file} is missing`));
@@ -54,6 +57,8 @@ test("the complete browser script chain exists in dependency order", () => {
     /loadDemoScript\("pilot-builder-engine\.js"\)\.then\(createCreatorEngines\)/,
   );
   assert.doesNotMatch(index, /<script[^>]+src="pilot-builder-engine\.js"/);
+  assert.match(app, /loadDemoScript\("canon-desk-ui\.js\?v=1\.0\.1"\)\.then\(createCreatorEngines\)/);
+  assert.equal(fs.existsSync(path.join(demo, "canon-desk-ui.js")), true);
 });
 
 test("every deep surface has a renderer and an isolated initialization stage", () => {
@@ -150,7 +155,7 @@ test("V5.2 mode and tab selections expose state and restore keyboard focus", () 
   assert.match(app, /setAttribute\("aria-selected"/);
   assert.match(app, /data-night-mode=[\s\S]{0,120}aria-pressed=/);
   assert.match(app, /data-pilot-goal=[\s\S]{0,120}aria-pressed=/);
-  assert.match(app, /data-clip-mode[\s\S]{0,180}aria-pressed/);
+  assert.match(app, /button\.setAttribute\("aria-pressed", on\)/);
   assert.match(index, /id="clipModes" role="group" aria-label="Clip Lab mode"/);
   assert.match(app, /activeHeading\.focus\(\)/);
   assert.match(app, /selectedGoal\.focus\(\)/);
@@ -196,7 +201,7 @@ test("Trust Desk correction exports make the dry-run ripple visible", () => {
   assert.match(app, /RIPPLE BLOCKED \/\/ UNRESOLVED EVIDENCE/);
 });
 
-test("Ask answers and Mike Mode proofs leave reproducible deep links", () => {
+test("Ask answers and Showcase Mode proofs leave reproducible deep links", () => {
   assert.match(app, /function askShareUrl\(query\)/);
   assert.match(app, /WWAMAskShare\.build\(location\.href,\s*query,\s*state\.askContext\)/);
   assert.match(app, /WWAMAskShare\.read\(location\.search\)/);
@@ -288,9 +293,9 @@ test("reduced mode masks source, derived, and user text without changing evidenc
 });
 
 test("community timestamps reject overflow fields and whitespace-only targets", () => {
-  const source = app.match(/function parseContributionTime\(value\) \{[\s\S]*?\n  \}\n\n  function bindCanon/);
+  const source = app.match(/function parseContributionTime\(value\) \{[\s\S]*?\n  \}\n\n  function saveHumanReviewSession/);
   assert.ok(source, "parseContributionTime could not be isolated");
-  const functionSource = source[0].replace(/\n\n  function bindCanon$/, "");
+  const functionSource = source[0].replace(/\n\n  function saveHumanReviewSession$/, "");
   const parseContributionTime = Function(`${functionSource}; return parseContributionTime;`)();
 
   assert.equal(parseContributionTime("90"), 90);

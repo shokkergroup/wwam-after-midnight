@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.1.0";
+  var VERSION = "1.7.0";
   var DOSSIER_SCHEMA = "shokker-source-dossier/v1";
   var QUERY_SCHEMA = "shokker-source-query/v1";
   var QUERY_RESULT_SCHEMA = "shokker-source-query-result/v1";
@@ -16,12 +16,14 @@
   var SECTION_IDS = Object.freeze({
     proof: "sourceDossierProof",
     player: "sourceDossierPlayerSection",
+    wiki: "sourceDossierShowWiki",
     inside: "sourceDossierInside",
     ask: "sourceDossierAsk",
     footprint: "sourceDossierFootprint",
     wake: "sourceDossierWake",
     chronology: "sourceDossierChronology",
     work: "sourceDossierWork",
+    aftermath: "sourceDossierAftermath",
     boundary: "sourceDossierBoundary"
   });
   var EXPANDABLE_SECTIONS = Object.freeze([
@@ -47,6 +49,11 @@
 
   function record(value) {
     return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  }
+
+  function number(value) {
+    var parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
   }
 
   function fallbackEscape(value) {
@@ -92,9 +99,10 @@
   }
 
   function titleCase(value) {
-    return clean(value).replace(/[-_]+/g, " ").replace(/\b\w/g, function (letter) {
-      return letter.toUpperCase();
-    });
+    return clean(value).replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+      .replace(/[-_]+/g, " ").replace(/\b\w/g, function (letter) {
+        return letter.toUpperCase();
+      });
   }
 
   function coverageLabel(value) {
@@ -155,6 +163,7 @@
     var input = options || {};
     var engine = input.engine;
     var queryEngine = input.queryEngine;
+    var aftermathEngine = input.aftermathEngine;
     var mount = input.mount;
     if (!engine || typeof engine.build !== "function") {
       throw new Error("Source Dossier UI requires an engine with build(sourceId).");
@@ -177,9 +186,21 @@
       copy: typeof input.onCopyLink === "function" ? input.onCopyLink : function () {},
       download: typeof input.onDownload === "function" ? input.onDownload : function () {},
       open: typeof input.onOpenSource === "function" ? input.onOpenSource : function () {},
+      stageIntake: typeof input.onStageIntake === "function" ?
+        input.onStageIntake : function () {},
       companion: typeof input.onOpenCompanion === "function" ?
         input.onOpenCompanion : function () {},
-      bag: typeof input.onBagReceipt === "function" ? input.onBagReceipt : function () {}
+      bag: typeof input.onBagReceipt === "function" ? input.onBagReceipt : function () {},
+      loadAftermath: typeof input.loadAftermathReview === "function" ?
+        input.loadAftermathReview : function () { return null; },
+      aftermathDecision: typeof input.onAftermathDecision === "function" ?
+        input.onAftermathDecision : function () {},
+      aftermathExport: typeof input.onAftermathExport === "function" ?
+        input.onAftermathExport : function () {},
+      aftermathCopy: typeof input.onAftermathCopy === "function" ?
+        input.onAftermathCopy : function () {},
+      openClipLab: typeof input.onOpenClipLab === "function" ?
+        input.onOpenClipLab : function () {}
     };
     var state = {
       dossier: null,
@@ -194,6 +215,13 @@
       queryBusy: false,
       queryError: "",
       queryEpoch: 0,
+      activeReceiptKey: "",
+      activeReceiptOrigin: "",
+      aftermathPack: null,
+      aftermathReview: null,
+      aftermathSelected: "",
+      aftermathFilter: "all",
+      aftermathError: "",
       destroyed: false
     };
 
@@ -256,6 +284,79 @@
         .filter(function (receipt) { return receipt.key === key; })[0] || null;
     }
 
+    function validateEpisodeContext(answer, dossier, normalizedResults) {
+      var intent = clean(answer && answer.intent);
+      var raw = answer && answer.episode;
+      if (!raw) {
+        if (intent.indexOf("episode-") === 0) {
+          throw new Error("An episode query result omitted its Show Wiki context.");
+        }
+        return null;
+      }
+      var episode = record(raw);
+      var kind = clean(episode.kind);
+      var id = clean(episode.id);
+      var wiki = record(dossier.source.showWiki);
+      var target = null;
+      var expectedKeys = [];
+      if (kind === "recap") {
+        target = record(wiki.recap);
+        if (!clean(target.overview) || id !== "episode-recap") target = null;
+        array(record(wiki.recap).blocks).forEach(function (block) {
+          expectedKeys = expectedKeys.concat(array(record(block).receiptKeys));
+        });
+      } else if (kind === "brief") {
+        target = record(wiki.brief);
+        if (!isSourceBrief(dossier) || id !== "source-brief") target = null;
+      } else if (kind === "experience") {
+        target = record(wiki.experience);
+        if (!clean(target.id) || clean(target.id) !== id) target = null;
+        expectedKeys = array(record(wiki.experience).routeReceiptKeys);
+      } else if (kind === "lane") {
+        target = array(wiki.lanes).map(record).filter(function (lane) {
+          return clean(lane.id) === id;
+        })[0] || null;
+        expectedKeys = target ? array(target.receiptKeys) : [];
+      }
+      var seen = {};
+      expectedKeys = expectedKeys.map(function (key) { return clean(key); }).filter(function (key) {
+        if (!key || seen[key] || !sourceReceiptByKey(dossier, key)) return false;
+        seen[key] = true;
+        return true;
+      });
+      var expectedKeySet = {};
+      expectedKeys.forEach(function (key) { expectedKeySet[key] = true; });
+      var receiptResults = normalizedResults.filter(function (result) {
+        return result.type === "receipt";
+      });
+      var shownReceipts = receiptResults.length;
+      var preservesExpectedSet = kind === "brief" ?
+        normalizedResults.length === 1 &&
+          normalizedResults[0].type === "metadata" &&
+          normalizedResults[0].field === "registered-source-brief" :
+        normalizedResults.length === shownReceipts &&
+          receiptResults.every(function (result) { return expectedKeySet[result.key] === true; });
+      if (!target || !preservesExpectedSet || intent !== "episode-" + kind || !clean(episode.label) ||
+          !clean(episode.matchedAlias) ||
+          Number(episode.totalReceipts) !== expectedKeys.length ||
+          !Number.isInteger(Number(episode.matchedReceipts)) ||
+          Number(episode.matchedReceipts) < 0 ||
+          Number(episode.matchedReceipts) > expectedKeys.length ||
+          Number(episode.shownReceipts) !== shownReceipts ||
+          shownReceipts > Number(episode.matchedReceipts)) {
+        throw new Error("The source query result did not preserve its registered Show Wiki lane.");
+      }
+      return {
+        kind: kind,
+        id: id,
+        label: clean(episode.label),
+        matchedAlias: clean(episode.matchedAlias),
+        totalReceipts: expectedKeys.length,
+        matchedReceipts: Number(episode.matchedReceipts),
+        shownReceipts: shownReceipts
+      };
+    }
+
     function validateQueryAnswer(answer, dossier) {
       var source = dossier.source;
       var scope = record(answer && answer.scope);
@@ -299,9 +400,27 @@
           };
         }
         if (type === "metadata") {
+          var metadataField = clean(result.field);
+          if (metadataField === "registered-source-brief") {
+            if (!isSourceBrief(dossier)) {
+              throw new Error("A source query attempted to invent a Source Brief.");
+            }
+            var canonicalBrief = record(record(source.showWiki).brief);
+            return {
+              type: type,
+              field: metadataField,
+              basis: clean(canonicalBrief.formatBasis),
+              value: {
+                kind: clean(canonicalBrief.kind),
+                scope: clean(canonicalBrief.scope),
+                format: clean(canonicalBrief.format),
+                formatBasis: clean(canonicalBrief.formatBasis)
+              }
+            };
+          }
           return {
             type: type,
-            field: clean(result.field),
+            field: metadataField,
             basis: clean(result.basis),
             value: result.value
           };
@@ -341,10 +460,13 @@
           }).filter(Boolean)
         };
       }).slice(0, QUERY_LIMIT);
+      var episode = validateEpisodeContext(answer, dossier, normalizedResults);
       return {
         schema: answer.schema,
         scope: scope,
         status: status,
+        intent: clean(answer.intent),
+        episode: episode,
         sourceProof: sourceProof,
         boundary: boundary,
         message: clean(answer.message),
@@ -398,6 +520,53 @@
         '</b><span>' + esc(proof.evidenceBoundary) + '</span></p></section>';
     }
 
+    function nowPlayingReceiptMarkup(dossier) {
+      var receipt = state.activeReceiptKey ?
+        sourceReceiptByKey(dossier, state.activeReceiptKey) : null;
+      if (!receipt) return "";
+      var wiki = record(dossier.source.showWiki);
+      var lanes = array(wiki.lanes).map(record);
+      var experience = record(wiki.experience);
+      var laneIndex = -1;
+      var lane = null;
+      lanes.some(function (candidate, index) {
+        if (array(candidate.receiptKeys).indexOf(receipt.key) < 0) return false;
+        lane = candidate;
+        laneIndex = index;
+        return true;
+      });
+      var sequence = array(experience.routeReceiptKeys);
+      var sequenceLabel = clean(experience.title) || "WATCH PATH";
+      if (sequence.indexOf(receipt.key) < 0 && lane) {
+        sequence = array(lane.receiptKeys);
+        sequenceLabel = clean(lane.label) || "SHOW WIKI LANE";
+      }
+      var position = sequence.indexOf(receipt.key);
+      var previousKey = position > 0 ? sequence[position - 1] : "";
+      var nextKey = position >= 0 && position < sequence.length - 1 ?
+        sequence[position + 1] : "";
+      var returnId = lane ? showWikiLaneId(lane, laneIndex) :
+        "sourceDossierShowWikiExperience";
+      var excerpt = receipt.publicExcerptAllowed && clean(receipt.excerpt)
+        ? '<p>&ldquo;' + esc(receipt.excerpt) + '&rdquo;</p>'
+        : '<p class="is-withheld">PUBLIC EXCERPT WITHHELD // COORDINATE PRESERVED</p>';
+      return '<aside class="source-dossier-now-playing" id="sourceDossierNowPlaying" ' +
+        'data-now-playing-receipt="' + esc(receipt.key) + '"><header><div><span>NOW PLAYING RECEIPT</span><b>' +
+        esc(receipt.label) + '</b></div><time>' + esc(formatTime(receipt.at)) +
+        (receipt.end > receipt.at ? '—' + esc(formatTime(receipt.end)) : '') +
+        '</time></header>' + excerpt + '<div class="source-dossier-now-playing-proof"><span>' +
+        esc(sequenceLabel) + '</span><span>EXACT SOURCE ' + esc(dossier.source.id) +
+        '</span><span>SPEAKER NOT DIARIZED</span></div><footer>' +
+        (previousKey ? '<button type="button" data-source-dossier-action="play-receipt" data-receipt-key="' +
+          esc(previousKey) + '">&#8592; PREVIOUS</button>' : '') +
+        '<a href="#' + esc(returnId) + '">RETURN TO ' +
+        esc(lane ? clean(lane.label) : "WATCH PATH") + ' &#8595;</a>' +
+        '<button type="button" data-source-dossier-action="copy-link">COPY THIS MOMENT</button>' +
+        (nextKey ? '<button type="button" data-source-dossier-action="play-receipt" data-receipt-key="' +
+          esc(nextKey) + '">NEXT &#8594;</button>' : '') +
+        '</footer></aside>';
+    }
+
     function playerMarkup(dossier) {
       var source = dossier.source;
       return '<section class="source-dossier-player-section"' + sectionAttributes("player") +
@@ -408,7 +577,15 @@
         '<div><span>THE PLAYER STAYS DORMANT UNTIL YOU ASK FOR IT.</span>' +
         '<button type="button" data-source-dossier-action="play-source" aria-label="Play ' +
         esc(source.displayTitle || source.title) + ' inside this page">&#9654; PLAY SOURCE</button>' +
-        '<small>OFFICIAL YOUTUBE UPLOAD // NO COPIED MEDIA // RECOVERY CONTROL APPEARS WITH THE PLAYER</small></div></div></section>';
+        '<small>OFFICIAL YOUTUBE UPLOAD // NO COPIED MEDIA // RECOVERY CONTROL APPEARS WITH THE PLAYER</small></div></div>' +
+        nowPlayingReceiptMarkup(dossier) + '</section>';
+    }
+
+    function signalScoreLabel(value) {
+      if (value == null || value === "") return "";
+      var score = Number(value);
+      if (!Number.isFinite(score)) return "";
+      return String(Math.round(score * 100) / 100);
     }
 
     function receiptMarkup(receipt, extraClass) {
@@ -417,10 +594,17 @@
         '<span class="source-dossier-withheld">EXCERPT WITHHELD // SOURCE COORDINATE REMAINS</span>';
       var label = clean(receipt.label) || "INDEXED RECEIPT";
       var time = formatTime(receipt.at);
+      var signalScore = signalScoreLabel(receipt.signalScore);
+      var signalBasis = clean(receipt.signalBasis);
+      var signal = signalScore ? '<span class="source-dossier-receipt-signal" data-signal-score="' +
+        esc(signalScore) + '"><b>ARCHIVE HEAT ' + esc(signalScore) + '</b>' +
+        (signalBasis ? '<small>' + esc(signalBasis.toUpperCase()) + '</small>' : '') +
+        '</span>' : '';
       return '<article class="source-dossier-receipt' +
         (extraClass ? ' ' + esc(extraClass) : '') + '" data-receipt-key="' +
         esc(receipt.key) + '"><header><span>' + esc(label) + '</span><time>' +
-        esc(time) + '</time></header><p>' + excerpt + '</p><div class="source-dossier-receipt-proof">' +
+        esc(time) + '</time>' + signal + '</header><p>' + excerpt +
+        '</p><div class="source-dossier-receipt-proof">' +
         '<span>' + esc(clean(receipt.evidenceLevel).toUpperCase()) + '</span><span>' +
         esc(clean(receipt.reviewState).toUpperCase()) + '</span><span>SPEAKER NOT DIARIZED</span></div>' +
         '<footer><button type="button" data-source-dossier-action="play-receipt" data-receipt-key="' +
@@ -430,6 +614,360 @@
         ' to the evidence bag">BAG RECEIPT</button></footer></article>';
     }
 
+    function showWikiLaneId(lane, index) {
+      return "sourceDossierShowWikiLane-" +
+        token(clean(lane.id) || clean(lane.label) || "lane") + "-" + index;
+    }
+
+    function showWikiLaneReceipts(dossier, lane) {
+      var seen = {};
+      return array(lane.receiptKeys).map(function (key) {
+        return sourceReceiptByKey(dossier, clean(key));
+      }).filter(function (receipt) {
+        if (!receipt || seen[receipt.key]) return false;
+        seen[receipt.key] = true;
+        return true;
+      });
+    }
+
+    function isSourceBrief(dossier) {
+      var wiki = record(dossier && dossier.source && dossier.source.showWiki);
+      var brief = record(wiki.brief);
+      return clean(wiki.status) === "source-brief" &&
+        clean(brief.kind) === "source-metadata-brief" &&
+        clean(brief.scope) === "canonical-source-metadata-only";
+    }
+
+    function showWikiLocalNavMarkup(dossier) {
+      var wiki = record(dossier.source.showWiki);
+      var lanes = array(wiki.lanes).map(record);
+      var experience = record(wiki.experience);
+      var links = [];
+      var sourceBrief = isSourceBrief(dossier);
+      if (sourceBrief || clean(record(wiki.recap).overview) || dossier.source.summary) {
+        links.push({
+          id: "sourceDossierShowWikiSummary",
+          label: sourceBrief ? "SOURCE BRIEF" : "RECAP"
+        });
+      }
+      if (!sourceBrief &&
+          showWikiExperienceReceipts(dossier, experience.routeReceiptKeys).length) {
+        links.push({ id: "sourceDossierShowWikiExperience", label: clean(experience.title) || "WATCH PATH" });
+      }
+      if (!sourceBrief) {
+        lanes.forEach(function (lane, index) {
+          if (!showWikiLaneReceipts(dossier, lane).length) return;
+          links.push({ id: showWikiLaneId(lane, index), label: clean(lane.label) });
+        });
+      }
+      links.push({ id: SECTION_IDS.aftermath, label: "AFTERMATH PACK" });
+      links.push({
+        id: SECTION_IDS.ask,
+        label: sourceBrief ? "ASK SOURCE FACTS" : "ASK THIS SHOW"
+      });
+      return '<nav class="source-dossier-wiki-local-nav" aria-label="Jump within this Show Wiki"><span>THIS SHOW</span><div>' +
+        links.map(function (link) {
+          return '<a href="#' + esc(link.id) + '">' + esc(link.label) + '</a>';
+        }).join("") + '</div></nav>';
+    }
+
+    function exploreMarkup(dossier) {
+      var wiki = record(dossier.source.showWiki);
+      var lanes = array(wiki.lanes).map(record);
+      var experience = record(wiki.experience);
+      var sourceBrief = isSourceBrief(dossier);
+      var links = [
+        { id: SECTION_IDS.player, label: "WATCH" },
+        {
+          id: "sourceDossierShowWikiSummary",
+          label: sourceBrief ? "SOURCE BRIEF" : "SHOW SUMMARY"
+        }
+      ];
+      if (!sourceBrief &&
+          showWikiExperienceReceipts(dossier, experience.routeReceiptKeys).length) {
+        links.push({ id: "sourceDossierShowWikiExperience", label: clean(experience.title) });
+      }
+      links = links.concat((sourceBrief ? [] : lanes).map(function (lane, index) {
+        return {
+          id: showWikiLaneId(lane, index),
+          label: clean(lane.label),
+          populated: showWikiLaneReceipts(dossier, lane).length > 0
+        };
+      }).filter(function (link) {
+        return link.label && link.populated;
+      })).concat([
+        {
+          id: SECTION_IDS.ask,
+          label: sourceBrief ? "ASK SOURCE FACTS" : "ASK THIS TAPE"
+        },
+        { id: SECTION_IDS.aftermath, label: "AFTERMATH PACK" },
+        { id: SECTION_IDS.inside, label: "FULL RECEIPT INDEX" }
+      ]);
+      return '<nav class="source-dossier-explore" aria-label="Explore this show">' +
+        '<span>EXPLORE THIS SHOW</span><div>' + links.map(function (link) {
+          return '<a href="#' + esc(link.id) + '">' + esc(link.label) + '</a>';
+        }).join("") + '</div></nav>';
+    }
+
+    function showWikiExperienceReceipts(dossier, keys) {
+      var seen = {};
+      return array(keys).map(function (key) {
+        return sourceReceiptByKey(dossier, clean(key));
+      }).filter(function (receipt) {
+        if (!receipt || seen[receipt.key]) return false;
+        seen[receipt.key] = true;
+        return true;
+      });
+    }
+
+    function showWikiExperienceMarkup(dossier) {
+      var source = dossier.source;
+      var experience = record(record(source.showWiki).experience);
+      if (!clean(experience.title)) return "";
+      var route = showWikiExperienceReceipts(dossier, experience.routeReceiptKeys);
+      var pulse = showWikiExperienceReceipts(dossier, experience.pulseReceiptKeys);
+      var experienceId = "sourceDossierShowWikiExperience";
+      if (!route.length) {
+        return '<section class="source-dossier-wiki-experience is-queued" id="' +
+          experienceId + '" data-show-wiki-experience="' + esc(clean(experience.id)) +
+          '"><header><span>' + esc(experience.label) + '</span><h4>' +
+          esc(experience.title) + '</h4></header><p>' + esc(experience.emptyState) +
+          '</p><small>0 INVENTED STOPS // PLAYER STILL AVAILABLE</small></section>';
+      }
+      pulse = pulse.slice().sort(function (left, right) {
+        return Number(left.at) - Number(right.at) || left.key.localeCompare(right.key);
+      });
+      var pulseRowLast = [];
+      var maximumPulseRow = 0;
+      var pulseMarkup = pulse.map(function (receipt, index) {
+        var position = Math.max(1, Math.min(99,
+          Number(receipt.at || 0) / Math.max(1, Number(source.duration || 1)) * 100));
+        var row = pulseRowLast.findIndex(function (lastPosition) {
+          return position - lastPosition >= 12;
+        });
+        if (row < 0) {
+          row = pulseRowLast.length;
+          pulseRowLast.push(position);
+        } else {
+          pulseRowLast[row] = position;
+        }
+        maximumPulseRow = Math.max(maximumPulseRow, row);
+        var heat = Number.isFinite(Number(receipt.signalScore))
+          ? Math.max(18, Math.min(100, Number(receipt.signalScore))) : 34;
+        var heatPixels = Math.round(18 + heat * .72);
+        var label = clean(receipt.label) || "SOURCE RECEIPT";
+        var time = formatTime(receipt.at);
+        return '<button type="button" class="source-dossier-wiki-pulse-node" ' +
+          'style="--pulse-at:' + position.toFixed(2) + '%;--pulse-row:' + row +
+          ';--pulse-heat:' + heatPixels + 'px" data-source-dossier-action="play-receipt" data-receipt-key="' +
+          esc(receipt.key) + '" aria-label="Play ' + esc(label) + ' at ' + esc(time) +
+          '" title="' + esc(label + " // " + time) + '"><span>' +
+          esc(index + 1) + '</span></button>';
+      }).join("");
+      var routeMarkup = route.map(function (receipt, index) {
+        var time = formatTime(receipt.at);
+        var excerpt = receipt.publicExcerptAllowed && clean(receipt.excerpt)
+          ? '<p>“' + esc(receipt.excerpt) + '”</p>' :
+            '<p class="is-withheld">SOURCE-LOCKED NAVIGATION RECEIPT</p>';
+        return '<article class="source-dossier-wiki-route-stop"><header><span>CUT ' +
+          esc(String(index + 1).padStart(2, "0")) + '</span><time>' + esc(time) +
+          '</time></header><h5>' + esc(receipt.label) + '</h5>' + excerpt +
+          '<button type="button" data-source-dossier-action="play-receipt" data-receipt-key="' +
+          esc(receipt.key) + '" aria-label="Play cut ' + esc(index + 1) + ' at ' +
+          esc(time) + '">&#9654; PLAY THIS CUT</button></article>';
+      }).join("");
+      return '<section class="source-dossier-wiki-experience" id="' + experienceId +
+        '" data-show-wiki-experience="' + esc(clean(experience.id)) +
+        '" data-show-wiki-route-count="' + esc(route.length) + '"><header><div><span>' +
+        esc(experience.label) + '</span><h4>' + esc(experience.title) +
+        '</h4></div><b>THIS SHOW IN ' + esc(route.length) + ' SOURCE-LOCKED CUTS</b></header><p>' +
+        esc(experience.description) + '</p><div class="source-dossier-wiki-pulse" ' +
+        'aria-label="Playable source signal map"><div class="source-dossier-wiki-pulse-track" style="--pulse-extra-height:' +
+        esc(maximumPulseRow * 48) + 'px">' +
+        pulseMarkup + '</div><footer><span>00:00</span><b>THE NIGHT’S PULSE</b><span>' +
+        esc(formatTime(source.duration)) + '</span></footer></div><div class="source-dossier-wiki-route">' +
+        routeMarkup + '</div><footer class="source-dossier-wiki-route-actions"><button type="button" ' +
+        'data-source-dossier-action="play-receipt" data-receipt-key="' +
+        esc(route[0].key) + '">&#9654; START AT CUT 01</button><button type="button" ' +
+        'data-source-dossier-action="bag-experience">BAG ALL ' + esc(route.length) +
+        ' CUTS</button><small>SELECTION BASIS // ' +
+        esc(clean(experience.selectionBasis).toUpperCase()) +
+        ' // MACHINE-SURFACED, HUMAN REVIEW REQUIRED</small></footer></section>';
+    }
+
+    function showWikiBriefMarkup(dossier) {
+      var source = dossier.source;
+      var brief = record(record(source.showWiki).brief);
+      if (!isSourceBrief(dossier)) return "";
+      var facts = [
+        ["UPLOAD DATE", formatDate(source.date)],
+        ["RUNTIME", formatDuration(source.duration)],
+        ["CACHED VIEWS", formatNumber(source.views)],
+        ["SOURCE TYPE", titleCase(source.sourceType).toUpperCase()],
+        ["EVIDENCE DEPTH", coverageLabel(source.coverage)],
+        ["AVAILABILITY", titleCase(source.availability).toUpperCase()],
+        ["LIVE STATUS", titleCase(source.liveStatus).toUpperCase()],
+        ["SOURCE ID", source.id]
+      ];
+      return '<article class="source-dossier-wiki-brief" id="sourceDossierShowWikiSummary" ' +
+        'data-show-wiki-brief="' + esc(clean(brief.kind)) + '"><header><div>' +
+        '<span>SOURCE BRIEF // CONTENT NOT DISTILLED</span><h4>' +
+        esc(clean(source.displayTitle) || clean(source.title)) +
+        '</h4></div><b>' + esc(clean(brief.format)) + '</b></header>' +
+        '<p>Canonical upload metadata is available. Transcript-derived content summaries are sealed until source-local caption evidence is registered.</p>' +
+        '<div class="source-dossier-wiki-brief-facts">' + facts.map(function (fact) {
+          return '<span><small>' + esc(fact[0]) + '</small><b>' +
+            esc(fact[1] || "NOT REGISTERED") + '</b></span>';
+        }).join("") + '</div><footer><small>FORMAT BASIS // ' +
+        esc(clean(brief.formatBasis).toUpperCase()) +
+        ' // CANONICAL SOURCE METADATA ONLY</small><button type="button" ' +
+        'data-source-dossier-action="stage-intake">STAGE IN DROP ZONE &#8594;</button><a href="' +
+        esc(source.url) + '" target="_blank" rel="noopener">OPEN OFFICIAL UPLOAD &#8599;</a>' +
+        '</footer></article>';
+    }
+
+    function showWikiRecapMarkup(dossier) {
+      var source = dossier.source;
+      var recap = record(record(source.showWiki).recap);
+      var blocks = array(recap.blocks).map(record);
+      if (!clean(recap.overview)) {
+        return '<article class="source-dossier-wiki-summary" id="sourceDossierShowWikiSummary">' +
+          '<span>SHOW SUMMARY</span>' + (source.summary
+            ? '<p>' + esc(source.summary.text) + '</p><small>BASIS // ' +
+              esc(clean(source.summary.basis).toUpperCase()) + '</small>'
+            : '<b>NO SOURCE-BOUNDED SUMMARY IS REGISTERED.</b>') + '</article>';
+      }
+      return '<section class="source-dossier-wiki-recap" id="sourceDossierShowWikiSummary" ' +
+        'data-show-wiki-format="' + esc(token(recap.format)) + '"><header><div><span>EPISODE RECAP</span>' +
+        '<h4>THIS IS A ' + esc(recap.format) + '.</h4></div><small>FORMAT BASIS // ' +
+        esc(clean(recap.formatBasis).toUpperCase()) + '</small></header><p class="source-dossier-wiki-overview">' +
+        esc(recap.overview) + '</p><div class="source-dossier-wiki-recap-blocks">' +
+        blocks.map(function (block, index) {
+          var receipts = showWikiExperienceReceipts(dossier, block.receiptKeys);
+          return '<article><span>RECAP FILE ' + esc(String(index + 1).padStart(2, "0")) +
+            '</span><h5>' + esc(block.label) + '</h5><p>' + esc(block.body) +
+            '</p><div>' + receipts.map(function (receipt) {
+              var time = formatTime(receipt.at);
+              return '<button type="button" data-source-dossier-action="play-receipt" ' +
+                'data-receipt-key="' + esc(receipt.key) + '" aria-label="Play recap evidence at ' +
+                esc(time) + '">&#9654; ' + esc(time) + '</button>';
+            }).join("") + '</div><small>BASIS // ' +
+            esc(clean(block.basis).toUpperCase()) + '</small></article>';
+        }).join("") + '</div></section>';
+    }
+
+    function showWikiLaneMarkup(dossier, lane, index, seenReceipts) {
+      var receipts = showWikiLaneReceipts(dossier, lane);
+      var primary = [];
+      var crossLinks = [];
+      receipts.forEach(function (receipt) {
+        if (seenReceipts[receipt.key]) crossLinks.push(receipt);
+        else {
+          seenReceipts[receipt.key] = true;
+          primary.push(receipt);
+        }
+      });
+      var label = clean(lane.label);
+      var description = clean(lane.description);
+      var emptyState = clean(lane.emptyState);
+      var laneId = showWikiLaneId(lane, index);
+      return '<article class="source-dossier-wiki-lane has-receipts" id="' +
+        esc(laneId) + '" data-show-wiki-lane="' +
+        esc(clean(lane.id) || token(label)) + '" data-show-wiki-receipt-count="' +
+        esc(receipts.length) + '"><header><div><span>SHOW WIKI LANE ' +
+        esc(index + 1) + '</span><h4>' + esc(label) + '</h4></div><b>' +
+        esc(receipts.length) + ' PLAYABLE RECEIPT' + (receipts.length === 1 ? '' : 'S') +
+        '</b></header>' + (description ? '<p class="source-dossier-wiki-lane-description">' +
+          esc(description) + '</p>' : '') +
+        (primary.length ? '<div class="source-dossier-wiki-receipts">' +
+          primary.map(function (receipt) {
+            return receiptMarkup(receipt, "source-dossier-wiki-receipt");
+          }).join("") + '</div>' : '') +
+        (crossLinks.length ? '<div class="source-dossier-wiki-crosslinks"><span>ALREADY ON THE TABLE // QUICK JUMPS</span>' +
+          crossLinks.map(function (receipt) {
+            var time = formatTime(receipt.at);
+            return '<button type="button" data-source-dossier-action="play-receipt" data-receipt-key="' +
+              esc(receipt.key) + '"><b>' + esc(receipt.label) + '</b><small>&#9654; ' +
+              esc(time) + '</small></button>';
+          }).join("") + '</div>' : '') +
+        '<p class="source-dossier-wiki-evidence" role="note"><b>SOURCE-LOCKED EVIDENCE.</b> ' +
+        'Every jump resolves to an exact receipt in this upload. Heat is archive ranking metadata&mdash;not speaker attribution, creator approval, or an editorial verdict.</p>' +
+        (emptyState && !receipts.length ? '<p class="source-dossier-wiki-empty">' + esc(emptyState) + '</p>' : '') +
+        '</article>';
+    }
+
+    function showWikiEmptyLanesMarkup(lanes) {
+      if (!lanes.length) return "";
+      return '<section class="source-dossier-wiki-empty-lanes" aria-label="Show Wiki categories without registered receipts">' +
+        '<header><span>CHECKED // NOT FOUND ON THIS TAPE</span><b>' + esc(lanes.length) +
+        ' EMPTY CATEGOR' + (lanes.length === 1 ? 'Y' : 'IES') + '</b></header><div>' +
+        lanes.map(function (entry) {
+          var lane = entry.lane;
+          return '<article id="' + esc(showWikiLaneId(lane, entry.index)) + '" data-show-wiki-lane="' +
+            esc(clean(lane.id) || token(lane.label)) + '" data-show-wiki-receipt-count="0"><b>' +
+            esc(lane.label) + '</b><small>' + esc(lane.emptyState) + '</small></article>';
+        }).join("") + '</div></section>';
+    }
+
+    function showWikiMarkup(dossier) {
+      var source = dossier.source;
+      var wiki = record(source.showWiki);
+      var lanes = array(wiki.lanes).map(record);
+      var receiptCount = array(source.receipts).length;
+      var sourceBrief = isSourceBrief(dossier);
+      var status = clean(wiki.status) ||
+        (receiptCount ? "SOURCE DISTILLED" : "QUEUED // NOT DISTILLED");
+      var label = clean(wiki.label) || "SHOW WIKI";
+      var description = clean(wiki.description);
+      var queued = token(status).indexOf("queued") === 0;
+      var experience = record(wiki.experience);
+      var hasMappedContent = Boolean(record(wiki.recap).overview || source.summary ||
+        array(experience.routeReceiptKeys).length || lanes.some(function (lane) {
+          return showWikiLaneReceipts(dossier, lane).length;
+        }));
+      var populated = [];
+      var empty = [];
+      lanes.forEach(function (lane, index) {
+        var entry = { lane: lane, index: index };
+        if (showWikiLaneReceipts(dossier, lane).length) populated.push(entry);
+        else empty.push(entry);
+      });
+      var seenReceipts = {};
+      var headerTitle = sourceBrief ? "SOURCE BRIEF // CONTENT NOT DISTILLED" :
+        status === "topic-nav-only" ? "THE SHOW, MAPPED TO SAFE TOPIC DOORS." :
+          hasMappedContent ? "THE SHOW, DISTILLED TO PLAYABLE PROOF." :
+            "THIS SHOW IS QUEUED FOR DISTILLATION.";
+      var headerDescription = sourceBrief ?
+        "Canonical source identity is ready. Transcript-derived episode claims remain sealed until this upload survives source-local distillation." :
+        description;
+      var statusLabel = sourceBrief ?
+        "SOURCE BRIEF // CONTENT NOT DISTILLED" : status.toUpperCase();
+      var body = showWikiLocalNavMarkup(dossier);
+      if (sourceBrief) {
+        body += showWikiBriefMarkup(dossier) +
+          '<aside class="source-dossier-wiki-brief-seal" role="note"><b>' +
+          'TRANSCRIPT-DERIVED CONTENT LANES SEALED.</b><span>No recap, best moments, ' +
+          'topic claims, quotes, character bits, or comedy verdicts are generated from metadata alone.</span></aside>';
+      } else {
+        body += showWikiRecapMarkup(dossier) + showWikiExperienceMarkup(dossier) +
+          (populated.length ? '<div class="source-dossier-wiki-lanes">' +
+            populated.map(function (entry) {
+              return showWikiLaneMarkup(dossier, entry.lane, entry.index, seenReceipts);
+            }).join("") + '</div>' : '') +
+          (queued
+            ? '<p class="source-dossier-wiki-queued-note"><b>6 SIGNATURE LANES CHECKED.</b> None receives a fake card until this upload has source-local caption evidence.</p>'
+            : showWikiEmptyLanesMarkup(empty));
+      }
+      return '<section class="source-dossier-show-wiki"' + sectionAttributes("wiki") +
+        ' aria-labelledby="sourceDossierShowWikiTitle" data-source-show-wiki-status="' +
+        esc(token(status)) + '"><header><div><span>' + esc(label) +
+        '</span><h3 id="sourceDossierShowWikiTitle">' + esc(headerTitle) +
+        '</h3></div>' + (headerDescription ? '<p>' + esc(headerDescription) + '</p>' : '') +
+        '</header><div class="source-dossier-wiki-status" role="status"><span>' +
+        'DISTILLATION STATUS</span><b>' + esc(statusLabel) +
+        '</b><small>' + esc(receiptCount) + ' SOURCE-LOCKED RECEIPT' +
+        (receiptCount === 1 ? '' : 'S') + '</small></div>' + body + '</section>';
+    }
     function refusalMarkup(dossier) {
       var proof = dossier.proof;
       var sourceOnly = proof.sourceOnly;
@@ -437,7 +975,7 @@
         '<span>' + esc(sourceOnly ? "METADATA-ONLY REFUSAL" : "CAPTION-EVIDENCE REFUSAL") + '</span>' +
         '<h4>THE ARCHIVE REFUSES TO INVENT THE MISSING TAPE.</h4><p>' +
         esc(proof.evidenceBoundary) + '</p><ul><li>0 transcript-derived receipts</li>' +
-        '<li>0 content summaries</li><li>0 speaker claims</li><li>0 automatic promotions</li></ul></div>';
+        '<li>0 transcript-derived content summaries</li><li>0 speaker claims</li><li>0 automatic promotions</li></ul></div>';
     }
 
     function queryFact(label, value) {
@@ -445,11 +983,24 @@
         '</b>' + esc(label) + '</span>';
     }
 
-    function queryMetadataMarkup(result) {
+    function queryMetadataMarkup(result, dossier) {
       var value = record(result.value);
       var details = "";
-      if (result.field === "source-inventory") {
-        details = queryFact("RECEIPTS", formatNumber(record(value.receipts).total)) +
+      var heading = "REGISTERED SOURCE FACTS";
+      if (result.field === "registered-source-brief") {
+        var source = dossier.source;
+        var brief = record(record(source.showWiki).brief);
+        heading = "SOURCE BRIEF // CONTENT NOT DISTILLED";
+        details = queryFact("FORMAT", clean(brief.format)) +
+          queryFact("UPLOAD", formatDate(source.date)) +
+          queryFact("RUNTIME", formatDuration(source.duration)) +
+          queryFact("CACHED VIEWS", formatNumber(source.views)) +
+          queryFact("EVIDENCE", coverageLabel(source.coverage)) +
+          '<p>Canonical upload metadata is available. Transcript-derived content summaries and moment claims remain sealed.</p>';
+      } else if (result.field === "source-inventory") {
+        details = queryFact("SOURCE BRIEF", value.sourceBriefAvailable ? "AVAILABLE" :
+          (value.summaryAvailable ? "NOT NEEDED" : "NOT REGISTERED")) +
+          queryFact("RECEIPTS", formatNumber(record(value.receipts).total)) +
           queryFact("ENTITIES", formatNumber(value.entities)) +
           queryFact("ARTIFACTS", formatNumber(record(value.artifacts).total)) +
           queryFact("CONNECTIONS", formatNumber(record(value.connections).total));
@@ -459,6 +1010,7 @@
           queryFact("CACHED VIEWS", formatNumber(value.views)) +
           queryFact("EVIDENCE", coverageLabel(value.coverage));
       } else if (result.field === "registered-summary") {
+        heading = "EPISODE RECAP";
         details = '<p>' + esc(clean(value.text) || "No registered summary text survived.") +
           '</p>';
       } else {
@@ -469,12 +1021,12 @@
       return '<article class="source-dossier-query-result is-metadata" ' +
         'data-source-query-result-type="metadata"><span>' +
         esc(clean(result.field).toUpperCase() || "SOURCE METADATA") +
-        '</span><h5>REGISTERED SOURCE FACTS</h5><div class="source-dossier-query-facts">' +
+        '</span><h5>' + esc(heading) +
+        '</h5><div class="source-dossier-query-facts">' +
         details + '</div><small>BASIS // ' +
         esc(clean(result.basis).toUpperCase() || "REGISTERED DOSSIER") +
         '</small></article>';
     }
-
     function queryEntityMarkup(result) {
       return '<article class="source-dossier-query-result is-entity" ' +
         'data-source-query-result-type="entity"><span>' +
@@ -514,14 +1066,43 @@
         '</article>';
     }
 
-    function queryResultMarkup(result) {
+    function queryResultMarkup(result, dossier) {
       if (result.type === "receipt") {
         return receiptMarkup(result.receipt, "source-dossier-query-receipt");
       }
-      if (result.type === "metadata") return queryMetadataMarkup(result);
+      if (result.type === "metadata") return queryMetadataMarkup(result, dossier);
       if (result.type === "entity") return queryEntityMarkup(result);
       if (result.type === "artifact") return queryArtifactMarkup(result);
       return queryConnectionMarkup(result);
+    }
+
+    function queryEpisodeGuideMarkup(dossier, episode) {
+      if (!episode) return "";
+      var wiki = record(dossier.source.showWiki);
+      var targetId = "sourceDossierShowWikiSummary";
+      var action = "OPEN FULL EPISODE RECAP";
+      if (episode.kind === "brief") {
+        action = "OPEN CANONICAL SOURCE BRIEF";
+      } else if (episode.kind === "experience") {
+        targetId = "sourceDossierShowWikiExperience";
+        action = "OPEN ALL REGISTERED CUTS";
+      } else if (episode.kind === "lane") {
+        var lanes = array(wiki.lanes).map(record);
+        var laneIndex = -1;
+        lanes.some(function (lane, index) {
+          if (clean(lane.id) !== episode.id) return false;
+          laneIndex = index;
+          return true;
+        });
+        if (laneIndex >= 0) targetId = showWikiLaneId(lanes[laneIndex], laneIndex);
+        action = "OPEN FULL " + episode.label;
+      }
+      return '<aside class="source-dossier-query-episode-guide" data-source-query-episode-kind="' +
+        esc(episode.kind) + '"><div><span>SHOW WIKI ANSWER</span><b>' +
+        esc(episode.label) + '</b><small>' + esc(episode.totalReceipts) +
+        ' REGISTERED // ' + esc(episode.matchedReceipts) + ' MATCHED // ' +
+        esc(episode.shownReceipts) + ' SHOWN</small></div><a href="#' +
+        esc(targetId) + '">' + esc(action) + ' &#8595;</a></aside>';
     }
 
     function queryAnswerMarkup(dossier) {
@@ -565,8 +1146,9 @@
         '</h4></div><b>LOCKED TO ' + esc(dossier.source.id) + '</b></header>' +
         '<p class="source-dossier-query-question">&ldquo;' + esc(state.query) +
         '&rdquo;</p>' +
+        queryEpisodeGuideMarkup(dossier, answer.episode) +
         (results.length ? '<div class="source-dossier-query-results">' +
-          results.map(queryResultMarkup).join("") + '</div>' :
+          results.map(function (result) { return queryResultMarkup(result, dossier); }).join("") + '</div>' :
           '<div class="source-dossier-query-refusal"><b>0 SUPPORTED SOURCE RESULTS</b><span>' +
           esc(dossier.proof.evidenceBoundary) + '</span></div>') +
         (answer.limitations.length ? '<ul class="source-dossier-query-limitations">' +
@@ -580,7 +1162,22 @@
 
     function askMarkup(dossier) {
       var source = dossier.source;
-      var prompts = [
+      var sourceBrief = isSourceBrief(dossier);
+      var distilled = clean(record(source.showWiki).status) === "distilled";
+      var prompts = sourceBrief ? [
+        "Show me the registered source brief.",
+        "When was this uploaded?",
+        "How long is this tape?",
+        "How many views?",
+        "What is actually indexed in this tape?"
+      ] : distilled ? [
+        "Summarize this show.",
+        "What did they talk about?",
+        "What were the funniest moments?",
+        "What did they hate?",
+        "Show me WWAM Up In Ya.",
+        "Give me the five-stop watch path."
+      ] : [
         "What is actually indexed in this tape?",
         "Show the registered moments in this tape.",
         "Which recurring characters are indexed here?",
@@ -610,9 +1207,7 @@
     function insideMarkup(dossier) {
       var source = dossier.source;
       var receipts = array(source.receipts);
-      var visibleReceipts = visibleItems(
-        receipts, "inside", COMPACT_LIMITS.receipts
-      );
+      var visibleReceipts = sectionExpanded("inside") ? receipts : [];
       var summary = source.summary;
       return '<section class="source-dossier-inside"' + sectionAttributes("inside") +
         ' aria-labelledby="sourceDossierInsideTitle">' +
@@ -781,6 +1376,255 @@
         'EXPORT BOUNDED DOSSIER</button></div></section>';
     }
 
+    function aftermathDecisionFor(opportunityId) {
+      return state.aftermathReview ? array(state.aftermathReview.decisions).filter(function (decision) {
+        return decision.opportunityId === opportunityId;
+      })[0] || null : null;
+    }
+
+    function aftermathReadinessLabel(value) {
+      return {
+        "clip-ready": "CLIP READY / CREATOR REVIEW NEXT",
+        "fast-review": "FAST REVIEW",
+        "archive-expansion": "ARCHIVE-CONNECTED",
+        research: "RESEARCH QUEUE",
+        quarantine: "RISK QUARANTINE"
+      }[value] || titleCase(value).toUpperCase();
+    }
+
+    function aftermathFiltered(pack) {
+      return array(pack.opportunities).filter(function (item) {
+        if (state.aftermathFilter === "cuts") {
+          return item.readiness === "clip-ready" || item.readiness === "fast-review";
+        }
+        if (state.aftermathFilter === "connected") return item.readiness === "archive-expansion";
+        if (state.aftermathFilter === "research") return item.readiness === "research";
+        if (state.aftermathFilter === "quarantine") return item.readiness === "quarantine";
+        return true;
+      });
+    }
+
+    function aftermathProofButton(dossier, point, fallbackLabel) {
+      var receipt = point && sourceReceiptByKey(dossier, point.receiptId);
+      if (!receipt) return '<span>NO PLAYABLE RECEIPT REGISTERED</span>';
+      return '<button type="button" data-source-dossier-action="play-receipt" data-receipt-key="' +
+        esc(receipt.key) + '">&#9654; ' + esc(fallbackLabel) + ' ' + esc(formatTime(receipt.at)) + '</button>';
+    }
+
+    function aftermathDeltaMarkup(dossier, pack) {
+      var delta = record(pack.showDelta);
+      if (!clean(delta.summary)) return "";
+      var graph = record(delta.graphDelta);
+      var funniestReceipt = delta.funniest && sourceReceiptByKey(dossier, delta.funniest.receiptId);
+      var strongestReceipt = delta.strongestTopic && sourceReceiptByKey(dossier, delta.strongestTopic.receiptId);
+      return '<section class="source-aftermath-delta"><header><span>WHAT THIS SHOW ADDED TO MEMORY</span><p>' +
+        esc(delta.inference) + '</p></header><p class="source-aftermath-summary">' +
+        esc(delta.summary) + '</p><div class="source-aftermath-delta-grid"><article><b>' +
+        esc(number(graph.timestampedReceiptsAdded == null ?
+          pack.metrics.sourceReceipts : graph.timestampedReceiptsAdded)) +
+        '</b><span>TIMESTAMPED RECEIPTS ADDED</span></article><article><b>' +
+        esc(number(graph.topicNodesAdded)) + '</b><span>TOPICS NEW VS PREVIOUS INDEXED LIVE</span></article>' +
+        '<article><b>' + esc(number(delta.peakChemistry)) + '</b><span>CAPTION-DERIVED CHEMISTRY PEAK</span></article></div>' +
+        (array(delta.newSincePreviousIndexedStream).length ?
+          '<div class="source-aftermath-topic-chips"><span>NEW VS PREVIOUS INDEXED LIVE</span>' +
+          array(delta.newSincePreviousIndexedStream).map(function (topic) {
+            return '<b>' + esc(topic) + '</b>';
+          }).join("") + '</div>' : '') +
+        '<div class="source-aftermath-proof-jumps"><article><span>STRONGEST TOPIC COORDINATE</span><b>' +
+        esc(strongestReceipt ? strongestReceipt.label : "NOT REGISTERED") + '</b>' +
+        aftermathProofButton(dossier, delta.strongestTopic, "PLAY") + '</article><article><span>HIGHEST COMEDY / CHEMISTRY COORDINATE</span><b>' +
+        esc(funniestReceipt ? funniestReceipt.label : "NOT REGISTERED") + '</b>' +
+        aftermathProofButton(dossier, delta.funniest, "PLAY") + '</article></div></section>';
+    }
+
+    function aftermathQueueMarkup(pack, visible) {
+      return '<div class="source-aftermath-queue" aria-label="Source-locked creator opportunities">' +
+        visible.map(function (item) {
+          var decision = aftermathDecisionFor(item.id);
+          var selected = item.id === state.aftermathSelected;
+          return '<button type="button" class="' + (selected ? 'is-selected' : '') +
+            '" data-source-dossier-action="aftermath-select" data-opportunity-id="' + esc(item.id) +
+            '" aria-pressed="' + (selected ? 'true' : 'false') + '"><span>' +
+            esc(aftermathReadinessLabel(item.readiness)) + '</span><b>' + esc(item.title) +
+            '</b><small>' + esc(item.kind.toUpperCase().replace(/-/g, " ")) + ' // ' +
+            esc(item.coordinates[0] ? item.coordinates[0].timecode : "NO LOCAL TIME") +
+            (item.multiSource ? ' // MULTI-SOURCE' : ' // SOURCE-LOCAL') + '</small><i class="decision-' +
+            esc(decision ? decision.status : "unreviewed") + '">' +
+            esc(decision ? decision.decisionMeaning : "UNREVIEWED") + '</i></button>';
+        }).join("") + '</div>';
+    }
+
+    function aftermathCoordinatesMarkup(item) {
+      return '<div class="source-aftermath-coordinates"><span>EXACT LOCAL RECEIPT' +
+        (item.coordinates.length === 1 ? '' : 'S') + ' // PROPOSED WINDOW' +
+        (item.coordinates.length === 1 ? '' : 'S') + '</span>' +
+        item.coordinates.map(function (coordinate) {
+          return '<article><div><b>' + esc(coordinate.timecode) + '</b><span>' +
+            esc(coordinate.proposedWindow.inTimecode) + ' &#8594; ' +
+            esc(coordinate.proposedWindow.outTimecode) + ' // ' +
+            esc(coordinate.proposedWindow.seconds) + ' SEC</span></div><blockquote>&ldquo;' +
+            esc(coordinate.publicExcerpt) + '&rdquo;<small>' + esc(coordinate.excerptLabel) +
+            ' // SPEAKER ' + esc(coordinate.speakerStatus.toUpperCase()) + '</small></blockquote>' +
+            '<button type="button" data-source-dossier-action="play-receipt" data-receipt-key="' +
+            esc(coordinate.receiptKey) + '">&#9654; PLAY CONTEXT</button></article>';
+        }).join("") + '</div>';
+    }
+
+    function aftermathDetailMarkup(pack, item) {
+      if (!item) {
+        return '<section class="source-aftermath-detail is-empty"><span>NO OPPORTUNITY IN THIS FILTER</span>' +
+          '<h4>THE SOURCE STAYS EMPTY INSTEAD OF MAKING ONE UP.</h4></section>';
+      }
+      var decision = aftermathDecisionFor(item.id);
+      var scoreComponents = array(record(item.score).components).slice(0, 6);
+      var note = decision ? clean(decision.note) : "";
+      var titles = array(record(item.editorial).titleOptions);
+      var hooks = array(record(item.editorial).hookOptions);
+      return '<section class="source-aftermath-detail" aria-live="polite"><header><div><span>' +
+        esc(aftermathReadinessLabel(item.readiness)) + ' // PRIORITY ' +
+        esc(number(record(item.score).overall)) + '</span><h4>' + esc(item.title) +
+        '</h4></div><div class="source-aftermath-badges"><b class="risk-' +
+        esc(clean(record(item.risk).label).toLowerCase()) + '">' +
+        esc(clean(record(item.risk).label).toUpperCase()) + ' RISK</b><b>' +
+        esc(clean(record(item.evidence).label).toUpperCase()) + ' EVIDENCE</b><b>' +
+        (item.multiSource ? 'MULTI-SOURCE' : 'SOURCE-LOCAL') + '</b></div></header>' +
+        aftermathCoordinatesMarkup(item) +
+        '<div class="source-aftermath-copy"><span>' + esc(item.editorial.label) +
+        '</span><div><article><small>TITLE OPTIONS</small>' +
+        (titles.length ? '<ol>' + titles.map(function (value) { return '<li>' + esc(value) + '</li>'; }).join("") + '</ol>' :
+          '<p>NO TITLE COPY REGISTERED.</p>') + '</article><article><small>HOOK OPTIONS</small>' +
+        (hooks.length ? '<ol>' + hooks.map(function (value) { return '<li>' + esc(value) + '</li>'; }).join("") + '</ol>' :
+          '<p>NO HOOK COPY REGISTERED.</p>') + '</article></div></div>' +
+        '<div class="source-aftermath-why"><article><span>WHY IT SURFACED</span><p>' +
+        esc(item.rationale || record(item.score).basis) + '</p><small>' +
+        esc(record(item.score).basis) + '</small></article><article><span>COMPONENT SCORE</span>' +
+        (scoreComponents.length ? '<dl>' + scoreComponents.map(function (component) {
+          return '<div><dt>' + esc(titleCase(component.id).toUpperCase()) + '</dt><dd>' +
+            esc(component.value) + '</dd></div>';
+        }).join("") + '</dl>' : '<p>PACKAGE SCORE ONLY.</p>') + '</article></div>' +
+        (item.relatedSources.length ? '<div class="source-aftermath-related"><span>RELATED SOURCES // NOT LOCAL PROOF</span>' +
+          item.relatedSources.slice(0, 4).map(function (related) {
+            return '<button type="button" data-source-dossier-action="open-source" data-source-id="' +
+              esc(related.sourceId) + '" data-source-at="' + esc(related.at) + '">' + esc(related.sourceId) + ' @ ' +
+              esc(related.timecode) + ' &#8599;</button>';
+          }).join("") + '</div>' : '') +
+        '<fieldset class="source-aftermath-decision"><legend>LOCAL EDITORIAL ROUTE // NOT CREATOR APPROVAL</legend>' +
+        '<label for="sourceDossierAftermathNote">ROUTING NOTE <span>OPTIONAL // 240 CHARACTERS</span></label>' +
+        '<textarea id="sourceDossierAftermathNote" maxlength="240" rows="3" ' +
+        'aria-describedby="sourceDossierAftermathDecisionBoundary">' + esc(note) + '</textarea>' +
+        '<div>' + [
+          ["keep", "KEEP FOR CREATOR REVIEW"],
+          ["hold", "HOLD FOR MORE CONTEXT"],
+          ["reject", "REJECT FROM THIS PACK"]
+        ].map(function (choice) {
+          var on = decision && decision.status === choice[0];
+          return '<button type="button" class="decision-' + choice[0] + (on ? ' is-on' : '') +
+            '" data-source-dossier-action="aftermath-decision" data-opportunity-id="' +
+            esc(item.id) + '" data-decision="' + choice[0] + '" aria-pressed="' +
+            (on ? 'true' : 'false') + '">' + choice[1] + '</button>';
+        }).join("") + '</div><p id="sourceDossierAftermathDecisionBoundary">Keep means route to a human creator or editor. It does not publish, rights-clear, verify a speaker, or approve the clip.</p></fieldset></section>';
+    }
+
+    function aftermathSidecarsMarkup(pack) {
+      var research = array(pack.research);
+      var boards = array(pack.storyboards);
+      return '<div class="source-aftermath-sidecars"><section><header><span>ARCHIVE RESEARCH THREADS</span><b>' +
+        esc(research.length) + ' REFERENCE-ONLY</b></header>' +
+        (research.length ? research.map(function (item) {
+          var receipt = item.receipts[0];
+          return '<article><div><b>' + esc(item.title) + '</b><small>' +
+            esc(item.boundary) + '</small></div>' + (receipt ?
+              '<button type="button" data-source-dossier-action="play-receipt" data-receipt-key="' +
+              esc(receipt.receiptKey) + '">&#9654; ' + esc(receipt.timecode) + '</button>' : '') + '</article>';
+        }).join("") : '<p>NO SOURCE-LOCAL RESEARCH THREADS REGISTERED.</p>') +
+        '</section><section><header><span>COLD-OPEN STORYBOARDS</span><b>' + esc(boards.length) +
+        ' GENERATED / SEPARATE COUNT</b></header>' +
+        (boards.length ? boards.map(function (board) {
+          var slot = board.localSlots[0];
+          return '<article><div><b>' + esc(board.title) + '</b><small>' +
+            esc(board.formatSeconds) + ' SEC // ' + esc(board.mode) + ' // ' +
+            esc(board.registrationBoundary) + '</small></div>' + (slot ?
+              '<button type="button" data-source-dossier-action="play-receipt" data-receipt-key="' +
+              esc(slot.receiptKey) + '">&#9654; LOCAL SLOT ' + esc(slot.timecode) + '</button>' : '') + '</article>';
+        }).join("") : '<p>NO SOURCE-LINKED STORYBOARDS REGISTERED.</p>') + '</section></div>';
+    }
+
+    function aftermathMarkup(dossier) {
+      var pack = state.aftermathPack;
+      if (!pack) {
+        return '<section class="source-dossier-aftermath is-held"' + sectionAttributes("aftermath") +
+          ' aria-labelledby="sourceDossierAftermathTitle"><header><span>THE AFTERMATH PACK</span>' +
+          '<h3 id="sourceDossierAftermathTitle">THE CREATOR HANDOFF IS HELD.</h3></header><p>' +
+          esc(state.aftermathError || "The exact-source creator inventory is unavailable for this page.") +
+          '</p><small>THE SHOW WIKI REMAINS USABLE. NO OPPORTUNITY WAS INVENTED.</small></section>';
+      }
+      var metrics = pack.metrics;
+      var visible = aftermathFiltered(pack);
+      if (!visible.some(function (item) { return item.id === state.aftermathSelected; })) {
+        state.aftermathSelected = visible.length ? visible[0].id : "";
+      }
+      var selected = array(pack.opportunities).filter(function (item) {
+        return item.id === state.aftermathSelected;
+      })[0] || null;
+      var counts = state.aftermathReview ? state.aftermathReview.counts : {
+        keep: 0, hold: 0, reject: 0, unreviewed: metrics.opportunities
+      };
+      var handoffReady = number(metrics.opportunities) > 0 && number(counts.unreviewed) === 0;
+      var inventoryComposition = [
+        [metrics.shorts, "SHORTS"],
+        [metrics.supercutMemberships, "SUPERCUT MEMBERSHIPS"],
+        [metrics.resurfacingPairs, "THEN/NOW PAIRS"]
+      ].filter(function (item) { return number(item[0]) > 0; }).map(function (item) {
+        return number(item[0]) + " " + item[1];
+      }).join(" + ") || "NONE REGISTERED FOR THIS SOURCE";
+      var routingHeadline = !number(metrics.opportunities) ? "NO RECEIPT-BACKED HANDOFF YET" :
+        handoffReady ? "CREATOR HANDOFF READY FOR HUMAN REVIEW" :
+          "DRAFT EXPORT WILL DISCLOSE UNREVIEWED WORK";
+      var workflowShowcase = number(metrics.opportunities) > 0 ?
+        '<div class="source-aftermath-workflow"><div><span>SOURCE-LOCKED CREATOR WORKFLOW</span><b>THIS SHOW, READY FOR REVIEW</b><p>Playable candidates, a local review ledger, and a bounded editor handoff keep every proposed use attached to this tape. No media edit, rights clearance, publishing authority, or performance claim is included.</p></div><button type="button" data-source-dossier-action="open-clip-lab" data-clip-mode="shorts">OPEN THIS SOURCE IN CLIP LAB &#8594;</button></div>' : "";
+      var aftermathAlert = state.aftermathError ?
+        '<p class="source-aftermath-error" role="alert"><b>AFTERMATH ACTION HELD.</b> ' +
+          esc(state.aftermathError) + '</p>' : "";
+      var actionFooter = number(metrics.opportunities) > 0 ?
+        '<footer class="source-aftermath-actions"><p>Exports contain coordinates, bounded excerpts, proposed copy, risks, review state, and proof fingerprints. They contain no media or creator approval.</p><div><button type="button" data-source-dossier-action="aftermath-copy">COPY EDITOR BRIEF</button><button type="button" data-source-dossier-action="aftermath-export">DOWNLOAD AFTERMATH PACK</button></div></footer>' :
+        '<footer class="source-aftermath-actions"><p>This eligibility receipt contains the exact source binding, zero-opportunity status, proof fingerprints, and explicit omissions. It invents no edit coordinates.</p><div><button type="button" data-source-dossier-action="aftermath-copy">COPY ELIGIBILITY RECEIPT</button><button type="button" data-source-dossier-action="aftermath-export">DOWNLOAD ELIGIBILITY RECEIPT</button></div></footer>';
+      return '<section class="source-dossier-aftermath"' + sectionAttributes("aftermath") +
+        ' aria-labelledby="sourceDossierAftermathTitle"><header class="source-aftermath-head"><div><span>THE AFTERMATH PACK // THIS UPLOAD CLOCKED IN FOR WORK</span>' +
+        '<h3 id="sourceDossierAftermathTitle">WHAT THIS SHOW ADDED.<br>WHAT IT CAN BECOME NEXT.</h3><p>' +
+        'One exact tape becomes a source-locked review desk. Every proposed cut stays attached to its receipt, window, risk, evidence, and unfinished human checks.</p></div>' +
+        '<aside><b>' + esc(pack.eligibility.status) + '</b><span>PACK ' + esc(pack.fingerprint) +
+        '</span><span>' + (!number(metrics.opportunities) ? '0 RECEIPT-BACKED OPPORTUNITIES' :
+          handoffReady ? 'LOCAL ROUTING COMPLETE' : esc(counts.unreviewed) + ' UNREVIEWED') +
+        '</span></aside></header>' + aftermathAlert + aftermathDeltaMarkup(dossier, pack) +
+        '<div class="source-aftermath-inventory"><article><b>' + esc(metrics.opportunities) +
+        '</b><span>REGISTERED REVIEW CANDIDATES</span><small>' + esc(inventoryComposition) + '</small></article><article><b>' +
+        esc(metrics.clipReady + metrics.fastReview) + '</b><span>CURATED CUTS IN THE FAST LANE</span><small>STILL REQUIRE CONTEXT, SPEAKER, RIGHTS, AND FINAL-EDIT REVIEW</small></article><article><b>' +
+        esc(metrics.referenceThreads) + '</b><span>REFERENCE-ONLY LORE THREADS</span><small>NOT COUNTED AS CLIP-READY INVENTORY</small></article><article><b>' +
+        esc(metrics.coldOpenStoryboards) + '</b><span>SOURCE-LINKED COLD OPENS</span><small>GENERATED STORYBOARDS // SEPARATE FROM REGISTERED ARTIFACTS</small></article></div>' +
+        workflowShowcase +
+        '<div class="source-aftermath-progress" role="status" aria-live="polite">' + [
+          [counts.keep, "KEEP"], [counts.hold, "HOLD"], [counts.reject, "REJECT"],
+          [counts.unreviewed, "UNREVIEWED"]
+        ].map(function (value) {
+          return '<span><b>' + esc(value[0]) + '</b>' + value[1] + '</span>';
+        }).join("") + '<strong>' + esc(routingHeadline) + '</strong></div>' +
+        (metrics.opportunities ? '<nav class="source-aftermath-filters" aria-label="Filter source opportunities">' + [
+          ["all", "ALL " + metrics.opportunities],
+          ["cuts", "CUTS " + (metrics.clipReady + metrics.fastReview)],
+          ["connected", "CONNECTED " + metrics.archiveExpansion],
+          ["research", "RESEARCH " + metrics.researchQueue],
+          ["quarantine", "QUARANTINE " + metrics.quarantined]
+        ].map(function (filter) {
+          var on = state.aftermathFilter === filter[0];
+          return '<button type="button" class="' + (on ? 'is-on' : '') +
+            '" data-source-dossier-action="aftermath-filter" data-filter="' + filter[0] +
+            '" aria-pressed="' + (on ? 'true' : 'false') + '">' + filter[1] + '</button>';
+        }).join("") + '</nav><div class="source-aftermath-workbench">' +
+          aftermathQueueMarkup(pack, visible) + aftermathDetailMarkup(pack, selected) + '</div>' :
+          '<div class="source-aftermath-zero"><b>NO RECEIPT-BACKED CREATOR OPPORTUNITIES YET.</b><p>Metadata and title text are not being converted into fake clips.</p></div>') +
+        aftermathSidecarsMarkup(pack) + actionFooter + '</section>';
+    }
+
     function chronologyButton(item, direction) {
       if (!item) {
         return '<article class="is-empty"><span>' + esc(direction.toUpperCase()) +
@@ -826,22 +1670,23 @@
         'aria-describedby="sourceDossierBoundary"><header class="source-dossier-hero">' +
         '<img src="' + esc(source.thumbnail) + '" alt="' +
         esc((source.displayTitle || source.title) + ' source thumbnail') + '"><div class="source-dossier-hero-shade"></div>' +
-        '<div class="source-dossier-hero-copy"><span>CANONICAL SOURCE DOSSIER // ' +
+        '<div class="source-dossier-hero-copy"><span>SHOW WIKI // CANONICAL SOURCE // ' +
         esc(coverageLabel(source.coverage)) + '</span><h2 id="sourceDossierTitle" tabindex="-1">' +
         esc(source.displayTitle || source.title) + '</h2><p>' + esc(formatDate(source.date)) +
         ' // ' + esc(formatDuration(source.duration)) + ' // ' +
         esc(formatNumber(source.views)) + ' CACHED VIEWS</p><div>' +
         '<button type="button" data-source-dossier-action="play-source">&#9654; PLAY SOURCE</button>' +
-        '<button type="button" data-source-dossier-action="copy-link">COPY DOSSIER LINK</button>' +
+        '<button type="button" data-source-dossier-action="copy-link">COPY SHOW WIKI LINK</button>' +
         '<a href="' + esc(source.url) + '" target="_blank" rel="noopener">OFFICIAL YOUTUBE &#8599;</a>' +
-        '</div></div></header>' + densityMarkup() + proofMarkup(dossier) +
-        askMarkup(dossier) + playerMarkup(dossier) + insideMarkup(dossier) +
+        '</div></div></header>' + densityMarkup() + exploreMarkup(dossier) +
+        playerMarkup(dossier) + showWikiMarkup(dossier) + askMarkup(dossier) +
+        proofMarkup(dossier) + insideMarkup(dossier) +
         footprintMarkup(dossier) + wakeMarkup(dossier) +
         '<nav class="source-dossier-chronology"' + sectionAttributes("chronology") +
         ' aria-label="Source chronology">' +
         chronologyButton(dossier.chronology.previous, "previous") +
         chronologyButton(dossier.chronology.next, "next") + '</nav>' +
-        workMarkup(dossier) + boundaryMarkup(dossier) + '</article>';
+        aftermathMarkup(dossier) + workMarkup(dossier) + boundaryMarkup(dossier) + '</article>';
     }
 
     function errorMarkup(error) {
@@ -878,8 +1723,47 @@
     }
 
     function renderCurrent() {
-      if (!state.destroyed && state.dossier) {
-        mount.innerHTML = renderMarkup(state.dossier);
+      if (state.destroyed || !state.dossier) return;
+      var queue = typeof mount.querySelector === "function" ?
+        mount.querySelector(".source-aftermath-queue") : null;
+      var queueScroll = queue ? { left: number(queue.scrollLeft), top: number(queue.scrollTop) } : null;
+      var active = input.document && input.document.activeElement;
+      var focusIdentity = null;
+      if (active && typeof active.getAttribute === "function" &&
+          typeof mount.contains === "function" && mount.contains(active)) {
+        focusIdentity = [
+          "data-source-dossier-action",
+          "data-opportunity-id",
+          "data-decision",
+          "data-filter",
+          "data-receipt-key",
+          "data-source-id"
+        ].reduce(function (identity, name) {
+          var value = active.getAttribute(name);
+          if (value != null) identity[name] = value;
+          return identity;
+        }, {});
+        if (!Object.keys(focusIdentity).length) focusIdentity = null;
+      }
+      mount.innerHTML = renderMarkup(state.dossier);
+      var nextQueue = typeof mount.querySelector === "function" ?
+        mount.querySelector(".source-aftermath-queue") : null;
+      if (nextQueue && queueScroll) {
+        nextQueue.scrollLeft = queueScroll.left;
+        nextQueue.scrollTop = queueScroll.top;
+      }
+      if (focusIdentity && typeof mount.querySelectorAll === "function") {
+        var candidates = Array.prototype.slice.call(
+          mount.querySelectorAll("[data-source-dossier-action]")
+        );
+        var focusTarget = candidates.filter(function (candidate) {
+          return Object.keys(focusIdentity).every(function (name) {
+            return candidate.getAttribute(name) === focusIdentity[name];
+          });
+        })[0];
+        if (focusTarget && typeof focusTarget.focus === "function") {
+          try { focusTarget.focus({ preventScroll: true }); } catch { focusTarget.focus(); }
+        }
       }
     }
 
@@ -999,6 +1883,9 @@
         query: state.query
       };
       if (action === "play-source") {
+        state.activeReceiptKey = "";
+        state.activeReceiptOrigin = "";
+        renderCurrent();
         callbacks.play(Object.assign(payload, {
           mode: "source",
           at: state.at,
@@ -1007,15 +1894,30 @@
         }));
       } else if (action === "play-receipt") {
         var playReceipt = receiptByKey(button.getAttribute("data-receipt-key"));
-        if (playReceipt) callbacks.play(Object.assign(payload, {
-          mode: "receipt",
-          at: playReceipt.at,
-          end: playReceipt.end,
-          receipt: playReceipt
-        }));
+        if (playReceipt) {
+          state.activeReceiptKey = playReceipt.key;
+          if (ownerSection && ownerSection !== "player") {
+            state.activeReceiptOrigin = ownerSection;
+          }
+          state.at = playReceipt.at;
+          state.hasAnchor = true;
+          renderCurrent();
+          callbacks.play(Object.assign(payload, {
+            mode: "receipt",
+            at: playReceipt.at,
+            end: playReceipt.end,
+            receipt: playReceipt
+          }));
+        }
       } else if (action === "bag-receipt") {
         var bagReceipt = receiptByKey(button.getAttribute("data-receipt-key"));
         if (bagReceipt) callbacks.bag(Object.assign(payload, { receipt: bagReceipt }));
+      } else if (action === "bag-experience") {
+        var experience = record(record(source.showWiki).experience);
+        showWikiExperienceReceipts(state.dossier, experience.routeReceiptKeys)
+          .forEach(function (receipt) {
+            callbacks.bag(Object.assign({}, payload, { receipt: receipt }));
+          });
       } else if (action === "copy-link") {
         callbacks.copy(Object.assign(payload, { at: state.at }));
       } else if (action === "download") {
@@ -1024,6 +1926,79 @@
         callbacks.download(Object.assign(payload, {
           manifest: manifest,
           filename: "source-dossier-" + source.id + ".json"
+        }));
+      } else if (action === "stage-intake") {
+        callbacks.stageIntake(payload);
+      } else if (action === "aftermath-select") {
+        var selectedOpportunityId = clean(button.getAttribute("data-opportunity-id"));
+        if (state.aftermathPack && array(state.aftermathPack.opportunities).some(function (item) {
+          return item.id === selectedOpportunityId;
+        })) {
+          state.aftermathSelected = selectedOpportunityId;
+          renderCurrent();
+        }
+      } else if (action === "aftermath-filter") {
+        var aftermathFilter = clean(button.getAttribute("data-filter"));
+        if (["all", "cuts", "connected", "research", "quarantine"].indexOf(aftermathFilter) >= 0) {
+          state.aftermathFilter = aftermathFilter;
+          renderCurrent();
+        }
+      } else if (action === "aftermath-decision") {
+        var decisionOpportunityId = clean(button.getAttribute("data-opportunity-id"));
+        var decisionStatus = clean(button.getAttribute("data-decision"));
+        var noteField = typeof mount.querySelector === "function" ?
+          mount.querySelector("#sourceDossierAftermathNote") : null;
+        var decisions = state.aftermathReview ? array(state.aftermathReview.decisions).filter(function (decision) {
+          return decision.opportunityId !== decisionOpportunityId;
+        }).map(function (decision) {
+          return { opportunityId: decision.opportunityId, status: decision.status, note: decision.note };
+        }) : [];
+        decisions.push({
+          opportunityId: decisionOpportunityId,
+          status: decisionStatus,
+          note: clean(noteField && noteField.value).slice(0, 240)
+        });
+        try {
+          state.aftermathReview = aftermathEngine.createReview(source.id, decisions);
+          state.aftermathError = "";
+          callbacks.aftermathDecision(Object.assign(payload, {
+            pack: state.aftermathPack,
+            review: state.aftermathReview,
+            opportunityId: decisionOpportunityId,
+            decision: decisionStatus
+          }));
+          renderCurrent();
+          var decisionButton = typeof mount.querySelector === "function" ?
+            mount.querySelector('[data-source-dossier-action="aftermath-decision"][data-decision="' +
+              decisionStatus + '"]') : null;
+          if (decisionButton && typeof decisionButton.focus === "function") decisionButton.focus();
+        } catch (decisionError) {
+          state.aftermathError = clean(decisionError && decisionError.message) ||
+            "The local routing decision failed its proof check.";
+          renderCurrent();
+        }
+      } else if (action === "aftermath-export" || action === "aftermath-copy") {
+        try {
+          var packet = aftermathEngine.exportPacket(source.id, state.aftermathReview);
+          if (action === "aftermath-export") {
+            callbacks.aftermathExport(Object.assign(payload, {
+              pack: state.aftermathPack, review: state.aftermathReview, packet: packet
+            }));
+          } else {
+            callbacks.aftermathCopy(Object.assign(payload, {
+              pack: state.aftermathPack, review: state.aftermathReview, packet: packet,
+              markdown: aftermathEngine.exportMarkdown(packet)
+            }));
+          }
+        } catch (packetError) {
+          state.aftermathError = clean(packetError && packetError.message) ||
+            "The editor packet failed its proof check.";
+          renderCurrent();
+        }
+      } else if (action === "open-clip-lab") {
+        callbacks.openClipLab(Object.assign(payload, {
+          pack: state.aftermathPack,
+          mode: clean(button.getAttribute("data-clip-mode")) || "shorts"
         }));
       } else if (action === "ask-source") {
         runSourceQuery(state.query || DEFAULT_SOURCE_QUERY, true);
@@ -1047,8 +2022,10 @@
         callbacks.companion(Object.assign(payload, { at: state.at }));
       } else if (action === "open-source") {
         var relatedId = clean(button.getAttribute("data-source-id"));
+        var relatedAt = button.getAttribute("data-source-at");
         if (relatedId) callbacks.open(Object.assign(payload, {
           targetSourceId: relatedId,
+          targetAt: relatedAt != null && Number.isFinite(Number(relatedAt)) ? Number(relatedAt) : null,
           connection: relatedConnection(relatedId),
           chronology: chronologyRole(relatedId)
         }));
@@ -1082,16 +2059,59 @@
         state.expanded[deepSection] = true;
       }
       state.query = clean(settings.query).slice(0, 240) || DEFAULT_SOURCE_QUERY;
+      state.activeReceiptKey = "";
+      state.activeReceiptOrigin = "";
       state.queryAnswer = null;
       state.queryBusy = false;
       state.queryError = "";
       state.queryEpoch += 1;
+      state.aftermathPack = null;
+      state.aftermathReview = null;
+      state.aftermathSelected = "";
+      state.aftermathFilter = "all";
+      state.aftermathError = "";
       try {
         var dossier = engine.build(state.sourceId);
         if (!validateDossier(dossier)) {
           throw new Error("Source Dossier engine returned an incompatible dossier.");
         }
         state.dossier = dossier;
+        if (aftermathEngine && typeof aftermathEngine.build === "function") {
+          try {
+            var aftermathPack = aftermathEngine.build(state.sourceId);
+            if (!aftermathPack || aftermathPack.schema !== "shokker.aftermath-pack/v1" ||
+                aftermathPack.source.id !== dossier.source.id ||
+                aftermathPack.bindings.dossierFingerprint !== dossier.fingerprint ||
+                aftermathPack.bindings.sourceFingerprint !== dossier.source.sourceFingerprint) {
+              throw new Error("Aftermath Pack failed its exact-source binding check.");
+            }
+            state.aftermathPack = aftermathPack;
+            var restoredReview = callbacks.loadAftermath(aftermathPack);
+            if (restoredReview && restoredReview.aftermathRestoreHeld) {
+              state.aftermathError = clean(restoredReview.notice) ||
+                "A saved local review was held because its source proof changed.";
+              restoredReview = restoredReview.review || null;
+            }
+            state.aftermathReview = restoredReview ?
+              aftermathEngine.restoreReview(state.sourceId, restoredReview) :
+              aftermathEngine.createReview(state.sourceId, []);
+            state.aftermathSelected = aftermathPack.opportunities.length ?
+              aftermathPack.opportunities[0].id : "";
+          } catch (aftermathError) {
+            state.aftermathPack = null;
+            state.aftermathReview = null;
+            state.aftermathError = clean(aftermathError && aftermathError.message) ||
+              "The exact-source creator inventory failed closed.";
+          }
+        } else {
+          state.aftermathError = "The Aftermath Pack engine is unavailable.";
+        }
+        if (state.hasAnchor) {
+          var anchoredReceipt = array(dossier.source.receipts).filter(function (receipt) {
+            return Math.abs(Number(receipt.at) - state.at) < 0.5;
+          })[0] || null;
+          state.activeReceiptKey = anchoredReceipt ? anchoredReceipt.key : "";
+        }
         mount.innerHTML = renderMarkup(dossier);
         setAttribute("aria-busy", "false");
         setAttribute("data-source-dossier-state", "ready");
@@ -1112,6 +2132,8 @@
       if (state.destroyed) return;
       state.destroyed = true;
       state.dossier = null;
+      state.aftermathPack = null;
+      state.aftermathReview = null;
       state.queryEpoch += 1;
       mount.removeEventListener("click", handleClick);
       mount.removeEventListener("submit", handleSubmit);

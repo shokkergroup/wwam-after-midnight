@@ -290,7 +290,7 @@ test("current corpus passes canon integrity with deterministic internal-only war
   const first = window.WWAMCanonIntegrity.audit(input);
   const second = window.WWAMCanonIntegrity.audit(input);
 
-  assert.equal(window.WWAMCanonIntegrity.VERSION, "1.1.1");
+  assert.equal(window.WWAMCanonIntegrity.VERSION, "1.2.0");
   assert.equal(first.engine, "SHOKKER CANON INTEGRITY AUDIT");
   assert.equal(first.snapshotDate, "2026-07-23");
   assert.equal(first.ok, true);
@@ -298,11 +298,13 @@ test("current corpus passes canon integrity with deterministic internal-only war
   assert.equal(first.fingerprint, second.fingerprint);
   assert.deepEqual(plain(first), plain(second));
   assert.equal(first.metrics.sources, 74);
-  assert.equal(first.metrics.showcaseReceipts, 872);
-  assert.equal(first.metrics.loreReceipts, 953);
-  assert.equal(first.metrics.loreGraphNodes, 177);
-  assert.equal(first.metrics.loreGraphEdges, 822);
-  assert.equal(first.metrics.clipShorts, 560);
+  assert.equal(first.metrics.characterEvidenceSources, 23);
+  assert.equal(first.metrics.ownedEvidenceSources, 97);
+  assert.equal(first.metrics.showcaseReceipts, 877);
+  assert.equal(first.metrics.loreReceipts, 1011);
+  assert.equal(first.metrics.loreGraphNodes, 200);
+  assert.equal(first.metrics.loreGraphEdges, 917);
+  assert.equal(first.metrics.clipShorts, 565);
   assert.equal(first.metrics.clipSupercuts, 32);
   assert.equal(first.metrics.clipResurfacing, 21);
   assert.equal(first.metrics.campaigns, 2);
@@ -340,6 +342,68 @@ test("a compact valid fixture passes every hard contract", () => {
   assert.equal(report.summary.warnings, 0);
   assert.equal(report.violations.length, 0);
   report.checks.forEach((check) => assert.equal(check.status, "PASS"));
+});
+test("a new official character tape can extend source ownership without admitting mere mentions", () => {
+  const window = load();
+  const fixture = validFixture();
+  const sourceId = "AbCdEfGhI_1";
+  const evidence = {
+    id: "loomis-new-tape",
+    sourceId,
+    sourceType: "livestream",
+    sourceTitle: "A newly distilled official livestream",
+    date: "2026-07-24",
+    t: 42,
+    url: `https://www.youtube.com/watch?v=${sourceId}&t=42s`,
+    playback: {
+      provider: "youtube",
+      start: 42,
+      end: 56,
+      clipSeconds: 14,
+      embedUrl: `https://www.youtube.com/embed/${sourceId}?start=42&end=56`
+    },
+    excerpt: "Michael cannot be trusted with that responsibility.",
+    classification: "actual-character-performance",
+    playability: {
+      status: "eligible",
+      provider: "youtube",
+      metadataStatus: "official-public-cached"
+    },
+    provenance: {
+      channelId: "UC6ieEOZW4iXV8TcILJI8k5g",
+      timestampStatus: "exact-caption-event",
+      selection: "human-curated seed with deterministic caption validation"
+    }
+  };
+  const character = fixture.characters.characters[0];
+  character.soundbytes.push(evidence);
+  fixture.showcase.receipts.push({
+    id: "character-receipt:loomis-new-tape",
+    sourceId,
+    t: 42,
+    type: "character-performance",
+    characterId: "character:loomis",
+    performer: "J",
+    excerpt: evidence.excerpt,
+    evidenceLevel: "editor"
+  });
+
+  const accepted = plain(window.WWAMCanonIntegrity.audit(fixture));
+  assert.equal(accepted.ok, true);
+  assert.equal(accepted.metrics.sources, 1);
+  assert.equal(accepted.metrics.characterEvidenceSources, 1);
+  assert.equal(accepted.metrics.ownedEvidenceSources, 2);
+
+  evidence.classification = "mere-mention";
+  const rejected = plain(window.WWAMCanonIntegrity.audit(fixture));
+  assert.equal(rejected.ok, false);
+  assert.ok(
+    rejected.violations.some(
+      (violation) =>
+        violation.code === "SOURCE_REFERENCE_ORPHAN" &&
+        violation.details?.sourceId === sourceId
+    )
+  );
 });
 
 test("clip-level speaker credit binds to the exact receipt-certified speaker", () => {

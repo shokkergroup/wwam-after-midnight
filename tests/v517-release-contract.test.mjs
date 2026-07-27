@@ -22,16 +22,16 @@ test("V5.17 package, cache keys, and Source Dossier documentation move together"
   const combined = [readme, overview, dossier, changelog, runbook, memoryOs]
     .join("\n");
 
-  assert.equal(manifest.version, "0.5.20");
-  assert.equal(lock.version, "0.5.20");
-  assert.equal(lock.packages[""].version, "0.5.20");
-  assert.match(readme, /Current documented release: \*\*V5\.20 \/ 0\.5\.20\*\*/);
-  assert.match(overview, /^# WWAM After Midnight V5\.20/m);
+  assert.equal(manifest.version, "0.5.21");
+  assert.equal(lock.version, "0.5.21");
+  assert.equal(lock.packages[""].version, "0.5.21");
+  assert.match(readme, /Current documented release: \*\*V5\.21 \/ 0\.5\.21\*\*/);
+  assert.match(overview, /^# WWAM After Midnight V5\.21/m);
   assert.match(dossier, /Release contract for \*\*V5\.18 \/ 0\.5\.18\*\*/);
   assert.match(changelog, /^## 0\.5\.17 .*The Source Dossier/m);
-  assert.match(runbook, /current V5\.20 build/i);
-  assert.match(html, /youtube-playback\.js\?v=0\.5\.20/);
-  assert.match(html, /app\.js\?v=0\.5\.20/);
+  assert.match(runbook, /current V5\.21 build/i);
+  assert.match(html, /youtube-playback\.js\?v=0\.5\.21/);
+  assert.match(html, /app\.js\?v=0\.5\.21/);
 
   for (const proof of [
     /510 unique canonical uploads/i,
@@ -79,7 +79,7 @@ test("all Source Dossier assets ship locally but remain outside the eager docume
 test("the release keeps Source Dossier media dormant and YouTube identity explicit", () => {
   const ui = readDemo("source-dossier-ui.js");
   const playback = readDemo("youtube-playback.js");
-  const bridge = readDemo("youtube-player.html");
+  const bridge = readDemo("media-bridge.html");
   const index = readDemo("index.html");
 
   assert.doesNotMatch(ui, /<iframe|<video|<audio|autoplay\s*=/i);

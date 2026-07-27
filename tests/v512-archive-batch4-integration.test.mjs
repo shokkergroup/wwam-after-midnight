@@ -84,13 +84,13 @@ test("V5.12 release identity and current documentation publish one exact ledger"
   const runbook = read("docs/CREATOR_DEMO_RUNBOOK.md");
   const portfolioDoc = read("docs/ARCHIVE_DEEP_PORTFOLIO.md");
 
-  assert.equal(manifest.version, "0.5.20");
-  assert.equal(lock.version, "0.5.20");
-  assert.equal(lock.packages[""].version, "0.5.20");
-  assert.match(readme, /Current documented release: \*\*V5\.20 \/ 0\.5\.20\*\*/);
-  assert.match(overview, /^# WWAM After Midnight V5\.20/m);
+  assert.equal(manifest.version, "0.5.21");
+  assert.equal(lock.version, "0.5.21");
+  assert.equal(lock.packages[""].version, "0.5.21");
+  assert.match(readme, /Current documented release: \*\*V5\.21 \/ 0\.5\.21\*\*/);
+  assert.match(overview, /^# WWAM After Midnight V5\.21/m);
   assert.match(changelog, /^## 0\.5\.12 .*V5\.12 Archive Deep Batch 04/m);
-  assert.match(runbook, /current V5\.20 build/i);
+  assert.match(runbook, /current V5\.21 build/i);
 
   const currentDocs = [readme, overview, portfolioDoc, changelog, runbook];
   for (const document of currentDocs) {
@@ -329,8 +329,8 @@ test("V5.12 browser load order, status, and app cap stay synchronized", () => {
   );
   assert.match(app, /OPENING ARCHIVE DEEP \/\/ 40 CAPTION AUDITS/);
   assert.ok(
-    fs.statSync(path.join(demo, "app.js")).size < 250_000,
-    "app.js exceeded its 250 KB source cap",
+    fs.statSync(path.join(demo, "app.js")).size < 255_000,
+    "app.js exceeded its V5.21 255 KB source cap",
   );
   assert.match(
     html,

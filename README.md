@@ -7,7 +7,116 @@ character archaeology, topic paths, and creator-side editorial opportunities.
 This is an unofficial fan prototype. It sends playback and source traffic back
 to the official WWAM uploads.
 
-Current documented release: **V5.20 / 0.5.20**.
+Current documented release: **V5.21 / 0.5.21**.
+
+## Per-Show Wikis
+
+Every registered upload opens as a video-first Show Wiki. **Show Wiki V1.5**
+organizes one exact upload into an evidence-bound episode experience:
+
+- a canonical, metadata-only **Source Brief** when transcript-derived content
+  has not been distilled;
+- a title- and format-aware Episode Recap whose blocks point to registered
+  receipts from that upload;
+- a playable **THE MIDNIGHT CUT** or source-audio-safe **THE TOPIC HOP**;
+- Topics, Best Moments, Funny Moments, WWAM UP IN YA, Straight to Steve's
+  Asshole, and Character Bits lanes with explicit empty states;
+- conversational exact-episode Ask routing for the Source Brief, recap, watch
+  path, and registered lanes;
+- persistent **Now Playing Receipt** context with exact bounds, previous/next,
+  return-to-lane, and copy-this-moment controls; and
+- sticky local navigation plus a collision-safe, touch-sized pulse map that
+  remains usable on narrow screens.
+
+The page states what it honestly knows. `distilled` pages may expose bounded
+moment lanes; `topic-nav-only` pages expose safe topic doors without pretending
+source audio is host reaction; and `source-brief` pages expose canonical source
+facts while keeping summaries, topics, quotes, reactions, and highlight lanes
+sealed. `queued` remains a fail-closed fallback rather than the normal
+metadata-only experience.
+
+The Source Brief contains only the canonical source record, registered source
+type, a title/source-derived format with its declared basis, and safe query
+aliases. It does not infer what the hosts discussed or how they reacted.
+Natural source-fact questions such as `When was this uploaded?`, `How long is
+this tape?`, and `How many views?` return canonical proof even before content
+distillation.
+Natural questions such as `Can I see the best?`, `Where did they crack up?`,
+`What did the guys hate?`, and `When do they do voices?` resolve through WWAM's
+registered lane aliases while any named subject remains an exact-source
+constraint. See [The Source Brief Contract](docs/SOURCE_BRIEF.md).
+
+The engine validates source identity, local receipt keys, episode answer counts,
+playback coordinates, and truth boundaries. The WWAM adapter supplies the
+format grammar, recap voice, lane gates, aliases, lane order, and Midnight Cut /
+Topic Hop ritual. A different channel reuses the engine without inheriting
+WWAM's horror-comedy vocabulary.
+
+The integrated V1.5 audit certifies **510 Show Wikis: 99 distilled, 12
+topic-nav-only, and 399 safe canonical Source Briefs; 111 distinct
+receipt-bound recaps; and 1,490 unique registered receipts.** Quality checks
+also certify **15 strict Steve receipts, 37 named character recap blocks with 0
+generic blocks, 7 restored moments across BIT ENERGY and CHAT DID THIS, and
+53/53 title-relevant topic selections wherever topic evidence exists.** The
+prior V1.4 release gate was **178/178 tests**, with build, lint, and diff checks
+green. These are bounded inventory and verification counts, not creator
+approval, semantic claims about undistilled uploads, or objective rankings.
+See [Per-Show Wiki Contract](docs/SHOW_WIKI_CONTRACT.md).
+
+## The Aftermath Pack
+
+Each eligible Show Wiki now includes an exact-source creator review desk. It
+turns the show's registered Clip Lab memberships into a transparent production
+queue with playable receipts, proposed windows, suggested-copy labels, evidence
+and risk explanations, and local **Keep / Hold / Reject** routing.
+
+The July 23, 2026 proof source `LV2rmwEA0w4` binds 21 registered receipts to
+exactly **23 production opportunities: 13 Shorts + six supercut memberships +
+four resurfacing pairs**. Its four recurring-bit lineages remain reference-only,
+and nine Cold Open Factory storyboards remain separate generated plans. Those
+two inventories do not inflate the opportunity total.
+
+Saved review ledgers and JSON/Markdown editor packets are fingerprinted against
+the exact source and production build. The handoff separates kept, held,
+risk-quarantined, rejected, and unreviewed work. Keep means only keep for
+creator review; none of the actions or exports grants creator approval, rights
+clearance, publishing authority, media delivery, or a performance promise.
+
+Mike Mode can close on a proposed **$500 / 3-show / 14-day** pilot. That is a
+bounded offer requiring mutual agreement, not an invoice, completed agreement,
+or guarantee. See [The Aftermath Pack](docs/AFTERMATH_PACK.md).
+
+## V5.21 Receipt Matrix
+
+V5.21 makes archive-wide Ask answers count the right thing. **Receipt Matrix**
+separates unique official uploads from eligible timestamped receipts, answers
+same-source intersections, ranks sources by grounded performance evidence, and
+builds exact chronological performance routes. It lives inside the existing
+Ask WWAM surface; it adds no duplicate homepage section, player, or truth
+system.
+
+The current 510-source proof answers three questions that fuzzy retrieval could
+not answer reliably:
+
+| Grounded question | Unique uploads | Eligible receipts |
+| --- | ---: | ---: |
+| How many uploads contain Dr. Loomis performances? | 5 | 7 |
+| Which uploads contain both Loomis and Challis performances? | 4 | 11 |
+| Which upload has the most current recurring-character performances? | 12 matching | 25 |
+
+The ranking begins with `LV2rmwEA0w4` at six eligible receipts,
+`ag3axSC9BpU` at five, and `N-UahfG8-gM` at three. Those numbers are compiled
+from canonical Source Dossiers, not hand-written answer text. Shared receipts
+are deduplicated, metadata mentions cannot inflate totals, and missing or
+unknown entities fail honestly.
+
+The core is channel-neutral. A horror channel can intersect Loomis and Challis;
+a racing league can intersect a driver and a photo finish; another archive can
+substitute its own entity directory and exact eligibility policy. The invariant
+is the same: count sources separately from evidence, preserve exact source
+coordinates, and never turn co-occurrence into causality or authorship.
+
+See [Receipt Matrix](docs/RECEIPT_MATRIX.md).
 
 ## V5.20 Bit Bloodlines
 
@@ -99,9 +208,7 @@ source-bound artifact records**. Those are current Source Dossier inventory
 counts. They do not replace the immutable V5.4 proof of 84 source inputs and
 872 promoted receipts.
 
-The evidence ledger now preserves all **25 human-curated character-performance
-windows** with their explicit end bounds. Every current window is exactly 14
-seconds; the July 23 Loomis funding receipt remains
+The evidence ledger now preserves all **60 timestamp-validated human-curated character-performance candidates** with their explicit end bounds: 15 each for Loomis, Challis, Slenderman, and Corey Feldman. The current Character Lore scan covers all 209 locally cached official caption sources rather than stopping at the older 74-source showcase subset. Every current window is exactly 14 seconds; the July 23 Loomis funding receipt remains
 `LV2rmwEA0w4 @ 9042.64–9056.64`. Archive Deep's 52 machine-surfaced character
 records are kept in different evidence classes: **24
 `caption-character-signal` receipts and 28 `caption-character-context`
@@ -488,7 +595,7 @@ manifest. Quarantined stops remain marked `promotionAllowed: false` with no
 speaker claim. The export omits transcripts, caption payloads, and full event
 ledgers. See [Archive Time Capsules](docs/ARCHIVE_TIME_CAPSULES.md).
 
-## V5.20 product map
+## V5.21 product map
 
 The hero offers three deliberate entry points:
 
@@ -499,7 +606,7 @@ The hero offers three deliberate entry points:
   100-rank Red Band Memorability Candidate Index V2.1, WWAM UP IN YA, and
   playable descent paths.
 - **Deep Dive:** relationship-gated Ask WWAM with Play the Answer source
-  trails, Lore Galaxy, Take
+  trails, Receipt Matrix source counts and intersections, Lore Galaxy, Take
   Time Machine, year-sized Archive Time Capsules, The Tape Keeps Score, The
   Verdict Room, Bit Bloodlines, the
   Comedy Black Box / Riff Autopsy, WWAM Court, franchise labs, autopsies, Fresh
@@ -657,6 +764,10 @@ establish which host is speaking.
 - Generated parody is never represented as an archival quote.
 - Opinion timelines and Court cases remain discovery tools until a human
   certifies the underlying claim.
+- Receipt Matrix reports unique sources and eligible receipts as different
+  measures. A source containing two requested entities proves same-source
+  coverage only; it does not prove dialogue, interaction, influence, origin,
+  causality, or speaker identity.
 - The current Trust Desk still audits the 74-source promoted corpus: 71 healthy
   sources, 3 disclosed caption gaps, 0 structurally invalid or
   source-ID-mismatched URLs, 0 invalid indexed timestamps, and 95 human review
@@ -711,9 +822,7 @@ establish which host is speaking.
   **Clip-level speaker attribution** requires diarization or specific creator
   certification.
 
-The frozen promoted snapshot contains 847 machine-level receipts and 25
-timestamp-validated human-curated character-performance candidates, but 0
-authenticated editor-verified decisions and 0 creator-certified receipts.
+The frozen 74-source promoted snapshot still contains its legacy 847 machine-level receipts and 25 curated character candidates. The current all-cached-official Character Lore layer expands that library to 60 timestamp-validated human-curated character-performance candidates, but still claims 0 authenticated editor-verified decisions and 0 creator-certified receipts.
 Their speakers are not diarized. The candidate records preserve source/time
 provenance; they do not prove reviewer identity, surrounding-context review,
 or clip-level speaker identity. The Trust Desk's “0 out-of-range
@@ -758,7 +867,8 @@ artifacts contain derived measurements and short, timestamped fragments only.
 
 ## Documentation
 
-- [V5.20 product overview](docs/V5_OVERVIEW.md)
+- [V5.21 product overview](docs/V5_OVERVIEW.md)
+- [Receipt Matrix source-set query contract](docs/RECEIPT_MATRIX.md)
 - [Bit Bloodlines source-locked recurrence contract](docs/BIT_BLOODLINES.md)
 - [The Midnight Cut ordered-receipt contract](docs/THE_MIDNIGHT_CUT.md)
 - [Ask This Tape exact-source query contract](docs/ASK_THIS_TAPE.md)
@@ -778,6 +888,7 @@ artifacts contain derived measurements and short, timestamped fragments only.
 - [Tape Companion contract](docs/TAPE_COMPANION.md)
 - [Creator Taste Calibration contract](docs/CREATOR_TASTE_CALIBRATION.md)
 - [Creator Clip Lab contract](docs/CREATOR_CLIP_LAB.md)
+- [The Aftermath Pack per-show review contract](docs/AFTERMATH_PACK.md)
 - [Cold Open Factory contract](docs/COLD_OPEN_FACTORY.md)
 - [Tape Trivia engine contract](docs/TAPE_TRIVIA_ENGINE.md)
 - [Night Shift engine contract](docs/NIGHT_SHIFT_ENGINE.md)

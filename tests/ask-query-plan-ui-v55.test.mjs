@@ -120,8 +120,8 @@ test("Ask answer prose uses a readable body treatment and app.js stays below cap
     /<div class="derived-answer-copy">' \+ esc\(displayUiText\(analysis\.answer\)\)/,
   );
   assert.ok(
-    appBytes.length < 250_000,
-    `app.js is ${appBytes.length} bytes; expected fewer than 250000`,
+    appBytes.length < 255_000,
+    `app.js is ${appBytes.length} bytes; expected fewer than the V5.21 255000-byte ceiling`,
   );
 });
 

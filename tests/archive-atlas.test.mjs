@@ -19,6 +19,7 @@ function load(files = [
   "archive-deep-batch2.js",
   "archive-deep-batch3.js",
   "archive-deep-batch4.js",
+  "year-canon-2025-2026.js",
   "archive-atlas-data.js",
   "archive-atlas-engine.js",
 ]) {
@@ -198,8 +199,9 @@ test("reconciles the feed with current deep-source lanes without importing catal
     "archive-deep-batch-02": 10,
     "archive-deep-batch-03": 10,
     "archive-deep-batch-04": 10,
+    "year-canon-2025-2026": 98,
     "commentary-catalog": 1,
-    "archive-metadata": 396,
+    "archive-metadata": 298,
   });
   assert.equal(data.provenance.sourceLanes.popularFeedEntries, 472);
   assert.equal(data.provenance.sourceLanes.archiveDeepSources, 40);
@@ -282,12 +284,12 @@ test("labels deep, metadata-only, caption-limited and unavailable states honestl
     "unavailable",
   ]);
   assert.deepEqual(data.stats.coverage, {
-    "deeply-indexed": 74,
-    "metadata-only": 390,
+    "deeply-indexed": 172,
+    "metadata-only": 292,
     "caption-limited": 8,
     unavailable: 0,
   });
-  assert.equal(data.stats.deepCoveragePercent, 15.7);
+  assert.equal(data.stats.deepCoveragePercent, 36.4);
   assert.ok(data.records.every((record) => allowed.has(record.coverage)));
   assert.equal(atlas.getRecord("x6tvsGRHgU0").coverage, "caption-limited");
   assert.equal(atlas.getRecord("cQAVmNFQmoI").coverage, "caption-limited");
@@ -312,13 +314,13 @@ test("labels deep, metadata-only, caption-limited and unavailable states honestl
     plain(atlas.getRecord("2FlxuJxv81s").lanes),
     ["archive-deep-batch-04"],
   );
-  assert.equal(atlas.getRecord("FVuwRHM0kcc").coverage, "metadata-only");
+  assert.equal(atlas.getRecord("FVuwRHM0kcc").coverage, "deeply-indexed");
 
   const coverage = atlas.getCoverage();
-  assert.equal(coverage.currentSourceLaneRecords, 76);
-  assert.equal(coverage.captionBackedDeepRecords, 74);
+  assert.equal(coverage.currentSourceLaneRecords, 174);
+  assert.equal(coverage.captionBackedDeepRecords, 172);
   assert.equal(coverage.selectedCaptionLimitedRecords, 2);
-  assert.equal(coverage.deepCoveragePercent, 15.7);
+  assert.equal(coverage.deepCoveragePercent, 36.4);
   assert.match(coverage.policy, /no transcript/i);
 });
 
@@ -419,7 +421,7 @@ test("browses by decade, year, month, coverage and source lane deterministically
 
   assert.equal(atlas.browse({ decade: "2010s" }).total, 25);
   assert.equal(atlas.browse({ year: 2026, month: 7 }).total, 3);
-  assert.equal(atlas.browse({ coverage: "metadata-only" }).total, 390);
+  assert.equal(atlas.browse({ coverage: "metadata-only" }).total, 292);
   assert.equal(atlas.browse({ coverage: ["caption-limited", "unavailable"] }).total, 8);
   assert.equal(atlas.browse({ lane: "popular-25" }).total, 25);
   assert.equal(atlas.browse({ lane: "archive-deep-10" }).total, 10);
@@ -529,11 +531,11 @@ test("ranks a reproducible distill-next queue with a fully exposed 50/30/20 form
     "o0tcJcJk6MY",
   ]);
 
-  assert.equal(queue.eligible, 390);
-  assert.equal(queue.matched, 390);
+  assert.equal(queue.eligible, 292);
+  assert.equal(queue.matched, 292);
   assert.equal(queue.records.length, 25);
   assert.deepEqual(plain(queue.excluded), {
-    deeplyIndexed: 74,
+    deeplyIndexed: 172,
     captionLimited: 8,
     unavailable: 0,
   });

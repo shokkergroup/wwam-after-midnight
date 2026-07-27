@@ -1,14 +1,15 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.1.0";
+  var VERSION = "1.7.0";
   var SCHEMA = "shokker-source-dossier-input/v1";
   var PUBLIC_EXCERPT_WORDS = 16;
-  var EXPECTED_ATLAS_SOURCES = 472;
-  var EXPECTED_CATALOG_SOURCES = 39;
-  var EXPECTED_CANONICAL_SOURCES = 510;
-  var EXPECTED_RECEIPTS = 1490;
-  var EXPECTED_CURATED_CHARACTER_RECEIPTS = 25;
+  var OFFICIAL_WWAM_CHANNEL_ID = "UC6ieEOZW4iXV8TcILJI8k5g";
+  var MINIMUM_ATLAS_SOURCES = 472;
+  var MINIMUM_CATALOG_SOURCES = 39;
+  var MINIMUM_CANONICAL_SOURCES = 510;
+  var BASELINE_RECEIPTS_BEFORE_YEAR_CANON = 1490;
+  var MINIMUM_SHOWCASE_CHARACTER_RECEIPTS = 25;
   var EXPECTED_OVERLAP_ID = "3wK00_-K-Y0";
   var PINNED_SHOWCASE_SOURCE_ID = "LV2rmwEA0w4";
 
@@ -125,11 +126,11 @@
     return [];
   }
 
-  function assertCount(values, expected, label) {
-    if (array(values).length !== expected) {
+  function assertMinimumCount(values, minimum, label) {
+    if (array(values).length < minimum) {
       fail(
         "SOURCE_COUNT_INVALID",
-        label + " requires exactly " + expected + " sources; received " +
+        label + " fell below its " + minimum + "-source baseline; received " +
           array(values).length + "."
       );
     }
@@ -179,30 +180,55 @@
   }
 
   function curatedReceiptBounds(characterLore, showcase) {
-    var expected = new Set(
-      array(showcase && showcase.receipts).filter(function (receipt) {
-        return evidenceType(receipt && receipt.type) ===
-          "curated-character-performance";
-      }).map(function (receipt) {
-        return clean(receipt && receipt.id);
+    var showcaseSourceIds = new Set(
+      array(showcase && showcase.sources).map(function (source) {
+        return clean(source && source.id);
       }).filter(Boolean)
     );
-    if (expected.size !== EXPECTED_CURATED_CHARACTER_RECEIPTS) {
+    var promotedReceipts = array(showcase && showcase.receipts).filter(function (receipt) {
+      return evidenceType(receipt && receipt.type) ===
+        "curated-character-performance";
+    });
+    var promotedKeys = promotedReceipts.map(function (receipt) {
+      return clean(receipt && receipt.id);
+    });
+    var promoted = new Set(promotedKeys.filter(Boolean));
+    if (promotedKeys.some(function (key) { return !key; }) ||
+        promoted.size !== promotedKeys.length) {
       fail(
         "CURATED_RECEIPT_SET_INVALID",
-        "The Showcase must retain exactly " +
-          EXPECTED_CURATED_CHARACTER_RECEIPTS +
-          " curated character receipt IDs."
+        "The Showcase character receipt ledger contains a missing or duplicate ID."
+      );
+    }
+    if (promoted.size < MINIMUM_SHOWCASE_CHARACTER_RECEIPTS) {
+      fail(
+        "CURATED_RECEIPT_SET_INVALID",
+        "The Showcase character receipt ledger fell below its " +
+          MINIMUM_SHOWCASE_CHARACTER_RECEIPTS + "-receipt baseline."
       );
     }
 
     var bounds = new Map();
+    var expected = new Set();
     array(characterLore && characterLore.characters).forEach(function (profile) {
       array(profile && profile.soundbytes).forEach(function (soundbyte) {
         var key = "character-receipt:" + clean(soundbyte && soundbyte.id);
-        if (!expected.has(key)) return;
         var sourceId = clean(soundbyte && soundbyte.sourceId);
+        var provenance = soundbyte && soundbyte.provenance || {};
+        var playability = soundbyte && soundbyte.playability || {};
+        var eligible =
+          clean(soundbyte && soundbyte.classification) ===
+            "actual-character-performance" &&
+          clean(playability.status) === "eligible" &&
+          clean(provenance.channelId) === OFFICIAL_WWAM_CHANNEL_ID &&
+          clean(provenance.timestampStatus) === "exact-caption-event" &&
+          normalized(provenance.selection).indexOf("human curated") >= 0;
+        if (!eligible || !showcaseSourceIds.has(sourceId)) return;
+        expected.add(key);
         var at = numberOrNull(soundbyte && soundbyte.t);
+        var playbackStart = numberOrNull(
+          soundbyte && soundbyte.playback && soundbyte.playback.start
+        );
         var end = numberOrNull(
           soundbyte && soundbyte.playback && soundbyte.playback.end
         );
@@ -212,7 +238,9 @@
           );
           if (clipSeconds != null) end = at + clipSeconds;
         }
-        if (!sourceId || at == null || end == null || at < 0 || end <= at) {
+        if (!key || key === "character-receipt:" || !sourceId ||
+            at == null || end == null || at < 0 || end <= at ||
+            playbackStart != null && Math.abs(playbackStart - at) > 0.01) {
           fail(
             "CURATED_RECEIPT_BOUND_INVALID",
             "Curated receipt " + key +
@@ -232,7 +260,7 @@
         });
       });
     });
-    expected.forEach(function (key) {
+    promoted.forEach(function (key) {
       if (!bounds.has(key)) {
         fail(
           "CURATED_RECEIPT_BOUND_MISSING",
@@ -241,9 +269,22 @@
         );
       }
     });
+    var missingFromShowcase = Array.from(expected).filter(function (key) {
+      return !promoted.has(key);
+    });
+    var foreignToLore = Array.from(promoted).filter(function (key) {
+      return !expected.has(key);
+    });
+    if (missingFromShowcase.length || foreignToLore.length ||
+        promoted.size !== expected.size) {
+      fail(
+        "CURATED_RECEIPT_SET_INVALID",
+        "The Showcase character receipts must exactly match the eligible " +
+          "Character Lore receipts whose sources are in the promoted Showcase."
+      );
+    }
     return bounds;
   }
-
   function evidenceType(kind, fallback) {
     var value = normalized(kind);
     if (value.indexOf("topic") >= 0) return "caption-topic-receipt";
@@ -312,6 +353,8 @@
       speakerStatus: "not-diarized",
       promotionAllowed: false,
       publicExcerptAllowed: Boolean(allowExcerpt && excerpt),
+      signalScore: settings.signalScore == null ? null : settings.signalScore,
+      signalBasis: settings.signalScore == null ? null : clean(settings.signalBasis),
       entityIds: ids,
     };
   }
@@ -343,6 +386,10 @@
         evidenceBasis: "exact-showcase-receipt",
         reviewState: reviewState(receipt.evidenceLevel),
         publicExcerptAllowed: true,
+        signalScore: numberOrNull(receipt.score),
+        signalBasis: numberOrNull(receipt.score) == null
+          ? null
+          : "showcase-receipt-score",
         entityIds: receipt.entityIds,
       });
     });
@@ -405,6 +452,10 @@
           ? "quarantined-machine-candidate"
           : "machine-surfaced",
         publicExcerptAllowed: true,
+        signalScore: numberOrNull(moment.heat),
+        signalBasis: numberOrNull(moment.heat) == null
+          ? null
+          : "caption-derived-heat",
       }
     );
   }
@@ -468,6 +519,577 @@
       keys.add(receipt.key);
       return true;
     });
+  }
+
+  function signalOrder(left, right) {
+    var leftScore = left.signalScore == null ? -1 : left.signalScore;
+    var rightScore = right.signalScore == null ? -1 : right.signalScore;
+    return rightScore - leftScore || left.at - right.at || left.key.localeCompare(right.key);
+  }
+
+  var SHOW_WIKI_NEGATIVE_TERMS = [
+    "never watch", "couldnt stand", "didnt like", "dont like", "not good",
+    "hate", "hated", "worst", "awful", "terrible", "trash", "garbage",
+    "sucks", "suck", "bad", "stupid", "dumb", "ruined", "boring", "ugly",
+  ];
+  var SHOW_WIKI_TARGET_TERMS = [
+    "movie", "film", "franchise", "installment", "sequel", "prequel", "remake",
+    "reboot", "scene", "sequence", "ending", "opening", "story", "plot", "script",
+    "writing", "direction", "directing", "performance", "acting", "score", "music",
+    "soundtrack", "shot", "cinematography", "mask", "effect", "effects",
+    "dialogue", "pacing", "tone", "design", "edit", "editing", "character",
+    "characters", "actor", "actors", "cast", "costume",
+  ];
+  var SHOW_WIKI_NEGATORS = [
+    "not", "no", "never", "dont", "doesnt", "didnt", "wasnt", "isnt",
+    "arent", "cant", "without",
+  ];
+
+  function showWikiTokens(value) {
+    return clean(value)
+      .toLowerCase()
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[\u2018\u2019']/g, "")
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean);
+  }
+
+  function phraseOccurrences(tokens, phrase) {
+    var phraseTokens = showWikiTokens(phrase);
+    var output = [];
+    for (var start = 0; start <= tokens.length - phraseTokens.length; start += 1) {
+      var matches = phraseTokens.every(function (token, offset) {
+        return tokens[start + offset] === token;
+      });
+      if (matches) {
+        output.push({
+          term: phrase,
+          start: start,
+          end: start + phraseTokens.length - 1,
+        });
+      }
+    }
+    return output;
+  }
+
+  function occurrenceDistance(left, right) {
+    if (left.end < right.start) return right.start - left.end - 1;
+    if (right.end < left.start) return left.start - right.end - 1;
+    return 0;
+  }
+
+  function negatedEvaluation(tokens, occurrence) {
+    var term = showWikiTokens(occurrence.term).join(" ");
+    if (/^(?:not|dont|didnt|couldnt|never)\b/.test(term)) return false;
+    return tokens.slice(Math.max(0, occurrence.start - 4), occurrence.start)
+      .some(function (token) {
+        return SHOW_WIKI_NEGATORS.indexOf(token) >= 0;
+      });
+  }
+
+  function negativeOpinionReceipt(receipt) {
+    if (receipt.label !== "FRANCHISE FELONY" &&
+        receipt.label !== "TAKE GETS NUCLEAR") return false;
+    var tokens = showWikiTokens(receipt.excerpt);
+    var deniesHate = tokens.some(function (token, index) {
+      if (token !== "hate" && token !== "hated") return false;
+      var previous = tokens[index - 1] || "";
+      var next = tokens[index + 1] || "";
+      var afterNext = tokens[index + 2] || "";
+      return ["dont", "didnt", "not", "never", "doesnt", "isnt", "wasnt"]
+        .indexOf(previous) >= 0 ||
+        (previous === "to" && tokens[index - 2] === "not") ||
+        (previous === "not" && tokens[index - 2] === "do") ||
+        (next === "to" && ["see", "say", "tell", "admit"].indexOf(afterNext) >= 0);
+    });
+    if (deniesHate) return false;
+    var evaluations = [];
+    var targets = [];
+    SHOW_WIKI_NEGATIVE_TERMS.forEach(function (term) {
+      evaluations = evaluations.concat(phraseOccurrences(tokens, term));
+    });
+    SHOW_WIKI_TARGET_TERMS.forEach(function (term) {
+      targets = targets.concat(phraseOccurrences(tokens, term));
+    });
+    return evaluations.some(function (evaluation) {
+      if (negatedEvaluation(tokens, evaluation)) return false;
+      return targets.some(function (target) {
+        return occurrenceDistance(evaluation, target) <= 8;
+      });
+    });
+  }
+
+  function showWikiFormat(source) {
+    var haystack = clean(source.title + " " + source.displayTitle).toLowerCase();
+    if (source.sourceType === "commentary" || /\b(?:commentary|watch\s*along)\b/.test(haystack)) {
+      return { id: "movie-commentary", label: "MOVIE COMMENTARY", basis: "registered-source-type-and-title" };
+    }
+    if (/\b(?:script\s*(?:read|reading)|table\s*read|screenplay\s*(?:read|reading))\b/.test(haystack)) {
+      return { id: "script-reading", label: "SCRIPT READING", basis: "source-title-metadata" };
+    }
+    if (/\b(?:watch\s*party|live\s*watch|watching\s+.*\s+live)\b/.test(haystack)) {
+      return { id: "watch-party", label: "WATCH PARTY", basis: "source-title-metadata" };
+    }
+    if (/\b(?:ranking|ranked|tier\s*list|royal\s*rumble|tournament|bracket|countdown|top\s+\d+)\b/.test(haystack)) {
+      return { id: "ranking-show", label: "RANKING / BRACKET SHOW", basis: "source-title-metadata" };
+    }
+    if (/\b(?:versus|vs\.?|fight|battle)\b/.test(haystack)) {
+      return { id: "versus-show", label: "VERSUS / FIGHT SHOW", basis: "source-title-metadata" };
+    }
+    if (/\b(?:spoiler|ending\s*explained|after\s*party)\b/.test(haystack)) {
+      return { id: "spoiler-party", label: "SPOILER PARTY", basis: "source-title-metadata" };
+    }
+    if (/\b(?:trailer|teaser|first\s*look)\b/.test(haystack)) {
+      return { id: "trailer-reaction", label: "TRAILER REACTION", basis: "source-title-metadata" };
+    }
+    if (/(?:^|\s)q\s*(?:\+|&|and)\s*a(?:\s|$)/.test(haystack) || /\bquestions?\s+and\s+answers?\b/.test(haystack)) {
+      return { id: "q-and-a", label: "Q + A", basis: "source-title-metadata" };
+    }
+    if (/\b(?:interview|special\s+guest|writer|director)\b/.test(haystack)) {
+      return { id: "interview", label: "INTERVIEW / GUEST SHOW", basis: "source-title-metadata" };
+    }
+    if (/\b(?:anniversary|birthday\s+special|retrospective)\b/.test(haystack)) {
+      return { id: "anniversary", label: "ANNIVERSARY SPECIAL", basis: "source-title-metadata" };
+    }
+    if (/\b(?:news|updates?|breaking|rumors?)\b/.test(haystack)) {
+      return { id: "horror-news", label: "HORROR NEWS SHOW", basis: "source-title-metadata" };
+    }
+    return { id: "livestream", label: "WWAM LIVESTREAM", basis: "registered-source-type" };
+  }
+
+  function showWikiBriefFor(source) {
+    if (source.coverage === "caption-backed") return null;
+    var format = showWikiFormat(source);
+    return {
+      kind: "source-metadata-brief",
+      scope: "canonical-source-metadata-only",
+      format: format.label,
+      formatBasis: format.basis,
+      queryAliases: [
+        "what can you prove about this show",
+        "show source brief",
+        "source brief",
+        "what is registered",
+        "what do you know for sure"
+      ],
+    };
+  }
+
+  var SHOW_WIKI_TOPIC_STOPWORDS = new Set([
+    "a", "an", "and", "at", "for", "from", "in", "live", "movie", "of", "on",
+    "show", "the", "to", "with", "wwam"
+  ]);
+  var SHOW_WIKI_FRANCHISE_TOPIC_ALIASES = [
+    { title: ["michael myers", "the shape"], topic: ["halloween"] },
+    { title: ["ghostface", "woodsboro"], topic: ["scream"] },
+    { title: ["jason voorhees", "crystal lake"], topic: ["friday the 13th"] },
+    { title: ["freddy krueger", "springwood"], topic: ["nightmare on elm street"] }
+  ];
+
+  function showWikiTitleTopicScore(source, receipt) {
+    var title = normalized(clean(source.title + " " + source.displayTitle));
+    var topic = normalized([receipt.label].concat(array(receipt.entityIds)).join(" "));
+    if (!title || !topic) return 0;
+    var score = 0;
+    if ((" " + title + " ").indexOf(" " + normalized(receipt.label) + " ") >= 0) score += 100;
+    SHOW_WIKI_FRANCHISE_TOPIC_ALIASES.forEach(function (group) {
+      var titleMatch = group.title.some(function (alias) {
+        return (" " + title + " ").indexOf(" " + normalized(alias) + " ") >= 0;
+      });
+      var topicMatch = group.topic.some(function (alias) {
+        return (" " + topic + " ").indexOf(" " + normalized(alias) + " ") >= 0;
+      });
+      if (titleMatch && topicMatch) score += 150;
+    });
+    var titleTokens = new Set(title.split(" ").filter(function (token) {
+      return token.length > 2 && !SHOW_WIKI_TOPIC_STOPWORDS.has(token);
+    }));
+    topic.split(" ").forEach(function (token) {
+      if (token.length > 2 && titleTokens.has(token)) score += token.length >= 7 ? 12 : 7;
+    });
+    return score;
+  }
+
+  function showWikiSelectedTopics(source, topics, maximum) {
+    return topics.map(function (receipt, index) {
+      return { receipt: receipt, index: index, score: showWikiTitleTopicScore(source, receipt) };
+    }).sort(function (left, right) {
+      return right.score - left.score || left.index - right.index;
+    }).slice(0, maximum).map(function (entry) { return entry.receipt; });
+  }
+
+  function showWikiProseLabel(value) {
+    var label = clean(value).replace(/^topic:\s*/i, "");
+    if (label && label === label.toUpperCase()) {
+      label = label.toLowerCase().replace(/\b[a-z]/g, function (letter) {
+        return letter.toUpperCase();
+      });
+    }
+    return label;
+  }
+
+  function showWikiCharacterNames(characterLore) {
+    return new Map(array(characterLore && characterLore.characters).map(function (character) {
+      return ["character:" + clean(character.id).toLowerCase(), clean(character.name)];
+    }).filter(function (entry) { return entry[0] !== "character:" && entry[1]; }));
+  }
+
+  function showWikiList(values, fallback) {
+    var unique = [];
+    array(values).forEach(function (value) {
+      var label = clean(value);
+      if (label && unique.indexOf(label) < 0) unique.push(label);
+    });
+    if (!unique.length) return fallback || "the registered source map";
+    if (unique.length === 1) return unique[0];
+    if (unique.length === 2) return unique[0] + " and " + unique[1];
+    return unique.slice(0, -1).join(", ") + ", and " + unique[unique.length - 1];
+  }
+
+  function showWikiRuntime(seconds) {
+    var minutes = Math.max(1, Math.round(number(seconds) / 60));
+    var hours = Math.floor(minutes / 60);
+    var remainder = minutes % 60;
+    return hours ? hours + " hr" + (remainder ? " " + remainder + " min" : "") : minutes + " min";
+  }
+
+  function showWikiClock(seconds) {
+    var total = Math.max(0, Math.round(number(seconds)));
+    var hours = Math.floor(total / 3600);
+    var minutes = Math.floor((total % 3600) / 60);
+    var remainder = total % 60;
+    return (hours ? hours + ":" + String(minutes).padStart(2, "0") : String(minutes)) +
+      ":" + String(remainder).padStart(2, "0");
+  }
+
+  function showWikiEvenSample(values, limit) {
+    var ordered = array(values).slice().sort(function (left, right) {
+      return left.at - right.at || left.key.localeCompare(right.key);
+    });
+    if (ordered.length <= limit) return ordered;
+    var sampled = [];
+    for (var index = 0; index < limit; index += 1) {
+      var offset = Math.round(index * (ordered.length - 1) / Math.max(1, limit - 1));
+      if (sampled.indexOf(ordered[offset]) < 0) sampled.push(ordered[offset]);
+    }
+    return sampled;
+  }
+
+  function showWikiRoute(source, moments, topics) {
+    if (!moments.length) return showWikiEvenSample(topics, 5);
+    var remaining = moments.slice().sort(signalOrder);
+    var selected = [];
+    var labels = new Set();
+    while (remaining.length && selected.length < 5) {
+      var bestIndex = 0;
+      var bestValue = -Infinity;
+      remaining.forEach(function (receipt, index) {
+        var heat = receipt.signalScore == null ? 45 : receipt.signalScore;
+        var novelty = labels.has(receipt.label) ? 0 : 20;
+        var separation = selected.length ? Math.min.apply(null, selected.map(function (chosen) {
+          return Math.abs(chosen.at - receipt.at) / Math.max(1, source.duration);
+        })) * 42 : 0;
+        var value = heat + novelty + separation;
+        if (value > bestValue || value === bestValue &&
+            (receipt.at < remaining[bestIndex].at ||
+             receipt.at === remaining[bestIndex].at && receipt.key < remaining[bestIndex].key)) {
+          bestIndex = index;
+          bestValue = value;
+        }
+      });
+      var chosen = remaining.splice(bestIndex, 1)[0];
+      selected.push(chosen);
+      labels.add(chosen.label);
+    }
+    return selected.sort(function (left, right) {
+      return left.at - right.at || left.key.localeCompare(right.key);
+    });
+  }
+
+  function showWikiExperienceFor(source, moments, topics) {
+    var route = showWikiRoute(source, moments, topics);
+    var pulse = showWikiEvenSample(moments.length ? moments : topics, 24);
+    var momentMode = moments.length > 0;
+    var topicMode = !momentMode && topics.length > 0;
+    if (!momentMode && !topicMode) {
+      return {
+        id: "source-brief",
+        label: "CONTENT ROUTE",
+        title: "CONTENT ROUTE NOT DISTILLED",
+        description: "Canonical source identity is registered, but no source-local topic or moment receipt is available for a content route.",
+        selectionBasis: "no-source-local-receipt-route",
+        emptyState: "The official source remains available without an invented topic hop, highlight path, quote, reaction, or creator verdict.",
+        queryAliases: [
+          "content route status", "is this show distilled",
+          "does this show have moments", "does this show have topics"
+        ],
+        routeReceiptKeys: [],
+        pulseReceiptKeys: [],
+      };
+    }
+    return {
+      id: momentMode ? "midnight-cut" : "topic-hop",
+      label: "WWAM WATCH PATH",
+      title: momentMode ? "THE MIDNIGHT CUT" : "THE TOPIC HOP",
+      description: momentMode
+        ? "A five-stop route through this exact tape, balancing preserved archive heat, category variety, and separation across the runtime."
+        : "A chronological route through the exact topic doors registered to this tape; no reaction, speaker, or visual outcome is inferred.",
+      selectionBasis: momentMode
+        ? "machine-assembled-from-source-local-moments-using-heat-variety-and-runtime-separation"
+        : "machine-assembled-from-source-local-topic-navigation",
+      emptyState: "This tape has no source-local receipt route yet. The player remains available without an invented highlight path.",
+      queryAliases: [
+        "give me the watch path", "show me the watch path",
+        "five stop watch path", "quick watch", "play the highlights",
+        "watch this show fast", momentMode ? "midnight cut" : "topic hop"
+      ],
+      routeReceiptKeys: route.map(function (receipt) { return receipt.key; }),
+      pulseReceiptKeys: pulse.map(function (receipt) { return receipt.key; }),
+    };
+  }
+
+  function showWikiRecapFor(
+    source,
+    receipts,
+    moments,
+    topics,
+    characters,
+    steves,
+    funny,
+    characterNames
+  ) {
+    if (source.coverage !== "caption-backed" || !receipts.length) return null;
+    var format = showWikiFormat(source);
+    var title = clean(source.displayTitle || source.title);
+    var recapTopics = showWikiSelectedTopics(source, topics, 4);
+    var topicLabels = recapTopics.map(function (receipt) { return showWikiProseLabel(receipt.label); });
+    var momentLabels = moments.slice(0, 4).map(function (receipt) { return showWikiProseLabel(receipt.label); });
+    var characterLabels = [];
+    characters.slice(0, 4).forEach(function (receipt) {
+      array(receipt.entityIds).forEach(function (entityId) {
+        var characterId = clean(entityId).toLowerCase();
+        if (characterId.indexOf("character:") !== 0) return;
+        var label = characterNames.get(characterId) ||
+          showWikiProseLabel(characterId.split(":").slice(1).join(":").replace(/[-_]+/g, " "));
+        if (label && characterLabels.indexOf(label) < 0) characterLabels.push(label);
+      });
+    });
+    if (!characterLabels.length) {
+      characterLabels = characters.slice(0, 4).map(function (receipt) {
+        return showWikiProseLabel(receipt.label);
+      });
+    }
+    var topicPhrase = showWikiList(topicLabels, "the subjects indexed on this tape");
+    var momentPhrase = showWikiList(momentLabels, "the registered source moments");
+    var overview = title + " is mapped as a " + format.label.toLowerCase() +
+      " running " + showWikiRuntime(source.duration) + ". Its exact caption map centers on " +
+      topicPhrase + (moments.length ? ", while its highest-ranked playable beats carry " +
+      momentPhrase + "." : ". This tape is intentionally limited to topic navigation because no public moment lane is registered.");
+    var blocks = [];
+    if (topics.length) {
+      blocks.push({
+        id: "on-the-slab",
+        label: format.id === "movie-commentary" ? "WHAT THE COMMENTARY KEEPS CIRCLING" : "WHAT IS ON THE SLAB",
+        body: "The source-local topic doors move through " + topicPhrase +
+          ". Each door below stays on this upload and opens at its registered timestamp.",
+        basis: "source-local-topic-navigation-receipts",
+        receiptKeys: recapTopics.map(function (receipt) { return receipt.key; }),
+      });
+    }
+    if (moments.length) {
+      var first = moments[0];
+      blocks.push({
+        id: "where-it-spikes",
+        label: format.id === "ranking-show" ? "WHERE THE BRACKET GETS BLOODY" :
+          format.id === "movie-commentary" ? "WHERE THE COMMENTARY BITES" :
+            format.id === "trailer-reaction" ? "WHERE THE REACTION SPIKES" : "WHERE THE NIGHT SPIKES",
+        body: "The strongest registered beat lands at " + showWikiClock(first.at) +
+          " under “" + showWikiProseLabel(first.label) + ".” The rest of this block preserves the next highest source-local signals without turning machine heat into a creator verdict.",
+        basis: "source-local-moment-receipts-ranked-by-preserved-signal",
+        receiptKeys: moments.slice(0, 4).map(function (receipt) { return receipt.key; }),
+      });
+    }
+    if (characters.length) {
+      blocks.push({
+        id: "characters-walk-in",
+        label: "WHEN THE CHARACTERS WALK IN",
+        body: "Registered character evidence on this tape includes " +
+          showWikiList(characterLabels) + ". These are performance candidates or caption signals; the individual clip speakers remain undiarized.",
+        basis: "source-local-character-receipts-with-speaker-firewall",
+        receiptKeys: characters.slice(0, 4).map(function (receipt) { return receipt.key; }),
+      });
+    } else {
+      var flavor = steves.length ? steves : funny;
+      if (flavor.length) {
+        blocks.push({
+          id: steves.length ? "what-gets-condemned" : "what-breaks-the-room",
+          label: steves.length ? "WHAT GETS SENT TO STEVE" : "WHAT BREAKS THE ROOM",
+          body: steves.length
+            ? "This tape contains strict negative-take candidates tied to explicit movie-related language. They remain evidence candidates, not a claim about who said them."
+            : "The comedy map is led by " + showWikiList(flavor.slice(0, 4).map(function (receipt) { return showWikiProseLabel(receipt.label); })) +
+              ". The exact caption fragments stay attached below rather than being rewritten as quotes.",
+          basis: steves.length ? "strict-source-local-negative-take-gate" : "canonical-source-local-comedy-categories",
+          receiptKeys: flavor.slice(0, 4).map(function (receipt) { return receipt.key; }),
+        });
+      }
+    }
+    return {
+      format: format.label,
+      formatBasis: format.basis,
+      overview: overview,
+      queryAliases: [
+        "summarize this show", "summarize this episode", "summarize this tape",
+        "summarize this commentary", "give me a summary", "show summary",
+        "episode recap", "what happened in this show",
+        "what is this show about", "give me the rundown"
+      ],
+      blocks: blocks.slice(0, 3),
+    };
+  }
+
+  function showWikiFor(source, receipts, characterNames, comedyCategories) {
+    var topics = receipts.filter(function (receipt) {
+      return normalized(receipt.kind).indexOf("topic") >= 0;
+    });
+    var moments = receipts.filter(function (receipt) {
+      return normalized(receipt.kind).indexOf("moment") >= 0;
+    }).slice().sort(signalOrder);
+    var funny = moments.filter(function (receipt) {
+      return comedyCategories.has(receipt.label);
+    }).slice(0, 6);
+    var upInYa = moments.filter(function (receipt) {
+      return receipt.label === "UP IN YA" ||
+        receipt.label === "OUT OF POCKET";
+    }).slice(0, 6);
+    var steves = moments.filter(negativeOpinionReceipt).slice(0, 6);
+    var characters = receipts.filter(function (receipt) {
+      return receipt.evidenceType === "caption-character-signal" ||
+        receipt.evidenceType === "caption-character-context" ||
+        receipt.evidenceType === "curated-character-performance";
+    }).slice().sort(signalOrder).slice(0, 6);
+    var distilled = source.coverage === "caption-backed" &&
+      Boolean(source.summary || receipts.length);
+    var topicNavigationOnly = distilled && !moments.length && topics.length > 0;
+
+    function lane(id, label, description, emptyState, values, queryAliases) {
+      return {
+        id: id,
+        label: label,
+        description: description,
+        emptyState: emptyState,
+        queryAliases: queryAliases,
+        receiptKeys: values.map(function (receipt) { return receipt.key; }),
+      };
+    }
+
+    var laneById = {
+      topics: lane(
+        "topics",
+        "TOPICS",
+        "Timestamped topic-navigation receipts registered to this exact upload.",
+        "No source-local topic-navigation receipts are registered for this show yet.",
+        topics,
+        [
+          "what did they talk about", "where do they talk about",
+          "where did they talk about", "talk about", "what was discussed",
+          "topics", "topics discussed", "what did they cover", "show the topics",
+          "episode topics", "did they talk about any topics",
+          "what topics did they get into", "what is covered in this episode"
+        ]
+      ),
+      "best-moments": lane(
+        "best-moments",
+        "BEST MOMENTS",
+        "Up to six source-local moment receipts ranked by caption-derived signal score, then timestamp.",
+        "No source-local moment receipts are registered for this show yet.",
+        moments.slice(0, 6),
+        [
+          "best moments", "best moment", "top moments", "top moment",
+          "strongest moments", "most memorable moments", "show the highlights",
+          "episode highlights", "which parts should i watch"
+        ]
+      ),
+      "funny-moments": lane(
+        "funny-moments",
+        "FUNNY MOMENTS",
+        "Up to six source-local moment receipts carrying a canonical WWAM comedy category.",
+        "No source-local moment with a canonical comedy category is registered for this show yet.",
+        funny,
+        [
+          "funniest moments", "funniest moment", "funny moments", "funny moment",
+          "what made them laugh", "room breaks", "biggest laughs",
+          "where did they crack up"
+        ]
+      ),
+      "up-in-ya": lane(
+        "up-in-ya",
+        "WWAM UP IN YA",
+        "Moment receipts labeled UP IN YA, plus the legacy OUT OF POCKET label that predates this shelf. Every receipt keeps its original label.",
+        "No moment labeled UP IN YA or its legacy OUT OF POCKET alias is registered for this show yet.",
+        upInYa,
+        [
+          "wwam up in ya", "up in ya", "most deranged moments",
+          "most deranged moment", "wildest moments", "wildest moment",
+          "out of pocket", "craziest thing they said", "craziest things they said",
+          "deranged things they said"
+        ]
+      ),
+      "straight-to-steves-asshole": lane(
+        "straight-to-steves-asshole",
+        "STRAIGHT TO STEVE'S ASSHOLE",
+        "Strict strong-negative-take candidates: an eligible moment label plus negative language and an explicit movie-related referent.",
+        "No source-local moment passes the strict negative-take evidence gate for this show yet.",
+        steves,
+        [
+          "what did they hate", "what did they dislike", "worst moments",
+          "worst moment", "negative takes", "straight to steve",
+          "steves asshole", "sent to steve", "what did the guys hate",
+          "what got sent straight to steve's asshole",
+          "what got sent to steve's asshole"
+        ]
+      ),
+      "character-bits": lane(
+        "character-bits",
+        "CHARACTER BITS",
+        "Source-local character-signal, character-context, and exact curated-performance receipts; machine receipts do not infer performers.",
+        "No character-signal, character-context, or curated-performance receipt is registered for this show yet.",
+        characters,
+        [
+          "which characters", "recurring characters", "character bits",
+          "character moments", "what characters are indexed", "impressions",
+          "character impressions", "character voices", "when do they do voices"
+        ]
+      ),
+    };
+    var format = showWikiFormat(source);
+    var laneOrder = format.id === "movie-commentary"
+      ? ["best-moments", "funny-moments", "up-in-ya", "straight-to-steves-asshole", "character-bits", "topics"]
+      : format.id === "ranking-show"
+        ? ["topics", "straight-to-steves-asshole", "best-moments", "funny-moments", "up-in-ya", "character-bits"]
+        : ["topics", "best-moments", "funny-moments", "up-in-ya", "straight-to-steves-asshole", "character-bits"];
+    var recap = distilled
+      ? showWikiRecapFor(
+        source, receipts, moments, topics, characters, steves, funny, characterNames
+      )
+      : null;
+    var brief = showWikiBriefFor(source);
+
+    return {
+      label: "SHOW WIKI",
+      status: topicNavigationOnly ? "topic-nav-only" : distilled ? "distilled" : brief ? "source-brief" : "queued",
+      description: topicNavigationOnly
+        ? "This source is mapped only through source-local topic navigation; public comedy, character, and reaction moments remain withheld under its audio-boundary policy."
+        : distilled
+          ? "This " + format.label.toLowerCase() + " is rebuilt from source-local caption evidence as a playable episode guide; speaker identity and intent remain unverified."
+          : "Canonical source identity and title-derived format are registered; transcript-derived recap, topics, quotes, reactions, and moment lanes remain sealed until source-local evidence is distilled.",
+      experience: showWikiExperienceFor(source, moments, topics),
+      brief: brief,
+      recap: recap,
+      lanes: laneOrder.map(function (id) { return laneById[id]; }),
+    };
   }
 
   function artifactShell(raw, kind, receiptKeys, sourceIds, creatorDraft) {
@@ -950,25 +1572,24 @@
       counts[type] = number(counts[type]) + 1;
       return counts;
     }, {});
-    if (receipts.length !== 21 ||
-        number(receiptCounts["caption-excerpt"]) !== 7 ||
-        number(receiptCounts["caption-topic-receipt"]) !== 8 ||
-        number(receiptCounts["curated-character-performance"]) !== 6) {
+    if (receipts.length < 21 ||
+        number(receiptCounts["caption-excerpt"]) < 7 ||
+        number(receiptCounts["caption-topic-receipt"]) < 8 ||
+        number(receiptCounts["curated-character-performance"]) < 6) {
       fail(
         "SHOWCASE_PROOF_INCOMPLETE",
-        "The pinned Showcase source must retain its exact 21-receipt proof."
+        "The pinned Showcase source fell below its 21-receipt proof baseline."
       );
     }
     var artifacts = artifactBySource.get(PINNED_SHOWCASE_SOURCE_ID) ||
       emptyArtifacts();
-    if (array(artifacts.takeTimeMachines).length !== 0 ||
-        array(artifacts.bitLineages).length !== 4 ||
-        array(artifacts.shorts).length !== 13 ||
-        array(artifacts.supercuts).length !== 6 ||
-        array(artifacts.resurfacing).length !== 4) {
+    if (array(artifacts.bitLineages).length < 4 ||
+        array(artifacts.shorts).length < 13 ||
+        array(artifacts.supercuts).length < 6 ||
+        array(artifacts.resurfacing).length < 4) {
       fail(
         "SHOWCASE_ARTIFACT_PROOF_INCOMPLETE",
-        "The pinned Showcase source must retain its exact 27 artifact memberships."
+        "The pinned Showcase source fell below its 27-artifact membership baseline."
       );
     }
   }
@@ -988,13 +1609,22 @@
     var clipLab = input.clipLab || null;
     var dna = input.dna || input.channelDNA || {};
     var characterLore = input.characters || input.characterLore || {};
+    var showWikiCharacterNameMap = showWikiCharacterNames(characterLore);
+    var showWikiComedyCategories = new Set(array(dna.taxonomy && dna.taxonomy.comedySignals)
+      .map(clean).filter(Boolean));
+    if (!showWikiComedyCategories.size) {
+      ["OUT OF POCKET", "BREAKDOWN", "BIT ENERGY", "THE ROOM BREAKS",
+       "UP IN YA", "CHAT DID THIS", "FULL SEND"].forEach(function (label) {
+        showWikiComedyCategories.add(label);
+      });
+    }
 
-    assertCount(atlasRecords, EXPECTED_ATLAS_SOURCES, "WWAM Archive Atlas");
-    assertCount(catalog, EXPECTED_CATALOG_SOURCES, "WWAM commentary catalog");
-    if (archiveStreams.length !== 40) {
+    assertMinimumCount(atlasRecords, MINIMUM_ATLAS_SOURCES, "WWAM Archive Atlas");
+    assertMinimumCount(catalog, MINIMUM_CATALOG_SOURCES, "WWAM commentary catalog");
+    if (archiveStreams.length < 40) {
       fail(
         "ARCHIVE_DEEP_COUNT_INVALID",
-        "The normalized Archive Deep portfolio must contain all 40 sources."
+        "The normalized Archive Deep portfolio fell below its 40-source baseline."
       );
     }
     if (!showcase || !Array.isArray(showcase.sources) ||
@@ -1015,8 +1645,12 @@
     var archiveById = mapById(archiveStreams, "WWAM Archive Deep");
     var atlasIds = new Set(atlasById.keys());
 
-    if (deepById.size && deepById.size !== EXPECTED_CATALOG_SOURCES) {
-      fail("DEEP_DISTILL_COUNT_INVALID", "Commentary Deep Distill must contain 39 tapes.");
+    if (deepById.size < MINIMUM_CATALOG_SOURCES) {
+      fail(
+        "DEEP_DISTILL_COUNT_INVALID",
+        "Commentary Deep Distill fell below its " +
+          MINIMUM_CATALOG_SOURCES + "-tape baseline."
+      );
     }
     if (liveById.size && liveById.size !== 10) {
       fail("FRESH_COUNT_INVALID", "Fresh must contain exactly ten sources.");
@@ -1028,21 +1662,18 @@
     assertSubset(popularStreams, atlasIds, "WWAM Popular 25");
     assertSubset(archiveStreams, atlasIds, "WWAM Archive Deep");
 
-    if (deepById.size) {
-      var deepIds = stableStrings(Array.from(deepById.keys()));
-      var catalogIds = stableStrings(Array.from(catalogById.keys()));
-      if (JSON.stringify(deepIds) !== JSON.stringify(catalogIds)) {
-        fail("DEEP_CATALOG_MISMATCH", "Commentary distill IDs must equal catalog IDs.");
-      }
-    }
-
+    assertSubset(
+      array(deep.tapes),
+      new Set(catalogById.keys()),
+      "WWAM commentary Deep Distill"
+    );
     var overlap = Array.from(catalogById.keys()).filter(function (id) {
       return atlasById.has(id);
     });
-    if (overlap.length !== 1 || overlap[0] !== EXPECTED_OVERLAP_ID) {
+    if (overlap.indexOf(EXPECTED_OVERLAP_ID) < 0) {
       fail(
         "FEED_CATALOG_OVERLAP_INVALID",
-        "WWAM feed/catalog overlap must be exactly " + EXPECTED_OVERLAP_ID + "."
+        "WWAM feed/catalog overlap must retain " + EXPECTED_OVERLAP_ID + "."
       );
     }
 
@@ -1114,10 +1745,15 @@
       });
     });
 
-    if (canonical.size !== EXPECTED_CANONICAL_SOURCES) {
+    var expectedCanonicalUnion =
+      atlasById.size + catalogById.size - overlap.length;
+    if (canonical.size !== expectedCanonicalUnion ||
+        canonical.size < MINIMUM_CANONICAL_SOURCES) {
       fail(
         "CANONICAL_SOURCE_COUNT_INVALID",
-        "WWAM canonical dossier union must contain exactly 510 source IDs."
+        "WWAM canonical dossier union must equal the current de-duplicated " +
+          "Atlas/catalog union and retain at least " +
+          MINIMUM_CANONICAL_SOURCES + " source IDs."
       );
     }
 
@@ -1131,6 +1767,11 @@
       var showcaseSource = showcaseSources.get(id) || null;
       var overlay = archiveStream || commentaryTape || liveStream || popularStream ||
         showcaseSource || null;
+      var overlayHasCaptionEvidence = Boolean(overlay && (
+        number(overlay.wordsAudited || overlay.words) > 0 ||
+        array(overlay.topics || overlay.chapters).length > 0 ||
+        array(overlay.moments || overlay.highlights || overlay.soundbytes).length > 0
+      ));
       var authority = archiveIds.has(id)
         ? "quarantined-lane"
         : promotedIds.has(id)
@@ -1151,7 +1792,7 @@
         liveStatus: archiveStream
           ? clean(archiveStream.liveStatus) || base.liveStatus
           : base.liveStatus,
-        coverage: base.coverage,
+        coverage: overlayHasCaptionEvidence ? "caption-backed" : base.coverage,
         authority: authority,
         lanes: base.lanes,
         sourceType: catalogItem ? "commentary" : "livestream",
@@ -1264,6 +1905,15 @@
         }
       }
       receipts = stableReceipts(receipts);
+      source.showWiki = showWikiFor(
+        source, receipts, showWikiCharacterNameMap, showWikiComedyCategories
+      );
+      if (source.showWiki.recap) {
+        source.summary = {
+          text: source.showWiki.recap.overview,
+          basis: "source-local-format-aware-recap/v1",
+        };
+      }
 
       var entities = buildEntities(
         source,
@@ -1299,11 +1949,11 @@
     var receiptTotal = sources.reduce(function (total, source) {
       return total + source.receipts.length;
     }, 0);
-    if (receiptTotal !== EXPECTED_RECEIPTS) {
+    if (receiptTotal < BASELINE_RECEIPTS_BEFORE_YEAR_CANON) {
       fail(
         "NORMALIZED_RECEIPT_COUNT_INVALID",
-        "The normalized WWAM dossier must retain exactly " +
-          EXPECTED_RECEIPTS + " source receipts."
+        "The normalized WWAM dossier fell below the pre-expansion receipt baseline of " +
+          BASELINE_RECEIPTS_BEFORE_YEAR_CANON + "."
       );
     }
 

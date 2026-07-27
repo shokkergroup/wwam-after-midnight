@@ -79,7 +79,8 @@ The portable engine recognizes typed source-local lanes:
 - artifacts, drafts, Shorts, supercuts, and opportunities;
 - related-source connections;
 - source proof and metadata;
-- a registered source summary; and
+- a registered source summary;
+- registered Show Wiki recap, experience, and lane aliases; and
 - a bounded free-text search over the current dossier.
 
 The output types are `receipt`, `entity`, `artifact`, `connection`, and
@@ -98,6 +99,75 @@ The engine also preserves explicit non-answer states:
 “Who said this?” cannot invent a speaker from undiarized automatic captions.
 “What is the funniest/best/craziest moment?” cannot manufacture an objective
 source ranking merely because receipt labels or heat values exist.
+
+## Show Wiki V1.4 episode routing
+
+Show Wiki V1.4 adds a narrow exception to generic ranking refusal: a channel
+adapter may register explicit query aliases for this exact episode's recap,
+watch path, and named lanes. The alias selects a declared source-local
+navigation contract; it does not infer an objective ranking from heat, wording,
+profanity, or dossier order.
+
+For WWAM, the registered destinations include:
+
+- Episode Recap;
+- The Midnight Cut or The Topic Hop;
+- Topics;
+- Best Moments;
+- Funny Moments;
+- WWAM UP IN YA;
+- Straight to Steve's Asshole; and
+- Character Bits.
+
+The query engine applies these rules in order:
+
+1. Build and verify the exact requested Source Dossier.
+2. Preserve metadata, coverage, and speaker-refusal boundaries.
+3. Match only aliases declared on that dossier's recap, experience, or lanes.
+4. Resolve results only from the receipt keys registered to the matched
+   component.
+5. When a subject remains after the alias, intersect that subject with the
+   selected lane. `Where do they talk about Batman?` can return the Batman
+   topic receipt from this episode, but not an unrelated Batman receipt or a
+   keyword hit outside the Topics lane.
+6. Return `insufficient-evidence` when the registered component is empty or its
+   receipts do not match the requested subject.
+
+Supported episode answers carry a validation envelope:
+
+```text
+kind: recap | experience | lane
+id: registered component ID
+label: adapter-authored public label
+matchedAlias: exact normalized alias that routed the question
+totalReceipts: complete registered component size
+matchedReceipts: source-local subject intersection size
+shownReceipts: bounded visible receipt count
+```
+
+The UI independently compares that envelope with the canonical Show Wiki. A
+changed component ID, count, source, or fingerprint, a foreign receipt, or a
+same-source receipt outside the registered recap, experience, or lane is held
+with no receipt cards. This prevents a stale or dishonest query result from
+deep-linking into a different lane.
+
+A source without a registered Show Wiki ranking lane still returns
+`ranking-refused` for `funniest`, `best moment`, or equivalent superlatives. A
+registered but empty lane returns an explicit source-local evidence gap, not a
+global fallback.
+
+Speaker questions remain stronger than episode aliases. Even if a question
+also contains `funniest` or a lane term, automatic captions cannot be converted
+into a host identity. Any returned receipt is navigation only and keeps
+`speaker: null` / `speakerStatus: not-diarized`.
+
+The integrated V1.4 audit covers all 510 registered shows: 99 `distilled`, 12
+`topic-nav-only`, and 399 `queued`, with 111 distinct receipt-bound recaps and
+1,490 unique registered receipts. Its editorial checks certify 15 strict Steve
+receipts, 37 named character recap blocks with 0 generic blocks, 7 restored
+moments across BIT ENERGY and CHAT DID THIS, and 53/53 title-relevant topic
+selections wherever topic evidence exists. The integrated release gate passes
+178/178 relevant tests with build, lint, and diff checks green.
 
 ## Exact playback bounds
 

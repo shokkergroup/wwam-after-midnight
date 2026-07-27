@@ -1,11 +1,11 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "2.1.0";
+  var VERSION = "2.3.0";
   var POLICY = "strict-origin-when-cross-origin";
   var VIDEO_ID = /^[A-Za-z0-9_-]{11}$/;
   var HOSTED_PLAYER =
-    "https://wwam-after-midnight.downndirtytn.chatgpt.site/demo/youtube-player.html";
+    "https://wwam-after-midnight.downndirtytn.chatgpt.site/demo/media-bridge.html";
 
   function pageIdentity() {
     var location = root.location || {};
@@ -20,13 +20,14 @@
     };
   }
 
-  function bridgeUrl() {
+  function bridgeUrl(forceHosted) {
+    if (forceHosted === true) return HOSTED_PLAYER;
     var identity = pageIdentity();
     if (!identity.origin) return HOSTED_PLAYER;
     var directory = /\/$/.test(identity.pathname)
       ? identity.pathname
       : identity.pathname.replace(/[^/]*$/, "");
-    return identity.origin + (directory || "/") + "youtube-player.html";
+    return identity.origin + (directory || "/") + "media-bridge.html";
   }
 
   function playerQuery(options) {
@@ -54,16 +55,16 @@
     var config = options || {};
     var query = playerQuery(config);
     var identity = pageIdentity();
+    if (identity.referrer) {
+      query.set("widget_referrer", identity.referrer);
+    }
     if (identity.origin && config.forceHostedBridge !== true) {
       query.set("origin", identity.origin);
       return "https://www.youtube.com/embed/" + encodeURIComponent(id) +
         "?" + query.toString();
     }
     query.set("video", id);
-    if (identity.referrer) {
-      query.set("widget_referrer", identity.referrer);
-    }
-    return bridgeUrl() + "?" + query.toString();
+    return bridgeUrl(config.forceHostedBridge === true) + "?" + query.toString();
   }
 
   function escapeAttribute(value) {
@@ -93,10 +94,10 @@
       '<iframe src="' + escapeAttribute(src) +
       '" title="' + escapeAttribute(config.title || "Official YouTube source playback") +
       '" referrerpolicy="' + POLICY +
-      '" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>' +
+      '" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen" allowfullscreen></iframe>' +
       '<button class="shokker-youtube-recover" type="button"' +
       ' data-shokker-youtube-recover aria-label="Reload this source inside the page">' +
-      'PLAYER ERROR? RECOVER HERE</button></div>';
+      'HAVING TROUBLE? TRY RECOVERY</button></div>';
   }
 
   function recoverPlayer(button) {

@@ -74,12 +74,25 @@ function digest(value) {
   return crypto.createHash("sha256").update(value).digest("hex");
 }
 
+function stripProviderHtmlInstrumentation(source) {
+  const marker = "<script>(function(){function c(){";
+  const start = source.lastIndexOf(marker);
+  if (start < 0) return source;
+  const end = source.indexOf("</script>", start);
+  const injected = end >= 0 ? source.slice(start, end) : "";
+  if (!injected.includes("window.__CF$cv$params")) return source;
+  return source.slice(0, start) + source.slice(end + "</script>".length);
+}
+
 function verifyCurrentAsset(source, filename, label) {
   const expected = fs.readFileSync(path.join(DEMO_DIR, filename), "utf8");
+  const deployed = /\.html?$/i.test(filename)
+    ? stripProviderHtmlInstrumentation(source)
+    : source;
   invariant(
-    source === expected,
+    deployed === expected,
     `${label} does not match this release ` +
-      `(deployed ${digest(source)}, expected ${digest(expected)}).`,
+      `(deployed ${digest(deployed)}, expected ${digest(expected)}).`,
   );
 }
 
@@ -173,7 +186,7 @@ export async function runCheck(baseUrl = DEFAULT_BASE, options = {}) {
 
   const helperUrl = new URL(helperEntry.src, indexUrl);
   const appUrl = new URL(appEntry.src, indexUrl);
-  const bridgeUrl = new URL("youtube-player.html", helperUrl);
+  const bridgeUrl = new URL("media-bridge.html", helperUrl);
   const [helperResponse, bridgeResponse, appResponse] = await Promise.all([
     fetchText(helperUrl, "YouTube playback helper", fetchImpl),
     fetchText(bridgeUrl, "Hosted YouTube bridge", fetchImpl),
@@ -200,7 +213,7 @@ export async function runCheck(baseUrl = DEFAULT_BASE, options = {}) {
   );
   verifyCurrentAsset(
     bridgeResponse.text,
-    "youtube-player.html",
+    "media-bridge.html",
     "Deployed hosted bridge",
   );
 
@@ -225,7 +238,7 @@ export async function runCheck(baseUrl = DEFAULT_BASE, options = {}) {
   return result;
 }
 
-const invokedDirectly = process.argv[1] &&
+const invokedDirectly = typeof process !== "undefined" && process.argv[1] &&
   import.meta.url === pathToFileURL(process.argv[1]).href;
 if (invokedDirectly) {
   runCheck(process.argv[2]).catch((error) => {

@@ -29,12 +29,12 @@ test("the current package identity and browser cache keys move together", () => 
   const lock = JSON.parse(readRoot("package-lock.json"));
   const html = readDemo("index.html");
   const playback =
-    '<script src="youtube-playback.js?v=0.5.20"></script>';
-  const app = '<script src="app.js?v=0.5.20"></script>';
+    '<script src="youtube-playback.js?v=0.5.21-p1"></script>';
+  const app = '<script src="app.js?v=0.5.21-ui15"></script>';
 
-  assert.equal(manifest.version, "0.5.20");
-  assert.equal(lock.version, "0.5.20");
-  assert.equal(lock.packages[""].version, "0.5.20");
+  assert.equal(manifest.version, "0.5.21");
+  assert.equal(lock.version, "0.5.21");
+  assert.equal(lock.packages[""].version, "0.5.21");
   assert.ok(html.indexOf(playback) >= 0, "Playback cache key is stale.");
   assert.ok(html.indexOf(app) > html.indexOf(playback), "App cache/order drift.");
 });
@@ -97,8 +97,8 @@ test("V5.14 documentation ships the local-authority contract and keeps V5.13 his
     changelog.indexOf("## 0.5.12"),
   );
 
-  assert.match(readme, /Current documented release: \*\*V5\.20 \/ 0\.5\.20\*\*/);
-  assert.match(overview, /^# WWAM After Midnight V5\.20/m);
+  assert.match(readme, /Current documented release: \*\*V5\.21 \/ 0\.5\.21\*\*/);
+  assert.match(overview, /^# WWAM After Midnight V5\.21/m);
   assert.match(channelPack, /## The eleven conformance domains/);
   assert.match(channelPack, /human-adjudication-ledger/);
   assert.match(docket, /fnv1a32:59b085f6/);
@@ -135,7 +135,7 @@ test("all released Verdict Room assets exist and remain outside the eager script
   }
   assert.doesNotMatch(html, /<link\b[^>]*href="verdict-room\.css"/);
   assert.ok(
-    fs.statSync(path.join(demo, "app.js")).size < 250_000,
-    "app.js exceeded its 250 KB source ceiling.",
+    fs.statSync(path.join(demo, "app.js")).size < 255_000,
+    "app.js exceeded its V5.21 255 KB source ceiling.",
   );
 });

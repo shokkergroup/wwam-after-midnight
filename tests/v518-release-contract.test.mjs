@@ -13,12 +13,14 @@ const readDemo = (file) => fs.readFileSync(path.join(demo, file), "utf8");
 const SECTION_IDS = {
   proof: "sourceDossierProof",
   player: "sourceDossierPlayerSection",
+  wiki: "sourceDossierShowWiki",
   inside: "sourceDossierInside",
   ask: "sourceDossierAsk",
   footprint: "sourceDossierFootprint",
   wake: "sourceDossierWake",
   chronology: "sourceDossierChronology",
   work: "sourceDossierWork",
+  aftermath: "sourceDossierAftermath",
   boundary: "sourceDossierBoundary",
 };
 
@@ -35,12 +37,12 @@ function frozenObject(source, name) {
 
 function sourceDossierLoaderAssets(app) {
   const match = app.match(
-    /loadStyle\(["']source-dossier\.css["']\)[\s\S]*?return\s*\[([\s\S]*?)\]\.reduce/,
+    /loadStyle\(["']source-dossier\.css\?v=1\.7\.0["']\)[\s\S]*?return\s*\[([\s\S]*?)\]\.reduce/,
   );
   assert.ok(match, "Source Dossier lazy-loader list is missing");
   return Array.from(
-    match[1].matchAll(/["']([^"']+\.js)["']/g),
-    (entry) => entry[1],
+    match[1].matchAll(/["']([^"']+\.js(?:\?[^"']+)?)["']/g),
+    (entry) => entry[1].split("?")[0],
   );
 }
 
@@ -140,23 +142,29 @@ function metadataMap(html) {
   return output;
 }
 
-test("V5.18 package, lockfile, cache keys, and Ask This Tape docs move together", () => {
+test("V5.18 package, lane-specific cache keys, and Ask This Tape docs move together", () => {
   const manifest = JSON.parse(readRoot("package.json"));
   const lock = JSON.parse(readRoot("package-lock.json"));
   const html = readDemo("index.html");
 
-  assert.equal(manifest.version, "0.5.20");
-  assert.equal(lock.version, "0.5.20");
-  assert.equal(lock.packages[""].version, "0.5.20");
+  assert.equal(manifest.version, "0.5.21");
+  assert.equal(lock.version, "0.5.21");
+  assert.equal(lock.packages[""].version, "0.5.21");
 
   const cacheVersions = Array.from(
     html.matchAll(/\?v=(\d+\.\d+\.\d+)/g),
     (match) => match[1],
   );
   assert.ok(cacheVersions.length >= 2, "expected versioned runtime cache keys");
-  assert.deepEqual(new Set(cacheVersions), new Set(["0.5.20"]));
-  assert.match(html, /youtube-playback\.js\?v=0\.5\.20/);
-  assert.match(html, /app\.js\?v=0\.5\.20/);
+  assert.deepEqual(
+    new Set(cacheVersions),
+    new Set(["0.5.21", "0.5.27", "0.5.28", "1.0.0"]),
+  );
+  assert.match(html, /styles\.css\?v=0\.5\.27-year-canon/);
+  assert.match(html, /search-engine\.js\?v=0\.5\.28-year-canon-ask/);
+  assert.match(html, /youtube-playback\.js\?v=0\.5\.28-year-canon-player2/);
+  assert.match(html, /app\.js\?v=0\.5\.28-year-canon/);
+  assert.match(html, /guided-shell\.js\?v=1\.0\.0/);
 
   const guidePath = path.join(root, "docs", "ASK_THIS_TAPE.md");
   assert.equal(fs.existsSync(guidePath), true, "Ask This Tape guide is missing");
@@ -219,7 +227,7 @@ test("the exact-source engine loads in order and replaces title-to-global Ask", 
   assert.match(ui, /Archive-wide Ask was not used/i);
 });
 
-test("source sections, query options, and the July 23 hero action stay exact", () => {
+test("source sections, query options, and the newest-show hero action stay exact", () => {
   const app = readDemo("app.js");
   const ui = readDemo("source-dossier-ui.js");
   const html = readDemo("index.html");
@@ -249,20 +257,20 @@ test("source sections, query options, and the July 23 hero action stay exact", (
 
   assert.match(
     html,
-    /id="latestDossierButton"[^>]*>INTERROGATE THE JULY 23 TAPE/i,
+    /id="latestDossierButton"[^>]*>OPEN THE NEWEST SHOW WIKI/i,
   );
   const heroHandler = app.match(
     /document\.getElementById\(["']latestDossierButton["']\)\.onclick\s*=\s*function\s*\(\)\s*\{([\s\S]*?)\n\s*\};/,
   );
   assert.ok(heroHandler, "the July 23 hero control has no action");
-  assert.match(heroHandler[1], /LV2rmwEA0w4/);
+  assert.match(heroHandler[1], /\(live\.streams\[0\]\s*\|\|\s*\{id:"LV2rmwEA0w4"\}\)\.id/);
   assert.match(heroHandler[1], /openSourceDossier\s*\(/);
-  assert.match(heroHandler[1], /section:\s*["']ask["']/);
-  assert.match(heroHandler[1], /query:\s*["'][^"']*Dr\. Loomis[^"']*["']/i);
+  assert.match(heroHandler[1], /section:\s*["']wiki["']/);
+  assert.match(heroHandler[1], /routeMode:\s*["']push["']/);
   assert.match(heroHandler[1], /autoplay:\s*false/);
 });
 
-test("Mike Mode separates current V5.18 dossier proof from frozen V5.4 proof", () => {
+test("Showcase Mode keeps the current exact-source registry proof explicit", () => {
   const window = {};
   vm.runInNewContext(readDemo("pitch-tour-data.js"), {
     window,
@@ -272,24 +280,17 @@ test("Mike Mode separates current V5.18 dossier proof from frozen V5.4 proof", (
   const sourceSlide = window.WWAM_PITCH_TOUR.find(
     (slide) => slide.action && slide.action.kind === "source",
   );
-  assert.ok(sourceSlide, "Mike Mode is missing its source-session slide");
+  assert.ok(sourceSlide, "Showcase Mode is missing its source-session slide");
   const proof = sourceSlide.proof;
-  const currentMarker = proof.indexOf("CURRENT V5.18 SOURCE REGISTRY");
-  const frozenMarker = proof.indexOf("FROZEN V5.4 PROMOTED PROOF SET");
-  assert.ok(currentMarker >= 0, "current V5.18 proof is not labeled");
-  assert.ok(frozenMarker > currentMarker, "frozen V5.4 proof is not separated");
-
-  const current = proof.slice(currentMarker, frozenMarker);
-  const frozen = proof.slice(frozenMarker);
-  for (const value of ["510", "1,490", "111", "390", "9"]) {
-    assert.match(current, new RegExp(`\\b${value.replace(",", ",?")}\\b`));
+  for (const value of ["510", "194", "16", "300", "3,310"]) {
+    assert.match(proof, new RegExp(`\\b${value.replace(",", ",?")}\\b`));
   }
-  assert.match(current, /CAPTION-BACKED/i);
-  assert.match(current, /METADATA-ONLY/i);
-  assert.match(current, /CAPTION-LIMITED/i);
-  assert.match(frozen, /\b84\b/);
-  assert.match(frozen, /\b872\b/);
-  assert.doesNotMatch(current, /\b872\b/);
+  assert.match(proof, /SOURCE FILES/i);
+  assert.match(proof, /FULL SHOW WIKIS/i);
+  assert.match(proof, /TOPIC-NAVIGATION ONLY/i);
+  assert.match(proof, /HONEST SOURCE BRIEFS/i);
+  assert.match(proof, /SOURCE RECEIPTS/i);
+  assert.doesNotMatch(proof, /FROZEN|PROMOTED PROOF SET|\b872\b/i);
 });
 
 test("Tape Companion uses the Atlas union and preserves 510 / 71 / 439", () => {
@@ -339,7 +340,7 @@ test("Tape Companion uses the Atlas union and preserves 510 / 71 / 439", () => {
   assert.equal(companion.evidencePolicy.sourcePlaybackOnly, true);
 });
 
-test("/og.png and both metadata surfaces advertise the exact-tape experience", () => {
+test("/og.png and both metadata surfaces advertise the living show-wiki experience", () => {
   const html = readDemo("index.html");
   const layout = readRoot("app/layout.tsx");
   const metadata = metadataMap(html);
@@ -354,22 +355,21 @@ test("/og.png and both metadata surfaces advertise the exact-tape experience", (
   assert.equal(image.readUInt32BE(20), 630);
   assert.ok(image.length > 100_000, "og.png looks like a placeholder");
 
-  assert.match(metadata.get("description") || "", /510/);
-  assert.match(metadata.get("description") || "", /1,490/);
-  assert.match(metadata.get("og:title") || "", /Ask This Tape/i);
-  assert.match(metadata.get("og:description") || "", /510/);
-  assert.match(metadata.get("og:description") || "", /1,490/);
-  assert.match(metadata.get("og:description") || "", /wrong-tape substitutions/i);
+  assert.match(metadata.get("description") || "", /playable show wikis/i);
+  assert.match(metadata.get("description") || "", /2025.2026 canon/i);
+  assert.match(metadata.get("og:title") || "", /Living Archive/i);
+  assert.match(metadata.get("og:description") || "", /Every show becomes a playable wiki/i);
+  assert.match(metadata.get("og:description") || "", /source-linked WWAM lore/i);
   assert.equal(metadata.get("og:image"), "/og.png");
-  assert.match(metadata.get("og:image:alt") || "", /Ask This Tape/i);
+  assert.match(metadata.get("og:image:alt") || "", /Living Archive/i);
   assert.equal(metadata.get("twitter:card"), "summary_large_image");
   assert.equal(metadata.get("twitter:image"), "/og.png");
 
   assert.match(layout, /new URL\(["']\/og\.png["'],\s*base\)/);
-  assert.match(layout, /title:\s*["'][^"']*Ask This Tape[^"']*["']/);
-  assert.match(layout, /510 source dossiers\.\s*1,490 receipts\.\s*Zero wrong-tape substitutions\./);
+  assert.match(layout, /title:\s*["'][^"']*Living Archive[^"']*["']/);
+  assert.match(layout, /Every show becomes a playable wiki/);
   assert.match(
     layout,
-    /images:\s*\[\{\s*url:\s*image,\s*width:\s*1200,\s*height:\s*630,[\s\S]{0,100}Ask This Tape/,
+    /images:\s*\[\{\s*url:\s*image,\s*width:\s*1200,\s*height:\s*630,[\s\S]{0,100}Living Archive/,
   );
 });

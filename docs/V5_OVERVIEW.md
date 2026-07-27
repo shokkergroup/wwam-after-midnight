@@ -1,4 +1,4 @@
-# WWAM After Midnight V5.20
+# WWAM After Midnight V5.21
 
 ## One-sentence product
 
@@ -39,9 +39,17 @@ across 12 official uploads and 350 source seconds. A separate 52-record
 Archive Deep machine-echo layer remains unbounded, quarantined, and excluded
 from playback.
 
+V5.21 makes archive-wide questions structurally exact. **Receipt Matrix**
+distinguishes official-upload counts from eligible receipt counts, intersects
+multiple entities only inside the same canonical source, ranks sources by
+deduplicated evidence, and emits exact chronological routes. The current proof
+is seven Loomis receipts in five sources, 11 Loomis-plus-Challis receipts in
+four sources, and a 25-receipt four-character ranking across 12 sources. The
+feature is embedded in Ask WWAM and reuses Source Dossier playback.
+
 ## Audited snapshot
 
-V5.20 keeps a frozen release proof, the V5.12 Archive Deep overlay, the V5.13
+V5.21 keeps a frozen release proof, the V5.12 Archive Deep overlay, the V5.13
 longitudinal docket, the V5.14 device-local adjudication overlay, and the new
 playable-answer projection and evidence-relationship gate visibly separate.
 The **immutable V5.4 proof** remains:
@@ -168,6 +176,40 @@ The combined portfolio fingerprint is `fnv1a32:14050c7a`. Batch 01, 02, 03,
 and 04 retain `fnv1a32:17045a51`, `fnv1a32:bcea5692`,
 `fnv1a32:f79f2399`, and `fnv1a32:56ca74df`, respectively. These FNV values
 detect structural change; they do not authenticate the sources or an operator.
+
+## Receipt Matrix
+
+Receipt Matrix answers explicit archive-wide source-set questions inside Ask
+WWAM. It runs against the same canonical Source Dossiers used by source pages,
+playback, Midnight Cut, and Bit Bloodlines.
+
+| V5.21 matrix proof | Current result |
+| --- | ---: |
+| Loomis eligible receipts / unique sources | 7 / 5 |
+| Loomis + Challis eligible receipts / same-source groups | 11 / 4 |
+| Four-character eligible receipts / matching sources | 25 / 12 |
+| Highest current source | `LV2rmwEA0w4` / 6 |
+| Second / third current sources | `ag3axSC9BpU` / 5; `N-UahfG8-gM` / 3 |
+
+Five query shapes are supported: one-entity source count, multiple-entity
+same-source intersection, configured-group source ranking, one-entity
+chronology, and lineage. Unsupported ordinary Ask questions continue through
+the existing Ask engine; an explicit matrix question with an unknown entity
+returns an honest unknown state rather than falling into fuzzy retrieval.
+
+The result keeps three meanings separate:
+
+- a **unique source** is one official upload containing eligible evidence;
+- an **eligible receipt** is one deduplicated, exact-policy evidence row; and
+- **same-source coverage** means each requested entity has eligible evidence
+  somewhere in the upload, not that the entities interact or share a speaker.
+
+Every playable row preserves its source ID, receipt key, source and dossier
+fingerprints, start, end, evidence tier, and all-false public authority. The
+export is an evidence/navigation packet only. It carries no media and grants no
+approval, rights, authorship, speaker identity, causality, or Canon status.
+
+See [Receipt Matrix](RECEIPT_MATRIX.md).
 
 ## The Midnight Cut
 
@@ -664,6 +706,11 @@ The archive becomes navigable memory:
   source ID plus fingerprint before query parsing, refuses cross-source
   substitution and title inference, and returns zero content receipts when
   this exact upload cannot support the request.
+- Receipt Matrix intercepts only explicit source-set questions. It separates
+  unique upload totals from eligible receipt totals, supports same-source
+  intersections and source rankings, and can order exact performance evidence
+  chronologically. Shared receipts deduplicate; metadata, artifacts, and
+  unbounded machine candidates cannot inflate the result.
 - Ask WWAM's Answer Frame V2 separates action, scope, primary and secondary
   targets, predicates, selectors, and anchors before retrieval. Semantic target
   fit gates archive heat, so a direct answer from the right source cannot be
@@ -796,6 +843,32 @@ Mike Mode is the shortest route through the commercial argument:
    the preselected Archive Discovery Creator Pilot, inspect its acceptance
    checks, and keep every business outcome at `MEASURE DURING PILOT`.
 
+### Mike's V5.21 matrix proof
+
+Open **Ask WWAM** and enter:
+
+```text
+How many uploads feature Dr. Loomis?
+```
+
+Point to the two different totals: five official uploads, seven eligible
+receipts. Then ask:
+
+```text
+Which uploads contain both Dr. Loomis and Dr. Challis performances?
+```
+
+The result must show four source groups and 11 exact receipts. Open one group,
+play one bounded row, and use the official-source action. Finish with:
+
+```text
+Which source has the most character performances?
+```
+
+The ranking begins 6 / 5 / 3 for `LV2rmwEA0w4`, `ag3axSC9BpU`, and
+`N-UahfG8-gM`. Say: ?This is not a chatbot estimating from mentions. It is a
+deduplicated source ledger that can show every coordinate behind its count.?
+
 ### Mike's V5.20 bloodline proof
 
 Open **Memory OS -> Bit Bloodlines**. Slenderman Dispatch should be selected
@@ -897,6 +970,11 @@ performance receipts preserve exact 14-second end bounds; its Archive Deep
 records are 24 machine character signals plus 28 machine character contexts,
 not curated performances.
 
+Receipt Matrix is a read-only projection of that registry. It never changes a
+receipt's tier or authority, and its intersection boundary is deliberately
+weak: co-occurrence inside one upload does not prove interaction, causality,
+origin, speaker identity, approval, rights, or Canon.
+
 The separate promoted Trust ledger remains:
 
 - 71 healthy sources and 3 visible caption gaps;
@@ -961,6 +1039,7 @@ consistently shortened at render time.
 | Static, source-linked fan experience | Official branding and approval |
 | Deterministic browser engines | Authenticated accounts and server storage |
 | Exact-source questions with source-ID/fingerprint lock and honest refusal | Open-domain conversational coverage or authority beyond registered source evidence |
+| Exact unique-source counts, same-source intersections, source rankings, and chronological receipt routes | Open-domain entity extraction, inferred relationships, or authority beyond the configured evidence policy |
 | Exact YouTube timestamp jumps | Licensed media editing or hosting |
 | Source-synchronized companion rail with manual fallback | Guaranteed player API availability or owned playback |
 | Exact ordered playable-answer trails with same-coordinate player recovery | Guaranteed third-party embed availability or owned playback |
@@ -989,6 +1068,11 @@ personality and proof are not generic.
 
 The reusable patterns now include:
 
+- **Source-set arithmetic:** a channel adapter supplies canonical entities,
+  aliases, groups, and an exact receipt-eligibility policy. The universal
+  matrix separately reports source count, deduplicated receipt count, and
+  per-entity coverage; a horror-character intersection and a driver/event
+  intersection run through the same core without sharing channel vocabulary.
 - **Synchronized evidence:** a source adapter supplies official playback,
   exact receipt markers, derived heat windows, entity annotations, and
   receipt-backed connections. Share and resume state bind to channel, archive,

@@ -98,33 +98,94 @@ interpretation.
 See [Ask This Tape](ASK_THIS_TAPE.md) for the request/response contract and
 the three-source buyer proof.
 
+## Per-Show Wiki V1.4
+
+Show Wiki V1.4 is the episode-facing layer inside the Source Dossier. It keeps
+the exact source lock while turning registered evidence into a recap, watch
+path, and six WWAM-native lanes: Topics, Best Moments, Funny Moments, WWAM UP
+IN YA, Straight to Steve's Asshole, and Character Bits.
+
+The adapter projects three honest states:
+
+- `distilled` for caption-backed pages with registered moment evidence;
+- `topic-nav-only` for pages that can expose safe topic doors but must not
+  present source audio as host reaction; and
+- `queued` for pages that retain source proof and official playback without
+  invented summaries, topics, jokes, takes, characters, or highlight routes.
+
+The integrated V1.4 audit certifies the complete registered corpus:
+
+| Audit measure | Certified result |
+| --- | --- |
+| Canonical Show Wikis | 510 |
+| Truth-state split | 99 `distilled` / 12 `topic-nav-only` / 399 `queued` |
+| Distinct receipt-bound recaps | 111 |
+| Unique registered receipts | 1,490 |
+| Strict Steve receipts | 15 |
+| Character recap blocks | 37 named / 0 generic |
+| Restored legacy comedy moments | 7 restored across BIT ENERGY and CHAT DID THIS |
+| Title-relevant topic selection | 53/53 where topic evidence exists |
+| Integrated verification | 178/178 relevant tests; build, lint, and diff green |
+
+Ask This Tape can route directly to aliases registered on this exact episode's
+recap, Midnight Cut / Topic Hop, or signature lanes. A remaining subject term
+intersects only the selected lane's local receipt keys. Empty lanes return
+`insufficient-evidence`; an unrelated upload is never used as a fallback. The
+UI validates the returned episode ID, registered/matched/shown counts, source,
+fingerprint, canonical receipt identity, and membership in the matched recap,
+experience, or lane. It rejects foreign receipts and same-source receipts from
+another lane before displaying an answer or deep link.
+
+The episode interface adds:
+
+- a sticky local rail containing only the recap, watch path, populated lanes,
+  and Ask destinations that exist for this show;
+- a deterministic pulse map that moves close timestamps into separate rows,
+  expands its track, and keeps 44-pixel touch targets;
+- route and lane cards that collapse repeated receipts into playable
+  cross-links; and
+- a persistent **Now Playing Receipt** with exact start/end bounds,
+  excerpt-or-withheld state, source and speaker boundary, previous/next,
+  return-to-lane, and copy-this-moment controls.
+
+An exact registered `at=` coordinate may preselect the same Now Playing receipt
+after render without autoplaying media. Full-source playback clears that
+receipt-specific context.
+
+The Source Dossier engine, exact-source query engine, UI validation, player,
+and responsive controls remain reusable. WWAM's formats, copy, aliases, lane
+gates, order, and watch-path names live in the adapter. See
+[Per-Show Wiki Contract](SHOW_WIKI_CONTRACT.md).
+
 ## Permanent dossier sections
 
-1. **Source Proof** — official source identity, date, duration, cached views,
+1. **Source Proof** - official source identity, date, duration, cached views,
    coverage, authority, lanes, and evidence boundary.
-2. **Official Source Playback** — an intentionally dormant in-page YouTube
-   player with exact timestamp bounds and a visible identity-error recovery
-   control.
-3. **Ask This Tape** — exact-source questions with no cross-source
-   substitutions and explicit refusal states.
-4. **Inside This Tape** — registered source summary and playable receipts, or
-   a permanent refusal when captions do not support content claims.
-5. **Memory OS Footprint** — receipt, entity, relationship, and draft/review
+2. **Official Source Playback** - an intentionally dormant in-page YouTube
+   player with exact timestamp bounds, visible identity-error recovery, and the
+   persistent Now Playing Receipt.
+3. **Show Wiki** - episode recap, watch path, populated WWAM lanes, local
+   navigation, and honest `distilled` / `topic-nav-only` / `queued` state.
+4. **Ask This Tape** - exact-source and registered episode-lane questions with
+   no cross-source substitutions and explicit refusal states.
+5. **Inside This Tape** - registered source summary and playable receipts, or a
+   permanent refusal when captions do not support content claims.
+6. **Memory OS Footprint** - receipt, entity, relationship, and draft/review
    artifact inventory.
-6. **The Tape's Wake** — true matching totals and bounded dual-ended evidence
+7. **The Tape's Wake** - true matching totals and bounded dual-ended evidence
    connections separated from title-metadata neighbors.
-7. **Put the Archive to Work** — Tape Companion, evidence bag, share, and
+8. **Put the Archive to Work** - Tape Companion, evidence bag, share, and
    privacy-bounded manifest actions.
-8. **What This Page Can Prove** — speaker, causality, origin, continuity,
+9. **What This Page Can Prove** - speaker, causality, origin, continuity,
    rights, creator-approval, and canon limits remain visible.
-9. **Chronology** — previous and next registered uploads without pretending
-   chronology is a content relationship.
+10. **Chronology** - previous and next registered uploads without pretending
+    chronology is a content relationship.
 
-In V5.18, Ask This Tape is a permanent source-locked section between playback
-and Inside This Tape. The default Director's Cut is compact. Each dense
-evidence lane can expand independently, and **Open Full File** reveals the
-registered source file without changing evidence authority. Progressive
-disclosure changes only how much inventory is visible; it never changes the
+The default Director's Cut remains compact. The Show Wiki and Ask This Tape sit
+between playback and the complete receipt index. Each dense legacy evidence
+section can expand independently, and **Open Full File** reveals the registered
+source file without changing evidence authority. Progressive disclosure and
+local episode navigation change only presentation; they never change the
 source, ranking, receipt ledger, or proof boundary.
 
 ## Relationship firewall
@@ -204,8 +265,8 @@ A stable section route adds only the closed `section` key:
 ?source=LV2rmwEA0w4&at=9043&section=ask#archive
 ```
 
-Supported values are `proof`, `player`, `ask`, `inside`, `footprint`, `wake`,
-`chronology`, `work`, and `boundary`. The route focuses the requested section
+Supported values are `proof`, `player`, `wiki`, `ask`, `inside`, `footprint`,
+`wake`, `chronology`, `work`, and `boundary`. The route focuses the requested section
 after render; it does not change the evidence query or initialize playback.
 Unknown section values are discarded instead of becoming selectors.
 

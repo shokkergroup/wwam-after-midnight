@@ -27,6 +27,7 @@
   ];
   var LANE_LABELS = {
     "fresh-10": "FRESH 10",
+    "year-canon-2025-2026": "2025–26 LIVING CANON",
     "popular-25": "POPULAR 25",
     "archive-deep-10": "ARCHIVE DEEP 10",
     "archive-deep-batch-02": "ARCHIVE DEEP BATCH 02",
@@ -275,7 +276,7 @@
         var candidate = normalized(alias);
         return candidate === needle
           || (needle.length >= 3 && candidate.includes(needle))
-          || containsPhrase(needle, candidate);
+          || (needle.split(" ").length === 1 && containsPhrase(candidate, needle));
       });
     });
   }
@@ -579,21 +580,34 @@
             return titleGroup.id === group.id;
           });
         });
-        var score = title.includes(needle) ? 120 : 0;
+        var exactTitle = title === needle;
+        var exactPhrase = title.includes(needle);
+        var allTerms = matchedTerms.length === terms.length;
+        var score = exactTitle ? 320 : exactPhrase ? 170 : 0;
         score += matchedTerms.length * 12;
-        if (matchedTerms.length === terms.length) score += 35;
+        if (allTerms) score += 45;
         score += matchedGroups.length * 60;
         return {
           record: record,
           score: score,
+          exactTitle: exactTitle,
+          exactPhrase: exactPhrase,
+          allTerms: allTerms,
           matchedTerms: matchedTerms,
           matchedAliases: matchedGroups.map(function (group) {
             return group.label;
           }),
         };
       }).filter(function (entry) {
+        if (terms.length > 1) {
+          return entry.exactPhrase || entry.allTerms || entry.matchedAliases.length > 0;
+        }
         return entry.score > 0;
       });
+      if (terms.length > 1 && terms.some(function (term) { return /^\d+$/.test(term); }) &&
+          candidates.some(function (entry) { return entry.exactPhrase; })) {
+        candidates = candidates.filter(function (entry) { return entry.exactPhrase; });
+      }
       candidates = sortStable(candidates, function (left, right) {
         return right.score - left.score
           || right.record.views - left.record.views
@@ -632,7 +646,7 @@
       });
       var limit = settings.limit == null
         ? 25
-        : Math.max(0, Math.min(200, Number(settings.limit) || 0));
+        : Math.max(0, Math.min(500, Number(settings.limit) || 0));
       return {
         formula: serialCopy(QUEUE_FORMULA),
         snapshotDate: payload.snapshotDate,

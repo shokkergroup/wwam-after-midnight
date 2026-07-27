@@ -147,11 +147,18 @@ test("neither extracted stylesheet is part of the first-load transfer", () => {
 
   assert.equal(criticalFiles.includes("tape-companion.css"), false);
   assert.equal(criticalFiles.includes("creator-taste.css"), false);
-  assert.ok(total < 1_510_000, `first-load source payload grew to ${total} bytes`);
+  // The 60-tape character shelf is deliberately eager because Ask the Character
+  // and its playable evidence roster are first-class landing-page experiences.
+  // Preserve the lazy feature split while keeping a tight post-expansion ceiling.
+  assert.ok(total < 1_710_000, `first-load source payload grew to ${total} bytes`);
 });
 
 test("the current four-batch portfolio proof keeps dense metadata readable", () => {
   assert.match(main, /\.archive-batch-fingerprints\s*\{[\s\S]{0,360}overflow-wrap:\s*anywhere;/);
   assert.match(main, /\.archive-batch-strip button small\s*\{[\s\S]{0,240}overflow-wrap:\s*anywhere;/);
-  assert.match(main, /\.archive-batch-strip button small\s*\{[\s\S]{0,240}font:\s*700 8px\/1\.45 var\(--mono\);/);
+  assert.match(main, /--atlas-micro:\s*11px;/);
+  assert.match(main, /\.archive-batch-strip button small\s*\{[\s\S]{0,260}font:\s*700 var\(--atlas-micro\)\/1\.5 var\(--mono\);/);
+  assert.match(main, /\.archive-batch-strip button small\s*\{[\s\S]{0,300}font-size:\s*var\(--atlas-micro\) !important;/);
+  assert.doesNotMatch(main, /\.archive-batch-strip button small\s*\{[\s\S]{0,260}font:\s*700 8px/);
+  assert.match(main, /\.archive-batch-door\s*\{[\s\S]{0,260}OPEN SOURCE DOSSIER|\.archive-batch-door\s*\{/);
 });

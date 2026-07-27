@@ -37,13 +37,16 @@ test("V5.4 publishes its showcase surfaces without putting deferred ledgers on f
   );
   assert.match(app, /loadDemoScript\("red-band-ranking-v2\.js"\)/);
   assert.match(app, /loadDemoScript\("red-band-query\.js"\)/);
-  assert.match(app, /loadDemoScript\("archive-atlas-data\.js"\)/);
-  assert.match(app, /loadDemoScript\("archive-atlas-engine\.js"\)/);
-  assert.match(app, /loadDemoScript\("archive-atlas-ui\.js"\)/);
+  assert.match(app, /loadDemoScript\("archive-atlas-data\.js\?v=1\.4\.0-year-canon"\)/);
+  assert.match(app, /loadDemoScript\("archive-atlas-engine\.js\?v=1\.4\.0-year-canon"\)/);
+  assert.match(app, /loadDemoScript\("archive-atlas-ui\.js\?v=1\.3\.0"\)/);
   const archiveAssets = [
     "archive-deep-distill.js",
     "archive-deep-batch2.js",
     "archive-deep-batch3.js",
+    "archive-deep-batch4.js",
+    "year-canon-2025-2026.js?v=1.0.0",
+    "year-canon-ui.js?v=1.0.0",
     "archive-deep-engine.js",
     "archive-deep-portfolio.js",
   ];
@@ -85,7 +88,7 @@ test("every rendered Memorability Index card explains and opens its receipt", ()
   assert.match(styles, /\.evidence-signals/);
 });
 
-test("Mike Mode has six coherent beats and opens Archive Atlas as live proof", () => {
+test("Showcase Mode has six coherent beats and opens Archive Atlas as live proof", () => {
   assert.equal((pitchTour.match(/\bnumber: "0[1-6]"/g) || []).length, 6);
   assert.match(pitchTour, /472 STREAMS\.<br>EVERY BLIND SPOT VISIBLE\./);
   assert.match(pitchTour, /kind: "archive", label: "OPEN THE ARCHIVE ATLAS"/);
@@ -94,7 +97,7 @@ test("Mike Mode has six coherent beats and opens Archive Atlas as live proof", (
 });
 
 test("the current release identity preserves V5.4 headline proof", () => {
-  assert.equal(packageJson.version, "0.5.20");
+  assert.equal(packageJson.version, "0.5.21");
   assert.match(changelog, /## 0\.5\.7\b/);
   assert.match(changelog, /## 0\.5\.6\b/);
   assert.match(changelog, /## 0\.5\.5\b/);

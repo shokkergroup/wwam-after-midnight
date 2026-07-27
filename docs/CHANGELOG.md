@@ -3,6 +3,197 @@
 This changelog records product and evidence-contract changes. It does not by
 itself indicate that a build has been deployed.
 
+## Unreleased - Show Wiki V1.5 Source Brief + Conversational Ask - 2026-07-25
+
+### Added
+
+- All 399 metadata-only or caption-limited uploads that previously stopped at
+  the generic fallback now receive a safe canonical **Source Brief**. It exposes
+  the exact source record, registered source type, title/source-derived format,
+  declared format basis, official source route, and safe query aliases.
+- Source Brief pages have their own compact local navigation and
+  **ASK SOURCE FACTS** path. They do not render recap, watch-route, moment-lane,
+  or decorative empty-lane substitutes.
+- The portable `showWiki.brief` contract is limited to `kind`, `scope`,
+  `format`, `formatBasis`, and `queryAliases`. The engine rejects unknown or
+  semantic fields, invalid kinds, scopes, or bases, empty aliases, briefs on
+  caption-backed sources, and status drift.
+
+### Improved
+
+- Exact-show Ask understands bounded conversational variants including
+  `Can I see the best?`, `Which parts should I watch?`, `Where did they crack
+  up?`, `What's the craziest thing they said?`, `What did the guys hate?`,
+  `What got sent straight to Steve's asshole?`, and `When do they do voices?`.
+- Those phrases remain WWAM adapter aliases, not generic-engine vocabulary.
+  The reusable query layer removes only bounded conversational scaffolding and
+  preserves explicit subjects such as Alien, Batman, Ghostface, and Loomis.
+- Natural source-fact questions for upload date, runtime, cached views, and
+  official upload resolve to canonical proof on metadata-only pages. Inventory
+  answers now state when a canonical Source Brief is registered.
+- Source Brief and exact-source inventory questions can resolve before the
+  transcript-coverage gate because they return metadata only. Recap, topic,
+  speaker, quote, reaction, character, and moment requests remain refused when
+  the source lacks registered content evidence.
+
+### Truth and portability
+
+- The current 510-source split is **99 `distilled`, 12 `topic-nav-only`, and
+  399 `source-brief`**. None of the 399 receives generated recap prose,
+  transcript-derived topics, best/funny moments, WWAM UP IN YA, Straight to
+  Steve's Asshole, character claims, quotes, or a highlight route.
+- `queued` remains available only as a fail-closed fallback when the validated
+  Source Brief cannot be built; it is no longer the ordinary metadata-only
+  state.
+- The generic engine owns schema validation, exact-source routing, metadata
+  result typing, status integrity, and refusal boundaries. A ChannelPack owns
+  the source-format grammar and natural aliases, so another channel can reuse
+  the safe brief without inheriting WWAM's language.
+
+## Unreleased - Aftermath Pack V1 - 2026-07-25
+
+### Added
+
+- Every eligible Show Wiki now carries an inline, exact-source **Aftermath
+  Pack** review desk. It joins Source Dossier proof to source-local Clip Lab
+  Shorts, supercut memberships, resurfacing pairs, show-delta context,
+  reference lineages, and separate Cold Open Factory storyboards.
+- Each opportunity exposes its exact receipt and proposed window, archival
+  excerpt, clearly labeled suggested copy, score components, evidence status,
+  contextual risk, related-source context, and route to the official source.
+- Local **Keep / Hold / Reject** actions mean keep for creator review, hold for
+  more context, or reject from this local pack. An optional bounded note travels
+  with the decision.
+- The fingerprinted JSON and Markdown editor handoffs separate kept, held,
+  risk-quarantined, rejected, and unreviewed work. Saved reviews fail closed on
+  source, pack, Clip Lab, decision, or fingerprint drift.
+- Mike Mode can present a proposed **$500 / 3-show / 14-day** pilot: three
+  exact-source desks, three local review ledgers, bounded editor handoffs, and
+  a pilot-close gap review.
+
+### Proof and boundaries
+
+- The July 23, 2026 source `LV2rmwEA0w4` has 21 registered receipts and exactly
+  23 production opportunities: 13 Shorts, six supercut memberships, and four
+  resurfacing pairs.
+- Its four recurring-bit lineages are reference-only, and its nine generated
+  cold-open storyboards are disclosed separately. Neither is counted among the
+  23 production opportunities.
+- No review action or export claims speaker identity, creator approval, rights
+  clearance, publication authority, media delivery, revenue, retention,
+  conversion, views, virality, or any other performance outcome. The proposed
+  pilot is not an invoice or completed agreement.
+- The Aftermath contract is channel-neutral: the reusable layer owns source
+  locks, joins, review semantics, fingerprint checks, handoff structure, and
+  authority boundaries; a ChannelPack supplies the channel-specific editorial
+  vocabulary and policies.
+
+## 0.5.21 - Show Wiki V1.4 Exact Episode Pass - 2026-07-25
+
+### Added
+
+- Every source dossier can carry adapter-registered query aliases for its exact
+  Episode Recap, watch path, and channel-native lanes. WWAM registers Topics,
+  Best Moments, Funny Moments, WWAM UP IN YA, Straight to Steve's Asshole, and
+  Character Bits without placing those labels in the generic query engine.
+- Subject-bearing questions intersect only the selected lane. A request such as
+  `Where do they talk about Batman?` can return the Batman receipt registered to
+  this show's Topics lane, but cannot borrow another source or a keyword-heavy
+  receipt outside that lane.
+- Episode answers return a revalidated context envelope: component kind, ID,
+  label, matched alias, complete registered count, subject-matched count, and
+  shown count. The UI deep-links back to the complete recap, route, or lane.
+- A persistent **Now Playing Receipt** keeps the exact label, start/end bounds,
+  public-excerpt or withheld state, source ID, speaker boundary, previous/next,
+  return-to-lane, and copy-this-moment controls beside the official player.
+- A sticky **THIS SHOW** navigation rail includes only the recap, ready watch
+  path, populated lanes, and Ask destinations that exist for this source.
+  Queued pages keep one compact Ask destination instead of dead lane links.
+- Pulse nodes with close runtime positions now move into deterministic vertical
+  rows and expand the track instead of overlapping. Nodes retain 44-pixel touch
+  targets; route cards, recap blocks, and cross-links stack on narrow screens,
+  with reduced-motion behavior preserved.
+
+### Truth and accuracy
+
+- WWAM now exposes `distilled`, `topic-nav-only`, and `source-brief` across the
+  complete corpus, with `queued` retained only as a fail-closed fallback.
+  Topic-navigation-only pages keep source-audio boundaries; Source Brief pages
+  keep source proof and official playback with zero invented recap, lane, or
+  route.
+- Speaker refusal remains stronger than an episode alias. Undiarized captions
+  never become a host identity, even when the question also names a signature
+  lane.
+- Registered `best` or `funniest` aliases select an explicit source-local
+  navigation lane. Generic sources without that contract still return
+  `ranking-refused`; heat and wording cannot manufacture an objective ranking.
+- Empty registered lanes and subject misses return explicit
+  `insufficient-evidence` instead of archive-wide fallback.
+- The UI rejects changed lane IDs, counts, source bindings, fingerprints, and
+  foreign receipts before rendering an episode-aware answer. It also verifies
+  exact component membership, so a valid receipt from the same upload cannot
+  be substituted from another recap, experience, or lane.
+
+### Portability
+
+- The reusable spine owns source identity, receipt validation, coverage
+  firewalls, exact-source query scope, subject intersection, typed refusal,
+  episode-context validation, official playback, Now Playing state, and
+  responsive controls.
+- The WWAM adapter owns format detection, recap voice, truth-state descriptions,
+  query aliases, category gates and order, Midnight Cut / Topic Hop naming, and
+  pulse selection. Another ChannelPack can replace all visible grammar without
+  forking the evidence or interface contracts.
+- The integrated audit certifies 510 Show Wikis: 99 `distilled`, 12
+  `topic-nav-only`, and 399 safe canonical `source-brief` pages; 111 distinct
+  receipt-bound recaps; and 1,490 unique registered receipts.
+- Editorial checks certify 15 strict Steve receipts, 37 named character recap
+  blocks with 0 generic blocks, 7 restored moments across BIT ENERGY and CHAT
+  DID THIS, and 53/53 title-relevant topic selections wherever topic evidence
+  exists.
+- The integrated release gate passes 178/178 relevant tests. Build, lint, and
+  diff checks are green.
+
+## 0.5.21 - V5.21 Receipt Matrix - 2026-07-24
+
+### Added
+
+- **Receipt Matrix** extends the existing Ask WWAM surface with five explicit,
+  deterministic source-set question families: unique-source count,
+  same-source entity intersection, group source ranking, chronological
+  performance listing, and entity lineage.
+- The 510-source WWAM build now distinguishes seven eligible Loomis receipts
+  from the five official uploads that contain them. Loomis plus Challis yields
+  11 eligible receipts across four same-source groups.
+- The four-character ranking compiles 25 exact curated receipts across 12
+  matching uploads. Its current leaders are `LV2rmwEA0w4` with six,
+  `ag3axSC9BpU` with five, and `N-UahfG8-gM` with three.
+- Every result renders source groups, per-entity coverage, exact bounded
+  receipts, official-source actions, and a bounded evidence-only export.
+- The query router, matrix core, embedded UI, and WWAM host demand-load inside
+  the existing Ask section. Playback continues through the shared Source
+  Dossier access layer only after a visitor selects a receipt.
+
+### Accuracy and portability
+
+- Source counts and receipt counts are separate first-class measures. A receipt
+  tagged to two requested entities is counted once, while its per-entity
+  coverage remains visible.
+- Eligibility is exact-policy and fail-closed. Metadata mentions, artifacts,
+  unbounded machine candidates, repeated receipt references, unknown entities,
+  and stale or foreign evidence cannot inflate a result.
+- Same-source intersection means only that every requested entity has eligible
+  evidence in one official upload. It never asserts interaction, dialogue,
+  influence, causality, origin, speaker identity, approval, rights, or Canon.
+- The matrix engine and natural-language router contain no WWAM, horror, movie,
+  racing, or driver vocabulary. Channel adapters provide entity aliases,
+  groups, display language, and exact receipt policy, making the same contract
+  usable for a driver plus race-event intersection or another channel's own
+  entities.
+- Public authority remains false. Exports contain navigation/evidence records,
+  not copied media, publication permission, creator approval, or authenticated
+  editorial decisions.
+
 ## 0.5.20 - V5.20 Bit Bloodlines - 2026-07-24
 
 ### Added
