@@ -770,9 +770,13 @@
       button.type = "button";
       button.className = "play-answer-launch";
       button.setAttribute("data-play-answer-launch", "");
+      button.setAttribute(
+        "aria-label",
+        "Play a " + trail.stops.length + "-moment source cut assembled from this answer"
+      );
       button.innerHTML =
-        "<span>PLAY THIS ANSWER</span><b>" +
-        trail.stops.length + " MOMENTS IN THIS ANSWER</b><i aria-hidden=\"true\">&#9654;</i>";
+        "<span>PLAY THE ANSWER CUT</span><b>" +
+        trail.stops.length + " SOURCE MOMENTS // IN ORDER</b><i aria-hidden=\"true\">&#9654;</i>";
       button.addEventListener("click", function () {
         var latest = compileCurrent();
         if (!latest || !latest.valid || latest.signature !== trail.signature) {

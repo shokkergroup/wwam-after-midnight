@@ -2213,6 +2213,26 @@
           typeof input.document.getElementById !== "function") return;
       var sectionTarget = input.document.getElementById(SECTION_IDS[state.section]);
       if (!sectionTarget) return;
+      if (state.section === "wiki") {
+        state.jumpEpoch += 1;
+        var wikiFocusEpoch = state.jumpEpoch;
+        // The compact dossier receives its editorial and companion layers
+        // immediately after render. Wait for both paint boundaries, then
+        // resolve the live Wiki node so that those layers cannot leave the
+        // deep link stranded at the tail of the player section.
+        scheduleFrame(function () {
+          scheduleFrame(function () {
+            if (state.destroyed || wikiFocusEpoch !== state.jumpEpoch) return;
+            var hydratedTarget = input.document.getElementById(SECTION_IDS.wiki);
+            if (!hydratedTarget) return;
+            scrollJumpTarget(hydratedTarget, {
+              behavior: "auto",
+              clearance: 72
+            });
+          });
+        });
+        return;
+      }
       var focusId = SECTION_FOCUS_IDS[state.section];
       var focusTarget = focusId ? input.document.getElementById(focusId) : null;
       if (!focusTarget && typeof sectionTarget.querySelector === "function") {
@@ -2330,23 +2350,27 @@
       }
     }
 
-    function scrollJumpTarget(target) {
+    function scrollJumpTarget(target, scrollOptions) {
+      var settings = scrollOptions || {};
+      var behavior = settings.behavior === "auto" ? "auto" : "smooth";
+      var requestedClearance = Number(settings.clearance);
+      var stickyClearance = Number.isFinite(requestedClearance) ?
+        Math.max(0, requestedClearance) : 88;
       var modal = dossierModal();
       if (modal && typeof modal.scrollTo === "function" &&
           typeof modal.getBoundingClientRect === "function" &&
           typeof target.getBoundingClientRect === "function") {
         var modalRect = modal.getBoundingClientRect();
         var targetRect = target.getBoundingClientRect();
-        var stickyClearance = 88;
         var desiredTop = number(modal.scrollTop) + number(targetRect.top) -
           number(modalRect.top) - stickyClearance;
         modal.scrollTo({
           top: Math.max(0, desiredTop),
           left: 0,
-          behavior: "smooth"
+          behavior: behavior
         });
       } else if (typeof target.scrollIntoView === "function") {
-        target.scrollIntoView({ behavior: "smooth", block: "start" });
+        target.scrollIntoView({ behavior: behavior, block: "start" });
       }
       focusJumpTarget(target);
     }

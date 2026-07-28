@@ -43,5 +43,5 @@ test("primary route clicks avoid the browser's competing native anchor jump and 
   assert.match(shell, /target\.focus\(\{ preventScroll: true \}\)/);
   assert.match(shell, /setJourney\(journeyFromLocation\(\), initialTarget, \{ behavior: "auto" \}\)/);
   assert.match(html, /guided-shell\.css\?v=1\.0\.2-coherent/);
-  assert.match(html, /guided-shell\.js\?v=1\.2\.0-tonights-cut/);
+  assert.match(html, /guided-shell\.js\?v=1\.2\.2-dossier/);
 });

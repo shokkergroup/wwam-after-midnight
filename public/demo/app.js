@@ -450,18 +450,16 @@
         if (!showcaseEngine) {
           throw new Error("The promoted Showcase evidence registry is unavailable.");
         }
-        return !clipLabEngine && showcaseEngine ?
-          Promise.resolve(createCreatorEngines()).catch(function () { return null; }) :
-          null;
+        return clipLabEngine?null:loadDemoScript("creator-studio-engine.js").then(createClipLab);
       })
       .then(function () { return loader.loadStyle("source-dossier.css?v=1.9.2-fan-read"); })
       .then(function () {
         return ["channel-pack-contract.js", "wwam-channel-pack-adapter.js",
-          "episode-guides.js?v=2.1.2-final",
+          "episode-guides.js?v=2.1.5-referent",
           "source-dossier-engine.js?v=1.7.0", "wwam-source-dossier-adapter.js?v=1.8.1-fan",
           "source-query-engine.js?v=1.4.0",
           "aftermath-pack-engine.js?v=1.0.0",
-          "source-dossier-ui.js?v=1.9.2-fan-read"].reduce(function (promise, source) {
+          "source-dossier-ui.js?v=1.9.3-wiki-anchor"].reduce(function (promise, source) {
           return promise.then(function () { return loader.load(source); });
         }, Promise.resolve());
       })
@@ -669,10 +667,7 @@
           throw new Error("Memorability Candidate Index V2.1 did not produce 100 ranks");
         }
         if (categories().indexOf(state.hotCategory) < 0) state.hotCategory = "ALL MOMENTS";
-        renderRedMethod();
-        renderCategoryFilters();
-        renderHot100();
-        renderHeroConsole();
+        window.WWAMRouteRenderGate.invalidate(["home", "highlights"]);
         if (redBandObserver) redBandObserver.disconnect();
         return redBandRankingEngine;
       })
@@ -683,7 +678,7 @@
           message: error && error.message ? error.message : String(error),
         });
         redBandLoadPromise = null;
-        renderRedMethod();
+        window.WWAMRouteRenderGate.invalidate("highlights");
         return null;
       });
     return redBandLoadPromise;
@@ -703,6 +698,7 @@
   }
 
   function createDeepEngines() {
+    if(showcaseEngine)return showcaseEngine;
     showcaseEngine = window.WWAMShowcaseEngine && window.WWAMShowcaseEngine.create ?
       attempt(function () { return window.WWAMShowcaseEngine.create({
         catalog: catalog,
@@ -716,14 +712,12 @@
       (showcaseEngine.receipts || []).forEach(function (receipt) { showcaseReceiptById[receipt.id] = receipt; });
       (showcaseEngine.sources || []).forEach(function (source) { showcaseSourceById[source.id] = source; });
     }
-    attempt(renderProof);
-    attempt(renderMemory);
-    attempt(renderControlRoom);
-    scheduleIdle(createFanEngines, 900);
-    scheduleIdle(createCreatorEngines, 1400);
+    window.WWAMRouteRenderGate.invalidate(["studio", "characters"]);
+    return showcaseEngine;
   }
 
   function createFanEngines() {
+    if(state.fanEnginesSettled)return;
     if (!window.WWAMLoreEngine) return loadDemoScript("lore-engine.js").then(createFanEngines);
     if (!window.WWAMTapeTriviaEngine) return loadDemoScript("tape-trivia-engine.js").then(createFanEngines);
     if (!window.WWAMNightShiftEngine) return loadDemoScript("night-shift-engine.js").then(createFanEngines);
@@ -757,9 +751,7 @@
       }, "night shift engine initialization") : null;
     if (nightShiftEngine) attempt(buildNightShift, "daily night shift initialization");
     state.fanEnginesSettled = true;
-    attempt(renderLore);
-    attempt(renderTrivia);
-    attempt(renderNightShift);
+    window.WWAMRouteRenderGate.invalidate(["characters", "highlights"]);
     if (state.creatorEnginesSettled && !pilotBuilderEngine) attempt(createPilotBuilder);
   }
 
@@ -822,7 +814,7 @@
         trust: trustEngine,
         integrityReport: canonIntegrityReport,
       }) : null;
-    renderPilotBuilder();
+    window.WWAMRouteRenderGate.invalidate("studio");
     return pilotBuilderEngine;
   }
 
@@ -892,7 +884,17 @@
     return journey;
   }
 
+  function createClipLab(){
+    if(clipLabEngine)return clipLabEngine;
+    clipLabEngine=attempt(function(){return window.WWAMCreatorClipLab.create({showcase:showcaseEngine});},
+      "creator clip lab initialization");
+    if(clipLabEngine)(clipLabEngine.shorts||[]).concat(clipLabEngine.supercuts||[],clipLabEngine.resurfacing||[])
+      .forEach(function(item){clipItemById[item.id]=item;});
+    return clipLabEngine;
+  }
+
   function createCreatorEngines() {
+    if(state.creatorEnginesSettled)return;
     if (!window.WWAMCreatorClipLab)
       return loadDemoScript("creator-studio-engine.js").then(createCreatorEngines);
     if (!window.WWAMColdOpenFactory)
@@ -907,16 +909,10 @@
       return loadDemoScript("pilot-builder-engine.js").then(createCreatorEngines);
     if (!window.WWAMCanonDeskUI)
       return loadDemoScript("canon-desk-ui.js?v=1.0.1").then(createCreatorEngines);
-    clipLabEngine = window.WWAMCreatorClipLab && window.WWAMCreatorClipLab.create && showcaseEngine ?
-      attempt(function () { return window.WWAMCreatorClipLab.create({ showcase: showcaseEngine }); },
-        "creator clip lab initialization") : null;
+    createClipLab();
     coldOpenFactory = window.WWAMColdOpenFactory && window.WWAMColdOpenFactory.create && clipLabEngine ?
       attempt(function () { return window.WWAMColdOpenFactory.create({ clipLab: clipLabEngine }); },
         "cold open factory initialization") : null;
-    if (clipLabEngine) {
-      (clipLabEngine.shorts || []).concat(clipLabEngine.supercuts || [], clipLabEngine.resurfacing || [])
-        .forEach(function (item) { clipItemById[item.id] = item; });
-    }
     trustEngine = window.WWAMTrustEngine && window.WWAMTrustEngine.create ?
       attempt(function () { return window.WWAMTrustEngine.create({
         catalog: catalog,
@@ -928,10 +924,8 @@
         showcase: showcaseEngine,
       }); }, "trust engine initialization") : null;
     state.creatorEnginesSettled = true;
-    attempt(renderClipLab);
     attempt(createPilotBuilder, "creator workflow builder initialization");
-    attempt(renderCanon);
-    attempt(renderPilotBuilder);
+    window.WWAMRouteRenderGate.invalidate("studio");
   }
 
   function scheduleIdle(work, timeout) {
@@ -2363,6 +2357,7 @@
       delete nextState.wwamSourceDossierPushed;
       delete nextState.sourceId;
       history.replaceState(nextState, "", url);
+      if (typeof window.dispatchEvent === "function") window.dispatchEvent(new Event("hashchange"));
     }
     if (settings.restoreFocus === false) lastDialogFocus = null;
     else restoreDialogFocus();
@@ -2571,9 +2566,9 @@
         "MEMORABILITY LIST // MACHINE-SURFACED" :
         collectionStatus ? collectionStatus :
         results.length ?
-          results.length + (results.length === 1 ? " PLAYABLE MATCH" : " PLAYABLE MATCHES") :
+          results.length + (results.length === 1 ? " RESULT SHOWN" : " RESULTS SHOWN") :
           "NO SOURCE MATCH YET";
-    var boundary = '<details class="ask-method"><summary>HOW THIS ANSWER WAS CHECKED</summary>' +
+    var boundary = '<details' + (isAnyHandoff ? ' open' : '') + ' class="ask-method"><summary>HOW THIS ANSWER WAS CHECKED</summary>' +
       '<section class="ask-boundary ' + esc(analysis.status || "unknown") +
       '"><header><span>ARCHIVE CHECK</span><b>' +
       esc(String(analysis.questionType || analysis.intent || "QUERY").toUpperCase()) +
@@ -2598,7 +2593,7 @@
       '<section class="answer-brief"><div><span>THE SHORT ANSWER</span><b>' +
       (analysis.entity ? esc(displayUiText(analysis.entity.toUpperCase())) : 'WWAM ARCHIVE') + '</b><i>' +
       (collectionStatus || (results.length ? results.length +
-        (results.length === 1 ? ' PLAYABLE MATCH' : ' PLAYABLE MATCHES') : 'SOURCE-CHECKED ANSWER')) +
+        (results.length === 1 ? ' RESULT SHOWN' : ' RESULTS SHOWN') : 'SOURCE-CHECKED ANSWER')) +
       (analysis.continuedFrom ? ' // FOLLOW-UP' : '') +
       '</i><button class="ask-share" type="button" data-copy-ask>COPY LINK</button></div>' +
       '<div class="derived-answer-copy">' + esc(displayUiText(analysis.answer)) +
@@ -4775,23 +4770,9 @@
       storageSet("wwam-band", state.redBand ? "red" : "bleep");
     document.body.classList.toggle("office-bleep", !state.redBand);
     document.getElementById("bandToggle").textContent = "REDUCED PROFANITY: " + (state.redBand ? "OFF" : "ON");
-    renderHeroConsole();
-    renderHot100();
-    renderSoundbytes();
+    window.WWAMRouteRenderGate.refresh();
     refreshSoundPlayerCopy();
-    renderCharacter();
     refreshCharacterAnswerCopy();
-    renderMemory();
-    renderLore();
-    renderNightShift();
-    renderTrivia();
-    renderControlRoom();
-    renderClipLab();
-    renderLabs();
-    renderEvidenceBag();
-    if (state.lastAskQuery && askEngine) {
-      ask(state.lastAskQuery, state.lastAskAnalysis);
-    }
     var openModal = document.getElementById("tapeModal").classList.contains("show");
     if (openModal) {
       var route = readSourceRoute();
@@ -5159,12 +5140,12 @@
       var query = document.getElementById("askInput").value.trim();
       if (query.length > 1) ask(query);
     };
-    Array.prototype.forEach.call(document.querySelectorAll(".prompt-chips button"), function (button) {
-      button.onclick = function () {
-        document.getElementById("askInput").value = button.textContent;
-        ask(button.textContent);
-      };
-    });
+    document.querySelector(".prompt-chips").onclick = function (event) {
+      var button = event.target.closest("button");
+      if (!button) return;
+      document.getElementById("askInput").value = button.textContent;
+      ask(button.textContent);
+    };
     Array.prototype.forEach.call(document.querySelectorAll("[data-category-jump]"), function (button) {
       button.onclick = function () {
         state.hotCategory = button.getAttribute("data-category-jump");
@@ -5264,36 +5245,22 @@
       fmt(declaredAuditedWords ||
         (channelDNA.proofSnapshot && channelDNA.proofSnapshot.wordsAudited) ||
         deep.meta.wordsAudited + live.meta.wordsAudited + (popular.meta.wordsAudited || 0)) + " WORDS";
-    renderProof();
-    renderMarquee();
-    renderHeroConsole();
-    renderRedMethod();
-    renderCategoryFilters();
-    renderHot100();
-    renderSoundFilters();
-    renderSoundbytes();
-    renderCharacterRoster();
-    renderCharacter();
-    renderLiveProof();
-    renderTopicRadar();
-    renderStreams();
-    renderPopularProof();
-    renderPopularTopics();
-    renderPopular();
-    renderMemory();
-    renderLore();
-    renderNightShift();
-    renderTrivia();
-    renderControlRoom();
-    renderClipLab();
-    renderCanon();
-    renderPilotBuilder();
-    renderAskExamples();
-    renderFranchises();
-    renderFranchiseFilters();
-    renderVault();
-    renderLabs();
-    renderEvidenceBag();
+    window.WWAMRouteRenderGate.start({
+      global:[renderEvidenceBag],
+      dossier:[],
+      home:[renderHeroConsole],
+      shows:[renderLiveProof,renderTopicRadar,renderStreams,renderPopularProof,renderPopularTopics,renderPopular],
+      watchalongs:[renderFranchises,renderFranchiseFilters,renderVault],
+      characters:[createDeepEngines,createFanEngines,
+        renderCharacterRoster,renderCharacter,renderMemory,renderLore],
+      ask:[renderAskExamples,function(){
+        if(state.lastAskQuery&&askEngine)ask(state.lastAskQuery,state.lastAskAnalysis);
+      }],
+      highlights:[createDeepEngines,createFanEngines,renderRedMethod,renderCategoryFilters,
+        renderHot100,renderSoundFilters,renderSoundbytes,renderNightShift,renderTrivia],
+      studio:[createDeepEngines,createFanEngines,createCreatorEngines,renderProof,
+        renderMarquee,renderControlRoom,renderClipLab,renderCanon,renderPilotBuilder,renderLabs],
+    });
     bindPage();
     prepareArchiveAtlasLazy();
     prepareRedBandRankingLazy();

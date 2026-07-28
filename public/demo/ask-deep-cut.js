@@ -11,7 +11,7 @@
    */
 
   var VERSION = "1.0.0";
-  var GUIDE_URL = "episode-guides.js?v=2.1.2-final";
+  var GUIDE_URL = "episode-guides.js?v=2.1.5-referent";
   var GUIDE_SCHEMA = "wwam-episode-guides/v2";
   var EPISODE_SCHEMA = "wwam-episode-guide/v2";
   var SOURCE_ID = /^[A-Za-z0-9_-]{11}$/;

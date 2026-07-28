@@ -96,7 +96,7 @@
       ],
       open: [
         "{subject} is displaying the exact kind of certainty that empties a hospital. Point it at Michael or get it out of my way.",
-        "You brought me {subject} and expected reassurance. I have none. I have a flashlight, a warning, and no patience left.",
+        "You asked me about {subject} and expected reassurance. I have none. I have a flashlight, a warning, and no patience left.",
       ],
     },
     challis: {
@@ -272,11 +272,35 @@
     var watchRequest = subject.match(
       /^what\s+(?:(?:movie|film)\s+)?should\s+(?:i|we|you)\s+(?:watch|see)(?:\s+(.+))?$/i
     );
+    var directObjectRequest = subject.match(
+      /^(?:(?:how\s+(?:do|should)\s+i|should\s+i|would\s+you|can\s+you)\s+)(?:survive|escape|stop|defeat|fight|date|marry|join|cast|watch|see|delete|use|trust|fix|handle|approach|help(?:\s+me)?(?:\s+with)?)\s+(.+)$/i
+    );
+    var roleRequest = subject.match(/^what\s+role\s+should\s+(.+?)\s+play$/i);
+    var predicateRequest = subject.match(
+      /^(?:why\s+)?(?:is|are|was|were)\s+(.+?)\s+(?:evil|dangerous|safe|good|bad|real|dead|alive|scary|worth\s+it)$/i
+    );
+    var recurringSubjectRequest = subject.match(
+      /^why\s+(?:does|do|did)\s+(.+?)\s+(?:keep|keeps|kept|come|comes|came|return|returns|returned)\b/i
+    );
     if (watchRequest) {
       var timing = String(watchRequest[1] || "").trim();
       subject = !timing ? "the watchlist" :
         /^tonight$/i.test(timing) ? "tonight's watchlist" : timing + " watchlist";
-    } else subject = subject
+    } else if (directObjectRequest) {
+      subject = directObjectRequest[1].trim();
+    } else if (roleRequest) {
+      subject = roleRequest[1].trim();
+    } else if (predicateRequest) {
+      subject = predicateRequest[1].trim();
+    } else if (recurringSubjectRequest) {
+      subject = recurringSubjectRequest[1].trim();
+    } else {
+      var situationRequest = subject.match(
+        /^what(?:\'s| is)\s+(?:going on|happening)\s+(in|with|at)\s+(.+)$/i
+      );
+      if (situationRequest) {
+        subject = "the situation " + situationRequest[1].toLowerCase() + " " + situationRequest[2];
+      } else subject = subject
       .replace(/^(hey|okay|ok|please)\s+/i, "")
       .replace(/^and\s+/i, "")
       .replace(/^what\s+should\s+(we|i|you)\s+do\s+about\s+/i, "")
@@ -294,6 +318,7 @@
       .replace(/^(think|feel|say)\s+(about\s+)?/i, "")
       .replace(/^of\s+/i, "")
       .trim();
+    }
     if (["think", "feel", "say", "tell", "tell me", "opinion", "your opinion"].indexOf(normalize(subject)) >= 0) {
       subject = "";
     }

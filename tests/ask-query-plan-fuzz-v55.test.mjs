@@ -222,7 +222,7 @@ test("last-night result limits lock to one exact livestream and never backfill",
   assert.ok(answer.results.every((result) => (
     result.sourceId === "LV2rmwEA0w4" && result.kind === "moment"
   )));
-  assert.match(answer.answer, /in the newest livestream here/i);
+  assert.match(answer.answer, /No indexed show is mapped.*On that fallback, start with/i);
 });
 
 test("every funny moment in the newest livestream is a result list, not a source list", () => {

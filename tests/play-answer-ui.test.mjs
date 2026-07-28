@@ -624,7 +624,9 @@ test("the contextual launcher is observer-driven and appears only for a valid 2+
   assert.match(uiSource, /new root\.MutationObserver\(queueRefresh\)/);
   assert.match(uiSource, /trail\.stops\.length < 2/);
   assert.match(uiSource, /data-play-answer-launch/);
-  assert.match(uiSource, /PLAY THIS ANSWER/);
+  assert.match(uiSource, /PLAY THE ANSWER CUT/);
+  assert.match(uiSource, /SOURCE MOMENTS \/\/ IN ORDER/);
+  assert.match(uiSource, /source cut assembled from this answer/);
   assert.match(uiSource, /answer\.appendChild\(slot\)/);
   assert.doesNotMatch(uiSource, /nav-links|data-nav|appendChild\([^)]*nav/i);
   assert.match(
@@ -660,7 +662,7 @@ test("a rendered real Ask analysis injects one launcher and removal fails closed
   );
   assert.equal(
     dom.answer.children[0].querySelector("[data-play-answer-launch]")
-      .innerHTML.includes("PLAY THIS ANSWER"),
+      .innerHTML.includes("PLAY THE ANSWER CUT"),
     true,
   );
 

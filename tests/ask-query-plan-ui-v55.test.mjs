@@ -124,10 +124,10 @@ test("Ask answer prose uses a readable body treatment and app.js stays below cap
   );
 });
 
-test("ordinary result status reports fan-facing playable matches, not a shorter evidence chain", () => {
+test("ordinary result status reports results shown, not source-cut segment counts", () => {
   assert.match(
     askUi,
-    /results\.length \+ \(results\.length === 1 \? " PLAYABLE MATCH" : " PLAYABLE MATCHES"\)/,
+    /results\.length \+ \(results\.length === 1 \? " RESULT SHOWN" : " RESULTS SHOWN"\)/,
   );
   assert.doesNotMatch(
     askUi,

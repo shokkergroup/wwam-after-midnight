@@ -249,6 +249,25 @@ test("subject extraction and follow-up memory distinguish pronouns from topic sw
   assert.equal(api.extractSubject("What about phones?"), "phones");
   assert.equal(api.extractSubject("Who wins, Freddy or Jason?"), "Freddy or Jason");
   assert.equal(api.extractSubject("What do you think?"), "this entire situation");
+  assert.equal(
+    api.extractSubject("What is going on in Haddonfield?"),
+    "the situation in Haddonfield",
+  );
+  assert.equal(
+    api.extractSubject("What's happening with Michael?"),
+    "the situation with Michael",
+  );
+  assert.equal(api.extractSubject("How do I survive Ghostface?"), "Ghostface");
+  assert.equal(api.extractSubject("Should I delete YouTube?"), "YouTube");
+  assert.equal(api.extractSubject("Would you join my band?"), "my band");
+  assert.equal(api.extractSubject("What role should Nicolas Cage play?"), "Nicolas Cage");
+  assert.equal(api.extractSubject("Why is Michael Myers evil?"), "Michael Myers");
+  assert.equal(api.extractSubject("Is artificial intelligence dangerous?"), "artificial intelligence");
+  assert.equal(api.extractSubject("Why does Michael keep coming back?"), "Michael");
+
+  const natural = characterEngine.answer("loomis", "What is going on in Haddonfield?");
+  assert.match(natural.text, /asked me about the situation in Haddonfield/i);
+  assert.doesNotMatch(natural.text, /brought me going on|about going on/i);
 
   const first = characterEngine.answer(
     "loomis",

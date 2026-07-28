@@ -44,6 +44,8 @@ test("natural latest-livestream questions return one source-scoped topic map", a
   for (const query of [
     "What are they talking about in the latest livestream?",
     "Which topics were they discussing in the latest live stream?",
+    "What did they talk about in the latest show?",
+    "What did they talk about in the most recent show?",
   ]) {
     const answer = plain(engine.ask(query));
 

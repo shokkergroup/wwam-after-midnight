@@ -136,7 +136,26 @@ test("publishes one complete, runtime-sized Episode Guide V2 for every captioned
     assert.equal(guide.schema, "wwam-episode-guide/v2", tape.id);
     assert.deepEqual(guide.shape, expected, tape.id);
     assert.equal(guide.chapters.length, expected.chapters, tape.id);
+    assert.deepEqual(
+      guide.chapters.map((chapter) => chapter.at),
+      [...guide.chapters].sort((a, b) => a.at - b.at).map((chapter) => chapter.at),
+      `${tape.id} chapters must remain chronological`,
+    );
     assert.equal(guide.takeArc.length, 3, tape.id);
+    const closingCut = guide.cuts.find(
+      (cut) => cut.id === guide.takeArc.at(-1).cutId,
+    );
+    const localClosingCandidates = guide.cuts.filter(
+      (cut) => cut.t >= source.duration * 0.82
+        && cut.topicBasis === "local-caption-match",
+    );
+    if (localClosingCandidates.length) {
+      assert.equal(
+        closingCut.topicBasis,
+        "local-caption-match",
+        tape.id + " closing read must prefer locally named evidence",
+      );
+    }
     assert.equal(guide.threads.length, expected.threads, tape.id);
     assert.equal(guide.cuts.length, expected.cuts, tape.id);
     assert.deepEqual(guide.metrics, {
@@ -220,7 +239,7 @@ test("makes each overview episode-specific and each cut set meaningfully varied"
   }
 });
 
-test("binds topics locally and reserves the late verdict for the closing stretch", () => {
+test("binds topics locally and keeps every closing read in the final thirty percent", () => {
   const { catalogById, distill } = fixture();
   const guidedTapes = distill.tapes.filter((tape) => tape.episodeGuide);
   let localTopicCuts = 0;
@@ -235,15 +254,18 @@ test("binds topics locally and reserves the late verdict for the closing stretch
     assert.equal(new Set(arcCutIds).size, 3, tape.id);
     const overlapCount = arcCutIds.filter((cutId) => chapterCutIds.has(cutId)).length;
     assert.ok(overlapCount <= 2, tape.id);
-    if (overlapCount > 1) {
-      assert.equal(guide.takeArc.at(-1).phase, "FINAL VERDICT", tape.id);
-      assert.equal(
-        guide.takeArc.at(-1).evidenceBasis,
-        "explicit-verdict-language",
-        tape.id,
-      );
-    }
-    assert.ok(guide.takeArc.at(-1).at >= source.duration * 0.82, tape.id);
+    assert.equal(guide.takeArc.at(-1).phase, "CLOSING READ", tape.id);
+    assert.equal(
+      guide.takeArc.at(-1).evidenceBasis,
+      "late-evaluative-fallback",
+      tape.id,
+    );
+    assert.doesNotMatch(
+      guide.takeArc.at(-1).body,
+      /actual final ruling|hand down a verdict|closing verdict/i,
+      tape.id,
+    );
+    assert.ok(guide.takeArc.at(-1).at >= source.duration * 0.70, tape.id);
 
     for (const cut of guide.cuts) {
       totalCuts += 1;
@@ -313,6 +335,15 @@ test("preserves an explicit no-speaker-attribution boundary", () => {
       tape.id,
     );
   }
+});
+
+test("known cross-film outro references never become another movie's closing read", () => {
+  const { distill } = fixture();
+  const byId = new Map(distill.tapes.map((tape) => [tape.id, tape]));
+  const freddyClose = byId.get("HNN0SEy2qtY").episodeGuide.takeArc.at(-1);
+  const jasonClose = byId.get("EIw3TG3XwxA").episodeGuide.takeArc.at(-1);
+  assert.doesNotMatch(freddyClose.excerpt, /(?:friday )?the 13th/i);
+  assert.doesNotMatch(jasonClose.excerpt, /jason x/i);
 });
 
 test("keeps Episode Guide V2 additive to the legacy eight-moment and Hot 100 contracts", () => {

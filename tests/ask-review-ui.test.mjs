@@ -14,12 +14,12 @@ const app = fs.readFileSync(path.join(demo, "app.js"), "utf8");
 test("Ask Review hydrates with its engine first and stays off the eager script path", () => {
   assert.match(
     html,
-    /<section class="ask-room" id="ask"[\s\S]{0,240}data-feature-styles="ask-review\.css,play-answer\.css,receipt-matrix\.css"[\s\S]{0,500}data-feature-scripts="ask-review-engine\.js,ask-review-ui\.js,channel-pack-contract\.js,wwam-channel-pack-adapter\.js,play-answer-engine\.js,play-answer-ui\.js\?v=human2,receipt-matrix-query\.js\?v=0\.5\.21-1,receipt-matrix-engine\.js,receipt-matrix-ui\.js,wwam-receipt-matrix-host\.js"/,
+    /<section class="ask-room" id="ask"[\s\S]{0,240}data-feature-styles="ask-review\.css,play-answer\.css,receipt-matrix\.css"[\s\S]{0,500}data-feature-scripts="ask-review-engine\.js,ask-review-ui\.js,channel-pack-contract\.js,wwam-channel-pack-adapter\.js,play-answer-engine\.js,play-answer-ui\.js\?v=human4-sourcecut,receipt-matrix-query\.js\?v=0\.5\.21-1,receipt-matrix-engine\.js,receipt-matrix-ui\.js,wwam-receipt-matrix-host\.js"/,
   );
   assert.doesNotMatch(html, /<script[^>]+src="ask-review-(?:engine|ui)\.js"/);
   assert.doesNotMatch(html, /<link[^>]+href="ask-review\.css"/);
   assert.ok(
-    html.indexOf('data-feature-scripts="ask-review-engine.js,ask-review-ui.js,channel-pack-contract.js,wwam-channel-pack-adapter.js,play-answer-engine.js,play-answer-ui.js?v=human2,receipt-matrix-query.js?v=0.5.21-1,receipt-matrix-engine.js,receipt-matrix-ui.js,wwam-receipt-matrix-host.js"') <
+    html.indexOf('data-feature-scripts="ask-review-engine.js,ask-review-ui.js,channel-pack-contract.js,wwam-channel-pack-adapter.js,play-answer-engine.js,play-answer-ui.js?v=human4-sourcecut,receipt-matrix-query.js?v=0.5.21-1,receipt-matrix-engine.js,receipt-matrix-ui.js,wwam-receipt-matrix-host.js"') <
       html.indexOf('<script src="feature-loader.js"></script>'),
   );
 });

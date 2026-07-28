@@ -152,7 +152,12 @@ test("opinion phrasing requires target-proximate evaluative receipts", async () 
     result.takeEvidence.proximityPairs.every((pair) => pair.distance <= 8)
   )));
   assert.ok(halloween.results.every((result) => result.category !== "OUT OF POCKET"));
-  assert.match(halloween.answer, /The tape catches both praise and criticism/i);
+  assert.match(halloween.answer, /The tape catches both positive and critical language/i);
+  assert.match(halloween.answer, /not one clean final verdict/i);
+  assert.match(halloween.results[0].excerpt, /worst part of the movie/i);
+  assert.ok(halloween.results[0].takeEvidence.wholeWorkStrength > 0);
+  assert.equal(halloween.results.length, 2);
+  assert.ok(halloween.results.every((result) => result.at !== 4522));
 
   for (const query of [
     "How do they feel about Halloween Ends?",
@@ -210,4 +215,84 @@ test("opinion questions fail honestly when no target-proximate receipt exists", 
   assert.deepEqual(answer.results, []);
   assert.match(answer.answer, /couldn't find a clip close enough.*answer that take honestly/i);
   assert.match(answer.answer, /Unrelated swearing, jokes, and one-off reactions were left out/i);
+});
+
+
+test("fan-native bit and named-section language route to the right playable surface", async () => {
+  const engine = await createEngine();
+  const loomis = plain(engine.ask("Show me the best Loomis bit"));
+
+  assert.equal(loomis.intent, "comedy");
+  assert.equal(loomis.status, "supported");
+  assert.ok(loomis.results.length > 0);
+  assert.ok(loomis.results.every((result) => result.kind === "character-performance"));
+  assert.ok(loomis.results.every((result) => result.title === "Dr. Loomis"));
+  assert.match(loomis.answer, /For Dr\. Loomis, start with/i);
+
+  const steve = plain(engine.ask("What was sent straight to Steve's asshole?"));
+  assert.equal(steve.status, "surface-handoff");
+  assert.equal(steve.recommendedSurface.href, "#steves-asshole");
+  assert.equal(steve.recommendedSurface.namedRequest, true);
+  assert.deepEqual(steve.results, []);
+  assert.match(steve.answer, /WWAM rejection chute/i);
+});
+
+
+test("scoped Steve requests keep the film as a handoff filter", async () => {
+  const engine = await createEngine();
+
+  for (const query of [
+    "What went straight to Steve's asshole in Halloween Ends?",
+    "What did they send straight to Steve's asshole in Halloween Ends?",
+  ]) {
+    const answer = plain(engine.ask(query));
+
+    assert.equal(answer.status, "surface-handoff", query);
+    assert.equal(answer.queryPlan.outputShape, "surface-handoff", query);
+    assert.equal(answer.entity, "Halloween Ends", query);
+    assert.equal(answer.entityType, "film", query);
+    assert.equal(answer.recommendedSurface.href, "#steves-asshole", query);
+    assert.equal(answer.recommendedSurface.filterQuery, "Halloween Ends", query);
+    assert.deepEqual(answer.recommendedSurface.subject, {
+      type: "film",
+      label: "Halloween Ends",
+      id: "I6QKteG_hK0",
+    }, query);
+    assert.deepEqual(answer.results, [], query);
+    assert.match(answer.answer, /Halloween Ends kept as the filter/i, query);
+  }
+});
+
+test("natural evaluative follow-ups retain the prior film and source", async () => {
+  const engine = await createEngine();
+  const opinion = plain(engine.ask("What did they think of Halloween Ends?"));
+  const praise = plain(engine.ask("What did they love about it?", opinion.context));
+  const criticism = plain(engine.ask("And what did they hate?", praise.context));
+
+  assert.equal(criticism.status, "supported");
+  assert.equal(criticism.intent, "negative");
+  assert.equal(criticism.continuedFrom, true);
+  assert.ok(criticism.contextUsed.includes("entity"));
+  assert.equal(criticism.entity, "Halloween Ends");
+  assert.ok(criticism.results.length > 0);
+  assert.ok(criticism.results.every((result) => result.sourceId === "I6QKteG_hK0"));
+  assert.match(criticism.answer, /criticism of Halloween Ends/i);
+});
+
+
+test("exact sealed comedy commentaries hand off to their verified Wiki shelf", async () => {
+  const engine = await createEngine();
+  for (const query of [
+    "Where is the Waiting commentary?",
+    "Open the Harold and Kumar watchalong",
+    "Show me the Scary Movie 2 commentary wiki",
+  ]) {
+    const answer = engine.ask(query);
+    assert.equal(answer.status, "surface-handoff", query);
+    assert.equal(answer.recommendedSurface.href, "#comedy-vault", query);
+    assert.equal(answer.questionType, "exact source navigation", query);
+    assert.equal(answer.recommendedSurface.sealedSource, true, query);
+    assert.equal(answer.results.length, 0, query);
+    assert.match(answer.answer, /official WWAM source record is verified/i, query);
+  }
 });

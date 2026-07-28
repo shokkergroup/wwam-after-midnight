@@ -4,6 +4,7 @@
   function isPrimary(link, hasDeepDive) {
     var href = link.getAttribute("href") || "";
     return href === "#sourceDossierPlayerSection" ||
+      href === "#sourceDossierFanRead" ||
       href === "#sourceDossierEpisodeGuide" ||
       (!hasDeepDive && href === "#sourceDossierShowWikiSummary") ||
       href.indexOf("sourceDossierShowWikiLane-best-moments") >= 0 ||
@@ -13,6 +14,7 @@
   function relabel(link) {
     var href = link.getAttribute("href") || "";
     if (href === "#sourceDossierPlayerSection") link.textContent = "PLAY THE SHOW";
+    if (href === "#sourceDossierFanRead") link.textContent = "FAN READ";
     if (href === "#sourceDossierEpisodeGuide") link.textContent = "DEEP DIVE";
     if (href === "#sourceDossierShowWikiSummary") link.textContent = "QUICK RECAP";
     if (href === "#sourceDossierAsk") link.textContent = "ASK THIS SHOW";

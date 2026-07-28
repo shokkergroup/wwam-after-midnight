@@ -13,7 +13,7 @@ test("the fan-facing shell exposes five plain destinations and no competing room
   const shell = read("guided-shell.js");
   const css = read("wwam-editorial-v2.css");
 
-  assert.match(html, /wwam-editorial-v2\.css\?v=1\.2\.0-tonights-cut/);
+  assert.match(html, /wwam-editorial-v2\.css\?v=1\.2\.2-touch/);
   assert.match(html, /href="#shows-hub"[^>]*>SHOWS<\/a>/);
   assert.match(html, /href="#watchalongs-hub"[^>]*>WATCHALONGS<\/a>/);
   assert.match(html, /href="#best-bits"[^>]*>BEST BITS<\/a>/);
@@ -120,7 +120,8 @@ test("Ask and Character put the action first and avoid nested result scrollers",
   assert.match(css, /\.ask-results \{ min-height: 360px; max-height: none; overflow: visible;/);
   assert.match(css, /\.character-receipts \{ max-height: none; overflow: visible; \}/);
   assert.match(app, /<details class="why-details"><summary>WHY THIS MATCH\?<\/summary>/);
-  assert.match(app, /<details class="ask-method"><summary>HOW THIS ANSWER WAS CHECKED<\/summary>/);
+  assert.match(app, /isAnyHandoff \? ' open' : ''/);
+  assert.match(app, /class="ask-method"><summary>HOW THIS ANSWER WAS CHECKED<\/summary>/);
   assert.match(app, /askMore\.className = "ask-more-results"/);
   assert.match(app, /PLAY THIS PART/);
   assert.match(shell, /REPORT A WRONG ANSWER/);
@@ -130,12 +131,12 @@ test("Ask and Character put the action first and avoid nested result scrollers",
   assert.match(search, /exact subject match/);
 });
 
-test("Show Wikis keep four primary actions and disclose the deep lanes", () => {
+test("Show Wikis keep five primary fan actions and disclose the deep lanes", () => {
   const html = read("index.html");
   const dossier = read("wwam-dossier-editorial.js");
   const css = read("wwam-editorial-v2.css");
 
-  assert.match(html, /wwam-dossier-editorial\.js\?v=1\.1\.1-fan-nav/);
+  assert.match(html, /wwam-dossier-editorial\.js\?v=1\.1\.2-fan-visible/);
   assert.match(dossier, /PLAY THE SHOW/);
   assert.match(dossier, /sourceDossierEpisodeGuide/);
   assert.match(dossier, /DEEP DIVE/);
@@ -143,6 +144,8 @@ test("Show Wikis keep four primary actions and disclose the deep lanes", () => {
   assert.match(dossier, /QUICK RECAP/);
   assert.match(dossier, /hasDeepDive/);
   assert.match(dossier, /EXPLORE ALL/);
+  assert.match(dossier, /#sourceDossierFanRead/);
+  assert.match(dossier, /link.textContent = "FAN READ"/);
   assert.match(dossier, /editorialSignature/);
   assert.match(dossier, /scope\.closest/);
   assert.match(dossier, /sourceDossierShowWikiLane-best-moments/);

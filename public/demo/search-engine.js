@@ -172,6 +172,11 @@
     "characters", "actor", "actors", "cast", "costume", "look",
   ];
 
+  var WHOLE_WORK_TARGET_TERMS = [
+    "movie", "film", "franchise", "installment", "sequel", "prequel", "remake",
+    "reboot",
+  ];
+
   var OPINION_PROXIMITY_WORDS = 8;
   var SCREEN_REFERENT_TERMS = ["this", "that", "it", "its"];
   var SCREEN_REFERENT_PROXIMITY_WORDS = 2;
@@ -291,7 +296,7 @@
       sourceExplicit = true;
     } else if (includesAny(q, [
       "livestream", "live stream", "stream", "live show", "live episode",
-      "recent show", "newest show",
+      "recent show", "newest show", "latest show", "last show", "most recent show",
     ])) {
       source = "livestream";
       sourceExplicit = true;
@@ -381,9 +386,10 @@
       /\bkeep\s+(?:coming|going)\s+back\s+to\b/.test(q) ||
       /\b(?:talk|talked|discuss|discussed)\s+about\s+(?:the )?(?:most|least)\b/.test(q)
     );
+    var bitSuperlativeComedy = /\b(?:best|favorite|favourite|greatest)(?: [a-z0-9]+){0,4} (?:bit|clip|performance|impression|moment)\b/.test(q);
     var comedyRequest = includesAny(q, [
       "funny", "funniest", "laugh", "deranged", "wild", "crazy", "fucked", "soundbyte",
-    ]);
+    ]) || bitSuperlativeComedy;
     var compoundViewComedy = comedyRequest && viewSelector;
     var intent = "discovery";
     if (trajectory) intent = "trajectory";
@@ -400,6 +406,7 @@
       "criticized", "dislike", "disliked", "despise", "despised", "loathe",
       "loathed", "didnt like", "did not like", "couldnt stand",
     ]) || containsNormalizedPhrase(q, "bad")) intent = "negative";
+    else if (bitSuperlativeComedy) intent = "comedy";
     else if (includesAny(q, [
       "love", "loved", "best", "favorite", "amazing", "positive about", "liked",
       "praise", "praised", "enjoy", "enjoyed",
@@ -670,13 +677,31 @@
 
   function compileQueryPlan(query, parsedIntent) {
     var q = parsedIntent.normalized;
+    var sealedWatchalong = null;
+    var sealedWatchalongCue = /\b(?:commentary|watchalong|watch along|show wiki|wiki)\b/.test(q) ||
+      /^(?:where is|wheres|find|open|show me)\b/.test(q);
+    if (sealedWatchalongCue) {
+      [
+        { id: "scary-movie-2", label: "Scary Movie 2", aliases: ["scary movie 2", "scary movie ii"] },
+        { id: "scary-movie", label: "Scary Movie", aliases: ["scary movie"] },
+        { id: "harold-kumar", label: "Harold & Kumar Go to White Castle", aliases: ["harold and kumar", "harold kumar"] },
+        { id: "waiting", label: "Waiting...", aliases: ["waiting commentary", "waiting watchalong", "waiting wiki", "the waiting commentary"] },
+      ].some(function (record) {
+        var matched = record.aliases.some(function (alias) {
+          return containsNormalizedPhrase(q, alias);
+        });
+        if (matched) sealedWatchalong = record;
+        return matched;
+      });
+    }
     var relativeTimeLanguage = includesAny(q, [
       "last night", "last nights", "yesterday",
     ]);
     var relativeStreamSelector = includesAny(q, [
       "last stream", "last livestream", "last live stream", "latest stream",
       "latest livestream", "latest live stream", "newest stream",
-      "newest livestream", "newest live stream",
+      "newest livestream", "newest live stream", "last show", "latest show",
+      "newest show", "most recent show",
     ]);
     var relativeNewestStream = (relativeTimeLanguage || relativeStreamSelector) &&
       (!parsedIntent.sourceExplicit || parsedIntent.source === "livestream");
@@ -769,6 +794,10 @@
       /\b(?:best|greatest|most memorable)\s+(?:moment|bit|clip|thing)\s+(?:ever|overall|of all time)\b/.test(q) ||
       /\b(?:their|the|overall)\s+(?:best|greatest|most memorable)\s+(?:moment|bit|clip|thing)\b/.test(q)
     );
+    var namedSteveSurface = includesAny(q, [
+      "steves asshole", "straight to steves asshole", "sent to steves asshole",
+      "went to steves asshole", "steves asshole section", "steves asshole archive",
+    ]);
     var globalNegativeSuperlative = (
       /\b(?:most hated|least favorite|least favourite)\s+(?:movie|film|sequel|remake|reboot|thing|part|moment|take)\b/.test(q) ||
       /\b(?:worst|harshest)\s+(?:movie|film|sequel|remake|reboot|take|review|verdict|criticism)\s+(?:ever|overall|of all time)\b/.test(q) ||
@@ -782,8 +811,8 @@
     );
     var adjudicationRequested = adjudicationRequest(q);
     var longitudinalRequested = longitudinalRequest(q);
-    var hasSurfaceHandoff = broadMemorabilitySuperlative ||
-      globalComedySuperlative || globalNegativeSuperlative;
+    var hasSurfaceHandoff = Boolean(sealedWatchalong) || broadMemorabilitySuperlative ||
+      globalComedySuperlative || globalNegativeSuperlative || namedSteveSurface;
     var scopedTemporalContainer = /\b(?:in|inside|from|on|of) (?:the )?(?:latest|newest|earliest|oldest|last|first)(?: indexed)? (?:livestream|live stream|stream|upload|video)\b/.test(q);
     var temporalResultSource = resultPlural &&
       parsedIntent.temporal !== "all" &&
@@ -894,11 +923,22 @@
         intent: "longitudinal",
         reason: "Prediction and outcome comparisons belong to the typed, receipt-linked longitudinal docket.",
       } : null,
-      surfaceHandoff: globalNegativeSuperlative ? {
+      surfaceHandoff: sealedWatchalong ? {
+        id: "sealed-watchalong-" + sealedWatchalong.id,
+        href: "#comedy-vault",
+        label: sealedWatchalong.label + " Show Wiki",
+        namedRequest: true,
+        filterQuery: sealedWatchalong.label,
+        sealedSource: true,
+        reason: "The exact official commentary record exists in the sealed comedy shelf; no unrelated caption match may replace it.",
+      } : globalNegativeSuperlative || namedSteveSurface ? {
         id: "steves-asshole",
         href: "#steves-asshole",
         label: "Straight to Steve's Asshole",
-        reason: "A global negative superlative belongs to the dedicated criticism archive, not unranked Ask retrieval.",
+        namedRequest: namedSteveSurface,
+        reason: namedSteveSurface ?
+          "The fan named the dedicated criticism archive directly." :
+          "A global negative superlative belongs to the dedicated criticism archive, not unranked Ask retrieval.",
       } : broadMemorabilitySuperlative ? {
         id: "memorability-candidate-index-v2.1",
         href: "#red100",
@@ -2149,9 +2189,13 @@
   function opinionEvidenceSupport(candidate) {
     var words = normalize(candidate.excerpt).split(" ").filter(Boolean);
     var targetHits = [];
+    var wholeWorkHits = [];
     var referentHits = [];
     TAKE_TARGET_TERMS.forEach(function (term) {
       targetHits = targetHits.concat(phraseOccurrences(words, term));
+    });
+    WHOLE_WORK_TARGET_TERMS.forEach(function (term) {
+      wholeWorkHits = wholeWorkHits.concat(phraseOccurrences(words, term));
     });
     SCREEN_REFERENT_TERMS.forEach(function (term) {
       referentHits = referentHits.concat(phraseOccurrences(words, term));
@@ -2173,6 +2217,18 @@
         SCREEN_REFERENT_PROXIMITY_WORDS
       ));
     var pairs = directPairs.concat(referentialPairs);
+    var wholeWorkPairs = proximityPairs(
+        words,
+        NEGATIVE_EVALUATIVE_TERMS,
+        wholeWorkHits,
+        "negative"
+      )
+      .concat(proximityPairs(
+        words,
+        POSITIVE_EVALUATIVE_TERMS,
+        wholeWorkHits,
+        "positive"
+      ));
     var negative = polaritySupport(pairs, "negative");
     var positive = polaritySupport(pairs, "positive");
     return {
@@ -2183,6 +2239,10 @@
       referentialPairs: referentialPairs,
       maxDistance: OPINION_PROXIMITY_WORDS,
       strength: Math.max(negative.strength, positive.strength),
+      wholeWorkPairs: wholeWorkPairs,
+      wholeWorkStrength: wholeWorkPairs.reduce(function (strongest, pair) {
+        return Math.max(strongest, pair.strength);
+      }, 0),
       negative: negative,
       positive: positive,
     };
@@ -2716,6 +2776,17 @@
       );
       if (aOpinionStrength !== bOpinionStrength) return bOpinionStrength - aOpinionStrength;
     }
+    if (intent.name === "opinion") {
+      var aWholeWorkStrength = Number(
+        a.opinionEvidence && a.opinionEvidence.wholeWorkStrength || 0
+      );
+      var bWholeWorkStrength = Number(
+        b.opinionEvidence && b.opinionEvidence.wholeWorkStrength || 0
+      );
+      if (aWholeWorkStrength !== bWholeWorkStrength) {
+        return bWholeWorkStrength - aWholeWorkStrength;
+      }
+    }
     if (intent.name === "comedy") {
       var aComedy = a.lane === "archive" && a.kind === "moment" ? 1 :
         (CATEGORY_INTENTS.comedy.indexOf(a.category) >= 0 ? 1 : 0);
@@ -3136,14 +3207,14 @@
         return entry.role === "CRITICAL-LANGUAGE RECEIPT";
       });
       var opinionLead = hasPositiveReceipt && hasCriticalReceipt ?
-        "The tape catches both praise and criticism for " + entityLabel + "." :
+        "The tape catches both positive and critical language around " + entityLabel + "." :
         hasCriticalReceipt ?
           "The tape catches a clear criticism of " + entityLabel + "." :
           hasPositiveReceipt ?
             "The tape catches a positive take on " + entityLabel + "." :
             "The archive has a playable " + entityLabel + " discussion.";
       var opinionRead = hasPositiveReceipt && hasCriticalReceipt ?
-        " The honest read is mixed, not one clean final verdict." :
+        " The honest read is mixed evidence, not one clean final verdict; a clip may judge a scene, performance, logo, or another part of the work rather than the whole thing." :
         " It is one real moment from the show, not a claim about every take they have ever had.";
       var opinionScope = entity && entity.type === "franchise" ?
         " Because this covers a whole franchise, the matches may be about different movies or scenes." : "";
@@ -3410,6 +3481,7 @@
         "and if", "and then", "and what about", "and how about", "and another",
         "and more", "and the", "and in", "and on", "and from", "and commentary",
         "and commentaries", "and livestream", "and livestreams", "and instead",
+        "and what did", "and what do", "and what does", "and where", "and when",
       ]);
     }
     return beginsWithAny(q, ["another"]) ||
@@ -3586,8 +3658,22 @@
           candidate.category === "TAKE GETS NUCLEAR";
       })[0];
       var opinionChain = [];
-      if (positiveTake) opinionChain.push({ role: "POSITIVE-LANGUAGE RECEIPT", result: positiveTake });
-      if (criticalTake && (!positiveTake || criticalTake.key !== positiveTake.key)) {
+      var positiveWholeWorkStrength = Number(
+        positiveTake && positiveTake.opinionEvidence &&
+        positiveTake.opinionEvidence.wholeWorkStrength || 0
+      );
+      var criticalWholeWorkStrength = Number(
+        criticalTake && criticalTake.opinionEvidence &&
+        criticalTake.opinionEvidence.wholeWorkStrength || 0
+      );
+      var criticalFirst = criticalTake && criticalWholeWorkStrength > positiveWholeWorkStrength;
+      if (criticalFirst) {
+        opinionChain.push({ role: "CRITICAL-LANGUAGE RECEIPT", result: criticalTake });
+      }
+      if (positiveTake) {
+        opinionChain.push({ role: "POSITIVE-LANGUAGE RECEIPT", result: positiveTake });
+      }
+      if (criticalTake && !criticalFirst && (!positiveTake || criticalTake.key !== positiveTake.key)) {
         opinionChain.push({ role: "CRITICAL-LANGUAGE RECEIPT", result: criticalTake });
       }
       if (!opinionChain.length) opinionChain.push({ role: "PRIMARY RECEIPT", result: ranked[0] });
@@ -3840,28 +3926,49 @@
       var originalIntent = applyQueryPlan(parsedIntent, queryPlan);
       var directEntity = identifyEntity(queryPlan.canonicalQuery, aliases, originalIntent);
       if (queryPlan.outputShape === "recurring-bit-ledger") directEntity = null;
+      var scopedNamedSurfaceHandoff = Boolean(
+        queryPlan.surfaceHandoff &&
+        queryPlan.surfaceHandoff.namedRequest &&
+        directEntity &&
+        !originalIntent.sourceExplicit
+      );
       var eligibleSurfaceHandoff = queryPlan.surfaceHandoff &&
-        !directEntity && !originalIntent.sourceExplicit;
+        (queryPlan.surfaceHandoff.sealedSource ||
+          (!directEntity && !originalIntent.sourceExplicit) || scopedNamedSurfaceHandoff);
       if (queryPlan.surfaceHandoff && !eligibleSurfaceHandoff) {
         queryPlan.surfaceHandoff = null;
         queryPlan.outputShape = "single";
       }
       if (eligibleSurfaceHandoff) {
+        if (scopedNamedSurfaceHandoff) {
+          queryPlan.surfaceHandoff = Object.assign({}, queryPlan.surfaceHandoff, {
+            filterQuery: directEntity.label,
+            subject: {
+              type: directEntity.type,
+              label: directEntity.label,
+              id: directEntity.id || directEntity.sourceId || null,
+            },
+          });
+        }
         var handoffIsComedy = queryPlan.surfaceHandoff.id === "riff-black-box";
         var handoffIsNegative = queryPlan.surfaceHandoff.id === "steves-asshole";
-        var handoffKind = handoffIsComedy ? "comedy" :
+        var handoffIsSealed = Boolean(queryPlan.surfaceHandoff.sealedSource);
+        var handoffKind = handoffIsSealed ? "show wiki" : handoffIsComedy ? "comedy" :
           handoffIsNegative ? "criticism" : "memorability";
+        var namedSurfaceRequest = Boolean(queryPlan.surfaceHandoff.namedRequest);
+        var scopedNamedRequest = namedSurfaceRequest && scopedNamedSurfaceHandoff;
         return {
           query: query,
           intent: "surface-handoff",
-          questionType: "global " + handoffKind + " superlative",
+          questionType: handoffIsSealed ? "exact source navigation" :
+            "global " + handoffKind + " superlative",
           source: "all",
           temporal: originalIntent.temporal,
           popularity: originalIntent.popularity,
           metric: queryPlan.surfaceHandoff.id,
           requestedYear: originalIntent.requestedYear,
-          entity: null,
-          entityType: null,
+          entity: scopedNamedRequest ? directEntity.label : null,
+          entityType: scopedNamedRequest ? directEntity.type : null,
           ownerMapping: null,
           continuedFrom: false,
           contextUsed: [],
@@ -3873,25 +3980,44 @@
             temporal: originalIntent.temporal,
             popularity: originalIntent.popularity,
             metric: queryPlan.surfaceHandoff.id,
-            entity: null,
-            entityType: null,
+            entity: scopedNamedRequest ? directEntity.label : null,
+            entityType: scopedNamedRequest ? directEntity.type : null,
             resultAnchor: null,
           },
           queryPlan: queryPlan,
           surfaceHandoff: queryPlan.surfaceHandoff,
           selectionPlan: { surfaceHandoff: queryPlan.surfaceHandoff },
           confidence: 100,
-          confidenceBasis: [
+          confidenceBasis: namedSurfaceRequest ? [
+            "Query Plan identified the fan-named archive destination",
+            "Navigation answer returned without inventing a receipt",
+          ] : [
             "Query Plan identified a global " + handoffKind + " superlative",
             "Unranked retrieval refused to manufacture its own winner",
           ],
           status: "surface-handoff",
-          answer: "This asks for a global " + handoffKind +
-            " winner. Ask WWAM will not invent a separate #1; open " +
-            queryPlan.surfaceHandoff.label + " for the archive's dedicated " +
-            handoffKind + " view.",
+          answer: handoffIsSealed ?
+            "Open " + queryPlan.surfaceHandoff.label + ". The official WWAM source record is verified, but its member media is not available to this public build, so Ask is opening the honest sealed brief instead of inventing clips." :
+            scopedNamedRequest ?
+            "Open " + queryPlan.surfaceHandoff.label + " with " + directEntity.label +
+              " kept as the filter. That is the WWAM rejection chute for playable bad masks, rotten twists, and franchise decisions." :
+            namedSurfaceRequest ?
+              "That's the WWAM rejection chute. Open " + queryPlan.surfaceHandoff.label +
+                " to browse the playable takes, bad masks, rotten twists, and franchise decisions Mike and J sent there." :
+            "This asks for a global " + handoffKind +
+              " winner. Ask WWAM will not invent a separate #1; open " +
+              queryPlan.surfaceHandoff.label + " for the archive's dedicated " +
+              handoffKind + " view.",
           limitations: [
-            "No receipt is returned here because a dedicated archive surface owns this global superlative.",
+            handoffIsSealed ?
+              "No playable receipt is returned because the verified member recording is unavailable to this public build." :
+            scopedNamedRequest ?
+              "No single receipt is returned because the dedicated archive owns this filtered browse request." :
+              namedSurfaceRequest ?
+                "No single receipt is returned because the fan asked for the whole dedicated archive." :
+              "No receipt is returned here because a dedicated archive surface owns this global superlative.",
+            handoffIsSealed ?
+              "The Wiki can verify the official post, date, provider, and source link; quotes and timestamps remain empty until the member recording is available." :
             handoffIsComedy ?
               "The Comedy Black Box is machine-ranked, not a creator vote or objective comedy verdict." :
               handoffIsNegative ?
@@ -3911,7 +4037,9 @@
           },
           evidenceChain: [],
           results: [],
-          suggestions: [handoffIsNegative ?
+          suggestions: [handoffIsSealed ?
+            "Open the sealed comedy commentary shelf" :
+            handoffIsNegative ?
             "Open Straight to Steve's Asshole" :
             handoffIsComedy ?
               "Open the Comedy Black Box" :
@@ -4458,7 +4586,7 @@
             var requiredMatches = subjectTerms.length === 1 ? 1 : Math.ceil(subjectTerms.length * 0.67);
             return candidate.matchedSubjectTerms.length >= requiredMatches;
           }
-          return anchorActive || Boolean(selectedSource) || candidate.score > 0;
+          return sourceCollectionShape || anchorActive || Boolean(selectedSource) || candidate.score > 0;
         }).sort(function (a, b) {
           if (activeAnchorMode === "next") {
             var nextDifference = Number(a.at || 0) - Number(b.at || 0);
@@ -4552,8 +4680,9 @@
         return { role: entry.role, result: enrichResult(entry.result) };
       });
       var evidenceFirst = intent.name === "trajectory" || intent.name === "opinion";
-      var displayRanked = evidenceFirst ?
-        rawChain.map(function (entry) { return entry.result; }).concat(ranked.filter(function (candidate) {
+      var chainRanked = rawChain.map(function (entry) { return entry.result; });
+      var displayRanked = intent.name === "opinion" ? chainRanked :
+        intent.name === "trajectory" ? chainRanked.concat(ranked.filter(function (candidate) {
           return !rawChain.some(function (entry) { return entry.result.key === candidate.key; });
         })) : ranked;
       var displayLimit = Number(queryPlan.controls.requestedLimit || 0) ||

@@ -444,6 +444,8 @@ test("dossier CSS and scripts load lazily through the feature loader, never eage
 
   const loader = namedFunction(app, "loadSourceDossier");
   assert.match(loader, /loader\.loadStyle\("source-dossier\.css\?v=1\.9\.2-fan-read"\)/);
+  assert.match(loader, /loadDemoScript\("creator-studio-engine\.js"\)\.then\(createClipLab\)/);
+  assert.doesNotMatch(loader, /createCreatorEngines/);
   const scriptList = loader
     .match(/return \[([\s\S]*?)\]\.reduce/)?.[1]
     .match(/"[^"]+\.js(?:\?[^"]*)?"/g)

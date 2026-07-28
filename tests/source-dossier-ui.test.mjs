@@ -1418,9 +1418,8 @@ test("caption excerpts drop only leading YouTube speaker markers across cards an
   assert.doesNotMatch(mount.innerHTML, /&gt;&gt;|>>/);
 });
 
-test("deep-linked Show Wiki and player views reset the modal and focus short headings without scroll drift", () => {
+test("deep-linked player view resets the modal and focuses its short heading without scroll drift", () => {
   for (const [section, sectionId, headingId] of [
-    ["wiki", "sourceDossierShowWiki", "sourceDossierShowWikiTitle"],
     ["player", "sourceDossierPlayerSection", "sourceDossierPlayerTitle"],
   ]) {
     const makeNode = () => ({
@@ -1471,6 +1470,92 @@ test("deep-linked Show Wiki and player views reset the modal and focus short hea
     assert.equal(headingNode.focusCalls.length, 1);
     assert.equal(headingNode.focusCalls[0].preventScroll, true);
   }
+});
+
+test("deep-linked Show Wiki waits for hydration and lands below the mobile close control", () => {
+  const frames = [];
+  const headingNode = {
+    attributes: new Map(),
+    focusCalls: [],
+    hasAttribute(name) {
+      return this.attributes.has(name);
+    },
+    setAttribute(name, value) {
+      this.attributes.set(name, String(value));
+    },
+    getAttribute(name) {
+      return this.attributes.get(name) ?? null;
+    },
+    focus(options) {
+      this.focusCalls.push(options);
+    },
+  };
+  const sectionNode = {
+    rectTop: 1026,
+    scrollCalls: [],
+    getBoundingClientRect() {
+      return { top: this.rectTop, bottom: this.rectTop + 5710, height: 5710 };
+    },
+    querySelector() {
+      return headingNode;
+    },
+    scrollIntoView(options) {
+      this.scrollCalls.push(options);
+    },
+  };
+  const modal = {
+    scrollTop: 6707,
+    scrollLeft: 19,
+    scrollCalls: [],
+    getBoundingClientRect() {
+      return { top: 0, bottom: 844, height: 844 };
+    },
+    scrollTo(options) {
+      this.scrollCalls.push(options);
+      this.scrollTop = options.top;
+    },
+  };
+  const document = {
+    getElementById(id) {
+      if (id === "tapeModal") return modal;
+      if (id === "sourceDossierShowWiki") return sectionNode;
+      if (id === "sourceDossierShowWikiTitle") return headingNode;
+      return null;
+    },
+  };
+  const { ui } = setup(makeDossier(), {
+    document,
+    requestAnimationFrame(callback) {
+      frames.push(callback);
+    },
+  });
+
+  ui.render("SOURCE00001", { section: "wiki" });
+
+  assert.equal(modal.scrollTop, 0);
+  assert.equal(modal.scrollLeft, 0);
+  assert.equal(modal.scrollCalls.length, 0);
+  assert.equal(sectionNode.scrollCalls.length, 0);
+  assert.equal(headingNode.focusCalls.length, 0);
+  assert.equal(frames.length, 1);
+
+  frames.shift()();
+  assert.equal(modal.scrollCalls.length, 0);
+  assert.equal(frames.length, 1);
+
+  // Simulate the editorial/companion layer adding 170px above the Wiki
+  // between the initial render and the post-hydration alignment.
+  sectionNode.rectTop = 1196;
+  frames.shift()();
+
+  assert.equal(modal.scrollCalls.length, 1);
+  assert.equal(modal.scrollCalls[0].top, 1124);
+  assert.equal(modal.scrollCalls[0].left, 0);
+  assert.equal(modal.scrollCalls[0].behavior, "auto");
+  assert.equal(sectionNode.scrollCalls.length, 0);
+  assert.equal(headingNode.getAttribute("tabindex"), "-1");
+  assert.equal(headingNode.focusCalls.length, 1);
+  assert.equal(headingNode.focusCalls[0].preventScroll, true);
 });
 
 test("metadata-only Show Wikis expose a canonical Source Brief without fake moments", () => {

@@ -222,10 +222,7 @@
   function journeyFromLocation() {
     var target = (location.hash || "#top").slice(1);
     var sourceId = new URLSearchParams(location.search).get("source");
-    if (sourceId) {
-      var catalog = Array.isArray(window.WWAM_CATALOG) ? window.WWAM_CATALOG : [];
-      return catalog.some(function (item) { return item && item.id === sourceId; }) ? "watchalongs" : "shows";
-    }
+    if (sourceId) return "dossier";
     return journeyByTarget[target] || "home";
   }
 
@@ -280,6 +277,7 @@
       document.querySelectorAll("main > section").forEach(function (section) { allowed.add(section); });
       return allowed;
     }
+    if (active === "dossier") return allowed;
 
     if (active === "home" || active === "ask") {
       addPrimary(active);

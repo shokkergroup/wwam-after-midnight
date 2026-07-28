@@ -1260,7 +1260,7 @@ body[data-guided-journey="highlights"] #steves-asshole {
 }
 
 @media (max-width: 390px) {
-  .wwam-night-guide-mobile__item span { font-size: 6.8px; }
+  .wwam-night-guide-mobile__item span { font-size: 9px; }
   .wwam-route-hub-copy h1,
   body[data-guided-detail="true"] .wwam-route-hub-copy h1 { font-size: 49px; }
 }
@@ -1268,6 +1268,10 @@ body[data-guided-journey="highlights"] #steves-asshole {
 
 /* Overnight usability: every compact fan action remains a real thumb target. */
 @media (max-width: 760px) {
+  main :where(button, input, select, summary) {
+    min-height: 44px;
+  }
+
   :where(
     .answer-brief .ask-share,
     .ask-results footer button,

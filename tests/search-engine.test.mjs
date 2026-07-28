@@ -318,8 +318,8 @@ test("neutral franchise-opinion questions use explicit take evidence, not comedy
     "receipt retrieval confidence; settled opinion not established",
   );
   assert.match(answer.answer, /^The tape catches/i);
-  assert.match(answer.answer, /both praise and criticism/i);
-  assert.match(answer.answer, /mixed, not one clean final verdict/i);
+  assert.match(answer.answer, /both positive and critical language/i);
+  assert.match(answer.answer, /mixed evidence, not one clean final verdict/i);
   assert.ok(answer.results.length > 0);
   assert.deepEqual(
     answer.evidenceChain.map((entry) => entry.role),

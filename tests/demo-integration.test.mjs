@@ -30,6 +30,7 @@ test("the complete browser script chain exists in dependency order", () => {
     "ask-share.js",
     "youtube-playback.js",
     "feature-loader.js",
+    "route-render-gate.js",
     "app.js",
     "context-atlas.js",
     "context-companion.js",
@@ -79,6 +80,7 @@ test("every deep surface has a renderer and an isolated initialization stage", (
     "createDeepEngines",
     "createFanEngines",
     "createCreatorEngines",
+    "createClipLab",
     "renderLore",
     "renderNightShift",
     "renderTrivia",
@@ -88,10 +90,13 @@ test("every deep surface has a renderer and an isolated initialization stage", (
     "renderPilotBuilder",
   ].forEach((name) => assert.equal(functions.has(name), true, `${name} is not defined`));
 
-  assert.match(app, /scheduleIdle\(createFanEngines,/);
-  assert.match(app, /scheduleIdle\(createCreatorEngines,/);
-  assert.match(app, /function createFanEngines\(\)[\s\S]*renderLore\(\);[\s\S]*renderTrivia\(\);/);
-  assert.match(app, /function createCreatorEngines\(\)[\s\S]*renderClipLab\(\);[\s\S]*renderCanon\(\);/);
+  const deepStage = app.slice(app.indexOf("function createDeepEngines()"), app.indexOf("function createFanEngines()"));
+  assert.doesNotMatch(deepStage, /scheduleIdle\(create(?:Fan|Creator)Engines/);
+  assert.match(app, /characters:\[createDeepEngines,createFanEngines/);
+  assert.match(app, /highlights:\[createDeepEngines,createFanEngines/);
+  assert.match(app, /studio:\[createDeepEngines,createFanEngines,createCreatorEngines/);
+  assert.match(app, /function createFanEngines\(\)[\s\S]*WWAMRouteRenderGate\.invalidate\(\["characters", "highlights"\]\)/);
+  assert.match(app, /function createCreatorEngines\(\)[\s\S]*WWAMRouteRenderGate\.invalidate\("studio"\)/);
 });
 
 test("new interactive surface hooks exist in both HTML and application wiring", () => {
@@ -268,22 +273,12 @@ test("browser capability failures degrade safely instead of breaking the demo", 
   assert.match(app, /THIS TAB ONLY/);
 });
 
-test("reduced profanity rerenders every surface that can expose archive text", () => {
+test("reduced profanity refreshes the active route without rebuilding hidden routes", () => {
   const setBand = app.slice(app.indexOf("function setBand("), app.indexOf("function renderTour("));
-  [
-    "renderHot100();",
-    "renderSoundbytes();",
-    "renderCharacter();",
-    "renderMemory();",
-    "renderLore();",
-    "renderTrivia();",
-    "renderControlRoom();",
-    "renderClipLab();",
-    "renderLabs();",
-    "renderEvidenceBag();",
-    "ask(state.lastAskQuery, state.lastAskAnalysis);",
-  ].forEach((call) => assert.match(setBand, new RegExp(call.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))));
+  assert.match(setBand, /WWAMRouteRenderGate\.refresh\(\)/);
+  assert.match(setBand, /refreshSoundPlayerCopy\(\)/);
   assert.match(setBand, /refreshCharacterAnswerCopy\(\)/);
+  assert.doesNotMatch(setBand, /render(?:Hot100|Soundbytes|Character|Memory|Lore|Trivia|ControlRoom|ClipLab|Labs|EvidenceBag)\(\)/);
   assert.doesNotMatch(setBand, /state\.askContext = null/);
 });
 

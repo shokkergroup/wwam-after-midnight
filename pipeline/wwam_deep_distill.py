@@ -418,6 +418,8 @@ def parse_json3(payload: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def excerpt_words(text: str, limit: int = 22) -> str:
+    text = re.sub(r"^\s*\?+\s*", "", text)
+    text = re.sub(r"\s*\?+\s*$", "", text).strip()
     words = text.split()
     if len(words) <= limit:
         return text
@@ -432,8 +434,57 @@ def lexical(value: str) -> str:
     return re.sub(r"[^a-z0-9']+", " ", value.lower()).strip()
 
 
+FOREIGN_FILM_REFERENCES = (
+    ("friday the 13th franchise", "friday the 13th"),
+    ("the 13th", "friday the 13th"),
+    ("jason x", "jason x"),
+    ("jason goes to hell", "jason goes to hell"),
+    ("jason takes manhattan", "jason takes manhattan"),
+    ("freddy vs jason", "freddy vs jason"),
+    ("freddys revenge", "freddys revenge"),
+    ("new nightmare", "new nightmare"),
+    ("dream warriors", "dream warriors"),
+    ("dream child", "dream child"),
+    ("scary movie", "scary movie"),
+    ("halloween ends", "halloween ends"),
+    ("halloween kills", "halloween kills"),
+)
+
+
+def names_another_film(seed: dict[str, Any], excerpt: str) -> bool:
+    """Veto a closing receipt that explicitly names a different movie."""
+    body = lexical(excerpt)
+    current = lexical(seed.get("film") or "")
+    return any(
+        phrase in body and current_title not in current
+        for phrase, current_title in FOREIGN_FILM_REFERENCES
+    )
+
+
+def evidence_pair_distance(cut: dict[str, Any]) -> int:
+    """Measure how tightly a displayed subject and evaluation are coupled."""
+    words = lexical(cut.get("excerpt") or "").split()
+    topic = lexical(cut.get("topicEvidence") or "").split()
+    category = lexical(cut.get("categoryEvidence") or "").split()
+    if not words or not topic or not category:
+        return 999
+    topic_positions = [
+        index for index in range(len(words) - len(topic) + 1)
+        if words[index:index + len(topic)] == topic
+    ]
+    category_positions = [
+        index for index in range(len(words) - len(category) + 1)
+        if words[index:index + len(category)] == category
+    ]
+    if not topic_positions or not category_positions:
+        return 999
+    return min(abs(left - right) for left in topic_positions for right in category_positions)
+
+
 def excerpt_around_terms(text: str, terms: list[str], limit: int = 23) -> str:
     """Clip around the named subject instead of an unrelated loud word."""
+    text = re.sub(r"^\s*\?+\s*", "", text)
+    text = re.sub(r"\s*\?+\s*$", "", text).strip()
     words = text.split()
     if len(words) <= limit:
         return text
@@ -708,9 +759,9 @@ def evidence_windows(text: str, limit: int = 23) -> list[tuple[str, str]]:
     # while keeping a full 65-hour cache-only rebuild comfortably local.
     for left in sorted({0, final_left // 2, final_left}):
         plain = " ".join(words[left : left + limit])
-        display = ("? " if left else "") + plain
+        display = ("... " if left else "") + plain
         if left + limit < len(words):
-            display += " ?"
+            display += " ..."
         output.append((plain, display))
     return output
 
@@ -1045,16 +1096,67 @@ ACT_LANE_COPY = [
     "The closing stretch",
     "The final lap",
 ]
-CATEGORY_TURN_COPY = {
-    "OUT OF POCKET": "the commentary takes an out-of-pocket exit ramp",
-    "FRANCHISE FELONY": "the prosecution gets the floor",
-    "LOVE LETTER": "the defense delivers a full-throated save",
-    "THEORY BOARD": "a prediction or theory takes over",
-    "KILL ROOM": "the reaction locks onto kill-scene language",
-    "BIT ENERGY": "a callback or running bit resurfaces",
-    "BREAKDOWN": "the comedy pressure spikes",
-    "HORROR BRAIN": "the conversation detours into horror lore",
-    "FILM READ": "the movie talk gets specific about the craft on screen",
+CHAPTER_STAGE_COPY = (
+    "{topic} takes over the {lane} at {at}.",
+    "At {at}, the {lane} belongs to {topic}.",
+    "The {lane} swings toward {topic} at {at}.",
+    "{topic} becomes the center of the {lane} at {at}.",
+)
+CATEGORY_MOMENT_COPY = {
+    "OUT OF POCKET": (
+        "{quote} sends {topic} and the commentary through the side door.",
+        "Then {topic} knocks the watch off its rails with {quote}.",
+        "The detour around {topic} arrives fully formed in {quote}.",
+        "The movie talk around {topic} goes gloriously sideways in {quote}.",
+    ),
+    "FRANCHISE FELONY": (
+        "The prosecution brings {topic} to the stand with {quote}.",
+        "{quote} is where the gloves come off around {topic}.",
+        "The tape files its {topic} complaint in four words: {quote}.",
+        "{quote} turns the case against {topic} into a franchise felony.",
+    ),
+    "LOVE LETTER": (
+        "The affection for {topic} is impossible to miss in {quote}.",
+        "{quote} turns {topic} into a full WWAM valentine.",
+        "The tape goes soft for {topic}, right down to {quote}.",
+        "The defense of {topic} gets its cleanest language in {quote}.",
+    ),
+    "THEORY BOARD": (
+        "{quote} opens the conspiracy board around {topic}.",
+        "The {topic} prediction machine starts humming with {quote}.",
+        "{quote} sends {topic} into theory-board territory.",
+        "The tape starts drawing red string from {topic} to {quote}.",
+    ),
+    "KILL ROOM": (
+        "{quote} puts the {topic} kill talk under the microscope.",
+        "The kill-room light comes on around {topic} with {quote}.",
+        "{quote} makes {topic} the night's forensic stop.",
+        "The body-count conversation around {topic} sharpens through {quote}.",
+    ),
+    "BIT ENERGY": (
+        "{quote} brings the {topic} running-bit energy back around.",
+        "The callback bell for {topic} rings on {quote}.",
+        "{quote} is where the {topic} bit finds another life.",
+        "The room recognizes its {topic} joke in {quote}.",
+    ),
+    "BREAKDOWN": (
+        "{quote} is where the room breaks around {topic}.",
+        "The {topic} laugh pressure finally blows at {quote}.",
+        "{quote} turns {topic} into a full commentary pileup.",
+        "The comedy spike around {topic} announces itself with {quote}.",
+    ),
+    "HORROR BRAIN": (
+        "{quote} kicks open the {topic} horror-lore cabinet.",
+        "The franchise brain around {topic} takes over at {quote}.",
+        "{quote} sends {topic} deeper into horror history.",
+        "The lore detour around {topic} begins with {quote}.",
+    ),
+    "FILM READ": (
+        "{quote} turns {topic} into a nuts-and-bolts movie read.",
+        "The craft conversation around {topic} gets real in {quote}.",
+        "{quote} starts taking the filmmaking around {topic} apart.",
+        "A closer look at {topic} begins with {quote}.",
+    ),
 }
 TOPIC_KIND_COPY = {
     "character": "character-led",
@@ -1068,11 +1170,97 @@ TOPIC_KIND_COPY = {
 }
 
 
+def stable_voice_choice(options: tuple[str, ...], *parts: Any) -> str:
+    """Choose repeatable channel copy without pretending the choice is evidence."""
+    key = "|".join(str(part) for part in parts)
+    digest = hashlib.sha256(key.encode("utf-8")).digest()
+    return options[int.from_bytes(digest[:4], "big") % len(options)]
+
+
+def evidence_fragment(cut: dict[str, Any], maximum: int = 10) -> str:
+    """Return a short exact-caption fragment centered on this cut's evidence."""
+    tokens = re.findall(
+        r"\[BLEEP\]|[A-Za-z0-9]+(?:['-][A-Za-z0-9]+)*",
+        cut.get("excerpt", ""),
+    )
+    if not tokens:
+        return cut.get("topic") or "this moment"
+    lowered = [lexical(token) for token in tokens]
+    anchors = [
+        cut.get("verdictEvidence", ""),
+        cut.get("editorialEvidence", ""),
+        cut.get("categoryEvidence", ""),
+        cut.get("topicEvidence", ""),
+    ]
+    anchor_tokens = sorted(
+        (
+            [part for part in lexical(anchor).split() if part]
+            for anchor in anchors
+            if anchor
+        ),
+        key=lambda parts: (len(parts), sum(len(part) for part in parts)),
+        reverse=True,
+    )
+    start = 0
+    stop = min(len(tokens), maximum)
+    found = False
+    for anchor in anchor_tokens:
+        for index in range(0, len(lowered) - len(anchor) + 1):
+            if lowered[index : index + len(anchor)] != anchor:
+                continue
+            start = index
+            stop = min(len(tokens), start + maximum)
+            if stop - start < 5:
+                start = max(0, stop - maximum)
+            found = True
+            break
+        if found:
+            break
+    leading_filler = {"and", "but", "so", "yeah", "oh", "uh", "um", "like", "of", "the", "a", "an"}
+    trailing_filler = {
+        "and", "but", "so", "or", "to", "of", "the", "a", "an", "if", "because",
+        "he", "she", "they", "he's", "she's", "they're", "it's", "i", "you", "we",
+        "on", "in", "at", "with", "for", "from", "is", "was", "are", "were",
+        "do", "does", "did", "don't", "can't", "can", "like", "bleep",
+    }
+    fragment_tokens = tokens[start:stop]
+    while len(fragment_tokens) > 3 and lexical(fragment_tokens[0]) in leading_filler:
+        fragment_tokens.pop(0)
+    while len(fragment_tokens) > 3 and lexical(fragment_tokens[-1]) in trailing_filler:
+        fragment_tokens.pop()
+    fragment = " ".join(fragment_tokens).strip()
+    return fragment or "this moment"
+
+
+def quoted_fragment(cut: dict[str, Any]) -> str:
+    return (
+        "\N{LEFT DOUBLE QUOTATION MARK}"
+        + evidence_fragment(cut)
+        + "\N{RIGHT DOUBLE QUOTATION MARK}"
+    )
+
+
+def category_moment_sentence(cut: dict[str, Any], voice_key: str) -> str:
+    options = CATEGORY_MOMENT_COPY.get(
+        cut["category"],
+        ("{quote} is the language that defines the stop.",),
+    )
+    template = stable_voice_choice(
+        options,
+        voice_key,
+        cut["category"],
+        cut["topic"],
+        cut["t"],
+    )
+    return template.format(quote=quoted_fragment(cut), topic=cut["topic"])
+
+
 def chapter_editorial_body(
     slot: int,
     chapter_total: int,
     cut: dict[str, Any],
     film: str,
+    voice_key: str,
 ) -> tuple[str, str]:
     if slot == chapter_total - 1:
         lane = "The closing stretch"
@@ -1080,45 +1268,109 @@ def chapter_editorial_body(
         lane = "The late escalation"
     else:
         lane = ACT_LANE_COPY[slot]
-    turn = CATEGORY_TURN_COPY.get(cut["category"], cut["label"])
     at = clock_label(cut["t"])
+    lane_name = lane.removeprefix("The ").lower()
+    moment = category_moment_sentence(cut, f"{voice_key}:chapter:{slot}")
     if cut["topicBasis"] == "local-caption-match":
+        lead = stable_voice_choice(
+            CHAPTER_STAGE_COPY,
+            voice_key,
+            "chapter-lead",
+            slot,
+            cut["topic"],
+        ).format(topic=cut["topic"], lane=lane_name, at=at)
         return (
-            f"{lane} locks onto {cut['topic']}. At {at}, {turn}—a clean jump into "
-            "the moment without losing the movie thread.",
+            f"{lead} {moment}",
             "topic-and-category-in-same-excerpt",
         )
+    lead = stable_voice_choice(
+        (
+            "At {at}, the {lane} stays with {film}.",
+            "{film} holds the {lane} at {at}.",
+            "The {lane} returns to {film} at {at}.",
+        ),
+        voice_key,
+        "chapter-fallback",
+        slot,
+    ).format(at=at, lane=lane_name, film=film)
     return (
-        f"{lane} lands at {at}, where {turn} and {film} itself stays at the center.",
+        f"{lead} {moment}",
         "category-in-excerpt-film-context-only",
     )
 
 
 def take_editorial_body(
-    lane: str, cut: dict[str, Any], explicit_verdict: bool = False
+    lane: str,
+    cut: dict[str, Any],
+    voice_key: str,
+    explicit_verdict: bool = False,
 ) -> tuple[str, str]:
     at = clock_label(cut["t"])
-    turn = CATEGORY_TURN_COPY.get(cut["category"], cut["label"])
+    moment = category_moment_sentence(cut, f"{voice_key}:take:{lane}")
     if lane == "closing" and explicit_verdict:
+        lead = stable_voice_choice(
+            (
+                "The tape does hand down a verdict at {at}, and {topic} gets the final word.",
+                "At {at}, the closing verdict finally arrives through {topic}.",
+                "{topic} carries the tape's actual final ruling at {at}.",
+            ),
+            voice_key,
+            "take-explicit-closing",
+            cut["topic"],
+        ).format(at=at, topic=cut["topic"])
         return (
-            f"At {at}, the tape finally says exactly how it feels. Around "
-            f"{cut['topic']}, {turn}; this one earns the closing verdict.",
+            f"{lead} {moment}",
             "explicit-verdict-language",
         )
     if lane == "closing":
+        lead = stable_voice_choice(
+            (
+                "There is no tidy final verdict, so {topic} at {at} becomes the exit sign.",
+                "The tape never sums itself up cleanly; its last useful stop is {topic} at {at}.",
+                "Without one neat verdict, the route leaves us with {topic} at {at}.",
+            ),
+            voice_key,
+            "take-fallback-closing",
+            cut["topic"],
+        ).format(topic=cut["topic"], at=at)
         return (
-            "The tape never delivers one neat final-summary line. "
-            f"This late cut at {at} is the best closing read: {turn}.",
+            f"{lead} {moment}",
             "late-evaluative-fallback",
         )
-    lead = "The watch path opens" if lane == "opening" else "The watch path turns"
+    lane_options = (
+        (
+            "Open the route at {at}, where {topic} takes the first swing.",
+            "The short route starts with {topic} at {at}.",
+            "Begin at {at}: {topic} sets the night's first marker.",
+        )
+        if lane == "opening"
+        else (
+            "The route changes direction at {at} with {topic}.",
+            "{topic} owns the midpoint turn at {at}.",
+            "At {at}, the watch path pivots toward {topic}.",
+        )
+    )
     if cut["topicBasis"] == "local-caption-match":
+        lead = stable_voice_choice(
+            lane_options,
+            voice_key,
+            f"take-{lane}",
+            cut["topic"],
+        ).format(at=at, topic=cut["topic"])
         return (
-            f"{lead} at {at} with {cut['topic']}, and {turn}.",
+            f"{lead} {moment}",
             "topic-and-category-in-same-excerpt",
         )
+    lead = stable_voice_choice(
+        (
+            "The route's {lane} stop lands on the movie at {at}.",
+            "At {at}, the movie itself controls the {lane} turn.",
+        ),
+        voice_key,
+        f"take-{lane}-fallback",
+    ).format(lane=lane, at=at)
     return (
-        f"{lead} at {at}, where {turn} and the movie itself stays at the center.",
+        f"{lead} {moment}",
         "category-in-excerpt-film-context-only",
     )
 
@@ -1173,6 +1425,7 @@ def build_episode_guide(
             chapter_target,
             cut,
             seed["film"],
+            seed["id"],
         )
         chapters.append(
             {
@@ -1186,6 +1439,27 @@ def build_episode_guide(
                 "category": cut["category"],
                 "topic": cut["topic"],
                 "cutId": cut["id"],
+                "evidenceBasis": evidence_basis,
+            }
+        )
+
+    # Fallback selection can borrow a cut outside its original runtime slot.
+    # Re-sort after selection so an act-by-act guide never runs backward.
+    chapters.sort(key=lambda chapter: chapter["at"])
+    for chapter_index, chapter in enumerate(chapters):
+        cut = next(cut for cut in cuts if cut["id"] == chapter["cutId"])
+        body, evidence_basis = chapter_editorial_body(
+            chapter_index,
+            len(chapters),
+            cut,
+            seed["film"],
+            seed["id"],
+        )
+        chapter.update(
+            {
+                "id": f"act-{chapter_index + 1:02d}",
+                "act": chapter_index + 1,
+                "body": body,
                 "evidenceBasis": evidence_basis,
             }
         )
@@ -1213,13 +1487,35 @@ def build_episode_guide(
         if not candidates:
             continue
         if lane == "closing":
+            # A late evaluative phrase is not useful if it belongs to another
+            # movie or an outro plug. Remove explicit cross-film receipts, then
+            # prefer a locally named subject whenever the window contains one.
+            same_film_candidates = [
+                item for item in candidates
+                if not names_another_film(seed, item["excerpt"])
+            ]
+            if same_film_candidates:
+                candidates = same_film_candidates
+            else:
+                clean_late_candidates = [
+                    item for item in cuts
+                    if item["t"] >= end * 0.70
+                    and not names_another_film(seed, item["excerpt"])
+                ]
+                if clean_late_candidates:
+                    candidates = clean_late_candidates
+            local_candidates = [
+                item for item in candidates
+                if item["topicBasis"] == "local-caption-match"
+            ]
+            if local_candidates:
+                candidates = local_candidates
             cut = max(
                 candidates,
                 key=lambda item: (
-                    item.get("verdictSignal", 0) >= 10,
-                    item.get("verdictSignal", 0),
                     item.get("substance", 0) >= 8,
                     item.get("substance", 0),
+                    item.get("verdictSignal", 0),
                     item["id"] not in chapter_cut_ids,
                     item["score"],
                     item["t"],
@@ -1237,9 +1533,15 @@ def build_episode_guide(
                 ),
             )
         take_cut_ids.add(cut["id"])
-        explicit_verdict = lane == "closing" and cut.get("verdictSignal", 0) >= 10
-        phase = fixed_phase or ("FINAL VERDICT" if explicit_verdict else "CLOSING READ")
-        body, evidence_basis = take_editorial_body(lane, cut, explicit_verdict)
+        # Caption cues can find a useful late-show take, but cannot prove a settled verdict.
+        explicit_verdict = False
+        phase = fixed_phase or "CLOSING READ"
+        body, evidence_basis = take_editorial_body(
+            lane,
+            cut,
+            seed["id"],
+            explicit_verdict,
+        )
         take_arc.append(
             {
                 "phase": phase,
@@ -1259,7 +1561,28 @@ def build_episode_guide(
     negative = category_counts["FRANCHISE FELONY"]
     comedy = sum(category_counts[label] for label in ("OUT OF POCKET", "BREAKDOWN", "BIT ENERGY"))
     substantive = sum(1 for cut in cuts if cut.get("substance", 0) >= 8)
-    strongest = max(cuts, key=lambda item: (item.get("substance", 0), item["score"]))
+    strongest_pool = [
+        cut
+        for cut in cuts
+        if cut["topicBasis"] == "local-caption-match"
+        and cut.get("substance", 0) >= 8
+        and (
+            cut["category"] not in {"LOVE LETTER", "FRANCHISE FELONY"}
+            or evidence_pair_distance(cut) <= 8
+        )
+    ]
+    if not strongest_pool:
+        strongest_pool = [
+            cut for cut in cuts if cut["topicBasis"] == "local-caption-match"
+        ] or cuts
+    strongest = max(
+        strongest_pool,
+        key=lambda item: (
+            item.get("substance", 0),
+            item.get("topicSupport", 0),
+            item["score"],
+        ),
+    )
     primary, secondary = topics[0], topics[1]
     side_names = [topic["name"] for topic in topics[2:4]]
     map_style = TOPIC_KIND_COPY.get(primary["kind"], "conversation-led")
@@ -1271,37 +1594,135 @@ def build_episode_guide(
             f"reaches explicit verdict language at {clock_label(closing['at'])} on "
             f"{closing['label']}"
         )
-        fan_closing = (
-            f"lands a real closing verdict on {closing['label']} at "
-            f"{clock_label(closing['at'])}"
-        )
+        fan_closing = stable_voice_choice(
+            (
+                "closes the case with {label} at {at}",
+                "hands {label} the final ruling at {at}",
+                "lets {label} deliver the verdict at {at}",
+                "signs off on {label} at {at} with an actual verdict",
+            ),
+            seed["id"],
+            "fan-closing-explicit",
+        ).format(label=closing["label"], at=clock_label(closing["at"]))
     else:
         closing_clause = (
             f"ends on a bounded closing read at {clock_label(closing['at'])} on "
             f"{closing['label']}; no unsupported final verdict is invented"
         )
-        fan_closing = (
-            f"winds down with {closing['label']} at {clock_label(closing['at'])}"
-        )
+        fan_closing = stable_voice_choice(
+            (
+                "leaves through {label} at {at} without forcing a verdict",
+                "uses {label} at {at} as its last honest read",
+                "signs off with {label} at {at}, no fake verdict attached",
+                "fades out on {label} at {at}",
+            ),
+            seed["id"],
+            "fan-closing-fallback",
+        ).format(label=closing["label"], at=clock_label(closing["at"]))
     if praise >= negative + 2:
         mix_clause = "The saved reaction ledger leans more defense than prosecution"
-        fan_tone = "This is one of the more affectionate rides: the defense gets more clean wins than the prosecution."
+        tone_options = (
+            "This watch is more love letter than hit job, although the knives still come out.",
+            "Affection wins the scorecard, but the prosecution still gets a few loud objections.",
+            "The tape mostly wants to defend the movie and only occasionally drags it into court.",
+            "Love carries the night; the complaints hit hard because they are the exception.",
+        )
     elif negative >= praise + 2:
         mix_clause = "The saved reaction ledger leans more prosecution than defense"
-        fan_tone = "This tape brings the knives: the prosecution gets more clean wins than the defense."
+        tone_options = (
+            "This one brings the knives: the prosecution wins more rounds than the defense.",
+            "The watch spends more time building a case against the movie than rescuing it.",
+            "Complaints drive the tape, with praise arriving as the hard-earned surprise.",
+            "The movie stays on trial most of the night, and the defense has to fight for oxygen.",
+        )
     elif comedy >= max(praise, negative):
         mix_clause = "Comedy is the strongest side engine around the editorial spine"
-        fan_tone = "The movie talk keeps getting hijacked by comedy, callbacks, and wonderfully unnecessary exits."
+        tone_options = (
+            "Movie talk keeps getting hijacked by callbacks, side quests, and beautifully unnecessary exits.",
+            "The commentary tries to stay on the film; the comedy keeps stealing the steering wheel.",
+            "This is a movie discussion with a trap door under nearly every serious point.",
+            "The laughs are not garnish here. They keep rerouting the entire watch.",
+        )
     else:
         mix_clause = "Praise and prosecution stay in productive tension"
-        fan_tone = "The night keeps swinging between genuine appreciation and a case for the prosecution."
-    overview = (
-        f"{seed['film']} keeps pulling the room back to {primary['name']}, then "
-        f"{secondary['name']}, with {natural_list(side_names)} close behind. {fan_tone} "
-        f"The fastest way in is {opening['label']} at {clock_label(opening['at'])}, "
-        f"then {midpoint['label']} at {clock_label(midpoint['at'])}, before the tape "
-        f"{fan_closing}. If you only play one moment, jump to {strongest['topic']} at "
-        f"{clock_label(strongest['t'])}."
+        tone_options = (
+            "The night keeps bouncing between genuine affection and a case for the prosecution.",
+            "Love and aggravated complaint spend the whole tape trading control of the room.",
+            "Neither the defense nor the prosecution owns this one for long.",
+            "Every clean save seems to invite a new objection, which gives the watch its pulse.",
+        )
+    fan_tone = stable_voice_choice(
+        tone_options,
+        seed["id"],
+        "episode-tone",
+        praise,
+        negative,
+        comedy,
+    )
+    strongest_quote = quoted_fragment(strongest)
+    overview_templates = (
+        (
+            "{film} spends the night orbiting {primary}, with {secondary} pulling nearly as hard "
+            "and {sides} stalking the edges. {tone} For the short route, enter through "
+            "{opening_label} at {opening_at}, pivot to {midpoint_label} at {midpoint_at}, and "
+            "stay until the tape {closing_path}. The essential stop is {strongest_topic} at "
+            "{strongest_at}; the source cut carries {strongest_quote}."
+        ),
+        (
+            "On this {film} commentary, {primary} is the magnet and {secondary} is the counterweight; "
+            "{sides} keep changing the shape of the conversation. {tone} The three-stop cut is "
+            "{opening_label} at {opening_at}, {midpoint_label} at {midpoint_at}, then a finish "
+            "that {closing_path}. But the single clip that best catches the night is "
+            "{strongest_topic} at {strongest_at}, carrying {strongest_quote}."
+        ),
+        (
+            "{film} plays less like a straight watch than a tug-of-war between {primary} and "
+            "{secondary}, with {sides} repeatedly stealing oxygen. {tone} Start at "
+            "{opening_at} for {opening_label}; make the middle jump at {midpoint_at} for "
+            "{midpoint_label}; then follow the tape as it {closing_path}. The night's calling-card "
+            "moment is {strongest_topic} at {strongest_at}, where the caption catches "
+            "{strongest_quote}."
+        ),
+        (
+            "The personality of this {film} watch lives in the triangle between {primary}, "
+            "{secondary}, and {sides}. {tone} Its quickest guided run opens on {opening_label} at "
+            "{opening_at}, breaks toward {midpoint_label} at {midpoint_at}, and {closing_path}. "
+            "One stop rises above the route: {strongest_topic} at {strongest_at}, built around "
+            "the exact line {strongest_quote}."
+        ),
+        (
+            "Come to {film} for {primary}; stay for the way {secondary}, {sides}, and the room's "
+            "mood keep fighting for the next turn. {tone} The clean route begins with "
+            "{opening_label} at {opening_at}, swerves into {midpoint_label} at {midpoint_at}, and "
+            "{closing_path}. If there is one stop to play cold, make it {strongest_topic} at "
+            "{strongest_at}: {strongest_quote}."
+        ),
+        (
+            "This version of {film} keeps returning to {primary}, but {secondary} supplies the "
+            "friction and {sides} keep opening new doors. {tone} Use {opening_label} at "
+            "{opening_at} as the entrance, {midpoint_label} at {midpoint_at} as the hard turn, "
+            "and the closing path that {closing_path}. The sharpest snapshot arrives on "
+            "{strongest_topic} at {strongest_at}, with {strongest_quote} sitting inside the cut."
+        ),
+    )
+    overview = stable_voice_choice(
+        overview_templates,
+        seed["id"],
+        "episode-overview",
+    ).format(
+        film=seed["film"],
+        primary=primary["name"],
+        secondary=secondary["name"],
+        sides=natural_list(side_names),
+        tone=fan_tone,
+        opening_label=opening["label"],
+        opening_at=clock_label(opening["at"]),
+        midpoint_label=midpoint["label"],
+        midpoint_at=clock_label(midpoint["at"]),
+        closing_path=fan_closing,
+        strongest_topic=strongest["topic"],
+        strongest_at=clock_label(strongest["t"]),
+        strongest_quote=strongest_quote,
     )
     evidence_summary = (
         f"{seed['film']} gets a {map_style} evidence map: {primary['name']} leads with "
@@ -1359,12 +1780,99 @@ def build_episode_guide(
         default=strongest,
     )
     closing_cut = cut_by_id.get(closing["cutId"], strongest)
-    why_body = (
-        f"{seed['film']} keeps circling back to {primary['name']} and "
-        f"{secondary['name']}. Its must-play turn lands at {clock_label(strongest['t'])} "
-        f"on {strongest['topic']}; the quick path below separates the love, the hate, "
-        "the wildest detour, and the last word."
+    why_templates = (
+        (
+            "{film} matters here because the tape cannot leave {primary} alone; {secondary} "
+            "keeps tugging it in another direction. The must-play {category} turn lands on "
+            "{topic} at {at}, with {quote} as its fingerprint. The four cards below trace what "
+            "the night loved, buried, derailed into, and left behind."
+        ),
+        (
+            "This night's fingerprint is the friction between {primary} and {secondary}. "
+            "Its defining stop is {topic} at {at}, where {quote} pushes the tape into "
+            "{category} territory. From there, the quick path splits into the defense, "
+            "Steve's Asshole, the wildest detour, and the last word."
+        ),
+        (
+            "Why keep this {film} commentary in the vault? {primary} supplies the obsession, "
+            "{secondary} supplies the counterweight, and {topic} at {at} supplies the clip to "
+            "play first. The exact cut carries {quote}. Everything below maps the love, the "
+            "complaint, the derailment, and the way out."
+        ),
+        (
+            "The reason this {film} night sticks is not one generic verdict. It is the route "
+            "from {primary} to {secondary}, crowned by a {category} stop on {topic} at {at}. "
+            "Its source language is {quote}. Use the four cuts below as the night's fast, loud "
+            "memory path."
+        ),
+        (
+            "{primary} is the obsession and {secondary} is the pressure point, but the clip "
+            "that bottles this {film} watch arrives on {topic} at {at}. {quote} is the line "
+            "inside that {category} turn. The cards below separate the save, the burial, the "
+            "side quest, and the final taste."
+        ),
     )
+    why_body = stable_voice_choice(
+        why_templates,
+        seed["id"],
+        "fan-read-why",
+    ).format(
+        film=seed["film"],
+        primary=primary["name"],
+        secondary=secondary["name"],
+        category=strongest["category"].title(),
+        topic=strongest["topic"],
+        at=clock_label(strongest["t"]),
+        quote=quoted_fragment(strongest),
+    )
+
+    fan_card_templates = {
+        "loved": (
+            "At {at}, {topic} gets the night's biggest save. The turn lives in {quote}.",
+            "{topic} wins the defense table at {at}, powered by {quote}.",
+            "The warmest cut belongs to {topic} at {at}; {quote} is the valentine.",
+            "The tape plants its flag for {topic} at {at}. The love is right there in {quote}.",
+            "For the cleanest defense of the night, play {topic} at {at} and listen for {quote}.",
+        ),
+        "hated": (
+            "{topic} gets launched straight to Steve's Asshole at {at}; {quote} is the shove.",
+            "The night's sharpest burial hits {topic} at {at}, and it comes armed with {quote}.",
+            "At {at}, the prosecution closes in on {topic}. The loaded phrase is {quote}.",
+            "Steve's Asshole opens for {topic} at {at}; the source cut does the damage with {quote}.",
+            "The complaint peaks on {topic} at {at}, where {quote} takes off the gloves.",
+        ),
+        "wildestDetour": (
+            "At {at}, {topic} sends the watch through a side wall. The trigger is {quote}.",
+            "The night's strangest exit ramp appears around {topic} at {at}: {quote}.",
+            "{topic} owns the hard left turn at {at}, with {quote} steering the wreck.",
+            "The movie briefly loses custody of the commentary at {at}; {topic} and {quote} take over.",
+            "For the derailment, jump to {topic} at {at}. It starts with {quote}.",
+        ),
+        "lastWord": (
+            "The file exits on {topic} at {at}, leaving {quote} in the doorway.",
+            "{topic} carries the last useful read at {at}; the tape leaves us with {quote}.",
+            "The closing taste arrives on {topic} at {at}, built around {quote}.",
+            "At {at}, {topic} gets the final playable word. The line inside it is {quote}.",
+            "The route signs off with {topic} at {at} and the source phrase {quote}.",
+        ),
+    }
+
+    def fan_card_body(kind: str, cut: dict[str, Any] | None) -> str:
+        if not cut:
+            return ""
+        template = stable_voice_choice(
+            fan_card_templates[kind],
+            seed["id"],
+            "fan-card",
+            kind,
+            cut["id"],
+        )
+        return template.format(
+            topic=cut["topic"],
+            at=clock_label(cut["t"]),
+            quote=quoted_fragment(cut),
+        )
+
     fan_read = {
         "whyThisNightMatters": {
             "label": "WHY THIS NIGHT MATTERS",
@@ -1377,43 +1885,25 @@ def build_episode_guide(
             "loved",
             "WHAT THE TAPE DEFENDED",
             strongest_love,
-            (
-                f"The clearest praise spike lands at {clock_label(strongest_love['t'])} "
-                f"around {strongest_love['topic']}."
-                if strongest_love
-                else ""
-            ),
+            fan_card_body("loved", strongest_love),
         ),
         "hated": fan_receipt(
             "hated",
             "STRAIGHT TO STEVE'S ASSHOLE",
             strongest_hate,
-            (
-                f"The sharpest prosecution lands at {clock_label(strongest_hate['t'])} "
-                f"around {strongest_hate['topic']}."
-                if strongest_hate
-                else ""
-            ),
+            fan_card_body("hated", strongest_hate),
         ),
         "wildestDetour": fan_receipt(
             "wildestDetour",
             "WILDEST DETOUR",
             wildest,
-            (
-                f"The comedy pressure takes its hardest turn at {clock_label(wildest['t'])} "
-                f"around {wildest['topic']}."
-                if wildest
-                else ""
-            ),
+            fan_card_body("wildestDetour", wildest),
         ),
         "lastWord": fan_receipt(
             "lastWord",
             "THE LAST WORD",
             closing_cut,
-            (
-                f"The mapped closing read lands at {clock_label(closing_cut['t'])} "
-                f"around {closing_cut['topic']}."
-            ),
+            fan_card_body("lastWord", closing_cut),
         ),
     }
     return {

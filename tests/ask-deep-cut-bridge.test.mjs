@@ -40,7 +40,7 @@ async function runtime() {
   const loads = [];
   const loader = async (url) => {
     loads.push(url);
-    assert.equal(url, "episode-guides.js?v=2.1.2-final");
+    assert.equal(url, "episode-guides.js?v=2.1.5-referent");
     runInNewContext(
       await readFile(new URL(url.split("?")[0], demoRoot), "utf8"),
       sandbox,
@@ -103,7 +103,7 @@ test("global Ask lazily bridges the real Halloween 1978 Panavision cut", async (
     base,
   );
 
-  assert.deepEqual(loads, ["episode-guides.js?v=2.1.2-final"]);
+  assert.deepEqual(loads, ["episode-guides.js?v=2.1.5-referent"]);
   assert.equal(answer.status, "supported");
   assert.equal(answer.results.length, 1);
   assertExactBound(answer.results[0], {
@@ -135,7 +135,7 @@ test("the bridge generalizes across exact commentary titles and multi-term cuts"
   );
 
   assert.deepEqual([...base.queryPlan.subjectTerms], ["ben", "tramer"]);
-  assert.deepEqual(loads, ["episode-guides.js?v=2.1.2-final"]);
+  assert.deepEqual(loads, ["episode-guides.js?v=2.1.5-referent"]);
   assert.equal(answer.status, "supported");
   assert.ok(answer.results.length >= 1);
   assert.ok(answer.results.every((result) => result.sourceId === "ThPjds8iI9U"));
@@ -203,7 +203,7 @@ test("an exact show with no matching guide cut returns no substitution", async (
   );
 
   assert.equal(base.selectionPlan.source.sourceId, "6VXSBDZ-3WE");
-  assert.deepEqual(loads, ["episode-guides.js?v=2.1.2-final"]);
+  assert.deepEqual(loads, ["episode-guides.js?v=2.1.5-referent"]);
   assert.equal(answer, null);
 });
 

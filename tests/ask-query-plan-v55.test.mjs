@@ -171,7 +171,7 @@ test("character roster, profiles, curated candidates, and broad mentions remain 
 
   assert.equal(profile.queryPlan.outputShape, "character-profile");
   assert.match(profile.answer, /Wolf Pack/i);
-  assert.match(profile.answer, /fan riff; the clips are the real source/i);
+  assert.match(profile.answer, /real source clips; any generated character reply is clearly labeled as a fan riff/i);
 
   for (const answer of [curated, plainClips, howOften]) {
     assert.equal(answer.queryPlan.outputShape, "character-soundbyte-count");
