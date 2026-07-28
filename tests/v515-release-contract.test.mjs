@@ -120,8 +120,8 @@ test("V5.15 package, cache keys, lazy order, and source ceilings move together",
   );
 
   const playbackTag =
-    '<script src="youtube-playback.js?v=0.5.21-p1"></script>';
-  const appTag = '<script src="app.js?v=0.5.21-ui15"></script>';
+    '<script src="youtube-playback.js?v=2.4.2-host-local"></script>';
+  const appTag = '<script src="app.js?v=0.5.41-wiki-anchor"></script>';
   assert.ok(html.indexOf(playbackTag) >= 0, "Playback cache key is stale.");
   assert.ok(
     html.indexOf(appTag) > html.indexOf(playbackTag),
@@ -328,7 +328,7 @@ test("Error 153 recovery preserves every Elm stop's official source and bounds",
 
     playback.recoverPlayer(button);
     const recovered = new URL(frame.src);
-    assert.equal(recovered.origin, "https://wwam-after-midnight.downndirtytn.chatgpt.site");
+    assert.equal(recovered.origin, "https://wiki.example");
     assert.equal(recovered.pathname, "/demo/media-bridge.html");
     assert.equal(recovered.searchParams.get("video"), stop.sourceId);
     assert.equal(recovered.searchParams.get("start"), String(stop.at));
@@ -341,7 +341,7 @@ test("Error 153 recovery preserves every Elm stop's official source and bounds",
   const ui = readDemo("play-answer-ui.js");
   assert.match(
     ui,
-    /playback\.iframe\(stop\.sourceId,\s*\{[\s\S]{0,220}start:\s*stop\.start,[\s\S]{0,100}end:\s*stop\.end,[\s\S]{0,180}forceHostedBridge:\s*forceHostedBridge === true/,
+    /playback\.iframe\(stop\.sourceId,\s*\{[\s\S]{0,220}start:\s*stop\.start,[\s\S]{0,100}end:\s*stop\.end,[\s\S]{0,180}forceHostedBridge:\s*true/,
   );
   assert.match(
     ui,

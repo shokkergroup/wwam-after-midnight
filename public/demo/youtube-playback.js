@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "2.4.1";
+  var VERSION = "2.4.2";
   var POLICY = "strict-origin-when-cross-origin";
   var VIDEO_ID = /^[A-Za-z0-9_-]{11}$/;
   var HOSTED_PLAYER =
@@ -21,7 +21,7 @@
   }
 
   function bridgeUrl(forceHosted) {
-    if (forceHosted === true) return HOSTED_PLAYER;
+
     var identity = pageIdentity();
     if (!identity.origin) return HOSTED_PLAYER;
     var directory = /\/$/.test(identity.pathname)

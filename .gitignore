@@ -47,3 +47,4 @@ __pycache__/
 # local Codex patch and scratch artifacts
 /.codex-*.patch
 /.codex-tmp/
+/_site/

@@ -38,7 +38,7 @@ test("helper-based players open through the working bridge with explicit page id
   });
 
   assert.match(markup, /referrerpolicy="strict-origin-when-cross-origin"/);
-  assert.match(markup, /wwam-after-midnight\.downndirtytn\.chatgpt\.site\/demo\/media-bridge\.html/);
+  assert.match(markup, /https:\/\/wiki\.example\/demo\/media-bridge\.html/);
   assert.match(markup, /video=5et_A1tYnio/);
   assert.match(markup, /widget_referrer=https%3A%2F%2Fwiki\.example%2Fdemo%2F/);
   assert.doesNotMatch(markup, /origin=https%3A%2F%2Fwiki\.example/);
@@ -88,7 +88,7 @@ test("file launches keep playback on-page through the hosted player bridge", () 
   assert.match(companion, /HOSTED PLAYER READY \/\/ USE THE TIMELINE IF NEEDED/);
 });
 
-test("HTTP pages can force the hosted bridge after YouTube identity error 153", () => {
+test("HTTP pages keep bridge playback on the current public host after YouTube identity error 153", () => {
   const playback = load();
   const markup = playback.iframe("5et_A1tYnio", {
     start: 5406,
@@ -98,7 +98,7 @@ test("HTTP pages can force the hosted bridge after YouTube identity error 153", 
 
   assert.match(
     markup,
-    /https:\/\/wwam-after-midnight\.downndirtytn\.chatgpt\.site\/demo\/media-bridge\.html/
+    /https:\/\/wiki\.example\/demo\/media-bridge\.html/
   );
   assert.match(markup, /video=5et_A1tYnio/);
   assert.match(
@@ -148,7 +148,7 @@ test("the universal recovery control keeps the same source and coordinates", () 
 
   playback.recoverPlayer(button);
 
-  assert.match(frame.src, /https:\/\/wwam-after-midnight\.downndirtytn\.chatgpt\.site\/demo\/media-bridge\.html/);
+  assert.match(frame.src, /https:\/\/wiki\.example\/demo\/media-bridge\.html/);
   assert.match(frame.src, /video=5et_A1tYnio/);
   assert.match(frame.src, /start=5406/);
   assert.match(frame.src, /end=5432/);
