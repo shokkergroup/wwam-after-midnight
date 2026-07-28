@@ -693,8 +693,10 @@
     var title = normalized(clean(source.title + " " + source.displayTitle));
     var topic = normalized([receipt.label].concat(array(receipt.entityIds)).join(" "));
     if (!title || !topic) return 0;
-    var score = 0;
-    if ((" " + title + " ").indexOf(" " + normalized(receipt.label) + " ") >= 0) score += 100;
+    // Caption-derived concentration is the primary ordering signal. Title
+    // overlap is useful context, not proof that a subject dominated the show.
+    var score = number(receipt.signalScore) * 10;
+    if ((" " + title + " ").indexOf(" " + normalized(receipt.label) + " ") >= 0) score += 40;
     SHOW_WIKI_FRANCHISE_TOPIC_ALIASES.forEach(function (group) {
       var titleMatch = group.title.some(function (alias) {
         return (" " + title + " ").indexOf(" " + normalized(alias) + " ") >= 0;
@@ -702,7 +704,7 @@
       var topicMatch = group.topic.some(function (alias) {
         return (" " + topic + " ").indexOf(" " + normalized(alias) + " ") >= 0;
       });
-      if (titleMatch && topicMatch) score += 150;
+      if (titleMatch && topicMatch) score += 60;
     });
     var titleTokens = new Set(title.split(" ").filter(function (token) {
       return token.length > 2 && !SHOW_WIKI_TOPIC_STOPWORDS.has(token);
@@ -884,11 +886,19 @@
     }
     var topicPhrase = showWikiList(topicLabels, format.id === "movie-commentary" ? "the movie itself" : "the night itself");
     var momentPhrase = showWikiList(momentLabels, "the registered source moments");
-    var overview = title + " runs " + showWikiRuntime(source.duration) + ". " +
-      (format.id === "movie-commentary" ? "The commentary keeps coming back to " :
-        "Most of the night revolves around ") + topicPhrase +
-      (moments.length ? ". The best jump-in points are " + momentPhrase + "." :
-        ". This show has topic jumps, but no public highlight lane yet.");
+    var episodeGuide = source.episodeGuide && typeof source.episodeGuide === "object"
+      ? source.episodeGuide : null;
+    var sourceSummary = source.summary && clean(source.summary.text);
+    if (/explicit performance cue/i.test(sourceSummary)) sourceSummary = "";
+    var summaryWithTitle = sourceSummary &&
+      normalized(sourceSummary).indexOf(normalized(title)) >= 0
+      ? sourceSummary : sourceSummary ? title + ". " + sourceSummary : "";
+    var overview = clean(episodeGuide && episodeGuide.overview) || summaryWithTitle ||
+      (title + " runs " + showWikiRuntime(source.duration) + ". " +
+        (format.id === "movie-commentary" ? "The commentary keeps coming back to " :
+          "Most of the night revolves around ") + topicPhrase +
+        (moments.length ? ". The best jump-in points are " + momentPhrase + "." :
+          ". This show has topic jumps, but no public highlight lane yet."));
     var blocks = [];
     if (topics.length) {
       blocks.push({
@@ -1089,6 +1099,7 @@
       experience: showWikiExperienceFor(source, moments, topics),
       brief: brief,
       recap: recap,
+      episodeGuide: source.coverage === "caption-backed" ? source.episodeGuide || null : null,
       lanes: laneOrder.map(function (id) { return laneById[id]; }),
     };
   }
@@ -1601,6 +1612,7 @@
     var atlasRecords = atlasRecordsFrom(atlasPayload);
     var catalog = array(input.catalog);
     var deep = input.deep || {};
+    var episodeGuides = input.episodeGuides || {};
     var live = input.live || {};
     var popular = input.popular || {};
     var archiveStreams = streamsFrom(
@@ -1639,6 +1651,15 @@
     var atlasById = mapById(atlasRecords, "WWAM Archive Atlas");
     var catalogById = mapById(catalog, "WWAM commentary catalog");
     var deepById = mapById(array(deep.tapes), "WWAM commentary distill");
+    var episodeGuideRecords = array(episodeGuides.guides);
+    var episodeGuideById = mapById(episodeGuideRecords, "WWAM Episode Guide V2");
+    var expectedEpisodeGuides = number(deep.meta && deep.meta.episodeGuides);
+    if (expectedEpisodeGuides && episodeGuideById.size !== expectedEpisodeGuides) {
+      fail(
+        "EPISODE_GUIDE_COUNT_INVALID",
+        "The demand-loaded Episode Guide V2 registry is incomplete."
+      );
+    }
     var liveStreams = streamsFrom(live);
     var popularStreams = streamsFrom(popular);
     var liveById = mapById(liveStreams, "WWAM Fresh 10");
@@ -1667,6 +1688,10 @@
       array(deep.tapes),
       new Set(catalogById.keys()),
       "WWAM commentary Deep Distill"
+    );    assertSubset(
+      episodeGuideRecords,
+      new Set(catalogById.keys()),
+      "WWAM Episode Guide V2"
     );
     var overlap = Array.from(catalogById.keys()).filter(function (id) {
       return atlasById.has(id);
@@ -1804,6 +1829,8 @@
           popularStream && popularStream.wordsAudited ||
           showcaseSource && showcaseSource.wordsAudited
         ),
+        episodeGuide: (episodeGuideById.get(id) && episodeGuideById.get(id).episodeGuide) ||
+          commentaryTape && commentaryTape.episodeGuide || null,
       };
 
       var summaryText = "";
@@ -1912,7 +1939,8 @@
       if (source.showWiki.recap) {
         source.summary = {
           text: source.showWiki.recap.overview,
-          basis: "source-local-format-aware-recap/v1",
+          basis: source.showWiki.episodeGuide ?
+            "full-caption-episode-guide/v2" : "source-local-format-aware-recap/v1",
         };
       }
 

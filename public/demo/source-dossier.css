@@ -3676,6 +3676,258 @@
   }
 }
 
+/* Episode Guide V2: the semantic episode story, not another evidence drawer. */
+.source-dossier-episode-guide {
+  margin-top: 46px;
+  padding: clamp(26px, 4vw, 48px);
+  border: 1px solid #3b343b;
+  border-top: 5px solid var(--dossier-pink, #ff2f7d);
+  background:
+    radial-gradient(circle at 92% 0, rgba(255, 47, 125, .12), transparent 30%),
+    linear-gradient(180deg, rgba(255,255,255,.018), transparent 260px),
+    #0d0b0e;
+  scroll-margin-top: 24px;
+}
+
+.source-dossier-episode-guide > header {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(260px, .65fr);
+  gap: 28px;
+  align-items: end;
+  padding-bottom: 26px;
+  border-bottom: 1px solid #453842;
+}
+
+.source-dossier-episode-guide > header span,
+.source-dossier-episode-guide section > header span,
+.source-dossier-episode-chapter > header span,
+.source-dossier-episode-cuts article > header span,
+.source-dossier-episode-arc article > span {
+  color: var(--dossier-acid);
+  font: 800 9px/1.4 var(--mono, monospace);
+  letter-spacing: .09em;
+}
+
+.source-dossier-episode-guide > header h4 {
+  max-width: 760px;
+  margin: 7px 0 0;
+  color: #f5eff2;
+  font: 900 clamp(40px, 5vw, 72px)/.88 var(--display, sans-serif);
+  letter-spacing: -.035em;
+}
+
+.source-dossier-episode-guide > header p {
+  max-width: 520px;
+  margin: 0;
+  color: #c5bbc1;
+  font: 500 15px/1.68 var(--body, sans-serif);
+}
+
+.source-dossier-episode-guide-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0 0 34px;
+  border-bottom: 1px solid #3c343a;
+}
+
+.source-dossier-episode-guide-metrics span {
+  display: grid;
+  gap: 5px;
+  padding: 18px 16px;
+  border-right: 1px solid #3c343a;
+  color: #8f858c;
+  font: 800 8px/1.35 var(--mono, monospace);
+  letter-spacing: .07em;
+}
+
+.source-dossier-episode-guide-metrics span:first-child { padding-left: 0; }
+.source-dossier-episode-guide-metrics span:last-child { border-right: 0; }
+.source-dossier-episode-guide-metrics b {
+  color: #f5eff2;
+  font: 900 25px/1 var(--display, sans-serif);
+}
+
+.source-dossier-episode-guide section { margin-top: 38px; }
+.source-dossier-episode-guide section > header {
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #423740;
+}
+.source-dossier-episode-guide section > header b {
+  color: #948991;
+  font: 800 8px/1.4 var(--mono, monospace);
+  letter-spacing: .07em;
+}
+
+.source-dossier-episode-threads > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.source-dossier-episode-threads article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 16px;
+  align-items: center;
+  min-height: 74px;
+  padding: 14px 0;
+  border-bottom: 1px solid #302a2f;
+}
+.source-dossier-episode-threads article:nth-child(odd) { padding-right: 20px; }
+.source-dossier-episode-threads article:nth-child(even) {
+  padding-left: 20px;
+  border-left: 1px solid #302a2f;
+}
+.source-dossier-episode-threads article div { display: grid; gap: 4px; }
+.source-dossier-episode-threads article span,
+.source-dossier-episode-threads article small {
+  color: #857b82;
+  font: 750 8px/1.35 var(--mono, monospace);
+  letter-spacing: .05em;
+}
+.source-dossier-episode-threads article b { color: #eee7eb; font: 750 14px/1.25 var(--body, sans-serif); }
+
+.source-dossier-episode-guide button {
+  min-height: 38px;
+  padding: 8px 11px;
+  border: 1px solid #5b4a54;
+  color: #f3eaef;
+  background: transparent;
+  cursor: pointer;
+  font: 800 8px/1.2 var(--mono, monospace);
+  letter-spacing: .05em;
+}
+.source-dossier-episode-guide button:hover,
+.source-dossier-episode-guide button:focus-visible {
+  border-color: var(--dossier-acid);
+  color: #080908;
+  background: var(--dossier-acid);
+}
+
+.source-dossier-episode-chapters > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  padding: 1px;
+  background: #3b3238;
+}
+.source-dossier-episode-chapter {
+  display: grid;
+  grid-template-rows: auto auto 1fr auto auto;
+  gap: 12px;
+  min-height: 300px;
+  padding: clamp(20px, 3vw, 30px);
+  background: #0c0a0d;
+}
+.source-dossier-episode-chapter > header,
+.source-dossier-episode-cuts article > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+}
+.source-dossier-episode-chapter time,
+.source-dossier-episode-cuts article time {
+  color: #f3edf0;
+  font: 800 13px/1 var(--mono, monospace);
+}
+.source-dossier-episode-chapter h5,
+.source-dossier-episode-arc h5 {
+  margin: 0;
+  color: #f4edf1;
+  font: 850 clamp(22px, 2.3vw, 32px)/1 var(--display, sans-serif);
+}
+.source-dossier-episode-chapter p,
+.source-dossier-episode-arc p {
+  margin: 0;
+  color: #b8aeb4;
+  font: 500 13px/1.65 var(--body, sans-serif);
+}
+.source-dossier-episode-guide blockquote {
+  margin: 0;
+  padding: 13px 0 0;
+  border-top: 1px solid #322a30;
+  color: #ddd4d9;
+  font: 600 13px/1.55 var(--body, sans-serif);
+}
+.source-dossier-episode-chapter > button { justify-self: start; }
+
+.source-dossier-episode-arc > div {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+.source-dossier-episode-arc article {
+  display: grid;
+  grid-template-rows: auto auto 1fr auto auto;
+  gap: 12px;
+  min-height: 290px;
+  padding: 22px;
+  border: 1px solid #3c3439;
+  background: rgba(255,255,255,.012);
+}
+.source-dossier-episode-arc article:nth-child(2) { border-top: 3px solid var(--dossier-pink, #ff2f7d); }
+.source-dossier-episode-arc article > button { justify-self: start; }
+
+.source-dossier-episode-cuts > div { border-top: 1px solid #322a30; }
+.source-dossier-episode-cuts article {
+  display: grid;
+  grid-template-columns: minmax(170px, .42fr) minmax(0, 1fr) auto;
+  gap: 22px;
+  align-items: start;
+  padding: 18px 0;
+  border-bottom: 1px solid #322a30;
+}
+.source-dossier-episode-cuts article > header { display: grid; justify-content: start; }
+.source-dossier-episode-cuts article > div { display: grid; gap: 6px; }
+.source-dossier-episode-cuts article > div b { color: #f1e9ed; font: 750 14px/1.3 var(--body, sans-serif); }
+.source-dossier-episode-cuts article p { margin: 0; color: #bbb1b7; font: 500 13px/1.55 var(--body, sans-serif); }
+.source-dossier-episode-cuts > button { margin-top: 18px; border-color: var(--dossier-acid); color: var(--dossier-acid); }
+
+.source-dossier-episode-method {
+  margin-top: 30px;
+  padding-top: 16px;
+  border-top: 1px solid #3a3237;
+}
+.source-dossier-episode-method summary {
+  color: #91878d;
+  cursor: pointer;
+  font: 800 9px/1.4 var(--mono, monospace);
+  letter-spacing: .07em;
+}
+.source-dossier-episode-method p {
+  max-width: 900px;
+  color: #847b80;
+  font: 500 12px/1.65 var(--body, sans-serif);
+}
+
+@media (max-width: 900px) {
+  .source-dossier-episode-guide > header { grid-template-columns: 1fr; }
+  .source-dossier-episode-guide-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .source-dossier-episode-guide-metrics span:nth-child(2) { border-right: 0; }
+  .source-dossier-episode-guide-metrics span:nth-child(-n+2) { border-bottom: 1px solid #3c343a; }
+  .source-dossier-episode-arc > div { grid-template-columns: 1fr; }
+  .source-dossier-episode-arc article { min-height: 0; }
+}
+
+@media (max-width: 650px) {
+  .source-dossier-episode-guide { margin-inline: -14px; padding: 24px 14px; }
+  .source-dossier-episode-guide-metrics,
+  .source-dossier-episode-threads > div,
+  .source-dossier-episode-chapters > div { grid-template-columns: 1fr; }
+  .source-dossier-episode-guide-metrics span,
+  .source-dossier-episode-guide-metrics span:first-child { padding-inline: 0; border-right: 0; border-bottom: 1px solid #3c343a; }
+  .source-dossier-episode-threads article:nth-child(odd),
+  .source-dossier-episode-threads article:nth-child(even) { padding-inline: 0; border-left: 0; }
+  .source-dossier-episode-threads article { grid-template-columns: minmax(0, 1fr) auto; }
+  .source-dossier-episode-threads article small { display: none; }
+  .source-dossier-episode-chapter { min-height: 0; }
+  .source-dossier-episode-cuts article { grid-template-columns: 1fr; gap: 12px; }
+  .source-dossier-episode-cuts article > header { grid-template-columns: 1fr auto; justify-content: stretch; }
+  .source-dossier-episode-cuts article > button { justify-self: start; }
+}
 /* Compact Show Wiki: one editorial page first; the research file opens on demand. */
 .source-dossier-deep-research[hidden] {
   display: none !important;
@@ -3719,11 +3971,11 @@
 
   .source-dossier > .source-dossier-explore {
     position: static !important;
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: 8px;
-    max-height: 68px;
-    padding: 8px 12px;
-    overflow: hidden;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 7px;
+    max-height: none;
+    padding: 10px 12px 12px;
+    overflow: visible;
   }
 
   .source-dossier-explore > span {
@@ -3731,20 +3983,46 @@
   }
 
   .source-dossier-explore > div {
-    display: flex;
-    width: auto;
-    flex-wrap: nowrap;
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 6px;
-    overflow-x: auto;
-    overscroll-behavior-inline: contain;
-    scrollbar-width: thin;
+    overflow: visible;
   }
 
   .source-dossier-explore a {
-    width: auto;
+    width: 100%;
     min-height: 44px;
-    flex: 0 0 auto;
-    padding-inline: 11px;
-    white-space: nowrap;
+    padding-inline: 8px;
+    justify-content: center;
+    text-align: center;
+    white-space: normal;
   }
+}
+
+
+/* Make the episode spine impossible to miss without hiding the surrounding Wiki. */
+.source-dossier-hero-copy > div > .source-dossier-deep-dive-cta {
+  min-height: 44px;
+  padding: 11px 15px;
+  border: 1px solid var(--dossier-pink);
+  color: #fff7fa;
+  background: rgba(255, 57, 127, .16);
+  text-decoration: none;
+}
+
+.source-dossier-hero-copy > div > .source-dossier-deep-dive-cta:hover,
+.source-dossier-hero-copy > div > .source-dossier-deep-dive-cta:focus-visible {
+  color: #09070a;
+  background: var(--dossier-pink);
+}
+
+.source-dossier-explore a[href="#sourceDossierEpisodeGuide"] {
+  border-color: rgba(255, 57, 127, .72);
+  color: #fff4f8;
+  background: rgba(255, 57, 127, .13);
+}
+
+#sourceDossierEpisodeGuide {
+  scroll-margin-top: 20px;
 }

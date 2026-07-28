@@ -10,7 +10,7 @@
    * captions, promote evidence, clear rights, or publish anything.
    */
 
-  var VERSION = "1.5.0";
+  var VERSION = "1.6.0";
   var INPUT_SCHEMA = "shokker-source-dossier-input/v1";
   var DOSSIER_SCHEMA = "shokker-source-dossier/v1";
   var EXPORT_SCHEMA = "shokker-source-dossier-export/v1";
@@ -429,10 +429,175 @@
     return aliases;
   }
 
+  function normalizeEpisodeGuide(raw, source, path) {
+    if (raw == null) return null;
+    if (!isRecord(raw)) {
+      fail("INVALID_EPISODE_GUIDE", path + " must be an object or null.", path);
+    }
+    if (source.coverage !== "caption-backed") {
+      fail(
+        "COVERAGE_EPISODE_GUIDE_OVERREACH",
+        path + " requires caption-backed coverage.",
+        path
+      );
+    }
+    var schema = requiredText(raw.schema, path + ".schema", 80);
+    if (schema !== "wwam-episode-guide/v2") {
+      fail("INVALID_EPISODE_GUIDE_SCHEMA", path + ".schema is unsupported.", path + ".schema");
+    }
+
+    function boundedTime(value, itemPath) {
+      var at = finiteNumber(value, itemPath, 0);
+      if (at > source.duration + 1) {
+        fail("EPISODE_GUIDE_TIME_OUT_OF_RANGE", itemPath + " exceeds the source runtime.", itemPath);
+      }
+      return at;
+    }
+
+    function boundedWindow(rawItem, itemPath) {
+      var at = boundedTime(rawItem.at != null ? rawItem.at : rawItem.t, itemPath + ".at");
+      var end = finiteNumber(rawItem.end, itemPath + ".end", 0);
+      // Cached YouTube runtimes can differ by a few seconds across snapshots.
+      // Clamp a trailing cut to the canonical runtime instead of discarding an
+      // otherwise valid source-local timestamp.
+      if (end > source.duration && end - source.duration <= 60) end = source.duration;
+      if (end <= at || end > source.duration + 1) {
+        fail("EPISODE_GUIDE_WINDOW_INVALID", itemPath + " must end inside the source after it begins.", itemPath);
+      }
+      return { at: at, end: end };
+    }
+
+    function boundedExcerpt(value, excerptPath) {
+      var excerpt = requiredText(value, excerptPath, 600);
+      if (wordCount(excerpt) > 25) {
+        fail("EPISODE_GUIDE_EXCERPT_TOO_LONG", excerptPath + " exceeds 25 words.", excerptPath);
+      }
+      return excerpt;
+    }
+
+    if (!Array.isArray(raw.cuts) || raw.cuts.length < 8 || raw.cuts.length > 20) {
+      fail("EPISODE_GUIDE_CUT_COUNT", path + ".cuts must contain between eight and twenty cuts.", path + ".cuts");
+    }
+    var cutIds = new Set();
+    var cuts = raw.cuts.map(function (cut, index) {
+      var cutPath = path + ".cuts[" + index + "]";
+      if (!isRecord(cut)) fail("INVALID_EPISODE_GUIDE_CUT", cutPath + " must be an object.", cutPath);
+      var id = requiredText(cut.id, cutPath + ".id", 80);
+      if (!KEBAB_ID.test(id) || cutIds.has(id)) {
+        fail("INVALID_EPISODE_GUIDE_CUT_ID", cutPath + ".id must be unique kebab-case.", cutPath + ".id");
+      }
+      cutIds.add(id);
+      var window = boundedWindow(cut, cutPath);
+      var score = finiteNumber(cut.score, cutPath + ".score", 0);
+      if (score > 100) fail("INVALID_EPISODE_GUIDE_SCORE", cutPath + ".score exceeds 100.", cutPath + ".score");
+      return {
+        id: id,
+        at: window.at,
+        end: window.end,
+        label: requiredText(cut.label, cutPath + ".label", 180),
+        category: requiredText(cut.category, cutPath + ".category", 100),
+        topic: requiredText(cut.topic, cutPath + ".topic", 180),
+        excerpt: boundedExcerpt(cut.excerpt, cutPath + ".excerpt"),
+        score: score
+      };
+    });
+
+    if (!Array.isArray(raw.chapters) || raw.chapters.length < 4 || raw.chapters.length > 8) {
+      fail("EPISODE_GUIDE_CHAPTER_COUNT", path + ".chapters must contain between four and eight chapters.", path + ".chapters");
+    }
+    var chapterIds = new Set();
+    var chapters = raw.chapters.map(function (chapter, index) {
+      var chapterPath = path + ".chapters[" + index + "]";
+      if (!isRecord(chapter)) fail("INVALID_EPISODE_GUIDE_CHAPTER", chapterPath + " must be an object.", chapterPath);
+      var id = requiredText(chapter.id, chapterPath + ".id", 80);
+      var cutId = requiredText(chapter.cutId, chapterPath + ".cutId", 80);
+      if (!KEBAB_ID.test(id) || chapterIds.has(id) || !cutIds.has(cutId)) {
+        fail("INVALID_EPISODE_GUIDE_CHAPTER_ID", chapterPath + " has an invalid chapter or cut ID.", chapterPath);
+      }
+      chapterIds.add(id);
+      var window = boundedWindow(chapter, chapterPath);
+      return {
+        id: id,
+        act: finiteNumber(chapter.act, chapterPath + ".act", 1),
+        label: requiredText(chapter.label, chapterPath + ".label", 200),
+        at: window.at,
+        end: window.end,
+        body: requiredText(chapter.body, chapterPath + ".body", 600),
+        excerpt: boundedExcerpt(chapter.excerpt, chapterPath + ".excerpt"),
+        category: requiredText(chapter.category, chapterPath + ".category", 100),
+        topic: requiredText(chapter.topic, chapterPath + ".topic", 180),
+        cutId: cutId
+      };
+    });
+
+    if (!Array.isArray(raw.takeArc) || raw.takeArc.length !== 3) {
+      fail("EPISODE_GUIDE_TAKE_ARC_COUNT", path + ".takeArc must contain exactly three phases.", path + ".takeArc");
+    }
+    var takeArc = raw.takeArc.map(function (take, index) {
+      var takePath = path + ".takeArc[" + index + "]";
+      if (!isRecord(take)) fail("INVALID_EPISODE_GUIDE_TAKE", takePath + " must be an object.", takePath);
+      var window = boundedWindow(take, takePath);
+      return {
+        phase: requiredText(take.phase, takePath + ".phase", 80),
+        label: requiredText(take.label, takePath + ".label", 200),
+        at: window.at,
+        end: window.end,
+        body: requiredText(take.body, takePath + ".body", 600),
+        excerpt: boundedExcerpt(take.excerpt, takePath + ".excerpt"),
+        category: requiredText(take.category, takePath + ".category", 100)
+      };
+    });
+
+    if (!Array.isArray(raw.threads) || raw.threads.length < 3 || raw.threads.length > 10) {
+      fail("EPISODE_GUIDE_THREAD_COUNT", path + ".threads must contain between three and ten threads.", path + ".threads");
+    }
+    var threadNames = new Set();
+    var threads = raw.threads.map(function (thread, index) {
+      var threadPath = path + ".threads[" + index + "]";
+      if (!isRecord(thread)) fail("INVALID_EPISODE_GUIDE_THREAD", threadPath + " must be an object.", threadPath);
+      var name = requiredText(thread.name, threadPath + ".name", 180);
+      if (threadNames.has(name)) fail("DUPLICATE_EPISODE_GUIDE_THREAD", threadPath + " is duplicated.", threadPath);
+      threadNames.add(name);
+      return {
+        name: name,
+        kind: requiredText(thread.kind, threadPath + ".kind", 80),
+        mentions: finiteNumber(thread.mentions, threadPath + ".mentions", 1),
+        cluster: finiteNumber(thread.cluster, threadPath + ".cluster", 1),
+        first: boundedTime(thread.first, threadPath + ".first"),
+        peak: boundedTime(thread.peak, threadPath + ".peak"),
+        receipt: boundedExcerpt(thread.receipt, threadPath + ".receipt"),
+        score: finiteNumber(thread.score, threadPath + ".score", 0)
+      };
+    });
+
+    return {
+      schema: schema,
+      basis: requiredText(raw.basis, path + ".basis", 360),
+      overview: requiredText(raw.overview, path + ".overview", 1000),
+      chapters: chapters,
+      takeArc: takeArc,
+      threads: threads,
+      cuts: cuts,
+      metrics: {
+        chapters: chapters.length,
+        threads: threads.length,
+        cuts: cuts.length,
+        praise: finiteNumber(raw.metrics && raw.metrics.praise, path + ".metrics.praise", 0),
+        negative: finiteNumber(raw.metrics && raw.metrics.negative, path + ".metrics.negative", 0),
+        comedy: finiteNumber(raw.metrics && raw.metrics.comedy, path + ".metrics.comedy", 0),
+        substantive: finiteNumber(raw.metrics && raw.metrics.substantive, path + ".metrics.substantive", 0)
+      }
+    };
+  }
   function normalizeShowWiki(raw, source, receiptMap) {
     if (raw == null) return null;
     var path = "sources[" + source._index + "].showWiki";
     if (!isRecord(raw)) fail("INVALID_SHOW_WIKI", path + " must be an object or null.", path);
+    var episodeGuide = normalizeEpisodeGuide(
+      raw.episodeGuide,
+      source,
+      path + ".episodeGuide"
+    );
     if (!Array.isArray(raw.lanes) || !raw.lanes.length) {
       fail("SHOW_WIKI_LANES_REQUIRED", path + ".lanes must contain at least one lane.", path + ".lanes");
     }
@@ -723,6 +888,7 @@
       experience: experience,
       brief: brief,
       recap: recap,
+      episodeGuide: episodeGuide,
       lanes: lanes
     };
   }

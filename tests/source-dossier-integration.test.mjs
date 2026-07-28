@@ -425,6 +425,7 @@ test("dossier CSS and scripts load lazily through the feature loader, never eage
   const dossierScripts = [
     "channel-pack-contract.js",
     "wwam-channel-pack-adapter.js",
+      "episode-guides.js",
       "source-dossier-engine.js",
       "wwam-source-dossier-adapter.js",
       "source-query-engine.js",
@@ -442,7 +443,7 @@ test("dossier CSS and scripts load lazily through the feature loader, never eage
   );
 
   const loader = namedFunction(app, "loadSourceDossier");
-  assert.match(loader, /loader\.loadStyle\("source-dossier\.css\?v=1\.7\.1-human5"\)/);
+  assert.match(loader, /loader\.loadStyle\("source-dossier\.css\?v=1\.8\.1-deep4"\)/);
   const scriptList = loader
     .match(/return \[([\s\S]*?)\]\.reduce/)?.[1]
     .match(/"[^"]+\.js(?:\?[^"]*)?"/g)

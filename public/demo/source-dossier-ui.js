@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.7.1";
+  var VERSION = "1.8.1";
   var DOSSIER_SCHEMA = "shokker-source-dossier/v1";
   var QUERY_SCHEMA = "shokker-source-query/v1";
   var QUERY_RESULT_SCHEMA = "shokker-source-query-result/v1";
@@ -13,7 +13,7 @@
     neighborhood: 3,
     artifacts: 6
   });
-  var COMPACT_SHOW_WIKI_RECEIPTS = 2;
+  var COMPACT_SHOW_WIKI_RECEIPTS = 3;
   var SECTION_IDS = Object.freeze({
     proof: "sourceDossierProof",
     player: "sourceDossierPlayerSection",
@@ -704,6 +704,9 @@
           label: sourceBrief ? "SOURCE BRIEF" : "RECAP"
         });
       }
+      if (!sourceBrief && clean(record(wiki.episodeGuide).schema)) {
+        links.push({ id: "sourceDossierEpisodeGuide", label: "DEEP DIVE" });
+      }
       if (!sourceBrief &&
           showWikiExperienceReceipts(dossier, experience.routeReceiptKeys).length) {
         links.push({ id: "sourceDossierShowWikiExperience", label: clean(experience.title) || "WATCH PATH" });
@@ -732,12 +735,15 @@
       var sourceBrief = isSourceBrief(dossier);
       var compact = !state.fullFile;
       var links = [
-        { id: SECTION_IDS.player, label: "WATCH THE SHOW" },
-        {
-          id: "sourceDossierShowWikiSummary",
-          label: sourceBrief ? "SOURCE BRIEF" : "SHOW SUMMARY"
-        }
+        { id: SECTION_IDS.player, label: "WATCH THE SHOW" }
       ];
+      if (!sourceBrief && clean(record(wiki.episodeGuide).schema)) {
+        links.push({ id: "sourceDossierEpisodeGuide", label: "DEEP DIVE" });
+      }
+      links.push({
+        id: "sourceDossierShowWikiSummary",
+        label: sourceBrief ? "SOURCE BRIEF" : "SHOW SUMMARY"
+      });
       if (!compact && !sourceBrief &&
           showWikiExperienceReceipts(dossier, experience.routeReceiptKeys).length) {
         links.push({ id: "sourceDossierShowWikiExperience", label: clean(experience.title) });
@@ -902,8 +908,8 @@
           'Based on the registered source type and timestamped material from this upload.</small></details>') +
         '</header>' +
         '<p class="source-dossier-wiki-overview">' +
-        esc(recap.overview) + '</p>' + (compact ? '' : '<div class="source-dossier-wiki-recap-blocks">' +
-        blocks.map(function (block, index) {
+        esc(recap.overview) + '</p><div class="source-dossier-wiki-recap-blocks">' +
+        (compact ? blocks.slice(0, 3) : blocks).map(function (block, index) {
           var receipts = showWikiExperienceReceipts(dossier, block.receiptKeys);
           return '<article><span>CHAPTER ' + esc(String(index + 1).padStart(2, "0")) +
             '</span><h5>' + esc(block.label) + '</h5><p>' + esc(block.body) +
@@ -915,9 +921,87 @@
             }).join("") + '</div><details class="source-dossier-wiki-method">' +
             '<summary>WHY THESE MOMENTS?</summary><small>' +
             'Linked to the saved timestamps shown in this chapter.</small></details></article>';
-        }).join("") + '</div>') + '</section>';
+        }).join("") + '</div></section>';
     }
 
+    function showWikiEpisodeGuideMarkup(dossier, compact) {
+      var source = dossier.source;
+      var guide = record(record(source.showWiki).episodeGuide);
+      if (clean(guide.schema) !== "wwam-episode-guide/v2") return "";
+      var chapters = array(guide.chapters).map(record);
+      var takeArc = array(guide.takeArc).map(record);
+      var threads = array(guide.threads).map(record);
+      var cuts = array(guide.cuts).map(record).slice().sort(function (left, right) {
+        return number(right.score) - number(left.score) || number(left.at) - number(right.at);
+      });
+      var visibleCuts = cuts.slice(0, compact ? 6 : cuts.length);
+      var metrics = record(guide.metrics);
+
+      function playButton(item, label) {
+        var at = number(item.at != null ? item.at : item.peak);
+        var end = number(item.end) > at ? number(item.end) : Math.min(number(source.duration), at + 30);
+        return '<button type="button" data-source-dossier-action="play-guide-cut" ' +
+          'data-guide-at="' + esc(at) + '" data-guide-end="' + esc(end) + '" ' +
+          'aria-label="' + esc(label + " at " + formatTime(at)) + '">&#9654; ' +
+          esc(formatTime(at)) + '</button>';
+      }
+
+      var threadMarkup = threads.map(function (thread) {
+        return '<article><div><span>' + esc(titleCase(thread.kind).toUpperCase()) +
+          '</span><b>' + esc(thread.name) + '</b></div><small>' +
+          esc(number(thread.mentions)) + ' MENTIONS // PEAK ' + esc(formatTime(thread.peak)) +
+          '</small>' + playButton(thread, "Play " + thread.name) + '</article>';
+      }).join("");
+
+      var chapterMarkup = chapters.map(function (chapter, index) {
+        return '<article class="source-dossier-episode-chapter"><header><span>ACT ' +
+          esc(String(index + 1).padStart(2, "0")) + '</span><time>' +
+          esc(formatTime(chapter.at)) + '</time></header><h5>' + esc(chapter.label) +
+          '</h5><p>' + esc(chapter.body) + '</p><blockquote>&ldquo;' +
+          esc(cleanCaptionExcerpt(chapter.excerpt)) + '&rdquo;</blockquote>' +
+          playButton(chapter, "Play act " + (index + 1)) + '</article>';
+      }).join("");
+
+      var arcMarkup = takeArc.map(function (take) {
+        return '<article><span>' + esc(take.phase) + '</span><h5>' + esc(take.label) +
+          '</h5><p>' + esc(take.body) + '</p><blockquote>&ldquo;' +
+          esc(cleanCaptionExcerpt(take.excerpt)) + '&rdquo;</blockquote>' +
+          playButton(take, "Play " + take.phase) + '</article>';
+      }).join("");
+
+      var cutMarkup = visibleCuts.map(function (cut, index) {
+        return '<article><header><span>#' + esc(String(index + 1).padStart(2, "0")) +
+          ' // ' + esc(cut.category) + '</span><time>' + esc(formatTime(cut.at)) +
+          '</time></header><div><b>' + esc(cut.topic) + '</b><p>&ldquo;' +
+          esc(cleanCaptionExcerpt(cut.excerpt)) + '&rdquo;</p></div>' +
+          playButton(cut, "Play " + cut.topic) + '</article>';
+      }).join("");
+
+      return '<section class="source-dossier-episode-guide" id="sourceDossierEpisodeGuide" ' +
+        'data-episode-guide="v2"><header><div><span>DEEP DIVE // EPISODE GUIDE V2</span>' +
+        '<h4>THE EPISODE ACTUALLY HAS A SHAPE.</h4></div><p>Not eight random loud lines. ' +
+        'This map follows recurring subjects, how the commentary changes across the runtime, ' +
+        'and the cuts most worth revisiting.</p></header><div class="source-dossier-episode-guide-metrics">' +
+        '<span><b>' + esc(number(metrics.chapters)) + '</b> ACTS</span><span><b>' +
+        esc(number(metrics.threads)) + '</b> RECURRING THREADS</span><span><b>' +
+        esc(number(metrics.cuts)) + '</b> PLAYABLE CUTS</span><span><b>' +
+        esc(number(metrics.substantive != null ? metrics.substantive : metrics.comedy)) + '</b> EXPLICIT TAKES / READS</span></div>' +
+        '<section class="source-dossier-episode-threads"><header><span>WHAT KEEPS COMING BACK</span>' +
+        '<b>RANKED BY CAPTION CONCENTRATION</b></header><div>' + threadMarkup + '</div></section>' +
+        '<section class="source-dossier-episode-chapters"><header><span>THE NIGHT, ACT BY ACT</span>' +
+        '<b>SIX STOPS ACROSS THE FULL RUNTIME</b></header><div>' + chapterMarkup + '</div></section>' +
+        '<section class="source-dossier-episode-arc"><header><span>THE TAKE ARC</span>' +
+        '<b>OPENING READ &#8594; MIDPOINT TURN &#8594; LATE VERDICT</b></header><div>' +
+        arcMarkup + '</div></section><section class="source-dossier-episode-cuts"><header><span>' +
+        'CUTS WORTH YOUR TIME</span><b>' + esc(visibleCuts.length) + ' OF ' + esc(cuts.length) +
+        ' SHOWN</b></header><div>' + cutMarkup + '</div>' +
+        (compact && cuts.length > visibleCuts.length ? '<button type="button" ' +
+          'data-source-dossier-action="open-full-file">SHOW ALL ' + esc(cuts.length) +
+          ' PLAYABLE CUTS &#8594;</button>' : '') + '</section><details class="source-dossier-episode-method">' +
+        '<summary>WHAT THIS DEEP DIVE CAN AND CANNOT CLAIM</summary><p>' +
+        esc(guide.basis) + '. Every jump stays bound to this upload. Automatic captions do not ' +
+        'establish which host spoke or whether a line came from the movie audio.</p></details></section>';
+    }
     function showWikiLaneMarkup(dossier, lane, index, seenReceipts, compact) {
       var receipts = showWikiLaneReceipts(dossier, lane);
       var displayedReceipts = compact ?
@@ -1037,7 +1121,8 @@
           'quotes, character bits, or comedy verdicts.</span></aside>';
       } else {
         body += showWikiRecapMarkup(dossier, compact) +
-          (compact ? '' : showWikiExperienceMarkup(dossier)) +
+          showWikiEpisodeGuideMarkup(dossier, compact) +
+          showWikiExperienceMarkup(dossier) +
           (visibleEntries.length ? '<div class="source-dossier-wiki-lanes">' +
             visibleEntries.map(function (entry) {
               return showWikiLaneMarkup(
@@ -1758,6 +1843,9 @@
 
     function renderMarkup(dossier) {
       var source = dossier.source;
+      var hasEpisodeGuide = !isSourceBrief(dossier) &&
+        clean(record(record(source.showWiki).episodeGuide).schema) ===
+          "wwam-episode-guide/v2";
       var deepResearch = askMarkup(dossier) + proofMarkup(dossier) +
         insideMarkup(dossier) + footprintMarkup(dossier) + wakeMarkup(dossier) +
         '<nav class="source-dossier-chronology"' + sectionAttributes("chronology") +
@@ -1778,6 +1866,9 @@
         ' // ' + esc(formatDuration(source.duration)) + ' // ' +
         esc(formatNumber(source.views)) + ' VIEWS WHEN INDEXED</p><div>' +
         '<button type="button" data-source-dossier-action="play-source">&#9654; WATCH THIS SHOW</button>' +
+        (hasEpisodeGuide ?
+          '<a class="source-dossier-deep-dive-cta" href="#sourceDossierEpisodeGuide">' +
+          'OPEN THE DEEP DIVE &#8595;</a>' : '') +
         '<button type="button" data-source-dossier-action="copy-link">COPY PAGE LINK</button>' +
         '<a href="' + esc(source.url) + '" target="_blank" rel="noopener">WATCH ON YOUTUBE &#8599;</a>' +
         '</div></div></header>' + densityMarkup() + exploreMarkup(dossier) +
@@ -1988,7 +2079,35 @@
       }
     }
 
+    function jumpWithinDossier(event) {
+      var link = event.target && event.target.closest ?
+        event.target.closest('a[href^="#sourceDossier"]') : null;
+      if (!link || typeof mount.querySelector !== "function") return false;
+      var href = clean(link.getAttribute("href"));
+      var targetId = href.slice(1);
+      if (!/^sourceDossier[A-Za-z0-9_-]+$/.test(targetId)) return false;
+      var target = mount.querySelector("#" + targetId);
+      if (!target) return false;
+      if (typeof event.preventDefault === "function") event.preventDefault();
+      if (typeof target.scrollIntoView === "function") {
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+      var focusTarget = typeof target.querySelector === "function" ?
+        target.querySelector("h2,h3,h4,h5") : null;
+      if (!focusTarget) focusTarget = target;
+      if (focusTarget && typeof focusTarget.setAttribute === "function" &&
+          typeof focusTarget.hasAttribute === "function" &&
+          !focusTarget.hasAttribute("tabindex")) {
+        focusTarget.setAttribute("tabindex", "-1");
+      }
+      if (focusTarget && typeof focusTarget.focus === "function") {
+        try { focusTarget.focus({ preventScroll: true }); } catch { focusTarget.focus(); }
+      }
+      return true;
+    }
+
     function handleClick(event) {
+      if (jumpWithinDossier(event)) return;
       var button = event.target && event.target.closest ?
         event.target.closest("[data-source-dossier-action]") : null;
       if (!button || !state.dossier || state.destroyed) return;
@@ -2017,6 +2136,22 @@
           end: null,
           receipt: null
         }));
+      } else if (action === "play-guide-cut") {
+        var guideAt = Number(button.getAttribute("data-guide-at"));
+        var guideEnd = Number(button.getAttribute("data-guide-end"));
+        if (Number.isFinite(guideAt) && guideAt >= 0 && guideAt <= number(source.duration)) {
+          state.activeReceiptKey = "";
+          state.activeReceiptOrigin = ownerSection || "wiki";
+          state.at = guideAt;
+          state.hasAnchor = true;
+          renderCurrent();
+          callbacks.play(Object.assign(payload, {
+            mode: "episode-guide",
+            at: guideAt,
+            end: Number.isFinite(guideEnd) && guideEnd > guideAt ? guideEnd : null,
+            receipt: null
+          }));
+        }
       } else if (action === "play-receipt") {
         var playReceipt = receiptByKey(button.getAttribute("data-receipt-key"));
         if (playReceipt) {

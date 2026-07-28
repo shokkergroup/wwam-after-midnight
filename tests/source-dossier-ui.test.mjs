@@ -32,6 +32,7 @@ class FakeMount {
     this.listeners = new Map();
     this.innerHTML = "";
     this.focusCount = 0;
+    this.jumpTargets = new Map();
   }
 
   addEventListener(type, listener) {
@@ -106,7 +107,58 @@ class FakeMount {
     return prevented;
   }
 
+  registerJumpTarget(id) {
+    const headingAttributes = new Map();
+    const heading = {
+      focusCount: 0,
+      hasAttribute(name) {
+        return headingAttributes.has(name);
+      },
+      setAttribute(name, value) {
+        headingAttributes.set(name, String(value));
+      },
+      getAttribute(name) {
+        return headingAttributes.get(name) ?? null;
+      },
+      focus() {
+        this.focusCount += 1;
+      },
+    };
+    const target = {
+      heading,
+      scrollCalls: [],
+      querySelector(selector) {
+        return selector === "h2,h3,h4,h5" ? heading : null;
+      },
+      scrollIntoView(options) {
+        this.scrollCalls.push(options);
+      },
+    };
+    this.jumpTargets.set(`#${id}`, target);
+    return target;
+  }
+
+  clickLink(href) {
+    let prevented = false;
+    const target = {
+      closest(selector) {
+        return selector === 'a[href^="#sourceDossier"]' ? this : null;
+      },
+      getAttribute(name) {
+        return name === "href" ? href : null;
+      },
+    };
+    this.listeners.get("click")?.({
+      target,
+      preventDefault() {
+        prevented = true;
+      },
+    });
+    return prevented;
+  }
+
   querySelector(selector) {
+    if (this.jumpTargets.has(selector)) return this.jumpTargets.get(selector);
     if (selector !== "#sourceDossierQuery") return null;
     return {
       focus: () => {
@@ -752,8 +804,8 @@ test("exports the per-show Wiki UI, keeps curated lanes first, and destroys clea
   const { api, ui, mount, engine, dossier } = setup();
   const rendered = ui.render("SOURCE00001", { at: 333 });
 
-  assert.equal(api.VERSION, "1.7.1");
-  assert.equal(ui.version, "1.7.1");
+  assert.equal(api.VERSION, "1.8.1");
+  assert.equal(ui.version, "1.8.1");
   assert.equal(rendered, dossier);
   assert.deepEqual(engine.buildCalls, ["SOURCE00001"]);
   assert.equal(mount.getAttribute("data-source-dossier-state"), "ready");
@@ -1070,6 +1122,100 @@ test("rich sources become navigable per-show Wikis with recap, Topic Hop, and ex
   assert.ok(bags.every((payload) => payload.section === "wiki"));
 });
 
+test("Episode Guide V2 exposes the episode spine and plays bounded source-local cuts", () => {
+  const dossier = makeDossier();
+  const phases = ["OPENING READ", "PRESSURE POINT", "FINAL WORD"];
+  dossier.source.showWiki.episodeGuide = {
+    schema: "wwam-episode-guide/v2",
+    basis: "Full automatic-caption episode map",
+    overview: "A source-local episode overview.",
+    metrics: {
+      chapters: 6,
+      threads: 4,
+      cuts: 8,
+      comedy: 3,
+    },
+    chapters: Array.from({ length: 6 }, (_, index) => ({
+      id: `chapter-${index + 1}`,
+      at: 60 + index * 900,
+      end: 90 + index * 900,
+      label: `Chapter ${index + 1}`,
+      body: `The commentary's ${index + 1} mapped turn.`,
+      excerpt: `Bounded chapter excerpt ${index + 1}.`,
+    })),
+    takeArc: phases.map((phase, index) => ({
+      id: `take-${index + 1}`,
+      phase,
+      at: 180 + index * 2400,
+      end: 210 + index * 2400,
+      label: `${phase} RECEIPT`,
+      body: `The ${phase.toLowerCase()} is anchored to this upload.`,
+      excerpt: `Bounded take excerpt ${index + 1}.`,
+    })),
+    threads: Array.from({ length: 4 }, (_, index) => ({
+      id: `thread-${index + 1}`,
+      kind: index === 0 ? "character" : "film craft",
+      name: index === 0 ? "Doctor Example" : `Recurring Thread ${index + 1}`,
+      mentions: 7 - index,
+      peak: 300 + index * 600,
+      at: 300 + index * 600,
+      end: 330 + index * 600,
+    })),
+    cuts: Array.from({ length: 8 }, (_, index) => ({
+      id: `guide-cut-${index + 1}`,
+      at: 480 + index * 420,
+      end: 510 + index * 420,
+      category: index % 2 === 0 ? "COMEDY" : "FILM READ",
+      topic: `Playable Cut ${index + 1}`,
+      excerpt: `Bounded playable cut excerpt ${index + 1}.`,
+      score: 100 - index,
+    })),
+  };
+  const plays = [];
+  const { ui, mount } = setup(dossier, {
+    onPlay: (payload) => plays.push(payload),
+  });
+
+  ui.render("SOURCE00001");
+
+  assert.match(mount.innerHTML, /data-episode-guide="v2"/);
+  assert.match(
+    mount.innerHTML,
+    /class="source-dossier-deep-dive-cta" href="#sourceDossierEpisodeGuide">OPEN THE DEEP DIVE/,
+  );
+  assert.ok(
+    mount.innerHTML.indexOf('href="#sourceDossierEpisodeGuide">DEEP DIVE</a>') <
+      mount.innerHTML.indexOf('href="#sourceDossierShowWikiSummary">SHOW SUMMARY</a>'),
+    "the episode spine is promoted ahead of the summary in the show shortcut strip",
+  );
+  assert.match(mount.innerHTML, /THE EPISODE ACTUALLY HAS A SHAPE/);
+  assert.match(mount.innerHTML, /WHAT KEEPS COMING BACK/);
+  assert.match(mount.innerHTML, /THE NIGHT, ACT BY ACT/);
+  assert.match(mount.innerHTML, /THE TAKE ARC/);
+  assert.match(mount.innerHTML, /6 OF 8 SHOWN/);
+  assert.match(mount.innerHTML, /data-source-dossier-action="play-guide-cut"/);
+
+  const guideTarget = mount.registerJumpTarget("sourceDossierEpisodeGuide");
+  assert.equal(mount.clickLink("#sourceDossierEpisodeGuide"), true);
+  assert.equal(guideTarget.scrollCalls.length, 1);
+  assert.equal(guideTarget.scrollCalls[0].behavior, "smooth");
+  assert.equal(guideTarget.scrollCalls[0].block, "start");
+  assert.equal(guideTarget.heading.focusCount, 1);
+  assert.equal(guideTarget.heading.getAttribute("tabindex"), "-1");
+
+  mount.click("play-guide-cut", {
+    "data-guide-at": "480",
+    "data-guide-end": "510",
+    "data-owner-section": "wiki",
+  });
+
+  assert.equal(plays.length, 1);
+  assert.equal(plays[0].mode, "episode-guide");
+  assert.equal(plays[0].at, 480);
+  assert.equal(plays[0].end, 510);
+  assert.equal(plays[0].receipt, null);
+  assert.equal(plays[0].sourceId, "SOURCE00001");
+});
 test("caption excerpts drop only leading YouTube speaker markers across cards and playback", () => {
   const dossier = makeDossier();
   dossier.source.receipts[2].excerpt = ">>   >> A bounded caption line.";
@@ -2247,7 +2393,7 @@ test("responsive stylesheet preserves touch targets, focus, and reduced motion",
   );
   assert.match(
     cssSource,
-    /@media \(max-width:\s*600px\)[\s\S]*\.source-dossier-explore > div[\s\S]*grid-template-columns:\s*1fr/,
+    /@media \(max-width:\s*600px\)[\s\S]*\.source-dossier-explore > div[\s\S]*grid-template-columns:\s*repeat\(2/,
   );
   assert.match(
     cssSource,
@@ -2267,7 +2413,7 @@ test("responsive stylesheet preserves touch targets, focus, and reduced motion",
   );
   assert.match(
     cssSource,
-    /@media \(max-width:\s*600px\)[\s\S]*\.source-dossier > \.source-dossier-explore\s*\{[^}]*position:\s*static\s*!important[^}]*max-height:\s*68px/s,
+    /@media \(max-width:\s*600px\)[\s\S]*\.source-dossier > \.source-dossier-explore\s*\{[^}]*position:\s*static\s*!important[^}]*max-height:\s*none[^}]*overflow:\s*visible/s,
   );
   assert.doesNotMatch(cssSource, /@import/i);
 });
@@ -2293,8 +2439,8 @@ test("Show Wiki keeps the archive truth but removes machine-room language and du
     3,
   );
   assert.doesNotMatch(wiki, /is-show-wiki-research/);
-  assert.doesNotMatch(wiki, /source-dossier-wiki-experience/);
-  assert.doesNotMatch(wiki, /source-dossier-wiki-recap-blocks/);
+  assert.match(wiki, /source-dossier-wiki-experience/);
+  assert.match(wiki, /source-dossier-wiki-recap-blocks/);
   assert.doesNotMatch(
     wiki,
     /MOMENT HEAT|SHOWCASE-RECEIPT-SCORE|data-signal-score|MACHINE|OPERATOR/i,

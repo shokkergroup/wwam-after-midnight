@@ -19,6 +19,7 @@ function load() {
   [
     "catalog.js",
     "deep-distill.js",
+    "episode-guides.js",
     "livestream-distill.js",
     "popular-live-distill.js",
     "character-lore.js",
@@ -79,6 +80,7 @@ function buildFixture() {
     atlas: window.WWAM_ARCHIVE_ATLAS,
     catalog: window.WWAM_CATALOG,
     deep: window.WWAM_DEEP_DISTILL,
+    episodeGuides: window.WWAM_EPISODE_GUIDES,
     live: window.WWAM_LIVESTREAMS,
     popular: window.WWAM_POPULAR_LIVE,
     archiveDeepPortfolio: archiveDeep,
@@ -780,7 +782,12 @@ test("every source gets an honest Show Wiki shell with rigorously gated lanes", 
       ].join(" ");
       assert.doesNotMatch(recapText, /explicit performance cue/i, source.id);
       assert.equal(source.summary.text, recap.overview, source.id);
-      assert.equal(source.summary.basis, "source-local-format-aware-recap/v1", source.id);
+      assert.equal(
+        source.summary.basis,
+        source.showWiki.episodeGuide ?
+          "full-caption-episode-guide/v2" : "source-local-format-aware-recap/v1",
+        source.id,
+      );
       assert.equal(source.showWiki.brief, null, source.id);
     } else {
       sourceBriefShowWikiCount += 1;
