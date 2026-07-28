@@ -3676,6 +3676,178 @@
   }
 }
 
+/* The Fan Read: an editorial front door into the evidence-heavy full file. */
+.source-dossier-fan-read {
+  margin-top: 34px;
+  border: 1px solid #493641;
+  border-top: 5px solid var(--dossier-acid, #d4ff24);
+  background:
+    radial-gradient(circle at 90% -10%, rgba(216, 255, 56, .12), transparent 31%),
+    linear-gradient(145deg, #141015, #0b090c 70%);
+  scroll-margin-top: 100px;
+}
+
+.source-dossier-fan-read > header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, .42fr);
+  gap: 24px;
+  align-items: end;
+  padding: clamp(26px, 4vw, 44px);
+  border-bottom: 1px solid #493a43;
+}
+
+.source-dossier-fan-read > header span,
+.source-dossier-fan-read-lead > div > span,
+.source-dossier-fan-read-grid article > span {
+  color: var(--dossier-acid, #d4ff24);
+  font: 850 9px/1.35 var(--mono, monospace);
+  letter-spacing: .1em;
+}
+
+.source-dossier-fan-read > header h4 {
+  max-width: 760px;
+  margin: 8px 0 0;
+  color: #f7eff3;
+  font: 900 clamp(38px, 5vw, 68px)/.9 var(--display, sans-serif);
+  letter-spacing: -.035em;
+}
+
+.source-dossier-fan-read > header > p {
+  max-width: 430px;
+  margin: 0;
+  color: #c8bdc4;
+  font: 550 15px/1.65 var(--body, sans-serif);
+}
+
+.source-dossier-fan-read-lead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 28px;
+  align-items: center;
+  padding: clamp(24px, 4vw, 42px);
+  background: rgba(216, 255, 56, .035);
+}
+
+.source-dossier-fan-read-lead > div > p {
+  max-width: 900px;
+  margin: 10px 0 16px;
+  color: #eee5ea;
+  font: 650 clamp(17px, 2vw, 23px)/1.5 var(--body, sans-serif);
+}
+
+.source-dossier-fan-read-lead > div > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.source-dossier-fan-read-lead > div > div span {
+  padding: 6px 9px;
+  border: 1px solid #4c5840;
+  color: #c7d79b;
+  font: 800 8px/1.2 var(--mono, monospace);
+  letter-spacing: .06em;
+}
+
+.source-dossier-fan-read button {
+  min-height: 42px;
+  padding: 10px 13px;
+  border: 1px solid var(--dossier-acid, #d4ff24);
+  color: #0a0b09;
+  background: var(--dossier-acid, #d4ff24);
+  cursor: pointer;
+  font: 850 8px/1.25 var(--mono, monospace);
+  letter-spacing: .055em;
+}
+
+.source-dossier-fan-read button:hover,
+.source-dossier-fan-read button:focus-visible {
+  border-color: #fff;
+  color: #fff;
+  background: var(--dossier-pink, #ff2f7d);
+}
+
+.source-dossier-fan-read-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  padding: 1px;
+  background: #493a43;
+}
+
+.source-dossier-fan-read-grid article {
+  display: grid;
+  grid-template-rows: auto auto 1fr auto auto;
+  gap: 13px;
+  min-height: 290px;
+  padding: clamp(22px, 3.5vw, 36px);
+  background: #0d0a0e;
+}
+
+.source-dossier-fan-read-grid article[data-fan-read-key="hated"] {
+  box-shadow: inset 4px 0 0 var(--dossier-pink, #ff2f7d);
+}
+
+.source-dossier-fan-read-grid article[data-fan-read-key="hated"] > span {
+  color: var(--dossier-pink, #ff2f7d);
+}
+
+.source-dossier-fan-read-grid h5 {
+  margin: 0;
+  color: #f5edf1;
+  font: 850 clamp(25px, 3vw, 38px)/.98 var(--display, sans-serif);
+}
+
+.source-dossier-fan-read-grid p {
+  margin: 0;
+  color: #c5bbc1;
+  font: 550 14px/1.65 var(--body, sans-serif);
+}
+
+.source-dossier-fan-read-grid blockquote {
+  margin: 0;
+  padding: 14px 0 0;
+  border-top: 1px solid #3e3239;
+  color: #e6dce1;
+  font: 650 13px/1.55 var(--body, sans-serif);
+}
+
+.source-dossier-fan-read-grid article > footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.source-dossier-fan-read-grid article > footer small {
+  color: #81767d;
+  font: 750 8px/1.35 var(--mono, monospace);
+}
+
+.source-dossier-fan-read > footer {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 16px 24px;
+  align-items: center;
+  padding: 16px clamp(24px, 4vw, 42px);
+  color: #92878e;
+  background: #09070a;
+  font: 700 9px/1.5 var(--mono, monospace);
+}
+
+.source-dossier-fan-read > footer b { color: #d9ff38; }
+
+@media (max-width: 760px) {
+  .source-dossier-fan-read { margin-inline: -14px; }
+  .source-dossier-fan-read > header,
+  .source-dossier-fan-read-lead,
+  .source-dossier-fan-read > footer { grid-template-columns: 1fr; }
+  .source-dossier-fan-read-grid { grid-template-columns: 1fr; }
+  .source-dossier-fan-read-lead > button { justify-self: start; }
+  .source-dossier-fan-read-grid article { min-height: 0; }
+}
+
 /* Episode Guide V2: the semantic episode story, not another evidence drawer. */
 .source-dossier-episode-guide {
   margin-top: 46px;
@@ -3886,6 +4058,84 @@
 .source-dossier-episode-cuts article p { margin: 0; color: #bbb1b7; font: 500 13px/1.55 var(--body, sans-serif); }
 .source-dossier-episode-cuts > button { margin-top: 18px; border-color: var(--dossier-acid); color: var(--dossier-acid); }
 
+.source-dossier-episode-guide.is-compact {
+  margin-top: 26px;
+  padding: clamp(22px, 3vw, 34px);
+  background: linear-gradient(145deg, #111014, #0b0a0c 64%);
+}
+.source-dossier-episode-guide.is-compact > header { margin-bottom: 22px; }
+.source-dossier-episode-start-here {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.source-dossier-episode-start-here > article {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 250px;
+  padding: 18px;
+  border-top: 3px solid var(--dossier-pink, #ff2f7d);
+  background: #171419;
+}
+.source-dossier-episode-start-here > article:nth-child(even) {
+  border-top-color: var(--dossier-acid, #d4ff24);
+}
+.source-dossier-episode-start-here header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: #a89da5;
+  font: 800 9px/1.25 var(--mono, monospace);
+}
+.source-dossier-episode-start-here h5 {
+  margin: 20px 0 8px;
+  color: #f1e9ed;
+  font: 750 17px/1.15 var(--body, sans-serif);
+}
+.source-dossier-episode-start-here p {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0 0 18px;
+  color: #bdb3ba;
+  font: 500 12px/1.55 var(--body, sans-serif);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+.source-dossier-episode-start-here button { margin-top: auto; align-self: flex-start; }
+.source-dossier-episode-start-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid #312a30;
+}
+.source-dossier-episode-start-actions > span {
+  color: #81777e;
+  font: 800 9px/1.4 var(--mono, monospace);
+}
+.source-dossier-episode-start-actions > span b { color: #f5edf1; }
+@media (max-width: 900px) {
+  .source-dossier-episode-start-here { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 620px) {
+  .source-dossier-episode-guide.is-compact { margin-inline: -14px; padding-inline: 14px; }
+  .source-dossier-episode-start-here {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    scroll-snap-type: x mandatory;
+  }
+  .source-dossier-episode-start-here > article {
+    min-width: min(78vw, 310px);
+    min-height: 230px;
+    scroll-snap-align: start;
+  }
+  .source-dossier-episode-start-actions { align-items: stretch; flex-direction: column; }
+  .source-dossier-episode-start-actions > button { width: 100%; }
+}
 .source-dossier-episode-method {
   margin-top: 30px;
   padding-top: 16px;
@@ -4025,4 +4275,59 @@
 
 #sourceDossierEpisodeGuide {
   scroll-margin-top: 20px;
+}
+
+/* Thumb-safe compact Show Wiki controls. */
+@media (max-width: 760px) {
+  .source-dossier-episode-start-here button,
+  .source-dossier-episode-start-actions button,
+  .source-dossier-density button,
+  .source-dossier-explore button,
+  .source-dossier-explore a {
+    min-height: 44px;
+  }
+}
+
+/* Mobile full-file tap contract: later than every component-level height. */
+@media (max-width: 600px) {
+  .source-dossier button,
+  .source-dossier summary {
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+    max-width: 100%;
+    min-height: 44px;
+    box-sizing: border-box;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.35;
+  }
+
+  .source-dossier button {
+    justify-content: center;
+  }
+
+  .source-dossier summary {
+    width: 100%;
+    justify-content: flex-start;
+    cursor: pointer;
+  }
+
+  .source-dossier details:not(.context-trailer):not(.context-card-media) > summary::after {
+    content: "+";
+    flex: 0 0 auto;
+    margin-left: auto;
+    padding-left: 12px;
+  }
+
+  .source-dossier details[open]:not(.context-trailer):not(.context-card-media) > summary::after {
+    content: "\2212";
+  }
+
+  .source-dossier-wiki-recap-blocks article > div,
+  .source-dossier-wiki-receipt > footer,
+  .source-dossier-episode-chapter,
+  .source-dossier-fan-read-grid article > footer {
+    min-width: 0;
+  }
 }

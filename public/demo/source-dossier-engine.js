@@ -10,7 +10,7 @@
    * captions, promote evidence, clear rights, or publish anything.
    */
 
-  var VERSION = "1.6.0";
+  var VERSION = "1.7.0";
   var INPUT_SCHEMA = "shokker-source-dossier-input/v1";
   var DOSSIER_SCHEMA = "shokker-source-dossier/v1";
   var EXPORT_SCHEMA = "shokker-source-dossier-export/v1";
@@ -498,9 +498,20 @@
         category: requiredText(cut.category, cutPath + ".category", 100),
         topic: requiredText(cut.topic, cutPath + ".topic", 180),
         excerpt: boundedExcerpt(cut.excerpt, cutPath + ".excerpt"),
-        score: score
+        score: score,
+        substance: cut.substance == null ? 0 : finiteNumber(cut.substance, cutPath + ".substance", 0),
+        editorialEvidence: clean(cut.editorialEvidence, 180),
+        categorySupport: cut.categorySupport == null ? 0 : finiteNumber(cut.categorySupport, cutPath + ".categorySupport", 0),
+        categoryEvidence: clean(cut.categoryEvidence, 180),
+        topicBasis: clean(cut.topicBasis, 100),
+        topicSupport: cut.topicSupport == null ? 0 : finiteNumber(cut.topicSupport, cutPath + ".topicSupport", 0),
+        topicEvidence: clean(cut.topicEvidence, 180),
+        verdictSignal: cut.verdictSignal == null ? 0 : finiteNumber(cut.verdictSignal, cutPath + ".verdictSignal", 0),
+        verdictEvidence: clean(cut.verdictEvidence, 180),
+        evidenceBasis: clean(cut.evidenceBasis, 180)
       };
     });
+    var cutMap = new Map(cuts.map(function (cut) { return [cut.id, cut]; }));
 
     if (!Array.isArray(raw.chapters) || raw.chapters.length < 4 || raw.chapters.length > 8) {
       fail("EPISODE_GUIDE_CHAPTER_COUNT", path + ".chapters must contain between four and eight chapters.", path + ".chapters");
@@ -526,7 +537,8 @@
         excerpt: boundedExcerpt(chapter.excerpt, chapterPath + ".excerpt"),
         category: requiredText(chapter.category, chapterPath + ".category", 100),
         topic: requiredText(chapter.topic, chapterPath + ".topic", 180),
-        cutId: cutId
+        cutId: cutId,
+        evidenceBasis: clean(chapter.evidenceBasis, 180)
       };
     });
 
@@ -537,6 +549,10 @@
       var takePath = path + ".takeArc[" + index + "]";
       if (!isRecord(take)) fail("INVALID_EPISODE_GUIDE_TAKE", takePath + " must be an object.", takePath);
       var window = boundedWindow(take, takePath);
+      var takeCutId = clean(take.cutId, 80);
+      if (takeCutId && !cutIds.has(takeCutId)) {
+        fail("UNKNOWN_EPISODE_GUIDE_TAKE_CUT", takePath + ".cutId is not in this guide.", takePath + ".cutId");
+      }
       return {
         phase: requiredText(take.phase, takePath + ".phase", 80),
         label: requiredText(take.label, takePath + ".label", 200),
@@ -544,7 +560,9 @@
         end: window.end,
         body: requiredText(take.body, takePath + ".body", 600),
         excerpt: boundedExcerpt(take.excerpt, takePath + ".excerpt"),
-        category: requiredText(take.category, takePath + ".category", 100)
+        category: requiredText(take.category, takePath + ".category", 100),
+        cutId: takeCutId,
+        evidenceBasis: clean(take.evidenceBasis, 180)
       };
     });
 
@@ -570,10 +588,112 @@
       };
     });
 
+    var shape = null;
+    if (raw.shape != null) {
+      var shapePath = path + ".shape";
+      if (!isRecord(raw.shape)) {
+        fail("INVALID_EPISODE_GUIDE_SHAPE", shapePath + " must be an object.", shapePath);
+      }
+      var runtimeBand = requiredText(raw.shape.runtimeBand, shapePath + ".runtimeBand", 40);
+      if (["FEATURE", "EXTENDED", "MARATHON"].indexOf(runtimeBand) < 0) {
+        fail("INVALID_EPISODE_GUIDE_RUNTIME_BAND", shapePath + ".runtimeBand is unsupported.", shapePath + ".runtimeBand");
+      }
+      shape = {
+        runtimeBand: runtimeBand,
+        chapters: finiteNumber(raw.shape.chapters, shapePath + ".chapters", 0),
+        threads: finiteNumber(raw.shape.threads, shapePath + ".threads", 0),
+        cuts: finiteNumber(raw.shape.cuts, shapePath + ".cuts", 0)
+      };
+      if (shape.chapters !== chapters.length || shape.threads !== threads.length || shape.cuts !== cuts.length) {
+        fail("EPISODE_GUIDE_SHAPE_MISMATCH", shapePath + " must match the normalized guide counts.", shapePath);
+      }
+    }
+
+    var fanRead = null;
+    if (raw.fanRead != null) {
+      var fanPath = path + ".fanRead";
+      if (!isRecord(raw.fanRead) || !isRecord(raw.fanRead.whyThisNightMatters)) {
+        fail("INVALID_EPISODE_GUIDE_FAN_READ", fanPath + " must include whyThisNightMatters.", fanPath);
+      }
+      var whyRaw = raw.fanRead.whyThisNightMatters;
+      var strongestCutId = requiredText(
+        whyRaw.strongestCutId,
+        fanPath + ".whyThisNightMatters.strongestCutId",
+        80
+      );
+      if (!cutMap.has(strongestCutId)) {
+        fail("UNKNOWN_EPISODE_GUIDE_FAN_CUT", fanPath + ".whyThisNightMatters.strongestCutId is not in this guide.", fanPath);
+      }
+      var primaryThread = requiredText(
+        whyRaw.primaryThread,
+        fanPath + ".whyThisNightMatters.primaryThread",
+        180
+      );
+      var secondaryThread = requiredText(
+        whyRaw.secondaryThread,
+        fanPath + ".whyThisNightMatters.secondaryThread",
+        180
+      );
+      if (!threadNames.has(primaryThread) || !threadNames.has(secondaryThread)) {
+        fail("UNKNOWN_EPISODE_GUIDE_FAN_THREAD", fanPath + " must name threads from this guide.", fanPath);
+      }
+
+      function normalizeFanReceipt(key) {
+        var fanRaw = raw.fanRead[key];
+        if (fanRaw == null) return null;
+        var itemPath = fanPath + "." + key;
+        if (!isRecord(fanRaw)) {
+          fail("INVALID_EPISODE_GUIDE_FAN_RECEIPT", itemPath + " must be an object or null.", itemPath);
+        }
+        var cutId = requiredText(fanRaw.cutId, itemPath + ".cutId", 80);
+        var canonicalCut = cutMap.get(cutId);
+        if (!canonicalCut) {
+          fail("UNKNOWN_EPISODE_GUIDE_FAN_CUT", itemPath + ".cutId is not in this guide.", itemPath + ".cutId");
+        }
+        return {
+          key: key,
+          label: requiredText(fanRaw.label, itemPath + ".label", 180),
+          body: requiredText(fanRaw.body, itemPath + ".body", 500),
+          at: canonicalCut.at,
+          end: canonicalCut.end,
+          cutId: canonicalCut.id,
+          category: canonicalCut.category,
+          topic: canonicalCut.topic,
+          excerpt: canonicalCut.excerpt,
+          evidenceBasis: clean(fanRaw.evidenceBasis, 180) || canonicalCut.evidenceBasis
+        };
+      }
+
+      fanRead = {
+        whyThisNightMatters: {
+          label: requiredText(
+            whyRaw.label,
+            fanPath + ".whyThisNightMatters.label",
+            180
+          ),
+          body: requiredText(
+            whyRaw.body,
+            fanPath + ".whyThisNightMatters.body",
+            700
+          ),
+          primaryThread: primaryThread,
+          secondaryThread: secondaryThread,
+          strongestCutId: strongestCutId
+        },
+        loved: normalizeFanReceipt("loved"),
+        hated: normalizeFanReceipt("hated"),
+        wildestDetour: normalizeFanReceipt("wildestDetour"),
+        lastWord: normalizeFanReceipt("lastWord")
+      };
+    }
+
     return {
       schema: schema,
       basis: requiredText(raw.basis, path + ".basis", 360),
       overview: requiredText(raw.overview, path + ".overview", 1000),
+      evidenceSummary: clean(raw.evidenceSummary, 1800),
+      shape: shape,
+      fanRead: fanRead,
       chapters: chapters,
       takeArc: takeArc,
       threads: threads,

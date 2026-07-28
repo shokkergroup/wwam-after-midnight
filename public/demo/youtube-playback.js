@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "2.3.0";
+  var VERSION = "2.4.1";
   var POLICY = "strict-origin-when-cross-origin";
   var VIDEO_ID = /^[A-Za-z0-9_-]{11}$/;
   var HOSTED_PLAYER =
@@ -76,6 +76,9 @@
 
   function iframe(videoId, options) {
     var config = options || {};
+    if (!Object.prototype.hasOwnProperty.call(config, "forceHostedBridge")) {
+      config = Object.assign({}, config, { forceHostedBridge: true });
+    }
     var src = embedUrl(videoId, config);
     if (!src) return "";
     var start = Number.isFinite(Number(config.start))
@@ -85,6 +88,8 @@
       ? Math.max(1, Math.round(Number(config.end)))
       : "";
     var title = config.title || "Official YouTube source playback";
+    var recoveryCopy = config.forceHostedBridge === true
+      ? "RELOAD PLAYER" : "HAVING TROUBLE? TRY RECOVERY";
     return '<div class="shokker-youtube-player" data-shokker-youtube-player' +
       ' data-video-id="' + escapeAttribute(videoId) +
       '" data-start="' + start +
@@ -97,7 +102,7 @@
       '" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen" allowfullscreen></iframe>' +
       '<button class="shokker-youtube-recover" type="button"' +
       ' data-shokker-youtube-recover aria-label="Reload this source inside the page">' +
-      'HAVING TROUBLE? TRY RECOVERY</button></div>';
+      escapeAttribute(recoveryCopy) + '</button></div>';
   }
 
   function recoverPlayer(button) {

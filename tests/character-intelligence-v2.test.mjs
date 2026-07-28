@@ -277,6 +277,33 @@ test("subject extraction and follow-up memory distinguish pronouns from topic sw
   }
 });
 
+test("receipt relationships distinguish question matches, character patterns, and shelf fallbacks", () => {
+  const exact = plain(characterEngine.answer(
+    "loomis",
+    "Why does the government refuse Loomis funding?",
+  ));
+  assert.equal(exact.receipt.id, "loomis-funding");
+  assert.equal(exact.receiptMatch.relationship, "query");
+  assert.equal(exact.receiptMatch.queryMatched, true);
+  assert.equal(exact.receiptMatch.intentMatched, false);
+
+  const batman = plain(characterEngine.answer(
+    "loomis",
+    "What do you think about Batman?",
+  ));
+  assert.equal(batman.receiptMatch.relationship, "pattern");
+  assert.equal(batman.receiptMatch.queryMatched, false);
+  assert.equal(batman.receiptMatch.intentMatched, true);
+  assert.ok(batman.receiptMatch.reasons.every((reason) => !reason.startsWith("query:")));
+
+  const shelf = plain(characterEngine.answer("challis", "What about phones?"));
+  assert.equal(shelf.receiptMatch.relationship, "shelf");
+  assert.equal(shelf.receiptMatch.queryMatched, false);
+  assert.equal(shelf.receiptMatch.intentMatched, false);
+  assert.deepEqual(shelf.receiptMatch.reasons, []);
+  assert.equal(shelf.receipt.playability.status, "eligible");
+  assert.equal(shelf.receipt.provenance.timestampStatus, "exact-caption-event");
+});
 test("unknown character banks fail closed instead of borrowing Loomis", () => {
   const lore = plain(window.WWAM_CHARACTER_LORE);
   lore.characters.push({

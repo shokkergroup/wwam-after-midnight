@@ -1034,6 +1034,13 @@ test("title metadata drives specific formats and title-first recap topics", () =
     assert.equal(byId(result, sourceId).showWiki.recap.format, expectedFormat, sourceId);
   }
 
+  const latest = byId(result, "LV2rmwEA0w4").showWiki.recap.overview;
+  assert.match(
+    latest,
+    /3 hr 33 min hangout with Batman, Marvel, Halloween, and Trailers on the table\./,
+  );
+  assert.match(latest, /Jump in at 2:30:46 for the first Full Send spike/);
+  assert.doesNotMatch(latest, /live-room map|comedy alarm|machine-surfaced|automatic-caption/i);
   for (const [sourceId, expectedFirstTopic] of [
     ["WKs1uPGMQvw", "Scream"],
     ["QxJyVaAgZ_Y", "Friday the 13th"],
@@ -1414,6 +1421,27 @@ test("the exact 510-source adapter payload compiles through the generic engine",
   assert.ok(live.wake.earlier[0].artifactIds.includes(
     "ancestry:bit-loomis-alert",
   ));
+
+  const commentary = engine.build("6VXSBDZ-3WE");
+  const guide = commentary.source.showWiki.episodeGuide;
+  assert.deepEqual(plain(guide.shape), {
+    runtimeBand: "FEATURE",
+    chapters: 5,
+    threads: 6,
+    cuts: 13,
+  });
+  assert.match(guide.overview, /Halloween \(1978\)/);
+  assert.match(guide.evidenceSummary, /caption matches/i);
+  assert.equal(guide.fanRead.whyThisNightMatters.label, "WHY THIS NIGHT MATTERS");
+  assert.equal(guide.fanRead.hated.label, "STRAIGHT TO STEVE'S ASSHOLE");
+  ["loved", "hated", "wildestDetour", "lastWord"].forEach((key) => {
+    const fanReceipt = guide.fanRead[key];
+    const canonicalCut = guide.cuts.find((cut) => cut.id === fanReceipt.cutId);
+    assert.ok(canonicalCut, key);
+    assert.equal(fanReceipt.at, canonicalCut.at, key);
+    assert.equal(fanReceipt.end, canonicalCut.end, key);
+    assert.equal(fanReceipt.excerpt, canonicalCut.excerpt, key);
+  });
 
   result.sources.forEach((source) => {
     const dossier = engine.build(source.id);

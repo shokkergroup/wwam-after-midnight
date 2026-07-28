@@ -383,7 +383,16 @@
         reasons.push("query:" + term);
         return total + 5;
       }, 0);
-      return { receipt: receipt, score: intentScore + queryScore, reasons: reasons };
+      var queryMatched = queryScore > 0;
+      var intentMatched = intentScore > 0;
+      return {
+        receipt: receipt,
+        score: intentScore + queryScore,
+        reasons: reasons,
+        queryMatched: queryMatched,
+        intentMatched: intentMatched,
+        relationship: queryMatched ? "query" : intentMatched ? "pattern" : "shelf",
+      };
     }).sort(function (a, b) { return b.score - a.score; });
     if (!candidates.length) return null;
     var bestScore = candidates[0].score;
@@ -572,6 +581,9 @@
           receiptMatch: receiptMatch ? {
             score: receiptMatch.score,
             reasons: receiptMatch.reasons,
+            queryMatched: receiptMatch.queryMatched,
+            intentMatched: receiptMatch.intentMatched,
+            relationship: receiptMatch.relationship,
           } : null,
           readiness: {
             timestampValidatedReceipts: receipts.length,

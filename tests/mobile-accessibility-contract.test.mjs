@@ -94,4 +94,19 @@ assert.match(
   "The homepage search must stack cleanly on phones.",
 );
 
+assert.match(
+  editorial,
+  /Overnight usability:[\s\S]*?@media \(max-width: 760px\)[\s\S]*?\.answer-brief \.ask-share,[\s\S]*?\.character-receipts article button,[\s\S]*?\.sound-controls button,[\s\S]*?\.wwam-route-home,[\s\S]*?\.evidence-bag-toggle[\s\S]*?min-height:\s*44px;/,
+  "Compact Ask, character, soundboard, and route actions must stay at least 44px tall.",
+);
+assert.match(
+  editorial,
+  /Overnight usability:[\s\S]*?\.wwam-tonights-copy > a,[\s\S]*?\.guided-shelf-head > a,[\s\S]*?\.guided-show-copy > a,[\s\S]*?body > footer a,[\s\S]*?body > footer button[\s\S]*?\{\s*min-height:\s*44px;/,
+  "Every compact homepage CTA, shelf link, show-wiki link, and footer action must stay at least 44px tall.",
+);
+assert.match(
+  editorial,
+  /@media \(max-width: 760px\)[\s\S]*?\.evidence-bag-toggle\s*\{\s*min-height:\s*44px;\s*\}/,
+  "The higher-specificity phone Saved Clips rule must not shrink below 44px.",
+);
 console.log("WWAM coherent mobile accessibility contract verified.");

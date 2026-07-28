@@ -672,8 +672,9 @@ test("a rendered real Ask analysis injects one launcher and removal fails closed
 test("the theater uses exact helper bounds, persistent recovery, and manual advancement", () => {
   assert.match(
     uiSource,
-    /playback\.iframe\(stop\.sourceId,\s*\{[\s\S]*?autoplay:\s*true,[\s\S]*?start:\s*stop\.start,[\s\S]*?end:\s*stop\.end,[\s\S]*?forceHostedBridge:\s*forceHostedBridge === true/,
+    /playback\.iframe\(stop\.sourceId,\s*\{[\s\S]*?autoplay:\s*true,[\s\S]*?start:\s*stop\.start,[\s\S]*?end:\s*stop\.end,[\s\S]*?forceHostedBridge:\s*true/,
   );
+  assert.match(uiSource, /hosted bridge is the proven first-click playback path/);
   assert.match(uiSource, /data-play-answer-recover>RECOVER PLAYER/);
   assert.match(
     uiSource,

@@ -94,6 +94,91 @@ function artifact({
   };
 }
 
+function episodeGuide() {
+  const cuts = [
+    {
+      id: "guide-cut-overlap",
+      at: 1200,
+      end: 1236,
+      label: "a registered moment that also survives the deep dive",
+      category: "LOVE LETTER",
+      topic: "Registered overlap",
+      excerpt: "The discussion lands its strongest registered beat.",
+      score: 100,
+    },
+    {
+      id: "guide-cut-panavision",
+      at: 857,
+      end: 893,
+      label: "a camera-craft breakdown",
+      category: "BREAKDOWN",
+      topic: "Direction and camera",
+      excerpt: "Dude, the Panavision here is amazing and the framing gives the scene room to breathe.",
+      score: 99,
+    },
+    ...Array.from({ length: 6 }, (_, index) => ({
+      id: `guide-cut-support-${index + 1}`,
+      at: 1500 + index * 300,
+      end: 1536 + index * 300,
+      label: `supporting exact-show cut ${index + 1}`,
+      category: index % 2 === 0 ? "FILM READ" : "BIT ENERGY",
+      topic: `Supporting thread ${index + 1}`,
+      excerpt: `A bounded supporting deep-dive excerpt number ${index + 1}.`,
+      score: 90 - index,
+    })),
+  ];
+  return {
+    schema: "wwam-episode-guide/v2",
+    basis: "Full-caption local-topic binding; speaker identity and audio origin remain unverified",
+    overview: "Eight validated source-local cuts trace this exact archived episode.",
+    cuts,
+    chapters: cuts.slice(0, 4).map((cut, index) => ({
+      id: `act-${index + 1}`,
+      act: index + 1,
+      label: `Act ${index + 1} // ${cut.topic}`,
+      at: cut.at,
+      end: cut.end,
+      body: `The mapped episode turn is anchored to ${cut.topic}.`,
+      excerpt: cut.excerpt,
+      category: cut.category,
+      topic: cut.topic,
+      cutId: cut.id,
+    })),
+    takeArc: cuts.slice(0, 3).map((cut, index) => ({
+      phase: ["OPENING READ", "MIDPOINT TURN", "CLOSING READ"][index],
+      label: cut.topic,
+      at: cut.at,
+      end: cut.end,
+      body: `This exact-source take is anchored at ${cut.at}.`,
+      excerpt: cut.excerpt,
+      category: cut.category,
+    })),
+    threads: [
+      ["Direction and camera", "craft", 7, 4, 857],
+      ["Registered overlap", "opinion", 5, 3, 1200],
+      ["Supporting thread", "tone", 4, 2, 1500],
+    ].map(([name, kind, mentions, cluster, peak]) => ({
+      name,
+      kind,
+      mentions,
+      cluster,
+      first: peak,
+      peak,
+      receipt: `A bounded ${name.toLowerCase()} thread receipt.`,
+      score: mentions * 10,
+    })),
+    metrics: {
+      chapters: 4,
+      threads: 3,
+      cuts: 8,
+      praise: 1,
+      negative: 0,
+      comedy: 3,
+      substantive: 5,
+    },
+  };
+}
+
 function source(overrides) {
   const id = overrides.id;
   return {
@@ -259,7 +344,7 @@ function fixtureInput() {
       }),
       source({
         id: showWikiSource,
-        title: "Neutral Episode Broadcast",
+        title: "Halloween Full Commentary",
         date: "2026-07-15",
         duration: 3600,
         sourceType: "livestream",
@@ -386,6 +471,7 @@ function fixtureInput() {
               "episode-up-in-ya",
             ],
           },
+          episodeGuide: episodeGuide(),
           recap: {
             format: "neutral-episode-recap",
             formatBasis: "registered-source-type",
@@ -705,7 +791,7 @@ test("publishes one frozen channel-neutral API and closed vocabularies", () => {
   assert.equal(descriptor.writable, false);
   assert.equal(descriptor.configurable, false);
   assert.ok(Object.isFrozen(window.ShokkerSourceQuery));
-  assert.equal(window.ShokkerSourceQuery.VERSION, "1.2.1");
+  assert.equal(window.ShokkerSourceQuery.VERSION, "1.4.0");
   assert.equal(
     window.ShokkerSourceQuery.REQUEST_SCHEMA,
     "shokker-source-query/v1",
@@ -716,6 +802,7 @@ test("publishes one frozen channel-neutral API and closed vocabularies", () => {
   );
   assert.deepEqual(plain(window.ShokkerSourceQuery.RESULT_TYPES), [
     "receipt",
+    "guide-cut",
     "entity",
     "artifact",
     "connection",
@@ -1221,6 +1308,153 @@ test("conversational Show Wiki wording does not become a false subject filter", 
     assert.equal(result.episode.matchedReceipts, 0);
   }
 });
+test("natural Show Wiki grammar resolves registered lanes without weakening exact-source scope", () => {
+  const { queryEngine } = runtime();
+  const sourceId = "EPISODE01X1";
+  const receiptKeys = (answer) => answer.results
+    .filter((result) => result.type === "receipt")
+    .map((result) => result.key);
+  const cases = [
+    ["What made them laugh?", "funny-moments", ["episode-funniest"]],
+    ["What did they hate?", "straight-to-steve", ["episode-steve"]],
+    ["What did they talk about?", "topics", [
+      "episode-topic-batman",
+      "episode-topic-masks",
+    ]],
+    ["What did they keep talking about?", "topics", [
+      "episode-topic-batman",
+      "episode-topic-masks",
+    ]],
+    ["Funniest parts from last night", "funny-moments", ["episode-funniest"]],
+    ["Best parts in Halloween Full Commentary", "best-moments", [
+      "episode-best",
+      "episode-funniest",
+    ]],
+    ["Show highlights", "best-moments", [
+      "episode-best",
+      "episode-funniest",
+    ]],
+    ["Steve's asshole", "straight-to-steve", ["episode-steve"]],
+  ];
+
+  for (const [query, laneId, expectedKeys] of cases) {
+    const answer = queryEngine.answer(request(sourceId, query));
+    assert.equal(answer.status, "supported", query);
+    assert.equal(answer.intent, "episode-lane", query);
+    assert.equal(answer.episode.id, laneId, query);
+    assert.deepEqual(plain(receiptKeys(answer)), expectedKeys, query);
+    assert.ok(answer.results.every((result) => result.sourceId === sourceId), query);
+    assert.equal(answer.boundary.exactSourceOnly, true, query);
+    assert.equal(answer.boundary.crossSourceSubstitution, false, query);
+    assert.equal(answer.boundary.titleInferenceUsed, false, query);
+    assert.equal(answer.boundary.speaker, null, query);
+  }
+
+  const recap = queryEngine.answer(
+    request(sourceId, "Catch me up on last night's show"),
+  );
+  assert.equal(recap.status, "supported");
+  assert.equal(recap.intent, "episode-recap");
+  assert.equal(recap.episode.id, "episode-recap");
+  assert.ok(recap.results.every((result) => result.sourceId === sourceId));
+  assert.ok(recap.limitations.some((item) => /did not rebind the request/i.test(item)));
+});
+
+test("natural exact-show counts report registered receipts rather than invented utterance totals", () => {
+  const { queryEngine } = runtime();
+  const sourceId = "EPISODE01X1";
+  const answer = queryEngine.answer(
+    request(sourceId, "How many times did they mention Batman?"),
+  );
+
+  assert.equal(answer.status, "supported");
+  assert.equal(answer.intent, "episode-lane");
+  assert.equal(answer.episode.id, "topics");
+  assert.equal(answer.episode.countRequested, true);
+  assert.equal(answer.episode.countBasis, "registered exact-source receipts");
+  assert.equal(answer.episode.totalReceipts, 2);
+  assert.equal(answer.episode.matchedReceipts, 1);
+  assert.equal(answer.episode.shownReceipts, 1);
+  assert.deepEqual(
+    plain(answer.results.filter((result) => result.type === "receipt").map((result) => result.key)),
+    ["episode-topic-batman"],
+  );
+  assert.match(answer.message, /count of indexed source receipts, not every utterance/i);
+  assert.ok(answer.limitations.some((item) => /do not measure every utterance/i.test(item)));
+  assert.equal(answer.boundary.exactSourceOnly, true);
+  assert.equal(answer.boundary.crossSourceSubstitution, false);
+  assert.equal(answer.boundary.speakerDiarized, false);
+
+  const wrongSubject = queryEngine.answer(
+    request(sourceId, "What did they hate about Ghostface?"),
+  );
+  assert.equal(wrongSubject.status, "insufficient-evidence");
+  assert.equal(wrongSubject.episode.id, "straight-to-steve");
+  assert.equal(wrongSubject.resultCount, 0);
+});
+test("Halloween Panavision cuts bridge exact-show Ask without mutating canonical receipts or leaking sources", () => {
+  const { queryEngine, dossierEngine } = runtime();
+  const sourceId = "EPISODE01X1";
+
+  const panavision = queryEngine.answer(
+    request(sourceId, "Where did they talk about Panavision?", { limit: 8 }),
+  );
+  assert.equal(panavision.status, "supported");
+  assert.equal(panavision.intent, "episode-guide");
+  assert.equal(panavision.episode.kind, "guide");
+  assert.equal(panavision.episode.id, "episode-guide");
+  assert.equal(panavision.episode.totalCuts, 8);
+  assert.equal(panavision.episode.matchedCuts, 1);
+  assert.equal(panavision.episode.shownCuts, 1);
+  assert.equal(panavision.results[0].type, "guide-cut");
+  assert.equal(panavision.results[0].id, "guide-cut-panavision");
+  assert.equal(panavision.results[0].at, 857);
+  assert.match(panavision.results[0].excerpt, /Panavision/i);
+  assert.ok(panavision.results.every((result) => result.sourceId === sourceId));
+  assert.equal(panavision.boundary.exactSourceOnly, true);
+  assert.equal(panavision.boundary.crossSourceSubstitution, false);
+  assert.equal(panavision.boundary.canonMutated, false);
+  assert.equal(dossierEngine.build(sourceId).source.receipts.length, 9);
+
+  const inventory = queryEngine.answer(
+    request(sourceId, "Show me the deep dive cuts", { limit: 8 }),
+  );
+  assert.equal(inventory.status, "supported");
+  assert.equal(inventory.intent, "episode-guide");
+  assert.equal(inventory.episode.totalCuts, 8);
+  assert.equal(inventory.episode.matchedCuts, 8);
+  assert.equal(inventory.episode.shownCuts, 8);
+  assert.equal(inventory.results[0].type, "receipt");
+  assert.equal(inventory.results[0].key, "episode-best");
+  assert.equal(inventory.results[0].guideCutId, "guide-cut-overlap");
+  assert.equal(
+    inventory.results.filter((result) => Number(result.at) === 1200).length,
+    1,
+    "the canonical receipt wins exact-timestamp dedupe",
+  );
+  assert.equal(
+    inventory.results.filter((result) => result.type === "guide-cut").length,
+    4,
+    "four exact timestamp overlaps render once through their canonical receipts",
+  );
+  assert.ok(inventory.limitations.some((item) => /separate from the canonical/i.test(item)));
+
+  const wrongSource = queryEngine.answer(
+    request("RACE00001A1", "Where did they talk about Panavision?"),
+  );
+  assert.equal(wrongSource.status, "insufficient-evidence");
+  assert.equal(wrongSource.resultCount, 0);
+  assert.equal(wrongSource.scope.sourceId, "RACE00001A1");
+  assert.doesNotMatch(
+    JSON.stringify({
+      episode: wrongSource.episode,
+      results: wrongSource.results,
+      message: wrongSource.message,
+    }),
+    /guide-cut-panavision|Panavision/i,
+  );
+});
+
 test("summary, artifacts, entities, and connections remain typed and bounded", () => {
   const { queryEngine } = runtime();
   const summary = queryEngine.answer(

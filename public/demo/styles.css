@@ -2633,8 +2633,55 @@ body > footer a, body > footer button { border: 0; background: transparent; colo
   .live-proof > div:last-child { grid-column: 1/-1; border-right: 0; border-bottom: 0; }
   #topicRadar button { flex: 1 1 120px; }
   .stream-thumb { aspect-ratio: 16/9; }
-  .stream-body { padding: 18px 16px 20px; }
-  .stream-body > div:first-child, .stream-body > footer { align-items: flex-start; flex-direction: column; }
+  .stream-body { padding: 14px 14px 16px; }
+  .livewire .stream-body > div:first-child {
+    display: block;
+    min-height: 16px;
+  }
+  .livewire .stream-body > div:first-child > span { display: none; }
+  .livewire .stream-body h3 {
+    display: -webkit-box;
+    margin: 8px 0 9px;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  .livewire .stream-body > p {
+    display: -webkit-box;
+    min-height: 0;
+    overflow: hidden;
+    line-height: 1.5;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+  .livewire .stream-topics {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    min-height: 0;
+    margin-top: 12px;
+    gap: 6px;
+  }
+  .livewire .stream-topics button {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    overflow-wrap: anywhere;
+    line-height: 1.25;
+  }
+  .livewire .stream-topics button:nth-child(n+3) { display: none; }
+  .livewire .mini-heat { display: none; }
+  .livewire .stream-body > footer {
+    display: block;
+    padding-top: 10px;
+  }
+  .livewire .stream-body > footer span { display: none; }
+  .livewire .stream-body > footer button {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px;
+    border: 1px solid #2d6875;
+    background: rgba(85,229,255,.06);
+  }
   .popular-vault, .control-room { width: calc(100% - 28px); margin-top: 90px; }
   .popular-proof { grid-template-columns: 1fr 1fr; }
   .popular-proof > div { border-bottom: 1px solid #41482a; }

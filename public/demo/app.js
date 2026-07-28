@@ -77,7 +77,7 @@
     streamById[stream.id] = stream;
   });
   askEngine = window.WWAMSearchEngine.create(
-    catalog, deep, live, curated, popular, characterLore, archiveDeepPayload
+    catalog, deep, live, curated, popular, characterLore, archiveDeepPayload, channelDNA
   );
   characterEngine = window.WWAMCharacterEngine && window.WWAMCharacterEngine.create ?
     window.WWAMCharacterEngine.create(characterLore) : null;
@@ -167,7 +167,7 @@
       streamById[stream.id] = stream;
     });
     askEngine = window.WWAMSearchEngine.create(
-      catalog, deep, live, curated, popular, characterLore, archiveDeepPayload
+      catalog, deep, live, curated, popular, characterLore, archiveDeepPayload, channelDNA
     );
     return archiveDeepEngine;
   }
@@ -454,14 +454,14 @@
           Promise.resolve(createCreatorEngines()).catch(function () { return null; }) :
           null;
       })
-      .then(function () { return loader.loadStyle("source-dossier.css?v=1.8.1-deep4"); })
+      .then(function () { return loader.loadStyle("source-dossier.css?v=1.9.2-fan-read"); })
       .then(function () {
         return ["channel-pack-contract.js", "wwam-channel-pack-adapter.js",
-          "episode-guides.js?v=2.1.0-episode-spine",
-          "source-dossier-engine.js?v=1.6.0", "wwam-source-dossier-adapter.js?v=1.8.0-deep3",
-          "source-query-engine.js?v=1.2.1",
+          "episode-guides.js?v=2.1.2-final",
+          "source-dossier-engine.js?v=1.7.0", "wwam-source-dossier-adapter.js?v=1.8.1-fan",
+          "source-query-engine.js?v=1.4.0",
           "aftermath-pack-engine.js?v=1.0.0",
-          "source-dossier-ui.js?v=1.8.1-deep4"].reduce(function (promise, source) {
+          "source-dossier-ui.js?v=1.9.2-fan-read"].reduce(function (promise, source) {
           return promise.then(function () { return loader.load(source); });
         }, Promise.resolve());
       })
@@ -572,9 +572,7 @@
         settings.routeMode || "push"
       );
       syncBagButtons();
-      if (startTime != null && settings.autoplay !== false) {
-        loadPlayer(sourceId, Number(startTime));
-      }
+      if(startTime!=null&&settings.autoplay!==false)loadPlayer(sourceId,+startTime,settings.end);
       return true;
     }).catch(function (error) {
       var message = error && error.message ? error.message : String(error);
@@ -1776,6 +1774,8 @@
   function renderCharacterReceiptShelf(profile, matchedId) {
     var allReceipts = characterReceiptLibrary(profile);
     var total = allReceipts.length;
+    var matchRelation = state.characterContext && state.characterContext.receiptMatch &&
+      state.characterContext.receiptMatch.relationship;
     if (matchedId) {
       state.characterMatchedReceipt = matchedId;
       allReceipts.some(function (receipt, index) {
@@ -1799,7 +1799,7 @@
       return '<article class="' + (matched ? "matched" : "") + '" data-character-receipt="' +
         esc(receipt.performanceReceiptId) + '"><div><span>TAPE ' + String(position).padStart(2, "0") +
         ' OF ' + String(total).padStart(2, "0") + '</span><b>' + timestamp(receipt.t) + '</b></div>' +
-        (matched ? '<em>MATCHED TO YOUR RIFF</em>' : '') +
+        (matched ? '<em>' + (matchRelation === "query" ? "MATCHED TO YOUR QUESTION" : matchRelation === "pattern" ? "CHARACTER PATTERN CLIP" : "REAL CLIP FROM THIS CHARACTER'S SHELF") + '</em>' : '') +
         '<small>' + esc(receipt.date ? shortDate(receipt.date) : "DATE UNLISTED") + ' // ' +
         esc(displayUiText(receipt.title)) + '</small><h3>' + esc(displayUiText(receipt.label)) +
         '</h3><p>“' + esc(displayQuote(receipt.quote)) + '</p><footer><span>' +
@@ -1910,17 +1910,17 @@
       '<div><span>CHARACTER TRAITS USED</span><b data-character-riff-traits>' +
       esc(displayUiText(behaviors.length ?
         behaviors.join(" + ").toUpperCase() : "RECURRING CHARACTER PATTERN")) +
-      '</b></div>' + (response ? '<div><span>SUBJECT MATCH</span><b data-character-riff-subject>' +
+      '</b></div>' + (response ? '<div><span>RIFF SUBJECT</span><b data-character-riff-subject>' +
         esc(displayUiText(riffSubject)) + '</b><i>' + response.readiness.confidence +
         '% PATTERN MATCH // ' + response.readiness.timestampValidatedReceipts +
         ' PLAYABLE CLIPS</i></div>' : '') + '</details>' +
-      (response ? '<section class="character-grounding"><div><span>REAL WWAM CLIP</span><b>' +
+      (response ? '<section class="character-grounding"><div><span>REAL WWAM SOURCE CLIP</span><b>' +
         esc(displayUiText(receipt ? receipt.label : "CLIP SHELF READY BELOW")) + '</b></div>' +
         '<div class="character-grounding-actions">' +
         (receipt ? '<button data-character-source="' + esc(receipt.source) +
         '" data-id="' + esc(receipt.id) + '" data-time="' + receipt.t + '" data-end="' + receipt.end +
         '" data-label="' + esc(displayUiText(receipt.label)) +
-        '">PLAY THE MATCHED CLIP &rarr;</button>' : '') +
+        '">PLAY THE REAL SOURCE CLIP &rarr;</button>' : '') +
         '<button data-character-shelf-jump>SEE ALL ' +
         response.readiness.timestampValidatedReceipts + ' CLIPS &rarr;</button></div></section>' : '');
     bindCharacterReceipts();
@@ -2002,8 +2002,8 @@
       (peak ? " Start with " + startName + " at " + timestamp(peak.t) + "." : " The full show is ready to play.") :
       "This show is ready to watch, but it does not have a usable chapter list yet.";
     return '<article class="stream-card ' + (!stream.captioned ? "unmapped" : "") + '" data-live-id="' + stream.id + '">' +
-      '<div class="stream-thumb"><img loading="lazy" src="' + esc(stream.thumbnail) + '" alt="' + esc(stream.title + " livestream thumbnail") + '"><span>LIVE 0' +
-      (index + 1) + ' // ' + shortDate(stream.date) + '</span><b>' + duration(stream.duration) + '</b></div>' +
+      '<div class="stream-thumb"><img loading="lazy" src="' + esc(stream.thumbnail) + '" alt="' + esc(stream.title + " livestream thumbnail") + '"><span>LIVE ' +
+      String(index + 1).padStart(2, "0") + ' // ' + shortDate(stream.date) + '</span><b>' + duration(stream.duration) + '</b></div>' +
       '<div class="stream-body"><div><i class="' + (stream.captioned ? "" : "sealed") + '">' + (stream.captioned ? "SHOW WIKI READY" : "WATCH ONLY") +
       '</i><span>' + (stream.captioned ? topics.length + " QUICK JUMPS" : "FULL SHOW AVAILABLE") + '</span></div>' +
       '<h3>' + esc(stream.title) + '</h3><p>' + esc(summary) + '</p>' +
@@ -2295,7 +2295,7 @@
     });
   }
 
-  function openDossier(id,startTime){return openSourceDossier(id,startTime,{routeMode:"push"});}
+  function openDossier(id,startTime,end){return openSourceDossier(id,startTime,{routeMode:"push",end});}
   function openLiveDossier(id,startTime){return openSourceDossier(id,startTime,{routeMode:"push"});}
 
   function openLooseSource(id, startTime, label, endTime) {
@@ -2501,6 +2501,7 @@
     var rankedAnalysis = redBandIntent && redBandQueryEngine ?
       redBandQueryEngine.analyze(query, state.askContext) : null;
     var analysis = rankedAnalysis || preservedAnalysis || askEngine.ask(query, state.askContext);
+    if(!preservedAnalysis&&analysis.status==="insufficient-evidence")loadDemoScript("ask-deep-cut.js?v=1.0.0").then(function(){return window.WWAMAskDeepCut.resolve(query,catalog,loadDemoScript,analysis);}).then(function(deep){if(deep&&state.lastAskQuery===query)ask(query,deep);}).catch(function(){});
     resultsNode._trail = analysis;
     if (!redBandIntent && !archiveDeepEngine && analysis.selectionPlan &&
         analysis.selectionPlan.sourceTitleBoundary) {
@@ -2525,7 +2526,7 @@
     }
     var results = analysis.results || [];
     var timedDeepAnswer = results.some(function (result) {
-      return result.lane === "archive" && result.kind !== "livestream" &&
+      return (result.lane === "archive" || result.lane === "episode-guide") && result.kind !== "livestream" &&
         Number.isFinite(Number(result.at)) && Number(result.at) >= 0;
     });
     var archiveFallback = timedDeepAnswer ? "" : archiveAskMarkup(query);
@@ -2618,7 +2619,10 @@
           result.kind === "livestream" ? "PLAYABLE SHOW MOMENT" : "PLAYABLE MOMENT";
         return '<article class="' + (index === 0 ? "best" : "") + '"><div><span>' +
           esc(displayUiText(role)) + '</span><b>' + esc(displayUiText(momentLabel)) +
-          '</b></div><h3>' + esc(displayUiText(result.title)) + '</h3><p><span>' +
+          '</b></div><h3>' + esc(displayUiText(result.title)) +
+          '</h3><div class="ask-result-source">SOURCE // ' +
+          esc(displayUiText(result.sourceTitle || result.title)) + ' // ' +
+          esc(result.date || 'DATE NOT MAPPED') + '</div><p><span>' +
           timestamp(result.at || 0) + '</span>' +
           excerptMarkup + '</p><details class="why-details"><summary>WHY THIS MATCH?</summary>' +
           '<div class="why-row"><span>MATCH SIGNALS</span><b>' +
@@ -2636,7 +2640,7 @@
           '<footer><span>' + timestamp(result.at || 0) + ' // ' +
           (index === 0 ? 'START HERE' : 'MORE FROM THIS ANSWER') +
           '</span><button data-ask-source="' + esc(result.source) + '" data-id="' + esc(result.sourceId) +
-          '" data-time="' + Number(result.at || 0) + '">PLAY THIS PART &rarr;</button>' +
+          '" data-time="' + Number(result.at || 0) + '" data-end="' + Number(result.end || 0) + '">PLAY THIS PART &rarr;</button>' +
           bagButton(Object.assign({}, result, { excerpt: excerpt }), "SAVE CLIP") +
           '</footer></article>';
       }).join("") : '<div class="ask-no-match"><b>' + noMatchHeadline + '</b><p>' + noMatchBody + '</p>' +
@@ -2659,7 +2663,7 @@
         if (button.getAttribute("data-ask-source") === "livestream") {
           openLiveDossier(button.getAttribute("data-id"), Number(button.getAttribute("data-time") || 0));
         } else {
-          openDossier(button.getAttribute("data-id"), Number(button.getAttribute("data-time") || 0));
+          openDossier(button.dataset.id,+button.dataset.time,+button.dataset.end);
         }
       };
     });

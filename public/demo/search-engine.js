@@ -21,7 +21,7 @@
   ];
 
   var QUERY_CUE_WORDS = [
-    "about", "again", "anything", "archive", "archived", "audience", "batch", "began", "begin", "best", "biggest",
+    "about", "across", "again", "anything", "archive", "archived", "audience", "back", "batch", "began", "begin", "best", "biggest",
     "bit", "broadcast", "broadcasts", "called", "caption", "captions", "change", "changed", "chapter",
     "clip", "clips", "commentaries", "commentary", "crazy", "criticize", "criticized", "deranged",
     "cover", "covered", "coverage", "deep", "discuss", "discussed", "dislike", "disliked", "draw", "draws", "drew",
@@ -29,13 +29,14 @@
     "first", "foundational", "fresh", "funniest", "funny", "garbage", "hate",
     "hated", "highest", "index", "indexed", "last", "latest", "laugh", "like",
     "liked", "live", "livestream", "livestreams", "love", "loved", "lowest",
-    "happen", "happened", "happens", "mention", "mentioned", "mentions", "moment", "moments", "most", "never",
+    "coming", "going", "happen", "happened", "happens", "keep", "mention", "mentioned", "mentions", "moment", "moments", "most", "never",
     "newest", "oldest", "one", "ones",
-    "play", "played", "playing", "plays",
-    "opinion", "popular", "praise", "praised", "prove", "ranking", "receipt", "recent", "recently", "score",
-    "results", "second", "something", "soundbyte", "soundbytes", "source", "start", "started",
-    "stream", "streams", "talk", "talked", "talking", "tape", "think", "topic",
-    "topics", "discussing", "trash", "unhinged", "upload", "uploaded", "uploads",
+    "part", "parts", "play", "played", "playing", "plays",
+    "opinion", "popular", "praise", "praised", "prove", "rank", "ranking", "recap", "receipt", "recent", "recently",
+    "recur", "recurring", "recurs", "repeat", "repeated", "repeatedly", "score",
+    "results", "second", "show", "shows", "episode", "episodes", "something", "soundbyte", "soundbytes", "source", "start", "started",
+    "stream", "streams", "summarize", "summary", "talk", "talked", "talking", "tape", "think", "topic",
+    "topics", "theme", "themes", "common", "frequent", "frequently", "discussing", "trash", "unhinged", "upload", "uploaded", "uploads",
     "posted", "published", "video", "videos",
     "viewed", "views", "watchalong", "watchalongs", "watched", "wild", "worst",
   ];
@@ -223,7 +224,8 @@
         });
       var outputNounAhead = queryWords.slice(index + 1, index + 5).some(function (candidate) {
         return ["soundbytes", "moments", "clips", "commentaries", "watchalongs",
-          "livestreams", "streams", "uploads", "videos"].indexOf(candidate) >= 0;
+          "livestreams", "streams", "uploads", "videos", "shows", "episodes",
+          "broadcasts"].indexOf(candidate) >= 0;
       });
       var localLimitNumber = ["top", "rank", "number"].indexOf(previous) >= 0 ||
         ((commandBeforeNumber || commandNearNumber) && outputNounAhead);
@@ -297,12 +299,17 @@
 
     var latestReceiptGrammar =
       /\blast(?: indexed)?(?: [a-z0-9]+){0,4} (?:bit|clip|moment|performance|appearance|mention|receipt)\b/.test(q);
-    var temporal = firstPerformanceGrammar || firstAppearanceGrammar || includesAny(q, [
+    var boundedEarliestSources =
+      /\b(?:first|earliest|oldest)\s+\d{1,2}\s+(?:shows?|episodes?|broadcasts?|livestreams?|live streams?|streams?|uploads?|videos?|commentaries|watchalongs?)\b/.test(q);
+    var boundedLatestSources =
+      /\b(?:last|latest|newest|most recent)\s+\d{1,2}\s+(?:shows?|episodes?|broadcasts?|livestreams?|live streams?|streams?|uploads?|videos?|commentaries|watchalongs?)\b/.test(q);
+    var temporal = firstPerformanceGrammar || firstAppearanceGrammar ||
+      boundedEarliestSources || includesAny(q, [
       "earliest", "oldest", "first indexed", "first time", "first livestream",
       "first live stream", "first live show", "first commentary", "first watchalong",
       "first upload", "first video",
     ]) ? "earliest" :
-      latestReceiptGrammar || includesAny(q, [
+      latestReceiptGrammar || boundedLatestSources || includesAny(q, [
         "latest", "newest", "most recent", "last time", "last livestream",
         "last live stream", "last stream", "last live show", "last commentary", "last watchalong",
         "last upload", "last video", "today", "last night", "last nights",
@@ -366,6 +373,14 @@
       "what is being discussed", "what was being discussed", "whats being discussed",
       "what happened", "what happens",
     ]);
+    var recurringTopicRequest = temporal === "all" && (
+      /\b(?:recurring|repeated|repeat)\s+(?:livestream |live stream |stream )?(?:topics?|subjects?|themes?)\b/.test(q) ||
+      /\b(?:topics?|subjects?|themes?)(?: [a-z0-9]+){0,6} (?:recur|recurs|repeat|repeats|come up|comes up|came up|mentioned|discussed|talked about)(?: [a-z0-9]+){0,3} (?:most|least|often|regularly)\b/.test(q) ||
+      /\b(?:most|least)\s+(?:discussed|mentioned|repeated|recurring)\s+(?:livestream |live stream |stream )?topics?\b/.test(q) ||
+      /\b(?:most common|common|frequent|frequently mentioned)\s+(?:livestream |live stream |stream )?(?:topics?|subjects?|themes?)\b/.test(q) ||
+      /\bkeep\s+(?:coming|going)\s+back\s+to\b/.test(q) ||
+      /\b(?:talk|talked|discuss|discussed)\s+about\s+(?:the )?(?:most|least)\b/.test(q)
+    );
     var comedyRequest = includesAny(q, [
       "funny", "funniest", "laugh", "deranged", "wild", "crazy", "fucked", "soundbyte",
     ]);
@@ -456,7 +471,8 @@
         mentionsRequest ? "mentions" :
           heatRequest ? "heat" :
             temporal !== "all" ? "date" : "relevance";
-    var direction = includesAny(q, ["lowest", "least", "earliest", "oldest"]) ? "ascending" : "descending";
+    var direction = includesAny(q, ["lowest", "least", "earliest", "oldest"]) ||
+      boundedEarliestSources ? "ascending" : "descending";
     var opinionComparison = includesAny(q, [
       "hate most", "hated most", "like most", "liked most", "love most",
       "loved most", "least favorite", "least favourite", "least liked",
@@ -505,6 +521,7 @@
       popularity: popularity,
       popularityExplicit: popularity !== "all",
       topicOverviewRequest: topicOverviewRequest,
+      recurringTopicRequest: recurringTopicRequest,
       aboutnessRequest: aboutnessRequest,
       firstAppearanceRequest: firstAppearanceGrammar,
       questionType: questionType,
@@ -534,9 +551,10 @@
   function requestedLimitFromQuery(normalizedQuery) {
     var match = normalizedQuery.match(/\btop\s+(\d{1,2})\b/) ||
       normalizedQuery.match(
-        /\b(?:show|give|list|find)(?:\s+me)?\s+(\d{1,2})\s+(?:(?:\w+)\s+){0,3}(?:soundbytes?|moments?|clips?|commentaries|watchalongs?|livestreams?|streams?|uploads?|videos?)\b/
+        /\b(?:show|give|list|find)(?:\s+me)?\s+(\d{1,2})\s+(?:(?:\w+)\s+){0,3}(?:soundbytes?|moments?|clips?|commentaries|watchalongs?|livestreams?|streams?|uploads?|videos?|shows?|episodes?|broadcasts?)\b/
       ) ||
-      normalizedQuery.match(/\b(\d{1,2})\s+(?:newest|latest|oldest|most|least|funniest|wildest|craziest|soundbytes?|moments?|clips?|commentaries|watchalongs|livestreams|streams)\b/);
+      normalizedQuery.match(/\b(\d{1,2})\s+(?:newest|latest|oldest|most|least|funniest|wildest|craziest|soundbytes?|moments?|clips?|commentaries|watchalongs|livestreams|streams|shows|episodes|broadcasts)\b/) ||
+      normalizedQuery.match(/\b(?:newest|latest|oldest|first|last)\s+(\d{1,2})\s+(?:commentaries|watchalongs?|livestreams?|live streams?|streams?|uploads?|videos?|shows?|episodes?|broadcasts?)\b/);
     if (!match) return null;
     return Math.max(1, Math.min(25, Number(match[1])));
   }
@@ -674,12 +692,14 @@
       /\b(?:count|total|number of)\b/.test(q);
     var listRequested = /\b(?:list|every|all)\b/.test(q) ||
       Boolean(requestedLimit && requestedLimit > 1);
-    var resultPlural = /\b(?:moments?|clips?|receipts?|topics?|jokes?|bits?)\b/.test(q);
+    var resultPlural = /\b(?:moments?|parts?|clips?|receipts?|topics?|jokes?|bits?)\b/.test(q);
     var allResultsRequested = resultPlural && /\b(?:every|all)\b/.test(q);
-    var requestedResultKind = /\bmoments?\b/.test(q) ? "moment" :
+    var requestedResultKind = /\b(?:moments?|parts?|clips?)\b/.test(q) ? "moment" :
       /\btopics?\b/.test(q) ? "topic" : null;
-    var sourcePlural = /\b(?:commentaries|watchalongs|watch alongs|livestreams|live streams|streams|uploads|videos)\b/.test(q) ||
-      (listRequested && !resultPlural && /\b(?:commentary|watchalong|watch along|livestream|live stream|stream|upload|video)\b/.test(q));
+    var singularSourceQuestion = /\b(?:which|what)\s+(?:show|episode|broadcast|livestream|live stream|stream|upload|video|commentary|watchalong)\b/.test(q);
+    var sourcePlural = /\b(?:commentaries|watchalongs|watch alongs|livestreams|live streams|streams|uploads|videos|shows|episodes|broadcasts)\b/.test(q) ||
+      singularSourceQuestion ||
+      (listRequested && !resultPlural && /\b(?:commentary|watchalong|watch along|livestream|live stream|stream|upload|video|show|episode|broadcast)\b/.test(q));
     var sourceMentionCollection = sourcePlural &&
       /\b(?:mention|mentions|mentioned|discuss|discussed|talk about|talked about|contain|contains|feature|features)\b/.test(q) &&
       (
@@ -693,6 +713,12 @@
       "characters do they play", "characters do they portray",
       "who do they impersonate",
     ]);
+    var recurringBitRoster =
+      /\brecurring (?:character )?bits?\b/.test(q) ||
+      /\bbits?(?: [a-z0-9]+){0,5} (?:go|come) back to\b/.test(q) ||
+      /\bbits?(?: [a-z0-9]+){0,5} return to\b/.test(q) ||
+      /\bbits?(?: [a-z0-9]+){0,5} repeat(?:ed|s)?(?: [a-z0-9]+){0,3} (?:most|often)\b/.test(q) ||
+      /\b(?:most|often) repeated bits?\b/.test(q);
     var simpleCharacterIdentity = /^(?:who|what) is .+\??$/.test(q) &&
       !includesAny(q, [
         "latest", "newest", "earliest", "oldest", "indexed", "signal",
@@ -727,6 +753,11 @@
     var scopedCategorySoundbytes = curatedSoundbytes && (
       yearFilter || parsedIntent.archiveRequested
     );
+    var sourceSummaryRequest = parsedIntent.temporal !== "all" && includesAny(q, [
+      "recap", "summary", "summarize", "sum up", "catch me up", "catch up",
+    ]);
+    var topicCountRequest = countRequested &&
+      /^(?:how many|count|give me the count of|what is the total number of)\s+(?:indexed )?topics?\b/.test(q);
     var broadMemorabilitySuperlative = (
       includesAny(q, [
         "most deranged thing", "most deranged moment", "most deranged clip",
@@ -734,22 +765,30 @@
         "wildest thing", "wildest moment", "wildest clip",
         "most fucked up thing", "most fucked up moment", "most fucked up clip",
       ]) ||
-      /\btop\s+\d+\s+(?:craziest|wildest|most deranged|most fucked up)\s+(?:things?|moments?|clips?)\b/.test(q)
+      /\btop\s+\d+\s+(?:craziest|wildest|most deranged|most fucked up|best|greatest|most memorable)\s+(?:things?|moments?|clips?)\b/.test(q) ||
+      /\b(?:best|greatest|most memorable)\s+(?:moment|bit|clip|thing)\s+(?:ever|overall|of all time)\b/.test(q) ||
+      /\b(?:their|the|overall)\s+(?:best|greatest|most memorable)\s+(?:moment|bit|clip|thing)\b/.test(q)
+    );
+    var globalNegativeSuperlative = (
+      /\b(?:most hated|least favorite|least favourite)\s+(?:movie|film|sequel|remake|reboot|thing|part|moment|take)\b/.test(q) ||
+      /\b(?:worst|harshest)\s+(?:movie|film|sequel|remake|reboot|take|review|verdict|criticism)\s+(?:ever|overall|of all time)\b/.test(q) ||
+      /\btop\s+\d+\s+(?:worst|most hated|harshest)\s+(?:movies?|films?|takes?|reviews?|verdicts?|criticisms?)\b/.test(q) ||
+      /\bwhat\s+(?:do|did)\s+they\s+(?:hate|dislike)\s+(?:the )?most\b/.test(q)
     );
     var globalComedySuperlative = !requestedLimit && (
       /\b(?:their|the|overall) funniest (?:moment|bit|clip|thing)\b/.test(q) ||
       /\b(?:what|which|where).*\b(?:made them laugh|laugh(?:ed)? hardest)\b/.test(q) ||
-      /\bfunniest (?:moment|bit|clip|thing) overall\b/.test(q)
+      /\bfunniest (?:moment|bit|clip|thing) (?:ever|overall|of all time)\b/.test(q)
     );
     var adjudicationRequested = adjudicationRequest(q);
     var longitudinalRequested = longitudinalRequest(q);
-    var hasSurfaceHandoff =
-      broadMemorabilitySuperlative || globalComedySuperlative;
+    var hasSurfaceHandoff = broadMemorabilitySuperlative ||
+      globalComedySuperlative || globalNegativeSuperlative;
     var scopedTemporalContainer = /\b(?:in|inside|from|on|of) (?:the )?(?:latest|newest|earliest|oldest|last|first)(?: indexed)? (?:livestream|live stream|stream|upload|video)\b/.test(q);
     var temporalResultSource = resultPlural &&
       parsedIntent.temporal !== "all" &&
       (relativeNewestStream || scopedTemporalContainer);
-    var temporalSourceContent = temporalResultSource || (
+    var temporalSourceContent = sourceSummaryRequest || temporalResultSource || (
       parsedIntent.sourceExplicit &&
         parsedIntent.temporal !== "all" &&
         includesAny(q, [
@@ -761,6 +800,10 @@
     if (adjudicationRequested) outputShape = "adjudication-handoff";
     else if (longitudinalRequested) outputShape = "longitudinal-handoff";
     else if (hasSurfaceHandoff) outputShape = "surface-handoff";
+    else if (recurringBitRoster) outputShape = "recurring-bit-ledger";
+    else if (parsedIntent.recurringTopicRequest) outputShape = "topic-ranking";
+    else if (sourceSummaryRequest) outputShape = "source-summary";
+    else if (topicCountRequest) outputShape = "topic-count";
     else if (recurringCharacterRoster) outputShape = "character-roster";
     else if (scopedCategorySoundbytes) outputShape = "result-list";
     else if (curatedSoundbytes) outputShape = "curated-soundbytes";
@@ -788,6 +831,8 @@
         relativeTime: relativeNewestStream ? "latest-indexed-stream" :
           relativeExplicitLane ? "latest-indexed-date-in-explicit-lane" : null,
         relativeDate: null,
+        requestedRelativeDate: null,
+        relativeTimeZone: relativeTimeLanguage ? "America/New_York" : null,
         requestedYear: parsedIntent.requestedYear,
         yearFilter: yearFilter,
         selector: parsedIntent.metric,
@@ -815,7 +860,11 @@
       resultPlural: resultPlural,
       allResultsRequested: allResultsRequested,
       requestedResultKind: requestedResultKind,
+      recurringBitRoster: recurringBitRoster,
       recurringCharacterRoster: recurringCharacterRoster,
+      recurringTopicRequest: parsedIntent.recurringTopicRequest,
+      sourceSummaryRequest: sourceSummaryRequest,
+      topicCountRequest: topicCountRequest,
       temporalSourceContent: temporalSourceContent,
       temporalResultSource: temporalResultSource,
       characterProfileLanguage: characterProfileLanguage,
@@ -824,6 +873,7 @@
       characterMentionCountLanguage: characterMentionCountLanguage,
       curatedSoundbytes: curatedSoundbytes,
       categorySoundbytes: scopedCategorySoundbytes ? "UP IN YA" : null,
+      relativeCalendarDate: relativeTimeLanguage,
       relativeNewestStream: relativeNewestStream,
       relativeExplicitLane: relativeExplicitLane,
       adjudicationRequested: adjudicationRequested,
@@ -844,7 +894,12 @@
         intent: "longitudinal",
         reason: "Prediction and outcome comparisons belong to the typed, receipt-linked longitudinal docket.",
       } : null,
-      surfaceHandoff: broadMemorabilitySuperlative ? {
+      surfaceHandoff: globalNegativeSuperlative ? {
+        id: "steves-asshole",
+        href: "#steves-asshole",
+        label: "Straight to Steve's Asshole",
+        reason: "A global negative superlative belongs to the dedicated criticism archive, not unranked Ask retrieval.",
+      } : broadMemorabilitySuperlative ? {
         id: "memorability-candidate-index-v2.1",
         href: "#red100",
         label: "Memorability Candidate Index V2.1",
@@ -863,6 +918,25 @@
       queryPlan: queryPlan,
       yearFilter: queryPlan.controls.yearFilter,
     });
+    if (queryPlan.recurringBitRoster) {
+      planned.source = "all";
+      planned.sourceExplicit = false;
+      planned.name = "discovery";
+      planned.metric = "source-count";
+      planned.metricExplicit = true;
+      planned.sourceSelector = null;
+      planned.aboutnessRequest = false;
+      planned.temporal = "all";
+      planned.temporalExplicit = false;
+    } else if (queryPlan.recurringTopicRequest) {
+      planned.source = "livestream";
+      planned.sourceExplicit = true;
+      planned.name = "topic";
+      planned.metric = "mentions";
+      planned.metricExplicit = true;
+      planned.sourceSelector = null;
+      planned.aboutnessRequest = false;
+    }
     if (queryPlan.relativeNewestStream) {
       planned.source = "livestream";
       planned.temporal = "latest";
@@ -1492,7 +1566,8 @@
       return b.views - a.views || a.sourceId.localeCompare(b.sourceId);
     });
     if (!records.length) return null;
-    var top = records[0];
+    var relativeSelection = relativeDateSource(records, intent);
+    var top = relativeSelection.record;
     return {
       mode: "temporal-source",
       source: top.source,
@@ -1506,6 +1581,9 @@
       direction: direction,
       titleMatchMode: intent.temporal === "earliest" ?
         "earliest-indexed-livestream" : "latest-indexed-livestream",
+      requestedRelativeDate: relativeSelection.requestedDate,
+      relativeDateMatched: relativeSelection.exact,
+      relativeDateFallback: relativeSelection.exact === false,
       alternativeCount: 0,
       tieBreak: "captured date, then views, then source ID",
     };
@@ -1528,7 +1606,8 @@
       return b.views - a.views || a.sourceId.localeCompare(b.sourceId);
     });
     if (!records.length) return null;
-    var top = records[0];
+    var relativeSelection = relativeDateSource(records, intent);
+    var top = relativeSelection.record;
     return {
       mode: "temporal-content-source",
       source: top.source,
@@ -1547,6 +1626,9 @@
           "earliest-indexed-livestream" : "latest-indexed-livestream") :
         (intent.temporal === "earliest" ?
           "earliest-indexed-source-content" : "latest-indexed-source-content"),
+      requestedRelativeDate: relativeSelection.requestedDate,
+      relativeDateMatched: relativeSelection.exact,
+      relativeDateFallback: relativeSelection.exact === false,
       alternativeCount: 0,
       tieBreak: "captured date, then views, then source ID",
     };
@@ -1837,6 +1919,70 @@
     return output;
   }
 
+  function recurringBitLedger(channelDNA, characterLore, performanceByCharacter) {
+    var definitions = Array.isArray(channelDNA && channelDNA.bitDefinitions) ?
+      channelDNA.bitDefinitions : [];
+    var profiles = (characterLore && characterLore.characters) || [];
+    if (!definitions.length) {
+      return { available: false, definitionCount: 0, candidates: [] };
+    }
+    var candidates = definitions.map(function (definition) {
+      if (!definition || !definition.id || !definition.label || !definition.characterId) {
+        return null;
+      }
+      var characterKey = normalize(definition.characterId)
+        .replace(/^character /, "");
+      var profile = profiles.filter(function (candidate) {
+        return normalize(candidate.id) === characterKey ||
+          normalize(candidate.name) === characterKey;
+      })[0];
+      if (!profile) return null;
+      var receipts = (performanceByCharacter[normalize(profile.name)] || [])
+        .slice().sort(function (left, right) {
+          return Number(right.curationConfidence || 0) -
+            Number(left.curationConfidence || 0) ||
+            dateValue(right.date) - dateValue(left.date) ||
+            Number(left.at || 0) - Number(right.at || 0);
+        });
+      if (!receipts.length) return null;
+      var sourceIds = unique(receipts.map(function (receipt) {
+        return receipt.sourceId;
+      }).filter(Boolean));
+      var representative = receipts[0];
+      return Object.assign({}, representative, {
+        key: "recurring-bit-ledger-" + normalize(definition.id),
+        title: definition.label,
+        subtitle: profile.name + " recurring bit",
+        category: "CURATED RECURRING BIT",
+        recurrence: {
+          indexedMentions: receipts.length,
+          indexedSources: sourceIds.length,
+          sourceIds: sourceIds,
+        },
+        bitLedger: {
+          id: definition.id,
+          label: definition.label,
+          characterId: definition.characterId,
+          character: profile.name,
+          receiptCount: receipts.length,
+          sourceCount: sourceIds.length,
+          sourceIds: sourceIds,
+          representativeReceiptId: representative.performanceReceiptId,
+        },
+      });
+    }).filter(Boolean).sort(function (left, right) {
+      return Number(right.bitLedger.sourceCount || 0) -
+        Number(left.bitLedger.sourceCount || 0) ||
+        Number(right.bitLedger.receiptCount || 0) -
+          Number(left.bitLedger.receiptCount || 0) ||
+        String(left.title).localeCompare(String(right.title));
+    });
+    return {
+      available: Boolean(candidates.length),
+      definitionCount: definitions.length,
+      candidates: candidates,
+    };
+  }
   function entityMatches(candidate, entity) {
     if (!entity) return false;
     if (entity.type === "film") return candidate.source === "commentary" && candidate.sourceId === entity.id;
@@ -2362,8 +2508,10 @@
       (intent.metric !== "relevance" || intent.temporal !== "all")) return false;
     if (intent.yearFilter &&
       String(candidate.date || "").slice(0, 4) !== String(intent.requestedYear)) return false;
-    if (intent.queryPlan && intent.queryPlan.controls.relativeDate &&
-      candidate.date !== intent.queryPlan.controls.relativeDate) return false;
+    var relativeFilterDate = intent.queryPlan && intent.queryPlan.relativeExplicitLane ?
+      intent.queryPlan.controls.requestedRelativeDate :
+      intent.queryPlan && intent.queryPlan.controls.relativeDate;
+    if (relativeFilterDate && candidate.date !== relativeFilterDate) return false;
     var outputShape = intent.queryPlan && intent.queryPlan.outputShape;
     var sourceMentionReceipt = intent.queryPlan && intent.queryPlan.sourceMentionCollection && entity && (
       ((entity.type === "topic" || entity.type === "franchise") && candidate.kind === "topic") ||
@@ -2372,12 +2520,17 @@
     if (["source-count", "source-list", "source-ranking"].indexOf(outputShape) >= 0 &&
       candidate.kind !== "tape" && candidate.kind !== "livestream" &&
       !sourceMentionReceipt) return false;
+    if (["topic-ranking", "topic-count"].indexOf(outputShape) >= 0 &&
+      candidate.kind !== "topic") return false;
+    if (outputShape === "source-summary" &&
+      candidate.kind !== "tape" && candidate.kind !== "livestream") return false;
     if (outputShape === "curated-soundbytes" && !candidate.curatedRank) return false;
     if (intent.queryPlan && intent.queryPlan.categorySoundbytes && (
       candidate.kind !== "moment" ||
       normalize(candidate.category) !== normalize(intent.queryPlan.categorySoundbytes)
     )) return false;
     if (intent.queryPlan && intent.queryPlan.temporalSourceContent &&
+      !intent.queryPlan.sourceSummaryRequest &&
       (candidate.kind === "tape" || candidate.kind === "livestream")) return false;
     if (intent.queryPlan && intent.queryPlan.requestedResultKind &&
       candidate.kind !== intent.queryPlan.requestedResultKind &&
@@ -2435,6 +2588,45 @@
     return true;
   }
 
+  function dateKeyInNewYork(referenceNow) {
+    var value = referenceNow == null ? new Date() : new Date(referenceNow);
+    if (!Number.isFinite(value.getTime())) value = new Date();
+    var parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/New_York",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).formatToParts(value).reduce(function (output, part) {
+      if (part.type !== "literal") output[part.type] = part.value;
+      return output;
+    }, {});
+    return parts.year + "-" + parts.month + "-" + parts.day;
+  }
+
+  function previousCalendarDate(dateKey) {
+    var parts = String(dateKey || "").split("-").map(Number);
+    if (parts.length !== 3 || parts.some(function (part) {
+      return !Number.isFinite(part);
+    })) return null;
+    return new Date(Date.UTC(parts[0], parts[1] - 1, parts[2] - 1))
+      .toISOString().slice(0, 10);
+  }
+
+  function relativeDateSource(records, intent) {
+    var requestedDate = intent.queryPlan &&
+      intent.queryPlan.controls.requestedRelativeDate;
+    if (!requestedDate || !intent.queryPlan.relativeCalendarDate) {
+      return { record: records[0] || null, requestedDate: null, exact: null };
+    }
+    var exactRecords = records.filter(function (record) {
+      return record.date === requestedDate;
+    });
+    return {
+      record: exactRecords[0] || records[0] || null,
+      requestedDate: requestedDate,
+      exact: Boolean(exactRecords.length),
+    };
+  }
   function dateValue(value) {
     if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(String(value))) return null;
     return Number(String(value).replace(/-/g, ""));
@@ -2623,6 +2815,7 @@
   }
 
   function resultLabel(candidate) {
+    if (candidate.bitLedger) return "CURATED RECURRING BIT";
     if (candidate.kind === "character-performance") return "CURATED CHARACTER PERFORMANCE";
     if (candidate.lane === "archive") {
       if (candidate.kind === "topic" && candidate.restrictedToTopicNavigation) {
@@ -2666,15 +2859,33 @@
       source === "livestream" ? "livestream" : "source";
   }
 
+  function relativeDateAnswerLead(intent) {
+    var selected = intent && intent.selectedSource;
+    var requestedDate = intent && intent.queryPlan &&
+      intent.queryPlan.controls.requestedRelativeDate;
+    if (!selected || !requestedDate || !intent.queryPlan.relativeCalendarDate) return "";
+    var noun = selected.source === "livestream" ? "show" : sourceNoun(selected.source);
+    var exact = selected.relativeDateMatched === true || selected.date === requestedDate;
+    if (exact) {
+      return "The indexed " + noun + " mapped for " + requestedDate + " is " +
+        selected.sourceTitle + ". ";
+    }
+    return "No indexed " + noun + " is mapped for " + requestedDate +
+      " in this scope. The newest mapped " + noun + " I can offer instead is " +
+      selected.sourceTitle + " from " + (selected.date || "an unknown date") + ". ";
+  }
   function buildNoEvidenceAnswer(intent, entity, subjectTerms) {
     var subject = entity ?
       (subjectTerms.length ?
         subjectTerms.join(" ") + " in " + entity.label :
         entity.label) :
       subjectTerms.join(" ");
+    if (intent.queryPlan && intent.queryPlan.outputShape === "recurring-bit-ledger") {
+      return "No curated recurring-bit ledger is available. Ask will not turn the generic word bits into a transcript subject or invent repeated gags without Channel DNA definitions joined to playable Character Lore receipts.";
+    }
     if (intent.visualContextRefusal && intent.selectedSource) {
       return "The captions can take you to moments inside " + intent.selectedSource.sourceTitle +
-        ", but they cannot tell which on-screen kill or death wins this question. " +
+        ", but they cannot determine which on-screen kill or death won the ranking. " +
         "Open the original video to judge it; Ask the Tape will not turn caption text into a visual answer.";
     }
     if (intent.titleBoundary) {
@@ -2694,9 +2905,12 @@
     if (intent.refusesSpeakerGuess) {
       return "The auto-captions don't reliably say who is speaking, and I couldn't find a clip I could safely point you to.";
     }
-    if (intent.queryPlan && intent.queryPlan.controls.relativeDate) {
+    var missingRelativeDate = intent.queryPlan &&
+      (intent.queryPlan.controls.requestedRelativeDate ||
+        intent.queryPlan.controls.relativeDate);
+    if (missingRelativeDate) {
       return "I couldn't find a " + sourceNoun(intent.source) + " from " +
-        intent.queryPlan.controls.relativeDate +
+        missingRelativeDate +
         " that matches this question. I kept the show type and date you asked for instead of swapping in another upload.";
     }
     if (intent.performanceRequested && entity && entity.type === "character") {
@@ -2746,17 +2960,57 @@
       return "Another moment from the same show is " + location +
         ". The first moment was left out, and this is a similar stop - not a claim that the two moments are identical.";
     }
+    if (intent.queryPlan && intent.queryPlan.outputShape === "recurring-bit-ledger" &&
+      intent.collection) {
+      return intent.collection.total + " curated recurring bits are grounded in the current Channel DNA ledger: " +
+        ranked.map(function (result) {
+          var ledger = result.bitLedger || {};
+          return (ledger.label || result.title) + " (" +
+            Number(ledger.sourceCount || 0) + " unique sources / " +
+            Number(ledger.receiptCount || 0) + " playable receipts)";
+        }).join("; ") +
+        ". They are ordered by unique curated source count, with each source counted once per bit. Each card opens one representative timestamped receipt; this is a bounded editorial ledger, not a search for the noun bits or a claim about every gag they have ever repeated.";
+    }
+    if (intent.queryPlan && intent.queryPlan.outputShape === "topic-ranking" &&
+      intent.collection && top.recurrence) {
+      var topicExtreme = intent.direction === "ascending" ? "least recurring" : "most recurring";
+      var recurringSourceTotal = Number(top.recurrence.indexedSources || 0);
+      return top.title + " is the " + topicExtreme + " indexed livestream topic in this scope, with " +
+        Number(top.recurrence.indexedMentions || 0).toLocaleString("en-US") +
+        " caption-topic matches across " + recurringSourceTotal +
+        " show" + (recurringSourceTotal === 1 ? "" : "s") + ". " +
+        intent.collection.total + " distinct topic labels were compared. " +
+        "The first result opens the strongest single-show receipt; these are archive labels, not host-authored rankings.";
+    }
+    if (intent.queryPlan && intent.queryPlan.outputShape === "topic-count" &&
+      intent.collection) {
+      var topicSourceTotal = Number(intent.collection.sourceTotal || 0);
+      return relativeDateAnswerLead(intent) + "This scope contains " + intent.collection.total +
+        " distinct indexed topic labels across " + topicSourceTotal +
+        " show" + (topicSourceTotal === 1 ? "" : "s") +
+        ". Labels are normalized from source-local caption topic maps; this is not a count of unique spoken ideas.";
+    }
+    if (intent.queryPlan && intent.queryPlan.outputShape === "source-summary") {
+      var summaryLead = relativeDateAnswerLead(intent);
+      return (summaryLead || ("The " +
+        (intent.temporal === "earliest" ? "earliest" : "newest") +
+        " indexed " + sourceNoun(top.source) + " in this scope is " +
+        (top.sourceTitle || top.title) + " from " +
+        (top.date || "an unknown date") + ". ")) +
+        "Archive recap: " + String(top.excerpt || "No source-level recap is registered.") +
+        " This is a derived source summary, not a verbatim transcript or a speaker-attributed quote.";
+    }
     if (intent.queryPlan && intent.queryPlan.outputShape === "source-count" &&
       intent.collection) {
-      return (entity ? entityLabel : "That subject") + " appears in " + intent.collection.total +
-        " different " + intent.collection.unit + ". Here are the " +
+      return (entity ? entityLabel + " appears in " : "This scope contains ") +
+        intent.collection.total + " different " + intent.collection.unit + ". Here are the " +
         Math.min(intent.collection.total, intent.collection.displayed || ranked.length) +
         " best matches. Each upload is counted once.";
     }
     if (intent.queryPlan && intent.queryPlan.outputShape === "source-list" &&
       intent.collection) {
-      return (entity ? entityLabel : "That subject") + " appears in " + intent.collection.total +
-        " " + intent.collection.unit + ". Here are the " +
+      return (entity ? entityLabel + " appears in " : "This scope contains ") +
+        intent.collection.total + " " + intent.collection.unit + ". Here are the " +
         Math.min(intent.collection.total, intent.collection.displayed || ranked.length) +
         " best matches in the order you asked for. Each upload is counted once.";
     }
@@ -2787,7 +3041,7 @@
         " There are " +
         Number(intent.characterProfile.metrics && intent.characterProfile.metrics.curatedPerformanceCandidates ||
           (intent.characterProfile.soundbytes || []).length) +
-        " playable WWAM clips below. The generated character reply is a fan riff; the clips are the real source.";
+        " playable clips in the full character shelf. The matches below are real source clips; any generated character reply is clearly labeled as a fan riff.";
     }
     if (intent.queryPlan && intent.queryPlan.outputShape === "character-soundbyte-count" &&
       intent.collection && intent.characterProfile) {
@@ -2812,19 +3066,25 @@
       }).map(function (result) {
         return result.title + " at " + formatTime(result.at);
       });
-      return "The " + overviewLabel.toLowerCase() + " show in this part of the archive is " +
-        intent.selectedSource.sourceTitle + " from " + intent.selectedSource.date +
-        ". Jump to " + topicRoutes.join("; ") +
+      var overviewLead = relativeDateAnswerLead(intent);
+      return (overviewLead || ("The " + overviewLabel.toLowerCase() +
+        " show in this part of the archive is " + intent.selectedSource.sourceTitle +
+        " from " + intent.selectedSource.date + ". ")) +
+        "Jump to " + topicRoutes.join("; ") +
         ". Every jump stays inside that one show. Play any one to hear what was actually said.";
     }
     if (intent.queryPlan && intent.queryPlan.temporalSourceContent &&
       intent.selectedSource) {
       var temporalContentLabel = intent.temporal === "earliest" ?
         "earliest" : "newest";
-      return "In the " + temporalContentLabel + " " +
-        sourceNoun(intent.selectedSource.source) + " here, " +
-        intent.selectedSource.sourceTitle + " from " + intent.selectedSource.date +
-        ", start with " + location + ". It is marked " + top.category +
+      var temporalLead = relativeDateAnswerLead(intent);
+      var startLead = intent.selectedSource.relativeDateFallback ?
+        "On that fallback, start with " : "Start with ";
+      return (temporalLead ? temporalLead + startLead :
+        ("In the " + temporalContentLabel + " " +
+          sourceNoun(intent.selectedSource.source) + " here, " +
+          intent.selectedSource.sourceTitle + " from " + intent.selectedSource.date +
+          ", start with ")) + location + ". It is marked " + top.category +
         ". Play it below for the full context.";
     }
     if (intent.name === "comedy" && intent.selectedSource) {
@@ -3432,6 +3692,9 @@
   function sourceCollectionUnit(intent) {
     if (intent.source === "commentary") return "commentaries";
     if (intent.source === "livestream") return "livestreams";
+    if (intent.queryPlan && /\b(?:shows?|episodes?|broadcasts?)\b/.test(
+      intent.queryPlan.canonicalQuery
+    )) return "shows";
     return "sources";
   }
 
@@ -3445,7 +3708,71 @@
     });
   }
 
-  function create(catalog, deep, live, curated, popular, characterLore, archiveDeep) {
+  function aggregateTopicCandidates(ranked, intent) {
+    var groups = {};
+    ranked.filter(function (candidate) {
+      return candidate.kind === "topic" && normalize(candidate.title);
+    }).forEach(function (candidate) {
+      var topicKey = normalize(candidate.title);
+      var group = groups[topicKey] || {
+        label: candidate.title,
+        bySource: {},
+      };
+      var sourceKey = candidate.source + "|" + candidate.sourceId;
+      var existing = group.bySource[sourceKey];
+      if (!existing || Number(candidate.mentions || 0) > Number(existing.mentions || 0) ||
+        (Number(candidate.mentions || 0) === Number(existing.mentions || 0) &&
+          String(candidate.key).localeCompare(String(existing.key)) < 0)) {
+        group.bySource[sourceKey] = candidate;
+      }
+      groups[topicKey] = group;
+    });
+    var direction = intent.direction === "ascending" ? 1 : -1;
+    return Object.keys(groups).map(function (topicKey) {
+      var group = groups[topicKey];
+      var sourceCandidates = Object.keys(group.bySource).map(function (sourceKey) {
+        return group.bySource[sourceKey];
+      }).sort(function (left, right) {
+        return Number(right.mentions || 0) - Number(left.mentions || 0) ||
+          Number(dateValue(right.date) || 0) - Number(dateValue(left.date) || 0) ||
+          Number(left.at || 0) - Number(right.at || 0) ||
+          String(left.key).localeCompare(String(right.key));
+      });
+      var representative = sourceCandidates[0];
+      var indexedMentions = sourceCandidates.reduce(function (total, candidate) {
+        return total + Number(candidate.mentions || 0);
+      }, 0);
+      var sourceIds = sourceCandidates.map(function (candidate) {
+        return candidate.sourceId;
+      });
+      var dates = sourceCandidates.map(function (candidate) {
+        return candidate.date;
+      }).filter(Boolean).sort();
+      return Object.assign({}, representative, {
+        mentions: indexedMentions,
+        recurrence: {
+          topic: group.label,
+          indexedMentions: indexedMentions,
+          indexedSources: sourceIds.length,
+          sourceIds: sourceIds,
+          earliestDate: dates[0] || null,
+          latestDate: dates[dates.length - 1] || null,
+          representativeSourceId: representative.sourceId,
+          representativeAt: Number(representative.at || 0),
+          countBasis: "sum of each unique source's indexed caption-topic matches; duplicate source records count once",
+        },
+      });
+    }).sort(function (left, right) {
+      var mentionDifference = Number(left.mentions || 0) - Number(right.mentions || 0);
+      if (mentionDifference) return mentionDifference * direction;
+      var sourceDifference = Number(left.recurrence.indexedSources || 0) -
+        Number(right.recurrence.indexedSources || 0);
+      if (sourceDifference) return sourceDifference * direction;
+      return String(left.title).localeCompare(String(right.title));
+    });
+  }
+
+  function create(catalog, deep, live, curated, popular, characterLore, archiveDeep, channelDNA, runtimeOptions) {
     catalog = catalog || [];
     deep = deep || { tapes: [] };
     live = live || { streams: [], topicIndex: [] };
@@ -3453,6 +3780,8 @@
     curated = curated || { upInYa: [] };
     characterLore = characterLore || { characters: [] };
     archiveDeep = archiveDeep || { streams: [], topicIndex: [], characterIndex: [] };
+    channelDNA = channelDNA || {};
+    runtimeOptions = runtimeOptions || {};
 
     var combinedLive = combineLiveData(live, popular, archiveDeep);
     var promotedSourceById = new Map(
@@ -3475,10 +3804,14 @@
       if (!performanceByCharacter[key]) performanceByCharacter[key] = [];
       performanceByCharacter[key].push(candidate);
     });
+    var recurringBits = recurringBitLedger(
+      channelDNA, characterLore, performanceByCharacter
+    );
     var sourceIndex = indexedSourceRecords(candidates);
     var latestIndexedDate = sourceIndex.reduce(function (latest, record) {
       return record.date > latest ? record.date : latest;
     }, "");
+    var requestedYesterday = previousCalendarDate(dateKeyInNewYork(runtimeOptions.now));
     var aliases = aliasDefinitions(catalog, combinedLive, curated, characterLore);
     var curatedByReceipt = {};
     (curated.upInYa || []).forEach(function (item, index) {
@@ -3498,11 +3831,15 @@
     function ask(query, previous) {
       var parsedIntent = parseIntent(query);
       var queryPlan = compileQueryPlan(query, parsedIntent);
+      if (queryPlan.relativeCalendarDate) {
+        queryPlan.controls.requestedRelativeDate = requestedYesterday;
+      }
       if (queryPlan.relativeExplicitLane) {
         queryPlan.controls.relativeDate = latestIndexedDate || null;
       }
       var originalIntent = applyQueryPlan(parsedIntent, queryPlan);
       var directEntity = identifyEntity(queryPlan.canonicalQuery, aliases, originalIntent);
+      if (queryPlan.outputShape === "recurring-bit-ledger") directEntity = null;
       var eligibleSurfaceHandoff = queryPlan.surfaceHandoff &&
         !directEntity && !originalIntent.sourceExplicit;
       if (queryPlan.surfaceHandoff && !eligibleSurfaceHandoff) {
@@ -3511,11 +3848,13 @@
       }
       if (eligibleSurfaceHandoff) {
         var handoffIsComedy = queryPlan.surfaceHandoff.id === "riff-black-box";
+        var handoffIsNegative = queryPlan.surfaceHandoff.id === "steves-asshole";
+        var handoffKind = handoffIsComedy ? "comedy" :
+          handoffIsNegative ? "criticism" : "memorability";
         return {
           query: query,
           intent: "surface-handoff",
-          questionType: handoffIsComedy ?
-            "global comedy superlative" : "global memorability superlative",
+          questionType: "global " + handoffKind + " superlative",
           source: "all",
           temporal: originalIntent.temporal,
           popularity: originalIntent.popularity,
@@ -3543,18 +3882,21 @@
           selectionPlan: { surfaceHandoff: queryPlan.surfaceHandoff },
           confidence: 100,
           confidenceBasis: [
-            "Query Plan identified a global memorability superlative",
+            "Query Plan identified a global " + handoffKind + " superlative",
             "Unranked retrieval refused to manufacture its own winner",
           ],
           status: "surface-handoff",
-          answer: "This asks for a global " +
-            (handoffIsComedy ? "comedy" : "chaos") +
-            " winner. Ask WWAM will not invent a separate #1; open the published " +
-            queryPlan.surfaceHandoff.label + " for the deterministic ranked answer.",
+          answer: "This asks for a global " + handoffKind +
+            " winner. Ask WWAM will not invent a separate #1; open " +
+            queryPlan.surfaceHandoff.label + " for the archive's dedicated " +
+            handoffKind + " view.",
           limitations: [
-            "No receipt is returned here because the separate ranking engine owns global candidate order.",
-            (handoffIsComedy ? "The Comedy Black Box" : "The Memorability Candidate Index") +
-              " is machine-ranked, not a creator vote or objective comedy verdict.",
+            "No receipt is returned here because a dedicated archive surface owns this global superlative.",
+            handoffIsComedy ?
+              "The Comedy Black Box is machine-ranked, not a creator vote or objective comedy verdict." :
+              handoffIsNegative ?
+                "Straight to Steve's Asshole organizes strong negative receipts; it is not a creator-certified all-time verdict." :
+                "The Memorability Candidate Index is machine-ranked, not a creator vote or an objective best-ever verdict.",
           ],
           explanation: {
             method: "query-plan surface handoff",
@@ -3569,7 +3911,11 @@
           },
           evidenceChain: [],
           results: [],
-          suggestions: ["Show me the top 5 most memorable moments"],
+          suggestions: [handoffIsNegative ?
+            "Open Straight to Steve's Asshole" :
+            handoffIsComedy ?
+              "Open the Comedy Black Box" :
+              "Show me the top 5 most memorable moments"],
           recommendedSurface: queryPlan.surfaceHandoff,
         };
       }
@@ -3634,6 +3980,7 @@
         .indexOf(queryPlan.outputShape) >= 0;
       var titleSelection = anchorActive || sourceCollectionShape ||
         queryPlan.outputShape === "curated-soundbytes" ||
+        queryPlan.outputShape === "recurring-bit-ledger" ||
         queryPlan.outputShape === "character-roster" ||
         queryPlan.outputShape === "character-profile" ||
         queryPlan.outputShape === "character-soundbyte-count" ||
@@ -3685,6 +4032,8 @@
           "character-soundbyte-count",
           "character-mention-count",
           "curated-soundbytes",
+          "recurring-bit-ledger",
+          "topic-ranking",
         ].indexOf(queryPlan.outputShape) >= 0 ?
         [] : secondarySubjectTerms(intent, entity);
       intent = Object.assign({}, intent, {
@@ -4039,7 +4388,23 @@
       });
 
       var ranked = [];
-      if (queryPlan.outputShape === "character-roster") {
+      if (queryPlan.outputShape === "recurring-bit-ledger") {
+        ranked = recurringBits.candidates.map(function (candidate, index) {
+          return Object.assign({}, candidate, {
+            score: 120 - index,
+            scoreBreakdown: [{
+              signal: "curated recurring-bit source count",
+              value: Number(candidate.bitLedger.sourceCount || 0),
+            }],
+            reasons: [
+              "Channel DNA recurring-bit definition",
+              Number(candidate.bitLedger.sourceCount || 0) + " unique curated sources",
+            ],
+            matchedTerms: [],
+            matchedSubjectTerms: [],
+          });
+        });
+      } else if (queryPlan.outputShape === "character-roster") {
         ranked = (characterLore.characters || []).map(function (profile) {
           var profileCandidates = performanceByCharacter[normalize(profile.name)] || [];
           var minimum = Math.max(
@@ -4111,6 +4476,9 @@
         });
       }
 
+      if (["topic-ranking", "topic-count"].indexOf(queryPlan.outputShape) >= 0) {
+        ranked = aggregateTopicCandidates(ranked, intent);
+      }
       if (sourceCollectionShape) ranked = dedupeSourceRanked(ranked);
       var fullRanked = ranked.slice();
       var collection = null;
@@ -4120,6 +4488,30 @@
           total: fullRanked.length,
           unit: sourceCollectionUnit(intent),
           countBasis: "unique indexed source records after source, entity, lane, and year filters",
+        };
+      } else if (["topic-ranking", "topic-count"].indexOf(queryPlan.outputShape) >= 0) {
+        var topicSourceIds = unique(fullRanked.reduce(function (ids, candidate) {
+          return ids.concat(candidate.recurrence ? candidate.recurrence.sourceIds : []);
+        }, []));
+        collection = {
+          shape: queryPlan.outputShape,
+          total: fullRanked.length,
+          unit: "distinct indexed topic labels",
+          sourceTotal: topicSourceIds.length,
+          countBasis: "normalized topic labels built from source-local caption-topic matches; duplicate source records count once",
+        };
+      } else if (queryPlan.outputShape === "recurring-bit-ledger") {
+        var recurringBitSourceIds = unique(fullRanked.reduce(function (ids, candidate) {
+          return ids.concat(candidate.bitLedger ? candidate.bitLedger.sourceIds : []);
+        }, []));
+        collection = {
+          shape: queryPlan.outputShape,
+          total: fullRanked.length,
+          unit: "curated recurring bits",
+          sourceTotal: recurringBitSourceIds.length,
+          definitionTotal: recurringBits.definitionCount,
+          ledgerAvailable: recurringBits.available,
+          countBasis: "Channel DNA bit definitions joined to timestamped human-curated Character Lore performance receipts; each source counts once per bit",
         };
       } else if (queryPlan.outputShape === "curated-soundbytes") {
         collection = {
@@ -4167,10 +4559,13 @@
       var displayLimit = Number(queryPlan.controls.requestedLimit || 0) ||
         (queryPlan.allResultsRequested ? 25 :
           queryPlan.outputShape === "source-list" ? 25 :
+            queryPlan.outputShape === "recurring-bit-ledger" ?
+              Math.max(1, recurringBits.definitionCount) :
             queryPlan.outputShape === "character-roster" ? 4 : 7);
       var preserveDisplayedReceipts = evidenceFirst ||
         queryPlan.allResultsRequested ||
         queryPlan.outputShape === "curated-soundbytes" ||
+        queryPlan.outputShape === "recurring-bit-ledger" ||
         queryPlan.outputShape === "character-roster" ||
         queryPlan.outputShape === "character-soundbyte-count";
       var results = dedupeCandidates(displayRanked, preserveDisplayedReceipts)
@@ -4228,9 +4623,14 @@
           direction: selectedSource.direction,
           sourceId: selectedSource.sourceId,
           sourceTitle: selectedSource.sourceTitle,
+          date: selectedSource.date || null,
           views: selectedSource.views,
           lane: selectedSource.lane || null,
           matchMode: selectedSource.titleMatchMode || null,
+          requestedRelativeDate: selectedSource.requestedRelativeDate || null,
+          relativeDateMatched: selectedSource.relativeDateMatched == null ?
+            null : selectedSource.relativeDateMatched,
+          fallbackOffered: selectedSource.relativeDateFallback === true,
           matchedTerms: selectedSource.matchedTerms || null,
           alternativeCount: Number(selectedSource.alternativeCount || 0),
           tieBreak: selectedSource.tieBreak || null,

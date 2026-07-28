@@ -28,7 +28,7 @@ function load(location = {
   return window.ShokkerYouTubePlayback;
 }
 
-test("every player receives explicit page identity and referrer policy", () => {
+test("helper-based players open through the working bridge with explicit page identity", () => {
   const playback = load();
   const markup = playback.iframe("5et_A1tYnio", {
     autoplay: true,
@@ -38,15 +38,19 @@ test("every player receives explicit page identity and referrer policy", () => {
   });
 
   assert.match(markup, /referrerpolicy="strict-origin-when-cross-origin"/);
-  assert.match(markup, /origin=https%3A%2F%2Fwiki\.example/);
+  assert.match(markup, /wwam-after-midnight\.downndirtytn\.chatgpt\.site\/demo\/media-bridge\.html/);
+  assert.match(markup, /video=5et_A1tYnio/);
   assert.match(markup, /widget_referrer=https%3A%2F%2Fwiki\.example%2Fdemo%2F/);
+  assert.doesNotMatch(markup, /origin=https%3A%2F%2Fwiki\.example/);
   assert.match(markup, /enablejsapi=1/);
   assert.match(markup, /start=5406/);
   assert.match(markup, /end=5432/);
   assert.match(markup, /allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"/);
   assert.match(markup, /data-shokker-youtube-player/);
   assert.match(markup, /data-shokker-youtube-recover/);
-  assert.match(markup, /HAVING TROUBLE\? TRY RECOVERY/);
+  assert.match(markup, /RELOAD PLAYER/);
+  const directMarkup = playback.iframe("5et_A1tYnio", { forceHostedBridge: false });
+  assert.match(directMarkup, /HAVING TROUBLE\? TRY RECOVERY/);
 });
 
 test("the IFrame API uses the same client-identity contract", () => {

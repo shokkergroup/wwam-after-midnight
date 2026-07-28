@@ -707,7 +707,7 @@ body.wwam-directory-open .evidence-bag-toggle { opacity: 0; pointer-events: none
 .ask-review-disclosure > .ask-review { margin: 0; border: 0; border-top: 1px solid rgba(255,255,255,.09); }
 .answer-brief .derived-answer-copy { font-size: clamp(17px, 1.7vw, 23px); line-height: 1.45; }
 
-/* Show Wiki shortcuts: three obvious actions, with the deep lanes one disclosure away. */
+/* Show Wiki shortcuts: four obvious fan actions, with research lanes one disclosure away. */
 .source-dossier-explore { top: 0 !important; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 14px clamp(18px, 3vw, 32px); }
 .source-dossier-explore > span { margin-right: auto; }
 .source-dossier-explore > .wwam-dossier-primary-link { min-height: 44px; display: inline-flex; align-items: center; padding: 0 14px; border-color: rgba(212,255,36,.48); }
@@ -722,7 +722,7 @@ body.wwam-directory-open .evidence-bag-toggle { opacity: 0; pointer-events: none
 .wwam-dossier-more-tray a:hover { background: rgba(212,255,36,.08); color: var(--wwam-acid); }
 @media (max-width: 680px) {
   .source-dossier-explore > span { width: 100%; margin: 0; }
-  .source-dossier-explore > .wwam-dossier-primary-link { flex: 1 1 calc(33.333% - 8px); justify-content: center; padding-inline: 8px; font-size: 8px; }
+  .source-dossier-explore > .wwam-dossier-primary-link { flex: 1 1 calc(50% - 8px); justify-content: center; padding-inline: 8px; font-size: 8px; }
   .wwam-dossier-more { width: 100%; }
   .wwam-dossier-more > summary { width: 100%; justify-content: center; }
   .wwam-dossier-more-tray { position: static; width: 100%; grid-template-columns: 1fr; margin-top: 7px; box-shadow: none; }
@@ -746,7 +746,7 @@ body.wwam-directory-open .evidence-bag-toggle { opacity: 0; pointer-events: none
 }
 @media (max-width: 680px) {
   .source-dossier-explore > div { width: 100%; }
-  .source-dossier-explore > div > .wwam-dossier-primary-link { flex: 1 1 calc(33.333% - 8px); justify-content: center; padding-inline: 8px; font-size: 8px; }
+  .source-dossier-explore > div > .wwam-dossier-primary-link { flex: 1 1 calc(50% - 8px); justify-content: center; padding-inline: 8px; font-size: 8px; }
   .source-dossier-show-wiki,
   .source-dossier-player-section,
   .source-dossier-ask,
@@ -968,6 +968,67 @@ html { scroll-padding-top: 92px; }
 .wwam-poison-card h3 { font-size: clamp(34px, 2.7vw, 48px); }
 
 .guided-home { padding-bottom: clamp(82px, 8vw, 124px); }
+.wwam-tonights-cut {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(150px, .42fr) minmax(360px, 1.4fr) auto;
+  gap: clamp(22px, 3.2vw, 54px);
+  align-items: center;
+  margin: 0 0 clamp(54px, 6vw, 88px);
+  padding: clamp(22px, 2.7vw, 34px);
+  overflow: hidden;
+  border: 1px solid rgba(122,167,255,.4);
+  background: linear-gradient(100deg, rgba(14,22,43,.98), rgba(9,10,18,.98) 62%, rgba(28,10,24,.96));
+  box-shadow: 0 24px 64px rgba(0,0,0,.42);
+  color: var(--wwam-paper);
+}
+.wwam-tonights-cut::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background:
+    radial-gradient(circle at 8% 50%, rgba(122,167,255,.16), transparent 28%),
+    repeating-linear-gradient(90deg, transparent 0 72px, rgba(255,255,255,.025) 73px 74px);
+}
+.wwam-tonights-cut:hover {
+  border-color: rgba(212,255,36,.72);
+  transform: translateY(-2px);
+}
+.wwam-tonights-cut-date {
+  color: #9dbbff;
+  font: 850 9px/1.35 var(--mono);
+  letter-spacing: .12em;
+}
+.wwam-tonights-cut-copy { display: grid; gap: 7px; }
+.wwam-tonights-cut-copy b {
+  font: 400 clamp(25px, 2.25vw, 36px)/.92 var(--display);
+  letter-spacing: .01em;
+}
+.wwam-tonights-cut-copy em {
+  max-width: 65ch;
+  color: #aaaeba;
+  font: 500 13px/1.5 var(--body);
+  font-style: normal;
+}
+.wwam-tonights-cut-action {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  border: 1px solid rgba(212,255,36,.54);
+  color: var(--wwam-acid);
+  font: 900 9px/1 var(--mono);
+  letter-spacing: .08em;
+  white-space: nowrap;
+}
+.wwam-tonights-cut-action b { font-size: 15px; }
+.wwam-tonights-cut:hover .wwam-tonights-cut-action {
+  background: var(--wwam-acid);
+  color: #080808;
+}
 .guided-shelf-dek {
   max-width: 720px;
   margin: -5px 0 24px;
@@ -982,6 +1043,22 @@ html { scroll-padding-top: 92px; }
 .guided-show-copy > div { font-size: 12px; }
 .guided-shelf-head + .guided-latest-grid { margin-bottom: 82px; }
 .guided-franchise-grid > a { min-height: 330px; }
+
+@media (max-width: 900px) {
+  .wwam-tonights-cut { grid-template-columns: 1fr auto; }
+  .wwam-tonights-cut-date { grid-column: 1 / -1; }
+}
+
+@media (max-width: 620px) {
+  .wwam-tonights-cut {
+    grid-template-columns: 1fr;
+    gap: 15px;
+    margin-bottom: 58px;
+    padding: 22px 18px;
+  }
+  .wwam-tonights-cut-copy b { font-size: 28px; }
+  .wwam-tonights-cut-action { width: 100%; justify-content: space-between; }
+}
 
 /* Each destination now opens as one page with one local rail. */
 .wwam-route-hub {
@@ -1188,3 +1265,46 @@ body[data-guided-journey="highlights"] #steves-asshole {
   body[data-guided-detail="true"] .wwam-route-hub-copy h1 { font-size: 49px; }
 }
 [data-route-focus-target]:focus { outline: 0; }
+
+/* Overnight usability: every compact fan action remains a real thumb target. */
+@media (max-width: 760px) {
+  :where(
+    .answer-brief .ask-share,
+    .ask-results footer button,
+    .ask-results .ask-archive-fallback footer a,
+    .ask-no-match button,
+    .prompt-chips button,
+    .character-receipts article button,
+    .character-shelf-head button,
+    .character-grounding button,
+    .sound-controls button,
+    .sound-now button,
+    .wwam-route-home,
+    .evidence-bag-toggle
+  ) {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  :where(
+    .wwam-tonights-copy > a,
+    .guided-shelf-head > a,
+    .guided-show-copy > a,
+    body > footer a,
+    body > footer button
+  ) {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .ask-results footer button,
+  .ask-results .ask-archive-fallback footer a,
+  .character-receipts article > footer button {
+    padding-block: 10px;
+  }
+
+  .evidence-bag-toggle { min-height: 44px; }
+  .wwam-route-home { margin-left: -10px; padding-inline: 10px; }
+}

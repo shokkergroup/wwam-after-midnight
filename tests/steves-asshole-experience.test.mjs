@@ -38,8 +38,9 @@ function sourceRecord(overrides = {}) {
 
 test("Steve is a visible first-class room with lazy, local assets", () => {
   assert.match(html, /id="steves-asshole"/);
-  assert.ok(html.includes('data-feature-styles="steves-asshole.css?v=1.0.4"'));
-  assert.ok(html.includes('data-feature-scripts="steves-asshole.js?v=1.2.1"'));
+  assert.ok(html.includes('data-feature-styles="steves-asshole.css?v=1.1.0"'));
+  assert.match(html, /data-feature-scripts="steves-asshole\.js\?v=[^"]+"/);
+  assert.equal(api.VERSION, "1.3.0");
   assert.ok((html.match(/href="#steves-asshole"/g) || []).length >= 1);
   assert.match(html, /href="#best-bits"[^>]*data-journey-link="highlights">BEST BITS<\/a>/);
   assert.match(source, /WWAMSourceDossierAccess/);
@@ -220,4 +221,147 @@ test("Steve observes body class changes and repaints only when language mode cha
   assert.equal(changes, 1);
   callback();
   assert.equal(changes, 1);
+});
+test("Steve passes the loaded Episode Guide V2 registry into the canonical adapter", () => {
+  api.resetCache();
+  const guides = [{ id: "guide-1" }, { id: "guide-2" }];
+  let received;
+  const scope = {
+    WWAMSourceDossierAccess: { get: () => null },
+    WWAMSourceDossierAdapter: {
+      build(input) {
+        received = input;
+        return { sources: [sourceRecord()] };
+      },
+    },
+    WWAMShowcaseEngine: { create: () => ({ sources: [], receipts: [] }) },
+    WWAMCreatorClipLab: { create: () => ({}) },
+    WWAMArchiveDeepPortfolio: {
+      create: () => ({
+        getSearchPayload: () => ({ streams: [], topicIndex: [], characterIndex: [] }),
+      }),
+    },
+    WWAMArchiveDeepEngine: {},
+    WWAM_DEEP_DISTILL: { meta: { episodeGuides: 2 } },
+    WWAM_EPISODE_GUIDES: { guides },
+  };
+
+  const payload = api.buildPayloadFromGlobals(scope);
+  assert.equal(received.episodeGuides, scope.WWAM_EPISODE_GUIDES);
+  assert.equal(received.deep.meta.episodeGuides, 2);
+  assert.equal(payload.sources.length, 1);
+});
+
+test("Steve keeps canonical source receipts playable when only the guide overlay lags", () => {
+  api.resetCache();
+  const calls = [];
+  const scope = {
+    WWAMSourceDossierAccess: { get: () => null },
+    WWAMSourceDossierAdapter: {
+      build(input) {
+        calls.push(input);
+        const expected = Number(input.deep.meta.episodeGuides || 0);
+        const available = input.episodeGuides.guides.length;
+        if (expected && expected !== available) {
+          const error = new Error("The demand-loaded Episode Guide V2 registry is incomplete.");
+          error.code = "EPISODE_GUIDE_COUNT_INVALID";
+          throw error;
+        }
+        return { sources: [sourceRecord()] };
+      },
+    },
+    WWAMShowcaseEngine: { create: () => ({ sources: [], receipts: [] }) },
+    WWAMCreatorClipLab: { create: () => ({}) },
+    WWAMArchiveDeepPortfolio: {
+      create: () => ({
+        getSearchPayload: () => ({ streams: [], topicIndex: [], characterIndex: [] }),
+      }),
+    },
+    WWAMArchiveDeepEngine: {},
+    WWAM_DEEP_DISTILL: { meta: { episodeGuides: 38 } },
+    WWAM_EPISODE_GUIDES: { guides: [{ id: "only-guide" }] },
+  };
+
+  const payload = api.buildPayloadFromGlobals(scope);
+  const data = api.inventory(payload);
+  const markup = api.render(data, { query: "", type: "all", sort: "hottest" });
+
+  assert.equal(calls.length, 2);
+  assert.equal(calls[0].deep.meta.episodeGuides, 38);
+  assert.equal(calls[1].deep.meta.episodeGuides, 1);
+  assert.equal(scope.WWAM_DEEP_DISTILL.meta.episodeGuides, 38);
+  assert.equal(payload.steveInventoryStatus.state, "guide-overlay-lag");
+  assert.equal(data.items.length, 1);
+  assert.equal(data.items[0].sourceId, "LV2rmwEA0w4");
+  assert.equal(data.items[0].at, 325);
+  assert.match(markup, /THE CHUTE IS OPEN\. THE GUIDE SHELF IS CATCHING UP/);
+  assert.match(markup, /canonical WWAM show receipts with exact timestamps/);
+  assert.match(markup, /OFFICIAL WWAM TAPE/);
+  assert.match(markup, /EXACT STOP 5:25/);
+});
+
+test("Steve reuses an already-built canonical dossier engine before rebuilding overlays", () => {
+  api.resetCache();
+  const scope = {
+    WWAMSourceDossierAccess: {
+      get: () => ({
+        list: () => [{ id: "LV2rmwEA0w4" }],
+        build: () => ({ source: sourceRecord() }),
+      }),
+    },
+  };
+
+  const payload = api.buildPayloadFromGlobals(scope);
+  const data = api.inventory(payload);
+  assert.equal(payload.steveInventoryStatus.state, "canonical-engine");
+  assert.equal(data.items.length, 1);
+  assert.equal(data.items[0].sourceUrl, "https://www.youtube.com/watch?v=LV2rmwEA0w4&t=325s");
+});
+
+test("Steve refuses to fabricate a rejection if canonical receipts truly cannot load", () => {
+  const error = new Error("The demand-loaded Episode Guide V2 registry is incomplete.");
+  error.code = "EPISODE_GUIDE_COUNT_INVALID";
+  const markup = api.heldMarkup(error);
+
+  assert.match(markup, /NO RECEIPT, NO REJECTION/);
+  assert.match(markup, /will not invent a hated moment/);
+  assert.doesNotMatch(markup, /THE CLIPS DID NOT LOAD/);
+});
+
+test("Steve never swallows unrelated adapter integrity failures", () => {
+  api.resetCache();
+  const expected = new Error("Canonical source fingerprint conflict.");
+  expected.code = "SOURCE_METADATA_CONFLICT";
+  const scope = {
+    WWAMSourceDossierAccess: { get: () => null },
+    WWAMSourceDossierAdapter: { build: () => { throw expected; } },
+    WWAMShowcaseEngine: { create: () => ({ sources: [], receipts: [] }) },
+    WWAMCreatorClipLab: { create: () => ({}) },
+    WWAMArchiveDeepPortfolio: {
+      create: () => ({
+        getSearchPayload: () => ({ streams: [], topicIndex: [], characterIndex: [] }),
+      }),
+    },
+    WWAMArchiveDeepEngine: {},
+    WWAM_DEEP_DISTILL: { meta: { episodeGuides: 1 } },
+    WWAM_EPISODE_GUIDES: { guides: [{ id: "guide" }] },
+  };
+
+  assert.throws(() => api.buildPayloadFromGlobals(scope), expected);
+});
+test("Steve never accepts a partially built canonical engine snapshot", () => {
+  api.resetCache();
+  const enginePayload = api.payloadFromDossierEngine({
+    WWAMSourceDossierAccess: {
+      get: () => ({
+        list: () => [{ id: "LV2rmwEA0w4" }, { id: "28PfRNKoSCA" }],
+        build: (id) => {
+          if (id === "28PfRNKoSCA") throw new Error("held source");
+          return { source: sourceRecord() };
+        },
+      }),
+    },
+  });
+
+  assert.equal(enginePayload, null);
 });

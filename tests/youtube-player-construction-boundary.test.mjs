@@ -39,11 +39,13 @@ test("actual player construction is confined to the three reviewed implementatio
   );
 
   assert.deepEqual(actual, [
+    { file: "context-companion.js", kind: "literalIframe" },
     { file: "media-bridge.html", kind: "createdIframe" },
     { file: "tape-companion-ui.js", kind: "iframeApiPlayer" },
     { file: "youtube-playback.js", kind: "literalIframe" },
   ]);
 
+  assert.doesNotMatch(byName.get("context-companion.js"), directEmbedUrl);
   assert.match(byName.get("youtube-playback.js"), directEmbedUrl);
   assert.match(byName.get("media-bridge.html"), directEmbedUrl);
   assert.match(
@@ -52,8 +54,9 @@ test("actual player construction is confined to the three reviewed implementatio
   );
   assert.match(
     byName.get("tape-companion-ui.js"),
-    /PLAYER IDENTITY ERROR 153/,
+    /if \(code === 153\)/,
   );
+  assert.match(byName.get("tape-companion-ui.js"), /PLAYER SWITCHED/);
 });
 
 test("app and lazy UI hosts cannot introduce literal direct YouTube iframe sinks", () => {

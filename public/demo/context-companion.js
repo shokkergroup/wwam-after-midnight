@@ -30,14 +30,29 @@
     return "";
   }
 
+  function deferredMediaMarkup(className, summary, provider, mediaId, title, sourceUrl, sourceLabel) {
+    return '<details class="' + esc(className) + '" data-context-media-provider="' +
+      esc(provider) + '" data-context-media-id="' + esc(mediaId) +
+      '" data-context-media-title="' + esc(title) + '"><summary>' + summary +
+      '</summary><div class="context-embed" data-context-media-mount="dormant" ' +
+      'aria-label="' + esc(title) + ' player"><span>PLAYER LOADS WHEN OPENED</span></div>' +
+      '<a href="' + esc(sourceUrl) + '" target="_blank" rel="noopener">' +
+      esc(sourceLabel) + ' &#8599;</a></details>';
+  }
+
   function trailerMarkup(item) {
     if (!item.trailerId) return "";
     var title = item.trailerLabel || (item.film + " trailer");
     var fallback = "https://www.youtube.com/watch?v=" + encodeURIComponent(item.trailerId);
-    var frame = window.ShokkerYouTubePlayback && typeof window.ShokkerYouTubePlayback.iframe === "function"
-      ? window.ShokkerYouTubePlayback.iframe(item.trailerId, {autoplay:false,title:title})
-      : '<iframe src="https://www.youtube.com/embed/' + esc(item.trailerId) + '?rel=0&playsinline=1" title="' + esc(title) + '" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>';
-    return '<details class="context-trailer"><summary><span>OFFICIAL TRAILER</span><b>WATCH WITHOUT LEAVING THE WIKI +</b></summary><div class="context-embed">' + frame + '</div><a href="' + fallback + '" target="_blank" rel="noopener">OPEN TRAILER ON YOUTUBE ↗</a></details>';
+    return deferredMediaMarkup(
+      "context-trailer",
+      "<span>OFFICIAL TRAILER</span><b>WATCH WITHOUT LEAVING THE WIKI +</b>",
+      "youtube",
+      item.trailerId,
+      title,
+      fallback,
+      "OPEN TRAILER ON YOUTUBE"
+    );
   }
 
   function movieMarkup(sourceId, item) {
@@ -61,15 +76,61 @@
 
   function videoMarkup(card) {
     if (card.youtubeId) {
-      var frame = window.ShokkerYouTubePlayback && typeof window.ShokkerYouTubePlayback.iframe === "function"
-        ? window.ShokkerYouTubePlayback.iframe(card.youtubeId, {autoplay:false,title:card.title})
-        : '<iframe src="https://www.youtube.com/embed/' + esc(card.youtubeId) + '?rel=0&playsinline=1" title="' + esc(card.title) + '" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>';
-      return '<details class="context-card-media"><summary>PLAY REFERENCED VIDEO +</summary><div class="context-embed">' + frame + '</div><a href="https://www.youtube.com/watch?v=' + esc(card.youtubeId) + '" target="_blank" rel="noopener">OPEN ON YOUTUBE ↗</a></details>';
+      return deferredMediaMarkup(
+        "context-card-media",
+        "PLAY REFERENCED VIDEO +",
+        "youtube",
+        card.youtubeId,
+        card.title,
+        "https://www.youtube.com/watch?v=" + encodeURIComponent(card.youtubeId),
+        "OPEN ON YOUTUBE"
+      );
     }
     if (card.vimeoId) {
-      return '<details class="context-card-media"><summary>PLAY REFERENCED VIDEO +</summary><div class="context-embed"><iframe src="https://player.vimeo.com/video/' + esc(card.vimeoId) + '" title="' + esc(card.title) + '" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div></details>';
+      return deferredMediaMarkup(
+        "context-card-media",
+        "PLAY REFERENCED VIDEO +",
+        "vimeo",
+        card.vimeoId,
+        card.title,
+        "https://vimeo.com/" + encodeURIComponent(card.vimeoId),
+        "OPEN ON VIMEO"
+      );
     }
     return "";
+  }
+
+  function mountDeferredMedia(details) {
+    if (!details || !details.open ||
+        details.getAttribute("data-context-media-mounted") === "true") return false;
+    var mount = details.querySelector("[data-context-media-mount]");
+    if (!mount) return false;
+    var provider = details.getAttribute("data-context-media-provider");
+    var mediaId = details.getAttribute("data-context-media-id");
+    var title = details.getAttribute("data-context-media-title") || "Referenced video";
+    var frame = "";
+    try {
+      if (provider === "youtube" && window.ShokkerYouTubePlayback &&
+          typeof window.ShokkerYouTubePlayback.iframe === "function") {
+        // The shared playback helper creates the same-origin media bridge first;
+        // direct YouTube embed URLs never enter the parent page.
+        frame = window.ShokkerYouTubePlayback.iframe(mediaId, {autoplay:false,title:title});
+      } else if (provider === "vimeo") {
+        frame = '<iframe src="https://player.vimeo.com/video/' + esc(mediaId) +
+          '" title="' + esc(title) + '" loading="lazy" ' +
+          'referrerpolicy="strict-origin-when-cross-origin" ' +
+          'allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>';
+      }
+    } catch (mediaError) {
+      frame = "";
+    }
+    mount.innerHTML = frame ||
+      '<p class="context-media-held">INLINE PLAYER UNAVAILABLE. USE THE EXACT SOURCE LINK BELOW.</p>';
+    mount.setAttribute("data-context-media-mount", frame ? "mounted" : "held");
+    // A held mount stays retryable: closing and reopening the panel can recover
+    // if the shared playback helper finished loading in the meantime.
+    if (frame) details.setAttribute("data-context-media-mounted", "true");
+    return Boolean(frame);
   }
 
   function cardMarkup(sourceId, card, index) {
@@ -115,8 +176,10 @@
     var holder = document.createElement("div");
     holder.innerHTML = item ? movieMarkup(sourceId,item) : recentMarkup(sourceId,show);
     var section = holder.firstElementChild;
+    var guide = wiki.querySelector("#sourceDossierEpisodeGuide");
     var recap = wiki.querySelector(".source-dossier-wiki-recap");
-    if (recap) recap.insertAdjacentElement("afterend",section);
+    if (guide) guide.insertAdjacentElement("afterend", section);
+    else if (recap) recap.insertAdjacentElement("afterend", section);
     else wiki.appendChild(section);
     wiki.dataset.contextMounted = sourceId;
     addExploreLink(modal);
@@ -127,6 +190,12 @@
     scheduled = true;
     requestAnimationFrame(mountContext);
   }
+
+  document.addEventListener("toggle", function (event) {
+    var details = event.target && typeof event.target.matches === "function" &&
+      event.target.matches("details[data-context-media-provider]") ? event.target : null;
+    if (details) mountDeferredMedia(details);
+  }, true);
 
   document.addEventListener("click", function (event) {
     var anchor = event.target.closest('#tapeModal .source-dossier-explore a[href^="#"], #tapeModal .source-dossier-wiki-local-nav a[href^="#"]');

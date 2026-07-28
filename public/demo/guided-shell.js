@@ -53,12 +53,24 @@
     '</article>';
   }
 
+  function tonightStamp() {
+    var now = new Date();
+    var days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+    var months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+    return days[now.getDay()] + " // " + months[now.getMonth()] + " " + now.getDate();
+  }
+
   function buildGuidedHome() {
     if (document.querySelector(".guided-home")) return;
     var host = document.createElement("section");
     host.className = "guided-home";
     host.setAttribute("aria-label", "More ways to begin exploring WWAM");
     host.innerHTML =
+      '<a class="wwam-tonights-cut" href="#night-shift" data-journey-link="highlights" aria-label="Start tonight&rsquo;s Night Shift cut">' +
+        '<span class="wwam-tonights-cut-date">TONIGHT&rsquo;S CUT // ' + tonightStamp() + '</span>' +
+        '<span class="wwam-tonights-cut-copy"><b>FIVE PLAYABLE STOPS. ONE WEIRD WAY THROUGH WWAM.</b><em>A fresh show opens the door, an old callback follows, and tonight&rsquo;s route stays put until midnight.</em></span>' +
+        '<span class="wwam-tonights-cut-action">START THE NIGHT SHIFT <b>&rarr;</b></span>' +
+      '</a>' +
       '<div class="guided-shelf-head"><div><span class="guided-section-label">02 // THE LATEST FIVE</span><h2>FIVE NIGHTS. FIVE CLEAN ENTRIES.</h2></div><a href="#shows-hub" data-journey-link="shows">SEE ALL SHOWS &rarr;</a></div>' +
       '<p class="guided-shelf-dek">Each show opens as its own wiki with a recap, topics, best moments, and exact jumps back to the source.</p>' +
       '<div class="guided-latest-grid">' +

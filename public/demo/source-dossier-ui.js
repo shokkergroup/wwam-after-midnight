@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.8.1";
+  var VERSION = "1.10.0";
   var DOSSIER_SCHEMA = "shokker-source-dossier/v1";
   var QUERY_SCHEMA = "shokker-source-query/v1";
   var QUERY_RESULT_SCHEMA = "shokker-source-query-result/v1";
@@ -48,7 +48,7 @@
     "ranking-refused", "stale-source"
   ]);
   var QUERY_RESULT_TYPES = Object.freeze([
-    "receipt", "metadata", "entity", "artifact", "connection"
+    "receipt", "guide-cut", "metadata", "entity", "artifact", "connection"
   ]);
   var DEFAULT_SOURCE_QUERY = "What is actually indexed in this tape?";
 
@@ -198,6 +198,10 @@
       input.formatDate : fallbackDate;
     var formatTime = typeof input.formatTime === "function" ?
       input.formatTime : fallbackTime;
+    var scheduleFrame = typeof input.requestAnimationFrame === "function" ?
+      input.requestAnimationFrame :
+      (root && typeof root.requestAnimationFrame === "function" ?
+        root.requestAnimationFrame.bind(root) : function (callback) { callback(); });
     var callbacks = {
       play: typeof input.onPlay === "function" ? input.onPlay : function () {},
       copy: typeof input.onCopyLink === "function" ? input.onCopyLink : function () {},
@@ -239,6 +243,7 @@
       aftermathSelected: "",
       aftermathFilter: "all",
       aftermathError: "",
+      jumpEpoch: 0,
       destroyed: false
     };
 
@@ -302,6 +307,14 @@
         .filter(function (receipt) { return receipt.key === key; })[0] || null;
     }
 
+    function sourceGuideCutById(dossier, id) {
+      var guide = record(record(dossier && dossier.source && dossier.source.showWiki).episodeGuide);
+      if (clean(guide.schema) !== "wwam-episode-guide/v2") return null;
+      return array(guide.cuts).map(record).filter(function (cut) {
+        return clean(cut.id) === clean(id);
+      })[0] || null;
+    }
+
     function validateEpisodeContext(answer, dossier, normalizedResults) {
       var intent = clean(answer && answer.intent);
       var raw = answer && answer.episode;
@@ -317,6 +330,37 @@
       var wiki = record(dossier.source.showWiki);
       var target = null;
       var expectedKeys = [];
+      if (kind === "guide") {
+        target = record(wiki.episodeGuide);
+        var cuts = array(target.cuts).map(record);
+        var seenCuts = {};
+        var guideResults = normalizedResults.filter(function (result) {
+          var cut = result.type === "guide-cut" ? result.cut : result.guideCut;
+          if (!cut || seenCuts[cut.id]) return false;
+          seenCuts[cut.id] = true;
+          return result.type === "guide-cut" || result.type === "receipt";
+        });
+        var totalCuts = Number(episode.totalCuts);
+        var matchedCuts = Number(episode.matchedCuts);
+        var shownCuts = Number(episode.shownCuts);
+        if (clean(target.schema) !== "wwam-episode-guide/v2" || id !== "episode-guide" ||
+            intent !== "episode-guide" || !clean(episode.label) ||
+            !clean(episode.matchedAlias) || totalCuts !== cuts.length ||
+            !Number.isInteger(matchedCuts) || matchedCuts < 0 || matchedCuts > cuts.length ||
+            shownCuts !== guideResults.length || normalizedResults.length !== guideResults.length ||
+            guideResults.length > matchedCuts) {
+          throw new Error("The source query result did not preserve its validated Episode Guide cuts.");
+        }
+        return {
+          kind: kind,
+          id: id,
+          label: clean(episode.label),
+          matchedAlias: clean(episode.matchedAlias),
+          totalCuts: cuts.length,
+          matchedCuts: matchedCuts,
+          shownCuts: guideResults.length
+        };
+      }
       if (kind === "recap") {
         target = record(wiki.recap);
         if (!clean(target.overview) || id !== "episode-recap") target = null;
@@ -410,10 +454,31 @@
           if (!canonical) {
             throw new Error("A source query result referenced an unregistered receipt.");
           }
+          var receiptGuideCut = clean(result.guideCutId) ?
+            sourceGuideCutById(dossier, clean(result.guideCutId)) : null;
+          if (clean(result.guideCutId) && (!receiptGuideCut ||
+              Math.abs(number(receiptGuideCut.at) - number(canonical.at)) > 0.001)) {
+            throw new Error("A canonical receipt claimed an unrelated Episode Guide cut.");
+          }
           return {
             type: "receipt",
             key: canonical.key,
             receipt: canonical,
+            guideCut: receiptGuideCut,
+            matchedBy: clean(result.matchedBy)
+          };
+        }
+        if (type === "guide-cut") {
+          var canonicalCut = sourceGuideCutById(dossier, clean(result.id));
+          if (!canonicalCut ||
+              Math.abs(number(result.at) - number(canonicalCut.at)) > 0.001 ||
+              Math.abs(number(result.end) - number(canonicalCut.end)) > 0.001) {
+            throw new Error("A source query result referenced an unregistered Episode Guide cut.");
+          }
+          return {
+            type: "guide-cut",
+            id: canonicalCut.id,
+            cut: canonicalCut,
             matchedBy: clean(result.matchedBy)
           };
         }
@@ -692,6 +757,16 @@
         clean(brief.scope) === "canonical-source-metadata-only";
     }
 
+    function showWikiHasFanRead(dossier) {
+      var guide = record(record(dossier && dossier.source && dossier.source.showWiki).episodeGuide);
+      var fanRead = record(guide.fanRead);
+      var why = record(fanRead.whyThisNightMatters);
+      return Boolean(clean(why.body) || ["loved", "hated", "wildestDetour", "lastWord"].some(function (key) {
+        var item = record(fanRead[key]);
+        return clean(item.body) && clean(item.cutId) && sourceGuideCutById(dossier, item.cutId);
+      }));
+    }
+
     function showWikiLocalNavMarkup(dossier) {
       var wiki = record(dossier.source.showWiki);
       var lanes = array(wiki.lanes).map(record);
@@ -703,6 +778,9 @@
           id: "sourceDossierShowWikiSummary",
           label: sourceBrief ? "SOURCE BRIEF" : "RECAP"
         });
+      }
+      if (!sourceBrief && showWikiHasFanRead(dossier)) {
+        links.push({ id: "sourceDossierFanRead", label: "FAN READ" });
       }
       if (!sourceBrief && clean(record(wiki.episodeGuide).schema)) {
         links.push({ id: "sourceDossierEpisodeGuide", label: "DEEP DIVE" });
@@ -737,6 +815,9 @@
       var links = [
         { id: SECTION_IDS.player, label: "WATCH THE SHOW" }
       ];
+      if (!sourceBrief && showWikiHasFanRead(dossier)) {
+        links.push({ id: "sourceDossierFanRead", label: "FAN READ" });
+      }
       if (!sourceBrief && clean(record(wiki.episodeGuide).schema)) {
         links.push({ id: "sourceDossierEpisodeGuide", label: "DEEP DIVE" });
       }
@@ -759,11 +840,11 @@
       }).filter(function (link) {
         return link.label && link.populated;
       }));
+      links.push({
+        id: SECTION_IDS.ask,
+        label: sourceBrief ? "ASK SOURCE FACTS" : "ASK THIS SHOW"
+      });
       if (!compact) links = links.concat([
-        {
-          id: SECTION_IDS.ask,
-          label: sourceBrief ? "ASK SOURCE FACTS" : "ASK THIS TAPE"
-        },
         { id: SECTION_IDS.aftermath, label: "AFTERMATH PACK" },
         { id: SECTION_IDS.inside, label: "ALL TIMESTAMPS" }
       ]);
@@ -785,7 +866,7 @@
       });
     }
 
-    function showWikiExperienceMarkup(dossier) {
+    function showWikiExperienceMarkup(dossier, compact) {
       var source = dossier.source;
       var experience = record(record(source.showWiki).experience);
       if (!clean(experience.title)) return "";
@@ -799,6 +880,8 @@
           esc(experience.title) + '</h4></header><p>' + esc(experience.emptyState) +
           '</p><small>No moments are added until this exact upload has usable captions. The full player still works.</small></section>';
       }
+      var visibleRoute = compact ? route.slice(0, 3) : route;
+      if (compact) pulse = visibleRoute.slice();
       pulse = pulse.slice().sort(function (left, right) {
         return Number(left.at) - Number(right.at) || left.key.localeCompare(right.key);
       });
@@ -829,7 +912,7 @@
           '" title="' + esc(label + " // " + time) + '"><span>' +
           esc(index + 1) + '</span></button>';
       }).join("");
-      var routeMarkup = route.map(function (receipt, index) {
+      var routeMarkup = visibleRoute.map(function (receipt, index) {
         var time = formatTime(receipt.at);
         var excerptText = cleanCaptionExcerpt(receipt.excerpt);
         var excerpt = receipt.publicExcerptAllowed && excerptText
@@ -846,19 +929,23 @@
         '" data-show-wiki-experience="' + esc(clean(experience.id)) +
         '" data-show-wiki-route-count="' + esc(route.length) + '"><header><div><span>' +
         esc(experience.label) + '</span><h4>' + esc(experience.title) +
-        '</h4></div><b>' + esc(route.length) + ' MOMENTS. NO HUNTING.</b></header><p>' +
-        'A playable route through saved moments from this exact upload, spaced across the runtime.</p><div class="source-dossier-wiki-pulse" ' +
+        '</h4></div><b>' + esc(visibleRoute.length) + (compact ? ' STARTER' : '') +
+        ' MOMENTS. NO HUNTING.</b></header><p>' +
+        (compact ? 'Three strong entry points from this exact upload. Open the full file for the complete watch path.' :
+          'A playable route through saved moments from this exact upload, spaced across the runtime.') +
+        '</p><div class="source-dossier-wiki-pulse" ' +
         'aria-label="Where the saved moments land in this show"><div class="source-dossier-wiki-pulse-track" style="--pulse-extra-height:' +
         esc(maximumPulseRow * 48) + 'px">' +
         pulseMarkup + '</div><footer><span>00:00</span><b>THE NIGHT’S PULSE</b><span>' +
         esc(formatTime(source.duration)) + '</span></footer></div><div class="source-dossier-wiki-route">' +
         routeMarkup + '</div><footer class="source-dossier-wiki-route-actions"><button type="button" ' +
         'data-source-dossier-action="play-receipt" data-receipt-key="' +
-        esc(route[0].key) + '">&#9654; START THE WATCH PATH</button><button type="button" ' +
-        'data-source-dossier-action="bag-experience">SAVE ALL ' + esc(route.length) +
-        ' MOMENTS</button><details class="source-dossier-wiki-method"><summary>HOW THIS WATCH PATH WAS PICKED</summary><small>' +
-        'Built only from saved timestamps on this exact upload. Speaker identity, intent, and creator approval are not inferred.' +
-        '</small></details></footer></section>';
+        esc(visibleRoute[0].key) + '">&#9654; START THE WATCH PATH</button>' +
+        (compact ? '<button type="button" data-source-dossier-action="open-full-file">OPEN THE COMPLETE WATCH PATH &#8594;</button>' :
+          '<button type="button" data-source-dossier-action="bag-experience">SAVE ALL ' + esc(route.length) +
+          ' MOMENTS</button><details class="source-dossier-wiki-method"><summary>HOW THIS WATCH PATH WAS PICKED</summary><small>' +
+          'Built only from saved timestamps on this exact upload. Speaker identity, intent, and creator approval are not inferred.' +
+          '</small></details>') + '</footer></section>';
     }
 
     function showWikiBriefMarkup(dossier) {
@@ -924,6 +1011,63 @@
         }).join("") + '</div></section>';
     }
 
+    function showWikiFanReadMarkup(dossier, compact) {
+      if (compact || !showWikiHasFanRead(dossier)) return "";
+      var guide = record(record(dossier.source.showWiki).episodeGuide);
+      var fanRead = record(guide.fanRead);
+      var why = record(fanRead.whyThisNightMatters);
+
+      function fanCut(item) {
+        return sourceGuideCutById(dossier, clean(record(item).cutId));
+      }
+
+      function fanPlayButton(cut, label) {
+        if (!cut) return "";
+        return '<button type="button" data-source-dossier-action="play-guide-cut" ' +
+          'data-guide-at="' + esc(number(cut.at)) + '" data-guide-end="' +
+          esc(number(cut.end)) + '" aria-label="' + esc(label + " at " + formatTime(cut.at)) +
+          '">&#9654; ' + esc(label) + ' // ' + esc(formatTime(cut.at)) + '</button>';
+      }
+
+      var specs = [
+        { key: "loved", fallback: "WHAT THE TAPE DEFENDED" },
+        { key: "hated", fallback: "STRAIGHT TO STEVE'S ASSHOLE" },
+        { key: "wildestDetour", fallback: "THE WILDEST DETOUR" },
+        { key: "lastWord", fallback: "THE LAST WORD" }
+      ];
+      var cards = specs.map(function (spec) {
+        var item = record(fanRead[spec.key]);
+        var cut = fanCut(item);
+        if (!cut || !clean(item.body)) return "";
+        var label = spec.key === "hated" ? spec.fallback : (clean(item.label) || spec.fallback);
+        return '<article data-fan-read-key="' + esc(spec.key) + '"><span>' +
+          esc(label) + '</span><h5>' + esc(clean(item.topic) || clean(cut.topic)) +
+          '</h5><p>' + esc(item.body) + '</p><blockquote>&ldquo;' +
+          esc(cleanCaptionExcerpt(clean(item.excerpt) || clean(cut.excerpt))) +
+          '&rdquo;</blockquote><footer>' + fanPlayButton(cut, "PLAY THIS CUT") +
+          '<small>' + esc(clean(item.category) || clean(cut.category)) +
+          ' // BOUNDED SOURCE WINDOW</small></footer></article>';
+      }).filter(Boolean).join("");
+      var strongest = sourceGuideCutById(dossier, clean(why.strongestCutId));
+      var threadMarkup = [clean(why.primaryThread), clean(why.secondaryThread)]
+        .filter(Boolean).filter(function (thread, index, threads) {
+          return threads.indexOf(thread) === index;
+        }).map(function (thread) {
+          return '<span>' + esc(thread) + '</span>';
+        }).join("");
+
+      return '<section class="source-dossier-fan-read" id="sourceDossierFanRead" ' +
+        'data-fan-read="episode-guide-v2"><header><div><span>THE FAN READ // QUICK ENTRY</span>' +
+        '<h4>' + esc(clean(why.label) || "WHY THIS NIGHT MATTERS") +
+        '.</h4></div><p>Start with the story of the night, then use the tape to go deeper.</p></header>' +
+        '<div class="source-dossier-fan-read-lead"><div><span>WHY THIS NIGHT MATTERS</span><p>' +
+        esc(why.body) + '</p>' + (threadMarkup ? '<div>' + threadMarkup + '</div>' : '') +
+        '</div>' + fanPlayButton(strongest, "PLAY THE MUST-HEAR CUT") + '</div>' +
+        (cards ? '<div class="source-dossier-fan-read-grid">' + cards + '</div>' : '') +
+        '<footer><b>READ IT. HEAR IT. KEEP THE SOURCE ATTACHED.</b><span>These are machine-surfaced ' +
+        'caption reads from this exact upload. Automatic captions do not establish the speaker.</span></footer></section>';
+    }
+
     function showWikiEpisodeGuideMarkup(dossier, compact) {
       var source = dossier.source;
       var guide = record(record(source.showWiki).episodeGuide);
@@ -944,6 +1088,46 @@
           'data-guide-at="' + esc(at) + '" data-guide-end="' + esc(end) + '" ' +
           'aria-label="' + esc(label + " at " + formatTime(at)) + '">&#9654; ' +
           esc(formatTime(at)) + '</button>';
+      }
+
+      if (compact) {
+        var chronologicalCuts = cuts.slice().sort(function (left, right) {
+          return number(left.at) - number(right.at);
+        });
+        var startHereCuts = [];
+        [0, 0.25, 0.5, 0.75].forEach(function (startRatio, bandIndex) {
+          var bandStart = number(source.duration) * startRatio;
+          var bandEnd = bandIndex === 3 ? Number.POSITIVE_INFINITY :
+            number(source.duration) * (startRatio + 0.25);
+          var candidate = chronologicalCuts.filter(function (cut) {
+            return number(cut.at) >= bandStart && number(cut.at) < bandEnd;
+          }).sort(function (left, right) {
+            return number(right.score) - number(left.score) || number(left.at) - number(right.at);
+          })[0];
+          if (candidate && startHereCuts.indexOf(candidate) < 0) startHereCuts.push(candidate);
+        });
+        cuts.forEach(function (cut) {
+          if (startHereCuts.length < 4 && startHereCuts.indexOf(cut) < 0) startHereCuts.push(cut);
+        });
+        startHereCuts = startHereCuts.slice(0, 4).sort(function (left, right) {
+          return number(left.at) - number(right.at);
+        });
+        var startHereMarkup = startHereCuts.map(function (cut, index) {
+          return '<article><header><span>MOVE ' + esc(String(index + 1).padStart(2, "0")) +
+            ' // ' + esc(cut.category) + '</span><time>' + esc(formatTime(cut.at)) +
+            '</time></header><h5>' + esc(cut.topic) + '</h5><p>&ldquo;' +
+            esc(cleanCaptionExcerpt(cut.excerpt)) + '&rdquo;</p>' +
+            playButton(cut, "Play " + cut.topic) + '</article>';
+        }).join("");
+        return '<section class="source-dossier-episode-guide is-compact" id="sourceDossierEpisodeGuide" ' +
+          'data-episode-guide="v2" data-episode-guide-view="start-here"><header><div><span>' +
+          'START HERE // FOUR MOVES</span><h4>THE FASTEST WAY INTO THIS EPISODE.</h4></div>' +
+          '<p>Four playable stops, spread across the full runtime. Start anywhere; every button returns to this exact upload.</p>' +
+          '</header><div class="source-dossier-episode-start-here">' + startHereMarkup +
+          '</div><footer class="source-dossier-episode-start-actions"><span><b>' +
+          esc(number(metrics.chapters)) + '</b> ACTS MAPPED &nbsp; // &nbsp; <b>' +
+          esc(number(metrics.cuts)) + '</b> CUTS IN THE FULL GUIDE</span><button type="button" ' +
+          'data-source-dossier-action="open-full-file">OPEN THE FULL DEEP DIVE &#8594;</button></footer></section>';
       }
 
       var threadMarkup = threads.map(function (thread) {
@@ -989,7 +1173,8 @@
         '<section class="source-dossier-episode-threads"><header><span>WHAT KEEPS COMING BACK</span>' +
         '<b>RANKED BY CAPTION CONCENTRATION</b></header><div>' + threadMarkup + '</div></section>' +
         '<section class="source-dossier-episode-chapters"><header><span>THE NIGHT, ACT BY ACT</span>' +
-        '<b>SIX STOPS ACROSS THE FULL RUNTIME</b></header><div>' + chapterMarkup + '</div></section>' +
+        '<b>' + esc(chapters.length) + ' STOPS ACROSS THE FULL RUNTIME</b></header><div>' +
+        chapterMarkup + '</div></section>' +
         '<section class="source-dossier-episode-arc"><header><span>THE TAKE ARC</span>' +
         '<b>OPENING READ &#8594; MIDPOINT TURN &#8594; LATE VERDICT</b></header><div>' +
         arcMarkup + '</div></section><section class="source-dossier-episode-cuts"><header><span>' +
@@ -1076,6 +1261,9 @@
       var description = clean(wiki.description);
       var queued = token(status).indexOf("queued") === 0;
       var experience = record(wiki.experience);
+      var guide = record(wiki.episodeGuide);
+      var hasEpisodeGuide = clean(guide.schema) === "wwam-episode-guide/v2";
+      var guideCutCount = hasEpisodeGuide ? array(guide.cuts).length : 0;
       var hasMappedContent = Boolean(record(wiki.recap).overview || source.summary ||
         array(experience.routeReceiptKeys).length || lanes.some(function (lane) {
           return showWikiLaneReceipts(dossier, lane).length;
@@ -1093,13 +1281,13 @@
         return isShowWikiHighlightLane(entry.lane);
       });
       if (!highlightEntries.length) highlightEntries = populated.slice(0, 2);
-      var visibleEntries = compact ? highlightEntries : populated;
-      var visibleMomentCount = visibleEntries.reduce(function (total, entry) {
-        return total + Math.min(
-          showWikiLaneReceipts(dossier, entry.lane).length,
-          compact ? COMPACT_SHOW_WIKI_RECEIPTS : Number.MAX_SAFE_INTEGER
-        );
-      }, 0);
+      var visibleEntries = compact ? [] : populated;
+      var visibleMomentCount = compact ?
+        (hasEpisodeGuide ? Math.min(4, array(guide.cuts).length) :
+          Math.min(3, array(experience.routeReceiptKeys).length)) :
+        visibleEntries.reduce(function (total, entry) {
+          return total + showWikiLaneReceipts(dossier, entry.lane).length;
+        }, 0);
       var headerTitle = sourceBrief ? "THE SHOW IS HERE. THE DEEP DIVE IS NOT READY YET." :
         status === "topic-nav-only" ? "WHAT THEY COVERED, WITH A WAY BACK TO EACH PART." :
           hasMappedContent ? "THE WHOLE NIGHT, CUT TO THE PARTS WORTH REVISITING." :
@@ -1121,8 +1309,9 @@
           'quotes, character bits, or comedy verdicts.</span></aside>';
       } else {
         body += showWikiRecapMarkup(dossier, compact) +
+          showWikiFanReadMarkup(dossier, compact) +
           showWikiEpisodeGuideMarkup(dossier, compact) +
-          showWikiExperienceMarkup(dossier) +
+          ((!compact || !hasEpisodeGuide) ? showWikiExperienceMarkup(dossier, compact) : "") +
           (visibleEntries.length ? '<div class="source-dossier-wiki-lanes">' +
             visibleEntries.map(function (entry) {
               return showWikiLaneMarkup(
@@ -1143,8 +1332,11 @@
         '</b><small>' + (compact && !sourceBrief ?
           esc(visibleMomentCount) + ' HIGHLIGHT' +
           (visibleMomentCount === 1 ? '' : 'S') + ' SHOWN // ' : '') +
-        esc(receiptCount) + ' PLAYABLE MOMENT' +
-        (receiptCount === 1 ? '' : 'S') + '</small></div>' + body + '</section>';
+        esc(receiptCount) + ' REGISTERED MOMENT' +
+        (receiptCount === 1 ? '' : 'S') +
+        (hasEpisodeGuide ? ' // ' + esc(guideCutCount) + ' DEEP-DIVE CUT' +
+          (guideCutCount === 1 ? '' : 'S') : '') +
+        '</small></div>' + body + '</section>';
     }
     function refusalMarkup(dossier) {
       var proof = dossier.proof;
@@ -1244,10 +1436,37 @@
         '</article>';
     }
 
+    function queryGuideCutMarkup(result) {
+      var cut = record(result.cut || result.guideCut);
+      var receipt = record(result.receipt);
+      var canonicalMatch = result.type === "receipt" && clean(receipt.key);
+      var time = formatTime(cut.at);
+      var excerptSource = canonicalMatch && receipt.publicExcerptAllowed ?
+        receipt.excerpt : cut.excerpt;
+      var excerptText = cleanCaptionExcerpt(excerptSource);
+      var excerpt = excerptText ? '&ldquo;' + esc(excerptText) + '&rdquo;' :
+        '<span class="source-dossier-withheld">The timestamp is saved; the excerpt is not public.</span>';
+      var action = canonicalMatch ?
+        'data-source-dossier-action="play-receipt" data-receipt-key="' + esc(receipt.key) + '"' :
+        'data-source-dossier-action="play-guide-cut" data-guide-at="' + esc(cut.at) +
+          '" data-guide-end="' + esc(cut.end) + '"';
+      return '<article class="source-dossier-query-result is-guide-cut" ' +
+        'data-source-query-result-type="guide-cut" data-guide-cut-id="' + esc(cut.id) +
+        '" data-guide-cut-basis="' + (canonicalMatch ? 'canonical-overlap' : 'episode-guide') +
+        '"><span>DEEP-DIVE CUT' + (canonicalMatch ? ' // REGISTERED MOMENT MATCH' : '') +
+        '</span><h5>' + esc(clean(cut.category) || 'EPISODE GUIDE') + ' // ' +
+        esc(clean(cut.topic) || clean(cut.label) || 'SAVED CUT') + '</h5><p>' + excerpt +
+        '</p><small>EXACT-SHOW CAPTION NAVIGATION // SPEAKER NOT CONFIRMED</small>' +
+        '<button type="button" ' + action + ' aria-label="Play deep-dive cut at ' +
+        esc(time) + '">&#9654; JUMP TO ' + esc(time) + '</button></article>';
+    }
+
     function queryResultMarkup(result, dossier) {
       if (result.type === "receipt") {
-        return receiptMarkup(result.receipt, "source-dossier-query-receipt");
+        return result.guideCut ? queryGuideCutMarkup(result) :
+          receiptMarkup(result.receipt, "source-dossier-query-receipt");
       }
+      if (result.type === "guide-cut") return queryGuideCutMarkup(result);
       if (result.type === "metadata") return queryMetadataMarkup(result, dossier);
       if (result.type === "entity") return queryEntityMarkup(result);
       if (result.type === "artifact") return queryArtifactMarkup(result);
@@ -1261,6 +1480,9 @@
       var action = "OPEN THE FULL RECAP";
       if (episode.kind === "brief") {
         action = "OPEN SHOW DETAILS";
+      } else if (episode.kind === "guide") {
+        targetId = "sourceDossierEpisodeGuide";
+        action = "OPEN THE FULL DEEP DIVE";
       } else if (episode.kind === "experience") {
         targetId = "sourceDossierShowWikiExperience";
         action = "OPEN THE FULL WATCH PATH";
@@ -1275,11 +1497,15 @@
         if (laneIndex >= 0) targetId = showWikiLaneId(lanes[laneIndex], laneIndex);
         action = "OPEN FULL " + episode.label;
       }
+      var countLine = episode.kind === "guide" ?
+        esc(episode.totalCuts) + ' CUTS // ' + esc(episode.matchedCuts) +
+          ' MATCHED // ' + esc(episode.shownCuts) + ' SHOWN' :
+        esc(episode.totalReceipts) + ' REGISTERED // ' +
+          esc(episode.matchedReceipts) + ' MATCHED // ' +
+          esc(episode.shownReceipts) + ' SHOWN';
       return '<aside class="source-dossier-query-episode-guide" data-source-query-episode-kind="' +
         esc(episode.kind) + '"><div><span>SHOW WIKI ANSWER</span><b>' +
-        esc(episode.label) + '</b><small>' + esc(episode.totalReceipts) +
-        ' REGISTERED // ' + esc(episode.matchedReceipts) + ' MATCHED // ' +
-        esc(episode.shownReceipts) + ' SHOWN</small></div><a href="#' +
+        esc(episode.label) + '</b><small>' + countLine + '</small></div><a href="#' +
         esc(targetId) + '">' + esc(action) + ' &#8595;</a></aside>';
     }
 
@@ -2079,19 +2305,18 @@
       }
     }
 
-    function jumpWithinDossier(event) {
-      var link = event.target && event.target.closest ?
-        event.target.closest('a[href^="#sourceDossier"]') : null;
-      if (!link || typeof mount.querySelector !== "function") return false;
-      var href = clean(link.getAttribute("href"));
-      var targetId = href.slice(1);
-      if (!/^sourceDossier[A-Za-z0-9_-]+$/.test(targetId)) return false;
-      var target = mount.querySelector("#" + targetId);
-      if (!target) return false;
-      if (typeof event.preventDefault === "function") event.preventDefault();
-      if (typeof target.scrollIntoView === "function") {
-        target.scrollIntoView({ behavior: "smooth", block: "start" });
+    function dossierModal() {
+      var modal = null;
+      if (input.document && typeof input.document.getElementById === "function") {
+        modal = input.document.getElementById("tapeModal");
       }
+      if (!modal && typeof mount.closest === "function") {
+        modal = mount.closest("#tapeModal");
+      }
+      return modal;
+    }
+
+    function focusJumpTarget(target) {
       var focusTarget = typeof target.querySelector === "function" ?
         target.querySelector("h2,h3,h4,h5") : null;
       if (!focusTarget) focusTarget = target;
@@ -2103,6 +2328,67 @@
       if (focusTarget && typeof focusTarget.focus === "function") {
         try { focusTarget.focus({ preventScroll: true }); } catch { focusTarget.focus(); }
       }
+    }
+
+    function scrollJumpTarget(target) {
+      var modal = dossierModal();
+      if (modal && typeof modal.scrollTo === "function" &&
+          typeof modal.getBoundingClientRect === "function" &&
+          typeof target.getBoundingClientRect === "function") {
+        var modalRect = modal.getBoundingClientRect();
+        var targetRect = target.getBoundingClientRect();
+        var stickyClearance = 88;
+        var desiredTop = number(modal.scrollTop) + number(targetRect.top) -
+          number(modalRect.top) - stickyClearance;
+        modal.scrollTo({
+          top: Math.max(0, desiredTop),
+          left: 0,
+          behavior: "smooth"
+        });
+      } else if (typeof target.scrollIntoView === "function") {
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+      focusJumpTarget(target);
+    }
+
+    function queueJumpAfterReflow(targetId) {
+      state.jumpEpoch += 1;
+      var epoch = state.jumpEpoch;
+      // Full-file expansion and the companion mount both change everything
+      // above the target. Resolve the node again after two paint boundaries so
+      // a stale compact node can never receive the scroll.
+      scheduleFrame(function () {
+        scheduleFrame(function () {
+          if (state.destroyed || epoch !== state.jumpEpoch) return;
+          var target = typeof mount.querySelector === "function" ?
+            mount.querySelector("#" + targetId) : null;
+          if (!target) return;
+          scrollJumpTarget(target);
+        });
+      });
+    }
+
+    function jumpWithinDossier(event) {
+      var link = event.target && event.target.closest ?
+        event.target.closest('a[href^="#sourceDossier"]') : null;
+      if (!link || typeof mount.querySelector !== "function") return false;
+      var href = clean(link.getAttribute("href"));
+      var targetId = href.slice(1);
+      if (!/^sourceDossier[A-Za-z0-9_-]+$/.test(targetId)) return false;
+      var target = mount.querySelector("#" + targetId);
+      var hiddenResearch = target && typeof target.closest === "function" ?
+        target.closest("#sourceDossierDeepResearch[hidden]") : null;
+      var fullFileDestination =
+        [SECTION_IDS.ask, SECTION_IDS.aftermath, SECTION_IDS.inside].indexOf(targetId) >= 0 ||
+        targetId === "sourceDossierShowWikiExperience" ||
+        targetId === "sourceDossierFanRead" ||
+        /^sourceDossierShowWikiLane-/.test(targetId);
+      if (fullFileDestination && !state.fullFile && (!target || hiddenResearch)) {
+        state.fullFile = true;
+        renderCurrent();
+      }
+      if (typeof event.preventDefault === "function") event.preventDefault();
+      queueJumpAfterReflow(targetId);
       return true;
     }
 
@@ -2394,6 +2680,7 @@
     function destroy() {
       if (state.destroyed) return;
       state.destroyed = true;
+      state.jumpEpoch += 1;
       state.dossier = null;
       state.aftermathPack = null;
       state.aftermathReview = null;

@@ -1,9 +1,11 @@
 (function () {
   "use strict";
 
-  function isPrimary(link) {
+  function isPrimary(link, hasDeepDive) {
     var href = link.getAttribute("href") || "";
     return href === "#sourceDossierPlayerSection" ||
+      href === "#sourceDossierEpisodeGuide" ||
+      (!hasDeepDive && href === "#sourceDossierShowWikiSummary") ||
       href.indexOf("sourceDossierShowWikiLane-best-moments") >= 0 ||
       href === "#sourceDossierAsk";
   }
@@ -11,23 +13,45 @@
   function relabel(link) {
     var href = link.getAttribute("href") || "";
     if (href === "#sourceDossierPlayerSection") link.textContent = "PLAY THE SHOW";
+    if (href === "#sourceDossierEpisodeGuide") link.textContent = "DEEP DIVE";
+    if (href === "#sourceDossierShowWikiSummary") link.textContent = "QUICK RECAP";
     if (href === "#sourceDossierAsk") link.textContent = "ASK THIS SHOW";
   }
 
   function enhance(nav) {
-    if (!nav || nav.dataset.editorialNav === "true") return;
+    if (!nav) return;
     var host = nav.querySelector(":scope > div") || nav;
+    var signature = Array.prototype.slice.call(host.querySelectorAll('a[href]')).map(function (link) {
+      return link.getAttribute("href") || "";
+    }).sort().join("|");
+    if (nav.dataset.editorialSignature === signature) return;
+    nav.dataset.editorialSignature = signature;
+    var existing = host.querySelector(":scope > .wwam-dossier-more");
+    if (existing) {
+      var existingTray = existing.querySelector(":scope > .wwam-dossier-more-tray");
+      if (existingTray) {
+        Array.prototype.slice.call(existingTray.querySelectorAll(":scope > a"))
+          .forEach(function (link) { host.insertBefore(link, existing); });
+      }
+      existing.remove();
+    }
     var links = Array.prototype.slice.call(host.querySelectorAll(":scope > a"));
     if (links.length < 4) return;
     nav.dataset.editorialNav = "true";
     nav.setAttribute("aria-label", "Show Wiki shortcuts");
 
-    links.filter(isPrimary).forEach(function (link) {
+    var hasDeepDive = links.some(function (link) {
+      return (link.getAttribute("href") || "") === "#sourceDossierEpisodeGuide";
+    });
+    links.forEach(function (link) {
+      link.classList.remove("wwam-dossier-primary-link");
+    });
+    links.filter(function (link) { return isPrimary(link, hasDeepDive); }).forEach(function (link) {
       relabel(link);
       link.classList.add("wwam-dossier-primary-link");
     });
 
-    var secondary = links.filter(function (link) { return !isPrimary(link); });
+    var secondary = links.filter(function (link) { return !isPrimary(link, hasDeepDive); });
     if (!secondary.length) return;
     var details = document.createElement("details");
     details.className = "wwam-dossier-more";
@@ -45,6 +69,7 @@
     var scope = root && root.querySelectorAll ? root : document;
     scope.querySelectorAll(".source-dossier-explore").forEach(enhance);
     if (scope.matches && scope.matches(".source-dossier-explore")) enhance(scope);
+    if (scope.closest) enhance(scope.closest(".source-dossier-explore"));
   }
 
   function boot() {

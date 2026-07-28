@@ -187,7 +187,7 @@ COMMON_TOPIC_RULES = [
     ("Effects and gore", "craft", ["practical effect", "special effect", "gore", "blood", "prosthetic", "makeup effect"]),
     ("Comedy and camp", "tone", ["funny", "hilarious", "laugh", "campy", "goofy", "ridiculous"]),
     ("Lore and continuity", "lore", ["canon", "continuity", "timeline", "backstory", "sequel", "lore"]),
-    ("Direction and camera", "craft", ["director", "directed", "camera", "camera shot", "this shot", "that shot", "shot of", "lighting", "cinematography"]),
+    ("Direction and camera", "craft", ["director", "directed", "camera", "camera shot", "this shot", "that shot", "shot of", "lighting", "cinematography", "panavision", "pana vision"]),
     ("The opening", "structure", ["opening scene", "the opening", "beginning", "intro", "first scene"]),
 ]
 
@@ -569,37 +569,85 @@ def topic_candidates(
 SEMANTIC_STANCE_RULES = [
     (r"\bi (?:think|feel|believe)\b", 5),
     (r"\bi (?:love|hate|prefer|wish)\b", 8),
-    (r"\b(?:works?|doesn['’]?t work|didn['’]?t work|effective|ineffective)\b", 8),
+    (r"\b(?:works?|doesn(?:'|\u2019)t work|does not work|didn(?:'|\u2019)t work|effective|ineffective)\b", 8),
     (r"\b(?:should have|should've|could have|could've|would have|would've)\b", 8),
     (r"\b(?:best|worst|favorite|rank|ranking|better than|worse than)\b", 8),
     (r"\b(?:point is|problem is|what i like|what i hate|what makes|the thing about)\b", 10),
     (r"\b(?:this|that|it) (?:is|was|'s) (?:great|good|bad|terrible|awful|amazing|perfect|stupid|dumb|effective)\b", 8),
 ]
-SEMANTIC_CRAFT_RULE = re.compile(
-    r"\b(?:writing|script|dialogue|character|performance|acting|camera|shot|lighting|"
-    r"score|soundtrack|ending|reveal|direction|edit|editing|scene)\b",
+# A stance is only treated as movie analysis when the same short excerpt also
+# contains a film object or a clear deictic judgment. This prevents "I hate
+# math" and "I love that flashlight" from becoming editorial verdicts merely
+# because they are loud.
+EDITORIAL_OBJECT_RULE = re.compile(
+    r"\b(?:movie|film|scene|shot|sequence|character|performance|acting|actor|actress|"
+    r"camera|lighting|cinematography|score|soundtrack|music|sound design|ending|opening|"
+    r"reveal|twist|direction|director|edit|editing|writing|script|dialogue|plot|story|"
+    r"mask|costume|makeup|effect|effects|gore|kill|sequel|remake|reboot|franchise|"
+    r"timeline|lore|freddy|jason|michael|ghostface|loomis|sidney|dewey|gale|laurie|"
+    r"jamie|rachel|tina|nancy|kirby|randy|challis|silver shamrock)\b",
+    re.I,
+)
+DEICTIC_JUDGMENT_RULE = re.compile(
+    r"\b(?:i (?:love|hate|prefer) (?:this|that|it)|"
+    r"(?:this|that|it) (?:works?|doesn(?:'|\u2019)t work|does not work)|"
+    r"(?:this|that|it) (?:is|was|'s) (?:great|good|bad|terrible|awful|amazing|perfect|stupid|dumb|effective))\b",
     re.I,
 )
 SEMANTIC_REASON_RULE = re.compile(
     r"\b(?:because|the reason|which is why|that is why|that's why|so that)\b",
     re.I,
 )
+VERDICT_RULES = [
+    (r"\b(?:final thoughts?|final verdict|overall|at the end of the day)\b", 14),
+    (r"\b(?:one of the (?:best|worst)|best in the franchise|worst in the franchise)\b", 12),
+    (r"\b(?:this|that) (?:movie|film|one) (?:is|was|'s) (?:great|good|bad|terrible|awful|amazing|perfect|stupid|dumb)\b", 12),
+    (r"\b(?:i|we) (?:love|hate) (?:this|that|the) (?:movie|film|one)\b", 12),
+    (r"\b(?:favorite|least favorite|rank|ranking)\b.{0,30}\b(?:movie|film|franchise|series|one)\b", 10),
+    (r"\b(?:great|good|bad|terrible|awful|fun) movie\b", 10),
+    (r"\bsaved the best for last\b", 10),
+]
 
 
-def semantic_take_score(text: str) -> int:
-    """Reward an actual stance or craft explanation, never profanity by itself."""
-    stance = sum(weight for pattern, weight in SEMANTIC_STANCE_RULES if re.search(pattern, text, re.I))
-    craft = 4 if SEMANTIC_CRAFT_RULE.search(text) else 0
-    if stance == 0 and craft == 0:
-        return 0
-    score = stance + craft
+def semantic_take_details(text: str) -> tuple[int, str]:
+    """Return a grounded analysis score and the exact supporting stance cue."""
+    matches = [
+        (weight, match.group(0))
+        for pattern, weight in SEMANTIC_STANCE_RULES
+        if (match := re.search(pattern, text, re.I))
+    ]
+    if not matches:
+        return 0, ""
+    object_match = EDITORIAL_OBJECT_RULE.search(text)
+    deictic_match = DEICTIC_JUDGMENT_RULE.search(text)
+    if not object_match and not deictic_match:
+        return 0, ""
+    stance = sum(weight for weight, _ in matches)
+    score = stance + (4 if object_match else 0)
     if SEMANTIC_REASON_RULE.search(text):
         score += 6
     if len(text.split()) >= 20:
         score += 1
-    if re.search(r"\b(?:oh my god|jesus christ|come on)\b", text, re.I) and stance == 0:
-        score = max(0, score - 2)
-    return min(score, 32)
+    evidence = max(matches, key=lambda item: (item[0], len(item[1])))[1]
+    return min(score, 32), evidence
+
+
+def semantic_take_score(text: str) -> int:
+    """Reward an actual stance or craft explanation, never profanity by itself."""
+    return semantic_take_details(text)[0]
+
+
+def verdict_signal_details(text: str) -> tuple[int, str]:
+    """Identify explicit summary/verdict language rather than any late reaction."""
+    matches = [
+        (weight, match.group(0))
+        for pattern, weight in VERDICT_RULES
+        if (match := re.search(pattern, text, re.I))
+    ]
+    if not matches:
+        return 0, ""
+    weight, evidence = max(matches, key=lambda item: (item[0], len(item[1])))
+    return weight + (3 if SEMANTIC_REASON_RULE.search(text) else 0), evidence
 
 GUIDE_CATEGORY_EXCLUSIONS = {
     "KILL ROOM": {r"\bhead\b", r"\bbody\b"},
@@ -632,14 +680,123 @@ def guide_classify(text: str) -> tuple[str, float, dict[str, int]]:
     punctuation = min(text.count("!") * 1.7 + text.count("?") * 0.8, 7)
     return category, raw + punctuation, hits
 
+def guide_category_evidence(text: str, category: str) -> tuple[int, str]:
+    """Return the exact visible phrase that earns a non-analysis category."""
+    if category == "FILM READ":
+        score, evidence = semantic_take_details(text)
+        return (1 if score >= 8 and evidence else 0), evidence
+    excluded = GUIDE_CATEGORY_EXCLUSIONS.get(category, set())
+    matches = [
+        match.group(0)
+        for pattern in CATEGORY_RULES.get(category, {}).get("terms", [])
+        if pattern not in excluded
+        for match in re.finditer(pattern, text, re.I)
+    ]
+    if not matches:
+        return 0, ""
+    return len(matches), max(matches, key=len)
+
+
+def evidence_windows(text: str, limit: int = 23) -> list[tuple[str, str]]:
+    """Return every short contiguous receipt and its display-safe clipping."""
+    words = text.split()
+    if len(words) <= limit:
+        return [(text, text)]
+    output: list[tuple[str, str]] = []
+    final_left = len(words) - limit
+    # Three overlapping windows are enough to cover a forty-word candidate
+    # while keeping a full 65-hour cache-only rebuild comfortably local.
+    for left in sorted({0, final_left // 2, final_left}):
+        plain = " ".join(words[left : left + limit])
+        display = ("? " if left else "") + plain
+        if left + limit < len(words):
+            display += " ?"
+        output.append((plain, display))
+    return output
+
+
+def grounded_evidence_window(
+    seed: dict[str, Any], topics: list[dict[str, Any]], text: str
+) -> dict[str, Any] | None:
+    """Select one receipt whose displayed words support every public label."""
+    choices: list[dict[str, Any]] = []
+    for plain, excerpt in evidence_windows(text):
+        category, raw_score, hits = guide_classify(plain)
+        substance, editorial_evidence = semantic_take_details(plain)
+        if sum(hits.values()) == 0:
+            if substance < 8:
+                continue
+            category = "FILM READ"
+        elif substance >= 8 and category in {
+            "OUT OF POCKET", "BREAKDOWN", "HORROR BRAIN", "KILL ROOM", "BIT ENERGY"
+        }:
+            negative_hits = hits.get("FRANCHISE FELONY", 0)
+            praise_hits = hits.get("LOVE LETTER", 0)
+            if negative_hits and negative_hits >= praise_hits:
+                category = "FRANCHISE FELONY"
+            elif praise_hits:
+                category = "LOVE LETTER"
+            else:
+                category = "FILM READ"
+        category_support, category_evidence = guide_category_evidence(plain, category)
+        if category_support <= 0:
+            continue
+        topic, topic_support, topic_evidence = local_topic_for_text(seed, topics, plain)
+        verdict_signal, verdict_evidence = verdict_signal_details(plain)
+        rank = (
+            raw_score
+            + substance * 1.55
+            + (16 if topic else 0)
+            + min(topic_support, 3) * 2
+            + verdict_signal * 0.35
+        )
+        choices.append(
+            {
+                "category": category,
+                "excerpt": excerpt,
+                "substance": substance,
+                "editorialEvidence": editorial_evidence,
+                "categorySupport": category_support,
+                "categoryEvidence": category_evidence,
+                "topic": topic["name"] if topic else seed["film"],
+                "topicBasis": "local-caption-match" if topic else "film-context-fallback",
+                "topicSupport": topic_support,
+                "topicEvidence": topic_evidence,
+                "verdictSignal": verdict_signal,
+                "verdictEvidence": verdict_evidence,
+                "evidenceBasis": (
+                    "topic-and-category-in-same-excerpt"
+                    if topic
+                    else "category-in-excerpt-film-context-only"
+                ),
+                "rank": rank,
+            }
+        )
+    if not choices:
+        return None
+    return max(
+        choices,
+        key=lambda item: (
+            item["substance"] >= 8,
+            item["rank"],
+            item["topicBasis"] == "local-caption-match",
+            item["verdictSignal"],
+        ),
+    )
+
+
 def guide_moment_candidates(
-    lines: list[dict[str, Any]], duration: int | float | None, maximum: int = 16
+    seed: dict[str, Any],
+    topics: list[dict[str, Any]],
+    lines: list[dict[str, Any]],
+    duration: int | float | None,
+    maximum: int = 16,
 ) -> list[dict[str, Any]]:
-    """Find a diverse, runtime-spanning cut index with analysis ahead of raw volume."""
+    """Find a diverse, runtime-spanning cut index with receipt-level grounding."""
     if not lines:
         return []
     end = max(float(duration or 0), lines[-1]["start"] + lines[-1]["duration"], 1)
-    pool: list[dict[str, Any]] = []
+    rough_pool: list[dict[str, Any]] = []
     for index, line in enumerate(lines):
         group = [line]
         for nxt in lines[index + 1 : index + 7]:
@@ -651,35 +808,56 @@ def guide_moment_candidates(
         body = clean_text(" ".join(item["text"] for item in group))
         if len(body.split()) < 8 or DISALLOWED_EXCERPT.search(body) or GUIDE_LOGISTICS.search(body):
             continue
-        category, raw_score, hits = guide_classify(body)
-        substance = semantic_take_score(body)
-        if raw_score < 6 and substance < 8:
+        body_category, body_raw_score, body_hits = guide_classify(body)
+        body_substance = semantic_take_score(body)
+        if sum(body_hits.values()) == 0 and body_substance < 8:
             continue
-        if substance >= 8 and category in {
-            "OUT OF POCKET", "BREAKDOWN", "HORROR BRAIN", "KILL ROOM", "BIT ENERGY"
-        }:
-            negative_hits = hits.get("FRANCHISE FELONY", 0)
-            praise_hits = hits.get("LOVE LETTER", 0)
-            if negative_hits and negative_hits >= praise_hits:
-                category = "FRANCHISE FELONY"
-            elif praise_hits:
-                category = "LOVE LETTER"
-            else:
-                category = "FILM READ"
-        elif sum(hits.values()) == 0:
-            category = "FILM READ"
-        rank = raw_score + substance * 1.35
-        pool.append(
+        if body_raw_score < 6 and body_substance < 8:
+            continue
+        body_verdict, _ = verdict_signal_details(body)
+        rough_pool.append(
             {
+                "body": body,
+                "bodyCategory": body_category,
+                "roughRank": body_raw_score + body_substance * 1.35 + body_verdict * 0.4,
                 "t": round(line["start"]),
                 "end": round(min(end, line["start"] + 36)),
-                "category": category,
-                "excerpt": excerpt_words(body, 23),
-                "rank": rank,
-                "substance": substance,
                 "slot": min(5, int(line["start"] / end * 6)),
+                "verdict": body_verdict,
             }
         )
+
+    # Receipt-level grounding is more expensive than rough signal detection.
+    # Shortlist generously by runtime lane, category, and closing-verdict signal
+    # before testing every displayed 23-word window.
+    shortlisted: dict[int, dict[str, Any]] = {}
+    for slot in range(6):
+        lane = sorted(
+            (item for item in rough_pool if item["slot"] == slot),
+            key=lambda item: (-item["roughRank"], item["t"]),
+        )
+        for item in lane[:120]:
+            shortlisted[item["t"]] = item
+    for category in CATEGORY_RULES:
+        lane = sorted(
+            (item for item in rough_pool if item["bodyCategory"] == category),
+            key=lambda item: (-item["roughRank"], item["t"]),
+        )
+        for item in lane[:18]:
+            shortlisted[item["t"]] = item
+    for item in sorted(
+        (item for item in rough_pool if item["slot"] == 5 and item["verdict"] >= 10),
+        key=lambda item: (-item["verdict"], -item["roughRank"], -item["t"]),
+    )[:30]:
+        shortlisted[item["t"]] = item
+
+    pool: list[dict[str, Any]] = []
+    for rough in shortlisted.values():
+        grounded = grounded_evidence_window(seed, topics, rough["body"])
+        if not grounded:
+            continue
+        grounded.update({key: rough[key] for key in ("t", "end", "slot")})
+        pool.append(grounded)
 
     pool.sort(key=lambda item: (-item["rank"], -item["substance"], item["t"]))
     chosen: list[dict[str, Any]] = []
@@ -694,21 +872,66 @@ def guide_moment_candidates(
             and not any(abs(candidate["t"] - item["t"]) < separation for item in chosen)
         )
 
-    # Guarantee one strong, preferably substantive stop in every sixth.
+    def keep(candidate: dict[str, Any]) -> None:
+        chosen.append(candidate)
+        fingerprints.add(" ".join(re.findall(r"[a-z']+", candidate["excerpt"].lower()))[:90])
+        category_counts[candidate["category"]] += 1
+
+    # Guarantee one strong stop in every sixth. In the final sixth, explicit
+    # verdict language outranks a merely late reaction.
     for slot in range(6):
         candidates = [item for item in pool if item["slot"] == slot and eligible(item, 35)]
         candidate = max(
             candidates,
-            key=lambda item: (item["substance"] >= 8, item["rank"], item["substance"], -item["t"]),
+            key=lambda item: (
+                item["verdictSignal"] >= 10 if slot == 5 else item["substance"] >= 8,
+                item["substance"] >= 8,
+                item["topicBasis"] == "local-caption-match",
+                item["verdictSignal"],
+                item["rank"],
+                -item["t"],
+            ),
             default=None,
         )
         if candidate:
-            chosen.append(candidate)
-            fingerprints.add(" ".join(re.findall(r"[a-z']+", candidate["excerpt"].lower()))[:90])
-            category_counts[candidate["category"]] += 1
+            keep(candidate)
+
+    # Keep at least one playable receipt for each recurring subject when the
+    # evidence pool contains one. This lets Ask surface specific craft terms
+    # such as Panavision instead of allowing one loud character to consume the
+    # entire runtime-sized cut budget.
+    for topic in topics:
+        if len(chosen) >= maximum:
+            break
+        if any(item["topic"] == topic["name"] for item in chosen):
+            continue
+        candidates = [
+            item
+            for item in pool
+            if item["topic"] == topic["name"]
+            and item["topicBasis"] == "local-caption-match"
+            and eligible(item, 18)
+        ]
+        candidate = max(
+            candidates,
+            key=lambda item: (
+                lexical(item.get("topicEvidence", ""))
+                not in {"camera", "camera shot", "this shot", "that shot", "shot of", "lighting", "director", "directed"},
+                len(lexical(item.get("topicEvidence", "")).split()),
+                len(item.get("topicEvidence", "")),
+                item.get("substance", 0) >= 8,
+                item.get("substance", 0),
+                item["rank"],
+                -item["t"],
+            ),
+            default=None,
+        )
+        if candidate:
+            keep(candidate)
+
     # Preserve the WWAM mix: analysis is the spine, while a deep dive still
     # needs comedy, callbacks, theories, and kill-room reactions when present.
-    for category in ("OUT OF POCKET", "BREAKDOWN", "BIT ENERGY", "THEORY BOARD", "KILL ROOM"):
+    for category in ("FRANCHISE FELONY", "LOVE LETTER", "OUT OF POCKET", "BREAKDOWN", "BIT ENERGY", "THEORY BOARD", "KILL ROOM"):
         if len(chosen) >= maximum or category_counts[category]:
             continue
         candidate = next(
@@ -716,23 +939,30 @@ def guide_moment_candidates(
             None,
         )
         if candidate:
-            chosen.append(candidate)
-            fingerprints.add(" ".join(re.findall(r"[a-z']+", candidate["excerpt"].lower()))[:90])
-            category_counts[candidate["category"]] += 1
-    for candidate in pool:
+            keep(candidate)
+
+    # Fill to the runtime-sized target while relaxing only temporal spacing, never evidence or
+    # per-category caps.
+    for separation in (45, 30, 18):
+        for candidate in pool:
+            if len(chosen) >= maximum:
+                break
+            if not eligible(candidate, separation):
+                continue
+            keep(candidate)
         if len(chosen) >= maximum:
             break
-        if not eligible(candidate, 45):
-            continue
-        chosen.append(candidate)
-        fingerprints.add(" ".join(re.findall(r"[a-z']+", candidate["excerpt"].lower()))[:90])
-        category_counts[candidate["category"]] += 1
 
-    for index, candidate in enumerate(sorted(chosen, key=lambda item: item["t"])):
+    ordered = sorted(chosen, key=lambda item: item["t"])
+    for index, candidate in enumerate(ordered):
         candidate.pop("slot", None)
-        candidate["score"] = min(99, round(35 + candidate.pop("rank") * 1.8))
+        candidate["score"] = min(99, round(35 + candidate.pop("rank") * 1.65))
         candidate["id"] = f"guide-cut-{index + 1:02d}-{candidate['t']}"
-    return sorted(chosen, key=lambda item: item["t"])
+        candidate["label"] = CATEGORY_COPY.get(
+            candidate["category"], candidate["category"].lower()
+        )
+    return ordered
+
 
 def natural_list(values: list[str]) -> str:
     values = list(dict.fromkeys(value for value in values if value))
@@ -752,50 +982,145 @@ def clock_label(seconds: int | float) -> str:
     return f"{hours}:{minutes:02d}:{secs:02d}" if hours else f"{minutes}:{secs:02d}"
 
 
-def alias_occurrences(text: str, alias: str) -> int:
+def alias_occurrences_in_lexical(body: str, alias: str) -> int:
+    """Count one alias in already-normalized receipt text."""
     normalized = lexical(alias)
     if not normalized:
         return 0
-    body = lexical(text)
     if " " in normalized:
         return (" " + body + " ").count(" " + normalized + " ")
     suffix = r"\w*" if len(normalized) >= 5 else ""
     return len(re.findall(r"\b" + re.escape(normalized) + suffix + r"\b", body))
 
 
-def local_topic_for_cut(
+def alias_occurrences(text: str, alias: str) -> int:
+    return alias_occurrences_in_lexical(lexical(text), alias)
+
+
+def local_topic_for_text(
     seed: dict[str, Any],
     topics: list[dict[str, Any]],
-    lines: list[dict[str, Any]],
-    at: int | float,
-) -> tuple[dict[str, Any] | None, int]:
-    """Bind a topic only when the local caption window actually names it."""
+    text: str,
+) -> tuple[dict[str, Any] | None, int, str]:
+    """Bind a subject only when the exact public receipt contains its alias."""
     if not topics:
-        return None, 0
-    body = clean_text(
-        " ".join(
-            line["text"]
-            for line in lines
-            if float(at) - 18 <= line["start"] <= float(at) + 42
-        )
-    )
+        return None, 0, ""
     selected = {topic["name"]: topic for topic in topics}
-    choices: list[tuple[float, int, dict[str, Any]]] = []
+    body = lexical(text)
+    choices: list[tuple[float, int, str, dict[str, Any]]] = []
     for name, kind, aliases in topic_rules_for_seed(seed):
         topic = selected.get(name)
         if not topic:
             continue
-        hits = sum(alias_occurrences(body, alias) for alias in aliases)
-        if hits <= 0:
+        alias_hits = []
+        for alias in aliases:
+            count = alias_occurrences_in_lexical(body, alias)
+            if count > 0:
+                alias_hits.append((count, alias))
+        if not alias_hits:
             continue
-        specificity = max((len(lexical(alias).split()) for alias in aliases), default=1)
+        hits = sum(count for count, _ in alias_hits)
+        evidence_alias = max(
+            alias_hits,
+            key=lambda item: (item[0], len(lexical(item[1]).split()), len(item[1])),
+        )[1]
+        specificity = len(lexical(evidence_alias).split())
         kind_bonus = 5 if kind in {"character", "place", "performance"} else 0
         local_score = hits * 100 + specificity * 12 + kind_bonus + topic["score"] * 0.02
-        choices.append((local_score, hits, topic))
+        choices.append((local_score, hits, evidence_alias, topic))
     if not choices:
-        return None, 0
-    _, hits, topic = max(choices, key=lambda item: (item[0], item[1], item[2]["name"]))
-    return topic, hits
+        return None, 0, ""
+    _, hits, evidence_alias, topic = max(
+        choices, key=lambda item: (item[0], item[1], item[3]["name"])
+    )
+    return topic, hits, evidence_alias
+
+
+ACT_LANE_COPY = [
+    "The cold-open checkpoint",
+    "The setup stretch",
+    "The first major turn",
+    "The halfway checkpoint",
+    "The escalation stretch",
+    "The closing stretch",
+    "The final lap",
+]
+CATEGORY_TURN_COPY = {
+    "OUT OF POCKET": "the commentary takes an out-of-pocket exit ramp",
+    "FRANCHISE FELONY": "the prosecution gets the floor",
+    "LOVE LETTER": "the defense delivers a full-throated save",
+    "THEORY BOARD": "a prediction or theory takes over",
+    "KILL ROOM": "the reaction locks onto kill-scene language",
+    "BIT ENERGY": "a callback or running bit resurfaces",
+    "BREAKDOWN": "the comedy pressure spikes",
+    "HORROR BRAIN": "the conversation detours into horror lore",
+    "FILM READ": "the movie talk gets specific about the craft on screen",
+}
+TOPIC_KIND_COPY = {
+    "character": "character-led",
+    "place": "location-led",
+    "performance": "performance-led",
+    "craft": "craft-led",
+    "lore": "lore-led",
+    "opinion": "verdict-led",
+    "tone": "tone-led",
+    "structure": "structure-led",
+}
+
+
+def chapter_editorial_body(
+    slot: int,
+    chapter_total: int,
+    cut: dict[str, Any],
+    film: str,
+) -> tuple[str, str]:
+    if slot == chapter_total - 1:
+        lane = "The closing stretch"
+    elif chapter_total == 7 and slot == 5:
+        lane = "The late escalation"
+    else:
+        lane = ACT_LANE_COPY[slot]
+    turn = CATEGORY_TURN_COPY.get(cut["category"], cut["label"])
+    at = clock_label(cut["t"])
+    if cut["topicBasis"] == "local-caption-match":
+        return (
+            f"{lane} locks onto {cut['topic']}. At {at}, {turn}—a clean jump into "
+            "the moment without losing the movie thread.",
+            "topic-and-category-in-same-excerpt",
+        )
+    return (
+        f"{lane} lands at {at}, where {turn} and {film} itself stays at the center.",
+        "category-in-excerpt-film-context-only",
+    )
+
+
+def take_editorial_body(
+    lane: str, cut: dict[str, Any], explicit_verdict: bool = False
+) -> tuple[str, str]:
+    at = clock_label(cut["t"])
+    turn = CATEGORY_TURN_COPY.get(cut["category"], cut["label"])
+    if lane == "closing" and explicit_verdict:
+        return (
+            f"At {at}, the tape finally says exactly how it feels. Around "
+            f"{cut['topic']}, {turn}; this one earns the closing verdict.",
+            "explicit-verdict-language",
+        )
+    if lane == "closing":
+        return (
+            "The tape never delivers one neat final-summary line. "
+            f"This late cut at {at} is the best closing read: {turn}.",
+            "late-evaluative-fallback",
+        )
+    lead = "The watch path opens" if lane == "opening" else "The watch path turns"
+    if cut["topicBasis"] == "local-caption-match":
+        return (
+            f"{lead} at {at} with {cut['topic']}, and {turn}.",
+            "topic-and-category-in-same-excerpt",
+        )
+    return (
+        f"{lead} at {at}, where {turn} and the movie itself stays at the center.",
+        "category-in-excerpt-film-context-only",
+    )
 
 
 def build_episode_guide(
@@ -805,22 +1130,28 @@ def build_episode_guide(
     if not lines:
         return None
     end = max(float(duration or 0), lines[-1]["start"] + lines[-1]["duration"], 1)
-    topics = topic_candidates(seed, lines)
-    cuts = guide_moment_candidates(lines, end)
+    if end < 5700:
+        chapter_target, cut_target, thread_target, runtime_band = 5, 13, 6, "FEATURE"
+    elif end < 6600:
+        chapter_target, cut_target, thread_target, runtime_band = 6, 15, 7, "EXTENDED"
+    else:
+        chapter_target, cut_target, thread_target, runtime_band = 7, 17, 8, "MARATHON"
+    topics = topic_candidates(seed, lines, maximum=thread_target)
+    cuts = guide_moment_candidates(
+        seed,
+        topics,
+        lines,
+        end,
+        maximum=cut_target,
+    )
     if len(cuts) < 6:
         return None
-    for cut in cuts:
-        topic, support = local_topic_for_cut(seed, topics, lines, cut["t"])
-        cut["topic"] = topic["name"] if topic else seed["film"]
-        cut["topicBasis"] = "local-caption-match" if topic else "film-context-fallback"
-        cut["topicSupport"] = support
-        cut["label"] = CATEGORY_COPY.get(cut["category"], cut["category"].lower())
 
     chapters: list[dict[str, Any]] = []
     chapter_cut_ids: set[str] = set()
-    for slot in range(6):
-        start = end * slot / 6
-        stop = end * (slot + 1) / 6
+    for slot in range(chapter_target):
+        start = end * slot / chapter_target
+        stop = end * (slot + 1) / chapter_target
         candidates = [cut for cut in cuts if start <= cut["t"] < stop and cut["id"] not in chapter_cut_ids]
         if not candidates:
             candidates = [cut for cut in cuts if cut["id"] not in chapter_cut_ids]
@@ -828,112 +1159,282 @@ def build_episode_guide(
             break
         cut = max(
             candidates,
-            key=lambda item: (item.get("substance", 0), item["score"], -abs(item["t"] - (start + stop) / 2)),
+            key=lambda item: (
+                item.get("substance", 0) >= 8,
+                item["topicBasis"] == "local-caption-match",
+                item.get("substance", 0),
+                item["score"],
+                -abs(item["t"] - (start + stop) / 2),
+            ),
         )
         chapter_cut_ids.add(cut["id"])
-        subject = cut["topic"]
-        if cut["topicBasis"] == "local-caption-match":
-            body = (
-                f"{subject} is explicitly present in this stretch. "
-                f"At {clock_label(cut['t'])}, the saved cut registers {cut['label']}."
-            )
-        else:
-            body = (
-                f"The clearest saved turn in this stretch lands at {clock_label(cut['t'])}: "
-                f"{cut['label']} during the {seed['film']} commentary."
-            )
+        body, evidence_basis = chapter_editorial_body(
+            slot,
+            chapter_target,
+            cut,
+            seed["film"],
+        )
         chapters.append(
             {
                 "id": f"act-{slot + 1:02d}",
                 "act": slot + 1,
-                "label": f"{subject} // {cut['category'].title()}",
+                "label": f"{cut['topic']} // {cut['category'].title()}",
                 "at": cut["t"],
                 "end": cut["end"],
                 "body": body,
                 "excerpt": cut["excerpt"],
                 "category": cut["category"],
-                "topic": subject,
+                "topic": cut["topic"],
                 "cutId": cut["id"],
+                "evidenceBasis": evidence_basis,
             }
         )
 
     take_arc: list[dict[str, Any]] = []
     phases = [
-        ("OPENING READ", 0.00, 0.28),
-        ("MIDPOINT TURN", 0.32, 0.70),
-        ("LATE VERDICT", 0.82, 1.01),
+        ("opening", "OPENING READ", 0.00, 0.28),
+        ("midpoint", "MIDPOINT TURN", 0.32, 0.70),
+        ("closing", "", 0.82, 1.01),
     ]
     take_cut_ids: set[str] = set()
-    for phase_index, (phase, lower, upper) in enumerate(phases):
+    for phase_index, (lane, fixed_phase, lower, upper) in enumerate(phases):
         candidates = [cut for cut in cuts if end * lower <= cut["t"] <= end * upper]
-        unused = [cut for cut in candidates if cut["id"] not in chapter_cut_ids and cut["id"] not in take_cut_ids]
-        if unused:
-            candidates = unused
+        if lane != "closing":
+            unused = [
+                cut for cut in candidates
+                if cut["id"] not in chapter_cut_ids and cut["id"] not in take_cut_ids
+            ]
+            if unused:
+                candidates = unused
         if not candidates:
             fallback_start = end * phase_index / 3
             fallback_stop = end * (phase_index + 1) / 3
             candidates = [cut for cut in cuts if fallback_start <= cut["t"] <= fallback_stop]
         if not candidates:
             continue
-        cut = max(
-            candidates,
-            key=lambda item: (
-                item.get("substance", 0) >= 8,
-                item.get("substance", 0),
-                item["score"],
-                item["t"] if phase == "LATE VERDICT" else -item["t"],
-            ),
-        )
+        if lane == "closing":
+            cut = max(
+                candidates,
+                key=lambda item: (
+                    item.get("verdictSignal", 0) >= 10,
+                    item.get("verdictSignal", 0),
+                    item.get("substance", 0) >= 8,
+                    item.get("substance", 0),
+                    item["id"] not in chapter_cut_ids,
+                    item["score"],
+                    item["t"],
+                ),
+            )
+        else:
+            cut = max(
+                candidates,
+                key=lambda item: (
+                    item.get("substance", 0) >= 8,
+                    item["topicBasis"] == "local-caption-match",
+                    item.get("substance", 0),
+                    item["score"],
+                    -item["t"],
+                ),
+            )
         take_cut_ids.add(cut["id"])
+        explicit_verdict = lane == "closing" and cut.get("verdictSignal", 0) >= 10
+        phase = fixed_phase or ("FINAL VERDICT" if explicit_verdict else "CLOSING READ")
+        body, evidence_basis = take_editorial_body(lane, cut, explicit_verdict)
         take_arc.append(
             {
                 "phase": phase,
                 "label": f"{cut['topic']} // {cut['category'].title()}",
                 "at": cut["t"],
                 "end": cut["end"],
-                "body": (
-                    f"The {phase.lower()} lands at {clock_label(cut['t'])}: "
-                    f"{cut['label']} centered on {cut['topic']}."
-                ),
+                "body": body,
                 "excerpt": cut["excerpt"],
                 "category": cut["category"],
                 "cutId": cut["id"],
+                "evidenceBasis": evidence_basis,
             }
         )
 
     category_counts = Counter(cut["category"] for cut in cuts)
-    top_names = [topic["name"] for topic in topics[:4]]
-    strongest = max(cuts, key=lambda item: (item.get("substance", 0), item["score"]))
     praise = category_counts["LOVE LETTER"]
     negative = category_counts["FRANCHISE FELONY"]
     comedy = sum(category_counts[label] for label in ("OUT OF POCKET", "BREAKDOWN", "BIT ENERGY"))
     substantive = sum(1 for cut in cuts if cut.get("substance", 0) >= 8)
-    opening = take_arc[0] if take_arc else None
-    late = take_arc[-1] if take_arc else None
-    movement = ""
-    if opening and late:
-        movement = (
-            f" The mapped take moves from {opening['label']} at {clock_label(opening['at'])} "
-            f"to {late['label']} at {clock_label(late['at'])}."
+    strongest = max(cuts, key=lambda item: (item.get("substance", 0), item["score"]))
+    primary, secondary = topics[0], topics[1]
+    side_names = [topic["name"] for topic in topics[2:4]]
+    map_style = TOPIC_KIND_COPY.get(primary["kind"], "conversation-led")
+    opening = take_arc[0]
+    midpoint = take_arc[1]
+    closing = take_arc[-1]
+    if closing["phase"] == "FINAL VERDICT":
+        closing_clause = (
+            f"reaches explicit verdict language at {clock_label(closing['at'])} on "
+            f"{closing['label']}"
         )
+        fan_closing = (
+            f"lands a real closing verdict on {closing['label']} at "
+            f"{clock_label(closing['at'])}"
+        )
+    else:
+        closing_clause = (
+            f"ends on a bounded closing read at {clock_label(closing['at'])} on "
+            f"{closing['label']}; no unsupported final verdict is invented"
+        )
+        fan_closing = (
+            f"winds down with {closing['label']} at {clock_label(closing['at'])}"
+        )
+    if praise >= negative + 2:
+        mix_clause = "The saved reaction ledger leans more defense than prosecution"
+        fan_tone = "This is one of the more affectionate rides: the defense gets more clean wins than the prosecution."
+    elif negative >= praise + 2:
+        mix_clause = "The saved reaction ledger leans more prosecution than defense"
+        fan_tone = "This tape brings the knives: the prosecution gets more clean wins than the defense."
+    elif comedy >= max(praise, negative):
+        mix_clause = "Comedy is the strongest side engine around the editorial spine"
+        fan_tone = "The movie talk keeps getting hijacked by comedy, callbacks, and wonderfully unnecessary exits."
+    else:
+        mix_clause = "Praise and prosecution stay in productive tension"
+        fan_tone = "The night keeps swinging between genuine appreciation and a case for the prosecution."
     overview = (
-        f"In {seed['film']}, {natural_list(top_names)} anchor the recurring conversation.{movement} "
-        f"Across {clock_label(end)}, sixteen playable cuts preserve {substantive} explicit takes or craft reads, "
-        f"alongside {praise} praise spike{'s' if praise != 1 else ''}, {negative} hard negative turn{'s' if negative != 1 else ''}, "
-        f"and {comedy} comedy or out-of-pocket turn{'s' if comedy != 1 else ''}. "
-        f"The strongest analysis-weighted cut lands at {clock_label(strongest['t'])}: {strongest['label']} centered on {strongest['topic']}."
+        f"{seed['film']} keeps pulling the room back to {primary['name']}, then "
+        f"{secondary['name']}, with {natural_list(side_names)} close behind. {fan_tone} "
+        f"The fastest way in is {opening['label']} at {clock_label(opening['at'])}, "
+        f"then {midpoint['label']} at {clock_label(midpoint['at'])}, before the tape "
+        f"{fan_closing}. If you only play one moment, jump to {strongest['topic']} at "
+        f"{clock_label(strongest['t'])}."
     )
+    evidence_summary = (
+        f"{seed['film']} gets a {map_style} evidence map: {primary['name']} leads with "
+        f"{primary['mentions']} spaced caption matches and a dense cluster near "
+        f"{clock_label(primary['peak'])}, while {secondary['name']} supplies "
+        f"{secondary['mentions']} matches. {natural_list(side_names)} form the next two "
+        f"recurring lanes. The three-stop path opens at {clock_label(opening['at'])} on "
+        f"{opening['label']}, pivots at {clock_label(midpoint['at'])} on {midpoint['label']}, "
+        f"and {closing_clause}. {mix_clause}: the {len(cuts)}-cut ledger contains {substantive} "
+        f"explicit evaluative or craft reads, {praise} praise spike{'s' if praise != 1 else ''}, "
+        f"{negative} hard negative turn{'s' if negative != 1 else ''}, and {comedy} comedy or "
+        f"out-of-pocket turn{'s' if comedy != 1 else ''}. The strongest analysis-weighted "
+        f"receipt lands at {clock_label(strongest['t'])} around {strongest['topic']}."
+    )
+    cut_by_id = {cut["id"]: cut for cut in cuts}
+
+    def fan_receipt(
+        key: str,
+        label: str,
+        cut: dict[str, Any] | None,
+        body: str,
+    ) -> dict[str, Any] | None:
+        if not cut:
+            return None
+        return {
+            "key": key,
+            "label": label,
+            "body": body,
+            "at": cut["t"],
+            "end": cut["end"],
+            "cutId": cut["id"],
+            "category": cut["category"],
+            "topic": cut["topic"],
+            "excerpt": cut["excerpt"],
+            "evidenceBasis": cut["evidenceBasis"],
+        }
+
+    strongest_love = max(
+        (cut for cut in cuts if cut["category"] == "LOVE LETTER"),
+        key=lambda item: (item["score"], item.get("substance", 0)),
+        default=None,
+    )
+    strongest_hate = max(
+        (cut for cut in cuts if cut["category"] == "FRANCHISE FELONY"),
+        key=lambda item: (item["score"], item.get("substance", 0)),
+        default=None,
+    )
+    wildest = max(
+        (
+            cut
+            for cut in cuts
+            if cut["category"] in {"OUT OF POCKET", "BREAKDOWN", "BIT ENERGY"}
+        ),
+        key=lambda item: (item["score"], item.get("substance", 0)),
+        default=strongest,
+    )
+    closing_cut = cut_by_id.get(closing["cutId"], strongest)
+    why_body = (
+        f"{seed['film']} keeps circling back to {primary['name']} and "
+        f"{secondary['name']}. Its must-play turn lands at {clock_label(strongest['t'])} "
+        f"on {strongest['topic']}; the quick path below separates the love, the hate, "
+        "the wildest detour, and the last word."
+    )
+    fan_read = {
+        "whyThisNightMatters": {
+            "label": "WHY THIS NIGHT MATTERS",
+            "body": why_body,
+            "primaryThread": primary["name"],
+            "secondaryThread": secondary["name"],
+            "strongestCutId": strongest["id"],
+        },
+        "loved": fan_receipt(
+            "loved",
+            "WHAT THE TAPE DEFENDED",
+            strongest_love,
+            (
+                f"The clearest praise spike lands at {clock_label(strongest_love['t'])} "
+                f"around {strongest_love['topic']}."
+                if strongest_love
+                else ""
+            ),
+        ),
+        "hated": fan_receipt(
+            "hated",
+            "STRAIGHT TO STEVE'S ASSHOLE",
+            strongest_hate,
+            (
+                f"The sharpest prosecution lands at {clock_label(strongest_hate['t'])} "
+                f"around {strongest_hate['topic']}."
+                if strongest_hate
+                else ""
+            ),
+        ),
+        "wildestDetour": fan_receipt(
+            "wildestDetour",
+            "WILDEST DETOUR",
+            wildest,
+            (
+                f"The comedy pressure takes its hardest turn at {clock_label(wildest['t'])} "
+                f"around {wildest['topic']}."
+                if wildest
+                else ""
+            ),
+        ),
+        "lastWord": fan_receipt(
+            "lastWord",
+            "THE LAST WORD",
+            closing_cut,
+            (
+                f"The mapped closing read lands at {clock_label(closing_cut['t'])} "
+                f"around {closing_cut['topic']}."
+            ),
+        ),
+    }
     return {
         "schema": "wwam-episode-guide/v2",
-        "basis": "full-caption local-topic binding plus analysis-weighted runtime-spanning candidates; speaker identity and audio origin remain unverified",
+        "basis": "full-caption runtime mapping with every public cut label supported inside its displayed excerpt; speaker identity and audio origin remain unverified",
         "overview": overview,
+        "evidenceSummary": evidence_summary,
+        "shape": {
+            "runtimeBand": runtime_band,
+            "chapters": len(chapters),
+            "threads": len(topics),
+            "cuts": len(cuts),
+        },
+        "fanRead": fan_read,
         "chapters": chapters,
         "takeArc": take_arc,
-        "threads": topics[:8],
+        "threads": topics,
         "cuts": cuts,
         "metrics": {
             "chapters": len(chapters),
-            "threads": len(topics[:8]),
+            "threads": len(topics),
             "cuts": len(cuts),
             "praise": praise,
             "negative": negative,
@@ -1210,7 +1711,7 @@ def main() -> int:
             "sourceFingerprint": fingerprint_ids(seeds),
             "sourceCount": len(seeds),
         },
-        "method": "Full available YouTube auto-caption pass; legacy Hot 100 excerpts remain stable while Episode Guide V2 adds recurring-subject concentration, six runtime acts, a three-stage take arc, and a sixteen-cut playable index.",
+        "method": "Full available YouTube auto-caption pass; legacy Hot 100 excerpts remain stable while Episode Guide V2 adds recurring-subject concentration, runtime-sized chapters, a three-stage take arc, fan-first synthesis, and a playable cut index.",
         "scope": "Four bounded watchalong paths only. Reviews, news streams, and non-commentary uploads are excluded.",
         "meta": {
             "tapes": len(catalog),

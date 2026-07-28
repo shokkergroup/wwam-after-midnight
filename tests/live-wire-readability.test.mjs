@@ -36,6 +36,8 @@ test("Live Wire keeps its rolling source map and topic controls intact", () => {
   assert.match(section, /THE TEN NEWEST LIVESTREAMS/);
   assert.match(section, /Missed a night/);
   assert.doesNotMatch(section, /archive can understand|comedy heat|mapping unavailable/i);
+  assert.match(app, /String\(index \+ 1\)\.padStart\(2, "0"\)/, "double-digit live counters must stay two digits");
+  assert.doesNotMatch(app, /<span>LIVE 0'\s*\+/, "the tenth show must never render as LIVE 010");
 });
 
 test("Live Wire pins readable artwork, copy, controls, and sealed-state truth", () => {
@@ -75,9 +77,17 @@ test("Live Wire becomes one readable column before cards become cramped", () => 
   assert.match(tablet, /\.topic-radar\s*\{\s*grid-template-columns:\s*1fr/);
 
   const mobile = mediaBlock("max-width: 600px", ".stream-body");
-  assert.match(mobile, /\.stream-body\s*\{\s*padding:\s*18px 16px 20px/);
-  assert.match(mobile, /\.stream-body > div:first-child, \.stream-body > footer\s*\{[^}]*flex-direction:\s*column/);
-  assert.match(html, /href="styles\.css\?v=0\.5\.28-mobile-p3"/);
+  assert.match(mobile, /\.stream-body\s*\{\s*padding:\s*14px 14px 16px/);
+  assert.match(mobile, /\.livewire \.stream-body h3\s*\{[^}]*-webkit-line-clamp:\s*2/s);
+  assert.match(mobile, /\.livewire \.stream-body > p\s*\{[^}]*-webkit-line-clamp:\s*3/s);
+  assert.match(mobile, /\.livewire \.stream-topics\s*\{[^}]*repeat\(2,\s*minmax\(0,\s*1fr\)\)/s);
+  assert.match(mobile, /\.livewire \.stream-topics button:nth-child\(n\+3\)\s*\{\s*display:\s*none/);
+  assert.match(mobile, /\.livewire \.mini-heat\s*\{\s*display:\s*none/);
+  assert.match(mobile, /\.livewire \.stream-body > footer span\s*\{\s*display:\s*none/);
+  const mobileAction = mobile.match(/\.livewire \.stream-body > footer button\s*\{([^}]*)\}/)?.[1] || "";
+  assert.match(mobileAction, /width:\s*100%/);
+  assert.match(mobileAction, /min-height:\s*44px/);
+  assert.match(html, /href="styles\.css\?v=0\.5\.34-livewire-mobile"/);
 });
 test("Live Wire reads like a catch-up shelf instead of an analysis dashboard", () => {
   const start = app.indexOf("  function renderLiveProof() {");

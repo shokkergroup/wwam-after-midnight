@@ -33,6 +33,7 @@ class FakeMount {
     this.innerHTML = "";
     this.focusCount = 0;
     this.jumpTargets = new Map();
+    this.modal = null;
   }
 
   addEventListener(type, listener) {
@@ -107,7 +108,10 @@ class FakeMount {
     return prevented;
   }
 
-  registerJumpTarget(id) {
+  registerJumpTarget(
+    id,
+    { hiddenResearch = false, requiresFullFile = false, rectTop = 0 } = {},
+  ) {
     const headingAttributes = new Map();
     const heading = {
       focusCount: 0,
@@ -126,9 +130,16 @@ class FakeMount {
     };
     const target = {
       heading,
+      requiresFullFile,
       scrollCalls: [],
+      getBoundingClientRect() {
+        return { top: rectTop, bottom: rectTop + 240, height: 240 };
+      },
       querySelector(selector) {
         return selector === "h2,h3,h4,h5" ? heading : null;
+      },
+      closest(selector) {
+        return hiddenResearch && selector === "#sourceDossierDeepResearch[hidden]" ? {} : null;
       },
       scrollIntoView(options) {
         this.scrollCalls.push(options);
@@ -157,8 +168,19 @@ class FakeMount {
     return prevented;
   }
 
+  closest(selector) {
+    return selector === "#tapeModal" ? this.modal : null;
+  }
+
   querySelector(selector) {
-    if (this.jumpTargets.has(selector)) return this.jumpTargets.get(selector);
+    if (this.jumpTargets.has(selector)) {
+      const target = this.jumpTargets.get(selector);
+      if (
+        target.requiresFullFile &&
+        !this.innerHTML.includes('data-source-dossier-view="full"')
+      ) return null;
+      return target;
+    }
     if (selector !== "#sourceDossierQuery") return null;
     return {
       focus: () => {
@@ -804,8 +826,8 @@ test("exports the per-show Wiki UI, keeps curated lanes first, and destroys clea
   const { api, ui, mount, engine, dossier } = setup();
   const rendered = ui.render("SOURCE00001", { at: 333 });
 
-  assert.equal(api.VERSION, "1.8.1");
-  assert.equal(ui.version, "1.8.1");
+  assert.equal(api.VERSION, "1.10.0");
+  assert.equal(ui.version, "1.10.0");
   assert.equal(rendered, dossier);
   assert.deepEqual(engine.buildCalls, ["SOURCE00001"]);
   assert.equal(mount.getAttribute("data-source-dossier-state"), "ready");
@@ -820,8 +842,10 @@ test("exports the per-show Wiki UI, keeps curated lanes first, and destroys clea
         /class="source-dossier-receipt source-dossier-wiki-receipt"/g,
       ) ?? []
     ).length,
-    4,
+    0,
   );
+  assert.match(mount.innerHTML, /3 STARTER MOMENTS\. NO HUNTING/);
+  assert.match(mount.innerHTML, /OPEN THE COMPLETE WATCH PATH/);
   assert.match(mount.innerHTML, /21 EXACT TIMESTAMPS FROM THIS SHOW/);
   assert.match(mount.innerHTML, /0 OF 21 TIMESTAMPS VISIBLE/);
   assert.match(mount.innerHTML, /SHOW ALL 21 TIMESTAMPS/);
@@ -1001,6 +1025,79 @@ test("Aftermath Pack binding drift fails closed without taking down the Show Wik
   assert.match(mount.innerHTML, /THE TAPE THAT REFUSED TO DIE/);
 });
 
+test("compact Show Wiki keeps Ask one click away and reveals its exact-show tools on demand", () => {
+  const { ui, mount } = setup(makeDossier());
+  ui.render("SOURCE00001");
+
+  const exploreMatch = mount.innerHTML.match(
+    /<nav class="source-dossier-explore"[\s\S]*?<\/nav>/,
+  );
+  assert.ok(exploreMatch);
+  assert.ok(exploreMatch[0].includes('href="#sourceDossierAsk">ASK THIS SHOW</a>'));
+  assert.match(
+    uiSource,
+    /fullFileDestination && !state\.fullFile[\s\S]*state\.fullFile = true;[\s\S]*renderCurrent\(\);/,
+  );
+  assert.match(
+    uiSource,
+    /function queueJumpAfterReflow[\s\S]*scheduleFrame\(function \(\) \{[\s\S]*scheduleFrame\(function \(\) \{/,
+  );
+  const askTarget = mount.registerJumpTarget("sourceDossierAsk", { hiddenResearch: true });
+  assert.equal(mount.clickLink("#sourceDossierAsk"), true);
+  assert.match(mount.innerHTML, /data-source-dossier-view="full"/);
+  assert.equal(askTarget.scrollCalls.length, 1);
+});
+test("compact Show Wiki shortcuts expand and scroll the newly rendered target after reflow", () => {
+  const frames = [];
+  const modal = {
+    scrollTop: 240,
+    scrollCalls: [],
+    getBoundingClientRect() {
+      return { top: 100, bottom: 760, height: 660 };
+    },
+    scrollTo(options) {
+      this.scrollCalls.push(options);
+      this.scrollTop = options.top;
+    },
+  };
+  const { ui, mount } = setup(makeDossier(), {
+    document: {
+      getElementById(id) {
+        return id === "tapeModal" ? modal : null;
+      },
+    },
+    requestAnimationFrame(callback) {
+      frames.push(callback);
+    },
+  });
+  ui.render("SOURCE00001");
+  modal.scrollTop = 240;
+  const target = mount.registerJumpTarget(
+    "sourceDossierShowWikiLane-best-moments-1",
+    { requiresFullFile: true, rectTop: 980 },
+  );
+
+  assert.equal(
+    mount.clickLink("#sourceDossierShowWikiLane-best-moments-1"),
+    true,
+  );
+  assert.match(mount.innerHTML, /data-source-dossier-view="full"/);
+  assert.equal(modal.scrollCalls.length, 0, "the stale compact layout is never scrolled");
+  assert.equal(frames.length, 1);
+
+  frames.shift()();
+  assert.equal(modal.scrollCalls.length, 0, "one paint is reserved for expansion reflow");
+  assert.equal(frames.length, 1);
+  frames.shift()();
+
+  assert.equal(modal.scrollCalls.length, 1);
+  assert.equal(modal.scrollCalls[0].top, 1032);
+  assert.equal(modal.scrollCalls[0].left, 0);
+  assert.equal(modal.scrollCalls[0].behavior, "smooth");
+  assert.equal(target.scrollCalls.length, 0, "modal-relative scrolling owns the viewport");
+  assert.equal(target.heading.focusCount, 1);
+});
+
 test("metadata-only sources render a permanent refusal instead of invented content", () => {
   const { ui, mount } = setup(makeDossier({
     metadataOnly: true,
@@ -1130,12 +1227,12 @@ test("Episode Guide V2 exposes the episode spine and plays bounded source-local 
     basis: "Full automatic-caption episode map",
     overview: "A source-local episode overview.",
     metrics: {
-      chapters: 6,
+      chapters: 5,
       threads: 4,
       cuts: 8,
       comedy: 3,
     },
-    chapters: Array.from({ length: 6 }, (_, index) => ({
+    chapters: Array.from({ length: 5 }, (_, index) => ({
       id: `chapter-${index + 1}`,
       at: 60 + index * 900,
       end: 90 + index * 900,
@@ -1170,6 +1267,51 @@ test("Episode Guide V2 exposes the episode spine and plays bounded source-local 
       excerpt: `Bounded playable cut excerpt ${index + 1}.`,
       score: 100 - index,
     })),
+    fanRead: {
+      whyThisNightMatters: {
+        label: "WHY THIS NIGHT MATTERS",
+        body: "The night keeps returning to the movie's craft before ending on its hardest verdict.",
+        primaryThread: "Doctor Example",
+        secondaryThread: "Recurring Thread 2",
+        strongestCutId: "guide-cut-1",
+      },
+      loved: {
+        key: "loved",
+        label: "WHAT THE TAPE DEFENDED",
+        body: "The cleanest praise spike in the episode.",
+        cutId: "guide-cut-2",
+        category: "LOVE LETTER",
+        topic: "The craft they defended",
+        excerpt: "A bounded loved excerpt.",
+      },
+      hated: {
+        key: "hated",
+        label: "STRAIGHT TO STEVE'S ASSHOLE",
+        body: "The tape's sharpest negative turn.",
+        cutId: "guide-cut-3",
+        category: "FRANCHISE FELONY",
+        topic: "The choice they rejected",
+        excerpt: "A bounded hated excerpt.",
+      },
+      wildestDetour: {
+        key: "wildestDetour",
+        label: "THE WILDEST DETOUR",
+        body: "The funniest left turn away from the main thread.",
+        cutId: "guide-cut-4",
+        category: "UP IN YA",
+        topic: "The unexpected detour",
+        excerpt: "A bounded detour excerpt.",
+      },
+      lastWord: {
+        key: "lastWord",
+        label: "THE LAST WORD",
+        body: "The late-show line that best closes the file.",
+        cutId: "guide-cut-5",
+        category: "FINAL VERDICT",
+        topic: "The closing read",
+        excerpt: "A bounded closing excerpt.",
+      },
+    },
   };
   const plays = [];
   const { ui, mount } = setup(dossier, {
@@ -1188,11 +1330,17 @@ test("Episode Guide V2 exposes the episode spine and plays bounded source-local 
       mount.innerHTML.indexOf('href="#sourceDossierShowWikiSummary">SHOW SUMMARY</a>'),
     "the episode spine is promoted ahead of the summary in the show shortcut strip",
   );
-  assert.match(mount.innerHTML, /THE EPISODE ACTUALLY HAS A SHAPE/);
-  assert.match(mount.innerHTML, /WHAT KEEPS COMING BACK/);
-  assert.match(mount.innerHTML, /THE NIGHT, ACT BY ACT/);
-  assert.match(mount.innerHTML, /THE TAKE ARC/);
-  assert.match(mount.innerHTML, /6 OF 8 SHOWN/);
+  assert.match(mount.innerHTML, /data-episode-guide-view="start-here"/);
+  assert.match(mount.innerHTML, /href="#sourceDossierFanRead">FAN READ<\/a>/);
+  assert.doesNotMatch(mount.innerHTML, /id="sourceDossierFanRead"/);
+  assert.match(mount.innerHTML, /21 REGISTERED MOMENTS \/\/ 8 DEEP-DIVE CUTS/);
+  assert.doesNotMatch(mount.innerHTML, /21 PLAYABLE MOMENTS/);
+  assert.match(mount.innerHTML, /THE FASTEST WAY INTO THIS EPISODE/);
+  assert.equal((mount.innerHTML.match(/MOVE \d\d \/\//g) ?? []).length, 4);
+  assert.match(mount.innerHTML, /OPEN THE FULL DEEP DIVE/);
+  assert.doesNotMatch(mount.innerHTML, /WHAT KEEPS COMING BACK/);
+  assert.doesNotMatch(mount.innerHTML, /THE NIGHT, ACT BY ACT/);
+  assert.doesNotMatch(mount.innerHTML, /THE TAKE ARC/);
   assert.match(mount.innerHTML, /data-source-dossier-action="play-guide-cut"/);
 
   const guideTarget = mount.registerJumpTarget("sourceDossierEpisodeGuide");
@@ -1215,12 +1363,49 @@ test("Episode Guide V2 exposes the episode spine and plays bounded source-local 
   assert.equal(plays[0].end, 510);
   assert.equal(plays[0].receipt, null);
   assert.equal(plays[0].sourceId, "SOURCE00001");
+
+  const fanTarget = mount.registerJumpTarget("sourceDossierFanRead", {
+    requiresFullFile: true,
+  });
+  assert.equal(mount.clickLink("#sourceDossierFanRead"), true);
+  assert.match(mount.innerHTML, /data-source-dossier-view="full"/);
+  assert.equal(fanTarget.scrollCalls.length, 1);
+  assert.equal(fanTarget.scrollCalls[0].behavior, "smooth");
+  assert.equal(fanTarget.heading.focusCount, 1);
+  assert.match(mount.innerHTML, /THE EPISODE ACTUALLY HAS A SHAPE/);
+  assert.match(mount.innerHTML, /WHAT KEEPS COMING BACK/);
+  assert.match(mount.innerHTML, /THE NIGHT, ACT BY ACT/);
+  assert.match(mount.innerHTML, /5 STOPS ACROSS THE FULL RUNTIME/);
+  assert.doesNotMatch(mount.innerHTML, /SIX STOPS ACROSS THE FULL RUNTIME/);
+  assert.match(mount.innerHTML, /THE TAKE ARC/);
+  assert.match(mount.innerHTML, /8 OF 8 SHOWN/);
+  assert.match(mount.innerHTML, /id="sourceDossierFanRead"/);
+  assert.match(mount.innerHTML, /WHY THIS NIGHT MATTERS/);
+  assert.match(mount.innerHTML, /data-fan-read-key="loved"/);
+  assert.match(mount.innerHTML, /STRAIGHT TO STEVE(?:'|&#39;)S ASSHOLE/);
+  assert.match(mount.innerHTML, /data-fan-read-key="wildestDetour"/);
+  assert.match(mount.innerHTML, /data-fan-read-key="lastWord"/);
+  assert.ok(
+    mount.innerHTML.indexOf('id="sourceDossierFanRead"') <
+      mount.innerHTML.indexOf('id="sourceDossierEpisodeGuide"'),
+    "the readable editorial entry precedes the research-heavy guide",
+  );
+
+  mount.click("play-guide-cut", {
+    "data-guide-at": "900",
+    "data-guide-end": "930",
+    "data-owner-section": "wiki",
+  });
+  assert.equal(plays.length, 2);
+  assert.equal(plays[1].mode, "episode-guide");
+  assert.equal(plays[1].at, 900);
+  assert.equal(plays[1].end, 930);
 });
 test("caption excerpts drop only leading YouTube speaker markers across cards and playback", () => {
   const dossier = makeDossier();
   dossier.source.receipts[2].excerpt = ">>   >> A bounded caption line.";
   const { ui, mount } = setup(dossier);
-  ui.render("SOURCE00001");
+  ui.render("SOURCE00001", { fullFile: true });
 
   assert.match(mount.innerHTML, /&ldquo;A bounded caption line\.&rdquo;/);
   assert.doesNotMatch(mount.innerHTML, /&gt;&gt;|>>/);
@@ -1658,6 +1843,112 @@ test("episode-aware answers validate registered recap, experience, and lane rece
       'href="#sourceDossierShowWikiLane-best-moments-1">OPEN FULL BEST MOMENTS',
     ),
   );
+});
+
+test("exact-show Ask renders validated deep-dive cuts separately and plays their bounded source window", () => {
+  const dossier = makeDossier();
+  const panavision = {
+    id: "guide-cut-panavision",
+    at: 857,
+    end: 893,
+    label: "a camera-craft breakdown",
+    category: "BREAKDOWN",
+    topic: "Direction and camera",
+    excerpt: "Dude, the Panavision here is amazing.",
+    score: 99,
+  };
+  const overlapReceipt = dossier.source.receipts[2];
+  const overlap = {
+    id: "guide-cut-overlap",
+    at: overlapReceipt.at,
+    end: overlapReceipt.end,
+    label: "a canonical timestamp that also survived the guide",
+    category: "LOVE LETTER",
+    topic: "Registered overlap",
+    excerpt: "The registered beat survives the deep dive.",
+    score: 100,
+  };
+  dossier.source.showWiki.episodeGuide = {
+    schema: "wwam-episode-guide/v2",
+    basis: "Full-caption exact-source episode map",
+    overview: "Two bounded cuts for UI validation.",
+    chapters: [],
+    takeArc: [],
+    threads: [],
+    cuts: [overlap, panavision],
+    metrics: { chapters: 0, threads: 0, cuts: 2, comedy: 0 },
+  };
+  const plays = [];
+  const queryEngine = {
+    answer(request) {
+      return makeQueryAnswer(dossier, {
+        status: "supported",
+        query: request.query,
+        intent: "episode-guide",
+        episode: {
+          kind: "guide",
+          id: "episode-guide",
+          label: "DEEP-DIVE CUTS",
+          matchedAlias: "deep dive cuts",
+          totalCuts: 2,
+          matchedCuts: 2,
+          shownCuts: 2,
+        },
+        results: [
+          {
+            type: "receipt",
+            sourceId: dossier.source.id,
+            key: overlapReceipt.key,
+            guideCutId: overlap.id,
+            matchedBy: "canonical-receipt-at-episode-guide-timestamp",
+          },
+          {
+            type: "guide-cut",
+            sourceId: dossier.source.id,
+            id: panavision.id,
+            at: panavision.at,
+            end: panavision.end,
+            label: panavision.label,
+            category: panavision.category,
+            topic: panavision.topic,
+            excerpt: panavision.excerpt,
+            matchedBy: "episode-guide-cut-text",
+          },
+        ],
+      });
+    },
+  };
+  const { ui, mount } = setup(dossier, {
+    queryEngine,
+    onPlay: (payload) => plays.push(payload),
+  });
+  ui.render(dossier.source.id);
+  mount.submit("Show me the deep dive cuts");
+
+  assert.match(mount.innerHTML, /data-source-query-episode-kind="guide"/);
+  assert.match(mount.innerHTML, /2 CUTS \/\/ 2 MATCHED \/\/ 2 SHOWN/);
+  assert.match(mount.innerHTML, /href="#sourceDossierEpisodeGuide">OPEN THE FULL DEEP DIVE/);
+  assert.equal(
+    (mount.innerHTML.match(/data-source-query-result-type="guide-cut"/g) ?? []).length,
+    2,
+  );
+  assert.match(mount.innerHTML, /DEEP-DIVE CUT \/\/ REGISTERED MOMENT MATCH/);
+  assert.match(mount.innerHTML, /DEEP-DIVE CUT/);
+  assert.match(mount.innerHTML, /Panavision/);
+  assert.match(mount.innerHTML, /data-guide-cut-basis="episode-guide"/);
+  assert.doesNotMatch(mount.innerHTML, /data-receipt-key="guide-cut-panavision"/);
+
+  mount.click("play-guide-cut", {
+    "data-guide-at": "857",
+    "data-guide-end": "893",
+    "data-owner-section": "ask",
+  });
+  assert.equal(plays.length, 1);
+  assert.equal(plays[0].mode, "episode-guide");
+  assert.equal(plays[0].sourceId, dossier.source.id);
+  assert.equal(plays[0].at, 857);
+  assert.equal(plays[0].end, 893);
+  assert.equal(plays[0].receipt, null);
 });
 
 test("episode-aware answers fail closed when lane identity or registered counts are tampered", () => {
@@ -2417,6 +2708,30 @@ test("responsive stylesheet preserves touch targets, focus, and reduced motion",
   );
   assert.doesNotMatch(cssSource, /@import/i);
 });
+test("390px full Show Wiki controls retain thumb-safe tap targets without overflow", () => {
+  const contract = cssSource.slice(cssSource.indexOf(
+    "/* Mobile full-file tap contract",
+  ));
+  assert.ok(contract.length > 0);
+  assert.match(contract, /@media \(max-width:\s*600px\)/);
+  assert.match(
+    contract,
+    /\.source-dossier button,\s*\n\s*\.source-dossier summary\s*\{[^}]*display:\s*inline-flex[^}]*align-items:\s*center[^}]*max-width:\s*100%[^}]*min-height:\s*44px[^}]*white-space:\s*normal[^}]*overflow-wrap:\s*anywhere/s,
+  );
+  assert.match(
+    contract,
+    /\.source-dossier summary\s*\{[^}]*width:\s*100%[^}]*justify-content:\s*flex-start/s,
+  );
+  assert.match(
+    contract,
+    /details:not\(\.context-trailer\):not\(\.context-card-media\) > summary::after\s*\{[^}]*content:\s*"\+"[^}]*margin-left:\s*auto/s,
+  );
+  assert.ok(
+    cssSource.indexOf("/* Mobile full-file tap contract") >
+      cssSource.indexOf(".source-dossier-fan-read button"),
+    "the mobile contract must win the cascade after the 42px Fan Read rule",
+  );
+});
 test("Show Wiki keeps the archive truth but removes machine-room language and duplicate sticky UI", () => {
   const { ui, mount } = setup(makeDossier());
   ui.render("SOURCE00001");
@@ -2429,17 +2744,19 @@ test("Show Wiki keeps the archive truth but removes machine-room language and du
 
   assert.match(wiki, /THE WHOLE NIGHT, CUT TO THE PARTS WORTH REVISITING/);
   assert.match(wiki, /THE SHOW IN PLAIN ENGLISH/);
-  assert.match(wiki, /PLAYABLE MOMENTS/);
-  assert.match(wiki, /HOW THESE TIMESTAMPS WORK/);
+  assert.match(wiki, /REGISTERED MOMENTS/);
+  assert.doesNotMatch(wiki, /HOW THESE TIMESTAMPS WORK/);
   assert.match(html, /data-source-dossier-view="compact"/);
   assert.match(html, /id="sourceDossierDeepResearch" hidden/);
   assert.match(html, />EXPLORE ALL<\/button>/);
   assert.equal(
     (wiki.match(/is-show-wiki-highlight/g) ?? []).length,
-    3,
+    0,
   );
   assert.doesNotMatch(wiki, /is-show-wiki-research/);
   assert.match(wiki, /source-dossier-wiki-experience/);
+  assert.match(wiki, /3 STARTER MOMENTS\. NO HUNTING/);
+  assert.match(wiki, /OPEN THE COMPLETE WATCH PATH/);
   assert.match(wiki, /source-dossier-wiki-recap-blocks/);
   assert.doesNotMatch(
     wiki,
@@ -2452,6 +2769,16 @@ test("Show Wiki keeps the archive truth but removes machine-room language and du
   assert.match(ask, /FIND IT WITHOUT SCRUBBING FOR HOURS/);
   assert.match(ask, /THIS SHOW\. NO OTHER UPLOADS/);
   assert.doesNotMatch(ask, /SOURCE-LOCKED INTERROGATION|EXHUME THIS TAPE/);
+
+  mount.click("open-full-file");
+  const fullHtml = mount.innerHTML;
+  const fullWikiStart = fullHtml.indexOf('class="source-dossier-show-wiki"');
+  const fullAskStart = fullHtml.indexOf('class="source-dossier-ask"');
+  const fullWiki = fullHtml.slice(fullWikiStart, fullAskStart);
+  assert.match(fullHtml, /data-source-dossier-view="full"/);
+  assert.match(fullWiki, /HOW THESE TIMESTAMPS WORK/);
+  assert.equal((fullWiki.match(/is-show-wiki-highlight/g) ?? []).length, 3);
+  assert.match(fullWiki, /5 MOMENTS\. NO HUNTING/);
 
   assert.match(
     cssSource,

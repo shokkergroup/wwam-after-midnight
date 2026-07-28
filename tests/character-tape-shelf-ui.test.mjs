@@ -21,13 +21,17 @@ test("Ask the Character exposes a complete, controllable tape shelf", () => {
   assert.ok(app.includes('"SEE ALL " + total + " CLIPS"'));
 });
 
-test("matched receipts surface first without blurring generated riff and source proof", () => {
+test("selected receipts surface first without overstating their relationship to a riff", () => {
   assert.ok(app.includes("state.characterMatchedReceipt = matchedReceiptId"));
   assert.ok(app.includes("renderCharacterReceiptShelf(profile, matchedReceiptId)"));
-  assert.ok(app.includes("MATCHED TO YOUR RIFF"));
-  assert.ok(app.includes("PLAY THE MATCHED CLIP"));
+  assert.ok(app.includes("state.characterContext.receiptMatch.relationship"));
+  assert.ok(app.includes("MATCHED TO YOUR QUESTION"));
+  assert.ok(app.includes("CHARACTER PATTERN CLIP"));
+  assert.ok(app.includes("REAL CLIP FROM THIS CHARACTER'S SHELF"));
+  assert.ok(app.includes("PLAY THE REAL SOURCE CLIP"));
   assert.ok(app.includes("OFFICIAL WWAM UPLOAD // AUTO-CAPTIONS CAN MISHEAR"));
   assert.ok(html.includes("FAN-MADE RIFF // REAL CLIPS BELOW"));
+  assert.doesNotMatch(app, /MATCHED TO YOUR RIFF|PLAY THE MATCHED CLIP/);
   assert.doesNotMatch(
     `${html}
 ${app}`,
@@ -46,7 +50,7 @@ test("optional legacy controls cannot abort character interaction binding", () =
     app,
     /document\.getElementById\("rouletteButton"\)\.onclick/,
   );
-  assert.match(app, /var rouletteButton = document\.getElementById\("rouletteButton"\)/);
+  assert.match(app, /var rouletteButton = optionalElement\("rouletteButton"\)/);
   assert.match(app, /if \(rouletteButton\) rouletteButton\.onclick/);
   assert.match(app, /document\.getElementById\("characterForm"\)\.onsubmit/);
 });

@@ -1,9 +1,10 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.2.1";
+  var VERSION = "1.3.0";
   var PLAY_EVENT = "wwam:halloween-play";
   var LANE_ID = "straight-to-steves-asshole";
+  var GUIDE_ERROR_CODE = "EPISODE_GUIDE_COUNT_INVALID";
   var cache = null;
   var EDITOR_NOTES = Object.freeze({
     "rLXnU3Rsj-4@1145":
@@ -268,6 +269,10 @@
     return {
       schema: "wwam-straight-to-steve/v1",
       evidenceBoundary: "Every clip comes from an official WWAM upload and keeps its exact timestamp. The rough transcript can mishear words or mix up who is talking.",
+      inventoryStatus: payload && payload.steveInventoryStatus || {
+        state: "complete",
+        message: "",
+      },
       items: items,
       metrics: {
         candidates: items.length,
@@ -278,9 +283,82 @@
     };
   }
 
+  function guideRegistryStatus(scope) {
+    scope = scope || root;
+    var deep = scope.WWAM_DEEP_DISTILL || {};
+    var episodeGuides = scope.WWAM_EPISODE_GUIDES || {};
+    var expected = Math.max(0, Math.floor(Number(
+      deep.meta && deep.meta.episodeGuides
+    ) || 0));
+    var available = array(episodeGuides.guides).length;
+    return {
+      expected: expected,
+      available: available,
+      complete: !expected || available === expected,
+    };
+  }
+
+  function isGuideRegistryError(error) {
+    return clean(error && error.code) === GUIDE_ERROR_CODE ||
+      /Episode Guide V2 registry is incomplete/i.test(
+        clean(error && error.message)
+      );
+  }
+
+  function payloadFromDossierEngine(scope) {
+    var access = scope && scope.WWAMSourceDossierAccess;
+    var engine = access && typeof access.get === "function" && access.get();
+    if (!engine || typeof engine.list !== "function" ||
+        typeof engine.build !== "function") return null;
+    var records = array(engine.list());
+    var sources = [];
+    var failed = false;
+    records.forEach(function (record) {
+      try {
+        var dossier = engine.build(record && record.id);
+        if (!dossier || !dossier.source) failed = true;
+        else sources.push(dossier.source);
+      } catch (_error) {
+        failed = true;
+      }
+    });
+    if (failed || !sources.length || sources.length !== records.length) return null;
+    return {
+      schema: "shokker-source-dossier-input/v1",
+      sources: sources,
+      steveInventoryStatus: {
+        state: "canonical-engine",
+        message: "Using the canonical Show Wiki receipt registry.",
+      },
+    };
+  }
+
+  function guideLagDeep(deep, available) {
+    return Object.assign({}, deep || {}, {
+      meta: Object.assign({}, deep && deep.meta || {}, {
+        episodeGuides: Math.max(0, Math.floor(Number(available) || 0)),
+      }),
+    });
+  }
+
   function buildPayloadFromGlobals(scope) {
     scope = scope || root;
-    if (cache) return cache;
+    var guideState = guideRegistryStatus(scope);
+    if (cache) {
+      var cachedState = cache.steveInventoryStatus &&
+        cache.steveInventoryStatus.state;
+      if (cachedState !== "guide-overlay-lag" || !guideState.complete) {
+        return cache;
+      }
+      cache = null;
+    }
+
+    var enginePayload = payloadFromDossierEngine(scope);
+    if (enginePayload) {
+      cache = enginePayload;
+      return cache;
+    }
+
     if (!scope.WWAMSourceDossierAdapter ||
         !scope.WWAMShowcaseEngine ||
         !scope.WWAMCreatorClipLab ||
@@ -317,10 +395,11 @@
       },
     };
 
-    cache = scope.WWAMSourceDossierAdapter.build({
+    var adapterInput = {
       atlas: scope.WWAM_ARCHIVE_ATLAS,
       catalog: scope.WWAM_CATALOG,
       deep: scope.WWAM_DEEP_DISTILL,
+      episodeGuides: scope.WWAM_EPISODE_GUIDES || { guides: [] },
       live: scope.WWAM_LIVESTREAMS,
       popular: scope.WWAM_POPULAR_LIVE,
       archiveDeepPortfolio: archiveDeepPortfolio,
@@ -334,7 +413,27 @@
         product: "WWAM After Midnight",
         packFingerprint: "straight-to-steve:" + VERSION,
       },
-    });
+    };
+    try {
+      cache = scope.WWAMSourceDossierAdapter.build(adapterInput);
+    } catch (error) {
+      if (!isGuideRegistryError(error)) throw error;
+      cache = Object.assign({}, scope.WWAMSourceDossierAdapter.build(
+        Object.assign({}, adapterInput, {
+          deep: guideLagDeep(
+            scope.WWAM_DEEP_DISTILL,
+            guideState.available
+          ),
+        })
+      ), {
+        steveInventoryStatus: {
+          state: "guide-overlay-lag",
+          expectedGuides: guideState.expected,
+          availableGuides: guideState.available,
+          message: "The episode chapter shelf is still syncing. These clips come from canonical source receipts and keep their exact tape stamps.",
+        },
+      });
+    }
     return cache;
   }
 
@@ -390,6 +489,8 @@
       '</span></a><div class="steve-card-body"><header><span>' +
       esc(item.sourceType.toUpperCase()) + ' // ' + esc(item.date || "DATE UNKNOWN") +
       '</span><h3>' + esc(displayText(item.title, documentRef)) + '</h3></header>' +
+      '<div class="steve-receipt-strip"><span>OFFICIAL WWAM TAPE</span><b>EXACT STOP ' +
+      esc(item.timecode) + '</b></div>' +
       '<div class="steve-flush-deck"><div><span>WHY IT GOT FLUSHED</span><b>' +
       esc(displayText(item.originalLabel, documentRef)) + '</b></div><p>' +
       esc(displayText(item.editorNote || editorNote(item), documentRef)) +
@@ -412,6 +513,11 @@
 
   function shellMarkup(dataset, state, documentRef) {
     var metrics = dataset.metrics;
+    var inventoryStatus = dataset.inventoryStatus || {};
+    var syncNotice = inventoryStatus.state === "guide-overlay-lag" ?
+      '<div class="steve-sync-notice" role="status"><b>THE CHUTE IS OPEN. THE GUIDE SHELF IS CATCHING UP.</b>' +
+      '<p>The playable rejections below still come from canonical WWAM show receipts with exact timestamps. ' +
+      'Only the episode chapter overlay is temporarily behind.</p></div>' : "";
     return '<section class="steve-experience" aria-labelledby="steveExperienceTitle">' +
       '<header class="steve-hero"><div><p>THE WWAM REJECTION CHUTE // THE STUFF THEY HATED</p>' +
       '<h2 id="steveExperienceTitle">' + esc(displayText("STRAIGHT TO", documentRef)) +
@@ -420,7 +526,7 @@
       'If the take earns a one-way ticket, it lands here.</p></aside></header>' +
       '<div class="steve-boundary"><b>PLAY IT BEFORE YOU QUOTE IT.</b>' +
       '<p>These clips come from official WWAM uploads. The rough transcript can mishear names and cannot identify the speaker, ' +
-      'so the original tape always gets the last word.</p></div>' +
+      'so the original tape always gets the last word.</p></div>' + syncNotice +
       '<div class="steve-metrics"><div><strong>' + esc(metrics.candidates) +
       '</strong><span>CLIPS IN THE CHUTE</span></div><div><strong>' +
       esc(metrics.sources) + '</strong><span>SHOWS</span></div><div><strong>' +
@@ -549,6 +655,9 @@
     bleepObserver = observeLanguage(documentRef, repaintLanguage,
       options.MutationObserver);
     node.setAttribute("data-steves-asshole-ready", "true");
+    node.setAttribute("data-steves-asshole-inventory-state",
+      clean(dataset.inventoryStatus && dataset.inventoryStatus.state) || "complete");
+    node.removeAttribute("data-steves-asshole-error");
     var section = node.closest && node.closest("[aria-busy]");
     if (section) section.setAttribute("aria-busy", "false");
     paint();
@@ -564,24 +673,37 @@
         node.removeEventListener("click", onClick);
         if (bleepObserver) bleepObserver.disconnect();
         node.removeAttribute("data-steves-asshole-ready");
+        node.removeAttribute("data-steves-asshole-inventory-state");
       },
     };
   }
 
-  function renderHeld(node, error) {
-    node.innerHTML = "<div class=\"steve-empty\"><span>STEVE'S CHUTE IS STUCK</span>" +
+  function heldMarkup(error) {
+    if (isGuideRegistryError(error)) {
+      return "<div class=\"steve-empty\"><span>THE TAPE ROOM IS STILL SYNCING</span>" +
+        '<h3>NO RECEIPT, NO REJECTION.</h3>' +
+        '<p>Steve will not invent a hated moment while the canonical show receipts are unavailable. ' +
+        'The rest of the archive still works; try this room again when the guide shelf catches up.</p>' +
+        '<button type="button" data-steve-retry>TRY AGAIN</button></div>';
+    }
+    return "<div class=\"steve-empty\"><span>STEVE'S CHUTE IS STUCK</span>" +
       '<h3>THE CLIPS DID NOT LOAD.</h3>' +
       '<p>The rest of the archive still works. Try this room again.</p>' +
       '<button type="button" data-steve-retry>TRY AGAIN</button></div>';
+  }
+
+  function renderHeld(node, error) {
+    node.innerHTML = heldMarkup(error);
     node.setAttribute("data-steves-asshole-error",
       clean(error && error.message) || "runtime-unavailable");
+    var section = node.closest && node.closest("[aria-busy]");
+    if (section) section.setAttribute("aria-busy", "false");
     var retry = node.querySelector("[data-steve-retry]");
     if (retry) retry.onclick = function () {
       node.removeAttribute("data-steves-asshole-error");
       mountWhenReady(node);
     };
   }
-
   function mountWhenReady(node) {
     if (!node || node.getAttribute("data-steves-asshole-ready") === "true") {
       return Promise.resolve(true);
@@ -601,8 +723,15 @@
           mount(node);
           return true;
         }).catch(function (loadError) {
-          renderHeld(node, loadError);
-          return false;
+          cache = null;
+          try {
+            mount(node);
+            return true;
+          } catch (fallbackError) {
+            renderHeld(node, isGuideRegistryError(loadError) ?
+              loadError : fallbackError);
+            return false;
+          }
         });
       }
       renderHeld(node, error);
@@ -625,6 +754,13 @@
     LANE_ID: LANE_ID,
     inventory: inventory,
     buildPayloadFromGlobals: buildPayloadFromGlobals,
+    guideRegistryStatus: guideRegistryStatus,
+    isGuideRegistryError: isGuideRegistryError,
+    payloadFromDossierEngine: payloadFromDossierEngine,
+    heldMarkup: heldMarkup,
+    resetCache: function () {
+      cache = null;
+    },
     filterItems: filterItems,
     render: function (dataset, state, documentRef) {
       state = Object.assign({ query: "", type: "all", sort: "hottest" }, state || {});

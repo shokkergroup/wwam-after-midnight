@@ -853,6 +853,31 @@
     };
   }
 
+  function showWikiFanOverview(source, format, title, topicPhrase, hasTopics, moments) {
+    var runtime = showWikiRuntime(source.duration);
+    var focus = hasTopics ? topicPhrase : "the night’s loose movie talk";
+    var opening;
+    if (format.id === "movie-commentary") {
+      opening = title + " is a " + runtime + " commentary that keeps circling " + focus + ".";
+    } else if (format.id === "ranking-show") {
+      opening = title + " is a " + runtime + " ranking night built around " + focus + ".";
+    } else if (format.id === "trailer-reaction") {
+      opening = title + " is a " + runtime + " reaction stream moving through " + focus + ".";
+    } else if (format.id === "spoiler-review") {
+      opening = title + " is a " + runtime + " spoiler-room conversation centered on " + focus + ".";
+    } else {
+      opening = title + " is a " + runtime + " hangout with " + focus + " on the table.";
+    }
+    if (moments.length) {
+      return opening + " Jump in at " + showWikiClock(moments[0].at) + " for the first " +
+        showWikiProseLabel(moments[0].label) +
+        " spike, then use the chapters to roam the rest of the tape.";
+    }
+    if (hasTopics) {
+      return opening + " The topic buttons go straight to each part of the original upload.";
+    }
+    return "";
+  }
   function showWikiRecapFor(
     source,
     receipts,
@@ -868,7 +893,6 @@
     var title = clean(source.displayTitle || source.title);
     var recapTopics = showWikiSelectedTopics(source, topics, 4);
     var topicLabels = recapTopics.map(function (receipt) { return showWikiProseLabel(receipt.label); });
-    var momentLabels = moments.slice(0, 4).map(function (receipt) { return showWikiProseLabel(receipt.label); });
     var characterLabels = [];
     characters.slice(0, 4).forEach(function (receipt) {
       array(receipt.entityIds).forEach(function (entityId) {
@@ -885,7 +909,6 @@
       });
     }
     var topicPhrase = showWikiList(topicLabels, format.id === "movie-commentary" ? "the movie itself" : "the night itself");
-    var momentPhrase = showWikiList(momentLabels, "the registered source moments");
     var episodeGuide = source.episodeGuide && typeof source.episodeGuide === "object"
       ? source.episodeGuide : null;
     var sourceSummary = source.summary && clean(source.summary.text);
@@ -893,12 +916,11 @@
     var summaryWithTitle = sourceSummary &&
       normalized(sourceSummary).indexOf(normalized(title)) >= 0
       ? sourceSummary : sourceSummary ? title + ". " + sourceSummary : "";
-    var overview = clean(episodeGuide && episodeGuide.overview) || summaryWithTitle ||
-      (title + " runs " + showWikiRuntime(source.duration) + ". " +
-        (format.id === "movie-commentary" ? "The commentary keeps coming back to " :
-          "Most of the night revolves around ") + topicPhrase +
-        (moments.length ? ". The best jump-in points are " + momentPhrase + "." :
-          ". This show has topic jumps, but no public highlight lane yet."));
+    var overview = clean(episodeGuide && episodeGuide.overview) ||
+      showWikiFanOverview(source, format, title, topicPhrase, topicLabels.length > 0, moments) ||
+      summaryWithTitle ||
+      (title + " runs " + showWikiRuntime(source.duration) +
+        ". This upload has no public topic or highlight path yet.");
     var blocks = [];
     if (topics.length) {
       blocks.push({

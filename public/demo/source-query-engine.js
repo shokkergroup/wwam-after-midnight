@@ -10,7 +10,7 @@
    * question, and every content result remains inside that exact source.
    */
 
-  var VERSION = "1.2.1";
+  var VERSION = "1.4.0";
   var REQUEST_SCHEMA = "shokker-source-query/v1";
   var RESULT_SCHEMA = "shokker-source-query-result/v1";
   var DOSSIER_SCHEMA = "shokker-source-dossier/v1";
@@ -34,6 +34,7 @@
   ]);
   var RESULT_TYPES = Object.freeze([
     "receipt",
+    "guide-cut",
     "entity",
     "artifact",
     "connection",
@@ -817,6 +818,34 @@
     };
   }
 
+  function guideCutResult(dossier, cut, matchedBy) {
+    var guide = sourceEpisodeGuide(dossier);
+    return {
+      type: "guide-cut",
+      sourceId: dossier.source.id,
+      id: cut.id,
+      at: cut.at,
+      end: cut.end,
+      label: cut.label,
+      category: cut.category,
+      topic: cut.topic,
+      excerpt: cut.excerpt,
+      basis: guide ? guide.basis : "",
+      matchedBy: matchedBy,
+      speaker: null,
+      speakerStatus: "not-diarized"
+    };
+  }
+
+  function guideMatchedReceiptResult(dossier, receipt, cut, matchedBy) {
+    var result = receiptResult(dossier, receipt, matchedBy);
+    result.guideCutId = cut.id;
+    result.guideBasis = clean(
+      sourceEpisodeGuide(dossier) && sourceEpisodeGuide(dossier).basis
+    );
+    return result;
+  }
+
   function entityResult(dossier, entity) {
     return {
       type: "entity",
@@ -974,6 +1003,98 @@
     });
   }
 
+  function sourceEpisodeGuide(dossier) {
+    var source = dossier && dossier.source;
+    var showWiki = source && source.showWiki;
+    var guide = showWiki && showWiki.episodeGuide;
+    if (!source || source.coverage !== "caption-backed" || !guide ||
+        !/episode-guide\/v2$/.test(clean(guide.schema)) ||
+        !Array.isArray(guide.cuts) || guide.cuts.length < 8 ||
+        guide.cuts.length > 20 || !clean(guide.basis)) {
+      return null;
+    }
+    var seen = new Set();
+    var valid = guide.cuts.every(function (cut) {
+      var id = clean(cut && cut.id);
+      var at = Number(cut && cut.at);
+      var end = Number(cut && cut.end);
+      if (!id || seen.has(id) || !Number.isFinite(at) || !Number.isFinite(end) ||
+          at < 0 || end <= at || end > Number(source.duration) + 1 ||
+          !clean(cut.label) || !clean(cut.category) || !clean(cut.topic) ||
+          !clean(cut.excerpt)) return false;
+      seen.add(id);
+      return true;
+    });
+    return valid ? guide : null;
+  }
+
+  function timestampKey(value) {
+    var number = Number(value);
+    return Number.isFinite(number) ? number.toFixed(3) : "";
+  }
+
+  function guideCutMatches(dossier, terms, at) {
+    var guide = sourceEpisodeGuide(dossier);
+    if (!guide) return [];
+    return guide.cuts.map(function (cut) {
+      var text = [
+        cut.id,
+        cut.label,
+        cut.category,
+        cut.topic,
+        cut.excerpt
+      ].join(" ");
+      if (terms.length && !phraseOrTermsMatch(text, terms, [])) return null;
+      var normalizedText = normalize(text);
+      var score = Number(cut.score) || 0;
+      if (terms.length && terms.every(function (term) {
+        return (" " + normalizedText + " ").indexOf(" " + term + " ") >= 0;
+      })) score += 40;
+      return {
+        cut: cut,
+        score: score,
+        distance: at == null ? 0 : Math.abs(Number(cut.at) - at),
+        matchedBy: terms.length ? "episode-guide-cut-text" : "episode-guide-cut-inventory"
+      };
+    }).filter(Boolean).sort(function (left, right) {
+      return right.score - left.score ||
+        (at == null ? 0 : left.distance - right.distance) ||
+        left.cut.at - right.cut.at ||
+        left.cut.id.localeCompare(right.cut.id);
+    });
+  }
+
+  function guideCutResults(dossier, matches, limit) {
+    var canonicalByTime = new Map();
+    dossier.source.receipts.forEach(function (receipt) {
+      var key = timestampKey(receipt.at);
+      if (key && !canonicalByTime.has(key)) canonicalByTime.set(key, receipt);
+    });
+    var seenReceipts = new Set();
+    var seenCuts = new Set();
+    var results = [];
+    matches.some(function (match) {
+      var cut = match.cut;
+      if (seenCuts.has(cut.id)) return false;
+      seenCuts.add(cut.id);
+      var canonical = canonicalByTime.get(timestampKey(cut.at));
+      if (canonical) {
+        if (seenReceipts.has(canonical.key)) return false;
+        seenReceipts.add(canonical.key);
+        results.push(guideMatchedReceiptResult(
+          dossier,
+          canonical,
+          cut,
+          "canonical-receipt-at-episode-guide-timestamp"
+        ));
+      } else {
+        results.push(guideCutResult(dossier, cut, match.matchedBy));
+      }
+      return results.length >= limit;
+    });
+    return results;
+  }
+
   function matchingArtifacts(dossier, query, terms) {
     return dossier.source.artifacts.filter(function (artifact) {
       if (!terms.length) return true;
@@ -1009,12 +1130,57 @@
     });
   }
 
+  function showWikiSemanticAliases(kind, id, label, description) {
+    var text = normalize([id, label, description].join(" "));
+    if (kind === "guide") return [
+      "deep dive", "deep dive cuts", "episode guide", "episode cuts",
+      "guide cuts", "playable cuts", "cuts in the full guide",
+    ];
+    if (kind === "brief") return [
+      "show facts", "source facts", "what is known for sure",
+    ];
+    if (kind === "recap") return [
+      "recap", "summary", "summarize", "recap this show", "summarize this show",
+      "summarize the show", "what happened in this show", "catch me up",
+      "give me the rundown", "show rundown", "what was this show about", "show summary",
+    ];
+    if (kind === "experience") return [
+      "quick tour", "essential watch path", "where should i start",
+      "walk me through this show",
+    ];
+    if (kind !== "lane") return [];
+    if (/\b(?:topic|subject|discussion)\b/.test(text)) return [
+      "recurring topics", "main topics", "topic rundown",
+      "what did they keep talking about", "what did they talk about",
+      "where did they talk about", "what did they discuss", "what came up", "how many topics",
+      "how many times did they mention",
+    ];
+    if (/\b(?:funny|funniest|comedy|laugh)\b/.test(text)) return [
+      "what made them laugh", "where did they laugh", "funny parts",
+      "funniest parts", "biggest laughs",
+    ];
+    if (/\b(?:negative|verdict|worst|hate|criticism|critical)\b/.test(text)) return [
+      "what did they hate", "what did they dislike", "worst parts",
+      "harshest takes", "negative verdicts", "strongest criticism",
+    ];
+    if (/\b(?:best|strongest|highlight|standout)\b/.test(text)) return [
+      "best parts", "standout moments", "strongest moments", "show highlights",
+      "highlights",
+    ];
+    if (/\b(?:character|portrayal|performance|impression)\b/.test(text)) return [
+      "which character bits", "character performances", "impressions",
+    ];
+    return [];
+  }
+
   function showWikiCandidates(dossier) {
     var showWiki = dossier.source.showWiki;
     if (!showWiki || typeof showWiki !== "object") return [];
     var output = [];
-    function add(kind, id, label, aliases, receiptKeys, order) {
-      var cleanAliases = unique((Array.isArray(aliases) ? aliases : []).map(normalize).filter(Boolean));
+    function add(kind, id, label, aliases, receiptKeys, order, description) {
+      var cleanAliases = unique((Array.isArray(aliases) ? aliases : [])
+        .concat(showWikiSemanticAliases(kind, id, label, description))
+        .map(normalize).filter(Boolean));
       if (!cleanAliases.length) return;
       output.push({
         kind: kind,
@@ -1030,7 +1196,7 @@
     if (showWiki.brief) {
       add(
         "brief", "source-brief", "SOURCE BRIEF",
-        showWiki.brief.queryAliases, [], 1
+        showWiki.brief.queryAliases, [], 1, showWiki.description
       );
     }
     if (showWiki.recap) {
@@ -1040,7 +1206,13 @@
       });
       add(
         "recap", "episode-recap", "EPISODE RECAP",
-        showWiki.recap.queryAliases, recapKeys, 1
+        showWiki.recap.queryAliases, recapKeys, 1, showWiki.recap.overview
+      );
+    }
+    if (sourceEpisodeGuide(dossier)) {
+      add(
+        "guide", "episode-guide", "DEEP-DIVE CUTS",
+        [], [], 4, sourceEpisodeGuide(dossier).overview
       );
     }
     if (showWiki.experience) {
@@ -1049,21 +1221,29 @@
         clean(showWiki.experience.title || showWiki.experience.label || "WATCH PATH"),
         showWiki.experience.queryAliases,
         showWiki.experience.routeReceiptKeys,
-        2
+        2,
+        showWiki.experience.description
       );
     }
     (Array.isArray(showWiki.lanes) ? showWiki.lanes : []).forEach(function (lane) {
-      add("lane", lane.id, lane.label, lane.queryAliases, lane.receiptKeys, 3);
+      add("lane", lane.id, lane.label, lane.queryAliases, lane.receiptKeys, 3,
+        lane.description);
     });
     return output;
   }
 
   function matchShowWikiIntent(dossier, query) {
     var normalizedQuery = normalize(query);
+    var queryForms = unique([
+      normalizedQuery,
+      normalizedQuery.replace(/\b([a-z0-9]+) s\b/g, "$1s"),
+    ]);
     var matches = [];
     showWikiCandidates(dossier).forEach(function (candidate) {
       candidate.aliases.forEach(function (alias) {
-        if (!hasPhrase(normalizedQuery, alias)) return;
+        if (!queryForms.some(function (queryForm) {
+          return hasPhrase(queryForm, alias);
+        })) return;
         matches.push({
           kind: candidate.kind,
           id: candidate.id,
@@ -1084,20 +1264,72 @@
     return matches[0] || null;
   }
 
-  function showWikiSubjectTerms(query, match, vocabulary) {
+  function showWikiSubjectTerms(dossier, query, match, vocabulary) {
     var controls = new Set(controlTerms(vocabulary).concat(tokens(match.matchedAlias)).concat([
       "any", "anything", "appear", "appeared", "appears", "broadcast", "can",
-      "could", "episode", "got", "have", "has", "had", "indexed", "lane", "lanes",
-      "may", "might", "part", "parts", "registered", "see", "sent", "show",
-      "some", "something", "stream", "talk", "talked", "talking", "tell", "there",
-      "wiki", "will", "would"
+      "count", "could", "current", "episode", "exact", "got", "have", "has", "had",
+      "how", "indexed", "lane", "lanes", "last", "latest", "many", "may", "might",
+      "newest", "night", "nights", "number", "often", "part", "parts", "recent",
+      "registered", "see", "sent", "show", "some", "something", "stream", "talk",
+      "talked", "talking", "tell", "there", "time", "times", "tonight", "wiki",
+      "will", "would", "yesterday"
     ]));
+    var normalizedQuery = normalize(query);
+    var boundTitleTokens = new Set();
+    unique([
+      normalize(dossier.source.displayTitle),
+      normalize(dossier.source.title),
+    ].filter(Boolean)).forEach(function (title) {
+      if (!hasPhrase(normalizedQuery, title)) return;
+      tokens(title).forEach(function (token) { boundTitleTokens.add(token); });
+    });
     return unique(tokens(query).filter(function (token) {
-      return token.length > 1 && !controls.has(token);
+      return token.length > 1 && !controls.has(token) && !boundTitleTokens.has(token);
     }));
   }
 
+  function episodeGuideAnswer(dossier, request, match, vocabulary, exactTerms) {
+    var guide = sourceEpisodeGuide(dossier);
+    if (!guide) return null;
+    var terms = Array.isArray(exactTerms) ? exactTerms :
+      showWikiSubjectTerms(dossier, request.query, match, vocabulary);
+    var matches = guideCutMatches(dossier, terms, request.at);
+    if (!matches.length) return null;
+    var results = guideCutResults(dossier, matches, request.limit);
+    var normalizedQuestion = normalize(request.query);
+    var countRequested = /\b(?:how many|count|number of)\b/.test(normalizedQuestion);
+    return {
+      status: "supported",
+      intent: "episode-guide",
+      episode: {
+        kind: "guide",
+        id: "episode-guide",
+        label: "DEEP-DIVE CUTS",
+        matchedAlias: clean(match && match.matchedAlias) || "episode-guide subject match",
+        totalCuts: guide.cuts.length,
+        matchedCuts: matches.length,
+        shownCuts: results.length,
+        countRequested: countRequested,
+        countBasis: countRequested ? "validated exact-source episode-guide cuts" : null
+      },
+      results: results,
+      message: countRequested ?
+        "This exact show has " + matches.length + " matching validated deep-dive cut" +
+          (matches.length === 1 ? "" : "s") + "; " + results.length + " are shown." :
+        "I found " + matches.length + " matching deep-dive cut" +
+          (matches.length === 1 ? "" : "s") + " inside this exact show; " +
+          results.length + " are shown.",
+      limitations: [
+        "Deep-dive cuts are source-local caption navigation, separate from the canonical registered-receipt count.",
+        "A canonical receipt wins when it shares the exact timestamp with a deep-dive cut; duplicate results are suppressed."
+      ]
+    };
+  }
+
   function showWikiAnswer(dossier, request, match, vocabulary) {
+    if (match.kind === "guide") {
+      return episodeGuideAnswer(dossier, request, match, vocabulary, null);
+    }
     if (match.kind === "brief") {
       return {
         status: "supported",
@@ -1124,7 +1356,12 @@
     var allReceipts = match.receiptKeys.map(function (key) {
       return receiptByKey.get(key);
     }).filter(Boolean);
-    var terms = showWikiSubjectTerms(request.query, match, vocabulary);
+    var terms = showWikiSubjectTerms(dossier, request.query, match, vocabulary);
+    var normalizedQuestion = normalize(request.query);
+    var countRequested = /\b(?:how many|how often|count|number of)\b/.test(normalizedQuestion);
+    var relativeTimeRequested = /\b(?:last night|last nights|yesterday|tonight|latest|newest|recent)\b/.test(
+      normalizedQuestion
+    );
     var selectedReceipts = allReceipts;
     if (terms.length) {
       var entities = exactEntityMatches(dossier, request.query, terms);
@@ -1134,6 +1371,16 @@
       selectedReceipts = allReceipts.filter(function (receipt) {
         return matchingKeys.has(receipt.key);
       });
+    }
+    if (terms.length && !selectedReceipts.length) {
+      var guideFallback = episodeGuideAnswer(
+        dossier,
+        request,
+        { matchedAlias: match.matchedAlias },
+        vocabulary,
+        terms
+      );
+      if (guideFallback) return guideFallback;
     }
     var results = [];
     var receiptLimit = request.limit;
@@ -1158,6 +1405,11 @@
       message = "I checked all " + allReceipts.length + " registered " + match.label +
         " receipt" + (allReceipts.length === 1 ? "" : "s") +
         " on this exact show; none match the requested subject.";
+    } else if (countRequested) {
+      message = "This exact show has " + selectedReceipts.length + " matching registered " +
+        match.label + " receipt" + (selectedReceipts.length === 1 ? "" : "s") + ". " +
+        "That is a count of indexed source receipts, not every utterance or repeated mention; " +
+        shownReceipts + " playable result" + (shownReceipts === 1 ? " is" : "s are") + " shown.";
     } else {
       message = "This exact show has " + allReceipts.length + " registered " + match.label +
         " receipt" + (allReceipts.length === 1 ? "" : "s") + "; " +
@@ -1173,13 +1425,19 @@
         matchedAlias: match.matchedAlias,
         totalReceipts: allReceipts.length,
         matchedReceipts: selectedReceipts.length,
-        shownReceipts: shownReceipts
+        shownReceipts: shownReceipts,
+        countRequested: countRequested,
+        countBasis: countRequested ? "registered exact-source receipts" : null
       },
       results: results,
       message: message,
       limitations: [
         "This answer uses the registered Show Wiki lane for this exact source; its labels and order are navigation, not a creator verdict or speaker attribution."
-      ]
+      ].concat(countRequested ? [
+        "Receipt counts do not measure every utterance, repeated word, or unique idea in the underlying captions."
+      ] : []).concat(relativeTimeRequested ? [
+        "Relative date wording did not rebind the request; the caller-supplied exact source ID remained the only source searched."
+      ] : [])
     };
   }
 
@@ -1410,14 +1668,25 @@
             var receiptResults = matches.slice(0, request.limit).map(function (match) {
               return receiptResult(dossier, match.receipt, match.matchedBy);
             });
-            var remaining = Math.max(0, request.limit - receiptResults.length);
+            var receiptKeys = new Set(receiptResults.map(function (result) {
+              return result.key;
+            }));
+            var guideResults = guideCutResults(
+              dossier,
+              guideCutMatches(dossier, terms, request.at),
+              request.limit
+            ).filter(function (result) {
+              return result.type !== "receipt" || !receiptKeys.has(result.key);
+            });
+            var contentResults = receiptResults.concat(guideResults).slice(0, request.limit);
+            var remaining = Math.max(0, request.limit - contentResults.length);
             var entityResults = entities.slice(0, remaining).map(function (entity) {
               return entityResult(dossier, entity);
             });
-            results = receiptResults.concat(entityResults);
+            results = contentResults.concat(entityResults);
           }
           var contentReceipts = results.filter(function (result) {
-            return result.type === "receipt";
+            return result.type === "receipt" || result.type === "guide-cut";
           });
           var metadataOnlyEntities = results.length > 0 && results.every(function (result) {
             return result.type === "entity" && result.contentEvidence === false;
