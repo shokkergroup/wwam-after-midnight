@@ -2956,7 +2956,7 @@
     }
     if (intent.visualContextRefusal && intent.selectedSource) {
       return "The captions can take you to moments inside " + intent.selectedSource.sourceTitle +
-        ", but they cannot determine which on-screen kill or death won the ranking. " +
+        ", but they cannot verify which on-screen kill or death won the ranking. " +
         "Open the original video to judge it; Ask the Tape will not turn caption text into a visual answer.";
     }
     if (intent.titleBoundary) {

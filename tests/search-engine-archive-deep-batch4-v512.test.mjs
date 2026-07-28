@@ -307,7 +307,7 @@ test("Batch 04 visual-result questions fail closed at the exact source", async (
     assert.deepEqual(answer.results, [], query);
     assert.match(
       answer.answer,
-      /cannot determine which on-screen kill or death won the ranking/i,
+      /cannot (?:determine|verify) which on-screen kill or death won the ranking/i,
       query,
     );
   }
