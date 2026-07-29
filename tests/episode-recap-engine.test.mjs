@@ -107,8 +107,38 @@ test("universal map and WWAM voice pack produce deterministic chronological reca
       (!segment.excerpt || segment.excerpt === anchor.excerpt);
   }));
   assert.ok(first.story.every((segment) =>
-    /source|tape|ledger|security footage|evidence/i.test(segment.body)
+    /source|tape|ledger|security footage|evidence|show|broadcast|conversation/i
+      .test(segment.body)
   ));
+  assert.ok(first.story.every((segment, index, values) => {
+    const beat = segment.narrative;
+    const evidence = beat.primaryEvidence;
+    return beat.schema === "shokker-recap-narrative-beat/v1" &&
+      beat.primarySubject &&
+      beat.anchorSupportsPrimary === true &&
+      beat.anchorRelation === "direct-subject-anchor" &&
+      beat.anchorSubject &&
+      evidence.kind === "receipt" &&
+      segment.receiptKeys.includes(evidence.key) &&
+      evidence.at === receiptByKey.get(evidence.key).at &&
+      beat.evidenceShape.receipts === segment.receiptKeys.length &&
+      beat.evidenceShape.guideCuts === 0 &&
+      beat.previousSubject === (
+        index ? values[index - 1].narrative.primarySubject : ""
+      ) &&
+      beat.nextSubject === (
+        index + 1 < values.length
+          ? values[index + 1].narrative.primarySubject
+          : ""
+      );
+  }));
+  assert.ok(first.story.every((segment) =>
+    segment.body.toLowerCase().includes(
+      segment.narrative.primarySubject.toLowerCase(),
+    )
+  ));
+  assert.equal(first.caseFile.storyNarrativeBeatCount, first.story.length);
+  assert.equal(first.caseFile.storyNamedSegmentCount, first.story.length);
   assert.match(first.overview, /opens at 1:30 with Halloween/i);
   assert.ok(first.overview.startsWith(input.context.registeredOverview));
   assert.equal(firstMap.registeredOverview, input.context.registeredOverview);
@@ -348,6 +378,26 @@ test("reviewed guide structure deepens the full chronicle without leaking review
   );
   assert.match(recap.sections[0].body, /episode arc opens at 1:00 with Halloween/i);
   assert.match(recap.sections.at(-1).body, /closing read lands at 50:00 on Scream/i);
+  assert.equal(recap.caseFile.storyGuidePointExpected, 3);
+  assert.equal(recap.caseFile.storyGuidePointCount, 3);
+  assert.equal(recap.caseFile.storyGuidePointCoveragePercent, 100);
+  assert.deepEqual(
+    Array.from(new Set(recap.story.flatMap((segment) => segment.guideCutIds))).sort(),
+    ["cut-horror", "cut-opening", "cut-scream"],
+  );
+  assert.ok(recap.story.every((segment) => segment.topicLabels.length));
+  assert.ok(recap.story.every((segment) =>
+    segment.narrative.primaryEvidence.kind === "guide-cut" &&
+    segment.narrative.anchorSupportsPrimary === true &&
+    segment.narrative.anchorRelation === "direct-subject-anchor" &&
+    segment.narrative.anchorSubject ===
+      segment.narrative.primarySubject &&
+    segment.guideCutIds.includes(segment.narrative.primaryEvidence.key)
+  ));
+  assert.doesNotMatch(
+    recap.story.map((segment) => segment.body).join(" "),
+    /without a named subject attached/i,
+  );
   assert.doesNotMatch(
     entertainmentCopy,
     /\b(?:desk|file|receipt|registered|bounded|source-local|machine surfaced|evidence boundary|route|indexed)\b/i,
@@ -459,6 +509,167 @@ test("receipt recap acts never borrow a distant topic for a different timestamp"
   assert.equal(
     lateMap.evidenceBasis,
     "source-local-receipts-temporally-bound-to-anchor",
+  );
+});
+
+test("written reels prefer a local receipt that directly supports the named subject", () => {
+  const window = load();
+  const receipts = [
+    receipt("topic:halloween", 100, "topic", "Halloween", 30),
+    {
+      ...receipt("moment:unrelated", 200, "moment", "FULL SEND", 100),
+      excerpt: "The unrelated calendar rant gets the loudest reaction.",
+    },
+    receipt("topic:scream", 500, "topic", "Scream", 25),
+    {
+      ...receipt("moment:other", 600, "moment", "THE ROOM BREAKS", 90),
+      excerpt: "A separate mailbag story changes the room.",
+    },
+  ];
+  const map = window.ShokkerEpisodeRecap.build({
+    source: source({ duration: 800 }),
+    receipts,
+    format: {
+      id: "movie-commentary",
+      label: "MOVIE COMMENTARY",
+      basis: "registered-source-type",
+    },
+  });
+  const recap = window.WWAMEpisodeRecapAdapter.build({ map });
+  const opening = recap.story[0];
+
+  assert.equal(opening.narrative.primarySubject, "Halloween");
+  assert.equal(opening.anchorReceiptKey, "topic:halloween");
+  assert.equal(opening.narrative.primaryEvidence.key, "topic:halloween");
+  assert.equal(opening.narrative.anchorSupportsPrimary, true);
+  assert.equal(opening.narrative.anchorSubject, "Halloween");
+  assert.equal(opening.narrative.anchorRelation, "direct-subject-anchor");
+  assert.match(opening.body, /Halloween/i);
+  assert.doesNotMatch(
+    opening.body,
+    /calendar rant.*(?:plants|unlocks|breadcrumb|flag).*Halloween/i,
+  );
+});
+
+test("unmatched saved spikes are disclosed as separate from the broader reel subject", () => {
+  const window = load();
+  const receipts = [
+    receipt("topic:halloween", 100, "topic", "Halloween", 30),
+    {
+      ...receipt("moment:unrelated", 200, "moment", "FULL SEND", 100),
+      excerpt: "The unrelated calendar rant gets the loudest reaction.",
+    },
+    receipt("topic:scream", 500, "topic", "Scream", 25),
+    receipt("moment:other", 600, "moment", "THE ROOM BREAKS", 90),
+  ];
+  const original = window.ShokkerEpisodeRecap.build({
+    source: source({ duration: 800 }),
+    receipts,
+    format: {
+      id: "movie-commentary",
+      label: "MOVIE COMMENTARY",
+      basis: "registered-source-type",
+    },
+  });
+  const map = JSON.parse(JSON.stringify(original));
+  const opening = map.story[0];
+  opening.anchorReceiptKey = "moment:unrelated";
+  opening.anchorAt = 200;
+  opening.anchorEnd = 224;
+  opening.anchor = "FULL SEND";
+  opening.excerpt = "The unrelated calendar rant gets the loudest reaction.";
+  opening.narrative.primarySubject = "Halloween";
+  opening.narrative.anchorSupportsPrimary = false;
+  opening.narrative.anchorSubject = "FULL SEND";
+  opening.narrative.anchorRelation = "separate-saved-spike";
+  opening.narrative.primaryEvidence = {
+    kind: "receipt",
+    key: "moment:unrelated",
+    at: 200,
+    end: 224,
+    label: "FULL SEND",
+  };
+  const recap = window.WWAMEpisodeRecapAdapter.build({ map });
+  const body = recap.story[0].body;
+
+  assert.equal(
+    recap.story[0].narrative.anchorRelation,
+    "separate-saved-spike",
+  );
+  assert.match(body, /Halloween/i);
+  assert.match(body, /Full Send/i);
+  assert.match(
+    body,
+    /separate (?:saved )?(?:checkpoint|spike)|kept separate|not proof|timestamp is not assigned/i,
+  );
+  assert.doesNotMatch(
+    body,
+    /plants this reel's flag on Halloween|unlocks Halloween|breadcrumb lands on Halloween|handed this reel to Halloween/i,
+  );
+});
+
+test("best moments are the deterministic top three, never a mirror of every moment receipt", () => {
+  const window = load();
+  const receipts = [
+    receipt("topic:halloween", 50, "topic", "Halloween", 15),
+    receipt("moment:fourth", 100, "moment", "FOURTH", 70),
+    receipt("moment:first", 200, "moment", "FIRST", 99),
+    receipt("moment:fifth", 300, "moment", "FIFTH", 60),
+    receipt("moment:third", 400, "moment", "THIRD", 80),
+    receipt("moment:second", 500, "moment", "SECOND", 92),
+  ];
+  const map = window.ShokkerEpisodeRecap.build({
+    source: source({ duration: 700 }),
+    receipts,
+    format: { id: "livestream", label: "WWAM LIVESTREAM", basis: "title" },
+  });
+  const topicOnlyMap = window.ShokkerEpisodeRecap.build({
+    source: source({ id: "topicOnly01" }),
+    receipts: [{
+      ...receipt("topic:only", 50, "topic", "Halloween", 15),
+      sourceId: "topicOnly01",
+    }],
+    format: { id: "livestream", label: "WWAM LIVESTREAM", basis: "title" },
+  });
+
+  assert.deepEqual(
+    Array.from(map.bestMoments, (moment) => moment.receiptKey),
+    ["moment:first", "moment:second", "moment:third"],
+  );
+  assert.equal(map.bestMoments.length, 3);
+  assert.equal(topicOnlyMap.bestMoments.length, 0);
+});
+
+test("story narration uses deterministic language from the source format", () => {
+  const window = load();
+  const receipts = [
+    receipt("topic:halloween", 100, "topic", "Halloween", 80),
+    receipt("moment:reaction", 200, "moment", "THE ROOM BREAKS", 90),
+  ];
+  const bodyFor = (id) => {
+    const map = window.ShokkerEpisodeRecap.build({
+      source: source({ duration: 500 }),
+      receipts,
+      format: { id, label: id.toUpperCase(), basis: "test-format" },
+    });
+    return window.WWAMEpisodeRecapAdapter.build({ map }).story[0].body;
+  };
+
+  assert.match(
+    bodyFor("movie-commentary"),
+    /commentary|watchalong|screen-side conversation|scene-side/i,
+  );
+  assert.match(
+    bodyFor("ranking-show"),
+    /board|bracket|scorecard/i,
+  );
+  assert.match(
+    bodyFor("trailer-reaction"),
+    /breakdown|frame-by-frame|reaction|footage checkpoint/i,
+  );
+  assert.match(
+    bodyFor("livestream"),
+    /\bshow\b|broadcast|conversation/i,
   );
 });
 

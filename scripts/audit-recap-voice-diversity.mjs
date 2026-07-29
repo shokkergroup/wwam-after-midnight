@@ -16,6 +16,7 @@ const RUNTIME_FILES = [
   "deep-distill.js",
   "episode-guides.js",
   "episode-guide-v2-reviewed-release.js",
+  "episode-guide-v2-newest-five-release.js",
   "episode-guide-v2-reviewed-merge.js",
   "livestream-distill.js",
   "popular-live-distill.js",
@@ -110,9 +111,12 @@ function readRuntime() {
 export function compileReadyRecaps() {
   const runtime = readRuntime();
   runtime.WWAM_EPISODE_GUIDES =
-    runtime.WWAM_EPISODE_GUIDE_V2_REVIEWED_MERGE.merge(
+    runtime.WWAM_EPISODE_GUIDE_V2_REVIEWED_MERGE.mergeOrdered(
       runtime.WWAM_EPISODE_GUIDES,
-      runtime.WWAM_EPISODE_GUIDE_V2_REVIEWED_RELEASE,
+      [
+        runtime.WWAM_EPISODE_GUIDE_V2_REVIEWED_RELEASE,
+        runtime.WWAM_EPISODE_GUIDE_V2_NEWEST_FIVE_RELEASE,
+      ],
     );
   const showcase = runtime.WWAMShowcaseEngine.create({
     catalog: runtime.WWAM_CATALOG,

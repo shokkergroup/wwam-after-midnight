@@ -46,7 +46,7 @@ test("V5.19 package, cache keys, and public documentation move together", () => 
     new Set(cacheVersions).size >= 5,
     "independently versioned runtime lanes unexpectedly collapsed",
   );
-  assert.match(html, /youtube-playback\.js\?v=2\.4\.2-host-local/);
+  assert.match(html, /youtube-playback\.js\?v=2\.4\.3-hosted-force/);
   assert.match(html, /app\.js\?v=0\.5\.\d+-[a-z0-9-]+/);
   assert.match(html, /<link rel="icon" href="favicon\.png" sizes="64x64" type="image\/png">/);
   assert.equal(fs.existsSync(path.join(root, "public", "favicon.png")), true);

@@ -38,6 +38,7 @@ class FakeMount {
     this.focusCount = 0;
     this.jumpTargets = new Map();
     this.modal = null;
+    this.stickyNav = null;
   }
 
   addEventListener(type, listener) {
@@ -185,11 +186,24 @@ class FakeMount {
     return prevented;
   }
 
+  registerStickyNav(height, top = 0) {
+    this.stickyNav = {
+      getBoundingClientRect() {
+        return { top, bottom: top + height, height };
+      },
+    };
+    return this.stickyNav;
+  }
+
   closest(selector) {
     return selector === "#tapeModal" ? this.modal : null;
   }
 
   querySelector(selector) {
+    if (
+      selector === ".source-dossier-explore" ||
+      selector === ".source-dossier-wiki-local-nav"
+    ) return this.stickyNav;
     if (this.jumpTargets.has(selector)) {
       const target = this.jumpTargets.get(selector);
       if (
@@ -1089,6 +1103,7 @@ test("compact Show Wiki shortcuts expand and scroll the newly rendered target af
   });
   ui.render("SOURCE00001");
   modal.scrollTop = 240;
+  mount.registerStickyNav(112, 100);
   const target = mount.registerJumpTarget(
     "sourceDossierShowWikiLane-best-moments-1",
     { requiresFullFile: true, rectTop: 980 },
@@ -1108,7 +1123,11 @@ test("compact Show Wiki shortcuts expand and scroll the newly rendered target af
   frames.shift()();
 
   assert.equal(modal.scrollCalls.length, 1);
-  assert.equal(modal.scrollCalls[0].top, 1032);
+  assert.equal(
+    modal.scrollCalls[0].top,
+    984,
+    "wrapped local navigation receives 24px of breathing room above the target",
+  );
   assert.equal(modal.scrollCalls[0].left, 0);
   assert.equal(modal.scrollCalls[0].behavior, "auto");
   assert.equal(target.scrollCalls.length, 0, "modal-relative scrolling owns the viewport");
@@ -1284,6 +1303,13 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
         anchorReceiptKey: dossier.source.receipts[1].key,
         anchorAt: dossier.source.receipts[1].at,
         excerpt: dossier.source.receipts[1].excerpt,
+        guideAnchor: {
+          id: "guide-cut-story-01",
+          at: 90,
+          end: 120,
+          topic: "Halloween",
+          category: "LOVE LETTER",
+        },
         receiptKeys: [
           dossier.source.receipts[0].key,
           dossier.source.receipts[1].key,
@@ -1291,8 +1317,8 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
       },
       {
         id: "reel-02",
-        label: "LAST REEL // CLOSING TIME NEEDS A LAWYER",
-        body: "The written close accounts for the remaining registered source receipts.",
+        label: "REEL TWO // THE ROOM FINDS THE GAS PEDAL",
+        body: "The written middle follows the next registered turns without turning chronology into causality.",
         at: dossier.source.receipts[2].at,
         end: dossier.source.receipts[3].end,
         anchorReceiptKey: dossier.source.receipts[3].key,
@@ -1302,6 +1328,31 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
           dossier.source.receipts[2].key,
           dossier.source.receipts[3].key,
         ],
+      },
+      {
+        id: "reel-03",
+        label: "REEL THREE // THE DAMAGE REPORT ARRIVES",
+        body: "The show moves into its strongest saved reactions and signature detours.",
+        at: dossier.source.receipts[4].at,
+        end: dossier.source.receipts[5].end,
+        anchorReceiptKey: dossier.source.receipts[5].key,
+        anchorAt: dossier.source.receipts[5].at,
+        excerpt: dossier.source.receipts[5].excerpt,
+        receiptKeys: [
+          dossier.source.receipts[4].key,
+          dossier.source.receipts[5].key,
+        ],
+      },
+      {
+        id: "reel-04",
+        label: "LAST REEL // CLOSING TIME NEEDS A LAWYER",
+        body: "The written close accounts for the final registered source receipts.",
+        at: dossier.source.receipts[6].at,
+        end: dossier.source.receipts[20].end,
+        anchorReceiptKey: dossier.source.receipts[20].key,
+        anchorAt: dossier.source.receipts[20].at,
+        excerpt: dossier.source.receipts[20].excerpt,
+        receiptKeys: dossier.source.receipts.slice(6).map((receipt) => receipt.key),
       },
     ],
     fanRead: {
@@ -1320,7 +1371,7 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
       topicCount: 7,
       momentCount: 10,
       characterCount: 4,
-      storySegmentCount: 2,
+      storySegmentCount: 4,
       storyReceiptCount: 21,
       storyCoveragePercent: 100,
       tapeSpanPercent: 84,
@@ -1343,7 +1394,11 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
   assert.match(html, /data-feldman-recap-expanded="false"/);
   assert.match(html, /WWAM FELDMAN APPROVED RECAP/);
   assert.doesNotMatch(html, /source-dossier-feldman-identity/);
-  assert.match(html, /QUICK TAKE/);
+  assert.match(html, /THE 30-SECOND VERSION/);
+  assert.match(
+    html,
+    /class="source-dossier-recap-cta" href="#sourceDossierFeldmanStory">READ THE FELDMAN RECAP/,
+  );
   assert.match(html, /EXACT-SHOW CASE FILE/);
   assert.match(html, /data-feldman-stat="receipts"><b>21<\/b><small>RECEIPTS/);
   assert.match(html, /data-feldman-stat="topics"><b>7<\/b><small>TOPIC DOORS/);
@@ -1359,9 +1414,30 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
     html,
     /Play Halloween from this show at 01:00/,
   );
-  assert.match(html, /FULL EPISODE RECAP/);
-  assert.match(html, /4 ACTS \/\/ CHRONOLOGY, NOT INVENTED CAUSALITY/);
-  assert.doesNotMatch(html, /data-feldman-story|sourceDossierFeldmanStory|REEL \d/);
+  assert.match(html, /THE FELDMAN CUT \/\/ PLAYABLE EPISODE RECAP/);
+  assert.match(html, /THE NIGHT&#39;S SAVED STORY, WITHOUT HUNTING THE TIMELINE/);
+  assert.doesNotMatch(html, /THE FELDMAN CUT \/\/ FULL EPISODE RECAP/);
+  assert.match(html, /data-feldman-story-count="4"/);
+  assert.match(html, /data-feldman-story-expanded="false"/);
+  assert.equal(
+    (html.match(/class="source-dossier-feldman-story-reel"/g) ?? []).length,
+    2,
+  );
+  assert.match(html, /data-feldman-story="reel-01"/);
+  assert.match(html, /data-feldman-story="reel-02"/);
+  assert.doesNotMatch(html, /data-feldman-story="reel-03"/);
+  assert.match(
+    html,
+    /id="sourceDossierFeldmanStoryRemainder" hidden><\/div>/,
+  );
+  assert.match(html, /KEEP READING \/\/ OPEN ALL 4 REELS/);
+  assert.match(
+    html,
+    /data-source-dossier-action="play-guide-cut" data-guide-at="90" data-guide-end="120"[^>]+Play episode story reel 1 at 01:30/,
+  );
+  assert.match(html, />&#9654;<\/span> PLAY 01:30<\/button>/);
+  assert.match(html, /PLAYABLE EPISODE INDEX/);
+  assert.match(html, /4 ACTS \/\/ EVERY ACT OPENS THIS EXACT SHOW/);
   assert.match(html, /START WITH THE TAPE/);
   assert.match(html, /Play the first saved turn at 01:00/);
   assert.match(
@@ -1395,6 +1471,8 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
   assert.match(html, /id="sourceDossierFeldmanDamage-hated"/);
   assert.ok(
     html.indexOf('class="source-dossier-feldman-quick-take"') <
+      html.indexOf('class="source-dossier-feldman-story"') &&
+      html.indexOf('class="source-dossier-feldman-story"') <
       html.indexOf('class="source-dossier-feldman-topic-rail"') &&
       html.indexOf('class="source-dossier-feldman-topic-rail"') <
         html.indexOf('class="source-dossier-feldman-damage"') &&
@@ -1404,7 +1482,7 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
         html.indexOf('class="source-dossier-feldman-receipts"') &&
       html.indexOf('class="source-dossier-feldman-receipts"') <
         html.indexOf('class="source-dossier-feldman-case-file"'),
-    "Quick Take, topic doors, signature moments, one chronology, then collapsed trust form one viewer-first flow",
+    "short take, written story, topic doors, signature moments, playable index, then collapsed trust form one viewer-first flow",
   );
   const populatedDamageExplore = html.match(
     /<nav class="source-dossier-explore"[\s\S]*?<\/nav>/,
@@ -1440,25 +1518,52 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
     fullExplore[0],
     /href="#sourceDossierShowWikiLane-topics-/,
   );
+  assert.match(mount.innerHTML, /data-feldman-view="full"/);
+  assert.match(mount.innerHTML, /data-feldman-story-expanded="true"/);
+  assert.equal(
+    (mount.innerHTML.match(/class="source-dossier-feldman-story-reel"/g) ?? []).length,
+    4,
+  );
+  assert.doesNotMatch(
+    mount.innerHTML,
+    /class="source-dossier-feldman-story-toggle"/,
+  );
   ui.render(dossier.source.id);
 
   mount.click("toggle-episode-recap", { "data-owner-section": "wiki" });
   assert.match(mount.innerHTML, /data-feldman-view="recap"/);
   assert.match(mount.innerHTML, /data-feldman-recap-expanded="true"/);
+  assert.match(mount.innerHTML, /data-feldman-story-expanded="true"/);
+  assert.match(
+    mount.innerHTML,
+    /id="sourceDossierFeldmanStoryRemainder"><article class="source-dossier-feldman-story-reel"/,
+  );
+  assert.match(mount.innerHTML, /data-feldman-story="reel-04"/);
+  assert.equal(
+    (mount.innerHTML.match(/class="source-dossier-feldman-story-reel"/g) ?? []).length,
+    4,
+  );
+  assert.match(mount.innerHTML, /BACK TO THE TWO-REEL CUT/);
   assert.match(
     mount.innerHTML,
     /id="sourceDossierFeldmanOmittedActs"><article class="source-dossier-feldman-act"/,
   );
   assert.match(mount.innerHTML, /aria-expanded="true">SHOW FEWER ACTS/);
   assert.match(mount.innerHTML, /data-feldman-act="act-4"/);
-  assert.doesNotMatch(mount.innerHTML, /data-feldman-story/);
 
   mount.click("toggle-episode-recap", { "data-owner-section": "wiki" });
   assert.match(mount.innerHTML, /data-feldman-view="highlights"/);
   assert.match(mount.innerHTML, /data-feldman-recap-expanded="false"/);
+  assert.match(mount.innerHTML, /data-feldman-story-expanded="false"/);
+  assert.doesNotMatch(mount.innerHTML, /data-feldman-story="reel-03"/);
 
   dossier.source.showWiki.episodeRecap.tier = "topic-recap";
   ui.render(dossier.source.id);
+  assert.match(mount.innerHTML, /THE FELDMAN CUT \/\/ TOPIC-BY-TOPIC RECAP/);
+  assert.match(
+    mount.innerHTML,
+    /THE SUBJECT-BY-SUBJECT CUT, WITHOUT HUNTING THE TIMELINE/,
+  );
   assert.match(mount.innerHTML, /FULL SOURCE MAP/);
   assert.match(mount.innerHTML, /TOPIC NAVIGATION ONLY/);
 
@@ -1749,6 +1854,8 @@ test("held episode recaps wait on the tape without claiming Feldman approval", (
   assert.match(html, /data-feldman-recap="held"/);
   assert.match(html, /RECAP WAITING ON THE TAPE/);
   assert.match(html, /NO MADE-UP EPISODE EVENTS/);
+  assert.doesNotMatch(html, /sourceDossierFeldmanStory|data-feldman-story/);
+  assert.doesNotMatch(html, /source-dossier-recap-cta/);
   assert.doesNotMatch(html, /source-dossier-feldman-identity/);
   assert.match(html, /source-dossier-feldman-held-action/);
   assert.match(html, /START THIS SHOW'S DEEP DIVE/);
@@ -1780,6 +1887,37 @@ test("held episode recaps wait on the tape without claiming Feldman approval", (
   assert.equal(mount.clickLink("#sourceDossierAlternatePlayer"), true);
   assert.equal(audioTarget.audio.focusCount, 1);
   assert.equal(audioTarget.heading.focusCount, 0);
+});
+
+test("a verified timeline-matched official edition plays age-gated WWAM audio in-page", () => {
+  const dossier = makeDossier();
+  dossier.source.availability = "age-restricted";
+  dossier.source.officialAlternate = {
+    kind: "official-podcast-edition",
+    title: "Ranking every TERMINATOR, ROBOCOP + ALIEN Movie",
+    episodeUrl: "https://podcasters.spotify.com/pod/show/example/episodes/ranking",
+    enclosureUrl: "https://traffic.megaphone.fm/EXAMPLE.mp3",
+    duration: 7411.71,
+    canonicalDuration: 7412,
+    durationDelta: 0.29,
+    timestampIsomorphic: true,
+    publicPlaybackAllowed: true,
+    evidenceBoundary: "Official WWAM audio with verified canonical timestamp mapping.",
+  };
+  const { ui, mount } = setup(dossier);
+
+  ui.render(dossier.source.id);
+  const html = mount.innerHTML;
+
+  assert.match(html, /AGE-GATED YOUTUBE \/\/ OFFICIAL WWAM AUDIO/);
+  assert.match(html, /THE SAME SHOW PLAYS RIGHT HERE/);
+  assert.match(html, /VERIFIED TIMELINE MATCH/);
+  assert.match(html, /data-source-dossier-timeline-audio/);
+  assert.match(html, /<audio controls preload="metadata"/);
+  assert.match(html, /PLAY OFFICIAL AUDIO HERE/);
+  assert.ok(html.includes(dossier.source.officialAlternate.enclosureUrl));
+  assert.ok(html.includes(dossier.source.officialAlternate.episodeUrl));
+  assert.doesNotMatch(html, /PLAYABLE EDIT, CLEARLY LABELED/);
 });
 
 test("official alternate Ask answers rebind to the canonical playable route", () => {
@@ -1951,9 +2089,9 @@ test("Episode Guide V2 exposes the episode spine and plays bounded source-local 
     /class="source-dossier-deep-dive-cta" href="#sourceDossierEpisodeGuide">OPEN THE DEEP DIVE/,
   );
   assert.ok(
-    mount.innerHTML.indexOf('href="#sourceDossierEpisodeGuide">DEEP DIVE</a>') <
-      mount.innerHTML.indexOf('href="#sourceDossierShowWikiSummary">SHOW SUMMARY</a>'),
-    "the episode spine is promoted ahead of the summary in the show shortcut strip",
+    mount.innerHTML.indexOf('href="#sourceDossierShowWikiSummary">SHOW SUMMARY</a>') <
+      mount.innerHTML.indexOf('href="#sourceDossierEpisodeGuide">DEEP DIVE</a>'),
+    "the viewer-facing summary leads the research spine in the shortcut strip",
   );
   assert.match(mount.innerHTML, /data-episode-guide-view="start-here"/);
   assert.match(mount.innerHTML, /href="#sourceDossierFanRead">FAN READ<\/a>/);
@@ -3483,6 +3621,23 @@ test("responsive stylesheet preserves touch targets, focus, and reduced motion",
   assert.match(cssSource, /\.source-dossier-aftermath\s*\{/);
   assert.match(cssSource, /\.source-dossier-feldman-case-file\s*\{/);
   assert.match(cssSource, /\.source-dossier-feldman-recap-toggle\s*\{/);
+  assert.match(cssSource, /\.source-dossier-feldman-story\s*\{/);
+  assert.match(
+    cssSource,
+    /\.source-dossier-feldman-story-reel\s*\{[^}]*grid-template-columns:\s*86px minmax\(0,\s*1fr\) auto/s,
+  );
+  assert.match(
+    cssSource,
+    /\.source-dossier-feldman-story-remainder\[hidden\]\s*\{[^}]*display:\s*none\s*!important/s,
+  );
+  assert.match(
+    cssSource,
+    /\[data-feldman-view="highlights"\] \.source-dossier-feldman-quick-take > p\s*\{[^}]*-webkit-line-clamp:\s*5/s,
+  );
+  assert.match(
+    cssSource,
+    /\.source-dossier-hero-copy > div > \.source-dossier-recap-cta\s*\{[^}]*min-height:\s*44px/s,
+  );
   assert.match(
     cssSource,
     /\[data-feldman-recap-expanded="false"\] \.source-dossier-feldman-quick-take > p/,
@@ -3506,6 +3661,10 @@ test("responsive stylesheet preserves touch targets, focus, and reduced motion",
   assert.match(
     cssSource,
     /@media \(max-width:\s*600px\)[\s\S]*\.source-dossier-feldman-facts\s*\{[^}]*grid-template-columns:\s*repeat\(2/s,
+  );
+  assert.match(
+    cssSource,
+    /@media \(max-width:\s*460px\)[\s\S]*\.source-dossier-feldman-story-reel\s*\{[^}]*grid-template-columns:\s*1fr[^}]*"meta"[^}]*"copy"[^}]*"action"/s,
   );
   assert.match(
     cssSource,
@@ -3591,6 +3750,10 @@ test("390px full Show Wiki controls retain thumb-safe tap targets without overfl
   assert.match(
     editorialWayfinder,
     /\.source-dossier-explore > div > \.wwam-dossier-primary-link\s*\{[^}]*flex:\s*0 0 auto[^}]*width:\s*auto[^}]*min-height:\s*44px[^}]*white-space:\s*nowrap/s,
+  );
+  assert.match(
+    editorialWayfinder,
+    /\.source-dossier > \.source-dossier-explore::after\s*\{[^}]*content:\s*"SWIPE \\2192"[^}]*pointer-events:\s*none/s,
   );
   assert.match(
     cssSource,

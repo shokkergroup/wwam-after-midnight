@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.14.0";
+  var VERSION = "1.16.0";
   var DOSSIER_SCHEMA = "shokker-source-dossier/v1";
   var QUERY_SCHEMA = "shokker-source-query/v1";
   var QUERY_RESULT_SCHEMA = "shokker-source-query-result/v1";
@@ -724,6 +724,30 @@
       var source = dossier.source;
       var alternate = record(source.officialAlternate);
       if (clean(alternate.enclosureUrl) &&
+          alternate.timestampIsomorphic === true) {
+        return '<section class="source-dossier-player-section is-timeline-alternate"' +
+          sectionAttributes("player") +
+          ' aria-labelledby="sourceDossierPlayerTitle"><header><div><span>' +
+          'AGE-GATED YOUTUBE // OFFICIAL WWAM AUDIO</span><h3 id="sourceDossierPlayerTitle">' +
+          'THE SAME SHOW PLAYS RIGHT HERE.</h3></div><a href="' +
+          esc(source.url) + '" target="_blank" rel="noopener">' +
+          'OPEN AGE-RESTRICTED VIDEO &#8599;</a></header>' +
+          '<div class="source-dossier-alternate-player is-timeline-matched" ' +
+          'id="modalPlayer" data-source-dossier-player><span>' +
+          'OFFICIAL WWAM PODCAST EDITION // VERIFIED TIMELINE MATCH</span><h4>' +
+          esc(clean(alternate.title) || "Official WWAM audio edition") +
+          '</h4><p>YouTube requires an age-authenticated account for the video. ' +
+          'This official WWAM podcast edition is within one second of the canonical ' +
+          'runtime, so the saved topic and moment jumps work here.</p><audio controls ' +
+          'preload="metadata" src="' + esc(alternate.enclosureUrl) +
+          '" data-source-dossier-timeline-audio ' +
+          'aria-label="Play the official WWAM audio edition"></audio><footer><small>' +
+          esc(clean(alternate.evidenceBoundary).toUpperCase()) +
+          '</small><a href="' + esc(alternate.episodeUrl) +
+          '" target="_blank" rel="noopener">OPEN OFFICIAL EPISODE &#8599;</a></footer></div>' +
+          nowPlayingReceiptMarkup(dossier) + '</section>';
+      }
+      if (clean(alternate.enclosureUrl) &&
           alternate.timestampIsomorphic === false) {
         return '<section class="source-dossier-player-section is-official-alternate"' +
           sectionAttributes("player") +
@@ -874,6 +898,13 @@
         clean(recap.state) === "ready";
     }
 
+    function episodeRecapStory(dossier) {
+      if (!hasReadyEpisodeRecap(dossier)) return [];
+      return array(episodeRecapFor(dossier).story).map(record).filter(function (reel) {
+        return clean(reel.body);
+      });
+    }
+
     function episodeRecapTopicEntries(dossier, maximum) {
       if (!hasReadyEpisodeRecap(dossier)) return [];
       var source = record(dossier.source);
@@ -990,21 +1021,31 @@
       var compact = !state.fullFile;
       var hasTopicRail = !sourceBrief &&
         episodeRecapTopicEntries(dossier, 1).length > 0;
-      var links = [
-        { id: SECTION_IDS.player, label: "WATCH THE SHOW" }
-      ];
+      var links = [{ id: SECTION_IDS.player, label: "WATCH THE SHOW" }, {
+        id: "sourceDossierShowWikiSummary",
+        label: hasReadyEpisodeRecap(dossier) ? "FELDMAN RECAP" :
+          hasEpisodeRecap(dossier) ? "RECAP STATUS" :
+            sourceBrief ? "SOURCE BRIEF" : "SHOW SUMMARY"
+      }];
+      if (!sourceBrief) {
+        links = links.concat(lanes.filter(function (lane) {
+          return isShowWikiHighlightLane(lane);
+        }).map(function (lane) {
+          return {
+            id: showWikiLaneId(lane, lanes.indexOf(lane)),
+            label: clean(lane.label),
+            populated: showWikiLaneReceipts(dossier, lane).length > 0
+          };
+        }).filter(function (link) {
+          return link.label && link.populated;
+        }), feldmanDamageShortcutSpecs(dossier));
+      }
       if (!sourceBrief && showWikiHasFanRead(dossier)) {
         links.push({ id: "sourceDossierFanRead", label: "FAN READ" });
       }
       if (!sourceBrief && clean(record(wiki.episodeGuide).schema)) {
         links.push({ id: "sourceDossierEpisodeGuide", label: "DEEP DIVE" });
       }
-      links.push({
-        id: "sourceDossierShowWikiSummary",
-        label: hasReadyEpisodeRecap(dossier) ? "FELDMAN RECAP" :
-          hasEpisodeRecap(dossier) ? "RECAP STATUS" :
-            sourceBrief ? "SOURCE BRIEF" : "SHOW SUMMARY"
-      });
       if (hasTopicRail) {
         links.push({ id: "sourceDossierFeldmanTopics", label: "TOPICS" });
       }
@@ -1012,11 +1053,11 @@
           showWikiExperienceReceipts(dossier, experience.routeReceiptKeys).length) {
         links.push({ id: "sourceDossierShowWikiExperience", label: clean(experience.title) });
       }
-      links = links.concat((sourceBrief ? [] : lanes).filter(function (lane) {
-        if (hasTopicRail &&
-            (clean(lane.id).toLowerCase() === "topics" ||
-             clean(lane.label).toUpperCase() === "TOPICS")) return false;
-        return !compact || isShowWikiHighlightLane(lane);
+      links = links.concat((!compact && !sourceBrief ? lanes : []).filter(function (lane) {
+        if (isShowWikiHighlightLane(lane)) return false;
+        return !(hasTopicRail &&
+          (clean(lane.id).toLowerCase() === "topics" ||
+           clean(lane.label).toUpperCase() === "TOPICS"));
       }).map(function (lane) {
         return {
           id: showWikiLaneId(lane, lanes.indexOf(lane)),
@@ -1026,9 +1067,6 @@
       }).filter(function (link) {
         return link.label && link.populated;
       }));
-      if (!sourceBrief) {
-        links = links.concat(feldmanDamageShortcutSpecs(dossier));
-      }
       links.push({
         id: SECTION_IDS.ask,
         label: sourceBrief ? "ASK SOURCE FACTS" : "ASK THIS SHOW"
@@ -1175,13 +1213,30 @@
       if (clean(recap.schema) !== "wwam-feldman-recap/v1") return "";
       var ready = clean(recap.state) === "ready";
       var sections = array(recap.sections).map(record);
+      var story = episodeRecapStory(dossier);
       var recapExpanded = !compact || state.recapExpanded;
       var previewSections = compact ? sections.slice(0, 3) : sections;
       var omittedSections = compact ? sections.slice(3) : [];
+      var previewStory = compact ? story.slice(0, 2) : story;
+      var omittedStory = compact ? story.slice(2) : [];
       var fanRead = record(recap.fanRead);
       var officialAlternate = record(source.officialAlternate);
 
       function recapPlayAttributes(item, label) {
+        var guideAnchor = record(item.guideAnchor);
+        var guideAnchorId = clean(guideAnchor.id);
+        var guideAt = number(guideAnchor.at);
+        if (guideAnchorId && guideAt <= number(source.duration)) {
+          var guideEnd = number(guideAnchor.end) > guideAt ?
+            number(guideAnchor.end) :
+            Math.min(number(source.duration), guideAt + 30);
+          return 'data-source-dossier-action="play-guide-cut" ' +
+            'data-guide-at="' + esc(guideAt) + '" data-guide-end="' +
+            esc(guideEnd) + '" data-guide-label="' + esc(label) +
+            '" data-guide-return="sourceDossierFeldmanStory" ' +
+            'data-guide-return-label="FELDMAN RECAP" aria-label="' +
+            esc(label + " at " + formatTime(guideAt)) + '"';
+        }
         var anchorReceiptKey = clean(item.anchorReceiptKey);
         var receiptKey = clean(
           anchorReceiptKey || array(item.receiptKeys)[0] || item.receiptKey
@@ -1208,8 +1263,10 @@
       function recapPlayButton(item, label) {
         var attributes = recapPlayAttributes(item, label);
         if (!attributes) return "";
-        var playAt = clean(item.anchorReceiptKey) ?
-          number(item.anchorAt) : number(item.at);
+        var guideAnchor = record(item.guideAnchor);
+        var playAt = clean(guideAnchor.id) ?
+          number(guideAnchor.at) :
+          clean(item.anchorReceiptKey) ? number(item.anchorAt) : number(item.at);
         return '<button type="button" ' + attributes +
           '><span aria-hidden="true">&#9654;</span> PLAY ' +
           esc(formatTime(playAt)) + '</button>';
@@ -1359,6 +1416,75 @@
           '<footer>' + recapPlayButton(section, "Play recap act " + (index + 1)) +
           '<small>EXACT-SHOW EVIDENCE</small></footer></article>';
       }
+
+      function recapStoryReelMarkup(reel, index) {
+        var at = number(reel.at);
+        var end = number(reel.end);
+        var range = formatTime(at);
+        if (end > at) range += " \u2014 " + formatTime(end);
+        var label = clean(reel.label) ||
+          "REEL " + String(index + 1).padStart(2, "0");
+        return '<article class="source-dossier-feldman-story-reel" ' +
+          'data-feldman-story="' + esc(clean(reel.id) || "reel-" + (index + 1)) +
+          '"><header><span>' +
+          esc(String(index + 1).padStart(2, "0")) +
+          '</span><time>' + esc(range) + '</time></header><div><h5>' +
+          esc(label) + '</h5><p>' + esc(reel.body) +
+          '</p></div><footer>' +
+          recapPlayButton(reel, "Play episode story reel " + (index + 1)) +
+          '</footer></article>';
+      }
+
+      var storyMarkup = "";
+      if (story.length) {
+        var storyTier = clean(recap.tier);
+        var storyEyebrow = storyTier === "full-chronicle" ?
+          "THE FELDMAN CUT // FULL EPISODE RECAP" :
+          storyTier === "topic-recap" ?
+            "THE FELDMAN CUT // TOPIC-BY-TOPIC RECAP" :
+            "THE FELDMAN CUT // PLAYABLE EPISODE RECAP";
+        var storyTitle = storyTier === "full-chronicle" ?
+          "THE WHOLE SHOW, WITHOUT HUNTING THE TIMELINE." :
+          storyTier === "topic-recap" ?
+            "THE SUBJECT-BY-SUBJECT CUT, WITHOUT HUNTING THE TIMELINE." :
+            "THE NIGHT'S SAVED STORY, WITHOUT HUNTING THE TIMELINE.";
+        var previewStoryMarkup = previewStory.map(function (reel, index) {
+          return recapStoryReelMarkup(reel, index);
+        }).join("");
+        var omittedStoryMarkup = omittedStory.map(function (reel, index) {
+          return recapStoryReelMarkup(reel, previewStory.length + index);
+        }).join("");
+        var storyControls = "sourceDossierFeldmanStoryRemainder";
+        var storyToggle = compact && omittedStory.length ?
+          '<button type="button" class="source-dossier-feldman-story-toggle" ' +
+          'data-source-dossier-action="toggle-episode-recap" aria-controls="' +
+          esc(storyControls) + '" aria-expanded="' +
+          (recapExpanded ? 'true' : 'false') + '">' +
+          (recapExpanded ? 'BACK TO THE TWO-REEL CUT &#8593;' :
+            'KEEP READING // OPEN ALL ' + esc(story.length) + ' REELS &#8595;') +
+          '</button>' : '';
+        storyMarkup =
+          '<section class="source-dossier-feldman-story" ' +
+          'id="sourceDossierFeldmanStory" aria-labelledby="' +
+          'sourceDossierFeldmanStoryTitle" data-feldman-story-count="' +
+          esc(story.length) + '" data-feldman-story-expanded="' +
+          (recapExpanded ? 'true' : 'false') + '"><header><div><span>' +
+          esc(storyEyebrow) + '</span><h5 ' +
+          'id="sourceDossierFeldmanStoryTitle">' + esc(storyTitle) +
+          '</h5></div><b>' + esc(story.length) + ' ' +
+          (story.length === 1 ? 'REEL' : 'REELS') + ' // ' +
+          esc(formatDuration(source.duration)) + ' ON THE CLOCK</b></header>' +
+          '<div class="source-dossier-feldman-story-reels">' +
+          previewStoryMarkup + '</div>' +
+          (compact && omittedStory.length ?
+            '<div class="source-dossier-feldman-story-remainder" id="' +
+            storyControls + '"' + (recapExpanded ? '' : ' hidden') + '>' +
+            (recapExpanded ? omittedStoryMarkup : '') + '</div>' : '') +
+          storyToggle +
+          '<footer><b>READ IT STRAIGHT THROUGH.</b><span>Every reel has a ' +
+          'play door back to the exact show.</span></footer></section>';
+      }
+
       var sectionMarkup = previewSections.map(function (section, index) {
         return recapSectionMarkup(section, index);
       }).join("");
@@ -1429,10 +1555,10 @@
           'SHOW ALL ' + esc(sections.length) + ' ACTS &#8595;') +
         '</button>' : '';
       var chronologyLabel = topicMapOnly ?
-        "FULL SOURCE MAP" : "FULL EPISODE RECAP";
+        "FULL SOURCE MAP" : "PLAYABLE EPISODE INDEX";
       var chronologyNote = topicMapOnly ?
         "TOPIC NAVIGATION ONLY // NO OPINIONS, REACTIONS, OR VERDICTS INVENTED" :
-        "CHRONOLOGY, NOT INVENTED CAUSALITY // EVERY ACT OPENS THIS EXACT SHOW";
+        "EVERY ACT OPENS THIS EXACT SHOW";
       var trustMarkup =
         '<details class="source-dossier-feldman-receipts"><summary>' +
         'DEEP DIVE + SOURCE TRUST</summary><div class="source-dossier-feldman-trust-copy"><p>' +
@@ -1440,8 +1566,10 @@
         ' Every paragraph above resolves to a timestamp from this exact upload. ' +
         'Automatic captions do not establish the speaker, delivery, or audio origin.</p><small>' +
         esc(clean(recap.semanticFingerprint).toUpperCase()) +
+        (story.length ? ' // ' + esc(story.length) + ' WRITTEN ' +
+          (story.length === 1 ? 'REEL' : 'REELS') : '') +
         ' // ' + esc(array(recap.sections).length) +
-        ' CHRONOLOGICAL ACTS</small></div>' + caseFileMarkup + '</details>';
+        ' PLAYABLE ACTS</small></div>' + caseFileMarkup + '</details>';
 
       return '<section class="source-dossier-feldman-recap is-ready" ' +
         'id="sourceDossierShowWikiSummary" data-feldman-recap="ready" ' +
@@ -1453,8 +1581,9 @@
         '</h4></div><b>' + esc(recap.badge) + '</b></header>' +
         '<p class="source-dossier-feldman-deck">' + esc(recap.deck) +
         '</p><section class="source-dossier-feldman-quick-take" ' +
-        'id="sourceDossierFeldmanOverview"><span>QUICK TAKE</span><p>' +
-        esc(recap.overview) + '</p></section>' + openingJump + topicRailMarkup +
+        'id="sourceDossierFeldmanOverview"><span>THE 30-SECOND VERSION</span><p>' +
+        esc(recap.overview) + '</p></section>' + openingJump + storyMarkup +
+        topicRailMarkup +
         (damageMarkup ? '<section class="source-dossier-feldman-damage" ' +
           'id="sourceDossierFeldmanDamage"><header><span>' +
           'FEATURED SIGNATURE MOMENTS // DAMAGE REPORT</span><b>' +
@@ -2624,6 +2753,7 @@
       var hasEpisodeGuide = !isSourceBrief(dossier) &&
         clean(record(record(source.showWiki).episodeGuide).schema) ===
           "wwam-episode-guide/v2";
+      var hasWrittenEpisodeStory = episodeRecapStory(dossier).length > 0;
       var deepResearch = askMarkup(dossier) + proofMarkup(dossier) +
         insideMarkup(dossier) + footprintMarkup(dossier) + wakeMarkup(dossier) +
         '<nav class="source-dossier-chronology"' + sectionAttributes("chronology") +
@@ -2636,6 +2766,10 @@
         officialAlternate.timestampIsomorphic === false ?
         '<a class="source-dossier-alternate-cta" href="#sourceDossierAlternatePlayer">' +
           'OPEN OFFICIAL AUDIO</a>' :
+        clean(officialAlternate.enclosureUrl) &&
+        officialAlternate.timestampIsomorphic === true ?
+        '<button type="button" data-source-dossier-action="play-source">' +
+          '&#9654; PLAY OFFICIAL AUDIO HERE</button>' :
         '<button type="button" data-source-dossier-action="play-source">' +
           '&#9654; WATCH THIS SHOW</button>';
       return '<article class="source-dossier is-' + esc(token(source.coverage)) +
@@ -2652,6 +2786,9 @@
         ' // ' + esc(formatDuration(source.duration)) + ' // ' +
         esc(formatNumber(source.views)) + ' VIEWS WHEN INDEXED</p><div>' +
         primaryPlay +
+        (hasWrittenEpisodeStory ?
+          '<a class="source-dossier-recap-cta" href="#sourceDossierFeldmanStory">' +
+          'READ THE FELDMAN RECAP &#8595;</a>' : '') +
         (hasEpisodeGuide ?
           '<a class="source-dossier-deep-dive-cta" href="#sourceDossierEpisodeGuide">' +
           'OPEN THE DEEP DIVE &#8595;</a>' : '') +
@@ -2929,6 +3066,28 @@
       var stickyClearance = Number.isFinite(requestedClearance) ?
         Math.max(0, requestedClearance) : 88;
       var modal = dossierModal();
+      var localNav = null;
+      if (typeof mount.querySelector === "function") {
+        // The compact editorial shortcut bar is the visible sticky header.
+        // The full-file research nav remains the fallback for older routes.
+        localNav = mount.querySelector(".source-dossier-explore") ||
+          mount.querySelector(".source-dossier-wiki-local-nav");
+      }
+      if (localNav && typeof localNav.getBoundingClientRect === "function") {
+        var localNavRect = localNav.getBoundingClientRect();
+        var modalTop = modal && typeof modal.getBoundingClientRect === "function" ?
+          number(modal.getBoundingClientRect().top) : number(localNavRect.top);
+        var localNavClearance = number(localNavRect.bottom) - modalTop;
+        if (localNavClearance <= 0) {
+          localNavClearance = number(localNavRect.height);
+        }
+        if (localNavClearance) {
+          stickyClearance = Math.max(
+            stickyClearance,
+            Math.ceil(localNavClearance) + 24
+          );
+        }
+      }
       if (modal && typeof modal.scrollTo === "function" &&
           typeof modal.getBoundingClientRect === "function" &&
           typeof target.getBoundingClientRect === "function") {
@@ -3015,12 +3174,42 @@
         section: state.section,
         query: state.query
       };
+      function playTimelineAudio(at, end) {
+        var audio = typeof mount.querySelector === "function" ?
+          mount.querySelector("[data-source-dossier-timeline-audio]") : null;
+        if (!audio) return false;
+        var start = Math.max(0, number(at));
+        var stop = number(end) > start ? number(end) : 0;
+        var begin = function () {
+          try { audio.currentTime = start; } catch {}
+          var attempt = typeof audio.play === "function" ? audio.play() : null;
+          if (attempt && typeof attempt.catch === "function") {
+            attempt.catch(function () {});
+          }
+        };
+        if (stop && typeof audio.addEventListener === "function") {
+          audio.addEventListener("timeupdate", function haltAtBound() {
+            if (number(audio.currentTime) < stop) return;
+            if (typeof audio.pause === "function") audio.pause();
+            audio.removeEventListener("timeupdate", haltAtBound);
+          });
+        }
+        if (number(audio.readyState) >= 1) {
+          begin();
+        } else if (typeof audio.addEventListener === "function") {
+          audio.addEventListener("loadedmetadata", begin, { once: true });
+        }
+        if (typeof audio.scrollIntoView === "function") {
+          audio.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+        return true;
+      }
       if (action === "play-source") {
         state.activeReceiptKey = "";
         state.activeReceiptOrigin = "";
         state.activePlayback = null;
         renderCurrent();
-        callbacks.play(Object.assign(payload, {
+        if (!playTimelineAudio(state.at, null)) callbacks.play(Object.assign(payload, {
           mode: "source",
           at: state.at,
           end: null,
@@ -3046,7 +3235,7 @@
           state.at = guideAt;
           state.hasAnchor = true;
           renderCurrent();
-          callbacks.play(Object.assign(payload, {
+          if (!playTimelineAudio(guideAt, guideEnd)) callbacks.play(Object.assign(payload, {
             mode: "episode-guide",
             at: guideAt,
             end: Number.isFinite(guideEnd) && guideEnd > guideAt ? guideEnd : null,
@@ -3064,7 +3253,7 @@
           state.at = playReceipt.at;
           state.hasAnchor = true;
           renderCurrent();
-          callbacks.play(Object.assign(payload, {
+          if (!playTimelineAudio(playReceipt.at, playReceipt.end)) callbacks.play(Object.assign(payload, {
             mode: "receipt",
             at: playReceipt.at,
             end: playReceipt.end,

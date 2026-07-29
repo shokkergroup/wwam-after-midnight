@@ -2,7 +2,7 @@
   "use strict";
 
   var SCHEMA = "shokker-episode-recap/v1";
-  var VERSION = "1.4.0";
+  var VERSION = "1.5.0";
 
   function clean(value) {
     return String(value == null ? "" : value).trim();
@@ -138,6 +138,53 @@
     if (kind.indexOf("topic") >= 0 || evidenceType.indexOf("topic") >= 0) return "topic";
     if (kind.indexOf("character") >= 0 || evidenceType.indexOf("character") >= 0) return "character";
     return "moment";
+  }
+
+  function normalizedEvidenceText(values) {
+    return array(values).map(function (value) {
+      return displayLabel(value).toLowerCase()
+        .replace(/&/g, " and ")
+        .replace(/[^a-z0-9]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }).filter(Boolean).join(" ");
+  }
+
+  function evidenceSubject(evidence) {
+    evidence = record(evidence);
+    return displayLabel(
+      evidence.topic ||
+      characterLabels(evidence)[0] ||
+      evidence.label ||
+      evidence.category ||
+      "Saved checkpoint"
+    );
+  }
+
+  function evidenceSupportsSubject(subject, evidence) {
+    evidence = record(evidence);
+    var subjectLabel = displayLabel(subject);
+    if (!subjectLabel) return false;
+    var evidenceLabels = orderedStrings(
+      [evidence.topic, evidence.label, evidence.category]
+        .concat(characterLabels(evidence))
+    );
+    var haystack = normalizedEvidenceText(
+      evidenceLabels.concat([evidence.excerpt])
+    );
+    var exact = normalizedEvidenceText([subjectLabel]);
+    if (!haystack || !exact) return false;
+    if ((" " + haystack + " ").indexOf(" " + exact + " ") >= 0) return true;
+    var haystackWords = haystack.split(/\s+/);
+    return words(subjectLabel).some(function (word) {
+      return word.length >= 3 && haystackWords.indexOf(word) >= 0;
+    });
+  }
+
+  function preferredSubjectAnchor(receipts, subject) {
+    return topReceipts(array(receipts).filter(function (receipt) {
+      return evidenceSupportsSubject(subject, receipt);
+    }), 1)[0] || null;
   }
 
   function receiptTime(receipt) {
@@ -551,11 +598,198 @@
     });
   }
 
-  function storyArc(receipts, duration) {
+  function guideCutTime(item) {
+    if (Number.isFinite(Number(item && item.at))) {
+      return Math.max(0, number(item.at));
+    }
+    return Math.max(0, number(item && item.t));
+  }
+
+  function guideEvidence(guide, duration) {
+    guide = record(guide);
+    var chapters = array(guide.chapters);
+    var chapterByCutId = {};
+    chapters.forEach(function (chapter) {
+      var cutId = clean(chapter && chapter.cutId);
+      if (cutId) chapterByCutId[cutId] = chapter;
+    });
+    var seen = {};
+    var values = [];
+
+    function add(item, index, fallbackKind) {
+      item = record(item);
+      var atValue = item.at != null ? item.at : item.t;
+      if (!Number.isFinite(Number(atValue))) return;
+      var at = guideCutTime(item);
+      if (number(duration) && at > number(duration) + 60) return;
+      var id = fallbackKind === "chapter" ?
+        clean(item.cutId) || clean(item.id) :
+        clean(item.id) || clean(item.cutId);
+      id = id ||
+        "guide-point-" + String(index + 1).padStart(2, "0") + "-" + Math.round(at);
+      if (seen[id]) return;
+      var chapter = record(chapterByCutId[id]);
+      var topic = displayLabel(item.topic || chapter.topic);
+      var category = displayLabel(item.category || chapter.category || item.label);
+      if (!topic && !category) return;
+      seen[id] = true;
+      values.push({
+        id: id,
+        at: at,
+        end: Math.min(
+          Math.max(at, number(duration)),
+          number(item.end) > at ? number(item.end) :
+            number(chapter.end) > at ? number(chapter.end) :
+              at + 36
+        ),
+        topic: topic,
+        category: category,
+        excerpt: safeExcerpt({
+          excerpt: clean(item.excerpt || chapter.excerpt),
+          publicExcerptAllowed: true,
+        }, 18),
+        score: number(item.score),
+        evidenceBasis: clean(item.evidenceBasis || chapter.evidenceBasis) ||
+          "reviewed-episode-guide-timestamp",
+        chapterId: clean(chapter.id) ||
+          (fallbackKind === "chapter" ? clean(item.id) : ""),
+        chapterLabel: clean(chapter.label) ||
+          (fallbackKind === "chapter" ? clean(item.label) : ""),
+      });
+    }
+
+    array(guide.cuts).forEach(function (cut, index) {
+      add(cut, index, "cut");
+    });
+    chapters.forEach(function (chapter, index) {
+      add(chapter, array(guide.cuts).length + index, "chapter");
+    });
+    return values.sort(function (left, right) {
+      return left.at - right.at || left.id.localeCompare(right.id);
+    });
+  }
+
+  function guideThreads(guide) {
+    return array(record(guide).threads).map(function (thread) {
+      return {
+        name: displayLabel(thread && thread.name),
+        kind: clean(thread && thread.kind),
+        mentions: number(thread && thread.mentions),
+        first: number(thread && thread.first),
+        peak: number(thread && thread.peak),
+        score: number(thread && thread.score),
+      };
+    }).filter(function (thread) {
+      return Boolean(thread.name);
+    }).sort(function (left, right) {
+      return right.score - left.score ||
+        right.mentions - left.mentions ||
+        left.name.localeCompare(right.name);
+    });
+  }
+
+  function narrativeSubject(segment) {
+    return displayLabel(
+      segment.primarySubject ||
+      record(segment.guideAnchor).topic ||
+      record(segment.guideAnchor).category ||
+      array(segment.topicLabels)[0] ||
+      array(segment.characterLabels)[0] ||
+      segment.anchor ||
+      array(segment.momentLabels)[0] ||
+      "Saved checkpoint"
+    );
+  }
+
+  function attachNarrativeBeats(segments) {
+    var subjectPositions = {};
+    segments.forEach(function (segment, index) {
+      orderedStrings(
+        [narrativeSubject(segment)]
+          .concat(segment.topicLabels, segment.characterLabels)
+      ).forEach(function (subject) {
+        var key = subject.toLowerCase();
+        if (!subjectPositions[key]) subjectPositions[key] = [];
+        subjectPositions[key].push(index);
+      });
+    });
+
+    return segments.map(function (segment, index) {
+      var primarySubject = narrativeSubject(segment);
+      var subjects = orderedStrings(
+        [primarySubject]
+          .concat(segment.topicLabels, segment.characterLabels, segment.momentLabels)
+      );
+      var recurringSubjects = subjects.filter(function (subject) {
+        return array(subjectPositions[subject.toLowerCase()]).length > 1;
+      });
+      var previousSubject = index ? narrativeSubject(segments[index - 1]) : "";
+      var nextSubject = index + 1 < segments.length ?
+        narrativeSubject(segments[index + 1]) : "";
+      var counts = record(segment.evidenceShape);
+      var kind = index === 0 ? "opening-board" :
+        index === segments.length - 1 ? "last-reel" :
+          recurringSubjects.length ? "returning-thread" :
+            number(counts.characters) ? "character-break-in" :
+              number(counts.moments) > number(counts.topics) ? "chaos-spike" :
+                number(counts.topics) >= 3 ? "topic-sweep" :
+                  "hard-left";
+      var guideAnchor = record(segment.guideAnchor);
+      var anchorSupportsPrimary = segment.anchorSupportsPrimary === true;
+      var anchorSubject = displayLabel(segment.anchorSubject) ||
+        evidenceSubject(clean(guideAnchor.id) ? guideAnchor : {
+          label: segment.anchor,
+        });
+      segment.narrative = {
+        schema: "shokker-recap-narrative-beat/v1",
+        kind: kind,
+        primarySubject: primarySubject,
+        secondarySubjects: subjects.filter(function (subject) {
+          return subject.toLowerCase() !== primarySubject.toLowerCase();
+        }).slice(0, 5),
+        previousSubject: previousSubject,
+        nextSubject: nextSubject,
+        recurringSubjects: recurringSubjects.slice(0, 4),
+        anchorSupportsPrimary: anchorSupportsPrimary,
+        anchorSubject: anchorSubject,
+        anchorRelation: anchorSupportsPrimary ?
+          "direct-subject-anchor" : "separate-saved-spike",
+        primaryEvidence: clean(guideAnchor.id) ? {
+          kind: "guide-cut",
+          key: clean(guideAnchor.id),
+          at: number(guideAnchor.at),
+          end: number(guideAnchor.end),
+          label: anchorSubject,
+        } : {
+          kind: "receipt",
+          key: clean(segment.anchorReceiptKey),
+          at: number(segment.anchorAt),
+          end: number(segment.anchorEnd),
+          label: anchorSubject,
+        },
+        evidenceShape: {
+          receipts: number(counts.receipts),
+          guideCuts: number(counts.guideCuts),
+          guideChapters: number(counts.guideChapters),
+          topics: number(counts.topics),
+          moments: number(counts.moments),
+          characters: number(counts.characters),
+          namedSubjects: subjects.length,
+        },
+      };
+      return segment;
+    });
+  }
+
+  function storyArc(receipts, duration, guide) {
     if (!receipts.length) return [];
-    var segmentCount = receipts.length >= 16 ? 4 :
-      receipts.length >= 8 ? 3 :
-        receipts.length >= 4 ? 2 : 1;
+    var guidePoints = guideEvidence(guide, duration);
+    var guideThreadList = guideThreads(guide);
+    var evidenceCount = receipts.length + guidePoints.length;
+    var segmentCount = evidenceCount >= 16 ? 4 :
+      evidenceCount >= 8 ? 3 :
+        evidenceCount >= 4 ? 2 : 1;
+    segmentCount = Math.max(1, Math.min(segmentCount, receipts.length));
     var segments = [];
 
     for (var segmentIndex = 0; segmentIndex < segmentCount; segmentIndex += 1) {
@@ -563,6 +797,21 @@
       var endIndex = Math.floor((segmentIndex + 1) * receipts.length / segmentCount);
       var chunk = receipts.slice(startIndex, Math.max(startIndex + 1, endIndex));
       if (!chunk.length) continue;
+      var previousChunkLast = segmentIndex ?
+        receipts[Math.max(0, startIndex - 1)] : null;
+      var nextChunkFirst = endIndex < receipts.length ? receipts[endIndex] : null;
+      var fromBoundary = previousChunkLast ?
+        Math.round((receiptTime(previousChunkLast) + receiptTime(chunk[0])) / 2) : 0;
+      var toBoundary = nextChunkFirst ?
+        Math.round((
+          receiptTime(chunk[chunk.length - 1]) + receiptTime(nextChunkFirst)
+        ) / 2) : Math.max(1, number(duration));
+      var localGuidePoints = guidePoints.filter(function (point) {
+        return point.at >= fromBoundary &&
+          (segmentIndex + 1 === segmentCount ?
+            point.at <= toBoundary :
+            point.at < toBoundary);
+      });
       var topics = chunk.filter(function (receipt) {
         return receiptKind(receipt) === "topic";
       });
@@ -575,30 +824,124 @@
       var excerptReceipt = topReceipts(chunk.filter(function (receipt) {
         return Boolean(safeExcerpt(receipt, 18));
       }), 1)[0] || null;
-      var anchor = excerptReceipt || topReceipts(chunk, 1)[0] || chunk[0];
+      var strongestAnchor = excerptReceipt || topReceipts(chunk, 1)[0] || chunk[0];
+      var guideAnchor = localGuidePoints.slice().sort(function (left, right) {
+        return right.score - left.score ||
+          Number(Boolean(right.excerpt)) - Number(Boolean(left.excerpt)) ||
+          left.at - right.at ||
+          left.id.localeCompare(right.id);
+      })[0] || null;
       var first = chunk[0];
       var last = chunk[chunk.length - 1];
+      var topicLabels = orderedStrings(
+        localGuidePoints.map(function (point) {
+          return point.topic;
+        }).concat(topics.map(receiptDisplayLabel))
+      );
+      var momentLabels = orderedStrings(
+        localGuidePoints.map(function (point) {
+          return point.category;
+        }).concat(moments.map(receiptDisplayLabel))
+      );
+      var characterLabelList = orderedStrings(
+        characters.reduce(function (values, receipt) {
+          return values.concat(characterLabels(receipt));
+        }, []).concat(localGuidePoints.reduce(function (values, point) {
+          var thread = guideThreadList.find(function (candidate) {
+            return candidate.name.toLowerCase() === point.topic.toLowerCase() &&
+              candidate.kind.toLowerCase() === "character";
+          });
+          return thread ? values.concat(thread.name) : values;
+        }, []))
+      );
+      var threadLabels = guideThreadList.filter(function (thread) {
+        return topicLabels.some(function (topic) {
+          return topic.toLowerCase() === thread.name.toLowerCase();
+        });
+      }).map(function (thread) {
+        return thread.name;
+      });
+      var primarySubject = displayLabel(
+        guideAnchor && (guideAnchor.topic || guideAnchor.category) ||
+        topicLabels[0] ||
+        characterLabelList[0] ||
+        receiptDisplayLabel(strongestAnchor) ||
+        momentLabels[0] ||
+        "Saved checkpoint"
+      );
+      var directReceiptAnchor = guideAnchor ? null :
+        preferredSubjectAnchor(chunk, primarySubject);
+      var anchor = directReceiptAnchor || strongestAnchor;
+      var primaryEvidence = guideAnchor || anchor;
+      var anchorSupportsPrimary = evidenceSupportsSubject(
+        primarySubject,
+        primaryEvidence
+      );
+      var anchorSubject = evidenceSubject(primaryEvidence);
+      var at = Math.min(
+        receiptTime(first),
+        localGuidePoints.length ? localGuidePoints[0].at : receiptTime(first)
+      );
+      var end = Math.max(
+        receiptEnd(last, duration),
+        localGuidePoints.length ?
+          localGuidePoints.reduce(function (latest, point) {
+            return Math.max(latest, point.end);
+          }, 0) :
+          receiptEnd(last, duration)
+      );
       segments.push({
         id: "reel-" + String(segmentIndex + 1).padStart(2, "0"),
         ordinal: segmentIndex + 1,
-        at: receiptTime(first),
-        end: receiptEnd(last, duration),
+        at: at,
+        end: Math.min(Math.max(at, number(duration)), end),
         anchorReceiptKey: clean(anchor.key),
         anchorAt: receiptTime(anchor),
+        anchorEnd: receiptEnd(anchor, duration),
         anchor: receiptDisplayLabel(anchor),
         excerpt: safeExcerpt(anchor, 18),
-        topicLabels: orderedStrings(topics.map(receiptDisplayLabel)),
-        momentLabels: orderedStrings(moments.map(receiptDisplayLabel)),
-        characterLabels: orderedStrings(characters.reduce(function (values, receipt) {
-          return values.concat(characterLabels(receipt));
-        }, [])),
+        primarySubject: primarySubject,
+        anchorSupportsPrimary: anchorSupportsPrimary,
+        anchorSubject: anchorSubject,
+        topicLabels: topicLabels,
+        momentLabels: momentLabels,
+        characterLabels: characterLabelList,
+        threadLabels: orderedStrings(threadLabels),
         receiptKeys: chunk.map(function (receipt) {
           return clean(receipt.key);
         }),
-        evidenceBasis: "all-source-local-receipts-grouped-chronologically",
+        guideCutIds: localGuidePoints.map(function (point) {
+          return point.id;
+        }),
+        guideChapterIds: orderedStrings(localGuidePoints.map(function (point) {
+          return point.chapterId;
+        })),
+        guideAnchor: guideAnchor ? {
+          id: guideAnchor.id,
+          at: guideAnchor.at,
+          end: guideAnchor.end,
+          topic: guideAnchor.topic,
+          category: guideAnchor.category,
+          excerpt: guideAnchor.excerpt,
+          chapterId: guideAnchor.chapterId,
+          evidenceBasis: guideAnchor.evidenceBasis,
+        } : null,
+        evidenceShape: {
+          receipts: chunk.length,
+          guideCuts: localGuidePoints.length,
+          guideChapters: orderedStrings(localGuidePoints.map(function (point) {
+            return point.chapterId;
+          })).length,
+          topics: topicLabels.length,
+          moments: momentLabels.length,
+          characters: characterLabelList.length,
+        },
+        evidenceBasis: localGuidePoints.length ?
+          "source-local-receipts-plus-reviewed-guide-points-grouped-chronologically" :
+          "all-source-local-receipts-grouped-chronologically",
       });
     }
-    return segments;
+    return attachNarrativeBeats(segments);
   }
 
   function feature(receipt, duration) {
@@ -699,6 +1042,20 @@
     }, []));
     var storyCoveragePercent = receipts.length ?
       Math.round(storyReceiptKeys.length / receipts.length * 100) : 0;
+    var expectedGuidePointIds = orderedStrings(
+      guideEvidence(guide, duration).map(function (point) {
+        return point.id;
+      })
+    );
+    var storyGuidePointIds = orderedStrings(array(story).reduce(function (keys, segment) {
+      return keys.concat(array(segment && segment.guideCutIds));
+    }, []));
+    var storyGuideChapterIds = orderedStrings(array(story).reduce(function (keys, segment) {
+      return keys.concat(array(segment && segment.guideChapterIds));
+    }, []));
+    var storyThreadLabels = orderedStrings(array(story).reduce(function (labels, segment) {
+      return labels.concat(array(segment && segment.threadLabels));
+    }, []));
     return {
       receiptCount: receipts.length,
       topicCount: topics.length,
@@ -710,6 +1067,20 @@
       storySegmentCount: array(story).length,
       storyReceiptCount: storyReceiptKeys.length,
       storyCoveragePercent: storyCoveragePercent,
+      storyNarrativeBeatCount: array(story).filter(function (segment) {
+        return clean(record(segment).narrative && record(segment).narrative.schema) ===
+          "shokker-recap-narrative-beat/v1";
+      }).length,
+      storyNamedSegmentCount: array(story).filter(function (segment) {
+        return Boolean(narrativeSubject(record(segment)));
+      }).length,
+      storyGuidePointCount: storyGuidePointIds.length,
+      storyGuidePointExpected: expectedGuidePointIds.length,
+      storyGuidePointCoveragePercent: expectedGuidePointIds.length ?
+        Math.round(storyGuidePointIds.length / expectedGuidePointIds.length * 100) :
+        100,
+      storyGuideChapterCount: storyGuideChapterIds.length,
+      storyGuideThreadCount: storyThreadLabels.length,
       tapeSpanPercent: span,
       firstAt: first,
       lastAt: last,
@@ -793,6 +1164,13 @@
         storySegmentCount: 0,
         storyReceiptCount: 0,
         storyCoveragePercent: 0,
+        storyNarrativeBeatCount: 0,
+        storyNamedSegmentCount: 0,
+        storyGuidePointCount: 0,
+        storyGuidePointExpected: 0,
+        storyGuidePointCoveragePercent: 100,
+        storyGuideChapterCount: 0,
+        storyGuideThreadCount: 0,
         tapeSpanPercent: 0,
         firstAt: 0,
         lastAt: 0,
@@ -826,10 +1204,10 @@
     var sections = guideReady ?
       guideSections(source, receipts, guide) :
       receiptSections(source, receipts);
-    var story = storyArc(receipts, source.duration);
+    var story = storyArc(receipts, source.duration, guide);
     var moments = topReceipts(receipts.filter(function (receipt) {
       return receiptKind(receipt) === "moment";
-    }), 8);
+    }), 3);
     var topics = topicLabels(receipts, guide, source, context);
     var mode = guideReady ? "full-chronicle" :
       moments.length ? "receipt-recap" : "topic-recap";
@@ -884,7 +1262,8 @@
         return [
           segment.id, segment.at, segment.end, segment.anchorReceiptKey,
           segment.anchorAt, segment.anchor,
-          segment.receiptKeys
+          segment.receiptKeys, segment.guideCutIds, segment.guideChapterIds,
+          segment.threadLabels, segment.narrative
         ];
       }),
       guideRecap: guideRecap,

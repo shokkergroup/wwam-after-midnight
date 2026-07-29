@@ -1312,9 +1312,27 @@ body[data-guided-journey="highlights"] #steves-asshole {
 @media (max-width: 680px) {
   .source-dossier > .source-dossier-explore {
     display: block;
+    position: relative;
     max-height: 60px;
     padding-right: 72px !important;
     overflow: hidden;
+  }
+
+  .source-dossier > .source-dossier-explore::after {
+    content: "SWIPE \2192";
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    display: grid;
+    width: 58px;
+    min-height: 44px;
+    place-items: center;
+    border-left: 1px solid #463a43;
+    color: var(--acid, #d8ff38);
+    background: linear-gradient(90deg, rgba(9,7,10,.55), #09070a 26%);
+    font: 800 8px/1 var(--mono, monospace);
+    letter-spacing: .06em;
+    pointer-events: none;
   }
 
   .source-dossier-explore > div {

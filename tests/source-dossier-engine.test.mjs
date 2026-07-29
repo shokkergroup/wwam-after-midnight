@@ -509,14 +509,26 @@ test("preserves a playable official alternate without crossing its timestamp bou
     dossier.source.sourceFingerprint,
   );
 
+  const matched = fixture();
+  matched.sources[2].officialAlternate = {
+    ...input.sources[2].officialAlternate,
+    duration: 4199.71,
+    canonicalDuration: 4200,
+    durationDelta: 0.29,
+    timestampIsomorphic: true,
+  };
+  const matchedDossier = clone(runtime().create(matched).build("RACEFILE03C"));
+  assert.equal(matchedDossier.source.officialAlternate.timestampIsomorphic, true);
+  assert.equal(matchedDossier.source.officialAlternate.durationDelta, 0.29);
+
   const crossed = fixture();
   crossed.sources[2].officialAlternate = {
-    ...input.sources[2].officialAlternate,
-    timestampIsomorphic: true,
+    ...matched.sources[2].officialAlternate,
+    durationDelta: 1.01,
   };
   assert.throws(
     () => runtime().create(crossed),
-    expectCode("ALTERNATE_SOURCE_BOUNDARY"),
+    expectCode("ALTERNATE_SOURCE_TIMELINE"),
   );
 
   const unsafe = fixture();

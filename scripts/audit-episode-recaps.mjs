@@ -14,6 +14,7 @@ const runtimeFiles = [
   "deep-distill.js",
   "episode-guides.js",
   "episode-guide-v2-reviewed-release.js",
+  "episode-guide-v2-newest-five-release.js",
   "episode-guide-v2-reviewed-merge.js",
   "livestream-distill.js",
   "popular-live-distill.js",
@@ -51,9 +52,12 @@ function compile() {
   });
   const runtime = sandbox.window;
   runtime.WWAM_EPISODE_GUIDES =
-    runtime.WWAM_EPISODE_GUIDE_V2_REVIEWED_MERGE.merge(
+    runtime.WWAM_EPISODE_GUIDE_V2_REVIEWED_MERGE.mergeOrdered(
       runtime.WWAM_EPISODE_GUIDES,
-      runtime.WWAM_EPISODE_GUIDE_V2_REVIEWED_RELEASE,
+      [
+        runtime.WWAM_EPISODE_GUIDE_V2_REVIEWED_RELEASE,
+        runtime.WWAM_EPISODE_GUIDE_V2_NEWEST_FIVE_RELEASE,
+      ],
     );
   const showcase = runtime.WWAMShowcaseEngine.create({
     catalog: runtime.WWAM_CATALOG,
@@ -195,6 +199,126 @@ function comparableExcerpt(value) {
     .toLowerCase();
 }
 
+function guidePointAt(point) {
+  const value = point?.at ?? point?.t;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? Math.max(0, parsed) : null;
+}
+
+function guidePoints(file) {
+  const guide = file.source.showWiki?.episodeGuide || {};
+  const chapters = Array.isArray(guide.chapters) ? guide.chapters : [];
+  const chapterByCutId = new Map(
+    chapters
+      .filter((chapter) => String(chapter?.cutId || "").trim())
+      .map((chapter) => [String(chapter.cutId).trim(), chapter]),
+  );
+  const points = [];
+  const seen = new Set();
+  const add = (point, index, chapterFallback = false) => {
+    const at = guidePointAt(point);
+    if (at === null) return;
+    const id = String(
+      chapterFallback
+        ? point?.cutId || point?.id || ""
+        : point?.id || point?.cutId || "",
+    ).trim() || `guide-point-${index + 1}-${Math.round(at)}`;
+    if (seen.has(id)) return;
+    const chapter = chapterByCutId.get(id) || {};
+    const topic = String(point?.topic || chapter.topic || "").trim();
+    const category = String(
+      point?.category || chapter.category || point?.label || "",
+    ).trim();
+    if (!topic && !category) return;
+    seen.add(id);
+    points.push({
+      id,
+      at,
+      end: Number(point?.end || chapter.end || at + 36),
+      topic,
+      category,
+      excerpt: String(point?.excerpt || chapter.excerpt || "").trim(),
+      chapterId: String(chapter.id || (chapterFallback ? point?.id : "") || "").trim(),
+    });
+  };
+  (guide.cuts || []).forEach((point, index) => add(point, index, false));
+  chapters.forEach((point, index) => {
+    add(point, (guide.cuts || []).length + index, true);
+  });
+  return points.sort((left, right) => left.at - right.at || left.id.localeCompare(right.id));
+}
+
+const evidenceStopWords = new Set([
+  "a", "an", "and", "are", "at", "for", "from", "in", "is", "live",
+  "movie", "of", "on", "or", "party", "show", "stream", "the", "to",
+  "vs", "watch", "watchalong", "watched", "we", "with",
+]);
+
+function evidenceWords(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .split(/\s+/)
+    .filter((word) => word.length > 1 && !evidenceStopWords.has(word));
+}
+
+function normalizedEvidenceText(values) {
+  return (Array.isArray(values) ? values : [values])
+    .map((value) => String(value || "")
+      .toLowerCase()
+      .replace(/&/g, " and ")
+      .replace(/[^a-z0-9]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim())
+    .filter(Boolean)
+    .join(" ");
+}
+
+function humanizeEntityId(value) {
+  return String(value || "")
+    .replace(/^[^:]+:/, "")
+    .replace(/[-_]+/g, " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase())
+    .trim();
+}
+
+function evidenceLabels(evidence) {
+  return [
+    evidence?.topic,
+    evidence?.label,
+    evidence?.category,
+    ...(evidence?.entityIds || []).map(humanizeEntityId),
+  ].filter(Boolean);
+}
+
+function evidenceSupportsSubject(subject, evidence) {
+  const exact = normalizedEvidenceText(subject);
+  const haystack = normalizedEvidenceText([
+    ...evidenceLabels(evidence),
+    evidence?.excerpt,
+  ]);
+  if (!exact || !haystack) return false;
+  if (` ${haystack} `.includes(` ${exact} `)) return true;
+  const haystackWords = new Set(haystack.split(/\s+/));
+  return evidenceWords(subject).some(
+    (word) => word.length >= 3 && haystackWords.has(word),
+  );
+}
+
+function receiptSignal(receipt) {
+  const signal = Number(receipt?.signalScore || receipt?.heat || 0);
+  return Number.isFinite(signal) ? signal : 0;
+}
+
+function strongestReceipts(receipts, limit) {
+  return receipts.slice().sort((left, right) =>
+    receiptSignal(right) - receiptSignal(left) ||
+    Number(left?.at || left?.t || 0) - Number(right?.at || right?.t || 0) ||
+    String(left?.key || "").localeCompare(String(right?.key || ""))
+  ).slice(0, limit);
+}
+
 function recapText(file) {
   return [
     file.recap.headline,
@@ -311,6 +435,232 @@ const storyAnchorFailures = ready.flatMap((file) => {
       }];
   });
 });
+const namelessStorySegments = ready.flatMap((file) =>
+  file.recap.story.flatMap((segment) => {
+    const primary = String(segment.narrative?.primarySubject || "").trim();
+    return !primary ||
+        /without a named subject attached/i.test(segment.body || "")
+      ? [{
+        sourceId: file.id,
+        segmentId: segment.id,
+        primarySubject: primary,
+        body: segment.body,
+      }]
+      : [];
+  }),
+);
+const inventoryStorySegments = ready.flatMap((file) =>
+  file.recap.story.flatMap((segment) =>
+    /\bmoves through\b|without a named subject attached/i.test(segment.body || "")
+      ? [{
+        sourceId: file.id,
+        segmentId: segment.id,
+        body: segment.body,
+      }]
+      : []
+  ),
+);
+const storyNarrativeBeatFailures = ready.flatMap((file) => {
+  const receiptByKey = new Map(
+    file.source.receipts.map((receipt) => [receipt.key, receipt]),
+  );
+  const guideById = new Map(
+    guidePoints(file).map((point) => [point.id, point]),
+  );
+  return file.recap.story.flatMap((segment, index, values) => {
+    const narrative = segment.narrative || {};
+    const primary = narrative.primaryEvidence || {};
+    const expectedPrevious = index
+      ? String(values[index - 1].narrative?.primarySubject || "")
+      : "";
+    const expectedNext = index + 1 < values.length
+      ? String(values[index + 1].narrative?.primarySubject || "")
+      : "";
+    let evidenceOwned = false;
+    if (primary.kind === "guide-cut") {
+      const guidePoint = guideById.get(primary.key);
+      evidenceOwned = Boolean(
+        guidePoint &&
+        (segment.guideCutIds || []).includes(primary.key) &&
+        Number(primary.at) === Number(guidePoint.at),
+      );
+    } else if (primary.kind === "receipt") {
+      const receipt = receiptByKey.get(primary.key);
+      evidenceOwned = Boolean(
+        receipt &&
+        segment.receiptKeys.includes(primary.key) &&
+        Number(primary.at) === Number(receipt.at),
+      );
+    }
+    const shape = narrative.evidenceShape || {};
+    const shapeOwned =
+      Number(shape.receipts) === segment.receiptKeys.length &&
+      Number(shape.guideCuts) === (segment.guideCutIds || []).length &&
+      Number(shape.namedSubjects) >= 1;
+    const transitionOwned =
+      String(narrative.previousSubject || "") === expectedPrevious &&
+      String(narrative.nextSubject || "") === expectedNext;
+    return narrative.schema === "shokker-recap-narrative-beat/v1" &&
+        String(narrative.primarySubject || "").trim() &&
+        evidenceOwned &&
+        shapeOwned &&
+        transitionOwned
+      ? []
+      : [{
+        sourceId: file.id,
+        segmentId: segment.id,
+        schema: narrative.schema || "",
+        primarySubject: narrative.primarySubject || "",
+        primaryEvidence: primary,
+        evidenceOwned,
+        shapeOwned,
+        transitionOwned,
+      }];
+  });
+});
+const storySemanticAnchorFailures = ready.flatMap((file) => {
+  const receiptByKey = new Map(
+    file.source.receipts.map((receipt) => [receipt.key, receipt]),
+  );
+  const guideById = new Map(
+    guidePoints(file).map((point) => [point.id, point]),
+  );
+  return file.recap.story.flatMap((segment) => {
+    const narrative = segment.narrative || {};
+    const primary = String(narrative.primarySubject || "").trim();
+    const primaryEvidence = narrative.primaryEvidence || {};
+    const guideIds = segment.guideCutIds || [];
+    const isGuideBacked = guideIds.length > 0;
+    const evidence = primaryEvidence.kind === "guide-cut"
+      ? guideById.get(primaryEvidence.key)
+      : receiptByKey.get(primaryEvidence.key);
+    const evidenceOwned = primaryEvidence.kind === "guide-cut"
+      ? Boolean(evidence && guideIds.includes(primaryEvidence.key))
+      : Boolean(evidence && segment.receiptKeys.includes(primaryEvidence.key));
+    const expectedSupport = evidenceSupportsSubject(primary, evidence);
+    const relationBoolean =
+      typeof narrative.anchorSupportsPrimary === "boolean" &&
+      narrative.anchorSupportsPrimary === expectedSupport;
+    const relationLabel = expectedSupport
+      ? "direct-subject-anchor"
+      : "separate-saved-spike";
+    const relationOwned = narrative.anchorRelation === relationLabel;
+    const anchorSubject = String(narrative.anchorSubject || "").trim();
+    const anchorSubjectOwned =
+      Boolean(anchorSubject) &&
+      evidenceSupportsSubject(anchorSubject, evidence);
+    const localReceiptCandidates = segment.receiptKeys
+      .map((key) => receiptByKey.get(key))
+      .filter(Boolean)
+      .filter((receipt) => evidenceSupportsSubject(primary, receipt));
+    const guideRule = !isGuideBacked || (
+      primaryEvidence.kind === "guide-cut" &&
+      guideIds.includes(primaryEvidence.key) &&
+      expectedSupport
+    );
+    const receiptRule = isGuideBacked || (
+      primaryEvidence.kind === "receipt" &&
+      (
+        localReceiptCandidates.length
+          ? expectedSupport
+          : !expectedSupport
+      )
+    );
+    const separationWritten = expectedSupport || (
+      /separate (?:saved )?(?:checkpoint|spike)|kept separate|not (?:proof|evidence)|timestamp is not assigned/i
+        .test(String(segment.body || ""))
+    );
+    return primary &&
+        evidenceOwned &&
+        relationBoolean &&
+        relationOwned &&
+        anchorSubjectOwned &&
+        guideRule &&
+        receiptRule &&
+        separationWritten
+      ? []
+      : [{
+        sourceId: file.id,
+        segmentId: segment.id,
+        primarySubject: primary,
+        primaryEvidence,
+        evidenceOwned,
+        expectedSupport,
+        recordedSupport: narrative.anchorSupportsPrimary,
+        anchorSubject,
+        anchorSubjectOwned,
+        relation: narrative.anchorRelation || "",
+        expectedRelation: relationLabel,
+        isGuideBacked,
+        localReceiptCandidateCount: localReceiptCandidates.length,
+        guideRule,
+        receiptRule,
+        separationWritten,
+      }];
+  });
+});
+const bestMomentSelectionFailures = ready.flatMap((file) => {
+  const momentReceipts = file.source.receipts.filter(
+    (receipt) => receiptKind(receipt) === "moment",
+  );
+  const expected = strongestReceipts(momentReceipts, 3).map(
+    (receipt) => String(receipt.key || ""),
+  );
+  const actual = file.recap.bestMoments.map(
+    (moment) => String(moment.receiptKey || ""),
+  );
+  const mirrorsFullMomentSet =
+    momentReceipts.length > 3 &&
+    actual.length === momentReceipts.length;
+  const selective = actual.length <= 3 && !mirrorsFullMomentSet;
+  const ranked = actual.length === expected.length &&
+    actual.every((key, index) => key === expected[index]);
+  return selective && ranked
+    ? []
+    : [{
+      sourceId: file.id,
+      registeredMomentReceipts: momentReceipts.length,
+      expected,
+      actual,
+      mirrorsFullMomentSet,
+      selective,
+      ranked,
+    }];
+});
+const guideStoryCoverage = ready
+  .filter((file) => file.source.showWiki?.episodeGuide?.schema === "wwam-episode-guide/v2")
+  .map((file) => {
+    const expected = new Set(guidePoints(file).map((point) => point.id));
+    const used = new Set(file.recap.story.flatMap(
+      (segment) => segment.guideCutIds || [],
+    ));
+    const missing = Array.from(expected).filter((id) => !used.has(id));
+    const foreign = Array.from(used).filter((id) => !expected.has(id));
+    const namedSegments = file.recap.story.filter(
+      (segment) => String(segment.narrative?.primarySubject || "").trim(),
+    ).length;
+    return {
+      sourceId: file.id,
+      expected: expected.size,
+      used: used.size,
+      missing,
+      foreign,
+      segments: file.recap.story.length,
+      namedSegments,
+      reportedExpected: Number(file.recap.caseFile.storyGuidePointExpected || 0),
+      reportedUsed: Number(file.recap.caseFile.storyGuidePointCount || 0),
+      reportedPercent:
+        Number(file.recap.caseFile.storyGuidePointCoveragePercent || 0),
+    };
+  });
+const guideStoryCoverageFailures = guideStoryCoverage.filter((item) =>
+  item.missing.length ||
+  item.foreign.length ||
+  item.namedSegments !== item.segments ||
+  item.reportedExpected !== item.expected ||
+  item.reportedUsed !== item.used ||
+  item.reportedPercent !== 100
+);
 const comparison = ready
   .filter((file) => file.legacyRecap && file.legacyRecap.overview)
   .map((file) => ({
@@ -412,12 +762,37 @@ const report = {
     story: {
       segments: storySegments.length,
       averageSegmentsPerReadyRecap: average(ready.map((file) => file.recap.story.length)),
+      averageWordsPerSegment: average(storySegments.map((segment) =>
+        prose(segment.body).split(" ").filter(Boolean).length,
+      )),
       receiptsAccountedFor: ready.reduce(
         (total, file) => total + file.recap.caseFile.storyReceiptCount,
         0,
       ),
       registeredReceipts: ready.reduce(
         (total, file) => total + file.recap.caseFile.receiptCount,
+        0,
+      ),
+      narrativeBeatSegments: storySegments.filter((segment) =>
+        segment.narrative?.schema === "shokker-recap-narrative-beat/v1"
+      ).length,
+      namedSegments: storySegments.filter((segment) =>
+        String(segment.narrative?.primarySubject || "").trim()
+      ).length,
+      directAnchorSegments: storySegments.filter((segment) =>
+        segment.narrative?.anchorSupportsPrimary === true
+      ).length,
+      separateSpikeSegments: storySegments.filter((segment) =>
+        segment.narrative?.anchorSupportsPrimary === false
+      ).length,
+      inventoryOnlySegments: inventoryStorySegments.length,
+      guideBackedRecaps: guideStoryCoverage.length,
+      guidePointsAccountedFor: guideStoryCoverage.reduce(
+        (total, item) => total + item.used,
+        0,
+      ),
+      registeredGuidePoints: guideStoryCoverage.reduce(
+        (total, item) => total + item.expected,
         0,
       ),
     },
@@ -494,6 +869,12 @@ const report = {
     titleGoldenFailures,
     storyCoverageFailures,
     storyAnchorFailures,
+    namelessStorySegments,
+    inventoryStorySegments: inventoryStorySegments.slice(0, 50),
+    storyNarrativeBeatFailures,
+    storySemanticAnchorFailures,
+    bestMomentSelectionFailures,
+    guideStoryCoverageFailures,
   },
   unusedRegisteredOverviewSignal: {
     compared: comparison.length,
@@ -542,6 +923,25 @@ report.gates = {
     report.quality.storyCoverageFailures.length === 0,
   writtenStoryAnchorsPass:
     report.quality.storyAnchorFailures.length === 0,
+  everyStoryReelHasNarrativeBeat:
+    report.depth.story.narrativeBeatSegments ===
+    report.depth.story.segments,
+  everyStoryReelNamesItsEvidence:
+    report.depth.story.namedSegments ===
+      report.depth.story.segments &&
+    report.quality.namelessStorySegments.length === 0,
+  noInventoryOnlyStoryReels:
+    report.depth.story.inventoryOnlySegments === 0,
+  narrativeBeatEvidencePass:
+    report.quality.storyNarrativeBeatFailures.length === 0,
+  storySubjectAnchorSemanticsPass:
+    report.quality.storySemanticAnchorFailures.length === 0,
+  bestMomentsAreSelective:
+    report.quality.bestMomentSelectionFailures.length === 0,
+  reviewedGuideStoryCoveragePass:
+    report.depth.story.guidePointsAccountedFor ===
+      report.depth.story.registeredGuidePoints &&
+    report.quality.guideStoryCoverageFailures.length === 0,
 };
 report.pass = Object.values(report.gates).every(Boolean);
 
@@ -592,6 +992,10 @@ if (sourceFlag >= 0) {
       `Tiers: ${JSON.stringify(report.corpus.tiers)}`,
       `Sections: ${report.depth.sections.total} total // ${report.depth.sections.averagePerReadyRecap} average`,
       `Written story: ${report.depth.story.segments} reels // ${report.depth.story.receiptsAccountedFor}/${report.depth.story.registeredReceipts} receipts accounted for`,
+      `Authored story depth: ${report.depth.story.averageWordsPerSegment} words/reel // ${report.depth.story.narrativeBeatSegments}/${report.depth.story.segments} evidence-shaped beats // ${report.depth.story.namedSegments}/${report.depth.story.segments} named`,
+      `Subject-safe story anchors: ${report.depth.story.directAnchorSegments} direct // ${report.depth.story.separateSpikeSegments} explicitly separate`,
+      `Reviewed guide carry-through: ${report.depth.story.guidePointsAccountedFor}/${report.depth.story.registeredGuidePoints} timed points across ${report.depth.story.guideBackedRecaps} full chronicles`,
+      `Inventory-only / nameless reels: ${report.depth.story.inventoryOnlySegments} / ${report.quality.namelessStorySegments.length}`,
       `Playable acts: ${report.depth.actEvidence.usedReceipts}/${report.depth.actEvidence.registeredReceipts} receipts // ${report.depth.actEvidence.usedPercent}%`,
       `Act topic carry-through: ${report.depth.actEvidence.usedByKind.topic}/${report.depth.actEvidence.registeredByKind.topic} // ${report.depth.actEvidence.usedPercentByKind.topic}%`,
       `Act openings by evidence: ${JSON.stringify(report.depth.actEvidence.openingCategory)}`,
@@ -609,6 +1013,10 @@ if (sourceFlag >= 0) {
       `Title-subject golden failures: ${report.quality.titleGoldenFailures.length}`,
       `Written-story coverage failures: ${report.quality.storyCoverageFailures.length}`,
       `Written-story anchor failures: ${report.quality.storyAnchorFailures.length}`,
+      `Narrative-beat evidence failures: ${report.quality.storyNarrativeBeatFailures.length}`,
+      `Subject/anchor semantic failures: ${report.quality.storySemanticAnchorFailures.length}`,
+      `Best-moment selection failures: ${report.quality.bestMomentSelectionFailures.length}`,
+      `Reviewed-guide story coverage failures: ${report.quality.guideStoryCoverageFailures.length}`,
       `Held-source semantic claim failures: ${report.quality.heldSemanticClaimFailures.length}`,
       `RECAP QUALITY GATE: ${report.pass ? "PASS" : "FAIL"}`,
       "",

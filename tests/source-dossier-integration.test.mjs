@@ -437,6 +437,7 @@ test("dossier CSS and scripts load lazily through the feature loader, never eage
     "wwam-channel-pack-adapter.js",
     "episode-guides.js",
     "episode-guide-v2-reviewed-release.js",
+    "episode-guide-v2-newest-five-release.js",
     "episode-guide-v2-reviewed-merge.js",
     "episode-recap-engine.js",
     "wwam-episode-recap-adapter.js",

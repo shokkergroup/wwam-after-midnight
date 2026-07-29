@@ -164,3 +164,79 @@ test("title subjects, Steve lanes, and chronology survive the authored voice pac
   assert.equal(result.voice.uniqueDecks, result.corpus.ready);
   assert.equal(result.voice.uniqueHeadlines, result.corpus.ready);
 });
+
+test("every ready recap has an evidence-owned authored story beat", () => {
+  const result = report();
+
+  assert.equal(
+    result.depth.story.narrativeBeatSegments,
+    result.depth.story.segments,
+  );
+  assert.equal(
+    result.depth.story.namedSegments,
+    result.depth.story.segments,
+  );
+  assert.equal(
+    result.depth.story.directAnchorSegments +
+      result.depth.story.separateSpikeSegments,
+    result.depth.story.segments,
+  );
+  assert.equal(result.depth.story.inventoryOnlySegments, 0);
+  assert.equal(
+    result.depth.story.guidePointsAccountedFor,
+    result.depth.story.registeredGuidePoints,
+  );
+  assert.ok(result.depth.story.guideBackedRecaps >= 48);
+  assert.ok(result.depth.story.registeredGuidePoints >= 692);
+  assert.ok(result.depth.story.averageWordsPerSegment >= 75);
+  assert.deepEqual(result.quality.namelessStorySegments, []);
+  assert.deepEqual(result.quality.storyNarrativeBeatFailures, []);
+  assert.deepEqual(result.quality.storySemanticAnchorFailures, []);
+  assert.deepEqual(result.quality.bestMomentSelectionFailures, []);
+  assert.deepEqual(result.quality.guideStoryCoverageFailures, []);
+  assert.equal(result.gates.everyStoryReelHasNarrativeBeat, true);
+  assert.equal(result.gates.everyStoryReelNamesItsEvidence, true);
+  assert.equal(result.gates.noInventoryOnlyStoryReels, true);
+  assert.equal(result.gates.narrativeBeatEvidencePass, true);
+  assert.equal(result.gates.storySubjectAnchorSemanticsPass, true);
+  assert.equal(result.gates.bestMomentsAreSelective, true);
+  assert.equal(result.gates.reviewedGuideStoryCoveragePass, true);
+});
+
+test("Halloween 4 story uses the reviewed guide instead of three nameless reels", () => {
+  const file = JSON.parse(childProcess.execFileSync(
+    process.execPath,
+    [audit, "--source", "28PfRNKoSCA"],
+    {
+      cwd: root,
+      encoding: "utf8",
+      maxBuffer: 20 * 1024 * 1024,
+    },
+  ));
+  const story = file.recap.story;
+  const guideCutIds = new Set(
+    story.flatMap((segment) => segment.guideCutIds || []),
+  );
+  const namedTopics = new Set(
+    story.flatMap((segment) => segment.topicLabels || []),
+  );
+
+  assert.equal(story.length, 4);
+  assert.equal(file.recap.caseFile.storyGuidePointExpected, 13);
+  assert.equal(file.recap.caseFile.storyGuidePointCount, 13);
+  assert.equal(file.recap.caseFile.storyGuidePointCoveragePercent, 100);
+  assert.equal(guideCutIds.size, 13);
+  assert.ok(namedTopics.has("Michael Myers"));
+  assert.ok(namedTopics.has("Dr. Loomis"));
+  assert.ok(namedTopics.has("Ending and reveal"));
+  assert.ok(story.every((segment) =>
+    segment.narrative?.schema === "shokker-recap-narrative-beat/v1" &&
+    segment.narrative.primarySubject &&
+    segment.narrative.primaryEvidence.kind === "guide-cut" &&
+    segment.guideCutIds.includes(segment.narrative.primaryEvidence.key)
+  ));
+  assert.doesNotMatch(
+    story.map((segment) => segment.body).join(" "),
+    /without a named subject attached/i,
+  );
+});

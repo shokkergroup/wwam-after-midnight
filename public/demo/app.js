@@ -17,7 +17,7 @@
     archiveDeepEngine, archiveDeepLoadPromise, redBandRankingEngine,
     redBandQueryEngine, sourceDossierEngine, sourceQueryEngine, sourceDossierUi, aftermathPackEngine,
     sourceDossierLoadPromise, aftermathPilotLoadPromise, archiveAtlasLoadPromise, archiveAtlasObserver,
-    redBandLoadPromise, redBandObserver;
+    redBandLoadPromise, redBandObserver, sourceDossierWarmupScheduled;
   var archiveDeepStreams = [], redBandMoments = deep.hot100 || [],
     showcaseReceiptById = {}, showcaseSourceById = {}, clipItemById = {},
     campaignSnapshots = {}, lastDialogFocus = null, tapeById = {}, itemById = {},
@@ -309,24 +309,17 @@
   }
 
   function activateReviewedEpisodeGuides() {
-    var base = window.WWAM_EPISODE_GUIDES;
-    var release = window.WWAM_EPISODE_GUIDE_V2_REVIEWED_RELEASE;
-    var merger = window.WWAM_EPISODE_GUIDE_V2_REVIEWED_MERGE;
-    if (!base || !release || !merger || typeof merger.merge !== "function") {
-      throw new Error("The reviewed Episode Guide release boundary is unavailable.");
-    }
-    var releases = base.provenance && base.provenance.additiveReleases || [];
-    var alreadyInstalled = releases.some(function (receipt) {
-      return receipt && receipt.releaseSha256 === release.releaseSha256;
-    });
-    if (!alreadyInstalled) {
-      base = merger.merge(base, release);
-      window.WWAM_EPISODE_GUIDES = base;
-    }
-    if (!base.meta || Number(base.meta.reviewedReleaseGuides) !== release.guides.length) {
-      throw new Error("The reviewed Episode Guide release did not install completely.");
-    }
-    return base;
+    var b=window.WWAM_EPISODE_GUIDES,
+      r=window.WWAM_EPISODE_GUIDE_V2_REVIEWED_RELEASE,
+      n=window.WWAM_EPISODE_GUIDE_V2_NEWEST_FIVE_RELEASE,
+      m=window.WWAM_EPISODE_GUIDE_V2_REVIEWED_MERGE;
+    if(!b||!r||!n||!m||typeof m.mergeOrdered!=="function")
+      throw Error("Guide");
+    b=m.mergeOrdered(b,[r,n]);window.WWAM_EPISODE_GUIDES=b;
+    if(!b.meta||Number(b.meta.reviewedReleaseGuides)!==r.guides.length||
+        Number(b.meta.deterministicReleaseGuides)!==n.guides.length)
+      throw Error("Guide");
+    return b;
   }
 
   function aftermathReviewKey(sourceId) {
@@ -550,19 +543,20 @@
         }
         return clipLabEngine?null:loadDemoScript("creator-studio-engine.js").then(createClipLab);
       })
-      .then(function () { return loader.loadStyle("source-dossier.css?v=5.23-story-flow"); })
+      .then(function () { return loader.loadStyle("source-dossier.css?v=5.24-feldman-cut"); })
       .then(function () {
         return ["channel-pack-contract.js", "wwam-channel-pack-adapter.js",
           "episode-guides.js?v=2.1.5-referent",
           "episode-guide-v2-reviewed-release.js?v=1.0.1-runtime-eligible",
-          "episode-guide-v2-reviewed-merge.js?v=1.0.1-runtime-eligible",
-          "episode-recap-engine.js?v=1.4.0-complete-chronicle",
-          "wwam-episode-recap-adapter.js?v=1.4.0-feldman-voice",
-          "source-dossier-engine.js?v=1.11.0-guide-contract",
-          "wwam-source-dossier-adapter.js?v=1.12.0-guide-contract",
+          "episode-guide-v2-newest-five-release.js?v=f5f3ca58",
+          "episode-guide-v2-reviewed-merge.js?v=1.1.0-ordered-release",
+          "episode-recap-engine.js?v=1.5.0-narrative-beats",
+          "wwam-episode-recap-adapter.js?v=1.5.1-final-projection",
+          "source-dossier-engine.js?v=1.13.0-timeline-audio",
+          "wwam-source-dossier-adapter.js?v=1.13.0-timeline-audio",
           "source-query-engine.js?v=1.6.0-recap-parity",
           "aftermath-pack-engine.js?v=1.0.0",
-          "source-dossier-ui.js?v=1.14.0-story-flow"].reduce(function (promise, source) {
+          "source-dossier-ui.js?v=1.16.0-timeline-audio"].reduce(function (promise, source) {
           return promise.then(function () { return loader.load(source); });
         }, Promise.resolve());
       })
@@ -578,6 +572,18 @@
       });
     return sourceDossierLoadPromise;
   }
+
+  function warmSourceDossierAfterGate() {
+    if (sourceDossierWarmupScheduled || sourceDossierEngine ||
+        sourceDossierLoadPromise || readSourceRoute()) return;
+    sourceDossierWarmupScheduled = true;
+    scheduleIdle(function () {
+      loadSourceDossier().catch(function () {
+        sourceDossierWarmupScheduled = false;
+      });
+    }, 3200);
+  }
+
   window.WWAMSourceDossierAccess=Object.freeze({cutId:"evidenceBagCut",load:loadSourceDossier,
     get:function(){return sourceDossierEngine;},bag:function(){return state.evidenceBag.slice();},
     play:function(p){return openSourceDossier(p.sourceId,p.at,{routeMode:"push",autoplay:false})
@@ -5146,6 +5152,7 @@
         gate.setAttribute("aria-hidden", "true");
         syncBackgroundInert();
         openInitialRoute();
+        warmSourceDossierAfterGate();
       };
     });
     document.getElementById("bandToggle").onclick = function () { setBand(state.redBand ? "bleep" : "red", true); };
@@ -5378,6 +5385,7 @@
     }
     syncBackgroundInert();
     openInitialRoute();
+    if (storageGet("wwam-band")) warmSourceDossierAfterGate();
     scheduleIdle(createDeepEngines, 700);
     if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       setInterval(function () {

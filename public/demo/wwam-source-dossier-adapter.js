@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.12.0";
+  var VERSION = "1.13.0";
   var SCHEMA = "shokker-source-dossier-input/v1";
   var PUBLIC_EXCERPT_WORDS = 16;
   var OFFICIAL_WWAM_CHANNEL_ID = "UC6ieEOZW4iXV8TcILJI8k5g";
@@ -1627,6 +1627,12 @@
         "OFFICIAL PODCAST EDITION AVAILABLE // ITS EDIT DOES NOT MATCH THIS YOUTUBE CUT."
       );
     }
+    if (archiveStream && archiveStream.alternateOfficialSource &&
+        archiveStream.alternateOfficialSource.timestampIsomorphic === true) {
+      warnings.push(
+        "YOUTUBE IS AGE-RESTRICTED // THE VERIFIED OFFICIAL WWAM PODCAST TIMELINE PLAYS HERE."
+      );
+    }
     var span = numberOrNull(
       archiveStream && archiveStream.captionEvidence &&
       archiveStream.captionEvidence.durationCoveragePercent
@@ -1639,7 +1645,8 @@
 
   function officialAlternateFor(archiveStream) {
     var alternate = archiveStream && archiveStream.alternateOfficialSource;
-    if (!alternate || alternate.timestampIsomorphic !== false) return null;
+    if (!alternate || (alternate.timestampIsomorphic !== false &&
+        alternate.timestampIsomorphic !== true)) return null;
     return {
       kind: clean(alternate.kind),
       title: clean(alternate.title),
@@ -1648,7 +1655,7 @@
       duration: number(alternate.duration),
       canonicalDuration: number(alternate.canonicalYouTubeDuration),
       durationDelta: number(alternate.durationDelta),
-      timestampIsomorphic: false,
+      timestampIsomorphic: alternate.timestampIsomorphic === true,
       publicPlaybackAllowed: alternate.publicPlaybackAllowed === true,
       evidenceBoundary: clean(alternate.evidenceBoundary),
     };

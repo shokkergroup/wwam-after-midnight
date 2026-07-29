@@ -832,7 +832,7 @@
         end: stop.end,
         title: "PLAY THE ANSWER // " + stop.role + " // " + stop.title,
         // The hosted bridge is the proven first-click playback path for this archive.
-        forceHostedBridge: true
+        forceHostedBridge: forceHostedBridge !== false
       });
     }
 

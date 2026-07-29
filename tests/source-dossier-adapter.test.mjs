@@ -21,6 +21,7 @@ function load() {
     "deep-distill.js",
     "episode-guides.js",
     "episode-guide-v2-reviewed-release.js",
+    "episode-guide-v2-newest-five-release.js",
     "episode-guide-v2-reviewed-merge.js",
     "livestream-distill.js",
     "popular-live-distill.js",
@@ -49,9 +50,12 @@ function load() {
     });
   });
   sandbox.window.WWAM_EPISODE_GUIDES =
-    sandbox.window.WWAM_EPISODE_GUIDE_V2_REVIEWED_MERGE.merge(
+    sandbox.window.WWAM_EPISODE_GUIDE_V2_REVIEWED_MERGE.mergeOrdered(
       sandbox.window.WWAM_EPISODE_GUIDES,
-      sandbox.window.WWAM_EPISODE_GUIDE_V2_REVIEWED_RELEASE,
+      [
+        sandbox.window.WWAM_EPISODE_GUIDE_V2_REVIEWED_RELEASE,
+        sandbox.window.WWAM_EPISODE_GUIDE_V2_NEWEST_FIVE_RELEASE,
+      ],
     );
   return sandbox.window;
 }
@@ -208,10 +212,10 @@ test("every canonical show receives a Feldman recap or an evidence-safe held sta
   assert.equal(ready.length, 259);
   assert.equal(held.length, 251);
   assert.deepEqual(countBy(recaps, "tier"), {
-    "receipt-recap": 195,
+    "receipt-recap": 191,
     "source-safe-held": 251,
     "topic-recap": 16,
-    "full-chronicle": 48,
+    "full-chronicle": 52,
   });
 
   assert.ok(ready.every((recap) => recap.label === "WWAM FELDMAN APPROVED RECAP"));
@@ -313,6 +317,125 @@ test("story anchors stay inside their reel and own the displayed evidence", () =
     expectCode("EPISODE_RECAP_STORY_ANCHOR_EXCERPT"),
   );
   segment.excerpt = originalExcerpt;
+});
+
+test("Feldman narrative beats survive the generic dossier contract source-locally", () => {
+  const { window, result } = buildFixture();
+  const source = result.sources.find((candidate) =>
+    candidate.showWiki.episodeGuide &&
+    candidate.showWiki.episodeRecap.state === "ready" &&
+    candidate.showWiki.episodeRecap.story.length > 1 &&
+    candidate.showWiki.episodeRecap.story.some((segment) =>
+      segment.guideAnchor?.id
+    )
+  );
+  assert.ok(source);
+
+  function isolatedInput(candidate) {
+    const localSource = plain(candidate);
+    localSource.artifacts = [];
+    return {
+      schema: result.schema,
+      channel: plain(result.channel),
+      snapshotDate: result.snapshotDate,
+      sources: [localSource],
+    };
+  }
+
+  const isolated = isolatedInput(source);
+  const normalized = plain(
+    window.ShokkerSourceDossier.create(isolated)
+      .build(source.id).source.showWiki.episodeRecap,
+  );
+  const rawRecap = plain(source.showWiki.episodeRecap);
+  const anchoredIndex = rawRecap.story.findIndex(
+    (segment) => segment.guideAnchor?.id,
+  );
+
+  assert.ok(anchoredIndex >= 0);
+  assert.deepEqual(
+    normalized.story[anchoredIndex].guideAnchor,
+    rawRecap.story[anchoredIndex].guideAnchor,
+  );
+  assert.deepEqual(
+    normalized.story[anchoredIndex].guideCutIds,
+    rawRecap.story[anchoredIndex].guideCutIds,
+  );
+  assert.deepEqual(
+    normalized.story[anchoredIndex].guideChapterIds,
+    rawRecap.story[anchoredIndex].guideChapterIds,
+  );
+  assert.deepEqual(
+    normalized.story[anchoredIndex].threadLabels,
+    rawRecap.story[anchoredIndex].threadLabels,
+  );
+  assert.deepEqual(
+    normalized.story[anchoredIndex].narrative,
+    rawRecap.story[anchoredIndex].narrative,
+  );
+  for (const key of [
+    "storyNarrativeBeatCount",
+    "storyNamedSegmentCount",
+    "storyGuidePointCount",
+    "storyGuidePointExpected",
+    "storyGuidePointCoveragePercent",
+    "storyGuideChapterCount",
+    "storyGuideThreadCount",
+  ]) {
+    assert.equal(normalized.caseFile[key], rawRecap.caseFile[key], key);
+  }
+  assert.deepEqual(normalized.guideRecap, rawRecap.guideRecap);
+
+  function expectMutation(code, mutate) {
+    const candidate = plain(isolated);
+    mutate(candidate.sources[0].showWiki.episodeRecap);
+    assert.throws(
+      () => window.ShokkerSourceDossier.create(candidate),
+      (error) =>
+        error?.name === "SourceDossierError" &&
+        error?.code === code,
+      code,
+    );
+  }
+
+  expectMutation("EPISODE_RECAP_STORY_GUIDE_ANCHOR_WINDOW", (recap) => {
+    recap.story[anchoredIndex].guideAnchor.at += 1;
+  });
+  expectMutation("UNKNOWN_EPISODE_RECAP_STORY_GUIDE_CUT", (recap) => {
+    recap.story[anchoredIndex].guideCutIds[0] = "not-a-local-guide-cut";
+  });
+  expectMutation("UNKNOWN_EPISODE_RECAP_STORY_GUIDE_CHAPTER", (recap) => {
+    recap.story[anchoredIndex].guideChapterIds.push("not-a-local-chapter");
+  });
+  expectMutation("UNKNOWN_EPISODE_RECAP_STORY_THREAD", (recap) => {
+    recap.story[anchoredIndex].threadLabels.push("Not A Local Thread");
+  });
+  expectMutation("EPISODE_RECAP_STORY_PRIMARY_GUIDE_SCOPE", (recap) => {
+    recap.story[anchoredIndex].narrative.primaryEvidence.key =
+      "not-a-local-guide-cut";
+  });
+  expectMutation("EPISODE_RECAP_STORY_NARRATIVE_TRANSITION", (recap) => {
+    recap.story[0].narrative.nextSubject = "A different reel entirely";
+  });
+  expectMutation("EPISODE_RECAP_STORY_EVIDENCE_SHAPE_MISMATCH", (recap) => {
+    recap.story[anchoredIndex].narrative.evidenceShape.guideCuts += 1;
+  });
+  expectMutation("EPISODE_RECAP_CASE_FILE_MISMATCH", (recap) => {
+    recap.caseFile.storyGuidePointCount += 1;
+  });
+
+  const heldSource = result.sources.find(
+    (candidate) => candidate.showWiki.episodeRecap.state === "held",
+  );
+  assert.ok(heldSource);
+  const held = isolatedInput(heldSource);
+  held.sources[0].showWiki.episodeRecap.caseFile.storyNarrativeBeatCount = 1;
+  assert.throws(
+    () => window.ShokkerSourceDossier.create(held),
+    (error) =>
+      error?.name === "SourceDossierError" &&
+      error?.code === "HELD_EPISODE_RECAP_CASE_FILE_OVERREACH",
+  );
 });
 
 test("topic receipts preserve bounded source-local strength with explicit provenance", () => {
@@ -1279,9 +1402,10 @@ test("title metadata drives specific formats and title-first recap topics", () =
   const latest = byId(result, "LV2rmwEA0w4").showWiki.recap.overview;
   assert.match(
     latest,
-    /3 hr 33 min hangout with Batman, Marvel, Halloween, and Trailers on the table\./,
+    /six-chapter, twelve-stop exact-source map\./,
   );
-  assert.match(latest, /Jump in at 2:30:46 for the first Full Send spike/);
+  assert.match(latest, /Batman, Marvel, Hellraiser/);
+  assert.match(latest, /closing source window at 3:29:37/);
   assert.doesNotMatch(latest, /live-room map|comedy alarm|machine-surfaced|automatic-caption/i);
   for (const [sourceId, expectedFirstTopic] of [
     ["WKs1uPGMQvw", "Scream"],

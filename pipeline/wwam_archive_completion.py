@@ -82,6 +82,33 @@ EXACT_SOURCE_HOLDS: dict[str, dict[str, Any]] = {
     },
 }
 
+TIMELINE_PLAYBACK_ALTERNATES: dict[str, dict[str, Any]] = {
+    "cQAVmNFQmoI": {
+        "kind": "official-podcast-edition",
+        "title": "Ranking every TERMINATOR, ROBOCOP + ALIEN Movie",
+        "description": (
+            "Tonight we're ranking every movie of the Predator + Robocop + "
+            "Terminator & Alien franchises live."
+        ),
+        "episodeUrl": (
+            "https://podcasters.spotify.com/pod/show/wewatchedamovie/"
+            "episodes/Ranking-every-TERMINATOR--ROBOCOP--ALIEN-Movie-e1rbb7c"
+        ),
+        "enclosureUrl": "https://traffic.megaphone.fm/APO9313433471.mp3",
+        "published": "2022-11-29T16:11:49Z",
+        "duration": 11061.71,
+        "canonicalYouTubeDuration": 11062,
+        "durationDelta": 0.29,
+        "timestampIsomorphic": True,
+        "publicPlaybackAllowed": True,
+        "evidenceBoundary": (
+            "Official WWAM podcast edition with a 0.29-second runtime delta; "
+            "the locally audited transcript establishes canonical timestamp "
+            "mapping, while the age-gated YouTube upload remains canonical."
+        ),
+    },
+}
+
 SOURCE_AUDIO = re.compile(
     r"\b(?:commentary|watchalong|watch\s+along|watch\s+party|"
     r"trailer(?:\s+reaction|\s+breakdown)?|spot\s+breakdown|"
@@ -688,14 +715,17 @@ def source_info(
     manifest: dict[str, Any],
 ) -> dict[str, Any]:
     exact_source_held = bool(selected.get("exactSourceTranscriptState"))
+    age_restricted = exact_source_held or (
+        selected["id"] in TIMELINE_PLAYBACK_ALTERNATES
+    )
     return {
         "title": selected["title"],
         "upload_date": selected["date"].replace("-", ""),
         "duration": selected["duration"],
         "view_count": selected["snapshotViews"],
-        "age_limit": 18 if exact_source_held else 0,
+        "age_limit": 18 if age_restricted else 0,
         "availability": (
-            "age-restricted" if exact_source_held else "not-captured"
+            "age-restricted" if age_restricted else "not-captured"
         ),
         "live_status": "not-captured",
         "observed_at": manifest["frozenAt"],
@@ -726,6 +756,9 @@ def decorate_completion_stream(
         "promotionAllowed": False,
     }
     stream["contentMode"] = selected["contentMode"]
+    timeline_alternate = TIMELINE_PLAYBACK_ALTERNATES.get(selected["id"])
+    if timeline_alternate:
+        stream["alternateOfficialSource"] = timeline_alternate
     stream["rightsPolicy"] = {
         "mode": selected["rightsMode"],
         "restrictedToTopicNavigation": selected[
@@ -1021,7 +1054,9 @@ def build_payload() -> dict[str, Any]:
             "they are not a claim that every spoken second is covered. One "
             "age-gated exact cut remains a transparent metadata-only Source "
             "Brief; its differently timed official podcast edition is "
-            "disclosed but never substituted."
+            "disclosed but never substituted. One age-gated ranking upload "
+            "also has a duration-matched official podcast edition that can "
+            "play in-page against the verified canonical timestamp map."
         ),
         "recapContract": {
             "label": "WWAM FELDMAN APPROVED RECAP",
@@ -1217,6 +1252,20 @@ def validate_payload(payload: dict[str, Any]) -> None:
                 raise RuntimeError(
                     f"{stream['id']} lost canonical timestamp mapping"
                 )
+            alternate = stream.get("alternateOfficialSource")
+            if alternate:
+                if (
+                    alternate.get("timestampIsomorphic") is not True
+                    or alternate.get("publicPlaybackAllowed") is not True
+                    or abs(float(alternate.get("durationDelta", 999))) > 1
+                    or evidence["type"] != "local-speech-to-text"
+                    or evidence.get("canonicalTimestampMapping") is not True
+                    or stream.get("availability") != "age-restricted"
+                    or stream.get("ageLimit") != 18
+                ):
+                    raise RuntimeError(
+                        f"{stream['id']} lost its verified in-page audio boundary"
+                    )
         if evidence["fullPayloadPublic"] is not False:
             raise RuntimeError(f"{stream['id']} exposed a full caption payload")
         if evidence["speakerDiarized"] is not False:

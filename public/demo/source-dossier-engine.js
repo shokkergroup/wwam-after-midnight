@@ -10,7 +10,7 @@
    * captions, promote evidence, clear rights, or publish anything.
    */
 
-  var VERSION = "1.11.0";
+  var VERSION = "1.13.0";
   var INPUT_SCHEMA = "shokker-source-dossier-input/v1";
   var DOSSIER_SCHEMA = "shokker-source-dossier/v1";
   var EXPORT_SCHEMA = "shokker-source-dossier-export/v1";
@@ -306,10 +306,11 @@
     if (!isRecord(value)) {
       fail("INVALID_OFFICIAL_ALTERNATE", path + " must be an object or null.", path);
     }
-    if (value.timestampIsomorphic !== false) {
+    if (value.timestampIsomorphic !== false &&
+        value.timestampIsomorphic !== true) {
       fail(
         "ALTERNATE_SOURCE_BOUNDARY",
-        path + " must explicitly remain outside the canonical timestamp map.",
+        path + " must explicitly declare its canonical timestamp relationship.",
         path + ".timestampIsomorphic"
       );
     }
@@ -318,6 +319,17 @@
         "ALTERNATE_SOURCE_PLAYBACK",
         path + " must carry explicit official public playback authority.",
         path + ".publicPlaybackAllowed"
+      );
+    }
+    var durationDelta = finiteNumber(
+      value.durationDelta,
+      path + ".durationDelta"
+    );
+    if (value.timestampIsomorphic === true && Math.abs(durationDelta) > 1) {
+      fail(
+        "ALTERNATE_SOURCE_TIMELINE",
+        path + " cannot claim a shared timestamp map with more than one second of runtime drift.",
+        path + ".durationDelta"
       );
     }
     return {
@@ -331,8 +343,8 @@
         path + ".canonicalDuration",
         1
       ),
-      durationDelta: finiteNumber(value.durationDelta, path + ".durationDelta"),
-      timestampIsomorphic: false,
+      durationDelta: durationDelta,
+      timestampIsomorphic: value.timestampIsomorphic === true,
       publicPlaybackAllowed: true,
       evidenceBoundary: requiredText(
         value.evidenceBoundary,
@@ -1221,9 +1233,23 @@
         path
       );
     }
-    var guideCutIds = new Set(array(episodeGuide && episodeGuide.cuts).map(function (cut) {
-      return clean(cut.id);
+    var guideCuts = array(episodeGuide && episodeGuide.cuts);
+    var guideCutMap = new Map(guideCuts.map(function (cut) {
+      return [clean(cut.id), cut];
     }));
+    var guideChapters = array(episodeGuide && episodeGuide.chapters);
+    var guideChapterMap = new Map(guideChapters.map(function (chapter) {
+      return [clean(chapter.id), chapter];
+    }));
+    var guideChapterByCutId = new Map();
+    guideChapters.forEach(function (chapter) {
+      guideChapterByCutId.set(clean(chapter.cutId), chapter);
+    });
+    var guideThreadNames = new Set(
+      array(episodeGuide && episodeGuide.threads).map(function (thread) {
+        return clean(thread.name);
+      })
+    );
     var topics = stringList(raw.topics || [], path + ".topics", { max: 180 });
     if (state === "held" && topics.length) {
       fail(
@@ -1280,7 +1306,7 @@
 
     function guideCutId(value, itemPath) {
       var id = clean(value, 80);
-      if (id && !guideCutIds.has(id)) {
+      if (id && !guideCutMap.has(id)) {
         fail(
           "UNKNOWN_EPISODE_RECAP_GUIDE_CUT",
           itemPath + " is not in this source's Episode Guide.",
@@ -1288,6 +1314,58 @@
         );
       }
       return id;
+    }
+
+    function boundedLocalList(value, itemPath, maximum, known, code, noun) {
+      var values = stringList(value || [], itemPath, { max: 180 });
+      if (values.length > maximum) {
+        fail(
+          "EPISODE_RECAP_" + noun + "_LIMIT",
+          itemPath + " cannot contain more than " + maximum + " values.",
+          itemPath
+        );
+      }
+      values.forEach(function (value, index) {
+        if (!known.has(value)) {
+          fail(
+            code,
+            itemPath + "[" + index + "] is not local to this source's Episode Guide.",
+            itemPath + "[" + index + "]"
+          );
+        }
+      });
+      return values;
+    }
+
+    function evidenceLabel(value) {
+      return clean(value, 180)
+        .replace(
+          /^(?:TOPIC|CHARACTER PERFORMANCE|CHARACTER|MOMENT)\s*:\s*/i,
+          ""
+        )
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function sameWindow(actualAt, actualEnd, expected, itemPath, code) {
+      if (Math.abs(actualAt - expected.at) > 0.001 ||
+          Math.abs(actualEnd - expected.end) > 0.001) {
+        fail(
+          code,
+          itemPath + " must inherit its timestamp window from local evidence.",
+          itemPath
+        );
+      }
+    }
+
+    function uniqueStrings(values) {
+      var output = [];
+      array(values).map(function (value) {
+        return clean(value, 180);
+      }).filter(Boolean).forEach(function (value) {
+        if (output.indexOf(value) < 0) output.push(value);
+      });
+      return output;
     }
 
     if (!Array.isArray(raw.sections)) {
@@ -1474,7 +1552,186 @@
           segmentPath + ".excerpt"
         );
       }
-      return {
+      var topicLabels = stringList(
+        segment.topicLabels || [],
+        segmentPath + ".topicLabels",
+        { max: 180 }
+      );
+      var momentLabels = stringList(
+        segment.momentLabels || [],
+        segmentPath + ".momentLabels",
+        { max: 180 }
+      );
+      var characterLabels = stringList(
+        segment.characterLabels || [],
+        segmentPath + ".characterLabels",
+        { max: 180 }
+      );
+      var localGuideCutIds = boundedLocalList(
+        segment.guideCutIds,
+        segmentPath + ".guideCutIds",
+        20,
+        new Set(guideCutMap.keys()),
+        "UNKNOWN_EPISODE_RECAP_STORY_GUIDE_CUT",
+        "STORY_GUIDE_CUT"
+      );
+      localGuideCutIds.forEach(function (cutId, cutIndex) {
+        var cut = guideCutMap.get(cutId);
+        if (cut.at < window.at - 0.001 || cut.end > window.end + 0.001) {
+          fail(
+            "EPISODE_RECAP_STORY_GUIDE_CUT_WINDOW",
+            segmentPath + ".guideCutIds[" + cutIndex +
+              "] falls outside this reel.",
+            segmentPath + ".guideCutIds[" + cutIndex + "]"
+          );
+        }
+      });
+      var localGuideChapterIds = boundedLocalList(
+        segment.guideChapterIds,
+        segmentPath + ".guideChapterIds",
+        8,
+        new Set(guideChapterMap.keys()),
+        "UNKNOWN_EPISODE_RECAP_STORY_GUIDE_CHAPTER",
+        "STORY_GUIDE_CHAPTER"
+      );
+      localGuideChapterIds.forEach(function (chapterId, chapterIndex) {
+        var chapter = guideChapterMap.get(chapterId);
+        if (localGuideCutIds.indexOf(chapter.cutId) < 0) {
+          fail(
+            "EPISODE_RECAP_STORY_GUIDE_CHAPTER_SCOPE",
+            segmentPath + ".guideChapterIds[" + chapterIndex +
+              "] does not belong to a guide cut in this reel.",
+            segmentPath + ".guideChapterIds[" + chapterIndex + "]"
+          );
+        }
+      });
+      var localThreadLabels = boundedLocalList(
+        segment.threadLabels,
+        segmentPath + ".threadLabels",
+        10,
+        guideThreadNames,
+        "UNKNOWN_EPISODE_RECAP_STORY_THREAD",
+        "STORY_THREAD"
+      );
+      var guideAnchor = null;
+      if (segment.guideAnchor != null) {
+        var guideAnchorPath = segmentPath + ".guideAnchor";
+        if (!isRecord(segment.guideAnchor)) {
+          fail(
+            "INVALID_EPISODE_RECAP_STORY_GUIDE_ANCHOR",
+            guideAnchorPath + " must be an object or null.",
+            guideAnchorPath
+          );
+        }
+        if (Object.keys(segment.guideAnchor).length) {
+          var anchorCutId = requiredText(
+            segment.guideAnchor.id,
+            guideAnchorPath + ".id",
+            80
+          );
+          var anchorCut = guideCutMap.get(anchorCutId);
+          if (!anchorCut || localGuideCutIds.indexOf(anchorCutId) < 0) {
+            fail(
+              "EPISODE_RECAP_STORY_GUIDE_ANCHOR_SCOPE",
+              guideAnchorPath + ".id must belong to a local guide cut in this reel.",
+              guideAnchorPath + ".id"
+            );
+          }
+          var guideAt = finiteNumber(
+            segment.guideAnchor.at,
+            guideAnchorPath + ".at",
+            0
+          );
+          var guideEnd = finiteNumber(
+            segment.guideAnchor.end,
+            guideAnchorPath + ".end",
+            0
+          );
+          sameWindow(
+            guideAt,
+            guideEnd,
+            anchorCut,
+            guideAnchorPath,
+            "EPISODE_RECAP_STORY_GUIDE_ANCHOR_WINDOW"
+          );
+          var guideTopic = requiredText(
+            segment.guideAnchor.topic,
+            guideAnchorPath + ".topic",
+            180
+          );
+          var guideCategory = requiredText(
+            segment.guideAnchor.category,
+            guideAnchorPath + ".category",
+            100
+          );
+          if (guideTopic !== anchorCut.topic ||
+              guideCategory !== anchorCut.category) {
+            fail(
+              "EPISODE_RECAP_STORY_GUIDE_ANCHOR_LABEL",
+              guideAnchorPath + " must inherit topic and category from its guide cut.",
+              guideAnchorPath
+            );
+          }
+          var guideExcerpt = requiredText(
+            segment.guideAnchor.excerpt,
+            guideAnchorPath + ".excerpt",
+            600
+          );
+          var projectedExcerpt = comparableExcerpt(guideExcerpt);
+          var canonicalExcerpt = comparableExcerpt(anchorCut.excerpt);
+          if (!projectedExcerpt ||
+              canonicalExcerpt.indexOf(projectedExcerpt) !== 0 ||
+              wordCount(projectedExcerpt) <
+                Math.min(18, wordCount(canonicalExcerpt))) {
+            fail(
+              "EPISODE_RECAP_STORY_GUIDE_ANCHOR_EXCERPT",
+              guideAnchorPath + ".excerpt must project its local guide cut.",
+              guideAnchorPath + ".excerpt"
+            );
+          }
+          var anchorChapter = guideChapterByCutId.get(anchorCutId) || null;
+          var anchorChapterId = clean(
+            segment.guideAnchor.chapterId,
+            80
+          );
+          var expectedChapterId = anchorChapter ? anchorChapter.id : "";
+          if (anchorChapterId !== expectedChapterId ||
+              anchorChapterId &&
+                localGuideChapterIds.indexOf(anchorChapterId) < 0) {
+            fail(
+              "EPISODE_RECAP_STORY_GUIDE_ANCHOR_CHAPTER",
+              guideAnchorPath + ".chapterId must project this guide cut's chapter.",
+              guideAnchorPath + ".chapterId"
+            );
+          }
+          var expectedBasis = clean(anchorCut.evidenceBasis, 180) ||
+            clean(anchorChapter && anchorChapter.evidenceBasis, 180) ||
+            "reviewed-episode-guide-timestamp";
+          var anchorBasis = requiredText(
+            segment.guideAnchor.evidenceBasis,
+            guideAnchorPath + ".evidenceBasis",
+            240
+          );
+          if (anchorBasis !== expectedBasis) {
+            fail(
+              "EPISODE_RECAP_STORY_GUIDE_ANCHOR_BASIS",
+              guideAnchorPath + ".evidenceBasis must project its guide cut.",
+              guideAnchorPath + ".evidenceBasis"
+            );
+          }
+          guideAnchor = {
+            id: anchorCut.id,
+            at: anchorCut.at,
+            end: anchorCut.end,
+            topic: anchorCut.topic,
+            category: anchorCut.category,
+            excerpt: guideExcerpt,
+            chapterId: anchorChapterId,
+            evidenceBasis: anchorBasis
+          };
+        }
+      }
+      var normalizedSegment = {
         id: id,
         ordinal: finiteNumber(segment.ordinal || index + 1, segmentPath + ".ordinal", 1),
         label: requiredText(segment.label, segmentPath + ".label", 240),
@@ -1485,28 +1742,309 @@
         anchorAt: anchorAt,
         anchor: clean(segment.anchor, 180),
         excerpt: excerpt,
-        topicLabels: stringList(
-          segment.topicLabels || [],
-          segmentPath + ".topicLabels",
-          { max: 180 }
-        ),
-        momentLabels: stringList(
-          segment.momentLabels || [],
-          segmentPath + ".momentLabels",
-          { max: 180 }
-        ),
-        characterLabels: stringList(
-          segment.characterLabels || [],
-          segmentPath + ".characterLabels",
-          { max: 180 }
-        ),
+        topicLabels: topicLabels,
+        momentLabels: momentLabels,
+        characterLabels: characterLabels,
+        threadLabels: localThreadLabels,
         receiptKeys: receiptKeys,
+        guideCutIds: localGuideCutIds,
+        guideChapterIds: localGuideChapterIds,
+        guideAnchor: guideAnchor,
         evidenceBasis: requiredText(
           segment.evidenceBasis,
           segmentPath + ".evidenceBasis",
           240
         ),
       };
+      var narrativePath = segmentPath + ".narrative";
+      if (!isRecord(segment.narrative)) {
+        fail(
+          "INVALID_EPISODE_RECAP_STORY_NARRATIVE",
+          narrativePath + " must be a source-bound narrative beat.",
+          narrativePath
+        );
+      }
+      var narrativeSchema = requiredText(
+        segment.narrative.schema,
+        narrativePath + ".schema",
+        80
+      );
+      if (narrativeSchema !== "shokker-recap-narrative-beat/v1") {
+        fail(
+          "INVALID_EPISODE_RECAP_STORY_NARRATIVE_SCHEMA",
+          narrativePath + ".schema is unsupported.",
+          narrativePath + ".schema"
+        );
+      }
+      var narrativeKind = requiredText(
+        segment.narrative.kind,
+        narrativePath + ".kind",
+        80
+      );
+      if ([
+        "opening-board",
+        "last-reel",
+        "returning-thread",
+        "character-break-in",
+        "chaos-spike",
+        "topic-sweep",
+        "hard-left"
+      ].indexOf(narrativeKind) < 0) {
+        fail(
+          "INVALID_EPISODE_RECAP_STORY_NARRATIVE_KIND",
+          narrativePath + ".kind is unsupported.",
+          narrativePath + ".kind"
+        );
+      }
+      var primarySubject = requiredText(
+        segment.narrative.primarySubject,
+        narrativePath + ".primarySubject",
+        180
+      );
+      var expectedPrimarySubject = clean(
+        guideAnchor && guideAnchor.topic ||
+        topicLabels[0] ||
+        characterLabels[0] ||
+        normalizedSegment.anchor ||
+        momentLabels[0] ||
+        "Saved checkpoint",
+        180
+      );
+      if (primarySubject !== expectedPrimarySubject) {
+        fail(
+          "EPISODE_RECAP_STORY_NARRATIVE_SUBJECT",
+          narrativePath + ".primarySubject must come from this reel's local evidence.",
+          narrativePath + ".primarySubject"
+        );
+      }
+      var allSubjects = uniqueStrings(
+        [primarySubject].concat(
+          topicLabels,
+          characterLabels,
+          momentLabels
+        )
+      );
+      var secondarySubjects = stringList(
+        segment.narrative.secondarySubjects || [],
+        narrativePath + ".secondarySubjects",
+        { max: 180 }
+      );
+      if (secondarySubjects.length > 5 ||
+          stableJson(secondarySubjects) !== stableJson(
+            allSubjects.filter(function (subject) {
+              return subject.toLowerCase() !== primarySubject.toLowerCase();
+            }).slice(0, 5)
+          )) {
+        fail(
+          "EPISODE_RECAP_STORY_NARRATIVE_SECONDARY",
+          narrativePath + ".secondarySubjects must project this reel's named evidence.",
+          narrativePath + ".secondarySubjects"
+        );
+      }
+      var recurringSubjects = stringList(
+        segment.narrative.recurringSubjects || [],
+        narrativePath + ".recurringSubjects",
+        { max: 180 }
+      );
+      if (recurringSubjects.length > 4 ||
+          recurringSubjects.some(function (subject) {
+            return allSubjects.indexOf(subject) < 0;
+          })) {
+        fail(
+          "EPISODE_RECAP_STORY_NARRATIVE_RECURRING",
+          narrativePath + ".recurringSubjects must stay inside this reel.",
+          narrativePath + ".recurringSubjects"
+        );
+      }
+      if (typeof segment.narrative.anchorSupportsPrimary !== "boolean") {
+        fail(
+          "INVALID_EPISODE_RECAP_STORY_ANCHOR_RELATION",
+          narrativePath + ".anchorSupportsPrimary must be boolean.",
+          narrativePath + ".anchorSupportsPrimary"
+        );
+      }
+      var anchorSupportsPrimary =
+        segment.narrative.anchorSupportsPrimary === true;
+      var anchorSubject = requiredText(
+        segment.narrative.anchorSubject,
+        narrativePath + ".anchorSubject",
+        180
+      );
+      var expectedAnchorSubject = evidenceLabel(
+        guideAnchor ?
+          guideAnchor.topic || guideAnchor.category :
+          normalizedSegment.anchor
+      );
+      if (anchorSubject !== expectedAnchorSubject) {
+        fail(
+          "EPISODE_RECAP_STORY_ANCHOR_SUBJECT",
+          narrativePath + ".anchorSubject must project this reel's anchor.",
+          narrativePath + ".anchorSubject"
+        );
+      }
+      var anchorRelation = requiredText(
+        segment.narrative.anchorRelation,
+        narrativePath + ".anchorRelation",
+        80
+      );
+      var expectedAnchorRelation = anchorSupportsPrimary ?
+        "direct-subject-anchor" : "separate-saved-spike";
+      if (anchorRelation !== expectedAnchorRelation) {
+        fail(
+          "EPISODE_RECAP_STORY_ANCHOR_RELATION",
+          narrativePath +
+            ".anchorRelation must match anchorSupportsPrimary.",
+          narrativePath + ".anchorRelation"
+        );
+      }
+      var primaryEvidencePath = narrativePath + ".primaryEvidence";
+      if (!isRecord(segment.narrative.primaryEvidence)) {
+        fail(
+          "INVALID_EPISODE_RECAP_STORY_PRIMARY_EVIDENCE",
+          primaryEvidencePath + " must be an object.",
+          primaryEvidencePath
+        );
+      }
+      var primaryEvidenceKind = requiredText(
+        segment.narrative.primaryEvidence.kind,
+        primaryEvidencePath + ".kind",
+        40
+      );
+      var primaryEvidenceKey = requiredText(
+        segment.narrative.primaryEvidence.key,
+        primaryEvidencePath + ".key",
+        240
+      );
+      var primaryEvidenceAt = finiteNumber(
+        segment.narrative.primaryEvidence.at,
+        primaryEvidencePath + ".at",
+        0
+      );
+      var primaryEvidenceEnd = finiteNumber(
+        segment.narrative.primaryEvidence.end,
+        primaryEvidencePath + ".end",
+        0
+      );
+      var primaryEvidenceLabel = requiredText(
+        segment.narrative.primaryEvidence.label,
+        primaryEvidencePath + ".label",
+        180
+      );
+      if (primaryEvidenceKind === "guide-cut") {
+        var primaryCut = guideCutMap.get(primaryEvidenceKey);
+        if (!guideAnchor || primaryEvidenceKey !== guideAnchor.id ||
+            localGuideCutIds.indexOf(primaryEvidenceKey) < 0 || !primaryCut) {
+          fail(
+            "EPISODE_RECAP_STORY_PRIMARY_GUIDE_SCOPE",
+            primaryEvidencePath + " must belong to this reel's guide anchor.",
+            primaryEvidencePath
+          );
+        }
+        sameWindow(
+          primaryEvidenceAt,
+          primaryEvidenceEnd,
+          primaryCut,
+          primaryEvidencePath,
+          "EPISODE_RECAP_STORY_PRIMARY_GUIDE_WINDOW"
+        );
+        if (primaryEvidenceLabel !== anchorSubject) {
+          fail(
+            "EPISODE_RECAP_STORY_PRIMARY_GUIDE_LABEL",
+            primaryEvidencePath + ".label must project its guide cut.",
+            primaryEvidencePath + ".label"
+          );
+        }
+      } else if (primaryEvidenceKind === "receipt") {
+        var primaryReceipt = receiptMap.get(primaryEvidenceKey);
+        if (!primaryReceipt ||
+            localGuideCutIds.length && guideAnchor ||
+            receiptKeys.indexOf(primaryEvidenceKey) < 0 ||
+            primaryEvidenceKey !== anchorReceiptKey) {
+          fail(
+            "EPISODE_RECAP_STORY_PRIMARY_RECEIPT_SCOPE",
+            primaryEvidencePath + " must belong to this reel's anchor receipt.",
+            primaryEvidencePath
+          );
+        }
+        if (Math.abs(primaryEvidenceAt - primaryReceipt.at) > 0.001 ||
+            primaryEvidenceEnd <= primaryEvidenceAt ||
+            primaryEvidenceEnd > primaryReceipt.end + 0.001) {
+          fail(
+            "EPISODE_RECAP_STORY_PRIMARY_RECEIPT_WINDOW",
+            primaryEvidencePath +
+              " must remain inside its local receipt window.",
+            primaryEvidencePath
+          );
+        }
+        if (primaryEvidenceLabel !== anchorSubject) {
+          fail(
+            "EPISODE_RECAP_STORY_PRIMARY_RECEIPT_LABEL",
+            primaryEvidencePath + ".label must project its anchor receipt.",
+            primaryEvidencePath + ".label"
+          );
+        }
+      } else {
+        fail(
+          "INVALID_EPISODE_RECAP_STORY_PRIMARY_EVIDENCE_KIND",
+          primaryEvidencePath + ".kind is unsupported.",
+          primaryEvidencePath + ".kind"
+        );
+      }
+      var shapePath = narrativePath + ".evidenceShape";
+      if (!isRecord(segment.narrative.evidenceShape)) {
+        fail(
+          "INVALID_EPISODE_RECAP_STORY_EVIDENCE_SHAPE",
+          shapePath + " must be an object.",
+          shapePath
+        );
+      }
+      var expectedShape = {
+        receipts: receiptKeys.length,
+        guideCuts: localGuideCutIds.length,
+        guideChapters: localGuideChapterIds.length,
+        topics: topicLabels.length,
+        moments: momentLabels.length,
+        characters: characterLabels.length,
+        namedSubjects: allSubjects.length
+      };
+      Object.keys(expectedShape).forEach(function (key) {
+        var shapeValue = finiteNumber(
+          segment.narrative.evidenceShape[key],
+          shapePath + "." + key,
+          0
+        );
+        if (!Number.isInteger(shapeValue) || shapeValue !== expectedShape[key]) {
+          fail(
+            "EPISODE_RECAP_STORY_EVIDENCE_SHAPE_MISMATCH",
+            shapePath + "." + key + " must match this reel's local evidence.",
+            shapePath + "." + key
+          );
+        }
+      });
+      normalizedSegment.narrative = {
+        schema: narrativeSchema,
+        kind: narrativeKind,
+        primarySubject: primarySubject,
+        secondarySubjects: secondarySubjects,
+        previousSubject: clean(
+          segment.narrative.previousSubject,
+          180
+        ),
+        nextSubject: clean(segment.narrative.nextSubject, 180),
+        recurringSubjects: recurringSubjects,
+        anchorSupportsPrimary: anchorSupportsPrimary,
+        anchorSubject: anchorSubject,
+        anchorRelation: anchorRelation,
+        primaryEvidence: {
+          kind: primaryEvidenceKind,
+          key: primaryEvidenceKey,
+          at: primaryEvidenceAt,
+          end: primaryEvidenceEnd,
+          label: primaryEvidenceLabel
+        },
+        evidenceShape: expectedShape
+      };
+      return normalizedSegment;
     });
     for (var storyIndex = 1; storyIndex < story.length; storyIndex += 1) {
       if (story[storyIndex].at < story[storyIndex - 1].at) {
@@ -1517,6 +2055,71 @@
         );
       }
     }
+    var narrativeSubjectPositions = {};
+    story.forEach(function (segment, index) {
+      uniqueStrings(
+        [segment.narrative.primarySubject]
+          .concat(segment.topicLabels, segment.characterLabels)
+      ).forEach(function (subject) {
+        var key = subject.toLowerCase();
+        if (!narrativeSubjectPositions[key]) {
+          narrativeSubjectPositions[key] = [];
+        }
+        narrativeSubjectPositions[key].push(index);
+      });
+    });
+    story.forEach(function (segment, index) {
+      var narrativePath = path + ".story[" + index + "].narrative";
+      var narrative = segment.narrative;
+      var expectedPrevious = index ?
+        story[index - 1].narrative.primarySubject : "";
+      var expectedNext = index + 1 < story.length ?
+        story[index + 1].narrative.primarySubject : "";
+      if (narrative.previousSubject !== expectedPrevious ||
+          narrative.nextSubject !== expectedNext) {
+        fail(
+          "EPISODE_RECAP_STORY_NARRATIVE_TRANSITION",
+          narrativePath + " must point to the adjacent source-local reels.",
+          narrativePath
+        );
+      }
+      var subjects = uniqueStrings(
+        [narrative.primarySubject].concat(
+          segment.topicLabels,
+          segment.characterLabels,
+          segment.momentLabels
+        )
+      );
+      var expectedRecurring = subjects.filter(function (subject) {
+        return array(
+          narrativeSubjectPositions[subject.toLowerCase()]
+        ).length > 1;
+      }).slice(0, 4);
+      if (stableJson(narrative.recurringSubjects) !==
+          stableJson(expectedRecurring)) {
+        fail(
+          "EPISODE_RECAP_STORY_NARRATIVE_RECURRING",
+          narrativePath +
+            ".recurringSubjects must match repeated source-local subjects.",
+          narrativePath + ".recurringSubjects"
+        );
+      }
+      var counts = narrative.evidenceShape;
+      var expectedKind = index === 0 ? "opening-board" :
+        index === story.length - 1 ? "last-reel" :
+          expectedRecurring.length ? "returning-thread" :
+            counts.characters ? "character-break-in" :
+              counts.moments > counts.topics ? "chaos-spike" :
+                counts.topics >= 3 ? "topic-sweep" :
+                  "hard-left";
+      if (narrative.kind !== expectedKind) {
+        fail(
+          "EPISODE_RECAP_STORY_NARRATIVE_KIND_MISMATCH",
+          narrativePath + ".kind must match this reel's evidence shape.",
+          narrativePath + ".kind"
+        );
+      }
+    });
     if (state === "ready" && receiptMap.size &&
         (storyReceiptKeys.size !== receiptMap.size ||
           Array.from(receiptMap.keys()).some(function (key) {
@@ -1651,6 +2254,66 @@
         casePath + ".tapeSpanPercent",
         0
       );
+      var storyNarrativeBeatCount = finiteNumber(
+        raw.caseFile.storyNarrativeBeatCount,
+        casePath + ".storyNarrativeBeatCount",
+        0
+      );
+      var storyNamedSegmentCount = finiteNumber(
+        raw.caseFile.storyNamedSegmentCount,
+        casePath + ".storyNamedSegmentCount",
+        0
+      );
+      var storyGuidePointCount = finiteNumber(
+        raw.caseFile.storyGuidePointCount,
+        casePath + ".storyGuidePointCount",
+        0
+      );
+      var storyGuidePointExpected = finiteNumber(
+        raw.caseFile.storyGuidePointExpected,
+        casePath + ".storyGuidePointExpected",
+        0
+      );
+      var storyGuidePointCoveragePercent = finiteNumber(
+        raw.caseFile.storyGuidePointCoveragePercent,
+        casePath + ".storyGuidePointCoveragePercent",
+        0
+      );
+      var storyGuideChapterCount = finiteNumber(
+        raw.caseFile.storyGuideChapterCount,
+        casePath + ".storyGuideChapterCount",
+        0
+      );
+      var storyGuideThreadCount = finiteNumber(
+        raw.caseFile.storyGuideThreadCount,
+        casePath + ".storyGuideThreadCount",
+        0
+      );
+      [
+        ["receiptCount", receiptCount],
+        ["topicCount", topicCount],
+        ["momentCount", momentCount],
+        ["characterCount", characterCount],
+        ["actCount", actCount],
+        ["guideCutCount", guideCutCount],
+        ["threadCount", threadCount],
+        ["storySegmentCount", storySegmentCount],
+        ["storyReceiptCount", storyReceiptCount],
+        ["storyNarrativeBeatCount", storyNarrativeBeatCount],
+        ["storyNamedSegmentCount", storyNamedSegmentCount],
+        ["storyGuidePointCount", storyGuidePointCount],
+        ["storyGuidePointExpected", storyGuidePointExpected],
+        ["storyGuideChapterCount", storyGuideChapterCount],
+        ["storyGuideThreadCount", storyGuideThreadCount]
+      ].forEach(function (entry) {
+        if (!Number.isInteger(entry[1])) {
+          fail(
+            "EPISODE_RECAP_CASE_FILE_INTEGER",
+            casePath + "." + entry[0] + " must be an integer.",
+            casePath + "." + entry[0]
+          );
+        }
+      });
       if (tapeSpanPercent > 100) {
         fail(
           "EPISODE_RECAP_CASE_FILE_SPAN",
@@ -1663,6 +2326,13 @@
           "EPISODE_RECAP_CASE_FILE_STORY_COVERAGE",
           casePath + ".storyCoveragePercent cannot exceed 100.",
           casePath + ".storyCoveragePercent"
+        );
+      }
+      if (storyGuidePointCoveragePercent > 100) {
+        fail(
+          "EPISODE_RECAP_CASE_FILE_GUIDE_COVERAGE",
+          casePath + ".storyGuidePointCoveragePercent cannot exceed 100.",
+          casePath + ".storyGuidePointCoveragePercent"
         );
       }
       var expected = { receipts: 0, topics: 0, moments: 0, characters: 0 };
@@ -1679,6 +2349,25 @@
           expected.moments += 1;
         }
       });
+      var storyGuideCutIds = new Set();
+      var storyGuideChapterIds = new Set();
+      var storyThreadLabels = new Set();
+      story.forEach(function (segment) {
+        segment.guideCutIds.forEach(function (cutId) {
+          storyGuideCutIds.add(cutId);
+        });
+        segment.guideChapterIds.forEach(function (chapterId) {
+          storyGuideChapterIds.add(chapterId);
+        });
+        segment.threadLabels.forEach(function (threadLabel) {
+          storyThreadLabels.add(threadLabel);
+        });
+      });
+      var expectedGuidePointCount = guideCuts.length;
+      var expectedGuideCoverage = expectedGuidePointCount ?
+        Math.round(
+          storyGuideCutIds.size / expectedGuidePointCount * 100
+        ) : 100;
       if (state === "ready" && (
         receiptCount !== expected.receipts ||
         topicCount !== expected.topics ||
@@ -1690,7 +2379,14 @@
         storySegmentCount !== story.length ||
         storyReceiptCount !== storyReceiptKeys.size ||
         storyCoveragePercent !==
-          Math.round(storyReceiptKeys.size / Math.max(1, expected.receipts) * 100)
+          Math.round(storyReceiptKeys.size / Math.max(1, expected.receipts) * 100) ||
+        storyNarrativeBeatCount !== story.length ||
+        storyNamedSegmentCount !== story.length ||
+        storyGuidePointCount !== storyGuideCutIds.size ||
+        storyGuidePointExpected !== expectedGuidePointCount ||
+        storyGuidePointCoveragePercent !== expectedGuideCoverage ||
+        storyGuideChapterCount !== storyGuideChapterIds.size ||
+        storyGuideThreadCount !== storyThreadLabels.size
       )) {
         fail(
           "EPISODE_RECAP_CASE_FILE_MISMATCH",
@@ -1701,7 +2397,11 @@
       if (state === "held" && (
         receiptCount || topicCount || momentCount || characterCount || actCount ||
         guideCutCount || threadCount || storySegmentCount || storyReceiptCount ||
-        storyCoveragePercent || tapeSpanPercent
+        storyCoveragePercent || storyNarrativeBeatCount ||
+        storyNamedSegmentCount || storyGuidePointCount ||
+        storyGuidePointExpected || storyGuideChapterCount ||
+        storyGuideThreadCount || tapeSpanPercent ||
+        storyGuidePointCoveragePercent !== 100
       )) {
         fail(
           "HELD_EPISODE_RECAP_CASE_FILE_OVERREACH",
@@ -1720,6 +2420,13 @@
         storySegmentCount: storySegmentCount,
         storyReceiptCount: storyReceiptCount,
         storyCoveragePercent: storyCoveragePercent,
+        storyNarrativeBeatCount: storyNarrativeBeatCount,
+        storyNamedSegmentCount: storyNamedSegmentCount,
+        storyGuidePointCount: storyGuidePointCount,
+        storyGuidePointExpected: storyGuidePointExpected,
+        storyGuidePointCoveragePercent: storyGuidePointCoveragePercent,
+        storyGuideChapterCount: storyGuideChapterCount,
+        storyGuideThreadCount: storyGuideThreadCount,
         tapeSpanPercent: tapeSpanPercent,
         firstAt: finiteNumber(raw.caseFile.firstAt, casePath + ".firstAt", 0),
         lastAt: finiteNumber(raw.caseFile.lastAt, casePath + ".lastAt", 0),

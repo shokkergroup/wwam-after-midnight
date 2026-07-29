@@ -2,7 +2,7 @@
   "use strict";
 
   var SCHEMA = "wwam-feldman-recap/v1";
-  var VERSION = "1.4.0";
+  var VERSION = "1.5.1";
 
   function clean(value) {
     return String(value == null ? "" : value).trim();
@@ -79,6 +79,81 @@
 
   function displayLabels(values) {
     return unique(array(values).map(displayLabel).filter(Boolean));
+  }
+
+  function exactLabels(values) {
+    var output = [];
+    array(values).map(clean).filter(Boolean).forEach(function (value) {
+      if (output.indexOf(value) < 0) output.push(value);
+    });
+    return output;
+  }
+
+  function storyPrimarySubject(segment) {
+    var guideAnchor = record(segment.guideAnchor);
+    return clean(
+      guideAnchor.topic ||
+      array(segment.topicLabels)[0] ||
+      array(segment.characterLabels)[0] ||
+      segment.anchor ||
+      array(segment.momentLabels)[0] ||
+      "Saved checkpoint"
+    );
+  }
+
+  function reprojectStoryNarratives(story) {
+    var positions = {};
+    story.forEach(function (segment, index) {
+      exactLabels(
+        [storyPrimarySubject(segment)]
+          .concat(segment.topicLabels, segment.characterLabels)
+      ).forEach(function (subject) {
+        var key = subject.toLowerCase();
+        if (!positions[key]) positions[key] = [];
+        positions[key].push(index);
+      });
+    });
+
+    return story.map(function (segment, index) {
+      var current = record(segment.narrative);
+      var primarySubject = storyPrimarySubject(segment);
+      var subjects = exactLabels(
+        [primarySubject]
+          .concat(segment.topicLabels, segment.characterLabels, segment.momentLabels)
+      );
+      var recurringSubjects = subjects.filter(function (subject) {
+        return array(positions[subject.toLowerCase()]).length > 1;
+      }).slice(0, 4);
+      var counts = {
+        receipts: array(segment.receiptKeys).length,
+        guideCuts: array(segment.guideCutIds).length,
+        guideChapters: array(segment.guideChapterIds).length,
+        topics: array(segment.topicLabels).length,
+        moments: array(segment.momentLabels).length,
+        characters: array(segment.characterLabels).length,
+        namedSubjects: subjects.length,
+      };
+      var kind = index === 0 ? "opening-board" :
+        index === story.length - 1 ? "last-reel" :
+          recurringSubjects.length ? "returning-thread" :
+            counts.characters ? "character-break-in" :
+              counts.moments > counts.topics ? "chaos-spike" :
+                counts.topics >= 3 ? "topic-sweep" :
+                  "hard-left";
+      segment.narrative = Object.assign({}, current, {
+        kind: kind,
+        primarySubject: primarySubject,
+        secondarySubjects: subjects.filter(function (subject) {
+          return subject.toLowerCase() !== primarySubject.toLowerCase();
+        }).slice(0, 5),
+        previousSubject: index ? storyPrimarySubject(story[index - 1]) : "",
+        nextSubject: index + 1 < story.length ?
+          storyPrimarySubject(story[index + 1]) : "",
+        recurringSubjects: recurringSubjects,
+        evidenceShape: counts,
+      });
+      return segment;
+    });
   }
 
   function naturalLabel(value) {
@@ -698,10 +773,12 @@
   }
 
   function storyLabel(segment, index, total, sourceId) {
+    var narrative = record(segment.narrative);
     var topics = displayLabels(segment.topicLabels).map(naturalLabel);
     var moments = displayLabels(segment.momentLabels).map(naturalLabel);
     var characters = displayLabels(segment.characterLabels).map(naturalLabel);
-    var subject = topics[0] || moments[0] || characters[0] ||
+    var subject = naturalLabel(narrative.primarySubject) ||
+      topics[0] || moments[0] || characters[0] ||
       naturalLabel(segment.anchor) || "THE NIGHT MOVES";
     if (index === 0) return "REEL ONE // " + subject.toUpperCase() + " SETS THINGS IN MOTION";
     if (index === total - 1) {
@@ -715,59 +792,251 @@
     ]);
   }
 
-  function storyBody(segment, index, total, sourceId) {
+  function storyWorld(formatId) {
+    var id = clean(formatId);
+    if (id === "movie-commentary" || id === "watch-party" ||
+        id === "script-reading") {
+      return {
+        surface: "commentary",
+        route: "watchalong",
+        room: "screen-side conversation",
+        checkpoint: "scene-side checkpoint",
+      };
+    }
+    if (id === "ranking-show" || id === "versus-show") {
+      return {
+        surface: "board",
+        route: "bracket",
+        room: "scorecard",
+        checkpoint: "board checkpoint",
+      };
+    }
+    if (id === "trailer-reaction") {
+      return {
+        surface: "breakdown",
+        route: "frame-by-frame path",
+        room: "reaction",
+        checkpoint: "footage checkpoint",
+      };
+    }
+    return {
+      surface: "show",
+      route: "broadcast",
+      room: "conversation",
+      checkpoint: "show checkpoint",
+    };
+  }
+
+  function storyBody(segment, index, total, sourceId, formatId) {
+    var narrative = record(segment.narrative);
+    var shape = record(narrative.evidenceShape);
+    var guideAnchor = record(segment.guideAnchor);
+    var primaryEvidence = record(narrative.primaryEvidence);
     var topics = displayLabels(segment.topicLabels).map(naturalLabel);
     var moments = displayLabels(segment.momentLabels).map(naturalLabel);
     var characters = displayLabels(segment.characterLabels).map(naturalLabel);
+    var threads = displayLabels(segment.threadLabels).map(naturalLabel);
+    var primary = naturalLabel(narrative.primarySubject) ||
+      topics[0] || characters[0] || moments[0] ||
+      naturalLabel(segment.anchor) || "the next turn";
+    var recurring = displayLabels(narrative.recurringSubjects).map(naturalLabel);
+    var anchorSupportsPrimary = narrative.anchorSupportsPrimary !== false;
+    var anchorSubject = naturalLabel(narrative.anchorSubject) ||
+      naturalLabel(primaryEvidence.label) ||
+      naturalLabel(segment.anchor) || "a saved checkpoint";
+    var anchorAt = Number.isFinite(Number(primaryEvidence.at)) ?
+      number(primaryEvidence.at) :
+      (clean(guideAnchor.id) ? number(guideAnchor.at) : number(segment.anchorAt));
+    var world = storyWorld(formatId);
+    var excerpt = quotedExcerpt(
+      clean(guideAnchor.id) ? guideAnchor.excerpt : segment.excerpt,
+      18
+    );
     var from = clock(segment.at);
     var to = clock(segment.end);
-    var excerpt = quotedExcerpt(segment.excerpt, 18);
-    var seed = sourceId + "|story|" + index + "|" + topics.join("|");
-    var lead = choice(seed, [
-      "From " + from + " to " + to + ", this part of the show",
-      "The chapter between " + from + " and " + to,
-      "Starting at " + from + " and running through " + to + ", the conversation",
-      "This " + from + "–" + to + " stretch",
+    var seed = sourceId + "|story-v15|" + index + "|" + primary + "|" +
+      clean(narrative.kind);
+    var lead = anchorSupportsPrimary ? choice(seed + "|authored-lead", [
+      "At " + clock(anchorAt) + ", the " + world.surface +
+        " plants this reel's flag on " + primary + ".",
+      "The " + world.route + " unlocks " + primary + " at " +
+        clock(anchorAt) + " and leaves the door swinging.",
+      primary + " is the name under the " + world.surface +
+        "'s flashlight at " + clock(anchorAt) + ".",
+      "The recap finds " + primary + " waiting in the " + world.room +
+        " at " + clock(anchorAt) + ".",
+      "Through the " + world.route + " door at " + clock(anchorAt) +
+        ": " + primary + ".",
+      "The " + world.surface + " clocks in at " + clock(anchorAt) +
+        " with " + primary + " already causing paperwork.",
+      "At " + clock(anchorAt) + ", " + primary + " gives this " +
+        world.route + " its pulse.",
+      "This reel points the " + world.surface + " at " + primary +
+        " by " + clock(anchorAt) + ".",
+      "The " + world.route + " breadcrumb lands on " + primary +
+        " at " + clock(anchorAt) + ".",
+      "By " + clock(anchorAt) + ", the " + world.surface +
+        " has handed this reel to " + primary + ".",
+      primary + " answers the " + world.room + "'s roll call at " +
+        clock(anchorAt) + ".",
+      "The " + world.surface + " opens its after-hours ledger on " +
+        primary + " at " + clock(anchorAt) + ".",
+    ]) : choice(seed + "|separate-anchor", [
+      "This reel covers " + primary + " from " + from + " to " + to +
+        ". Its strongest saved spike lands at " + clock(anchorAt) +
+        " under " + anchorSubject +
+        ", a separate checkpoint in the same stretch.",
+      primary + " owns the broader " + world.route + " chapter from " +
+        from + " to " + to + ". The saved spike at " + clock(anchorAt) +
+        " belongs to " + anchorSubject +
+        "; it is a separate checkpoint, not proof that " + primary +
+        " happened there.",
+      "The broader subject here is " + primary + ". At " +
+        clock(anchorAt) + ", " + anchorSubject +
+        " supplies a separate saved spike; that timestamp is not assigned to " +
+        primary + ".",
+      "From " + from + " to " + to + ", the recap follows " + primary +
+        ". Its strongest " + world.checkpoint + " is " + anchorSubject +
+        " at " + clock(anchorAt) +
+        ", and the two are kept separate.",
     ]);
-    var topicLine = topics.length ?
-      " moves through " + list(topics, "") + "." :
-      " follows the night's next turn without a named subject attached.";
-    if (/chapter between/.test(lead)) {
-      topicLine = topics.length ?
-        " moves through " + list(topics, "") + "." :
-        " follows the night's next turn without a named subject attached.";
-    }
+    var topicLine = "";
+    var topicOthers = topics.filter(function (topic) {
+      return topic.toLowerCase() !== primary.toLowerCase();
+    });
+    var topicDetail = anchorSupportsPrimary && topicOthers.length ?
+      " " + choice(seed + "|topics", [
+      primary + " holds the flashlight while " + list(topicOthers.slice(0, 4), "") +
+        " crowd the same hallway.",
+      "The same reel opens side doors for " + list(topicOthers.slice(0, 4), "") +
+        ", but " + primary + " keeps the keys.",
+      "Around that checkpoint, " + list(topicOthers.slice(0, 4), "") +
+        " join " + primary + " on an increasingly unsafe evidence board.",
+      "The watch path keeps " + primary + " in front and stacks " +
+        list(topicOthers.slice(0, 4), "") + " behind it like suspicious sequel luggage.",
+      primary + " is the marquee name; the trapdoor list underneath it reads " +
+        list(topicOthers.slice(0, 4), "") + ".",
+      "That puts " + primary + " at the center of a reel also carrying " +
+        list(topicOthers.slice(0, 4), "") + ".",
+    ]) : anchorSupportsPrimary ? " " + choice(seed + "|one-subject", [
+      primary + " owns the named lane here; the rest of the context stays on the original " +
+        world.surface + ".",
+      "This reel keeps its named flashlight on " + primary +
+        " instead of pretending the " + world.surface + " said more.",
+      primary + " is the chapter's one named suspect, and the timestamp keeps the full interrogation.",
+      "The map stays locked on " + primary + "; playback handles everything the recap cannot mime.",
+    ]) : " " + choice(seed + "|separate-context", [
+      "The reel-level subject remains " + primary +
+        "; " + anchorSubject + " labels only the separate saved spike.",
+      "That checkpoint belongs to " + anchorSubject +
+        ", while " + primary + " describes the broader " + world.route + " stretch.",
+      "The recap keeps " + primary + " as the chapter heading and " +
+        anchorSubject + " as a separate piece of timestamped evidence.",
+      "This is one reel with two evidence levels: broad subject " + primary +
+        ", separate checkpoint " + anchorSubject + ".",
+    ]);
+    var category = naturalLabel(guideAnchor.category);
+    var guideLine = clean(guideAnchor.id) ?
+      " " + choice(seed + "|guide", [
+        "Its " + (category || "saved") + " checkpoint is one of " +
+          number(shape.guideCuts) + " exact guide stops inside this reel.",
+        "The reviewed watch path gives this reel " + number(shape.guideCuts) +
+          " timed stop" + (number(shape.guideCuts) === 1 ? "" : "s") +
+          (category ? ", including the " + category + " turn" : "") + ".",
+        "This stretch inherits " + number(shape.guideCuts) +
+          " exact guide marker" + (number(shape.guideCuts) === 1 ? "" : "s") +
+          (category ? "; " + category + " gets the sharpest one" : "") + ".",
+        "The full-show map backs this reel with " + number(shape.guideCuts) +
+          " timed checkpoint" + (number(shape.guideCuts) === 1 ? "" : "s") +
+          (category ? ", led by " + category : "") + ".",
+      ]) : "";
     var momentLine = moments.length ?
-      " The replay buttons light up around " + list(moments, "") + "." : "";
+      " " + choice(seed + "|moments", [
+        "The replay alarms go off around " + list(moments.slice(0, 4), "") + ".",
+        list(moments.slice(0, 4), "") +
+          " supply the places where the rewind button starts sweating.",
+        "For anyone skipping straight to the smoke, the reel marks " +
+          list(moments.slice(0, 4), "") + ".",
+        "The after-hours pressure points are " + list(moments.slice(0, 4), "") + ".",
+      ]) : "";
     var characterLine = characters.length ?
-      " Character callbacks include " + list(characters, "") +
-        ", with the clip preserving the actual performance." : "";
-    var excerptLine = excerpt ?
-      " At " + clock(segment.anchorAt) + ", the caption catches " + excerpt + "." :
-      " Jump to " + clock(segment.anchorAt) + " for the full exchange.";
+      " " + choice(seed + "|characters", [
+        "Someone left the character cellar unlocked: " +
+          list(characters.slice(0, 4), "") + " turn up in the same reel.",
+        "The character door also swings open for " +
+          list(characters.slice(0, 4), "") +
+          "; playback keeps the actual voices and delivery attached.",
+        list(characters.slice(0, 4), "") +
+          " share this stretch, with the " + world.surface +
+          " retaining who said what and how.",
+        "Character-callback weather moves in around " +
+          list(characters.slice(0, 4), "") +
+          "; the original audio keeps the performance in bounds.",
+      ]) : "";
+    var threadLine = threads.length && !threads.every(function (thread) {
+      return topics.some(function (topic) {
+        return topic.toLowerCase() === thread.toLowerCase();
+      });
+    }) ? " The episode's larger thread map also keeps " +
+      list(threads.slice(0, 4), "") + " in play." : "";
+    var contextLine = " " + choice(seed + "|format-context", [
+      "The " + world.route + " keeps the surrounding context attached.",
+      "Playback leaves the wider " + world.room + " intact.",
+      "The full " + world.surface +
+        " still owns everything around that checkpoint.",
+      "That stop stays inside its original " + world.route + " context.",
+    ]);
+    var excerptLine = anchorSupportsPrimary ?
+      (excerpt ? " " + choice(seed + "|excerpt", [
+        "At " + clock(anchorAt) + ", the " + world.surface +
+          " catches " + excerpt + ".",
+        "The line at " + clock(anchorAt) + " lands as " + excerpt + ".",
+        "Open " + clock(anchorAt) + " and the " + world.room +
+          " gives us " + excerpt + ".",
+        "At " + clock(anchorAt) + ", the saved line is " + excerpt + ".",
+      ]) : " Open " + clock(anchorAt) +
+        " for the complete exchange; this recap is not dubbing fake dialogue over the show.") :
+      (excerpt ?
+        " At " + clock(anchorAt) + ", that separate " + anchorSubject +
+          " checkpoint catches " + excerpt + "." :
+        " Open " + clock(anchorAt) + " for the separate " + anchorSubject +
+          " checkpoint; it is not evidence that " + primary +
+          " happened at that exact time.");
     var close = index === total - 1 ?
       " " + choice(seed + "|final-handoff", [
         "That is where this recap hands the ending back to the show.",
-        "The final word belongs to the original tape.",
+        "The final word belongs to the original " + world.surface + ".",
         "The recap stops there; the complete exchange gets the last laugh.",
-        "That closes the written route and leaves the ending on the tape.",
+        "That closes the written path and leaves the ending on the " +
+          world.surface + ".",
         "The last checkpoint hands control back to the show.",
         "From there, the original episode gets the final word.",
         "That is the point where the recap turns off the lights.",
         "The watch path ends there; the episode does not.",
-        "The final reel closes on the tape, where it belongs.",
+        "The final reel closes on the " + world.surface + ", where it belongs.",
         "The recap clocks out and lets the ending play.",
-        "That closes the case file without rewriting the finish.",
-        "The route ends there, with the original show still holding the room.",
+        "That closes the case without rewriting the finish.",
+        "The path ends there, with the original show still holding the room.",
         "That final checkpoint puts the ending back in its proper hands.",
-        "The written story exits there; the tape keeps the last word.",
+        "The written story exits there; the " + world.surface +
+          " keeps the last word.",
         "That is the end of this map, not a substitute for the show.",
         "The last saved turn closes the recap and opens the complete ending.",
+      ]) :
+      recurring.length ? " " + choice(seed + "|returning-thread", [
+        "Like a slasher who missed the funeral, " + recurring[0] +
+          " survives this reel and follows the map toward the next room.",
+        recurring[0] +
+          " refuses to stay buried; the next reel inherits the footprints.",
+        "The sequel rule applies: " + recurring[0] +
+          " is still breathing when the map turns the corner.",
+        recurring[0] +
+          " leaves fingerprints on more than one reel, and the next chapter picks up the trail.",
       ]) :
       " " + choice(seed + "|bridge-handoff", [
         "The next chapter inherits the mess.",
         "The conversation carries that thread into the next reel.",
-        "The tape keeps moving from there.",
+        "The " + world.route + " keeps moving from there.",
         "That handoff opens the next door.",
         "The next section takes the wheel.",
         "The argument is not finished with the night.",
@@ -779,7 +1048,7 @@
         "The next chapter starts with the room still warm.",
         "The show leaves that door open for what follows.",
         "The next turn arrives before the room can cool down.",
-        "The tape moves on, but the residue comes with it.",
+        "The " + world.surface + " moves on, but the residue comes with it.",
         "That checkpoint gives the next act somewhere to start.",
         "What follows starts from that loose end.",
         "The next reel finds the door already open.",
@@ -792,7 +1061,7 @@
         "That moment leaves a trail for the next section.",
         "The next reel enters before the dust settles.",
         "From that point, the conversation finds another room.",
-        "The tape carries the loose end forward.",
+        "The " + world.route + " carries the loose end forward.",
         "The next act opens on the aftershock.",
         "That exchange keeps breathing into what follows.",
         "The chapter ahead starts with unfinished business.",
@@ -814,7 +1083,8 @@
         "The next act picks up before good judgment returns.",
         "That leaves the following reel with plenty to answer for.",
       ]);
-    return lead + topicLine + momentLine + characterLine + excerptLine + close;
+    return lead + topicLine + topicDetail + guideLine + momentLine +
+      characterLine + threadLine + contextLine + excerptLine + close;
   }
 
   function overviewColor(map) {
@@ -1054,7 +1324,13 @@
         id: clean(segment.id),
         ordinal: index + 1,
         label: storyLabel(segment, index, values.length, map.sourceId),
-        body: storyBody(segment, index, values.length, map.sourceId),
+        body: storyBody(
+          segment,
+          index,
+          values.length,
+          map.sourceId,
+          clean(record(map.format).id)
+        ),
         at: number(segment.at),
         end: number(segment.end),
         anchorReceiptKey: clean(segment.anchorReceiptKey),
@@ -1064,10 +1340,16 @@
         topicLabels: displayLabels(segment.topicLabels),
         momentLabels: displayLabels(segment.momentLabels),
         characterLabels: displayLabels(segment.characterLabels),
+        threadLabels: displayLabels(segment.threadLabels),
         receiptKeys: array(segment.receiptKeys).map(clean).filter(Boolean),
+        guideCutIds: array(segment.guideCutIds).map(clean).filter(Boolean),
+        guideChapterIds: array(segment.guideChapterIds).map(clean).filter(Boolean),
+        guideAnchor: record(segment.guideAnchor),
+        narrative: record(segment.narrative),
         evidenceBasis: clean(segment.evidenceBasis),
       };
     });
+    story = reprojectStoryNarratives(story);
     var tierLabels = {
       "full-chronicle": "FULL EPISODE CHRONICLE",
       "receipt-recap": "PLAYABLE EPISODE RECAP",
