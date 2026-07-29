@@ -224,9 +224,22 @@ test("Ask page wires the bridge lazily and keeps the release byte ceiling", asyn
   assert.match(app, /data-ask-source[\s\S]{0,240}data-time[\s\S]{0,120}data-end/);
   assert.match(app, /openDossier\(button\.dataset\.id,\+button\.dataset\.time,\+button\.dataset\.end\)/);
   assert.match(app, /loadPlayer\(sourceId,\+startTime,settings\.end\)/);
-  assert.match(app, /episode-recap-engine\.js\?v=1\.2\.0-full-story/);
-  assert.match(app, /wwam-episode-recap-adapter\.js\?v=1\.2\.0-full-story/);
-  assert.match(app, /source-dossier-engine\.js\?v=1\.9\.0-full-story/);
+  for (const asset of [
+    "episode-recap-engine.js",
+    "wwam-episode-recap-adapter.js",
+    "source-dossier-engine.js",
+  ]) {
+    const source = await readFile(new URL(asset, demoRoot), "utf8");
+    const version = source.match(/\bvar VERSION = "(\d+\.\d+\.\d+)"/)?.[1];
+    assert.ok(version, `${asset} is missing its semantic runtime VERSION`);
+    const escapedAsset = asset.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const escapedVersion = version.replace(/\./g, "\\.");
+    assert.match(
+      app,
+      new RegExp(`${escapedAsset}\\?v=${escapedVersion}-[a-z0-9-]+`),
+      `${asset} cache key must match its exported runtime VERSION`,
+    );
+  }
   assert.doesNotMatch(html, /<script[^>]+(?:ask-deep-cut|episode-guides)\.js/i);
   assert.ok(
     appInfo.size < 275000,

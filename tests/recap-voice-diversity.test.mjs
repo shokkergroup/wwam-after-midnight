@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import test from "node:test";
+import vm from "node:vm";
 
 import {
   auditRecapVoiceDiversity,
@@ -8,12 +10,37 @@ import {
 } from "../scripts/audit-recap-voice-diversity.mjs";
 
 let cachedReport;
+const manifestUrl = new URL(
+  "../pipeline/wwam_archive_completion_manifest.json",
+  import.meta.url,
+);
+const completionUrl = new URL(
+  "../public/demo/archive-completion.js",
+  import.meta.url,
+);
 
 function report() {
   if (!cachedReport) {
     cachedReport = auditRecapVoiceDiversity(compileReadyRecaps());
   }
   return cachedReport;
+}
+
+function expectedReadyCount() {
+  const manifest = JSON.parse(fs.readFileSync(manifestUrl, "utf8"));
+  const baselineReady = 510 - manifest.sourceCount;
+  if (!fs.existsSync(completionUrl)) return baselineReady;
+
+  const context = { window: {} };
+  vm.createContext(context);
+  vm.runInContext(fs.readFileSync(completionUrl, "utf8"), context, {
+    filename: "archive-completion.js",
+  });
+  const completion = context.window.WWAM_ARCHIVE_COMPLETION;
+  const captioned = completion.streams.filter((stream) => stream.captioned).length;
+  assert.equal(completion.meta.captioned, captioned);
+  assert.equal(completion.streams.length, manifest.sourceCount);
+  return baselineReady + captioned;
 }
 
 test("voice mold normalization removes source-variable decoration", () => {
@@ -32,13 +59,17 @@ test("voice mold normalization removes source-variable decoration", () => {
 
 test("all ready recaps are covered by the reusable voice audit", () => {
   const result = report();
+  const expectedReady = expectedReadyCount();
 
   assert.equal(result.schema, "wwam-recap-voice-diversity-audit/v1");
-  assert.equal(result.corpus.ready, 259);
-  assert.equal(result.cohorts.storyOpening.eligibleRecaps, 259);
-  assert.equal(result.cohorts.storyFinal.eligibleRecaps, 259);
-  assert.equal(result.cohorts.storyBridge.eligibleRecaps > 225, true);
-  assert.equal(result.cohorts.sectionOpening.sentences > 1_800, true);
+  assert.equal(result.corpus.ready, expectedReady);
+  assert.equal(result.cohorts.storyOpening.eligibleRecaps, expectedReady);
+  assert.equal(result.cohorts.storyFinal.eligibleRecaps, expectedReady);
+  assert.equal(result.cohorts.storyBridge.eligibleRecaps, expectedReady);
+  assert.ok(
+    result.cohorts.sectionOpening.sentences >=
+      Math.max(1_800, expectedReady * 5),
+  );
 });
 
 test("no story opening, bridge, or final mold owns more than ten percent", () => {

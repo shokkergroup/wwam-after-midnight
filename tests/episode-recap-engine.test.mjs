@@ -63,6 +63,10 @@ test("universal map and WWAM voice pack produce deterministic chronological reca
     source: source(),
     receipts,
     format: { id: "horror-news", label: "HORROR NEWS SHOW", basis: "source-title-metadata" },
+    context: {
+      registeredOverview:
+        "The original show read follows Halloween, Scream, and the Elm Street turn without losing the plot.",
+    },
   };
   const firstMap = window.ShokkerEpisodeRecap.build(input);
   const secondMap = window.ShokkerEpisodeRecap.build(input);
@@ -105,10 +109,55 @@ test("universal map and WWAM voice pack produce deterministic chronological reca
   assert.ok(first.story.every((segment) =>
     /source|tape|ledger|security footage|evidence/i.test(segment.body)
   ));
-  assert.match(first.overview, /6 source-linked receipts/i);
-  assert.match(first.overview, /6 of 6 registered receipts/i);
+  assert.match(first.overview, /opens at 1:30 with Halloween/i);
+  assert.ok(first.overview.startsWith(input.context.registeredOverview));
+  assert.equal(firstMap.registeredOverview, input.context.registeredOverview);
+  assert.match(first.overview, /turns toward Scream around 31:40/i);
+  assert.match(first.overview, /top replay pick lands at 1:00:50 under Up In Ya/i);
+  assert.match(first.overview, /All 6 chapters are clickable/i);
   assert.ok(first.sections.some((section) => /bounded source excerpt/i.test(section.body)));
-  assert.match(first.limitations.join(" "), /automatic captions do not establish the speaker/i);
+  assert.match(first.limitations.join(" "), /transcript timing does not establish the speaker/i);
+});
+
+test("commentary headlines identify the actual film instead of reusing a franchise template", () => {
+  const window = load();
+  const makeRecap = (id, title) => {
+    const receipts = [
+      {
+        ...receipt("topic:myers", 90, "topic", "Michael Myers", 80),
+        sourceId: id,
+      },
+      {
+        ...receipt("topic:halloween", 840, "topic", "Halloween", 75),
+        sourceId: id,
+      },
+      {
+        ...receipt("moment:mask", 2_100, "moment", "THE MASK AND THE LOOK", 92),
+        sourceId: id,
+      },
+    ];
+    const map = window.ShokkerEpisodeRecap.build({
+      source: source({
+        id,
+        title,
+        displayTitle: title,
+      }),
+      receipts,
+      format: {
+        id: "movie-commentary",
+        label: "MOVIE COMMENTARY",
+        basis: "registered-source-type",
+      },
+    });
+    return window.WWAMEpisodeRecapAdapter.build({ map });
+  };
+
+  const h20 = makeRecap("filmwiki01A", "Halloween H20");
+  const resurrection = makeRecap("filmwiki01B", "Halloween: Resurrection");
+
+  assert.match(h20.headline, /HALLOWEEN H20/);
+  assert.match(resurrection.headline, /HALLOWEEN: RESURRECTION/);
+  assert.notEqual(h20.headline, resurrection.headline);
 });
 
 test("channel title topics outrank incidental signal without changing receipt evidence", () => {
@@ -137,6 +186,207 @@ test("channel title topics outrank incidental signal without changing receipt ev
   assert.match(recap.headline, /A NIGHTMARE ON ELM STREET/);
   assert.doesNotMatch(recap.headline, /TOPIC:/);
   assert.equal(recap.caseFile.topicCount, 3);
+});
+
+test("reviewed guide structure deepens the full chronicle without leaking review-machine prose", () => {
+  const window = load();
+  const receipts = [
+    receipt("topic:halloween", 60, "topic", "Halloween", 80),
+    {
+      ...receipt("moment:opening", 70, "moment", "Opening reaction", 75),
+      excerpt: "The opening reaction changes the temperature.",
+    },
+    receipt("topic:casting", 600, "topic", "Casting", 70),
+    receipt("topic:horror", 1200, "topic", "Horror", 60),
+    {
+      ...receipt("moment:middle", 1210, "moment", "THE ROOM BREAKS", 99),
+      excerpt: "The middle turn sends the conversation sideways.",
+    },
+    receipt("topic:scream", 3000, "topic", "Scream", 90),
+  ];
+  const episodeGuide = {
+    schema: "wwam-episode-guide/v2",
+    overview: "A machine draft files bounded source-local evidence at a review desk.",
+    evidenceSummary: "Six registered receipts cross the evidence boundary.",
+    recap: {
+      status: "machine-draft-review-required",
+      headline: "A machine headline",
+      dek: "A bounded route through registered receipts.",
+      paragraphs: [
+        {
+          at: 60,
+          end: 84,
+          cutId: "cut-opening",
+          topic: "Halloween",
+          excerpt: "Halloween gets the night moving.",
+          body: "The review desk files a bounded opening receipt.",
+        },
+        {
+          at: 600,
+          end: 624,
+          cutId: "cut-casting",
+          topic: "Casting",
+          excerpt: "Casting becomes the next subject.",
+          body: "The machine route registers a casting file.",
+        },
+        {
+          at: 1200,
+          end: 1224,
+          cutId: "cut-horror",
+          topic: "Horror",
+          excerpt: "Horror changes the temperature.",
+          body: "The evidence boundary opens another desk file.",
+        },
+        {
+          at: 3000,
+          end: 3024,
+          cutId: "cut-scream",
+          topic: "Scream",
+          excerpt: "Scream gets the closing turn.",
+          body: "The final indexed receipt closes the machine route.",
+        },
+      ],
+    },
+    chapters: [
+      {
+        id: "chapter-opening",
+        at: 60,
+        end: 84,
+        topic: "Halloween",
+        label: "Halloween // OPENING READ",
+        category: "OPENING READ",
+        excerpt: "Halloween gets the night moving.",
+        body: "The review desk files a bounded opening receipt.",
+        cutId: "cut-opening",
+      },
+      {
+        id: "chapter-horror",
+        at: 1200,
+        end: 1224,
+        topic: "Horror",
+        label: "Horror // MIDPOINT TURN",
+        category: "THE ROOM BREAKS",
+        excerpt: "Horror changes the temperature.",
+        body: "The evidence boundary opens another desk file.",
+        cutId: "cut-horror",
+      },
+      {
+        id: "chapter-scream",
+        at: 3000,
+        end: 3024,
+        topic: "Scream",
+        label: "Scream // CLOSING READ",
+        category: "CLOSING READ",
+        excerpt: "Scream gets the closing turn.",
+        body: "The final indexed receipt closes the machine route.",
+        cutId: "cut-scream",
+      },
+    ],
+    takeArc: [
+      {
+        phase: "OPENING READ",
+        label: "Halloween // OPENING READ",
+        at: 60,
+        end: 84,
+        cutId: "cut-opening",
+        excerpt: "Halloween gets the night moving.",
+      },
+      {
+        phase: "MIDPOINT TURN",
+        label: "Horror // THE ROOM BREAKS",
+        at: 1200,
+        end: 1224,
+        cutId: "cut-horror",
+        excerpt: "Horror changes the temperature.",
+      },
+      {
+        phase: "CLOSING READ",
+        label: "Scream // CLOSING READ",
+        at: 3000,
+        end: 3024,
+        cutId: "cut-scream",
+        excerpt: "Scream gets the closing turn.",
+      },
+    ],
+    threads: [
+      { name: "Halloween", mentions: 9, score: 90 },
+      { name: "Horror", mentions: 7, score: 70 },
+      { name: "Scream", mentions: 6, score: 60 },
+    ],
+  };
+  const map = window.ShokkerEpisodeRecap.build({
+    source: source({
+      title: "Halloween Horror and Scream Live",
+      displayTitle: "Halloween Horror and Scream Live",
+      duration: 3_300,
+    }),
+    receipts,
+    episodeGuide,
+    context: {
+      titleTopics: ["Halloween", "Horror", "Scream"],
+      lanes: [],
+    },
+    format: { id: "horror-news", label: "HORROR NEWS SHOW", basis: "title" },
+  });
+  const recap = window.WWAMEpisodeRecapAdapter.build({ map });
+  const entertainmentCopy = [
+    recap.headline,
+    recap.deck,
+    recap.overview,
+    ...recap.sections.flatMap((section) => [section.label, section.body]),
+    ...recap.story.flatMap((segment) => [segment.label, segment.body]),
+  ].join(" ");
+
+  assert.equal(recap.generatorVersion, window.WWAMEpisodeRecapAdapter.VERSION);
+  assert.match(
+    recap.overview,
+    /deeper recap starts with Halloween at 1:00, checks in on Casting at 10:00 and Horror at 20:00, and closes with Scream at 50:00/i,
+  );
+  assert.match(
+    recap.overview,
+    /three-beat watch path runs from Halloween at 1:00, through Horror at 20:00, to Scream at 50:00/i,
+  );
+  assert.match(recap.sections[0].body, /episode arc opens at 1:00 with Halloween/i);
+  assert.match(recap.sections.at(-1).body, /closing read lands at 50:00 on Scream/i);
+  assert.doesNotMatch(
+    entertainmentCopy,
+    /\b(?:desk|file|receipt|registered|bounded|source-local|machine surfaced|evidence boundary|route|indexed)\b/i,
+  );
+});
+
+test("the overview favors a title-relevant replay over a hotter but unrelated caption fragment", () => {
+  const window = load();
+  const receipts = [
+    receipt("topic:halloween", 100, "topic", "Halloween", 80),
+    {
+      ...receipt("moment:unrelated", 400, "moment", "FULL SEND", 100),
+      excerpt: "The calendar discussion takes a loud but unrelated turn.",
+    },
+    {
+      ...receipt("moment:myers", 1200, "moment", "FILM READ", 70),
+      excerpt: "Michael Myers changes the entire Halloween ending.",
+    },
+    receipt("topic:myers", 1210, "topic", "Michael Myers", 60),
+  ];
+  const map = window.ShokkerEpisodeRecap.build({
+    source: source({
+      title: "Halloween Kills Michael Myers Discussion",
+      displayTitle: "Halloween Kills Michael Myers Discussion",
+      duration: 1_800,
+    }),
+    receipts,
+    context: {
+      titleTopics: ["Halloween", "Michael Myers"],
+      lanes: [],
+    },
+    format: { id: "horror-news", label: "HORROR NEWS SHOW", basis: "title" },
+  });
+  const recap = window.WWAMEpisodeRecapAdapter.build({ map });
+
+  assert.equal(map.bestMoments[0].receiptKey, "moment:unrelated");
+  assert.match(recap.overview, /top replay pick lands at 20:00 under Film Read/i);
+  assert.match(recap.overview, /Michael Myers changes the entire Halloween ending/i);
+  assert.doesNotMatch(recap.overview, /calendar discussion/i);
 });
 
 test("playable acts reserve distinct subject doors instead of becoming a heat-only playlist", () => {
@@ -233,5 +483,69 @@ test("metadata-only sources get a visible held module with zero semantic claims"
   assert.equal(recap.bestMoments.length, 0);
   assert.equal(recap.approval.actualApproval, false);
   assert.doesNotMatch(recap.label, /feldman approved/i);
-  assert.match(recap.overview, /describes no scenes, jokes, reactions, speakers, topics, or verdicts/i);
+  assert.match(recap.overview, /will not invent scenes, jokes, reactions, speakers, topics, or verdicts/i);
+});
+
+test("age-gated exact cuts disclose a playable official alternate without crossing timelines", () => {
+  const window = load();
+  const heldSource = source({
+    title: "Rob Zombie's Halloween II Commentary",
+    displayTitle: "Rob Zombie's Halloween II",
+    coverage: "metadata-only",
+    wordsAudited: 0,
+    exactSourceHold: {
+      state: "held-age-gated",
+      reason: "The exact YouTube cut requires age-authenticated media access.",
+    },
+    officialAlternate: {
+      kind: "official-podcast-edition",
+      title: "Rob Zombies H2 Commentary",
+      episodeUrl: "https://podcasters.spotify.com/pod/show/example/episodes/h2",
+      enclosureUrl: "https://traffic.megaphone.fm/H2.mp3",
+      duration: 7_352.61,
+      canonicalDuration: 7_247,
+      durationDelta: 105.61,
+      timestampIsomorphic: false,
+      publicPlaybackAllowed: true,
+      evidenceBoundary:
+        "Official WWAM podcast edition; not substituted for YouTube timestamps.",
+    },
+  });
+  const map = window.ShokkerEpisodeRecap.build({
+    source: heldSource,
+    receipts: [],
+    format: {
+      id: "movie-commentary",
+      label: "MOVIE COMMENTARY",
+      basis: "registered-source-type",
+    },
+  });
+  const recap = window.WWAMEpisodeRecapAdapter.build({
+    map,
+    source: heldSource,
+  });
+  const changedAlternateMap = window.ShokkerEpisodeRecap.build({
+    source: {
+      ...heldSource,
+      officialAlternate: {
+        ...heldSource.officialAlternate,
+        durationDelta: 106.61,
+      },
+    },
+    receipts: [],
+    format: {
+      id: "movie-commentary",
+      label: "MOVIE COMMENTARY",
+      basis: "registered-source-type",
+    },
+  });
+
+  assert.equal(recap.state, "held");
+  assert.notEqual(map.semanticFingerprint, changedAlternateMap.semanticFingerprint);
+  assert.match(recap.headline, /AGE GATE/);
+  assert.match(recap.overview, /official WWAM podcast edition/i);
+  assert.match(recap.overview, /separated alternate edit/i);
+  assert.doesNotMatch(recap.overview, /playable now|full show now/i);
+  assert.deepEqual(Array.from(recap.sections), []);
+  assert.deepEqual(Array.from(recap.bestMoments), []);
 });

@@ -8,6 +8,8 @@ const ROOT = path.resolve(path.dirname(SCRIPT_PATH), "..");
 const DEMO = path.join(ROOT, "public", "demo");
 const SCHEMA = "wwam-recap-voice-diversity-audit/v1";
 const DEFAULT_LIMIT_PERCENT = 10;
+const WITHOUT_ARCHIVE_COMPLETION =
+  process.argv.includes("--without-archive-completion");
 
 const RUNTIME_FILES = [
   "catalog.js",
@@ -31,6 +33,7 @@ const RUNTIME_FILES = [
   "year-canon-2025-2026.js",
   "archive-recovery-batch1.js",
   "archive-recovery-batch2.js",
+  "archive-completion.js",
   "episode-recap-engine.js",
   "wwam-episode-recap-adapter.js",
   "wwam-source-dossier-adapter.js",
@@ -86,11 +89,21 @@ function readRuntime() {
   const sandbox = { window: {} };
   sandbox.self = sandbox.window;
   vm.createContext(sandbox);
-  RUNTIME_FILES.forEach((file) => {
+  RUNTIME_FILES.filter((file) =>
+    file !== "archive-completion.js" ||
+    !WITHOUT_ARCHIVE_COMPLETION && fs.existsSync(path.join(DEMO, file))
+  ).forEach((file) => {
     vm.runInContext(fs.readFileSync(path.join(DEMO, file), "utf8"), sandbox, {
       filename: file,
     });
   });
+  if (!sandbox.window.WWAM_ARCHIVE_COMPLETION) {
+    sandbox.window.WWAM_ARCHIVE_COMPLETION = Object.freeze({
+      streams: Object.freeze([]),
+      topicIndex: Object.freeze([]),
+      characterIndex: Object.freeze([]),
+    });
+  }
   return sandbox.window;
 }
 
@@ -125,16 +138,19 @@ export function compileReadyRecaps() {
       runtime.WWAM_YEAR_CANON_2025_2026.streams,
       runtime.WWAM_ARCHIVE_RECOVERY_BATCH1.streams,
       runtime.WWAM_ARCHIVE_RECOVERY_BATCH2.streams,
+      runtime.WWAM_ARCHIVE_COMPLETION.streams,
     ),
     topicIndex: base.topicIndex.concat(
       runtime.WWAM_YEAR_CANON_2025_2026.topicIndex,
       runtime.WWAM_ARCHIVE_RECOVERY_BATCH1.topicIndex,
       runtime.WWAM_ARCHIVE_RECOVERY_BATCH2.topicIndex,
+      runtime.WWAM_ARCHIVE_COMPLETION.topicIndex,
     ),
     characterIndex: base.characterIndex.concat(
       runtime.WWAM_YEAR_CANON_2025_2026.characterIndex,
       runtime.WWAM_ARCHIVE_RECOVERY_BATCH1.characterIndex,
       runtime.WWAM_ARCHIVE_RECOVERY_BATCH2.characterIndex,
+      runtime.WWAM_ARCHIVE_COMPLETION.characterIndex,
     ),
   });
   const dossier = runtime.WWAMSourceDossierAdapter.build({

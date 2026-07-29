@@ -5,6 +5,9 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const demo = path.join(root, "public", "demo");
+const withoutArchiveCompletion = process.argv.includes(
+  "--without-archive-completion",
+);
 
 const runtimeFiles = [
   "catalog.js",
@@ -28,10 +31,14 @@ const runtimeFiles = [
   "year-canon-2025-2026.js",
   "archive-recovery-batch1.js",
   "archive-recovery-batch2.js",
+  "archive-completion.js",
   "episode-recap-engine.js",
   "wwam-episode-recap-adapter.js",
   "wwam-source-dossier-adapter.js",
-];
+].filter((file) => (
+  file !== "archive-completion.js" ||
+  !withoutArchiveCompletion && fs.existsSync(path.join(demo, file))
+));
 
 function compile() {
   const sandbox = { window: {} };
@@ -67,21 +74,29 @@ function compile() {
     runtime.WWAMArchiveDeepEngine,
   );
   const base = portfolio.getSearchPayload();
+  const completion = runtime.WWAM_ARCHIVE_COMPLETION || {
+    streams: [],
+    topicIndex: [],
+    characterIndex: [],
+  };
   const archiveSearch = Object.assign({}, base, {
     streams: base.streams.concat(
       runtime.WWAM_YEAR_CANON_2025_2026.streams,
       runtime.WWAM_ARCHIVE_RECOVERY_BATCH1.streams,
       runtime.WWAM_ARCHIVE_RECOVERY_BATCH2.streams,
+      completion.streams,
     ),
     topicIndex: base.topicIndex.concat(
       runtime.WWAM_YEAR_CANON_2025_2026.topicIndex,
       runtime.WWAM_ARCHIVE_RECOVERY_BATCH1.topicIndex,
       runtime.WWAM_ARCHIVE_RECOVERY_BATCH2.topicIndex,
+      completion.topicIndex,
     ),
     characterIndex: base.characterIndex.concat(
       runtime.WWAM_YEAR_CANON_2025_2026.characterIndex,
       runtime.WWAM_ARCHIVE_RECOVERY_BATCH1.characterIndex,
       runtime.WWAM_ARCHIVE_RECOVERY_BATCH2.characterIndex,
+      completion.characterIndex,
     ),
   });
   return runtime.WWAMSourceDossierAdapter.build({
@@ -355,6 +370,29 @@ const titleGoldenFailures = Object.entries(titleGoldens).flatMap(([sourceId, pat
     ? [{ sourceId, headline: file?.recap.headline || "MISSING" }]
     : [];
 });
+const duplicateHeadlineGroups = Array.from(
+  ready.reduce((groups, file) => {
+    if (!groups.has(file.recap.headline)) groups.set(file.recap.headline, []);
+    groups.get(file.recap.headline).push({
+      sourceId: file.id,
+      title: file.title,
+    });
+    return groups;
+  }, new Map()),
+)
+  .filter(([, members]) => members.length > 1)
+  .map(([headline, members]) => ({ headline, members }))
+  .sort((left, right) =>
+    right.members.length - left.members.length ||
+    left.headline.localeCompare(right.headline),
+  );
+const heldSemanticClaimFailures = held.filter((file) =>
+  file.recap.sections.length ||
+  file.recap.story.length ||
+  file.recap.bestMoments.length ||
+  file.recap.topics.length ||
+  Object.keys(file.recap.fanRead || {}).length,
+);
 
 const report = {
   generatedAt: new Date().toISOString(),
@@ -421,6 +459,7 @@ const report = {
   voice: {
     uniqueHeadlines: new Set(ready.map((file) => file.recap.headline)).size,
     uniqueDecks: new Set(ready.map((file) => file.recap.deck)).size,
+    duplicateHeadlineGroups,
     sectionLabelPrefixes: countBy(sections, (section) => prefix(section.label)),
     storyReelOpenings: countBy(storySegments, (segment) => prefix(segment.label)),
     repeatedOverviewColor: countBy(ready, (file) => {
@@ -432,7 +471,10 @@ const report = {
   },
   quality: {
     machineLabelLeaks: machineLeaks.map((file) => file.id),
-    pluralAgreementErrors: agreementErrors.map((file) => file.id),
+    pluralAgreementErrors: agreementErrors.map((file) => ({
+      sourceId: file.id,
+      headline: file.recap.headline,
+    })),
     duplicateActLabels: duplicateLabels.map((file) => file.id),
     excerptBearingActs: excerptSections.length,
     excerptActsUsingSourceNugget: excerptSections.length - excerptMisses.length,
@@ -448,6 +490,7 @@ const report = {
     missingSteve: missingSteve.map((file) => file.id),
     earlyClosingLabels,
     missingCaseFiles: missingCaseFiles.map((file) => file.id),
+    heldSemanticClaimFailures: heldSemanticClaimFailures.map((file) => file.id),
     titleGoldenFailures,
     storyCoverageFailures,
     storyAnchorFailures,
@@ -459,6 +502,48 @@ const report = {
     weakestExamples: comparison.slice(0, 15),
   },
 };
+report.gates = {
+  everyRegisteredReceiptInPlayableActs:
+    report.depth.actEvidence.usedReceipts ===
+    report.depth.actEvidence.registeredReceipts,
+  everyRegisteredReceiptInWrittenStory:
+    report.depth.story.receiptsAccountedFor ===
+    report.depth.story.registeredReceipts,
+  everyTopicReceiptCarriedThrough:
+    report.depth.actEvidence.usedByKind.topic ===
+    report.depth.actEvidence.registeredByKind.topic,
+  everyHeadlineUnique:
+    report.voice.uniqueHeadlines === report.corpus.ready,
+  everyDeckUnique:
+    report.voice.uniqueDecks === report.corpus.ready,
+  registeredOverviewRetained:
+    report.unusedRegisteredOverviewSignal.under25Percent === 0,
+  sourceNuggetsRetained:
+    report.quality.excerptActsUsingSourceNugget ===
+    report.quality.excerptBearingActs,
+  steveLanesRetained:
+    report.quality.steveLaneCarriedIntoRecap ===
+    report.quality.steveLaneSources,
+  noHeldSemanticClaims:
+    report.quality.heldSemanticClaimFailures.length === 0,
+  noMachineLabels:
+    report.quality.machineLabelLeaks.length === 0,
+  noGrammarFailures:
+    report.quality.pluralAgreementErrors.length === 0,
+  noDuplicateActLabels:
+    report.quality.duplicateActLabels.length === 0,
+  noEarlyClosingLabels:
+    report.quality.earlyClosingLabels.length === 0,
+  everyRecapHasCaseFile:
+    report.quality.missingCaseFiles.length === 0,
+  titleSubjectGoldensPass:
+    report.quality.titleGoldenFailures.length === 0,
+  writtenStoryCoveragePass:
+    report.quality.storyCoverageFailures.length === 0,
+  writtenStoryAnchorsPass:
+    report.quality.storyAnchorFailures.length === 0,
+};
+report.pass = Object.values(report.gates).every(Boolean);
 
 const sourceFlag = process.argv.indexOf("--source");
 if (sourceFlag >= 0) {
@@ -472,11 +557,31 @@ if (sourceFlag >= 0) {
     title: file.title,
     coverage: file.coverage,
     receipts: file.source.receipts,
+    officialAlternate: file.source.officialAlternate || null,
+    warnings: file.source.warnings || [],
     episodeGuide: file.source.showWiki.episodeGuide,
     recap: file.recap,
     registeredRecap: file.legacyRecap,
     lanes: file.source.showWiki.lanes,
   }, null, 2)}\n`);
+} else if (process.argv.includes("--inventory")) {
+  process.stdout.write(`${JSON.stringify(files.map((file) => ({
+    id: file.id,
+    title: file.title,
+    date: file.source.date,
+    duration: file.source.duration,
+    views: file.source.views,
+    url: file.source.url,
+    coverage: file.coverage,
+    state: file.recap.state,
+    tier: file.recap.tier,
+    receiptCount: file.recap.caseFile?.receiptCount || 0,
+    sectionCount: file.recap.sections.length,
+    storyCount: file.recap.story.length,
+    topicCount: file.recap.topics.length,
+    bestMomentCount: file.recap.bestMoments.length,
+    fanReadLanes: Object.keys(file.recap.fanRead || {}),
+  })), null, 2)}\n`);
 } else if (process.argv.includes("--json")) {
   process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
 } else {
@@ -504,6 +609,8 @@ if (sourceFlag >= 0) {
       `Title-subject golden failures: ${report.quality.titleGoldenFailures.length}`,
       `Written-story coverage failures: ${report.quality.storyCoverageFailures.length}`,
       `Written-story anchor failures: ${report.quality.storyAnchorFailures.length}`,
+      `Held-source semantic claim failures: ${report.quality.heldSemanticClaimFailures.length}`,
+      `RECAP QUALITY GATE: ${report.pass ? "PASS" : "FAIL"}`,
       "",
       "Most repeated section labels:",
       ...Object.entries(report.voice.sectionLabelPrefixes)
@@ -511,10 +618,20 @@ if (sourceFlag >= 0) {
         .slice(0, 12)
         .map(([label, count]) => `  ${String(count).padStart(3)}  ${label}`),
       "",
+      "Repeated episode headlines:",
+      ...(report.voice.duplicateHeadlineGroups.length
+        ? report.voice.duplicateHeadlineGroups.slice(0, 10).map((group) =>
+          `  ${String(group.members.length).padStart(3)}  ${group.headline}`,
+        )
+        : ["    0  NONE"]),
+      "",
       "Weakest registered-overview carry-through:",
       ...report.unusedRegisteredOverviewSignal.weakestExamples
         .slice(0, 10)
         .map((item) => `  ${String(item.overlap).padStart(3)}%  ${item.sourceId}  ${item.title}`),
     ].join("\n") + "\n",
   );
+}
+if (process.argv.includes("--check") && !report.pass) {
+  process.exitCode = 1;
 }

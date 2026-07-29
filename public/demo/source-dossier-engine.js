@@ -10,7 +10,7 @@
    * captions, promote evidence, clear rights, or publish anything.
    */
 
-  var VERSION = "1.9.0";
+  var VERSION = "1.11.0";
   var INPUT_SCHEMA = "shokker-source-dossier-input/v1";
   var DOSSIER_SCHEMA = "shokker-source-dossier/v1";
   var EXPORT_SCHEMA = "shokker-source-dossier-export/v1";
@@ -168,6 +168,24 @@
     return result;
   }
 
+  function boundedProse(value, maximum) {
+    var result = clean(value);
+    if (!maximum || result.length <= maximum) return result;
+    var room = Math.max(1, maximum - 1);
+    var clipped = result.slice(0, room);
+    var sentenceEnd = Math.max(
+      clipped.lastIndexOf("."),
+      clipped.lastIndexOf("!"),
+      clipped.lastIndexOf("?")
+    );
+    if (sentenceEnd >= Math.floor(maximum * 0.65)) {
+      return clipped.slice(0, sentenceEnd + 1).trim();
+    }
+    var wordEnd = clipped.lastIndexOf(" ");
+    if (wordEnd > 0) clipped = clipped.slice(0, wordEnd);
+    return clipped.trim() + "…";
+  }
+
   function requiredText(value, path, maximum) {
     var result = clean(value, maximum);
     if (!result) fail("REQUIRED_TEXT", path + " must be a non-empty string.", path);
@@ -273,6 +291,74 @@
       fail("SOURCE_URL_MISMATCH", path + " must be the exact official-source watch URL.", path);
     }
     return value;
+  }
+
+  function exactHttpsUrl(url, path) {
+    var value = requiredText(url, path, 900);
+    if (!/^https:\/\/[A-Za-z0-9.-]+(?:[/:?#]|$)/.test(value)) {
+      fail("INVALID_HTTPS_URL", path + " must be an absolute HTTPS URL.", path);
+    }
+    return value;
+  }
+
+  function normalizeOfficialAlternate(value, path) {
+    if (value == null) return null;
+    if (!isRecord(value)) {
+      fail("INVALID_OFFICIAL_ALTERNATE", path + " must be an object or null.", path);
+    }
+    if (value.timestampIsomorphic !== false) {
+      fail(
+        "ALTERNATE_SOURCE_BOUNDARY",
+        path + " must explicitly remain outside the canonical timestamp map.",
+        path + ".timestampIsomorphic"
+      );
+    }
+    if (value.publicPlaybackAllowed !== true) {
+      fail(
+        "ALTERNATE_SOURCE_PLAYBACK",
+        path + " must carry explicit official public playback authority.",
+        path + ".publicPlaybackAllowed"
+      );
+    }
+    return {
+      kind: requiredText(value.kind, path + ".kind", 100),
+      title: requiredText(value.title, path + ".title", 320),
+      episodeUrl: exactHttpsUrl(value.episodeUrl, path + ".episodeUrl"),
+      enclosureUrl: exactHttpsUrl(value.enclosureUrl, path + ".enclosureUrl"),
+      duration: finiteNumber(value.duration, path + ".duration", 1),
+      canonicalDuration: finiteNumber(
+        value.canonicalDuration,
+        path + ".canonicalDuration",
+        1
+      ),
+      durationDelta: finiteNumber(value.durationDelta, path + ".durationDelta"),
+      timestampIsomorphic: false,
+      publicPlaybackAllowed: true,
+      evidenceBoundary: requiredText(
+        value.evidenceBoundary,
+        path + ".evidenceBoundary",
+        420
+      )
+    };
+  }
+
+  function normalizeExactSourceHold(value, path) {
+    if (value == null) return null;
+    if (!isRecord(value)) {
+      fail("INVALID_EXACT_SOURCE_HOLD", path + " must be an object or null.", path);
+    }
+    var state = requiredText(value.state, path + ".state", 100);
+    if (state !== "held-age-gated") {
+      fail(
+        "UNKNOWN_EXACT_SOURCE_HOLD",
+        path + ".state is not a supported exact-source hold.",
+        path + ".state"
+      );
+    }
+    return {
+      state: state,
+      reason: requiredText(value.reason, path + ".reason", 600)
+    };
   }
 
   function normalizeSummary(value, path) {
@@ -531,16 +617,44 @@
       }
       chapterIds.add(id);
       var window = boundedWindow(chapter, chapterPath);
+      var chapterCut = cutMap.get(cutId);
+      var chapterExcerpt = boundedExcerpt(
+        chapter.excerpt,
+        chapterPath + ".excerpt"
+      );
+      var chapterCategory = requiredText(
+        chapter.category,
+        chapterPath + ".category",
+        100
+      );
+      var chapterTopic = requiredText(
+        chapter.topic,
+        chapterPath + ".topic",
+        180
+      );
+      if (
+        Math.abs(window.at - chapterCut.at) > 0.001 ||
+        Math.abs(window.end - chapterCut.end) > 0.001 ||
+        chapterExcerpt !== chapterCut.excerpt ||
+        chapterCategory !== chapterCut.category ||
+        chapterTopic !== chapterCut.topic
+      ) {
+        fail(
+          "EPISODE_GUIDE_CHAPTER_CUT_MISMATCH",
+          chapterPath + " must inherit its window and evidence fields from its local guide cut.",
+          chapterPath
+        );
+      }
       return {
         id: id,
         act: finiteNumber(chapter.act, chapterPath + ".act", 1),
         label: requiredText(chapter.label, chapterPath + ".label", 200),
-        at: window.at,
-        end: window.end,
+        at: chapterCut.at,
+        end: chapterCut.end,
         body: requiredText(chapter.body, chapterPath + ".body", 600),
-        excerpt: boundedExcerpt(chapter.excerpt, chapterPath + ".excerpt"),
-        category: requiredText(chapter.category, chapterPath + ".category", 100),
-        topic: requiredText(chapter.topic, chapterPath + ".topic", 180),
+        excerpt: chapterCut.excerpt,
+        category: chapterCut.category,
+        topic: chapterCut.topic,
         cutId: cutId,
         evidenceBasis: clean(chapter.evidenceBasis, 180)
       };
@@ -557,16 +671,36 @@
       if (takeCutId && !cutIds.has(takeCutId)) {
         fail("UNKNOWN_EPISODE_GUIDE_TAKE_CUT", takePath + ".cutId is not in this guide.", takePath + ".cutId");
       }
+      var takeExcerpt = boundedExcerpt(take.excerpt, takePath + ".excerpt");
+      var takeCategory = requiredText(
+        take.category,
+        takePath + ".category",
+        100
+      );
+      var takeCut = takeCutId ? cutMap.get(takeCutId) : null;
+      if (takeCut && (
+        Math.abs(window.at - takeCut.at) > 0.001 ||
+        Math.abs(window.end - takeCut.end) > 0.001 ||
+        takeExcerpt !== takeCut.excerpt ||
+        takeCategory !== takeCut.category
+      )) {
+        fail(
+          "EPISODE_GUIDE_TAKE_CUT_MISMATCH",
+          takePath + " must inherit its window and evidence fields from its local guide cut.",
+          takePath
+        );
+      }
       return {
         phase: requiredText(take.phase, takePath + ".phase", 80),
         label: requiredText(take.label, takePath + ".label", 200),
-        at: window.at,
-        end: window.end,
+        at: takeCut ? takeCut.at : window.at,
+        end: takeCut ? takeCut.end : window.end,
         body: requiredText(take.body, takePath + ".body", 600),
-        excerpt: boundedExcerpt(take.excerpt, takePath + ".excerpt"),
-        category: requiredText(take.category, takePath + ".category", 100),
+        excerpt: takeCut ? takeCut.excerpt : takeExcerpt,
+        category: takeCut ? takeCut.category : takeCategory,
         cutId: takeCutId,
-        evidenceBasis: clean(take.evidenceBasis, 180)
+        evidenceBasis: clean(take.evidenceBasis, 180),
+        promotionAllowed: take.promotionAllowed === false ? false : null
       };
     });
 
@@ -580,6 +714,25 @@
       var name = requiredText(thread.name, threadPath + ".name", 180);
       if (threadNames.has(name)) fail("DUPLICATE_EPISODE_GUIDE_THREAD", threadPath + " is duplicated.", threadPath);
       threadNames.add(name);
+      var threadCutId = clean(thread.cutId, 80);
+      if (threadCutId && !cutIds.has(threadCutId)) {
+        fail(
+          "UNKNOWN_EPISODE_GUIDE_THREAD_CUT",
+          threadPath + ".cutId is not in this guide.",
+          threadPath + ".cutId"
+        );
+      }
+      var threadReceipt = boundedExcerpt(
+        thread.receipt,
+        threadPath + ".receipt"
+      );
+      if (threadCutId && threadReceipt !== cutMap.get(threadCutId).excerpt) {
+        fail(
+          "EPISODE_GUIDE_THREAD_CUT_MISMATCH",
+          threadPath + ".receipt must come from its local guide cut.",
+          threadPath + ".receipt"
+        );
+      }
       return {
         name: name,
         kind: requiredText(thread.kind, threadPath + ".kind", 80),
@@ -587,7 +740,8 @@
         cluster: finiteNumber(thread.cluster, threadPath + ".cluster", 1),
         first: boundedTime(thread.first, threadPath + ".first"),
         peak: boundedTime(thread.peak, threadPath + ".peak"),
-        receipt: boundedExcerpt(thread.receipt, threadPath + ".receipt"),
+        receipt: threadReceipt,
+        cutId: threadCutId,
         score: finiteNumber(thread.score, threadPath + ".score", 0)
       };
     });
@@ -691,17 +845,341 @@
       };
     }
 
+    var declaredFormat = clean(raw.format, 80);
+    var runtimeFormat = null;
+    if (raw.runtimeFormat != null) {
+      var runtimeFormatPath = path + ".runtimeFormat";
+      if (!isRecord(raw.runtimeFormat)) {
+        fail(
+          "INVALID_EPISODE_GUIDE_RUNTIME_FORMAT",
+          runtimeFormatPath + " must be an object or null.",
+          runtimeFormatPath
+        );
+      }
+      var runtimeFormatId = requiredText(
+        raw.runtimeFormat.id,
+        runtimeFormatPath + ".id",
+        80
+      );
+      if (!KEBAB_ID.test(runtimeFormatId)) {
+        fail(
+          "INVALID_EPISODE_GUIDE_RUNTIME_FORMAT_ID",
+          runtimeFormatPath + ".id must be a kebab-case ID.",
+          runtimeFormatPath + ".id"
+        );
+      }
+      var declaredGuideFormat = clean(
+        raw.runtimeFormat.declaredGuideFormat,
+        80
+      );
+      if (declaredGuideFormat !== declaredFormat) {
+        fail(
+          "EPISODE_GUIDE_FORMAT_DRIFT",
+          runtimeFormatPath + ".declaredGuideFormat must preserve the guide's declared format.",
+          runtimeFormatPath + ".declaredGuideFormat"
+        );
+      }
+      runtimeFormat = {
+        id: runtimeFormatId,
+        label: requiredText(
+          raw.runtimeFormat.label,
+          runtimeFormatPath + ".label",
+          100
+        ),
+        basis: requiredText(
+          raw.runtimeFormat.basis,
+          runtimeFormatPath + ".basis",
+          180
+        ),
+        declaredGuideFormat: declaredGuideFormat
+      };
+    }
+
+    function canonicalGuideCut(rawItem, itemPath, options) {
+      var settings = options || {};
+      var cutId = requiredText(rawItem.cutId, itemPath + ".cutId", 80);
+      var canonicalCut = cutMap.get(cutId);
+      if (!canonicalCut) {
+        fail(
+          "UNKNOWN_EPISODE_GUIDE_EDITORIAL_CUT",
+          itemPath + ".cutId is not in this source's guide.",
+          itemPath + ".cutId"
+        );
+      }
+      var window = boundedWindow(rawItem, itemPath);
+      var excerpt = boundedExcerpt(rawItem.excerpt, itemPath + ".excerpt");
+      if (
+        Math.abs(window.at - canonicalCut.at) > 0.001 ||
+        Math.abs(window.end - canonicalCut.end) > 0.001 ||
+        excerpt !== canonicalCut.excerpt
+      ) {
+        fail(
+          "EPISODE_GUIDE_EDITORIAL_CUT_MISMATCH",
+          itemPath + " must inherit its timestamp and excerpt from its local guide cut.",
+          itemPath
+        );
+      }
+      if (settings.topic) {
+        var topic = requiredText(rawItem.topic, itemPath + ".topic", 180);
+        if (topic !== canonicalCut.topic) {
+          fail(
+            "EPISODE_GUIDE_EDITORIAL_TOPIC_MISMATCH",
+            itemPath + ".topic must match its local guide cut.",
+            itemPath + ".topic"
+          );
+        }
+      }
+      if (settings.category) {
+        var category = requiredText(
+          rawItem.category,
+          itemPath + ".category",
+          100
+        );
+        if (category !== canonicalCut.category) {
+          fail(
+            "EPISODE_GUIDE_EDITORIAL_CATEGORY_MISMATCH",
+            itemPath + ".category must match its local guide cut.",
+            itemPath + ".category"
+          );
+        }
+      }
+      return canonicalCut;
+    }
+
+    var reviewedRecap = null;
+    if (raw.recap != null) {
+      var reviewedRecapPath = path + ".recap";
+      if (!isRecord(raw.recap)) {
+        fail(
+          "INVALID_EPISODE_GUIDE_RECAP",
+          reviewedRecapPath + " must be an object or null.",
+          reviewedRecapPath
+        );
+      }
+      if (raw.recap.promotionAllowed !== false) {
+        fail(
+          "EPISODE_GUIDE_RECAP_PROMOTION_OVERREACH",
+          reviewedRecapPath + ".promotionAllowed must remain false.",
+          reviewedRecapPath + ".promotionAllowed"
+        );
+      }
+      if (!Array.isArray(raw.recap.paragraphs) ||
+          raw.recap.paragraphs.length < 1 ||
+          raw.recap.paragraphs.length > 8) {
+        fail(
+          "EPISODE_GUIDE_RECAP_PARAGRAPH_COUNT",
+          reviewedRecapPath + ".paragraphs must contain between one and eight source-bound paragraphs.",
+          reviewedRecapPath + ".paragraphs"
+        );
+      }
+      var recapParagraphs = raw.recap.paragraphs.map(function (paragraph, index) {
+        var paragraphPath = reviewedRecapPath + ".paragraphs[" + index + "]";
+        if (!isRecord(paragraph)) {
+          fail(
+            "INVALID_EPISODE_GUIDE_RECAP_PARAGRAPH",
+            paragraphPath + " must be an object.",
+            paragraphPath
+          );
+        }
+        var paragraphCut = canonicalGuideCut(
+          paragraph,
+          paragraphPath,
+          { topic: true }
+        );
+        return {
+          ordinal: index + 1,
+          at: paragraphCut.at,
+          end: paragraphCut.end,
+          cutId: paragraphCut.id,
+          topic: paragraphCut.topic,
+          excerpt: paragraphCut.excerpt,
+          body: requiredText(
+            paragraph.body,
+            paragraphPath + ".body",
+            1000
+          ),
+          evidenceBasis: requiredText(
+            paragraph.evidenceBasis,
+            paragraphPath + ".evidenceBasis",
+            240
+          )
+        };
+      });
+      for (var paragraphIndex = 1;
+        paragraphIndex < recapParagraphs.length;
+        paragraphIndex += 1) {
+        if (recapParagraphs[paragraphIndex].at <
+            recapParagraphs[paragraphIndex - 1].at) {
+          fail(
+            "EPISODE_GUIDE_RECAP_PARAGRAPH_ORDER",
+            reviewedRecapPath + ".paragraphs must remain chronological.",
+            reviewedRecapPath + ".paragraphs[" + paragraphIndex + "]"
+          );
+        }
+      }
+      var sourceCutIds = stringList(
+        raw.recap.sourceCutIds || [],
+        reviewedRecapPath + ".sourceCutIds",
+        { max: 80, minimum: 1 }
+      );
+      sourceCutIds.forEach(function (cutId, index) {
+        if (!cutMap.has(cutId)) {
+          fail(
+            "UNKNOWN_EPISODE_GUIDE_RECAP_SOURCE_CUT",
+            reviewedRecapPath + ".sourceCutIds[" + index + "] is not local to this guide.",
+            reviewedRecapPath + ".sourceCutIds[" + index + "]"
+          );
+        }
+      });
+      recapParagraphs.forEach(function (paragraph, index) {
+        if (sourceCutIds.indexOf(paragraph.cutId) < 0) {
+          fail(
+            "EPISODE_GUIDE_RECAP_PARAGRAPH_CUT_OMITTED",
+            reviewedRecapPath + ".paragraphs[" + index + "] is not represented in sourceCutIds.",
+            reviewedRecapPath + ".paragraphs[" + index + "].cutId"
+          );
+        }
+      });
+      reviewedRecap = {
+        status: requiredText(
+          raw.recap.status,
+          reviewedRecapPath + ".status",
+          100
+        ),
+        label: requiredText(
+          raw.recap.label,
+          reviewedRecapPath + ".label",
+          180
+        ),
+        headline: requiredText(
+          raw.recap.headline,
+          reviewedRecapPath + ".headline",
+          320
+        ),
+        dek: requiredText(
+          raw.recap.dek,
+          reviewedRecapPath + ".dek",
+          700
+        ),
+        paragraphs: recapParagraphs,
+        sourceCutIds: sourceCutIds,
+        promotionAllowed: false
+      };
+    }
+
+    var editorialLanes = null;
+    if (raw.lanes != null) {
+      var editorialLanesPath = path + ".lanes";
+      if (!isRecord(raw.lanes)) {
+        fail(
+          "INVALID_EPISODE_GUIDE_LANES",
+          editorialLanesPath + " must be an object or null.",
+          editorialLanesPath
+        );
+      }
+      var editorialLaneKeys = Object.keys(raw.lanes);
+      if (editorialLaneKeys.length > 12) {
+        fail(
+          "EPISODE_GUIDE_LANE_LIMIT",
+          editorialLanesPath + " cannot contain more than twelve lanes.",
+          editorialLanesPath
+        );
+      }
+      editorialLanes = {};
+      editorialLaneKeys.forEach(function (laneName) {
+        var lanePath = editorialLanesPath + "." + laneName;
+        var lane = raw.lanes[laneName];
+        if (!/^[A-Za-z][A-Za-z0-9]*$/.test(laneName)) {
+          fail(
+            "INVALID_EPISODE_GUIDE_LANE_NAME",
+            lanePath + " has an invalid lane name.",
+            lanePath
+          );
+        }
+        if (lane == null) {
+          editorialLanes[laneName] = null;
+          return;
+        }
+        if (!isRecord(lane)) {
+          fail(
+            "INVALID_EPISODE_GUIDE_LANE",
+            lanePath + " must be an object or null.",
+            lanePath
+          );
+        }
+        if (lane.promotionAllowed !== false) {
+          fail(
+            "EPISODE_GUIDE_LANE_PROMOTION_OVERREACH",
+            lanePath + ".promotionAllowed must remain false.",
+            lanePath + ".promotionAllowed"
+          );
+        }
+        var laneCut = canonicalGuideCut(
+          lane,
+          lanePath,
+          { topic: true, category: true }
+        );
+        editorialLanes[laneName] = {
+          key: requiredText(lane.key, lanePath + ".key", 80),
+          label: requiredText(lane.label, lanePath + ".label", 180),
+          status: requiredText(lane.status, lanePath + ".status", 100),
+          at: laneCut.at,
+          end: laneCut.end,
+          cutId: laneCut.id,
+          category: laneCut.category,
+          topic: laneCut.topic,
+          excerpt: laneCut.excerpt,
+          body: requiredText(lane.body, lanePath + ".body", 700),
+          evidenceBasis: requiredText(
+            lane.evidenceBasis,
+            lanePath + ".evidenceBasis",
+            240
+          ),
+          promotionAllowed: false
+        };
+      });
+    }
+
+    var reviewChecklist = stringList(
+      raw.reviewChecklist || [],
+      path + ".reviewChecklist",
+      { max: 360 }
+    );
+    if (reviewChecklist.length > 12) {
+      fail(
+        "EPISODE_GUIDE_REVIEW_CHECKLIST_LIMIT",
+        path + ".reviewChecklist cannot contain more than twelve checks.",
+        path + ".reviewChecklist"
+      );
+    }
+    if (raw.promotionAllowed === true) {
+      fail(
+        "EPISODE_GUIDE_PROMOTION_OVERREACH",
+        path + ".promotionAllowed cannot promote machine-surfaced guide evidence.",
+        path + ".promotionAllowed"
+      );
+    }
+
     return {
       schema: schema,
+      variant: clean(raw.variant, 80),
+      format: declaredFormat,
+      runtimeFormat: runtimeFormat,
+      sourceContentMode: clean(raw.sourceContentMode, 100),
+      publicationStatus: clean(raw.publicationStatus, 100),
+      promotionAllowed: raw.promotionAllowed === false ? false : null,
       basis: requiredText(raw.basis, path + ".basis", 360),
       overview: requiredText(raw.overview, path + ".overview", 1000),
       evidenceSummary: clean(raw.evidenceSummary, 1800),
       shape: shape,
       fanRead: fanRead,
+      recap: reviewedRecap,
+      lanes: editorialLanes,
       chapters: chapters,
       takeArc: takeArc,
       threads: threads,
       cuts: cuts,
+      reviewChecklist: reviewChecklist,
       metrics: {
         chapters: chapters.length,
         threads: threads.length,
@@ -1250,12 +1728,90 @@
       };
     }
 
+    function recapParagraphProjection(paragraph) {
+      return {
+        at: paragraph.at,
+        end: paragraph.end,
+        cutId: paragraph.cutId,
+        topic: paragraph.topic,
+        excerpt: paragraph.excerpt,
+        body: paragraph.body,
+        evidenceBasis: paragraph.evidenceBasis
+      };
+    }
+
+    function takeArcProjection(take) {
+      var projected = {
+        phase: take.phase,
+        label: take.label,
+        at: take.at,
+        end: take.end,
+        body: take.body,
+        excerpt: take.excerpt,
+        category: take.category,
+        cutId: take.cutId,
+        evidenceBasis: take.evidenceBasis
+      };
+      if (take.promotionAllowed === false) projected.promotionAllowed = false;
+      return projected;
+    }
+
+    function guideRecapProjection(guide) {
+      if (!guide) return null;
+      var recapProjection = {};
+      if (guide.recap) {
+        recapProjection = {
+          status: guide.recap.status,
+          label: guide.recap.label,
+          headline: guide.recap.headline,
+          dek: guide.recap.dek,
+          paragraphs: guide.recap.paragraphs.map(recapParagraphProjection),
+          sourceCutIds: guide.recap.sourceCutIds.slice(),
+          promotionAllowed: false
+        };
+      }
+      return {
+        overview: guide.overview,
+        evidenceSummary: guide.evidenceSummary,
+        recap: recapProjection,
+        lanes: guide.lanes || {},
+        takeArc: guide.takeArc.map(takeArcProjection),
+        reviewChecklist: guide.reviewChecklist.slice(),
+        variant: guide.variant,
+        format: guide.format
+      };
+    }
+
+    var guideRecap = guideRecapProjection(episodeGuide);
+    if (raw.guideRecap != null) {
+      var guideRecapPath = path + ".guideRecap";
+      if (!isRecord(raw.guideRecap) || !guideRecap) {
+        fail(
+          "INVALID_EPISODE_RECAP_GUIDE_BRIDGE",
+          guideRecapPath + " requires the owning normalized Episode Guide.",
+          guideRecapPath
+        );
+      }
+      if (stableJson(raw.guideRecap) !== stableJson(guideRecap)) {
+        fail(
+          "EPISODE_RECAP_GUIDE_BRIDGE_DRIFT",
+          guideRecapPath + " must be an exact projection of this source's Episode Guide.",
+          guideRecapPath
+        );
+      }
+    }
+
     return {
       schema: schema,
       generatorVersion: requiredText(raw.generatorVersion, path + ".generatorVersion", 40),
       coreSchema: requiredText(raw.coreSchema, path + ".coreSchema", 80),
       sourceId: source.id,
       sourceFingerprint: requiredText(raw.sourceFingerprint, path + ".sourceFingerprint", 80),
+      evidenceFingerprint: requiredText(
+        raw.evidenceFingerprint || raw.sourceFingerprint,
+        path + ".evidenceFingerprint",
+        80
+      ),
       semanticFingerprint: requiredText(raw.semanticFingerprint, path + ".semanticFingerprint", 80),
       state: state,
       tier: requiredText(raw.tier, path + ".tier", 80),
@@ -1269,6 +1825,7 @@
       story: story,
       bestMoments: bestMoments,
       fanRead: fanRead,
+      guideRecap: guideRecap,
       caseFile: caseFile,
       coverage: isRecord(raw.coverage) ? serial(raw.coverage) : {},
       format: isRecord(raw.format) ? serial(raw.format) : {},
@@ -1544,6 +2101,37 @@
         blocks: recapBlocks
       };
     }
+    if (episodeRecap && episodeRecap.state === "ready") {
+      var compatibilitySections = episodeRecap.sections.filter(function (section) {
+        return section.receiptKeys.length > 0;
+      }).slice(0, 3);
+      if (compatibilitySections.length) {
+        var recapFormat = isRecord(episodeRecap.format) ?
+          episodeRecap.format : {};
+        recap = {
+          format: clean(recapFormat.label, 100) ||
+            clean(recap && recap.format, 100) ||
+            "SOURCE-LINKED EPISODE",
+          formatBasis: clean(recapFormat.basis, 180) ||
+            clean(recap && recap.formatBasis, 180) ||
+            "episode-recap-compatibility-projection",
+          overview: boundedProse(episodeRecap.overview, 800),
+          queryAliases: recap && recap.queryAliases.length ?
+            recap.queryAliases.slice() :
+            ["summarize this show"],
+          blocks: compatibilitySections.map(function (section) {
+            return {
+              id: section.id,
+              label: clean(section.label, 180),
+              body: boundedProse(section.body, 600),
+              basis: clean(section.evidenceBasis, 180) ||
+                "episode-recap-compatibility-projection",
+              receiptKeys: section.receiptKeys.slice()
+            };
+          })
+        };
+      }
+    }
     if (source.coverage !== "caption-backed" && recap) {
       fail(
         "COVERAGE_SHOW_WIKI_RECAP_OVERREACH",
@@ -1627,6 +2215,14 @@
       lanes: stringList(raw.lanes || [], path + ".lanes", { max: 100, minimum: 1 }),
       sourceType: requiredText(raw.sourceType, path + ".sourceType", 80),
       wordsAudited: finiteNumber(raw.wordsAudited || 0, path + ".wordsAudited", 0),
+      exactSourceHold: normalizeExactSourceHold(
+        raw.exactSourceHold,
+        path + ".exactSourceHold"
+      ),
+      officialAlternate: normalizeOfficialAlternate(
+        raw.officialAlternate,
+        path + ".officialAlternate"
+      ),
       summary: normalizeSummary(raw.summary, path + ".summary"),
       rightsPolicy: isRecord(raw.rightsPolicy) ? serial(raw.rightsPolicy) : {},
       warnings: stringList(raw.warnings || [], path + ".warnings", { max: 420 }),
@@ -1657,6 +2253,14 @@
       receiptMap.set(receipt.key, receipt);
     });
     source.showWiki = normalizeShowWiki(raw.showWiki, source, receiptMap);
+    if (source.showWiki && source.showWiki.recap &&
+        source.showWiki.episodeRecap &&
+        source.showWiki.episodeRecap.state === "ready") {
+      source.summary = {
+        text: source.showWiki.recap.overview,
+        basis: "episode-recap-compatibility-projection"
+      };
+    }
     source.entities = (raw.entities || []).map(function (entity, entityIndex) {
       return normalizeEntity(entity, source, receiptMap, entityIndex);
     });
@@ -1702,6 +2306,8 @@
       coverage: source.coverage,
       authority: source.authority,
       lanes: source.lanes,
+      exactSourceHold: source.exactSourceHold,
+      officialAlternate: source.officialAlternate,
       receiptKeys: source.receipts.map(function (receipt) {
         return [receipt.key, receipt.at, receipt.end, receipt.evidenceType,
           receipt.signalScore, receipt.signalBasis];
@@ -2088,7 +2694,9 @@
           coverage: dossier.source.coverage,
           authority: dossier.source.authority,
           sourceFingerprint: dossier.source.sourceFingerprint,
-          officialUrl: dossier.source.url
+          officialUrl: dossier.source.url,
+          exactSourceHold: serial(dossier.source.exactSourceHold),
+          officialAlternate: serial(dossier.source.officialAlternate)
         },
         receipts: dossier.source.receipts.map(function (receipt) {
           return {

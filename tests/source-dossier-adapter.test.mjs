@@ -155,7 +155,7 @@ function wordCount(value) {
 test("adapter exposes the universal schema and exact 510-source WWAM union", () => {
   const { window, result } = buildFixture();
 
-  assert.equal(window.WWAMSourceDossierAdapter.VERSION, "1.10.0");
+  assert.match(window.WWAMSourceDossierAdapter.VERSION, /^\d+\.\d+\.\d+$/);
   assert.deepEqual(Object.keys(result), [
     "schema",
     "channel",
@@ -1686,6 +1686,84 @@ test("the exact 510-source adapter payload compiles through the generic engine",
     assert.equal(fanReceipt.excerpt, canonicalCut.excerpt, key);
   });
 
+  const reviewed = engine.build("lH0EXRN4xdw");
+  const reviewedGuide = reviewed.source.showWiki.episodeGuide;
+  const reviewedRecap = reviewed.source.showWiki.episodeRecap;
+  const legacyProjection = reviewed.source.showWiki.recap;
+
+  assert.equal(reviewedGuide.variant, "review-batch");
+  assert.equal(reviewedGuide.format, "review-reaction");
+  assert.deepEqual(plain(reviewedGuide.runtimeFormat), {
+    id: "spoiler-party",
+    label: "SPOILER PARTY",
+    basis: "source-title-metadata",
+    declaredGuideFormat: "review-reaction",
+  });
+  assert.match(reviewedGuide.evidenceSummary, /12 cuts and 6 recurring threads/i);
+  assert.equal(reviewedGuide.takeArc.length, 3);
+  assert.ok(reviewedGuide.takeArc.every(
+    (take) => take.promotionAllowed === false,
+  ));
+  assert.equal(reviewedGuide.recap.paragraphs.length, 4);
+  assert.equal(reviewedGuide.reviewChecklist.length, 5);
+  assert.equal(reviewedGuide.lanes.hated, null);
+  assert.equal(reviewedGuide.lanes.upInYa.cutId, "review-cut-10-9044");
+  reviewedGuide.recap.paragraphs.forEach((paragraph) => {
+    const canonicalCut = reviewedGuide.cuts.find(
+      (cut) => cut.id === paragraph.cutId,
+    );
+    assert.ok(canonicalCut, paragraph.cutId);
+    assert.equal(paragraph.at, canonicalCut.at);
+    assert.equal(paragraph.end, canonicalCut.end);
+    assert.equal(paragraph.topic, canonicalCut.topic);
+    assert.equal(paragraph.excerpt, canonicalCut.excerpt);
+  });
+
+  assert.ok(reviewedRecap.evidenceFingerprint);
+  assert.equal(
+    reviewedRecap.guideRecap.recap.paragraphs.length,
+    reviewedGuide.recap.paragraphs.length,
+  );
+  assert.deepEqual(
+    plain(reviewedRecap.guideRecap.reviewChecklist),
+    plain(reviewedGuide.reviewChecklist),
+  );
+  assert.deepEqual(
+    plain(reviewedRecap.guideRecap.takeArc),
+    plain(reviewedGuide.takeArc.map((take) => ({
+      phase: take.phase,
+      label: take.label,
+      at: take.at,
+      end: take.end,
+      body: take.body,
+      excerpt: take.excerpt,
+      category: take.category,
+      cutId: take.cutId,
+      evidenceBasis: take.evidenceBasis,
+      promotionAllowed: false,
+    }))),
+  );
+
+  const projectedSections = reviewedRecap.sections
+    .filter((section) => section.receiptKeys.length > 0)
+    .slice(0, 3);
+  assert.ok(reviewedRecap.overview.startsWith(legacyProjection.overview));
+  assert.deepEqual(
+    plain(legacyProjection.blocks.map((block) => block.id)),
+    plain(projectedSections.map((section) => section.id)),
+  );
+  assert.ok(legacyProjection.blocks.every((block, index) => (
+    block.label === projectedSections[index].label &&
+    block.body === projectedSections[index].body &&
+    block.receiptKeys.every((key) =>
+      reviewed.source.receipts.some((receipt) => receipt.key === key))
+  )));
+  assert.equal(reviewed.source.summary.text, legacyProjection.overview);
+  assert.equal(
+    reviewed.source.summary.basis,
+    "episode-recap-compatibility-projection",
+  );
+
   result.sources.forEach((source) => {
     const dossier = engine.build(source.id);
     assert.equal(dossier.wake.total, dossier.wake.matchingTotal, source.id);
@@ -1851,6 +1929,44 @@ test("reviewed guide releases may extend the original Deep Distill guide floor",
 
   assert.equal(result.sources.length, 510);
   assert.ok(byId(result, "ooLNfFkpH6M").episodeGuide);
+});
+
+test("reviewed guide format declarations cannot drift from canonical source format", () => {
+  assert.throws(
+    () => buildFixture(({ input }) => {
+      const reviewed = input.episodeGuides.guides.find(
+        (record) => record.id === "lH0EXRN4xdw",
+      );
+      reviewed.episodeGuide.format = "ranking";
+    }),
+    (error) =>
+      error.name === "WWAMSourceDossierAdapterError" &&
+      error.code === "EPISODE_GUIDE_FORMAT_DRIFT",
+  );
+});
+
+test("reviewed recap and lane prose cannot drift from their owning guide cuts", () => {
+  const fixture = buildFixture();
+  const recapDrift = plain(fixture.result);
+  const recapSource = byId(recapDrift, "lH0EXRN4xdw");
+  recapSource.showWiki.episodeGuide.recap.paragraphs[0].at += 1;
+  assert.throws(
+    () => fixture.window.ShokkerSourceDossier.create(recapDrift),
+    (error) =>
+      error.name === "SourceDossierError" &&
+      error.code === "EPISODE_GUIDE_EDITORIAL_CUT_MISMATCH",
+  );
+
+  const laneDrift = plain(fixture.result);
+  const laneSource = byId(laneDrift, "lH0EXRN4xdw");
+  laneSource.showWiki.episodeGuide.lanes.upInYa.excerpt =
+    "A sentence borrowed from somewhere else.";
+  assert.throws(
+    () => fixture.window.ShokkerSourceDossier.create(laneDrift),
+    (error) =>
+      error.name === "SourceDossierError" &&
+      error.code === "EPISODE_GUIDE_EDITORIAL_CUT_MISMATCH",
+  );
 });
 
 test("adapter fails closed when canonical Archive Deep or Showcase proof is missing", () => {

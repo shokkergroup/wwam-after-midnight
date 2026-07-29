@@ -2,7 +2,7 @@
   "use strict";
 
   var SCHEMA = "wwam-feldman-recap/v1";
-  var VERSION = "1.2.0";
+  var VERSION = "1.4.0";
 
   function clean(value) {
     return String(value == null ? "" : value).trim();
@@ -52,21 +52,22 @@
       minutes + " min";
   }
 
-  function list(values, fallback) {
-    var unique = [];
-    array(values).map(clean).filter(Boolean).forEach(function (value) {
-      if (unique.indexOf(value) < 0) unique.push(value);
+  function unique(values) {
+    var seen = {};
+    return array(values).map(clean).filter(Boolean).filter(function (value) {
+      var key = value.toLowerCase();
+      if (seen[key]) return false;
+      seen[key] = true;
+      return true;
     });
-    if (!unique.length) return fallback !== undefined ? clean(fallback) : "the registered tape";
-    if (unique.length === 1) return unique[0];
-    if (unique.length === 2) return unique[0] + " and " + unique[1];
-    return unique.slice(0, -1).join(", ") + ", and " + unique[unique.length - 1];
   }
 
-  function titleCase(value) {
-    return clean(value).toLowerCase().replace(/\b[a-z]/g, function (letter) {
-      return letter.toUpperCase();
-    });
+  function list(values, fallback) {
+    var items = unique(values);
+    if (!items.length) return fallback !== undefined ? clean(fallback) : "the show";
+    if (items.length === 1) return items[0];
+    if (items.length === 2) return items[0] + " and " + items[1];
+    return items.slice(0, -1).join(", ") + ", and " + items[items.length - 1];
   }
 
   function displayLabel(value) {
@@ -77,10 +78,23 @@
   }
 
   function displayLabels(values) {
-    return array(values).map(displayLabel).filter(Boolean);
+    return unique(array(values).map(displayLabel).filter(Boolean));
   }
 
-  function quote(value, limit) {
+  function naturalLabel(value) {
+    var text = displayLabel(value);
+    if (!text || text !== text.toUpperCase()) return text;
+    return text.toLowerCase().replace(/\b[a-z]/g, function (letter) {
+      return letter.toUpperCase();
+    })
+      .replace(/\bWwam\b/g, "WWAM")
+      .replace(/\bA24\b/gi, "A24")
+      .replace(/\bH20\b/gi, "H20")
+      .replace(/\bTv\b/g, "TV")
+      .replace(/\bVhs\b/g, "VHS");
+  }
+
+  function quotedExcerpt(value, limit) {
     var text = clean(value)
       .replace(/^[\s.…]+|[\s.…]+$/g, "")
       .replace(/\s+/g, " ");
@@ -94,649 +108,809 @@
     var ratio = number(duration) ? number(at) / number(duration) : 0;
     if (ratio < 0.15) return "opening stretch";
     if (ratio < 0.42) return "first half";
-    if (ratio < 0.62) return "midpoint";
+    if (ratio < 0.62) return "middle";
     if (ratio < 0.85) return "back half";
-    return "final stretch";
+    return "home stretch";
   }
 
-  function plural(count, one, many) {
-    return number(count) === 1 ? one : many;
+  function chronologicalSections(map) {
+    return array(map.sections).slice().sort(function (left, right) {
+      return number(left.at) - number(right.at) ||
+        clean(left.id).localeCompare(clean(right.id));
+    });
+  }
+
+  function sectionSubject(section) {
+    return naturalLabel(
+      displayLabel(section.subject) ||
+      displayLabels(section.topicLabels)[0] ||
+      displayLabels(section.characterLabels)[0] ||
+      displayLabel(section.anchor) ||
+      displayLabels(section.momentLabels)[0] ||
+      "the next turn"
+    );
+  }
+
+  function chronologicalSubjects(map) {
+    return unique(chronologicalSections(map).map(sectionSubject).filter(Boolean));
+  }
+
+  function recapTopics(map) {
+    var sectionTopics = chronologicalSections(map).reduce(function (output, section) {
+      return output.concat(displayLabels(section.topicLabels));
+    }, []);
+    return unique(displayLabels(map.topics).concat(sectionTopics)).map(naturalLabel);
+  }
+
+  function recapCharacters(map) {
+    return unique(chronologicalSections(map).reduce(function (output, section) {
+      return output.concat(displayLabels(section.characterLabels));
+    }, [])).map(naturalLabel);
+  }
+
+  function recapMoments(map) {
+    var strongest = array(map.bestMoments).map(function (moment) {
+      return naturalLabel(moment.label);
+    });
+    var sectionMoments = chronologicalSections(map).reduce(function (output, section) {
+      return output.concat(displayLabels(section.momentLabels));
+    }, []).map(naturalLabel);
+    return unique(strongest.concat(sectionMoments));
+  }
+
+  function words(value) {
+    return clean(value).toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .split(/\s+/)
+      .filter(function (word) {
+        return word.length >= 4 &&
+          ["live", "movie", "movies", "watched", "watch", "party", "review",
+            "ranking", "ranked", "commentary", "stream", "show", "night"].indexOf(word) < 0;
+      });
+  }
+
+  function topReplay(map) {
+    var candidates = array(map.bestMoments);
+    if (!candidates.length) return {};
+    var phrases = recapTopics(map).slice(0, 6)
+      .concat(recapCharacters(map).slice(0, 4))
+      .concat([clean(record(map.metadata).title)]);
+    var signalWords = unique(phrases.reduce(function (output, phrase) {
+      return output.concat(words(phrase));
+    }, []));
+    return candidates.map(function (moment, index) {
+      var text = (clean(moment.label) + " " + clean(moment.excerpt)).toLowerCase();
+      var phraseScore = phrases.reduce(function (score, phrase) {
+        var normalized = clean(phrase).toLowerCase();
+        return score + (normalized.length >= 5 && text.indexOf(normalized) >= 0 ? 30 : 0);
+      }, 0);
+      var wordScore = signalWords.reduce(function (score, word) {
+        return score + (new RegExp("\\b" + word + "\\b", "i").test(text) ? 8 : 0);
+      }, 0);
+      return {
+        moment: moment,
+        score: phraseScore + wordScore + Math.max(0, candidates.length - index),
+        index: index,
+      };
+    }).sort(function (left, right) {
+      return right.score - left.score || left.index - right.index;
+    })[0].moment;
+  }
+
+  function guidePoints(map) {
+    var guide = record(map.guideRecap);
+    var recap = record(guide.recap);
+    return array(guide.takeArc).concat(array(recap.paragraphs)).filter(function (point) {
+      return clean(point && (point.topic || point.label)) && number(point && point.at) >= 0;
+    }).map(function (point) {
+      return {
+        at: number(point.at),
+        end: number(point.end),
+        cutId: clean(point.cutId),
+        topic: naturalLabel(point.topic || clean(point.label).split("//")[0]),
+        phase: clean(point.phase),
+        excerpt: clean(point.excerpt),
+      };
+    });
+  }
+
+  function guidePointForSection(map, section) {
+    var points = guidePoints(map);
+    var exactCut = points.find(function (point) {
+      return clean(section.guideCutId) && point.cutId === clean(section.guideCutId);
+    });
+    if (exactCut) return exactCut;
+    var nearest = points.slice().sort(function (left, right) {
+      return Math.abs(left.at - number(section.at)) -
+        Math.abs(right.at - number(section.at));
+    })[0] || null;
+    return nearest && Math.abs(nearest.at - number(section.at)) <= 1 ? nearest : null;
+  }
+
+  function guideChronology(map) {
+    var guide = record(map.guideRecap);
+    var paragraphs = array(record(guide.recap).paragraphs).filter(function (point) {
+      return clean(point && point.topic);
+    });
+    if (!paragraphs.length) return "";
+    var points = paragraphs.slice(0, 4).map(function (point) {
+      return naturalLabel(point.topic) + " at " + clock(point.at);
+    });
+    if (points.length === 1) {
+      return "The deeper recap plants its flag on " + points[0] + ".";
+    }
+    if (points.length === 2) {
+      return "The deeper recap moves from " + points[0] + " to " + points[1] + ".";
+    }
+    return "The deeper recap starts with " + points[0] + ", checks in on " +
+      list(points.slice(1, -1), "") + ", and closes with " +
+      points[points.length - 1] + ".";
+  }
+
+  function guideTakeArc(map) {
+    var takes = array(record(map.guideRecap).takeArc).filter(function (take) {
+      return clean(take && take.label);
+    });
+    if (takes.length < 2) return "";
+    var points = takes.slice(0, 3).map(function (take) {
+      return naturalLabel(clean(take.label).split("//")[0]) + " at " + clock(take.at);
+    });
+    return "The three-beat watch path runs from " + points[0] +
+      (points.length > 2 ? ", through " + points[1] : "") +
+      ", to " + points[points.length - 1] + ".";
   }
 
   function headline(map) {
-    var topics = displayLabels(map.topics);
-    if (topics.length >= 2) {
-      return choice(map.sourceId + "|headline|two", [
-        topics[0] + " ON THE MARQUEE. " + topics[1] + " IN THE GETAWAY CAR.",
-        topics[0] + " IN THE TITLE CARD. " + topics[1] + " AFTER THE COPS LEAVE.",
-        topics[0] + " AFTER MIDNIGHT. " + topics[1] + " UNDER NO SUPERVISION.",
-        topics[0] + " // " + topics[1] + " // ONE NIGHT WITH NO SAFE DISTANCE.",
-        topics[0] + " IN THE FRONT WINDOW. " + topics[1] + " BEHIND THE COUNTER.",
-        topics[0] + " ON AISLE ONE. " + topics[1] + " IN THE POLICE REPORT.",
-        topics[0] + " AT CLOSING TIME. " + topics[1] + " WITH THE SECURITY FOOTAGE.",
-        topics[0] + " ABOVE THE FOLD. " + topics[1] + " BELOW THE FLOORBOARDS.",
+    var metadata = record(map.metadata);
+    var topics = recapTopics(map);
+    var moments = recapMoments(map);
+    var formatId = clean(record(map.format).id);
+    var first = topics[0] || naturalLabel(chronologicalSubjects(map)[0]);
+    var second = topics[1] || naturalLabel(chronologicalSubjects(map)[1]);
+    var third = topics[2] || "";
+    var wild = moments[0] || "";
+    var seed = map.sourceId + "|feldman-headline|" + topics.join("|") + "|" + wild;
+    var tapeTitle = naturalLabel(clean(metadata.title));
+    var displayTapeTitle = tapeTitle.length > 78
+      ? tapeTitle.slice(0, 75).replace(/\s+\S*$/, "") + "..."
+      : tapeTitle;
+    var supporting = unique(
+      [first, second, third, wild].map(naturalLabel).filter(function (label) {
+        return label &&
+          label.toLowerCase() !== tapeTitle.toLowerCase();
+      })
+    );
+
+    if ((formatId === "movie-commentary" || formatId === "watch-party") &&
+        tapeTitle) {
+      if (supporting.length >= 2) {
+        return choice(seed + "|named-tape", [
+          displayTapeTitle + " // " + supporting[0] + " // " + supporting[1] +
+            " // COMMENTARY PRIVILEGES REVOKED.",
+          "THE " + displayTapeTitle + " TAPE // THE MATCH: " +
+            supporting[0] + " // THE GASOLINE: " + supporting[1] + ".",
+          displayTapeTitle + ": " + supporting[0] + ", " + supporting[1] +
+            ", AND A PAUSE BUTTON WITH REGRETS.",
+          displayTapeTitle + " AFTER MIDNIGHT // " + supporting[0] +
+            " AT THE FRONT DOOR, " + supporting[1] + " IN THE BASEMENT.",
+          displayTapeTitle + " // " + supporting[0] + " // " + supporting[1] +
+            " // THE MOVIE KEEPS PLAYING ANYWAY.",
+          displayTapeTitle + ": " + supporting[0] + " MEETS " + supporting[1] +
+            " AND THE WATCHALONG LOSES ITS CURFEW.",
+        ]).toUpperCase();
+      }
+      if (supporting.length === 1) {
+        return choice(seed + "|named-tape-one", [
+          displayTapeTitle + ": " + supporting[0] + " AFTER MIDNIGHT.",
+          displayTapeTitle + " // " + supporting[0] + " // REWIND AT YOUR OWN RISK.",
+          "THE " + displayTapeTitle + " TAPE // LAST WORD: " +
+            supporting[0] + ".",
+        ]).toUpperCase();
+      }
+      return (displayTapeTitle + " // THE COMMENTARY TRACK WITH THE LIGHTS OFF")
+        .toUpperCase();
+    }
+
+    if (displayTapeTitle && supporting.length >= 2) {
+      if (formatId === "ranking-show" || formatId === "versus-show") {
+        return choice(seed + "|named-board", [
+          displayTapeTitle + ": " + supporting[0] + " AND " + supporting[1] +
+            " HOLD THE BOARD HOSTAGE.",
+          displayTapeTitle + " // " + supporting[0] + " VS. " + supporting[1] +
+            " // THE BRACKET NEEDS A LAWYER.",
+          displayTapeTitle + " // THE MATCH: " + supporting[0] +
+            " // THE GASOLINE: " + supporting[1] + ".",
+        ]).toUpperCase();
+      }
+      if (formatId === "trailer-reaction") {
+        return choice(seed + "|named-trailer", [
+          displayTapeTitle + ": " + supporting[0] + " AT THE FRONT DOOR, " +
+            supporting[1] + " IN THE BASEMENT.",
+          displayTapeTitle + " // " + supporting[0] + " // " + supporting[1] +
+            " // THE TRAILER HAS QUESTIONS.",
+          displayTapeTitle + ": " + supporting[0] + ", " + supporting[1] +
+            ", AND ONE VERY BUSY PAUSE BUTTON.",
+        ]).toUpperCase();
+      }
+      return choice(seed + "|named-show", [
+        displayTapeTitle + " // " + supporting[0] + " AT THE FRONT DOOR // " +
+          supporting[1] + " AFTER CURFEW.",
+        displayTapeTitle + ": " + supporting[0] + ", " + supporting[1] +
+          ", AND NO SENSIBLE EXIT.",
+        displayTapeTitle + " // THE NIGHT OPENS WITH " + supporting[0] +
+          " AND LEAVES WITH " + supporting[1] + ".",
+        displayTapeTitle + " // FIRST CALL: " + supporting[0] +
+          " // LAST WORD: " + supporting[1] + ".",
       ]).toUpperCase();
     }
-    if (topics.length === 1) {
-      return (topics[0] + ". ONE NIGHT. ZERO SAFE DISTANCE.").toUpperCase();
+    if (displayTapeTitle && supporting.length === 1) {
+      return choice(seed + "|named-show-one", [
+        displayTapeTitle + ": " + supporting[0] + " AFTER MIDNIGHT.",
+        displayTapeTitle + " // " + supporting[0] + " // THE NIGHT STAYS WEIRD.",
+        displayTapeTitle + " // LAST WORD: " + supporting[0] + ".",
+      ]).toUpperCase();
     }
-    return "THE NIGHT SHIFT LEFT A RECEIPT.";
+
+    if (first && second && third) {
+      return choice(seed, [
+        first + ", " + second + ", AND " + third + ": THIS SEEMED NORMAL ON PAPER.",
+        first + ". " + second + ". " + third + ". THE HINGES NEVER HAD A CHANCE.",
+        first + " // " + second + " // " + third + " // NOBODY CALLS A TIMEOUT.",
+        first + " ON THE MARQUEE. " + second + " AND " + third +
+          " ON THE 2 A.M. PHONE CALL.",
+        first + ", " + second + ", " + third + ": A PERFECTLY REASONABLE WAY TO LOSE A NIGHT.",
+        first + " // " + second + " // " + third +
+          " // THE ARGUMENT NOW NEEDS A SEQUEL.",
+      ]).toUpperCase();
+    }
+    if (first && second) {
+      return choice(seed, [
+        first + ". " + second + ". THE NIGHT GETS WEIRD.",
+        first + " VS. " + second + ": NO JUDGES, NO GUARDRAILS, NO REFUNDS.",
+        first + " ON THE MARQUEE. " + second + " WITH THE LAST WORD.",
+        first + " AT THE FRONT DOOR. " + second + " AFTER CURFEW.",
+        first + " AND " + second + ": TWO SUBJECTS ENTER, ADULT SUPERVISION LEAVES.",
+        first + " ON THE FIRST CALL. " + second + " FROM THE BASEMENT.",
+        first + " // " + second + " // THE NIGHT REFUSES TO PICK A LANE.",
+        first + " WITH THE MATCH. " + second + " WITH THE GASOLINE.",
+      ]).toUpperCase();
+    }
+    if (first && wild && first.toLowerCase() !== wild.toLowerCase()) {
+      return choice(seed, [
+        first + ": " + wild + " AFTER MIDNIGHT.",
+        first + ". " + wild + ". THEN THE LIGHTS GO OUT.",
+        first + " FOR ONE NIGHT. " + wild + " FOR THE POLICE REPORT.",
+        first + " // " + wild + " // SOMEBODY HIDE THE REFUND POLICY.",
+      ]).toUpperCase();
+    }
+    if (first) {
+      return choice(seed, [
+        first + ": ONE NIGHT, ZERO ADULT SUPERVISION.",
+        first + " AFTER MIDNIGHT: THE DOOR SHOULD HAVE STAYED LOCKED.",
+        first + " FOR THE WHOLE NIGHT: PRIVILEGES IMMEDIATELY REVOKED.",
+        first + ": REWIND AT YOUR OWN RISK.",
+      ]).toUpperCase();
+    }
+    var title = clean(metadata.title).replace(/\s+/g, " ").slice(0, 120);
+    return (title || "WWAM AFTER MIDNIGHT") + " // THE RECAP WITH THE LIGHTS OFF";
   }
 
   function deck(map) {
-    var topics = displayLabels(map.topics);
-    var lead = list(topics.slice(0, 3), "the night's movie talk");
-    var file = record(map.caseFile);
-    var acts = number(file.actCount) || array(map.sections).length;
-    var receipts = number(file.receiptCount) || number(record(map.coverage).receipts);
+    var topics = recapTopics(map);
+    var subjects = chronologicalSubjects(map);
+    var strongest = record(topReplay(map));
+    var formatId = clean(record(map.format).id);
+    var duration = runtime(record(map.metadata).duration);
+    var acts = number(record(map.caseFile).actCount) || array(map.sections).length;
+    var focus = list(topics.slice(0, 3), "the night's horror and movie talk");
+    var opening = naturalLabel(subjects[0] || topics[0]);
+    var closing = naturalLabel(subjects[subjects.length - 1] || topics[topics.length - 1]);
+    var finish = opening && closing && opening.toLowerCase() !== closing.toLowerCase() ?
+      " It moves from " + opening + " to " + closing + " without taking the sensible exit." :
+      "";
+    var replay = clean(strongest.label) ?
+      " The top replay pick waits at " + clock(strongest.at) + "." : "";
+
     if (clean(map.mode) === "topic-recap") {
-      return "This is a source-linked topic map: " + lead +
-        " build a " + acts + "-stop route through the subjects named on the tape.";
+      return "A " + duration + " subject-by-subject pass through " + focus + "." +
+        finish + " These " + acts +
+        " clickable chapters map what comes up; the original tape carries the reactions.";
     }
-    if (clean(record(map.format).id) === "movie-commentary") {
-      return lead + " anchor a " + acts +
-        "-act watchalong file tracking the defense, the prosecution, and the after-midnight derailments.";
+    if (formatId === "movie-commentary" || formatId === "watch-party") {
+      return "A " + duration + " watchalong built around " + focus +
+        ", complete with side doors, callbacks, and the turns worth rewinding." +
+        finish + replay;
     }
-    if (clean(record(map.format).id) === "ranking-show") {
-      return receipts + " registered receipts follow " + lead +
-        " through the bracket fights, robberies, and final indexed turn.";
+    if (formatId === "ranking-show" || formatId === "versus-show") {
+      return "A " + duration + " ranking brawl over " + focus +
+        ", where the bracket behaves right up until it absolutely does not." +
+        finish + replay;
     }
-    return receipts + " source-linked receipts build a " + acts +
-      "-act route through " + lead + ", with every stop wired back to playback.";
+    if (formatId === "trailer-reaction") {
+      return "A " + duration + " trailer-night breakdown covering " + focus +
+        ", then following every major turn that survives the first reaction." +
+        finish + replay;
+    }
+    return "A " + duration + " night built around " + focus + ", told in " + acts +
+      " clickable chapters instead of one giant wall of video." + finish + replay;
   }
 
-  function sectionLabel(section, index, total, sourceId, duration) {
-    var subject = displayLabel(section.subject) ||
-      displayLabels(section.topicLabels)[0] ||
-      displayLabels(section.characterLabels)[0] ||
-      displayLabel(section.anchor) || "SAVED CHECKPOINT";
+  function sectionLabel(section, index, total, sourceId, duration, formatId) {
+    var subject = sectionSubject(section).toUpperCase();
     var progress = number(duration) ? number(section.at) / number(duration) : 0;
-    if (index === 0) {
-      return (progress <= 0.15 ? "COLD OPEN" : "FIRST INDEXED STOP") + " // " + subject;
-    }
-    if (index === total - 1) {
-      return (progress >= 0.85 ? "LAST WORD" : "FINAL INDEXED STOP") + " // " + subject;
-    }
     var beat = (displayLabel(section.beat) || displayLabel(section.anchor) ||
       clean(section.category)).toUpperCase();
-    var prefix = "PLAYABLE TURN";
-    if (/LOVE LETTER|DEFEND|PRAISE/.test(beat)) prefix = "THE DEFENSE RESTS";
-    else if (/FRANCHISE FELONY|STEVE|HATE|NEGATIVE/.test(beat)) {
-      prefix = "STEVE RECEIVES THE EVIDENCE";
-    } else if (/FILM READ|ANALYSIS|CRAFT/.test(beat)) {
-      prefix = "THE MOVIE GOES UNDER THE KNIFE";
-    } else if (/THEORY|PREDICTION/.test(beat)) prefix = "RED STRING ON THE WALL";
-    else if (/UP IN YA|OUT OF POCKET/.test(beat)) prefix = "WWAM UP IN YA";
-    else if (/ROOM BREAK|BREAKDOWN/.test(beat)) prefix = "THE ROOM LOSES IT";
-    else if (/TAKE GETS NUCLEAR/.test(beat)) prefix = "THE TAKE CATCHES FIRE";
-    else if (/FULL SEND/.test(beat)) prefix = "THE BRAKES LEAVE THE BUILDING";
-    else if (/KILL ROOM/.test(beat)) prefix = "THE KILL ROOM OPENS";
-    else if (clean(section.category) === "character") prefix = "CHARACTER BIT";
-    else if (clean(section.category) === "topic") prefix = "ON THE MARQUEE";
-    return prefix + " // " + subject;
-  }
-
-  function sectionBody(section, sourceId, duration, formatId) {
-    if (clean(section.sourceBody)) return clean(section.sourceBody);
-    var time = clock(section.at);
-    var anchor = titleCase(displayLabel(section.anchor)) || "Saved Checkpoint";
-    var subjects = displayLabels(section.topicLabels);
-    var charactersList = displayLabels(section.characterLabels);
-    var subject = titleCase(displayLabel(section.subject) || subjects[0] ||
-      charactersList[0] || anchor);
-    var topics = list(subjects.filter(function (value) {
-      return displayLabel(value).toLowerCase() !== displayLabel(subject).toLowerCase();
-    }), "");
-    var characters = list(charactersList, "");
-    var excerpt = quote(section.excerpt, 18);
-    var stretch = phase(section.at, duration);
-    var desk = storyDesk(formatId);
-    var seed = sourceId + "|act-body|" + clean(section.id) + "|" + time;
-    var detail = topics ? " Also in the same stretch: " + topics + "." : "";
-    if (characters) {
-      detail += " " + choice(seed + "|character-context", [
-        "Character callbacks in this window include " + characters +
-          "; the source audio—not this page—settles the performance.",
-        "The character track adds " + characters +
-          "; playback carries the voice and context.",
-        "The tape tags " + characters +
-          " as a character bit; no host attribution is added here.",
-        "Character names in this stretch: " + characters +
-          ". Press play for the actual delivery.",
-        "The callback list adds " + characters +
-          "; the clip keeps custody of who says it and how.",
-        "This stretch includes " + characters +
-          " as a character callback; the evidence button opens the real performance context.",
-        "The character lane crosses paths with " + characters +
-          " here; the linked source supplies the speaker and delivery.",
-        "This window adds " + characters +
-          " to the character lane; attribution stays with the tape.",
-        "Callbacks involving " + characters +
-          " land here; playback—not guesswork—identifies the voice.",
-        "The show drops character callbacks involving " + characters +
-          " in this stretch; the original clip carries the performance.",
-        "This chapter names " + characters +
-          " on the character track; the source keeps the casting answer.",
-        "A character cue points to " + characters +
-          " here; one click restores the full delivery.",
-        "The callback board catches " + characters +
-          "; the tape remains the authority on who performs it.",
-        "Character markers for " + characters +
-          " sit in this window; the evidence clip provides the voice.",
-        "The character route reaches " + characters +
-          " here; this page leaves speaker identity to playback.",
-        "The character thread reaches " + characters +
-          "; the source, not a label, supplies the performer context.",
-      ]);
+    var seed = sourceId + "|section-label|" + clean(section.id);
+    if (index === 0) {
+      return choice(seed + "|opening", progress <= 0.15 ? [
+        "COLD OPEN",
+        "THE TAPE WAKES UP",
+        "FIRST BLOOD",
+        "NIGHT SHIFT STARTS",
+        "THE DOOR OPENS",
+      ] : [
+        "FIRST BIG TURN",
+        "THE TAPE JOINS IN",
+        "THE FIRST HARD LEFT",
+        "THE NIGHT GETS MOVING",
+      ]) + " // " + subject;
+    }
+    if (index === total - 1) {
+      return choice(seed + "|closing", progress >= 0.85 ? [
+        "LAST CALL",
+        "LIGHTS OUT",
+        "THE FINAL WORD",
+        "ONE LAST BODY",
+        "THE TAPE CLOCKS OUT",
+      ] : [
+        "FINAL CHAPTER",
+        "CLOSING ARGUMENT",
+        "ONE MORE DOOR",
+        "THE ENDGAME ARRIVES",
+      ]) + " // " + subject;
+    }
+    if (/LOVE LETTER|DEFEND|PRAISE/.test(beat)) return "WORTH DEFENDING // " + subject;
+    if (/FRANCHISE FELONY|STEVE|HATE|NEGATIVE/.test(beat)) {
+      return "STRAIGHT TO STEVE'S ASSHOLE // " + subject;
+    }
+    if (/FILM READ|ANALYSIS|CRAFT/.test(beat)) return "UNDER THE KNIFE // " + subject;
+    if (/THEORY|PREDICTION/.test(beat)) return "RED STRING TIME // " + subject;
+    if (/UP IN YA|OUT OF POCKET|FULL SEND/.test(beat)) return "WWAM UP IN YA // " + subject;
+    if (/ROOM BREAK|BREAKDOWN/.test(beat)) return "THE ROOM BREAKS // " + subject;
+    if (/TAKE GETS NUCLEAR/.test(beat)) return "THE TAKE CATCHES FIRE // " + subject;
+    if (/KILL ROOM/.test(beat)) return "THE KILL ROOM OPENS // " + subject;
+    if (clean(section.category) === "character") {
+      return choice(seed + "|character", [
+        "CHARACTER BIT",
+        "SOMEBODY LET THE CHARACTER IN",
+        "THE BIT TAKES THE WHEEL",
+        "ANOTHER VOICE FROM THE BASEMENT",
+      ]) + " // " + subject;
     }
     if (clean(section.category) === "topic") {
-      var topicLead = choice(seed + "|topic", [
-        "At " + time + ", the " + stretch + " puts " + subject + " on the marquee.",
-        "At " + time + ", " + subject + " takes over the " + desk + ".",
-        "The subject door marked " + subject + " opens at " + time + ".",
-        "The conversation turns to " + subject + " at " + time + ".",
-        subject + " moves to the front of the room at " + time + ".",
-        "Playback reaches " + subject + " during the " + stretch + ".",
-        "The " + desk + " calls roll on " + subject + " at " + time + ".",
-        "The spotlight moves to " + subject + " at " + time + ".",
-        "The next lane opens with " + subject + " at " + time + ".",
-        "The room settles onto " + subject + " during the " + stretch + ".",
-        "The source brings " + subject + " forward at " + time + ".",
-        "The clock lands on " + subject + " at " + time + ".",
-        "This chapter pivots toward " + subject + " at " + time + ".",
-        subject + " takes the floor at " + time + ".",
-        "The tape arrives at " + subject + " in the " + stretch + ".",
-        "The conversation finds " + subject + " at " + time + ".",
-      ]);
-      var topicEvidence = excerpt ? " " + choice(seed + "|topic-evidence", [
-        "The exact caption catches " + excerpt + ".",
-        "The playable source window opens on " + excerpt + ".",
-        "The saved caption receipt reads " + excerpt + ".",
-        "One click lands on " + excerpt + ".",
-        "The tape preserves " + excerpt + " at that stop.",
-        "Its source-linked caption nugget is " + excerpt + ".",
-      ]) : " The timestamp establishes the subject; playback carries the take.";
-      return topicLead + topicEvidence + detail;
+      var formatTopics = {
+        "movie-commentary": [
+          "SCENE ON TRIAL",
+          "THE COMMENTARY CHANGES LANES",
+          "ANOTHER BODY ON THE BOARD",
+          "THE MOVIE OPENS ANOTHER DOOR",
+        ],
+        "watch-party": [
+          "THE WATCH PARTY TURNS",
+          "THE SCREEN OPENS ANOTHER DOOR",
+          "ANOTHER BODY ON THE BOARD",
+          "THE COUCH TAKES A HARD LEFT",
+        ],
+        "ranking-show": [
+          "NEXT INTO THE BRACKET",
+          "THE BOARD GETS BLOODIER",
+          "ANOTHER ENTRY FACES JUDGMENT",
+          "THE LIST OPENS ANOTHER GRAVE",
+        ],
+        "versus-show": [
+          "NEXT INTO THE FIGHT",
+          "THE MATCHUP GETS MEANER",
+          "ANOTHER NAME ENTERS THE RING",
+          "THE BOARD DEMANDS A VERDICT",
+        ],
+        "trailer-reaction": [
+          "THE TRAILER OPENS ANOTHER FILE",
+          "FRAME BY FRAME, THINGS GET WEIRDER",
+          "ANOTHER CLUE HITS THE BOARD",
+          "THE BREAKDOWN CHANGES LANES",
+        ],
+        "q-and-a": [
+          "ANOTHER QUESTION ESCAPES",
+          "THE MAILBAG OPENS A TRAPDOOR",
+          "CHAT SENDS IN ANOTHER SUSPECT",
+          "THE ANSWER TAKES A HARD LEFT",
+        ],
+        "horror-news": [
+          "NEW HEADLINE, SAME BASEMENT",
+          "THE NIGHT OPENS ANOTHER FILE",
+          "ANOTHER STORY HITS THE BOARD",
+          "THE NEWS TAKES A HARD LEFT",
+        ],
+      };
+      return choice(seed + "|topic|" + clean(formatId), (
+        formatTopics[clean(formatId)] || [
+          "THE NIGHT OPENS ANOTHER DOOR",
+          "NEW SUSPECT, SAME BASEMENT",
+          "THE TAPE CHANGES LANES",
+          "ANOTHER FILE HITS THE BOARD",
+          "THE CONVERSATION TAKES THE STAIRS",
+          "THE NEXT WEIRD DOOR",
+        ]
+      )) + " // " + subject;
     }
-    if (clean(section.category) === "character") {
-      var characterLead = choice(seed + "|character", [
-        "At " + time + ", " + subject + " enters the " + stretch + " character file.",
-        "The source tags a " + subject + " callback at " + time + ".",
-        "At " + time + ", the character board lights up for " + subject + ".",
-        "The " + desk + " meets " + subject + " at " + time + ".",
-        "Playback reaches the " + subject + " bit at " + time + ".",
-        subject + " joins the " + stretch + " at " + time + ".",
-        "The character lane opens for " + subject + " at " + time + ".",
-        "The show turns toward " + subject + " at " + time + ".",
-        "A " + subject + " callback lands at " + time + ".",
-        "The tape finds " + subject + " during the " + stretch + ".",
-        "At " + time + ", " + subject + " walks into the room.",
-        "The clock catches a " + subject + " turn at " + time + ".",
-      ]);
-      var characterEvidence = excerpt ? " " + choice(seed + "|character-evidence", [
-        "The caption window catches " + excerpt + ".",
-        "Its playable caption nugget is " + excerpt + ".",
-        "The exact source receipt preserves " + excerpt + ".",
-        "Playback opens on " + excerpt + ".",
-      ]) : "";
-      return characterLead + characterEvidence + detail;
-    }
-    var beat = (displayLabel(section.beat) || anchor).toUpperCase();
-    var lead = choice(seed + "|generic", [
-      "At " + time + ", the " + stretch + " spikes under " + anchor + ".",
-      "The incident log flashes " + anchor + " at " + time + ".",
-      "At " + time + ", the " + desk + " files " + anchor + ".",
-      "The source reaches " + anchor + " at " + time + ".",
-      "Playback turns toward " + anchor + " at " + time + ".",
-      "The " + stretch + " hits " + anchor + " at " + time + ".",
-      anchor + " takes over the room at " + time + ".",
-      "The tape swings into " + anchor + " during the " + stretch + ".",
-      "At " + time + ", the show opens the " + anchor + " door.",
-      "The clock catches " + anchor + " at " + time + ".",
-      "The " + desk + " lights up under " + anchor + " at " + time + ".",
-      "This chapter finds " + anchor + " at " + time + ".",
+    return choice(seed, [
+      "THE HARD LEFT // " + subject,
+      "THINGS GET LOUDER // " + subject,
+      "THE NEXT DOOR // " + subject,
+      "WORTH A REWIND // " + subject,
     ]);
-    var subjectMatchesAnchor = displayLabel(subject).toLowerCase() ===
-      displayLabel(anchor).toLowerCase();
-    if (/LOVE LETTER|DEFEND|PRAISE/.test(beat)) {
-      lead = choice(seed + "|defense", subjectMatchesAnchor ? [
-        "At " + time + ", the " + stretch + " files a defense exhibit.",
-        "The defense desk opens at " + time + ".",
-        "At " + time + ", the tape enters something worth defending.",
-        "The " + desk + " submits a positive receipt at " + time + ".",
-        "Playback reaches the defense file at " + time + ".",
-        "The source puts an exhibit in the good pile at " + time + ".",
-      ] : [
-        "At " + time + ", the " + stretch + " files a defense exhibit under " + subject + ".",
-        "The defense desk opens for " + subject + " at " + time + ".",
-        "At " + time + ", " + subject + " enters the tape's defense file.",
-        "The " + desk + " puts " + subject + " in the good pile at " + time + ".",
-        "Playback reaches the source's " + subject + " defense at " + time + ".",
-        "The positive receipt for " + subject + " lands at " + time + ".",
+  }
+
+  function sectionBody(section, sourceId, duration, formatId, map) {
+    var time = clock(section.at);
+    var stretch = phase(section.at, duration);
+    var guidePoint = guidePointForSection(map, section);
+    var subject = naturalLabel(guidePoint && guidePoint.topic) || sectionSubject(section);
+    var topics = displayLabels(section.topicLabels).map(naturalLabel);
+    var moments = displayLabels(section.momentLabels).map(naturalLabel);
+    var characters = displayLabels(section.characterLabels).map(naturalLabel);
+    var otherTopics = topics.filter(function (topic) {
+      return topic.toLowerCase() !== subject.toLowerCase();
+    });
+    var excerpt = quotedExcerpt(section.excerpt, 18);
+    var beat = (displayLabel(section.beat) || displayLabel(section.anchor) ||
+      clean(section.category)).toUpperCase();
+    var seed = sourceId + "|act|" + clean(section.id) + "|" + time + "|" + subject;
+    var lead;
+
+    if (guidePoint && /OPENING/i.test(guidePoint.phase)) {
+      lead = "The episode arc opens at " + time + " with " + subject + ".";
+    } else if (guidePoint && /MIDPOINT/i.test(guidePoint.phase)) {
+      lead = "The midpoint turn arrives at " + time + " with " + subject + ".";
+    } else if (guidePoint && /CLOSING/i.test(guidePoint.phase)) {
+      lead = "The closing read lands at " + time + " on " + subject + ".";
+    } else if (clean(section.category) === "topic") {
+      lead = choice(seed + "|topic", [
+        "At " + time + ", " + subject + " takes over the conversation.",
+        "The " + stretch + " turns toward " + subject + " at " + time + ".",
+        subject + " gets the floor at " + time + ", and the night follows it through the next turn.",
+        "Jump to " + time + " for the chapter where " + subject + " moves front and center.",
+        "By " + time + ", the conversation has found its way to " + subject + ".",
+        subject + " moves into the center of the show at " + time + ".",
+        "The next door opens onto " + subject + " at " + time + ".",
+        "The " + subject + " chapter begins at " + time + ".",
+        "At " + time + ", the night changes lanes for " + subject + ".",
+        "The show puts " + subject + " on the table at " + time + ".",
+      ]);
+    } else if (clean(section.category) === "character") {
+      lead = choice(seed + "|character", [
+        "At " + time + ", the " + subject + " character bit enters the show.",
+        "The " + stretch + " makes room for a " + subject + " callback at " + time + ".",
+        "Jump to " + time + " for the " + subject + " turn.",
+        subject + " walks into the conversation at " + time + ".",
       ]);
     } else if (/FRANCHISE FELONY|STEVE|HATE|NEGATIVE/.test(beat)) {
-      lead = choice(seed + "|steve", subjectMatchesAnchor ? [
-        "At " + time + ", the " + stretch + " heads toward Steve's paperwork.",
-        "Steve's complaint desk opens at " + time + ".",
-        "At " + time + ", the source sends a grievance downstairs.",
-        "The " + desk + " stamps a negative receipt at " + time + ".",
-        "Playback reaches Steve's incoming tray at " + time + ".",
-        "The tape files one for the bad pile at " + time + ".",
-      ] : [
-        "At " + time + ", the " + stretch + " sends " + subject + " toward Steve's paperwork.",
-        "Steve's complaint desk receives " + subject + " at " + time + ".",
-        "At " + time + ", " + subject + " enters the grievance file.",
-        "The " + desk + " stamps " + subject + " for Steve at " + time + ".",
-        "Playback delivers " + subject + " to the bad pile at " + time + ".",
-        "The negative receipt for " + subject + " lands at " + time + ".",
-      ]);
-    } else if (/THEORY|PREDICTION/.test(beat)) {
-      lead = choice(seed + "|theory", subjectMatchesAnchor ? [
-        "At " + time + ", the " + stretch + " adds red string to the case file.",
-        "The theory board gets another pin at " + time + ".",
-        "At " + time + ", the source opens the speculation drawer.",
-        "The " + desk + " reaches a red-string receipt at " + time + ".",
-        "Playback clocks a theory turn at " + time + ".",
-        "The tape adds one more question mark at " + time + ".",
-      ] : [
-        "At " + time + ", the " + stretch + " adds red string to " + subject + ".",
-        "The theory board pins " + subject + " at " + time + ".",
-        "At " + time + ", " + subject + " enters the speculation drawer.",
-        "The " + desk + " reaches a " + subject + " theory at " + time + ".",
-        "Playback clocks the " + subject + " red-string turn at " + time + ".",
-        "The tape adds a question mark beside " + subject + " at " + time + ".",
+      lead = choice(seed + "|steve", [
+        "At " + time + ", " + subject +
+          " takes the one-way trip Straight to Steve's Asshole.",
+        subject + " gets the Straight to Steve's Asshole treatment at " + time + ".",
+        "The trapdoor opens under " + subject + " at " + time +
+          ": Straight to Steve's Asshole.",
+        "By " + time + ", " + subject +
+          " has earned a ticket Straight to Steve's Asshole.",
+        "Straight to Steve's Asshole claims " + subject + " at " + time + ".",
+        "The prosecution rests at " + time + "; " + subject +
+          " goes Straight to Steve's Asshole.",
       ]);
     } else if (/UP IN YA|OUT OF POCKET|FULL SEND/.test(beat)) {
-      lead = choice(seed + "|up-in-ya", subjectMatchesAnchor ? [
-        "At " + time + ", adult supervision leaves the " + stretch + " under " + anchor + ".",
-        "The brakes leave the building at " + time + " under " + anchor + ".",
-        "At " + time + ", the incident report gets stamped " + anchor + ".",
-        "The " + desk + " loses its chaperone at " + time + ".",
-        "Playback reaches the no-supervision zone at " + time + ".",
-        "The tape takes the emergency exit at " + time + " under " + anchor + ".",
-        "At " + time + ", good judgment misses the bus.",
-        "The source enters after-midnight airspace at " + time + ".",
-      ] : [
-        "At " + time + ", " + subject + " loses adult supervision in the " +
-          stretch + " under " + anchor + ".",
-        "The brakes leave " + subject + " behind at " + time + ".",
-        "At " + time + ", the incident report files " + subject + " under " + anchor + ".",
-        "The " + desk + " loses its chaperone around " + subject + " at " + time + ".",
-        "Playback reaches the " + subject + " no-supervision zone at " + time + ".",
-        "The tape takes an emergency exit through " + subject + " at " + time + ".",
-        "At " + time + ", good judgment abandons " + subject + ".",
-        "The source sends " + subject + " into after-midnight airspace at " + time + ".",
+      lead = choice(seed + "|up-in-ya", [
+        "At " + time + ", " + subject +
+          " crosses into WWAM UP IN YA territory and adult supervision clocks out.",
+        subject + " sends the chapter into WWAM UP IN YA territory at " + time + ".",
+        "The " + time + " turn around " + subject + " earns the WWAM UP IN YA stamp.",
+        "By " + time + ", " + subject +
+          " has made adult supervision leave the building: WWAM UP IN YA.",
+        "WWAM UP IN YA takes the wheel at " + time + " when " + subject + " arrives.",
+        "The curfew breaks at " + time + " around " + subject + ": WWAM UP IN YA.",
+        "At " + time + ", " + subject +
+          " turns the chapter into a full WWAM UP IN YA incident.",
+        subject + " opens the WWAM UP IN YA trapdoor at " + time + ".",
+        "The show loses its indoor voice at " + time + " over " + subject +
+          ": WWAM UP IN YA.",
+        "Adult supervision files its resignation at " + time +
+          " when " + subject + " enters WWAM UP IN YA territory.",
+        "The " + subject + " turn at " + time +
+          " is where WWAM UP IN YA officially takes custody.",
+        "At " + time + ", " + subject +
+          " sends good judgment home and WWAM UP IN YA takes over.",
       ]);
     } else if (/ROOM BREAK|BREAKDOWN/.test(beat)) {
-      lead = choice(seed + "|room-break", subjectMatchesAnchor ? [
-        "At " + time + ", the " + stretch + " files a room-breaker.",
-        "The room loses structural integrity at " + time + ".",
-        "At " + time + ", the laughter alarm enters the record.",
-        "The " + desk + " tags a room-break at " + time + ".",
-        "Playback reaches the point where the room needs repairs at " + time + ".",
-        "The tape files a breakdown receipt at " + time + ".",
-      ] : [
-        "At " + time + ", the " + stretch + " files a room-breaker under " + subject + ".",
-        subject + " costs the room its structural integrity at " + time + ".",
-        "At " + time + ", the laughter alarm goes off around " + subject + ".",
-        "The " + desk + " tags a " + subject + " room-break at " + time + ".",
-        "Playback reaches the " + subject + " repair bill at " + time + ".",
-        "The tape files " + subject + " as a breakdown receipt at " + time + ".",
+      lead = choice(seed + "|room-break", [
+        "At " + time + ", " + subject + " becomes the turn that breaks the room.",
+        subject + " breaks the room open at " + time + ".",
+        "The room gives up at " + time + " when " + subject + " lands.",
+        "By " + time + ", " + subject + " has knocked the room off its hinges.",
+        "The " + subject + " turn at " + time + " is where the room comes apart.",
+        "At " + time + ", the room loses the fight with " + subject + ".",
+      ]);
+    } else if (/THEORY|PREDICTION/.test(beat)) {
+      lead = choice(seed + "|theory", [
+        "At " + time + ", " + subject + " puts another pin in the theory board.",
+        subject + " adds red string to the wall at " + time + ".",
+        "The theory board makes room for " + subject + " at " + time + ".",
+        "At " + time + ", the red string finds " + subject + ".",
+        "The " + subject + " theory enters the file at " + time + ".",
+        "By " + time + ", " + subject + " has another corner of the board occupied.",
       ]);
     } else if (/TAKE GETS NUCLEAR/.test(beat)) {
-      lead = choice(seed + "|nuclear", subjectMatchesAnchor ? [
-        "At " + time + ", the " + stretch + " catches fire under a Take Gets Nuclear marker.",
-        "The take alarm hits red at " + time + ".",
-        "At " + time + ", the tape opens the hot-take containment unit.",
-        "The " + desk + " registers a nuclear marker at " + time + ".",
-        "Playback reaches critical temperature at " + time + ".",
-        "The source files a scorched receipt at " + time + ".",
-      ] : [
-        "At " + time + ", the " + stretch + " catches fire under " + subject + ".",
-        "The " + subject + " take alarm hits red at " + time + ".",
-        "At " + time + ", the tape puts " + subject + " in hot-take containment.",
-        "The " + desk + " registers a nuclear " + subject + " marker at " + time + ".",
-        "Playback takes " + subject + " to critical temperature at " + time + ".",
-        "The source files a scorched " + subject + " receipt at " + time + ".",
+      lead = choice(seed + "|nuclear", [
+        "At " + time + ", the " + subject + " take reaches critical temperature.",
+        subject + " sends the temperature gauge sideways at " + time + ".",
+        "The take on " + subject + " goes nuclear at " + time + ".",
+        "At " + time + ", " + subject + " takes the argument past the warning line.",
+        "The " + subject + " discussion reaches reactor temperature at " + time + ".",
+        "By " + time + ", the room needs a containment plan for " + subject + ".",
+      ]);
+    } else if (/LOVE LETTER|DEFEND|PRAISE/.test(beat)) {
+      lead = choice(seed + "|defense", [
+        "At " + time + ", " + subject + " gets a turn in the good pile.",
+        subject + " earns a stay of execution at " + time + ".",
+        "The defense makes its case for " + subject + " at " + time + ".",
+        "At " + time + ", " + subject + " gets to leave with its dignity.",
+        "The " + subject + " file lands on the worth-defending pile at " + time + ".",
+        "By " + time + ", " + subject + " has survived the firing squad.",
+      ]);
+    } else {
+      lead = choice(seed + "|moment", [
+        "At " + time + ", " + subject + " becomes the " + stretch + "'s sharpest turn.",
+        "The show hits " + subject + " at " + time + " and changes temperature.",
+        "Jump to " + time + " for " + subject + ", the point where this chapter takes a hard left.",
+        subject + " lands at " + time + " and gives the " + stretch + " its replay button.",
       ]);
     }
-    var momentEvidence = excerpt ? " " + choice(seed + "|moment-evidence", [
-      "The preserved caption nugget is " + excerpt + ".",
-      "The exact-show receipt catches " + excerpt + ".",
-      "Playback opens on " + excerpt + ".",
-      "The source window preserves " + excerpt + ".",
-      "Its playable caption evidence reads " + excerpt + ".",
-      "The timestamp lands on " + excerpt + ".",
-      "The caption ledger keeps " + excerpt + ".",
-      "One click returns to " + excerpt + ".",
-    ]) : " Playback carries the delivery and surrounding context.";
-    return lead + momentEvidence + detail;
-  }
 
-  function storyDesk(formatId) {
-    var desks = {
-      "anniversary": "anniversary file",
-      "horror-news": "movie-news desk",
-      "interview": "guest chair",
-      "movie-commentary": "watchalong reel",
-      "q-and-a": "mailbag",
-      "ranking-show": "ranking scorecard",
-      "script-reading": "script ledger",
-      "spoiler-party": "spoiler desk",
-      "trailer-reaction": "trailer desk",
-      "versus-show": "fight card",
-      "watch-party": "watch-party clock",
-    };
-    return desks[clean(formatId)] || "after-hours switchboard";
-  }
-
-  function storyRoute(values) {
-    var items = array(values);
-    if (!items.length) return "";
-    if (items.length === 1) return "through " + items[0];
-    if (items.length === 2) return "from " + items[0] + " to " + items[1];
-    return "from " + items[0] + " through " +
-      list(items.slice(1, -1), "") + " to " + items[items.length - 1];
-  }
-
-  function storyLabel(segment, index, total, sourceId, formatId) {
-    var desk = storyDesk(formatId).toUpperCase();
-    if (index === 0) {
-      return choice(sourceId + "|story-open|" + formatId, [
-        "REEL ONE // THE " + desk + " CLOCKS IN",
-        "REEL ONE // THE " + desk + " FINDS THE ON SWITCH",
-        "REEL ONE // BEFORE THE EVIDENCE BAG STARTS TALKING",
-        "REEL ONE // THE FRONT DOOR IS STILL TECHNICALLY ATTACHED",
-        "REEL ONE // OPENING NIGHT NEEDS AN INCIDENT NUMBER",
-        "REEL ONE // THE SOURCE HITS PLAY AFTER CURFEW",
-        "REEL ONE // THE FIRST RECEIPT WALKS INTO THE ROOM",
-        "REEL ONE // SOMEBODY LEFT THE " + desk + " RUNNING",
-      ]);
+    var topicLine = otherTopics.length ?
+      " The same chapter also moves through " + list(otherTopics.slice(0, 3), "") + "." : "";
+    var momentLine = moments.length ?
+      " Other replay markers here include " + list(moments.filter(function (moment) {
+        return moment.toLowerCase() !== subject.toLowerCase();
+      }).slice(0, 3), "") + "." : "";
+    if (/include \.$/.test(momentLine) || /include \.$/.test(topicLine)) {
+      momentLine = "";
     }
+    var characterLine = characters.length ?
+      " Character callbacks in this stretch include " + list(characters.slice(0, 3), "") +
+        "; the clip keeps the actual voice and delivery in context." : "";
+    var pointExcerpt = !excerpt && guidePoint ?
+      quotedExcerpt(guidePoint.excerpt, 18) : "";
+    var excerptLine = (excerpt || pointExcerpt) ?
+      " The caption at " + time + " catches " + excerpt + "." :
+      " The timestamp opens the complete exchange.";
+    if (!excerpt && pointExcerpt) {
+      excerptLine = " The caption at " + time + " catches " + pointExcerpt + ".";
+    }
+    return lead + topicLine + momentLine + characterLine + excerptLine;
+  }
+
+  function storyLabel(segment, index, total, sourceId) {
+    var topics = displayLabels(segment.topicLabels).map(naturalLabel);
+    var moments = displayLabels(segment.momentLabels).map(naturalLabel);
+    var characters = displayLabels(segment.characterLabels).map(naturalLabel);
+    var subject = topics[0] || moments[0] || characters[0] ||
+      naturalLabel(segment.anchor) || "THE NIGHT MOVES";
+    if (index === 0) return "REEL ONE // " + subject.toUpperCase() + " SETS THINGS IN MOTION";
     if (index === total - 1) {
-      return choice(sourceId + "|story-close|" + formatId, [
-        "LAST REEL // THE " + desk + " FILES OVERTIME",
-        "LAST REEL // CLOSING TIME NEEDS A LAWYER",
-        "LAST REEL // THE SECURITY FOOTAGE KEEPS ROLLING",
-        "LAST REEL // SOMEBODY CALL THE VIDEO STORE",
-        "LAST REEL // THE FINAL RECEIPT REFUSES TO LEAVE",
-        "LAST REEL // THE SOURCE GETS THE LAST WORD",
-        "LAST REEL // REWIND IS NOW PART OF THE SENTENCE",
-        "LAST REEL // THE " + desk + " TURNS OUT THE LIGHTS",
-      ]);
+      return "LAST REEL // " + subject.toUpperCase() + " GETS THE FINAL WORD";
     }
-    return choice(sourceId + "|story-middle|" + index + "|" + formatId, [
-      "REEL " + (index + 1) + " // THE NIGHT STOPS PRETENDING TO BE NORMAL",
-      "REEL " + (index + 1) + " // THE TOPIC BOARD NEEDS MORE RED STRING",
-      "REEL " + (index + 1) + " // ADULT SUPERVISION MISSES ANOTHER EXIT",
-      "REEL " + (index + 1) + " // THE INCIDENT REPORT GETS A SEQUEL",
-      "REEL " + (index + 1) + " // THE " + desk + " LOSES ITS ALIBI",
-      "REEL " + (index + 1) + " // ANOTHER RECEIPT ENTERS THE CHAT",
-      "REEL " + (index + 1) + " // THE SOURCE TAKES A HARD LEFT",
-      "REEL " + (index + 1) + " // THE EVIDENCE CART HITS A SPEED BUMP",
-      "REEL " + (index + 1) + " // THE " + desk + " STAYS AFTER CLOSING",
-      "REEL " + (index + 1) + " // THE NEXT AISLE HAS QUESTIONS",
+    return choice(sourceId + "|story-label|" + index + "|" + subject, [
+      "REEL " + (index + 1) + " // " + subject.toUpperCase() + " CHANGES THE TEMPERATURE",
+      "REEL " + (index + 1) + " // THE " + subject.toUpperCase() + " DETOUR",
+      "REEL " + (index + 1) + " // " + subject.toUpperCase() + " AFTER CURFEW",
+      "REEL " + (index + 1) + " // " + subject.toUpperCase() + " TAKES THE HARD LEFT",
     ]);
   }
 
-  function storyBody(segment, index, total, sourceId, formatId) {
-    var topics = displayLabels(segment.topicLabels);
-    var moments = displayLabels(segment.momentLabels);
-    var characters = displayLabels(segment.characterLabels);
+  function storyBody(segment, index, total, sourceId) {
+    var topics = displayLabels(segment.topicLabels).map(naturalLabel);
+    var moments = displayLabels(segment.momentLabels).map(naturalLabel);
+    var characters = displayLabels(segment.characterLabels).map(naturalLabel);
     var from = clock(segment.at);
     var to = clock(segment.end);
-    var desk = storyDesk(formatId);
-    var leadOptions = [
-      "The " + desk + " clocks this reel from " + from + " to " + to + ".",
-      "From " + from + " to " + to + ", the " + desk + " keeps the register open.",
-      "The source stays on the " + desk + " between " + from + " and " + to + ".",
-      "This reel takes the " + desk + " from " + from + " to " + to + ".",
-      "At " + from + ", the " + desk + " opens; this chapter lands at " + to + ".",
-      "The cameras stay with this reel from " + from + " through " + to + ".",
-      "This chapter of the source runs " + from + " to " + to + " on the " + desk + ".",
-      "The tape holds this reel inside " + from + "–" + to + ".",
-      "Playback brackets this part of the night between " + from + " and " + to + ".",
-      "The next stretch begins at " + from + " and checks out at " + to + ".",
-      "The " + desk + " inherits the tape at " + from + " and holds it through " + to + ".",
-      "The night crosses " + from + "–" + to + " before this reel lets go.",
-      "This part of the show lives between " + from + " and " + to + ".",
-      "The clock enters at " + from + " and leaves this chapter at " + to + ".",
-      "From " + from + " onward, the conversation stays with the " + desk +
-        " until " + to + ".",
-      "Rewind to " + from + " and ride this chapter through " + to + ".",
-      "The chapter opens at " + from + " and hands the tape back at " + to + ".",
-      "The show settles into the " + desk + " at " + from +
-        " and moves on at " + to + ".",
-      "This pass through the " + desk + " starts at " + from +
-        " and clears at " + to + ".",
-      "The " + desk + " owns the clock from " + from + " through " + to + ".",
-      "The source gives this chapter the window between " + from + " and " + to + ".",
-      "Between " + from + " and " + to + ", the " + desk + " has the floor.",
-      "The room moves onto the " + desk + " at " + from +
-        " and stays there until " + to + ".",
-      "The route through this reel opens at " + from + " and closes at " + to + ".",
-    ];
-    if (index === total - 1) {
-      leadOptions = [
-        "The last chapter keeps the " + desk + " open from " + from + " to " + to + ".",
-        "Closing time catches the source between " + from + " and " + to + ".",
-        "The " + desk + " opens its last reel at " + from + " and checks out at " + to + ".",
-        "The last lap covers " + from + " through " + to + ".",
-        "This route reaches its closing reel at " + from + " and holds through " + to + ".",
-        "The final time window runs " + from + "–" + to + ".",
-        "The " + desk + " carries the finish from " + from + " to " + to + ".",
-        "The closing stretch starts at " + from + " and releases the tape at " + to + ".",
-        "The last part of the show lives between " + from + " and " + to + ".",
-        "From " + from + " onward, the " + desk + " takes the closing shift to " + to + ".",
-        "The tape reaches its last doorway at " + from + " and exits at " + to + ".",
-        "The final chapter clocks in at " + from + " and signs off at " + to + ".",
-        "Playback enters the home stretch at " + from + " and lands at " + to + ".",
-        "The room stays with the " + desk + " from " + from + " until " + to + ".",
-        "The source saves its closing window for " + from + " through " + to + ".",
-        "One last reel runs from " + from + " to " + to + " on the " + desk + ".",
-      ];
+    var excerpt = quotedExcerpt(segment.excerpt, 18);
+    var seed = sourceId + "|story|" + index + "|" + topics.join("|");
+    var lead = choice(seed, [
+      "From " + from + " to " + to + ", this part of the show",
+      "The chapter between " + from + " and " + to,
+      "Starting at " + from + " and running through " + to + ", the conversation",
+      "This " + from + "–" + to + " stretch",
+    ]);
+    var topicLine = topics.length ?
+      " moves through " + list(topics, "") + "." :
+      " follows the night's next turn without a named subject attached.";
+    if (/chapter between/.test(lead)) {
+      topicLine = topics.length ?
+        " moves through " + list(topics, "") + "." :
+        " follows the night's next turn without a named subject attached.";
     }
-    var lead = choice(sourceId + "|story-lead|" + index + "|" + formatId, leadOptions);
-    var topicLine = topics.length ? " " +
-      choice(sourceId + "|story-topics|" + index, [
-        "The named subject route runs " + storyRoute(topics) + ".",
-        "The conversation turns to " + list(topics, "") + ".",
-        "This stretch moves through " + topics.join(" → ") + ".",
-        "The reel follows " + list(topics, "") + ".",
-        "Across these minutes, the talk carries " + list(topics, "") + ".",
-        "On screen for this chapter: " + list(topics, "") + ".",
-        "The room circles " + list(topics, "") + ".",
-        "The subject map moves " + storyRoute(topics) + ".",
-        "The tape winds " + storyRoute(topics) + ".",
-        "This part of the show links " + list(topics, "") + ".",
-        "The night makes room for " + list(topics, "") + ".",
-        "The chapter checks in with " + list(topics, "") + ".",
+    var momentLine = moments.length ?
+      " The replay buttons light up around " + list(moments, "") + "." : "";
+    var characterLine = characters.length ?
+      " Character callbacks include " + list(characters, "") +
+        ", with the clip preserving the actual performance." : "";
+    var excerptLine = excerpt ?
+      " At " + clock(segment.anchorAt) + ", the caption catches " + excerpt + "." :
+      " Jump to " + clock(segment.anchorAt) + " for the full exchange.";
+    var close = index === total - 1 ?
+      " " + choice(seed + "|final-handoff", [
+        "That is where this recap hands the ending back to the show.",
+        "The final word belongs to the original tape.",
+        "The recap stops there; the complete exchange gets the last laugh.",
+        "That closes the written route and leaves the ending on the tape.",
+        "The last checkpoint hands control back to the show.",
+        "From there, the original episode gets the final word.",
+        "That is the point where the recap turns off the lights.",
+        "The watch path ends there; the episode does not.",
+        "The final reel closes on the tape, where it belongs.",
+        "The recap clocks out and lets the ending play.",
+        "That closes the case file without rewriting the finish.",
+        "The route ends there, with the original show still holding the room.",
+        "That final checkpoint puts the ending back in its proper hands.",
+        "The written story exits there; the tape keeps the last word.",
+        "That is the end of this map, not a substitute for the show.",
+        "The last saved turn closes the recap and opens the complete ending.",
       ]) :
-      " No named subject is attached to this reel, so the chapter stays with the clock.";
-    var momentLine = moments.length ? " " +
-      choice(sourceId + "|story-moments|" + index, [
-        "The replay list catches " + list(moments, "") + ".",
-        "The incident log flags " + list(moments, "") + ".",
-        "The biggest detours here are " + list(moments, "") + ".",
-        "The tape also lights up for " + list(moments, "") + ".",
-        "Filed under moments worth replaying: " + list(moments, "") + ".",
-        "The chapter's sharpest turns are " + list(moments, "") + ".",
-        "The moments that break the straight line are " + list(moments, "") + ".",
-        "This reel saves a seat for " + list(moments, "") + ".",
-        "The after-midnight alarms go off for " + list(moments, "") + ".",
-        "The route gets louder around " + list(moments, "") + ".",
-        "The show leaves replay marks on " + list(moments, "") + ".",
-        "The trouble spots worth another look are " + list(moments, "") + ".",
-      ]) : "";
-    var characterLine = characters.length ? " " +
-      choice(sourceId + "|story-characters|" + index, [
-        "The character file logs " + list(characters, "") + "; those names identify the bit, not a performer.",
-        "Character receipts add " + list(characters, "") + " to the case file, without assigning a performer.",
-        "The character track includes " + list(characters, "") +
-          "; the linked clip carries the actual delivery.",
-        "Also on the character board: " + list(characters, "") + ". The label follows the bit, never a performer claim.",
-        "The source index tags " + list(characters, "") + " as character callbacks; the tape decides the delivery.",
-        "Character evidence names " + list(characters, "") + ", with performer identity deliberately left to playback.",
-      ]) : "";
-    var excerpt = quote(segment.excerpt, 18);
-    var evidenceLine = excerpt ?
-      " " + choice(sourceId + "|story-evidence|" + index, [
-        "The exact evidence button lands at " + clock(segment.anchorAt) + " on " + excerpt + ".",
-        "At " + clock(segment.anchorAt) + ", the playable caption window catches " + excerpt + ".",
-        "The reel's playback anchor is " + clock(segment.anchorAt) + ": " + excerpt + ".",
-        "One click opens the source at " + clock(segment.anchorAt) + ", where the caption reads " + excerpt + ".",
-        "The source receipt at " + clock(segment.anchorAt) + " preserves " + excerpt + ".",
-        "The strongest playable caption stop sits at " + clock(segment.anchorAt) + " with " + excerpt + ".",
-        "Evidence playback starts at " + clock(segment.anchorAt) + " on " + excerpt + ".",
-        "The exact-show receipt at " + clock(segment.anchorAt) + " catches " + excerpt + ".",
-      ]) :
-      " The evidence button still opens the exact source at " +
-        clock(segment.anchorAt) + "; no public excerpt is exposed here.";
-    var close;
-    if (index === total - 1) {
-      var finalOpen = choice(sourceId + "|story-final-open|" + formatId, [
-        "The lights come up",
-        "Closing time finally arrives",
-        "The counter goes dark",
-        "The last reel reaches the door",
-        "The room calls last orders",
-        "The night files for overtime",
-        "The final frame leaves the screen",
-        "The " + desk + " turns out its lamp",
-        "The credits can start rolling",
-        "The last chapter checks the clock",
-        "The video-store bell rings once more",
-        "The rewind button gets the final vote",
-        "The closing reel stops here",
-        "The after-hours shift signs off",
-        "The closing bell lands",
-        "The chapter reaches its last doorway",
+      " " + choice(seed + "|bridge-handoff", [
+        "The next chapter inherits the mess.",
+        "The conversation carries that thread into the next reel.",
+        "The tape keeps moving from there.",
+        "That handoff opens the next door.",
+        "The next section takes the wheel.",
+        "The argument is not finished with the night.",
+        "From there, the watch path moves to its next turn.",
+        "That thread stays alive as the next chapter begins.",
+        "The next saved stretch picks up the trail.",
+        "The episode keeps rolling from that checkpoint.",
+        "That is the handoff to the next reel.",
+        "The next chapter starts with the room still warm.",
+        "The show leaves that door open for what follows.",
+        "The next turn arrives before the room can cool down.",
+        "The tape moves on, but the residue comes with it.",
+        "That checkpoint gives the next act somewhere to start.",
+        "What follows starts from that loose end.",
+        "The next reel finds the door already open.",
+        "That turn feeds directly into the chapter ahead.",
+        "The room carries that temperature into the next stretch.",
+        "The next act arrives with the argument still running.",
+        "That saved turn becomes the next chapter's starting line.",
+        "The show changes lanes again from there.",
+        "The following chapter picks up the same live wire.",
+        "That moment leaves a trail for the next section.",
+        "The next reel enters before the dust settles.",
+        "From that point, the conversation finds another room.",
+        "The tape carries the loose end forward.",
+        "The next act opens on the aftershock.",
+        "That exchange keeps breathing into what follows.",
+        "The chapter ahead starts with unfinished business.",
+        "The show takes that momentum around the next corner.",
+        "That thread crosses the cut into the next stretch.",
+        "The next section arrives with the door off its hinges.",
+        "From there, the night finds another gear.",
+        "That beat pushes the watch path into its next stop.",
+        "The next chapter opens before the smoke clears.",
+        "The conversation does not leave that behind quietly.",
+        "That is enough fuel for the following act.",
+        "The next reel takes custody of the loose end.",
+        "That checkpoint sends the show toward its next problem.",
+        "The following act catches the thread before it drops.",
+        "That turn keeps the hallway light on for the next chapter.",
+        "The next stretch begins with the room still buzzing.",
+        "From there, the show follows the noise downstairs.",
+        "That beat passes the trouble to the chapter ahead.",
+        "The next act picks up before good judgment returns.",
+        "That leaves the following reel with plenty to answer for.",
       ]);
-      var finalHandOff = choice(sourceId + "|story-final-hand-off|" + formatId, [
-        "the upload keeps the final word",
-        "playback still owns the context",
-        "the source remains one click away",
-        "rewind is the only honest appeal",
-        "the tape gets the last say",
-        "the evidence button carries the rest",
-        "the show, not this page, owns what comes next",
-        "one click returns the whole room",
-        "the source keeps custody of the ending",
-        "the final handoff belongs to playback",
-        "the original upload holds the closing argument",
-        "the tape is still the authority",
-        "the page steps aside for the show",
-        "the full context stays with the source",
-        "the next move is to press play",
-        "the complete exchange remains on the tape",
+    return lead + topicLine + momentLine + characterLine + excerptLine + close;
+  }
+
+  function overviewColor(map) {
+    var formatId = clean(record(map.format).id);
+    var options = {
+      "movie-commentary": [
+        "It plays like a watchalong that keeps finding side doors in a movie everyone thought they knew.",
+        "The movie keeps running; the conversation keeps discovering new ways to escape it.",
+      ],
+      "watch-party": [
+        "The watch-party clock survives, although good judgment takes several commercial breaks.",
+        "It starts as synchronized viewing and ends with the rewind button begging for mercy.",
+      ],
+      "ranking-show": [
+        "The bracket behaves for a while, then remembers where it is.",
+        "By the end, the ranking board looks like it has survived a home invasion.",
+      ],
+      "versus-show": [
+        "The fight card gets a winner; peace was never one of the available outcomes.",
+        "The matchup gets settled. The argument absolutely does not.",
+      ],
+      "trailer-reaction": [
+        "The trailer may be short, but the rabbit holes refuse to respect the runtime.",
+        "A few minutes of footage somehow leave enough questions for an entire night shift.",
+      ],
+      "horror-news": [
+        "The result is movie-news pinball: one headline, three trapdoors, and no gentle landing.",
+        "It moves like a horror-news show with the emergency exit painted onto the wall.",
+      ],
+    };
+    return choice(map.sourceId + "|overview-color|" + formatId,
+      options[formatId] || [
+        "It is less a straight line than a night drive with every suspicious exit taken.",
+        "By the end, the conversation has found the basement, the attic, and the door nobody was meant to open.",
+        "It starts as a show and gradually becomes something the rewind button has to explain.",
       ]);
-      close = " " + finalOpen + "; " + finalHandOff + ".";
-    } else {
-      var bridgeOpen = choice(
-        sourceId + "|story-bridge-open|" + index + "|" + formatId,
-        [
-          "The tape keeps moving",
-          "The night has one more door",
-          "That checkpoint hands off cleanly",
-          "The counter is not closed yet",
-          "Playback keeps the room open",
-          "The next aisle is already lit",
-          "That receipt clears the counter",
-          "The reel change happens on the source",
-          "The file stays in motion",
-          "The timestamp trail keeps going",
-          "The conversation is not done yet",
-          "That chapter leaves the lights on",
-          "The " + desk + " keeps the late shift",
-          "The purple jacket objects to closing time",
-          "The show refuses to clock out",
-          "That turn leaves another door unlocked",
-        ],
-      );
-      var bridgeHandOff = choice(
-        sourceId + "|story-bridge-hand-off|" + index + "|" + formatId,
-        [
-          "the next reel takes it from here",
-          "another source-linked stop is waiting",
-          "playback supplies the handoff",
-          "the following timestamp opens the next door",
-          "one more evidence button is already queued",
-          "the next chapter inherits the clock",
-          "another verified stop follows",
-          "the source has the next move",
-          "the route continues at the next timestamp",
-          "the following reel picks up the thread",
-          "the next checkpoint is one click away",
-          "the upload carries the story forward",
-          "another chapter is waiting down the hall",
-          "the next turn is already on the tape",
-          "one more reel has something to say",
-          "the source opens the following door",
-        ],
-      );
-      close = " " + bridgeOpen + "; " + bridgeHandOff + ".";
-    }
-    return lead + topicLine + momentLine + characterLine + evidenceLine + close;
   }
 
   function readyOverview(map) {
     var metadata = record(map.metadata);
-    var topics = displayLabels(map.topics);
-    var file = record(map.caseFile);
-    var strongest = record(array(map.bestMoments)[0]);
-    var sections = array(map.sections);
-    var receiptCount = number(file.receiptCount) || number(record(map.coverage).receipts);
-    var topicCount = number(file.topicCount);
-    var momentCount = number(file.momentCount);
-    var characterCount = number(file.characterCount);
-    var opening = metadata.title + " runs " + runtime(metadata.duration) + " and leaves " +
-      receiptCount + " source-linked " + plural(receiptCount, "receipt", "receipts") +
-      " on the counter: " + topicCount + " topic " + plural(topicCount, "door", "doors") +
-      ", " + momentCount + " saved " + plural(momentCount, "spike", "spikes") +
-      ", and " + characterCount + " named character " +
-      plural(characterCount, "lead", "leads") + ".";
-    var subject = topics.length ?
-      " " + topics[0] + " leads the index" +
-        (topics.length > 1 ? "; " + list(topics.slice(1, 4), "") + " keep crossing the route." : ".") :
-      " The available receipts do not establish a dominant topic.";
-    var heat = clean(strongest.label) ?
-      " The hottest saved turn is " + titleCase(displayLabel(strongest.label)) +
-        " at " + clock(strongest.at) +
-        (quote(strongest.excerpt, 14) ? ", where the caption window catches " +
-          quote(strongest.excerpt, 14) : "") + "." : "";
-    var route = sections.length ?
-      " " + sections.length + " playable acts span " + number(file.tapeSpanPercent) +
-        "% of the indexed runtime, from " + titleCase(displayLabel(sections[0].subject) ||
-          displayLabel(sections[0].anchor)) + " to " +
-        titleCase(displayLabel(sections[sections.length - 1].subject) ||
-          displayLabel(sections[sections.length - 1].anchor)) + "." : "";
-    var story = number(file.storySegmentCount) && number(file.storyReceiptCount) ?
-      " The full written route carries " + number(file.storyReceiptCount) + " of " +
-        receiptCount + " registered receipts across " + number(file.storySegmentCount) +
-        " chronological " + plural(file.storySegmentCount, "reel", "reels") + "." : "";
-    if (clean(map.guideOverview)) {
-      return clean(map.guideOverview) + " " +
-        choice(map.sourceId + "|guide-close", [
-          "The Feldman file adds playable chapters without separating the jokes from their original room.",
-          "The purple jacket is zipped, the chapters are chronological, and every turn still opens the source.",
-          "This one graduates from a timestamp bucket into a full episode story.",
-        ]);
+    var topics = recapTopics(map);
+    var characters = recapCharacters(map);
+    var sections = chronologicalSections(map);
+    var strongest = record(topReplay(map));
+    var title = clean(metadata.title) || "This WWAM episode";
+    var opening = record(sections[0]);
+    var middle = record(sections[Math.floor((sections.length - 1) / 2)]);
+    var closing = record(sections[sections.length - 1]);
+    var openingSubject = sectionSubject(opening);
+    var middleSubject = sectionSubject(middle);
+    var closingSubject = sectionSubject(closing);
+    var chronology = "";
+
+    if (sections.length) {
+      chronology = " The recap opens at " + clock(opening.at) + " with " + openingSubject;
+      if (sections.length > 2 &&
+          middleSubject.toLowerCase() !== openingSubject.toLowerCase() &&
+          middleSubject.toLowerCase() !== closingSubject.toLowerCase()) {
+        chronology += ", turns toward " + middleSubject + " around " + clock(middle.at);
+      }
+      if (closingSubject.toLowerCase() !== openingSubject.toLowerCase()) {
+        chronology += ", and reaches " + closingSubject + " by " + clock(closing.at);
+      }
+      chronology += ".";
     }
-    var color = choice(map.sourceId + "|overview-color|" + receiptCount, [
-      " The video-store clerk is not explaining why the evidence bag smells like popcorn.",
-      " Somebody locked the front door, and the conversation kept finding new aisles.",
-      " By closing time, the topic board needs its own incident report.",
-      " The night begins as programming and ends as something the security camera remembers.",
-      " The archive found a spine, several hard left turns, and one very nervous late-fee policy.",
-      " No one approved the route; the timestamps simply kept opening doors.",
-    ]);
+
+    var focus = topics.length ?
+      " The main subjects are " + list(topics.slice(0, 5), "") + "." : "";
+    var highPoint = clean(strongest.label) ?
+      " The top replay pick lands at " + clock(strongest.at) + " under " +
+        naturalLabel(strongest.label) +
+        (quotedExcerpt(strongest.excerpt, 16) ?
+          ", where the caption catches " + quotedExcerpt(strongest.excerpt, 16) : "") + "." : "";
+    var characterLine = characters.length ?
+      " Character callbacks include " + list(characters.slice(0, 5), "") +
+        "; playback keeps the voices and delivery attached to the original exchange." : "";
+    var chapters = sections.length ?
+      " All " + sections.length + " chapters are clickable, so the recap works as a story or a shortcut." :
+      "";
     var scope = clean(map.mode) === "topic-recap" ?
-      " This is a topic map rather than a full-opinion chronicle; it identifies doors, not verdicts." : "";
-    return opening + subject + heat + route + story + scope + color;
+      " This version can follow named subjects and timing, but it does not turn those markers into opinions." :
+      "";
+    var firstSentence = clean(map.registeredOverview) ||
+      title + " runs " + runtime(metadata.duration) + ".";
+    var deeper = guideChronology(map);
+    var takeArc = guideTakeArc(map);
+    return firstSentence + chronology + (deeper ? " " + deeper : "") +
+      (takeArc ? " " + takeArc : "") + focus + highPoint + characterLine +
+      chapters + scope + " " + overviewColor(map);
   }
 
-  function heldRecap(map) {
+  function heldRecap(map, source) {
     var metadata = record(map.metadata);
+    var hold = record(record(source).exactSourceHold);
+    var alternate = record(record(source).officialAlternate);
+    var ageGated = clean(hold.state) === "held-age-gated";
     return {
       schema: SCHEMA,
       generatorVersion: VERSION,
@@ -748,10 +922,24 @@
       tier: "source-safe-held",
       label: "EPISODE RECAP",
       badge: "RECAP WAITING ON THE TAPE",
-      headline: "THE UPLOAD IS REAL. THE RECAP ISN'T READY TO LIE FOR IT.",
-      deck: metadata.title + " is registered, playable, and waiting for source-local captions.",
-      overview: "The official source record confirms a " + runtime(metadata.duration) +
-        " upload dated " + clean(metadata.date) + ". The archive does not have a usable local caption map, so this file describes no scenes, jokes, reactions, speakers, topics, or verdicts. The paperwork is filed; the tape is still outside arguing with security.",
+      headline: ageGated ?
+        "THE YOUTUBE CUT IS BEHIND THE AGE GATE. THE WIKI ISN'T GOING TO LIE." :
+        "THE SHOW IS HERE. THE RECAP IS STILL IN THE PARKING LOT.",
+      deck: ageGated ?
+        clean(metadata.title) +
+          " is in the canon, but the exact YouTube edit has no public caption or unauthenticated media route." :
+        clean(metadata.title) +
+          " is linked now, but its captions have not been recovered well enough for a real recap.",
+      overview: ageGated ?
+        "The canonical YouTube upload runs " + runtime(metadata.duration) +
+          " and was posted " + clean(metadata.date) +
+          ". Its source remains age-gated, so this page creates no scenes, jokes, reactions, speakers, topics, verdicts, or YouTube timestamps. " +
+          (clean(alternate.title) ?
+            "The official WWAM podcast edition below remains playable as a clearly separated alternate edit." :
+            "The written recap waits until the exact dialogue can be checked.") :
+        "The official upload runs " + runtime(metadata.duration) +
+          " and was posted " + clean(metadata.date) +
+          ". Until a usable caption track is available, this page will not invent scenes, jokes, reactions, speakers, topics, or verdicts. The official source link remains available; the written recap joins it after the dialogue can be checked.",
       topics: [],
       sections: [],
       story: [],
@@ -771,7 +959,7 @@
 
   function fanRead(map) {
     var specs = [
-      ["loved", "WHAT THE TAPE DEFENDED"],
+      ["loved", "WHAT THE SHOW DEFENDED"],
       ["hated", "STRAIGHT TO STEVE'S ASSHOLE"],
       ["wildestDetour", "WWAM UP IN YA"],
       ["lastWord", "THE LAST WORD"],
@@ -779,31 +967,32 @@
     return specs.reduce(function (output, spec) {
       var item = record(record(map.fanRead)[spec[0]]);
       if (!clean(item.receiptKey) && !clean(item.guideCutId)) return output;
-      var itemTopic = displayLabel(item.topic) || displayLabel(item.label) || spec[1];
-      var excerpt = quote(item.excerpt, 16);
+      var itemTopic = naturalLabel(item.topic || item.label || spec[1]);
+      var excerpt = quotedExcerpt(item.excerpt, 16);
       var label = spec[1];
       if (spec[0] === "lastWord" && number(record(map.metadata).duration) &&
           number(item.at) / number(record(map.metadata).duration) < 0.85) {
-        label = "FINAL INDEXED WORD";
+        label = "THE FINAL SAVED TURN";
       }
-      var generatedBody = "";
+      var body;
       if (spec[0] === "hated") {
-        generatedBody = "At " + clock(item.at) + ", Steve receives the " + itemTopic +
-          " paperwork" + (excerpt ? ": " + excerpt + "." : ".");
+        body = "At " + clock(item.at) + ", " + itemTopic +
+          " takes the one-way trip Straight to Steve's Asshole" +
+          (excerpt ? ": " + excerpt + "." : ".");
       } else if (spec[0] === "wildestDetour") {
-        generatedBody = "Adult supervision exits at " + clock(item.at) +
-          (excerpt ? ", leaving " + excerpt + " in the incident report." : ".");
+        body = "At " + clock(item.at) + ", adult supervision checks out around " +
+          itemTopic + (excerpt ? ", leaving " + excerpt + " behind." : ".");
       } else if (spec[0] === "lastWord") {
-        generatedBody = "The final indexed turn lands at " + clock(item.at) +
-          (excerpt ? " with " + excerpt + "." : ".");
+        body = "The final saved turn arrives at " + clock(item.at) + " with " +
+          itemTopic + (excerpt ? ": " + excerpt + "." : ".");
       } else {
-        generatedBody = "The defense exhibit opens at " + clock(item.at) +
-          (excerpt ? " on " + excerpt + "." : ".");
+        body = "At " + clock(item.at) + ", " + itemTopic +
+          " gets a rare stay of execution" + (excerpt ? ": " + excerpt + "." : ".");
       }
       output[spec[0]] = {
         label: label,
         topic: itemTopic,
-        body: clean(item.body) || generatedBody,
+        body: body,
         at: number(item.at),
         end: number(item.end),
         receiptKey: clean(item.receiptKey),
@@ -821,7 +1010,9 @@
     if (clean(map.schema) !== "shokker-episode-recap/v1") {
       throw new Error("WWAM Episode Recap Adapter requires shokker-episode-recap/v1.");
     }
-    if (clean(map.evidenceState) !== "ready") return heldRecap(map);
+    if (clean(map.evidenceState) !== "ready") {
+      return heldRecap(map, record(input.source));
+    }
     var seenLabels = {};
     var sections = array(map.sections).map(function (section, index, values) {
       var label = sectionLabel(
@@ -829,12 +1020,13 @@
         index,
         values.length,
         map.sourceId,
-        number(record(map.metadata).duration)
+        number(record(map.metadata).duration),
+        clean(record(map.format).id)
       );
       var labelKey = label.toLowerCase();
       seenLabels[labelKey] = (seenLabels[labelKey] || 0) + 1;
       if (seenLabels[labelKey] > 1) {
-        label += " // RETURN " + seenLabels[labelKey];
+        label += " // AGAIN " + seenLabels[labelKey];
       }
       return {
         id: clean(section.id),
@@ -844,7 +1036,8 @@
           section,
           map.sourceId,
           number(record(map.metadata).duration),
-          clean(record(map.format).id)
+          clean(record(map.format).id),
+          map
         ),
         at: number(section.at),
         end: number(section.end),
@@ -860,20 +1053,8 @@
       return {
         id: clean(segment.id),
         ordinal: index + 1,
-        label: storyLabel(
-          segment,
-          index,
-          values.length,
-          map.sourceId,
-          clean(record(map.format).id)
-        ),
-        body: storyBody(
-          segment,
-          index,
-          values.length,
-          map.sourceId,
-          clean(record(map.format).id)
-        ),
+        label: storyLabel(segment, index, values.length, map.sourceId),
+        body: storyBody(segment, index, values.length, map.sourceId),
         at: number(segment.at),
         end: number(segment.end),
         anchorReceiptKey: clean(segment.anchorReceiptKey),
@@ -888,9 +1069,9 @@
       };
     });
     var tierLabels = {
-      "full-chronicle": "FULL CHRONICLE",
-      "receipt-recap": "RECEIPT RECAP",
-      "topic-recap": "TOPIC-TAPE RECAP",
+      "full-chronicle": "FULL EPISODE CHRONICLE",
+      "receipt-recap": "PLAYABLE EPISODE RECAP",
+      "topic-recap": "TOPIC-BY-TOPIC RECAP",
     };
     return {
       schema: SCHEMA,
@@ -902,11 +1083,11 @@
       state: "ready",
       tier: clean(map.mode),
       label: "WWAM FELDMAN APPROVED RECAP",
-      badge: tierLabels[map.mode] || "SOURCE-LINKED RECAP",
+      badge: tierLabels[map.mode] || "PLAYABLE EPISODE RECAP",
       headline: headline(map),
       deck: deck(map),
       overview: readyOverview(map),
-      topics: displayLabels(map.topics),
+      topics: recapTopics(map),
       sections: sections,
       story: story,
       bestMoments: array(map.bestMoments),

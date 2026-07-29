@@ -313,7 +313,8 @@ test("builds a deterministic channel-neutral dossier with typed dual-ended conne
   const dossier = clone(engine.build("RACEFILE01A"));
   const again = clone(engine.build("RACEFILE01A"));
 
-  assert.equal(engine.version, "1.9.0");
+  assert.equal(engine.version, api.VERSION);
+  assert.match(engine.version, /^\d+\.\d+\.\d+$/);
   assert.equal(engine.getStats().sources, 3);
   assert.equal(dossier.source.receipts.length, 2);
   assert.equal(dossier.source.receipts[0].signalScore, 88);
@@ -461,6 +462,72 @@ test("keeps source-only pages useful but claim-empty", () => {
   assert.ok(dossier.wake.earlier.every((connection) => (
     connection.basis === "source-metadata-neighbor"
   )));
+});
+
+test("preserves a playable official alternate without crossing its timestamp boundary", () => {
+  const input = fixture();
+  input.sources[2].exactSourceHold = {
+    state: "held-age-gated",
+    reason: "The exact YouTube edit requires age-authenticated access.",
+  };
+  input.sources[2].officialAlternate = {
+    kind: "official-podcast-edition",
+    title: "Official alternate commentary",
+    episodeUrl: "https://podcasters.spotify.com/pod/show/example/episodes/tape",
+    enclosureUrl: "https://traffic.megaphone.fm/EXAMPLE.mp3",
+    duration: 4305.61,
+    canonicalDuration: 4200,
+    durationDelta: 105.61,
+    timestampIsomorphic: false,
+    publicPlaybackAllowed: true,
+    evidenceBoundary: "Official alternate edit; not a canonical timestamp source.",
+  };
+
+  const engine = runtime().create(input);
+  const dossier = clone(engine.build("RACEFILE03C"));
+  assert.equal(dossier.source.exactSourceHold.state, "held-age-gated");
+  assert.equal(dossier.source.officialAlternate.timestampIsomorphic, false);
+  assert.equal(dossier.source.officialAlternate.durationDelta, 105.61);
+  assert.match(dossier.source.officialAlternate.enclosureUrl, /^https:/);
+  assert.equal(dossier.source.receipts.length, 0);
+
+  const manifest = clone(engine.exportManifest("RACEFILE03C"));
+  assert.deepEqual(manifest.source.exactSourceHold, input.sources[2].exactSourceHold);
+  assert.deepEqual(manifest.source.officialAlternate, input.sources[2].officialAlternate);
+  assert.equal(manifest.source.officialAlternate.timestampIsomorphic, false);
+  assert.equal(manifest.source.officialAlternate.publicPlaybackAllowed, true);
+
+  const changed = fixture();
+  changed.sources[2].exactSourceHold = clone(input.sources[2].exactSourceHold);
+  changed.sources[2].officialAlternate = {
+    ...input.sources[2].officialAlternate,
+    episodeUrl: "https://podcasters.spotify.com/pod/show/example/episodes/other",
+  };
+  const changedDossier = clone(runtime().create(changed).build("RACEFILE03C"));
+  assert.notEqual(
+    changedDossier.source.sourceFingerprint,
+    dossier.source.sourceFingerprint,
+  );
+
+  const crossed = fixture();
+  crossed.sources[2].officialAlternate = {
+    ...input.sources[2].officialAlternate,
+    timestampIsomorphic: true,
+  };
+  assert.throws(
+    () => runtime().create(crossed),
+    expectCode("ALTERNATE_SOURCE_BOUNDARY"),
+  );
+
+  const unsafe = fixture();
+  unsafe.sources[2].officialAlternate = {
+    ...input.sources[2].officialAlternate,
+    enclosureUrl: "javascript:alert(1)",
+  };
+  assert.throws(
+    () => runtime().create(unsafe),
+    expectCode("INVALID_HTTPS_URL"),
+  );
 });
 
 test("fails closed on coverage, speaker, excerpt, range, and artifact authority overreach", () => {

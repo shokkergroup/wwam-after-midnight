@@ -114,7 +114,12 @@ class FakeMount {
 
   registerJumpTarget(
     id,
-    { hiddenResearch = false, requiresFullFile = false, rectTop = 0 } = {},
+    {
+      hiddenResearch = false,
+      requiresFullFile = false,
+      rectTop = 0,
+      audioFocus = false,
+    } = {},
   ) {
     const headingAttributes = new Map();
     const heading = {
@@ -132,14 +137,22 @@ class FakeMount {
         this.focusCount += 1;
       },
     };
+    const audio = {
+      focusCount: 0,
+      focus() {
+        this.focusCount += 1;
+      },
+    };
     const target = {
       heading,
+      audio,
       requiresFullFile,
       scrollCalls: [],
       getBoundingClientRect() {
         return { top: rectTop, bottom: rectTop + 240, height: 240 };
       },
       querySelector(selector) {
+        if (selector === "audio[controls]") return audioFocus ? audio : null;
         return selector === "h2,h3,h4,h5" ? heading : null;
       },
       closest(selector) {
@@ -830,8 +843,8 @@ test("exports the per-show Wiki UI, keeps curated lanes first, and destroys clea
   const { api, ui, mount, engine, dossier } = setup();
   const rendered = ui.render("SOURCE00001", { at: 333 });
 
-  assert.equal(api.VERSION, "1.12.1");
-  assert.equal(ui.version, "1.12.1");
+  assert.match(api.VERSION, /^\d+\.\d+\.\d+$/);
+  assert.equal(ui.version, api.VERSION);
   assert.equal(rendered, dossier);
   assert.deepEqual(engine.buildCalls, ["SOURCE00001"]);
   assert.equal(mount.getAttribute("data-source-dossier-state"), "ready");
@@ -1329,9 +1342,8 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
   assert.match(html, /data-feldman-recap="ready"/);
   assert.match(html, /data-feldman-recap-expanded="false"/);
   assert.match(html, /WWAM FELDMAN APPROVED RECAP/);
-  assert.match(html, /THIS EXACT SHOW/);
-  assert.match(html, /THE TAPE THAT REFUSED TO DIE/);
-  assert.match(html, /07\.23\.2026 \/\/ 2H 03M/);
+  assert.doesNotMatch(html, /source-dossier-feldman-identity/);
+  assert.match(html, /QUICK TAKE/);
   assert.match(html, /EXACT-SHOW CASE FILE/);
   assert.match(html, /data-feldman-stat="receipts"><b>21<\/b><small>RECEIPTS/);
   assert.match(html, /data-feldman-stat="topics"><b>7<\/b><small>TOPIC DOORS/);
@@ -1347,16 +1359,9 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
     html,
     /Play Halloween from this show at 01:00/,
   );
-  assert.match(html, /THE WHOLE NIGHT \/\/ WRITTEN OUT/);
-  assert.match(html, /THE EPISODE IN 2 REELS/);
-  assert.match(html, /CHRONOLOGY, NOT INVENTED CAUSALITY/);
-  assert.match(html, /21 OF 21 TIMESTAMPED MOMENTS IN THE RECAP/);
-  assert.match(html, /data-feldman-story="reel-01"/);
-  assert.doesNotMatch(html, /data-feldman-story="reel-02"/);
-  assert.match(
-    html,
-    /data-feldman-story="reel-01"[\s\S]*?data-receipt-key="SOURCE00001:receipt-1"[\s\S]*?PLAY 02:11/,
-  );
+  assert.match(html, /FULL EPISODE RECAP/);
+  assert.match(html, /4 ACTS \/\/ CHRONOLOGY, NOT INVENTED CAUSALITY/);
+  assert.doesNotMatch(html, /data-feldman-story|sourceDossierFeldmanStory|REEL \d/);
   assert.match(html, /START WITH THE TAPE/);
   assert.match(html, /Play the first saved turn at 01:00/);
   assert.match(
@@ -1364,15 +1369,43 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
     /<button type="button" class="source-dossier-feldman-start" data-source-dossier-action="play-receipt"/,
   );
   assert.match(html, /data-source-dossier-action="toggle-episode-recap"/);
-  assert.match(html, /aria-expanded="false">READ FULL RECAP/);
+  assert.match(
+    html,
+    /aria-controls="sourceDossierFeldmanOmittedActs"/,
+  );
+  assert.match(html, /id="sourceDossierFeldmanActList"/);
+  assert.match(
+    html,
+    /id="sourceDossierFeldmanOmittedActs" hidden><\/div>/,
+  );
+  assert.ok(
+    html.indexOf('id="sourceDossierFeldmanActList"') <
+      html.indexOf('id="sourceDossierFeldmanOmittedActs"'),
+    "the three preview acts stay outside the disclosure-controlled remainder",
+  );
+  assert.match(html, /aria-expanded="false">SHOW ALL 4 ACTS/);
   assert.doesNotMatch(html, /data-feldman-act="act-4"/);
   assert.match(
     html,
     /data-source-dossier-action="play-receipt" data-receipt-key="SOURCE00001:receipt-0"/,
   );
   assert.match(html, /DAMAGE REPORT/);
+  assert.match(html, /FEATURED SIGNATURE MOMENTS/);
   assert.match(html, /STRAIGHT TO STEVE&#39;S ASSHOLE/);
   assert.match(html, /id="sourceDossierFeldmanDamage-hated"/);
+  assert.ok(
+    html.indexOf('class="source-dossier-feldman-quick-take"') <
+      html.indexOf('class="source-dossier-feldman-topic-rail"') &&
+      html.indexOf('class="source-dossier-feldman-topic-rail"') <
+        html.indexOf('class="source-dossier-feldman-damage"') &&
+      html.indexOf('class="source-dossier-feldman-damage"') <
+        html.indexOf('class="source-dossier-feldman-chronicle"') &&
+      html.indexOf('class="source-dossier-feldman-chronicle"') <
+        html.indexOf('class="source-dossier-feldman-receipts"') &&
+      html.indexOf('class="source-dossier-feldman-receipts"') <
+        html.indexOf('class="source-dossier-feldman-case-file"'),
+    "Quick Take, topic doors, signature moments, one chronology, then collapsed trust form one viewer-first flow",
+  );
   const populatedDamageExplore = html.match(
     /<nav class="source-dossier-explore"[\s\S]*?<\/nav>/,
   );
@@ -1412,9 +1445,13 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
   mount.click("toggle-episode-recap", { "data-owner-section": "wiki" });
   assert.match(mount.innerHTML, /data-feldman-view="recap"/);
   assert.match(mount.innerHTML, /data-feldman-recap-expanded="true"/);
-  assert.match(mount.innerHTML, /aria-expanded="true">COLLAPSE RECAP/);
+  assert.match(
+    mount.innerHTML,
+    /id="sourceDossierFeldmanOmittedActs"><article class="source-dossier-feldman-act"/,
+  );
+  assert.match(mount.innerHTML, /aria-expanded="true">SHOW FEWER ACTS/);
   assert.match(mount.innerHTML, /data-feldman-act="act-4"/);
-  assert.match(mount.innerHTML, /data-feldman-story="reel-02"/);
+  assert.doesNotMatch(mount.innerHTML, /data-feldman-story/);
 
   mount.click("toggle-episode-recap", { "data-owner-section": "wiki" });
   assert.match(mount.innerHTML, /data-feldman-view="highlights"/);
@@ -1422,8 +1459,7 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
 
   dossier.source.showWiki.episodeRecap.tier = "topic-recap";
   ui.render(dossier.source.id);
-  assert.match(mount.innerHTML, /THE WHOLE SOURCE \/\/ MAPPED HONESTLY/);
-  assert.match(mount.innerHTML, /THE SOURCE MAP IN 2 REELS/);
+  assert.match(mount.innerHTML, /FULL SOURCE MAP/);
   assert.match(mount.innerHTML, /TOPIC NAVIGATION ONLY/);
 
   mount.click("play-receipt", {
@@ -1433,6 +1469,97 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
   assert.equal(plays.length, 1);
   assert.equal(plays[0].receipt, dossier.source.receipts[0]);
   assert.equal(plays[0].section, "wiki");
+});
+
+test("combined Feldman recap and Episode Guide links reveal their full-file targets", () => {
+  const dossier = makeDossier();
+  const receipt = dossier.source.receipts[0];
+  dossier.source.showWiki.episodeRecap = {
+    schema: "wwam-feldman-recap/v1",
+    state: "ready",
+    tier: "receipt-recap",
+    label: "WWAM FELDMAN APPROVED RECAP",
+    badge: "RECEIPT RECAP",
+    headline: "THE RECAP AND THE DEEP DIVE SHARE THE SAME TAPE.",
+    deck: "The compact recap keeps the full guide one honest jump away.",
+    overview: "A source-bound recap with a separately mapped Episode Guide.",
+    topics: ["Halloween"],
+    sections: [{
+      id: "cold-open",
+      label: "COLD OPEN",
+      body: "The first registered turn starts the recap.",
+      at: receipt.at,
+      end: receipt.end,
+      excerpt: receipt.excerpt,
+      receiptKeys: [receipt.key],
+    }],
+    fanRead: {},
+    caseFile: { receiptCount: 1, actCount: 1 },
+    approval: {
+      actualApproval: false,
+      disclosure: "A running-bit label, not a creator endorsement.",
+    },
+    semanticFingerprint: "combined-recap-guide-fixture",
+  };
+  dossier.source.showWiki.episodeGuide = {
+    schema: "wwam-episode-guide/v2",
+    basis: "Source-local caption guide fixture",
+    metrics: { chapters: 0, threads: 0, cuts: 1, substantive: 1 },
+    chapters: [],
+    threads: [],
+    takeArc: [],
+    cuts: [{
+      id: "guide-cut-1",
+      at: receipt.at,
+      end: receipt.end,
+      score: 90,
+      category: "LOVE LETTER",
+      topic: "THE FIRST REGISTERED TURN",
+      excerpt: receipt.excerpt,
+    }],
+    fanRead: {
+      whyThisNightMatters: {
+        label: "WHY THIS NIGHT MATTERS",
+        body: "The recap and guide both resolve to the exact same upload.",
+        strongestCutId: "guide-cut-1",
+        primaryThread: "Halloween",
+      },
+      loved: {
+        label: "WHAT THE TAPE DEFENDED",
+        body: "The source-local opening earns the first replay.",
+        cutId: "guide-cut-1",
+        category: "LOVE LETTER",
+        topic: "THE FIRST REGISTERED TURN",
+        excerpt: receipt.excerpt,
+      },
+    },
+  };
+  const { ui, mount } = setup(dossier);
+
+  ui.render(dossier.source.id);
+  assert.match(mount.innerHTML, /href="#sourceDossierEpisodeGuide"/);
+  assert.match(mount.innerHTML, /href="#sourceDossierFanRead"/);
+  assert.doesNotMatch(mount.innerHTML, /id="sourceDossierEpisodeGuide"/);
+  assert.doesNotMatch(mount.innerHTML, /id="sourceDossierFanRead"/);
+
+  const guideTarget = mount.registerJumpTarget(
+    "sourceDossierEpisodeGuide",
+    { requiresFullFile: true },
+  );
+  assert.equal(mount.clickLink("#sourceDossierEpisodeGuide"), true);
+  assert.match(mount.innerHTML, /data-source-dossier-view="full"/);
+  assert.match(mount.innerHTML, /id="sourceDossierEpisodeGuide"/);
+  assert.equal(guideTarget.heading.focusCount, 1);
+
+  ui.render(dossier.source.id);
+  const fanTarget = mount.registerJumpTarget(
+    "sourceDossierFanRead",
+    { requiresFullFile: true },
+  );
+  assert.equal(mount.clickLink("#sourceDossierFanRead"), true);
+  assert.match(mount.innerHTML, /data-source-dossier-view="full"/);
+  assert.match(mount.innerHTML, /id="sourceDossierFanRead"/);
+  assert.equal(fanTarget.heading.focusCount, 1);
 });
 
 test("Damage Report shortcuts replace empty Steve and Up In Ya lanes and expand compact recaps", () => {
@@ -1577,6 +1704,23 @@ test("full chronicles replace empty receipt classes with guide cuts and story th
 
 test("held episode recaps wait on the tape without claiming Feldman approval", () => {
   const dossier = makeDossier({ metadataOnly: true, receiptCount: 0 });
+  dossier.source.availability = "age-restricted";
+  dossier.source.exactSourceHold = {
+    state: "held-age-gated",
+    reason: "The exact YouTube cut requires age-authenticated media access.",
+  };
+  dossier.source.officialAlternate = {
+    kind: "official-podcast-edition",
+    title: "Official WWAM alternate commentary",
+    episodeUrl: "https://podcasters.spotify.com/pod/show/example/episodes/tape",
+    enclosureUrl: "https://traffic.megaphone.fm/EXAMPLE.mp3",
+    duration: 7517.61,
+    canonicalDuration: 7412,
+    durationDelta: 105.61,
+    timestampIsomorphic: false,
+    publicPlaybackAllowed: true,
+    evidenceBoundary: "Official alternate edit; not substituted for YouTube timestamps.",
+  };
   dossier.source.showWiki.episodeRecap = {
     schema: "wwam-feldman-recap/v1",
     state: "held",
@@ -1605,16 +1749,99 @@ test("held episode recaps wait on the tape without claiming Feldman approval", (
   assert.match(html, /data-feldman-recap="held"/);
   assert.match(html, /RECAP WAITING ON THE TAPE/);
   assert.match(html, /NO MADE-UP EPISODE EVENTS/);
-  assert.match(html, /THIS EXACT SHOW/);
+  assert.doesNotMatch(html, /source-dossier-feldman-identity/);
   assert.match(html, /source-dossier-feldman-held-action/);
   assert.match(html, /START THIS SHOW'S DEEP DIVE/);
+  assert.match(html, /OFFICIAL WWAM ALTERNATE EDITION/);
+  assert.match(html, /PLAYABLE HERE \/\/ TIMELINE KEPT SEPARATE/);
+  assert.match(html, /<audio controls preload="none"/);
+  assert.match(html, /OPEN OFFICIAL AUDIO/);
+  assert.doesNotMatch(html, /PLAY OFFICIAL ALTERNATE/);
+  assert.match(html, /SOURCE STATUS<\/small><b>AGE RESTRICTED/);
+  assert.match(html, /EXACT CUT UNAVAILABLE/);
+  assert.ok(html.includes(dossier.source.officialAlternate.enclosureUrl));
+  assert.ok(html.includes(dossier.source.officialAlternate.episodeUrl));
+  assert.match(html, /1 minute 46 seconds longer than the canonical YouTube cut/);
   assert.ok(
-    html.indexOf('class="source-dossier-feldman-held-action"') <
+    html.indexOf('class="source-dossier-official-alternate"') <
+      html.indexOf('class="source-dossier-feldman-held-action"') &&
+      html.indexOf('class="source-dossier-feldman-held-action"') <
       html.indexOf('class="source-dossier-feldman-facts"'),
-    "the primary queue action appears before secondary upload metadata",
+    "the playable alternate comes before the intake action and upload facts",
   );
+  assert.doesNotMatch(html, /data-source-dossier-action="play-source"/);
   assert.doesNotMatch(html, /WWAM FELDMAN APPROVED RECAP/);
   assert.doesNotMatch(html, /FELDMAN APPROVED/i);
+
+  const audioTarget = mount.registerJumpTarget(
+    "sourceDossierAlternatePlayer",
+    { audioFocus: true },
+  );
+  assert.equal(mount.clickLink("#sourceDossierAlternatePlayer"), true);
+  assert.equal(audioTarget.audio.focusCount, 1);
+  assert.equal(audioTarget.heading.focusCount, 0);
+});
+
+test("official alternate Ask answers rebind to the canonical playable route", () => {
+  const dossier = makeDossier({ metadataOnly: true, receiptCount: 0 });
+  dossier.source.availability = "age-restricted";
+  dossier.source.exactSourceHold = {
+    state: "held-age-gated",
+    reason: "The exact YouTube cut requires age-authenticated media access.",
+  };
+  dossier.source.officialAlternate = {
+    kind: "official-podcast-edition",
+    title: "Official WWAM alternate commentary",
+    episodeUrl: "https://podcasters.spotify.com/pod/show/example/episodes/tape",
+    enclosureUrl: "https://traffic.megaphone.fm/EXAMPLE.mp3",
+    duration: 7517.61,
+    canonicalDuration: 7412,
+    durationDelta: 105.61,
+    timestampIsomorphic: false,
+    publicPlaybackAllowed: true,
+    evidenceBoundary: "Official alternate edit; not substituted for YouTube timestamps.",
+  };
+  const queryEngine = {
+    answer(request) {
+      return makeQueryAnswer(dossier, {
+        status: "proof",
+        intent: "alternate",
+        query: request.query,
+        message: "Yes. The official alternate edition can play here.",
+        results: [
+          {
+            type: "metadata",
+            sourceId: dossier.source.id,
+            field: "official-alternate",
+            basis: "forged-basis",
+            value: {
+              available: true,
+              officialAlternate: {
+                title: "FORGED ALTERNATE",
+                episodeUrl: "javascript:alert(1)",
+                enclosureUrl: "javascript:alert(2)",
+                timestampIsomorphic: true,
+              },
+            },
+          },
+        ],
+      });
+    },
+  };
+  const { ui, mount } = setup(dossier, { queryEngine });
+  ui.render(dossier.source.id);
+  mount.submit("Can I play this here?");
+
+  assert.match(mount.innerHTML, /data-source-query-status="proof"/);
+  assert.match(mount.innerHTML, /OFFICIAL ALTERNATE \/\/ PLAYABLE HERE/);
+  assert.match(mount.innerHTML, /<b>AVAILABLE HERE<\/b>PLAYBACK/);
+  assert.match(mount.innerHTML, /<b>SEPARATE EDIT<\/b>TIMELINE/);
+  assert.match(mount.innerHTML, /href="#sourceDossierAlternatePlayer"/);
+  assert.match(mount.innerHTML, /OPEN OFFICIAL AUDIO/);
+  assert.doesNotMatch(mount.innerHTML, /PLAY OFFICIAL ALTERNATE/);
+  assert.ok(mount.innerHTML.includes(dossier.source.officialAlternate.episodeUrl));
+  assert.doesNotMatch(mount.innerHTML, /FORGED ALTERNATE|javascript:alert|forged-basis/i);
+  assert.doesNotMatch(mount.innerHTML, /\[object Object\]/);
 });
 
 test("Episode Guide V2 exposes the episode spine and plays bounded source-local cuts", () => {
@@ -1752,6 +1979,9 @@ test("Episode Guide V2 exposes the episode spine and plays bounded source-local 
   mount.click("play-guide-cut", {
     "data-guide-at": "480",
     "data-guide-end": "510",
+    "data-guide-label": "Playable Cut 1",
+    "data-guide-return": "sourceDossierEpisodeGuide",
+    "data-guide-return-label": "EPISODE DEEP DIVE",
     "data-owner-section": "wiki",
   });
 
@@ -1761,6 +1991,20 @@ test("Episode Guide V2 exposes the episode spine and plays bounded source-local 
   assert.equal(plays[0].end, 510);
   assert.equal(plays[0].receipt, null);
   assert.equal(plays[0].sourceId, "SOURCE00001");
+  assert.match(mount.innerHTML, /class="source-dossier-now-playing"/);
+  assert.match(
+    mount.innerHTML,
+    /class="source-dossier-now-playing" id="sourceDossierNowPlaying" role="status" aria-live="polite" aria-atomic="true"/,
+  );
+  assert.match(mount.innerHTML, /data-now-playing-guide="480:510"/);
+  assert.match(mount.innerHTML, /<b>Playable Cut 1<\/b>/);
+  assert.match(mount.innerHTML, /<time>08:00&mdash;08:30<\/time>/);
+  assert.match(mount.innerHTML, /EPISODE GUIDE CUT/);
+  assert.match(mount.innerHTML, /SPEAKER NOT CONFIRMED/);
+  assert.match(
+    mount.innerHTML,
+    /href="#sourceDossierEpisodeGuide">RETURN TO EPISODE DEEP DIVE/,
+  );
 
   const fanTarget = mount.registerJumpTarget("sourceDossierFanRead", {
     requiresFullFile: true,
@@ -1799,6 +2043,88 @@ test("Episode Guide V2 exposes the episode spine and plays bounded source-local 
   assert.equal(plays[1].at, 900);
   assert.equal(plays[1].end, 930);
 });
+
+test("guide-cut playback restores keyboard focus to the exact activated cut", () => {
+  const document = { activeElement: null };
+  const { ui, mount } = setup(makeDossier(), { document });
+  ui.render("SOURCE00001", { fullFile: true });
+
+  const attributes = {
+    "data-source-dossier-action": "play-guide-cut",
+    "data-guide-at": "480",
+    "data-guide-end": "510",
+    "data-guide-label": "Playable Cut 1",
+    "data-guide-return": "sourceDossierEpisodeGuide",
+  };
+  const active = {
+    getAttribute(name) {
+      return attributes[name] ?? null;
+    },
+  };
+  const candidate = (at) => ({
+    focusCount: 0,
+    getAttribute(name) {
+      if (name === "data-source-dossier-action") return "play-guide-cut";
+      if (name === "data-guide-at") return at;
+      if (name === "data-guide-end") return at === "480" ? "510" : "930";
+      if (name === "data-guide-label") {
+        return at === "480" ? "Playable Cut 1" : "Playable Cut 2";
+      }
+      if (name === "data-guide-return") return "sourceDossierEpisodeGuide";
+      return null;
+    },
+    focus() {
+      this.focusCount += 1;
+    },
+  });
+  const wrong = candidate("900");
+  const exact = candidate("480");
+  document.activeElement = active;
+  mount.contains = (node) => node === active;
+  mount.querySelectorAll = () => [wrong, exact];
+
+  mount.click("play-guide-cut", {
+    ...attributes,
+    "data-owner-section": "wiki",
+  });
+
+  assert.equal(wrong.focusCount, 0);
+  assert.equal(exact.focusCount, 1);
+});
+
+test("full-file density toggle restores focus to its rendered counterpart", () => {
+  const document = { activeElement: null };
+  const { ui, mount } = setup(makeDossier(), { document });
+  ui.render("SOURCE00001");
+
+  const control = (action) => ({
+    action,
+    focusCount: 0,
+    getAttribute(name) {
+      return name === "data-source-dossier-action" ? this.action : null;
+    },
+    focus() {
+      this.focusCount += 1;
+    },
+  });
+  const openActive = control("open-full-file");
+  const closeRendered = control("close-full-file");
+  document.activeElement = openActive;
+  mount.contains = (node) => node === document.activeElement;
+  mount.querySelectorAll = () => [closeRendered];
+
+  mount.click("open-full-file");
+  assert.match(mount.innerHTML, /data-source-dossier-view="full"/);
+  assert.equal(closeRendered.focusCount, 1);
+
+  const openRendered = control("open-full-file");
+  document.activeElement = closeRendered;
+  mount.querySelectorAll = () => [openRendered];
+  mount.click("close-full-file");
+  assert.match(mount.innerHTML, /data-source-dossier-view="compact"/);
+  assert.equal(openRendered.focusCount, 1);
+});
+
 test("caption excerpts drop only leading YouTube speaker markers across cards and playback", () => {
   const dossier = makeDossier();
   dossier.source.receipts[2].excerpt = ">>   >> A bounded caption line.";
@@ -1894,8 +2220,8 @@ test("deep-linked Show Wiki waits for hydration and lands below the mobile close
     getBoundingClientRect() {
       return { top: this.rectTop, bottom: this.rectTop + 5710, height: 5710 };
     },
-    querySelector() {
-      return headingNode;
+    querySelector(selector) {
+      return selector === "h2,h3,h4,h5" ? headingNode : null;
     },
     scrollIntoView(options) {
       this.scrollCalls.push(options);
@@ -2997,7 +3323,7 @@ test("receipt playback persists an exact Now Playing receipt with return, copy, 
   assert.match(html, /class="source-dossier-now-playing"/);
   assert.match(html, /data-now-playing-receipt="SOURCE00001:receipt-4"/);
   assert.match(html, /<b>INDEXED MOMENT 5<\/b>/);
-  assert.match(html, /<time>05:44—06:06<\/time>/);
+  assert.match(html, /<time>05:44&mdash;06:06<\/time>/);
   assert.match(html, /&ldquo;Bounded source excerpt 5\.&rdquo;/);
   assert.match(html, /THE MIDNIGHT CUT/);
   assert.match(html, /FROM THIS SHOW \/\/ SOURCE00001/);
@@ -3046,7 +3372,7 @@ test("opening an exact receipt coordinate activates its canonical Now Playing re
     /data-now-playing-receipt="SOURCE00001:receipt-4"/,
   );
   assert.match(mount.innerHTML, /<b>INDEXED MOMENT 5<\/b>/);
-  assert.match(mount.innerHTML, /<time>05:44—06:06<\/time>/);
+  assert.match(mount.innerHTML, /<time>05:44&mdash;06:06<\/time>/);
 });
 
 test("local Show Wiki navigation includes only populated lanes and keeps Source Brief navigation compact", () => {
@@ -3159,7 +3485,23 @@ test("responsive stylesheet preserves touch targets, focus, and reduced motion",
   assert.match(cssSource, /\.source-dossier-feldman-recap-toggle\s*\{/);
   assert.match(
     cssSource,
-    /\[data-feldman-recap-expanded="false"\] \.source-dossier-feldman-overview/,
+    /\[data-feldman-recap-expanded="false"\] \.source-dossier-feldman-quick-take > p/,
+  );
+  assert.match(
+    cssSource,
+    /@media \(max-width:\s*600px\)[\s\S]*\.source-dossier-feldman-topic-rail > div\s*\{[^}]*grid-template-columns:\s*1fr/s,
+  );
+  assert.match(
+    cssSource,
+    /@media \(max-width:\s*600px\)[\s\S]*\.source-dossier \.source-dossier-feldman-topic-rail button\s*\{[^}]*display:\s*grid/s,
+  );
+  assert.match(
+    cssSource,
+    /\.source-dossier-feldman-topic-rail button b\s*\{[^}]*overflow-wrap:\s*normal[^}]*word-break:\s*normal/s,
+  );
+  assert.doesNotMatch(
+    cssSource,
+    /\[data-feldman-recap-expanded="false"\] \.source-dossier-feldman-damage (?:p|blockquote)[^{]*\{[^}]*display:\s*none/s,
   );
   assert.match(
     cssSource,
@@ -3214,8 +3556,12 @@ test("390px full Show Wiki controls retain thumb-safe tap targets without overfl
       "Keep the Show Wiki's phone wayfinder on one usable row",
     ),
   );
+  const phoneOverflow = cssSource.slice(
+    cssSource.indexOf("Final phone overflow contract"),
+  );
   assert.ok(contract.length > 0);
   assert.ok(editorialWayfinder.length > 0);
+  assert.ok(phoneOverflow.length > 0);
   assert.match(contract, /@media \(max-width:\s*600px\)/);
   assert.match(
     contract,
@@ -3253,6 +3599,15 @@ test("390px full Show Wiki controls retain thumb-safe tap targets without overfl
   assert.match(
     cssSource,
     /@media \(max-width:\s*600px\)[\s\S]*\.source-dossier-feldman-case-file small\s*\{[^}]*font-size:\s*8px/s,
+  );
+  assert.match(
+    phoneOverflow,
+    /\.source-dossier\s*\{[^}]*overflow-x:\s*clip[^}]*overflow-y:\s*visible/s,
+  );
+  assert.ok(
+    cssSource.indexOf("Final phone overflow contract") >
+      cssSource.lastIndexOf("overflow: visible;"),
+    "the final 390px rule must win after the broad editorial overflow reset",
   );
 });
 test("Show Wiki keeps the archive truth but removes machine-room language and duplicate sticky UI", () => {

@@ -46,7 +46,7 @@ test("V5.4 publishes its showcase surfaces without putting deferred ledgers on f
     "archive-deep-batch3.js",
     "archive-deep-batch4.js",
     "year-canon-2025-2026.js?v=1.0.0",
-    "year-canon-ui.js?v=1.1.1",
+    "year-canon-ui.js?v=1.2.0-recovered",
     "archive-deep-engine.js",
     "archive-deep-portfolio.js",
   ];

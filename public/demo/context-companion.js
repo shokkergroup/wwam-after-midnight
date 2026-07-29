@@ -198,6 +198,9 @@
   }, true);
 
   document.addEventListener("click", function (event) {
+    // The dossier owns its core in-modal jumps, including rerender-aware focus.
+    // Do not run a second scroll calculation after that handler cancels the click.
+    if (event.defaultPrevented) return;
     var anchor = event.target.closest('#tapeModal .source-dossier-explore a[href^="#"], #tapeModal .source-dossier-wiki-local-nav a[href^="#"]');
     if (!anchor) return;
     var modal = document.getElementById("tapeModal");

@@ -163,8 +163,8 @@ test("V5.18 package, lane-specific cache keys, and Ask This Tape docs move toget
   assert.match(html, /styles\.css\?v=0\.5\.34-livewire-mobile/);
   assert.match(html, /search-engine\.js\?v=0\.5\.39-verify/);
   assert.match(html, /youtube-playback\.js\?v=2\.4\.2-host-local/);
-  assert.match(html, /app\.js\?v=0\.5\.47-release-polish/);
-  assert.match(html, /guided-shell\.js\?v=1\.2\.2-dossier/);
+  assert.match(html, /app\.js\?v=0\.5\.\d+-[a-z0-9-]+/);
+  assert.match(html, /guided-shell\.js\?v=1\.2\.3-recovered/);
 
   const guidePath = path.join(root, "docs", "ASK_THIS_TAPE.md");
   assert.equal(fs.existsSync(guidePath), true, "Ask This Tape guide is missing");

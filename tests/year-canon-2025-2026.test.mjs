@@ -45,7 +45,7 @@ const allExcerpts = canon.streams.flatMap((stream) => [
   ...(stream.characters || []).map((character) => character.receipt).filter(Boolean),
 ]);
 
-test("registers every 2025 and 2026 livestream with one honest caption exception", () => {
+test("preserves the frozen year-canon snapshot that predates exact-source ASR recovery", () => {
   assert.equal(canon.schema, "shokker-youtube-wiki/year-canon/v1");
   assert.equal(canon.meta.registered, 131);
   assert.equal(canon.meta.captionBacked, 130);
@@ -123,14 +123,15 @@ test("binds the canon to Archive Atlas and a reproducible public fingerprint", (
   );
 });
 
-test("loads the canon into the product, Ask layer, and Mike-facing proof", () => {
+test("loads the canon into the product, Ask layer, and recovered Mike-facing proof", () => {
   const app = fs.readFileSync(path.join(demo, "app.js"), "utf8");
   const html = fs.readFileSync(path.join(demo, "index.html"), "utf8");
   assert.match(app, /year-canon-2025-2026\.js/);
   assert.match(app, /topicIndex:.*WWAM_YEAR_CANON_2025_2026\.topicIndex/);
   assert.match(app, /characterIndex:.*WWAM_YEAR_CANON_2025_2026\.characterIndex/);
   assert.match(html, /TWO YEARS\.\s*<br><em>ONE SHELF\./);
-  assert.match(html, /ONE WATCH-ONLY SHOW/);
+  assert.match(html, /EVERY SHOW NOW HAS A SOURCE-BACKED WIKI/);
+  assert.match(app, /year-canon-ui\.js\?v=1\.2\.0-recovered/);
   assert.match(
     app,
     /archiveDeepPayload = Object\.assign\(\{\}, archiveDeepPayload,[\s\S]{0,1200}yearCanon:/,

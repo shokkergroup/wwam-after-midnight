@@ -848,10 +848,42 @@ window.WWAM_CONTEXT_ATLAS = {
       "kind": "livestream",
       "date": "June 30, 2026",
       "title": "Horror's Top Box Office Hits Tier List! Live!",
-      "summary": "Playable official upload; exact topics and claims are not inferred.",
-      "coverage": "caption-limited",
-      "cards": [],
-      "gap": "YouTube exposes no usable English caption track for this source. The archive will not manufacture topic chapters, quotes or opinions."
+      "summary": "The recovered exact-source map opens Batman, Superman, Box Office and The Conjuring without leaving the show.",
+      "coverage": "caption-backed",
+      "cards": [
+        {
+          "at": 1972,
+          "kind": "topic",
+          "title": "Batman — source-locked topic door",
+          "summary": "Recovered captions put the Batman warehouse-scene comparison here. Play the original exchange for the complete take.",
+          "sourceLabel": "WWAM exact upload",
+          "claimState": "SOURCE-LOCKED"
+        },
+        {
+          "at": 2331,
+          "kind": "topic",
+          "title": "Superman — source-locked topic door",
+          "summary": "The Superman discussion begins here; the exact upload keeps the delivery and surrounding context attached.",
+          "sourceLabel": "WWAM exact upload",
+          "claimState": "SOURCE-LOCKED"
+        },
+        {
+          "at": 3166,
+          "kind": "topic",
+          "title": "Box Office — source-locked topic door",
+          "summary": "The horror box-office ranking takes the wheel here, with the original tape preserving the full argument.",
+          "sourceLabel": "WWAM exact upload",
+          "claimState": "SOURCE-LOCKED"
+        },
+        {
+          "at": 6773,
+          "kind": "topic",
+          "title": "The Conjuring — source-locked topic door",
+          "summary": "The Conjuring becomes the subject at this exact point in the recovered show map.",
+          "sourceLabel": "WWAM exact upload",
+          "claimState": "SOURCE-LOCKED"
+        }
+      ]
     },
     "7PzSj-oIRjA": {
       "kind": "livestream",

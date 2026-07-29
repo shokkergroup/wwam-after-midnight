@@ -132,6 +132,7 @@
         !window.WWAM_YEAR_CANON_2025_2026 ||
         !window.WWAM_ARCHIVE_RECOVERY_BATCH1 ||
         !window.WWAM_ARCHIVE_RECOVERY_BATCH2 ||
+        !window.WWAM_ARCHIVE_COMPLETION ||
         !window.WWAMArchiveDeepEngine || !window.WWAMArchiveDeepPortfolio) return null;
     archiveDeepEngine = attempt(function () {
       return window.WWAMArchiveDeepPortfolio.create(
@@ -148,10 +149,13 @@
     });
     var recoveryStreams = (window.WWAM_ARCHIVE_RECOVERY_BATCH1.streams || [])
       .concat(window.WWAM_ARCHIVE_RECOVERY_BATCH2.streams || []).map(function (stream) {
+        return JSON.parse(JSON.stringify(stream));
+      });
+    var completionStreams = (window.WWAM_ARCHIVE_COMPLETION.streams || []).map(function (stream) {
       return JSON.parse(JSON.stringify(stream));
     });
     var archiveDeepIds = new Set(archiveDeepStreams.map(function (stream) { return stream.id; }));
-    recentCanonStreams.concat(recoveryStreams).forEach(function (stream) {
+    recentCanonStreams.concat(recoveryStreams, completionStreams).forEach(function (stream) {
       if (!archiveDeepIds.has(stream.id)) {
         archiveDeepIds.add(stream.id);
         archiveDeepStreams.push(stream);
@@ -161,10 +165,12 @@
       streams: archiveDeepStreams,
       topicIndex: (archiveDeepPayload.topicIndex || []).concat(window.WWAM_YEAR_CANON_2025_2026.topicIndex || [])
         .concat(window.WWAM_ARCHIVE_RECOVERY_BATCH1.topicIndex || [])
-        .concat(window.WWAM_ARCHIVE_RECOVERY_BATCH2.topicIndex || []),
+        .concat(window.WWAM_ARCHIVE_RECOVERY_BATCH2.topicIndex || [])
+        .concat(window.WWAM_ARCHIVE_COMPLETION.topicIndex || []),
       characterIndex: (archiveDeepPayload.characterIndex || []).concat(window.WWAM_YEAR_CANON_2025_2026.characterIndex || [])
         .concat(window.WWAM_ARCHIVE_RECOVERY_BATCH1.characterIndex || [])
-        .concat(window.WWAM_ARCHIVE_RECOVERY_BATCH2.characterIndex || []),
+        .concat(window.WWAM_ARCHIVE_RECOVERY_BATCH2.characterIndex || [])
+        .concat(window.WWAM_ARCHIVE_COMPLETION.characterIndex || []),
       yearCanon: {
         schema: window.WWAM_YEAR_CANON_2025_2026.schema,
         meta: window.WWAM_YEAR_CANON_2025_2026.meta,
@@ -190,10 +196,21 @@
           fingerprints: window.WWAM_ARCHIVE_RECOVERY_BATCH2.fingerprints,
         },
       ],
+      archiveCompletion: {
+        schema: window.WWAM_ARCHIVE_COMPLETION.schema,
+        lane: window.WWAM_ARCHIVE_COMPLETION.lane,
+        meta: window.WWAM_ARCHIVE_COMPLETION.meta,
+        fingerprints: window.WWAM_ARCHIVE_COMPLETION.fingerprints,
+      },
     });
     archiveDeepStreams.forEach(function (stream) {
       stream._lane = "archive";
-      stream.captioned = true;
+      if (typeof stream.captioned !== "boolean") {
+        stream.captioned = !(
+          stream.captionEvidence &&
+          stream.captionEvidence.type === "exact-source-unavailable"
+        );
+      }
       stream.moments = (stream.moments || []).map(function (moment) {
         return Object.assign({}, moment, { quote: moment.excerpt || "" });
       });
@@ -212,7 +229,8 @@
       "archive-deep-distill.js","archive-deep-batch2.js","archive-deep-batch3.js","archive-deep-batch4.js",
       "year-canon-2025-2026.js?v=1.0.0","archive-recovery-batch1.js?v=1.0.0",
       "archive-recovery-batch2.js?v=1.0.0",
-      "year-canon-ui.js?v=1.1.1",
+      "archive-completion.js?v=1.0.1-receipt-bound",
+      "year-canon-ui.js?v=1.2.0-recovered",
       "archive-deep-engine.js","archive-deep-portfolio.js",
     ].reduce(function(p,s){return p.then(function(){return loadDemoScript(s);});},
       Promise.resolve()).then(createArchiveDeep)
@@ -503,6 +521,12 @@
             return stream.id;
           })
         );
+        var completionIds = new Set(
+          (window.WWAM_ARCHIVE_COMPLETION &&
+            window.WWAM_ARCHIVE_COMPLETION.streams || []).map(function (stream) {
+            return stream.id;
+          })
+        );
         var archiveEvidenceIds = new Set(archiveDeepStreams.map(function (stream) {
           return stream.id;
         }));
@@ -512,8 +536,12 @@
         var missingRecovery = Array.from(recoveryIds).filter(function (id) {
           return !archiveEvidenceIds.has(id);
         });
-        if (!archiveDeepEngine || archiveDeepStreams.length < 65 ||
-            missingYearCanon.length || missingRecovery.length) {
+        var missingCompletion = Array.from(completionIds).filter(function (id) {
+          return !archiveEvidenceIds.has(id);
+        });
+        if (!archiveDeepEngine || archiveDeepStreams.length < 430 ||
+            missingYearCanon.length || missingRecovery.length ||
+            missingCompletion.length) {
           throw new Error("The living archive evidence overlay is incomplete.");
         }
         if (!showcaseEngine) createDeepEngines();
@@ -522,19 +550,19 @@
         }
         return clipLabEngine?null:loadDemoScript("creator-studio-engine.js").then(createClipLab);
       })
-      .then(function () { return loader.loadStyle("source-dossier.css?v=2.2.1-grid-nav"); })
+      .then(function () { return loader.loadStyle("source-dossier.css?v=5.23-story-flow"); })
       .then(function () {
         return ["channel-pack-contract.js", "wwam-channel-pack-adapter.js",
           "episode-guides.js?v=2.1.5-referent",
           "episode-guide-v2-reviewed-release.js?v=1.0.1-runtime-eligible",
           "episode-guide-v2-reviewed-merge.js?v=1.0.1-runtime-eligible",
-          "episode-recap-engine.js?v=1.2.0-full-story",
-          "wwam-episode-recap-adapter.js?v=1.2.0-full-story",
-          "source-dossier-engine.js?v=1.9.0-full-story",
-          "wwam-source-dossier-adapter.js?v=1.10.0-recovery2-guides",
-          "source-query-engine.js?v=1.4.0",
+          "episode-recap-engine.js?v=1.4.0-complete-chronicle",
+          "wwam-episode-recap-adapter.js?v=1.4.0-feldman-voice",
+          "source-dossier-engine.js?v=1.11.0-guide-contract",
+          "wwam-source-dossier-adapter.js?v=1.12.0-guide-contract",
+          "source-query-engine.js?v=1.6.0-recap-parity",
           "aftermath-pack-engine.js?v=1.0.0",
-          "source-dossier-ui.js?v=1.12.1-topic-dedupe"].reduce(function (promise, source) {
+          "source-dossier-ui.js?v=1.14.0-story-flow"].reduce(function (promise, source) {
           return promise.then(function () { return loader.load(source); });
         }, Promise.resolve());
       })

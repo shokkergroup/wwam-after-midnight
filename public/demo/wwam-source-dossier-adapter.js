@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.10.0";
+  var VERSION = "1.12.0";
   var SCHEMA = "shokker-source-dossier-input/v1";
   var PUBLIC_EXCERPT_WORDS = 16;
   var OFFICIAL_WWAM_CHANNEL_ID = "UC6ieEOZW4iXV8TcILJI8k5g";
@@ -682,6 +682,55 @@
       return { id: "horror-news", label: "HORROR NEWS SHOW", basis: "source-title-metadata" };
     }
     return { id: "livestream", label: "WWAM LIVESTREAM", basis: "registered-source-type" };
+  }
+
+  var EPISODE_GUIDE_FORMAT_COMPATIBILITY = Object.freeze({
+    "review-reaction": Object.freeze([
+      "spoiler-party", "trailer-reaction", "livestream"
+    ]),
+    ranking: Object.freeze([
+      "ranking-show", "versus-show"
+    ]),
+    livestream: Object.freeze([
+      "livestream", "q-and-a", "interview", "anniversary",
+      "spoiler-party", "horror-news"
+    ]),
+    "movie-news": Object.freeze([
+      "horror-news", "livestream"
+    ])
+  });
+
+  function episodeGuideForSource(source, rawGuide) {
+    if (rawGuide == null) return null;
+    if (typeof rawGuide !== "object" || Array.isArray(rawGuide)) {
+      fail(
+        "EPISODE_GUIDE_INVALID",
+        "Episode Guide " + source.id + " must be a plain source-local object."
+      );
+    }
+    var guide = clone(rawGuide);
+    var declaredGuideFormat = clean(guide.format);
+    var runtimeFormat = showWikiFormat(source);
+    if (declaredGuideFormat) {
+      var compatibleFormats =
+        EPISODE_GUIDE_FORMAT_COMPATIBILITY[declaredGuideFormat];
+      if (!compatibleFormats ||
+          compatibleFormats.indexOf(runtimeFormat.id) < 0) {
+        fail(
+          "EPISODE_GUIDE_FORMAT_DRIFT",
+          "Episode Guide " + source.id + " declares " +
+            declaredGuideFormat + " but canonical source metadata resolves " +
+            runtimeFormat.id + "."
+        );
+      }
+    }
+    guide.runtimeFormat = {
+      id: runtimeFormat.id,
+      label: runtimeFormat.label,
+      basis: runtimeFormat.basis,
+      declaredGuideFormat: declaredGuideFormat
+    };
+    return guide;
   }
 
   function showWikiBriefFor(source) {
@@ -1563,14 +1612,56 @@
       warnings.push("SOURCE-AUDIO FIREWALL // TOPIC NAVIGATION ONLY.");
       warnings.push("NO PUBLIC JOKE OR CHARACTER RECEIPTS ARE EXPOSED FROM THIS SOURCE.");
     }
+    var exactSourceHeld = Boolean(
+      archiveStream && archiveStream.captionEvidence &&
+      archiveStream.captionEvidence.type === "exact-source-unavailable"
+    );
+    if (exactSourceHeld) {
+      warnings.push(
+        "EXACT YOUTUBE CUT HELD // NO RECAP, TOPIC, QUOTE, CHARACTER, HEAT, OR TIMESTAMP CLAIMS."
+      );
+    }
+    if (archiveStream && archiveStream.alternateOfficialSource &&
+        archiveStream.alternateOfficialSource.timestampIsomorphic === false) {
+      warnings.push(
+        "OFFICIAL PODCAST EDITION AVAILABLE // ITS EDIT DOES NOT MATCH THIS YOUTUBE CUT."
+      );
+    }
     var span = numberOrNull(
       archiveStream && archiveStream.captionEvidence &&
       archiveStream.captionEvidence.durationCoveragePercent
     );
-    if (span != null && span < 100) {
+    if (!exactSourceHeld && span != null && span < 100) {
       warnings.push("AVAILABLE CAPTION SPAN: " + span + "% OF SOURCE DURATION.");
     }
     return stableStrings(warnings);
+  }
+
+  function officialAlternateFor(archiveStream) {
+    var alternate = archiveStream && archiveStream.alternateOfficialSource;
+    if (!alternate || alternate.timestampIsomorphic !== false) return null;
+    return {
+      kind: clean(alternate.kind),
+      title: clean(alternate.title),
+      episodeUrl: clean(alternate.episodeUrl),
+      enclosureUrl: clean(alternate.enclosureUrl),
+      duration: number(alternate.duration),
+      canonicalDuration: number(alternate.canonicalYouTubeDuration),
+      durationDelta: number(alternate.durationDelta),
+      timestampIsomorphic: false,
+      publicPlaybackAllowed: alternate.publicPlaybackAllowed === true,
+      evidenceBoundary: clean(alternate.evidenceBoundary),
+    };
+  }
+
+  function exactSourceHoldFor(archiveStream) {
+    if (!archiveStream || !clean(archiveStream.exactSourceTranscriptState)) {
+      return null;
+    }
+    return {
+      state: clean(archiveStream.exactSourceTranscriptState),
+      reason: clean(archiveStream.exactSourceHoldReason),
+    };
   }
 
   function metricsFor(source, overlay, receipts, entities, artifacts) {
@@ -1737,7 +1828,11 @@
     }
     assertSubset(liveStreams, atlasIds, "WWAM Fresh 10");
     assertSubset(popularStreams, atlasIds, "WWAM Popular 25");
-    assertSubset(archiveStreams, atlasIds, "WWAM Archive Deep");
+    assertSubset(
+      archiveStreams,
+      new Set(Array.from(atlasIds).concat(Array.from(catalogById.keys()))),
+      "WWAM Archive Deep"
+    );
 
     assertSubset(
       array(deep.tapes),
@@ -1846,6 +1941,7 @@
       var popularStream = popularById.get(id) || null;
       var archiveStream = archiveById.get(id) || null;
       var showcaseSource = showcaseSources.get(id) || null;
+      var exactSourceHold = exactSourceHoldFor(archiveStream);
       var overlay = archiveStream || commentaryTape || liveStream || popularStream ||
         showcaseSource || null;
       var overlayHasCaptionEvidence = Boolean(overlay && (
@@ -1873,7 +1969,11 @@
         liveStatus: archiveStream
           ? clean(archiveStream.liveStatus) || base.liveStatus
           : base.liveStatus,
-        coverage: overlayHasCaptionEvidence ? "caption-backed" : base.coverage,
+        coverage: exactSourceHold
+          ? "metadata-only"
+          : overlayHasCaptionEvidence
+            ? "caption-backed"
+            : base.coverage,
         authority: authority,
         lanes: base.lanes,
         sourceType: catalogItem ? "commentary" : "livestream",
@@ -1884,9 +1984,17 @@
           popularStream && popularStream.wordsAudited ||
           showcaseSource && showcaseSource.wordsAudited
         ),
-        episodeGuide: (episodeGuideById.get(id) && episodeGuideById.get(id).episodeGuide) ||
-          commentaryTape && commentaryTape.episodeGuide || null,
+        exactSourceHold: exactSourceHold,
+        officialAlternate: officialAlternateFor(archiveStream),
+        episodeGuide: null,
       };
+      source.episodeGuide = episodeGuideForSource(
+        source,
+        (episodeGuideById.get(id) &&
+          episodeGuideById.get(id).episodeGuide) ||
+          commentaryTape && commentaryTape.episodeGuide ||
+          null
+      );
 
       var summaryText = "";
       var summaryBasis = "";
@@ -1997,45 +2105,52 @@
       );
       var episodeRecap = null;
       if (root.ShokkerEpisodeRecap && root.WWAMEpisodeRecapAdapter) {
+        var episodeRecapMap = root.ShokkerEpisodeRecap.build({
+          source: source,
+          receipts: receipts,
+          episodeGuide: source.episodeGuide,
+          format: showWikiFormat(source),
+          context: {
+            title: clean(source.displayTitle || source.title),
+            titleTopics: showWikiSelectedTopics(
+              source,
+              receipts.filter(function (receipt) {
+                return clean(receipt.kind).toLowerCase().indexOf("topic") >= 0 ||
+                  clean(receipt.evidenceType).toLowerCase().indexOf("topic") >= 0;
+              }),
+              8
+            ).map(function (receipt) {
+              return showWikiProseLabel(receipt.label);
+            }),
+            summary: source.summary ? clone(source.summary) : null,
+            registeredOverview: clean(
+              showWiki.recap && showWiki.recap.overview
+            ),
+            editorial: overlay && overlay.editorial
+              ? clone(overlay.editorial)
+              : null,
+            indices: overlay && overlay.indices
+              ? clone(overlay.indices)
+              : null,
+            peak: overlay && overlay.peak
+              ? clone(overlay.peak)
+              : null,
+            lanes: showWiki.lanes.map(function (lane) {
+              return {
+                id: lane.id,
+                label: lane.label,
+                receiptKeys: lane.receiptKeys.slice(),
+              };
+            }),
+          },
+        });
         episodeRecap = root.WWAMEpisodeRecapAdapter.build({
-          map: root.ShokkerEpisodeRecap.build({
-            source: source,
-            receipts: receipts,
-            episodeGuide: source.episodeGuide,
-            format: showWikiFormat(source),
-            context: {
-              title: clean(source.displayTitle || source.title),
-              titleTopics: showWikiSelectedTopics(
-                source,
-                receipts.filter(function (receipt) {
-                  return clean(receipt.kind).toLowerCase().indexOf("topic") >= 0 ||
-                    clean(receipt.evidenceType).toLowerCase().indexOf("topic") >= 0;
-                }),
-                8
-              ).map(function (receipt) {
-                return showWikiProseLabel(receipt.label);
-              }),
-              summary: source.summary ? clone(source.summary) : null,
-              editorial: overlay && overlay.editorial
-                ? clone(overlay.editorial)
-                : null,
-              indices: overlay && overlay.indices
-                ? clone(overlay.indices)
-                : null,
-              peak: overlay && overlay.peak
-                ? clone(overlay.peak)
-                : null,
-              lanes: showWiki.lanes.map(function (lane) {
-                return {
-                  id: lane.id,
-                  label: lane.label,
-                  receiptKeys: lane.receiptKeys.slice(),
-                };
-              }),
-            },
-          }),
+          map: episodeRecapMap,
           source: source,
         });
+        episodeRecap.evidenceFingerprint =
+          episodeRecapMap.evidenceFingerprint;
+        episodeRecap.guideRecap = clone(episodeRecapMap.guideRecap);
       }
       source.episodeRecap = episodeRecap;
       showWiki.episodeRecap = episodeRecap;

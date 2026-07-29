@@ -179,6 +179,110 @@ function episodeGuide() {
   };
 }
 
+function feldmanEpisodeRecap(sourceId) {
+  const allKeys = [
+    "episode-opening",
+    "episode-topic-batman",
+    "episode-topic-masks",
+    "episode-funniest",
+    "episode-best",
+    "episode-up-in-ya",
+    "episode-steve",
+    "episode-character",
+    "episode-decoy",
+  ];
+  return {
+    schema: "wwam-feldman-recap/v1",
+    generatorVersion: "1.3.0",
+    coreSchema: "shokker-episode-recap/v1",
+    sourceId,
+    sourceFingerprint: "fnv1a32:11111111",
+    semanticFingerprint: "fnv1a32:22222222",
+    state: "ready",
+    tier: "receipt-recap",
+    label: "WWAM FELDMAN APPROVED RECAP",
+    badge: "PLAYABLE EPISODE RECAP",
+    headline: "HALLOWEEN OPENS THE DOOR. BATMAN ARRIVES AFTER CURFEW.",
+    deck: "A one-hour commentary that moves from Halloween to Batman and the night's wildest turns.",
+    overview: "Halloween Full Commentary runs 1 hr. The recap opens with the production update, turns toward Batman and masks, then reaches its sharpest replay picks before Captain Void closes the night.",
+    topics: ["Halloween", "Batman", "Masks"],
+    sections: [
+      {
+        id: "opening",
+        ordinal: 1,
+        label: "COLD OPEN // PRODUCTION UPDATE",
+        body: "At 1:00, the production update starts the show.",
+        at: 60,
+        end: 80,
+        anchor: "Opening signal",
+        category: "moment",
+        excerpt: "The archived episode opens with a production update.",
+        receiptKeys: ["episode-opening"],
+        guideCutId: "",
+        evidenceBasis: "exact-caption-coordinate",
+      },
+      {
+        id: "batman",
+        ordinal: 2,
+        label: "NOW TALKING // BATMAN",
+        body: "At 5:00, Batman takes over the conversation.",
+        at: 300,
+        end: 320,
+        anchor: "Batman discussion",
+        category: "topic",
+        excerpt: "",
+        receiptKeys: ["episode-topic-batman"],
+        guideCutId: "",
+        evidenceBasis: "exact-caption-coordinate",
+      },
+      {
+        id: "best",
+        ordinal: 3,
+        label: "WORTH A REWIND // BEST BEAT",
+        body: "At 20:00, the night's strongest saved turn lands.",
+        at: 1200,
+        end: 1220,
+        anchor: "Best registered beat",
+        category: "moment",
+        excerpt: "The discussion lands its strongest registered beat.",
+        receiptKeys: ["episode-best"],
+        guideCutId: "",
+        evidenceBasis: "exact-caption-coordinate",
+      },
+    ],
+    story: [
+      {
+        id: "whole-show",
+        ordinal: 1,
+        label: "THE FULL NIGHT",
+        body: "The episode moves from its opening update through Batman, masks, comedy, criticism, and the closing character turn.",
+        at: 60,
+        end: 3320,
+        anchorReceiptKey: "episode-opening",
+        anchorAt: 60,
+        anchor: "Opening signal",
+        excerpt: "The archived episode opens with a production update.",
+        topicLabels: ["Halloween", "Batman", "Masks"],
+        momentLabels: ["Room breaks", "UP IN YA", "Straight to Steve"],
+        characterLabels: ["Captain Void"],
+        receiptKeys: allKeys,
+        evidenceBasis: "exact-show-chronology",
+      },
+    ],
+    bestMoments: [],
+    fanRead: {},
+    caseFile: null,
+    coverage: {},
+    format: { id: "movie-commentary" },
+    limitations: ["Automatic captions do not establish the speaker."],
+    approval: {
+      meaning: "wwam-editorial-parody-label",
+      actualApproval: false,
+      disclosure: "A recurring-bit-inspired archive label, not an endorsement.",
+    },
+  };
+}
+
 function source(overrides) {
   const id = overrides.id;
   return {
@@ -197,6 +301,8 @@ function source(overrides) {
     lanes: overrides.lanes || ["primary"],
     sourceType: overrides.sourceType || "broadcast",
     wordsAudited: overrides.wordsAudited || 0,
+    exactSourceHold: overrides.exactSourceHold ?? null,
+    officialAlternate: overrides.officialAlternate ?? null,
     summary: overrides.summary ?? null,
     showWiki: overrides.showWiki ?? null,
     rightsPolicy: {},
@@ -472,6 +578,7 @@ function fixtureInput() {
             ],
           },
           episodeGuide: episodeGuide(),
+          episodeRecap: feldmanEpisodeRecap(showWikiSource),
           recap: {
             format: "neutral-episode-recap",
             formatBasis: "registered-source-type",
@@ -673,6 +780,23 @@ function fixtureInput() {
         coverage: "metadata-only",
         authority: "source-only",
         lanes: ["archive-metadata"],
+        availability: "age-restricted",
+        exactSourceHold: {
+          state: "held-age-gated",
+          reason: "The exact YouTube edit requires age-authenticated access.",
+        },
+        officialAlternate: {
+          kind: "official-podcast-edition",
+          title: "Official alternate commentary",
+          episodeUrl: "https://podcasters.spotify.com/pod/show/example/episodes/tape",
+          enclosureUrl: "https://traffic.megaphone.fm/EXAMPLE.mp3",
+          duration: 11532.61,
+          canonicalDuration: 11427,
+          durationDelta: 105.61,
+          timestampIsomorphic: false,
+          publicPlaybackAllowed: true,
+          evidenceBoundary: "Official alternate edit; not a canonical timestamp source.",
+        },
         showWiki: {
           label: "SHOW WIKI",
           status: "source-brief",
@@ -791,7 +915,7 @@ test("publishes one frozen channel-neutral API and closed vocabularies", () => {
   assert.equal(descriptor.writable, false);
   assert.equal(descriptor.configurable, false);
   assert.ok(Object.isFrozen(window.ShokkerSourceQuery));
-  assert.equal(window.ShokkerSourceQuery.VERSION, "1.4.0");
+  assert.match(window.ShokkerSourceQuery.VERSION, /^\d+\.\d+\.\d+$/);
   assert.equal(
     window.ShokkerSourceQuery.REQUEST_SCHEMA,
     "shokker-source-query/v1",
@@ -1091,6 +1215,77 @@ test("conversational source-fact questions return exact proof before the coverag
   assert.doesNotMatch(richInventory.message, /Source Brief is registered/i);
 });
 
+test("official alternate questions expose one playable route without transferring timestamps", () => {
+  const { queryEngine } = runtime();
+  const sourceId = "FVuwRHM0kcc";
+
+  for (const query of [
+    "Can I play this here?",
+    "Is there another official edition?",
+  ]) {
+    const answer = queryEngine.answer(request(sourceId, query));
+    assert.equal(answer.status, "proof", query);
+    assert.equal(answer.intent, "alternate", query);
+    assert.equal(answer.resultCount, 1, query);
+    assert.equal(answer.results[0].type, "metadata", query);
+    assert.equal(answer.results[0].field, "official-alternate", query);
+    assert.equal(answer.results[0].value.available, true, query);
+    assert.equal(
+      answer.results[0].value.officialAlternate.episodeUrl,
+      "https://podcasters.spotify.com/pod/show/example/episodes/tape",
+      query,
+    );
+    assert.equal(
+      answer.results[0].value.officialAlternate.enclosureUrl,
+      "https://traffic.megaphone.fm/EXAMPLE.mp3",
+      query,
+    );
+    assert.equal(
+      answer.results[0].value.officialAlternate.timestampIsomorphic,
+      false,
+      query,
+    );
+    assert.equal(
+      answer.results[0].value.officialAlternate.publicPlaybackAllowed,
+      true,
+      query,
+    );
+    assert.equal(
+      answer.results[0].value.exactSourceHold.state,
+      "held-age-gated",
+      query,
+    );
+    assert.equal(answer.sourceProof.officialAlternate.timestampIsomorphic, false, query);
+    assert.equal(answer.sourceProof.exactSourceHold.state, "held-age-gated", query);
+    assert.match(answer.message, /can play here/i, query);
+    assert.match(answer.message, /does not match the canonical YouTube timeline/i, query);
+    assert.ok(answer.limitations.some((item) => (
+      /never supplies canonical YouTube timestamps/i.test(item)
+    )), query);
+  }
+
+  const proof = queryEngine.answer(request(sourceId, "Show source proof"));
+  assert.equal(proof.results[0].value.officialAlternate.timestampIsomorphic, false);
+  assert.equal(proof.results[0].value.exactSourceHold.state, "held-age-gated");
+
+  const inventory = queryEngine.answer(request(sourceId, "What is indexed here?"));
+  assert.equal(inventory.results[0].value.officialAlternate.publicPlaybackAllowed, true);
+  assert.equal(inventory.results[0].value.exactSourceHold.state, "held-age-gated");
+
+  const brief = queryEngine.answer(request(sourceId, "source brief"));
+  assert.equal(brief.results[0].value.officialAlternate.timestampIsomorphic, false);
+  assert.equal(brief.results[0].value.exactSourceHold.state, "held-age-gated");
+
+  const absent = queryEngine.answer(
+    request("RACE00001A1", "Is there another official edition?"),
+  );
+  assert.equal(absent.status, "proof");
+  assert.equal(absent.intent, "alternate");
+  assert.equal(absent.results[0].value.available, false);
+  assert.equal(absent.results[0].value.officialAlternate, null);
+  assert.match(absent.message, /No separate official alternate edition is registered/i);
+});
+
 test("speaker and ranking requests refuse without inflating authority", () => {
   const { queryEngine } = runtime();
   const speaker = queryEngine.answer(
@@ -1143,6 +1338,13 @@ test("registered Show Wiki aliases stay inside exact source-local lanes", () => 
   assert.equal(recap.episode.matchedAlias, "episode recap");
   assert.equal(recap.results[0].type, "metadata");
   assert.equal(recap.results[0].field, "registered-summary");
+  assert.equal(
+    recap.results[0].value.text,
+    "Halloween Full Commentary runs 1 hr. The recap opens with the production update, turns toward Batman and masks, then reaches its sharpest replay picks before Captain Void closes the night.",
+  );
+  assert.equal(recap.results[0].value.basis, "wwam-feldman-recap/v1");
+  assert.notEqual(recap.results[0].value.text, fixtureInput().sources[2].summary.text);
+  assert.match(recap.message, /same WWAM Feldman Approved Recap shown on this episode page/i);
   assertExactReceipts(recap, [
     "episode-opening",
     "episode-topic-batman",
@@ -1157,6 +1359,15 @@ test("registered Show Wiki aliases stay inside exact source-local lanes", () => 
     "episode-topic-batman",
     "episode-best",
   ]);
+
+  const conversationalRecap = queryEngine.answer(
+    request(sourceId, "Summarize this show."),
+  );
+  assert.equal(conversationalRecap.intent, "episode-recap");
+  assert.equal(
+    conversationalRecap.results[0].value.text,
+    recap.results[0].value.text,
+  );
 
   const fiveStop = queryEngine.answer(
     request(sourceId, "five stop watch path"),
@@ -1238,7 +1449,7 @@ test("registered Show Wiki aliases stay inside exact source-local lanes", () => 
   assert.equal(emptyLane.episode.totalReceipts, 0);
   assert.equal(emptyLane.episode.matchedReceipts, 0);
   assert.equal(emptyLane.resultCount, 0);
-  assert.match(emptyLane.message, /no playable receipt yet/i);
+  assert.match(emptyLane.message, /does not have a playable moment yet/i);
   assertExactReceipts(emptyLane, []);
 
   for (const query of ["funniest", "best moment"]) {
@@ -1379,7 +1590,7 @@ test("natural exact-show counts report registered receipts rather than invented 
     plain(answer.results.filter((result) => result.type === "receipt").map((result) => result.key)),
     ["episode-topic-batman"],
   );
-  assert.match(answer.message, /count of indexed source receipts, not every utterance/i);
+  assert.match(answer.message, /counts the timestamped highlights in this Wiki, not every utterance/i);
   assert.ok(answer.limitations.some((item) => /do not measure every utterance/i.test(item)));
   assert.equal(answer.boundary.exactSourceOnly, true);
   assert.equal(answer.boundary.crossSourceSubstitution, false);
@@ -1593,6 +1804,38 @@ test("hostile requests and dishonest dossier engines fail closed", () => {
       request("RACE00001A1", "Show receipts"),
     ),
     errorCode("SOURCE_SCOPE_MISMATCH"),
+  );
+
+  const brokenAlternateTiming = plain(dossierEngine.build("FVuwRHM0kcc"));
+  brokenAlternateTiming.source.officialAlternate.durationDelta = 12;
+  const brokenAlternateEngine = window.ShokkerSourceQuery.create({
+    dossierEngine: {
+      build() {
+        return brokenAlternateTiming;
+      },
+    },
+  });
+  assert.throws(
+    () => brokenAlternateEngine.answer(
+      request("FVuwRHM0kcc", "Can I play this here?"),
+    ),
+    errorCode("ALTERNATE_SOURCE_BOUNDARY"),
+  );
+
+  const unknownHold = plain(dossierEngine.build("FVuwRHM0kcc"));
+  unknownHold.source.exactSourceHold.state = "held-for-unspecified-reason";
+  const unknownHoldEngine = window.ShokkerSourceQuery.create({
+    dossierEngine: {
+      build() {
+        return unknownHold;
+      },
+    },
+  });
+  assert.throws(
+    () => unknownHoldEngine.answer(
+      request("FVuwRHM0kcc", "Is there another official edition?"),
+    ),
+    errorCode("INVALID_ACCESS_PROOF"),
   );
 
   const unsafe = {};

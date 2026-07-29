@@ -1,0 +1,5047 @@
+{
+  "schema": "shokker-youtube-wiki/archive-completion-manifest/v1",
+  "frozenAt": "2026-07-29T11:45:33Z",
+  "selectionBasis": "Every canonical source whose episode recap was held at the completion freeze. No ranking, same-night, or popularity exclusion is allowed.",
+  "sourceAtlasSnapshotDate": "2026-07-23",
+  "sourceAtlasArchiveSha256": "sha256:3922cf2153548afd33cd9851031b28378db8d1555a4b19474bcfdcec0cb1b1cb",
+  "sourceCount": 251,
+  "records": [
+    {
+      "rank": 1,
+      "atlasPriorityRank": 0,
+      "atlasPriorityScore": 0,
+      "atlasPriorityBreakdown": {
+        "popularity": 0,
+        "recency": 0,
+        "franchise": 0
+      },
+      "id": "x6tvsGRHgU0",
+      "title": "Horror's Top Box Office Hits Tier List! Live!",
+      "date": "2026-06-30",
+      "duration": 11484,
+      "snapshotViews": 7909,
+      "url": "https://www.youtube.com/watch?v=x6tvsGRHgU0",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 2,
+      "atlasPriorityRank": 77,
+      "atlasPriorityScore": 67.5,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.6,
+        "recency": 23.9,
+        "franchise": 0
+      },
+      "id": "PiE4V15_j6I",
+      "title": "FRIDAY NIGHT FIGHTS! Movies VS Movies and You Vote!",
+      "date": "2024-12-28",
+      "duration": 11596,
+      "snapshotViews": 7607,
+      "url": "https://www.youtube.com/watch?v=PiE4V15_j6I",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 3,
+      "atlasPriorityRank": 58,
+      "atlasPriorityScore": 71.3,
+      "atlasPriorityBreakdown": {
+        "popularity": 47.5,
+        "recency": 23.8,
+        "franchise": 0
+      },
+      "id": "Zo5_5CF505A",
+      "title": "SUPERMAN Trailer Reaction & Breakdown LIVE",
+      "date": "2024-12-19",
+      "duration": 5670,
+      "snapshotViews": 16921,
+      "url": "https://www.youtube.com/watch?v=Zo5_5CF505A",
+      "contentMode": "trailer-reaction",
+      "rightsMode": "source-audio-boundary-unverified",
+      "restrictedToTopicNavigation": true,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 4,
+      "atlasPriorityRank": 79,
+      "atlasPriorityScore": 67.4,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.6,
+        "recency": 23.8,
+        "franchise": 0
+      },
+      "id": "2DbX4UsM-Fw",
+      "title": "Most Anticipated Movies of 2025! Live!",
+      "date": "2024-12-18",
+      "duration": 10382,
+      "snapshotViews": 7647,
+      "url": "https://www.youtube.com/watch?v=2DbX4UsM-Fw",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 5,
+      "atlasPriorityRank": 114,
+      "atlasPriorityScore": 66.0,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.5,
+        "recency": 23.5,
+        "franchise": 0
+      },
+      "id": "bQfKSfWBxXc",
+      "title": "TOP 10 MOVIES OF 1999 Live!",
+      "date": "2024-11-20",
+      "duration": 10534,
+      "snapshotViews": 6149,
+      "url": "https://www.youtube.com/watch?v=bQfKSfWBxXc",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 6,
+      "atlasPriorityRank": 87,
+      "atlasPriorityScore": 67.0,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.5,
+        "recency": 23.5,
+        "franchise": 0
+      },
+      "id": "rYnXBOwdog4",
+      "title": "We Watched A Movie LIVE Saturday 11/15",
+      "date": "2024-11-17",
+      "duration": 11324,
+      "snapshotViews": 7479,
+      "url": "https://www.youtube.com/watch?v=rYnXBOwdog4",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 7,
+      "atlasPriorityRank": 102,
+      "atlasPriorityScore": 66.5,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.0,
+        "recency": 23.5,
+        "franchise": 0
+      },
+      "id": "bAvtwo0zvyA",
+      "title": "We Watched A Movie LIVE! Tuesday 11/12",
+      "date": "2024-11-13",
+      "duration": 10426,
+      "snapshotViews": 6758,
+      "url": "https://www.youtube.com/watch?v=bAvtwo0zvyA",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 8,
+      "atlasPriorityRank": 96,
+      "atlasPriorityScore": 66.7,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.5,
+        "recency": 23.2,
+        "franchise": 0
+      },
+      "id": "nAjkqsn_JsQ",
+      "title": "We Watched A Movie LIVE 10/22",
+      "date": "2024-10-23",
+      "duration": 10541,
+      "snapshotViews": 7484,
+      "url": "https://www.youtube.com/watch?v=nAjkqsn_JsQ",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 9,
+      "atlasPriorityRank": 95,
+      "atlasPriorityScore": 66.7,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.6,
+        "recency": 23.1,
+        "franchise": 0
+      },
+      "id": "O7Ibz-5aFFY",
+      "title": "Joker 2 + VHS Beyond + Salem's Lot Reviews LIVE",
+      "date": "2024-10-09",
+      "duration": 10475,
+      "snapshotViews": 7639,
+      "url": "https://www.youtube.com/watch?v=O7Ibz-5aFFY",
+      "contentMode": "review-show",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 10,
+      "atlasPriorityRank": 94,
+      "atlasPriorityScore": 66.7,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.7,
+        "recency": 23.0,
+        "franchise": 0
+      },
+      "id": "bEtjCKredFM",
+      "title": "We Watched A Movie LIVE 10/1",
+      "date": "2024-10-02",
+      "duration": 10510,
+      "snapshotViews": 7749,
+      "url": "https://www.youtube.com/watch?v=bEtjCKredFM",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 11,
+      "atlasPriorityRank": 101,
+      "atlasPriorityScore": 66.5,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.6,
+        "recency": 22.9,
+        "franchise": 0
+      },
+      "id": "OZWyy1wZfco",
+      "title": "We Watched A Movie LIVE! 9/24",
+      "date": "2024-09-25",
+      "duration": 9372,
+      "snapshotViews": 7632,
+      "url": "https://www.youtube.com/watch?v=OZWyy1wZfco",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 12,
+      "atlasPriorityRank": 105,
+      "atlasPriorityScore": 66.4,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.5,
+        "recency": 22.9,
+        "franchise": 0
+      },
+      "id": "ozcGi8PX8Fs",
+      "title": "We Watched A Movie LIVE 9/17",
+      "date": "2024-09-18",
+      "duration": 10792,
+      "snapshotViews": 7453,
+      "url": "https://www.youtube.com/watch?v=ozcGi8PX8Fs",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 13,
+      "atlasPriorityRank": 100,
+      "atlasPriorityScore": 66.5,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.7,
+        "recency": 22.8,
+        "franchise": 0
+      },
+      "id": "yrF_4D0LOxI",
+      "title": "The Top 10 Movies of 1998 (Live)",
+      "date": "2024-09-12",
+      "duration": 10796,
+      "snapshotViews": 7755,
+      "url": "https://www.youtube.com/watch?v=yrF_4D0LOxI",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 14,
+      "atlasPriorityRank": 70,
+      "atlasPriorityScore": 68.1,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.4,
+        "recency": 22.7,
+        "franchise": 0
+      },
+      "id": "p1t2WGE7kF0",
+      "title": "Top 10 Most Disappointing Movies LIVE",
+      "date": "2024-09-05",
+      "duration": 10616,
+      "snapshotViews": 10946,
+      "url": "https://www.youtube.com/watch?v=p1t2WGE7kF0",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 15,
+      "atlasPriorityRank": 84,
+      "atlasPriorityScore": 67.3,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.7,
+        "recency": 22.6,
+        "franchise": 0
+      },
+      "id": "WzrH7UaoFXI",
+      "title": "We Watched A Movie LIVE 8/26",
+      "date": "2024-08-27",
+      "duration": 11410,
+      "snapshotViews": 9634,
+      "url": "https://www.youtube.com/watch?v=WzrH7UaoFXI",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 16,
+      "atlasPriorityRank": 99,
+      "atlasPriorityScore": 66.5,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.9,
+        "recency": 22.6,
+        "franchise": 0
+      },
+      "id": "Ssp_-13AeKA",
+      "title": "THE CROW Review Livestream",
+      "date": "2024-08-23",
+      "duration": 4141,
+      "snapshotViews": 8095,
+      "url": "https://www.youtube.com/watch?v=Ssp_-13AeKA",
+      "contentMode": "review-show",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 17,
+      "atlasPriorityRank": 111,
+      "atlasPriorityScore": 66.1,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.6,
+        "recency": 22.5,
+        "franchise": 0
+      },
+      "id": "yVEaNc3cVgg",
+      "title": "We Watched A Movie LIVE and In Person 8/14",
+      "date": "2024-08-15",
+      "duration": 7134,
+      "snapshotViews": 7633,
+      "url": "https://www.youtube.com/watch?v=yVEaNc3cVgg",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 18,
+      "atlasPriorityRank": 93,
+      "atlasPriorityScore": 66.7,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.3,
+        "recency": 22.4,
+        "franchise": 0
+      },
+      "id": "v20-Wq6wVcs",
+      "title": "Top 10 Movies of 1996 LIVE!",
+      "date": "2024-08-07",
+      "duration": 9684,
+      "snapshotViews": 8777,
+      "url": "https://www.youtube.com/watch?v=v20-Wq6wVcs",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 19,
+      "atlasPriorityRank": 76,
+      "atlasPriorityScore": 67.5,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.1,
+        "recency": 22.4,
+        "franchise": 0
+      },
+      "id": "tz2HZVfW2qM",
+      "title": "DEADPOOL AND WOLVERINE Spoiler Livestream",
+      "date": "2024-07-31",
+      "duration": 9392,
+      "snapshotViews": 10356,
+      "url": "https://www.youtube.com/watch?v=tz2HZVfW2qM",
+      "contentMode": "spoiler-review",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 20,
+      "atlasPriorityRank": 83,
+      "atlasPriorityScore": 67.3,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.0,
+        "recency": 22.3,
+        "franchise": 0
+      },
+      "id": "Tb-MdHt_NA4",
+      "title": "We Watched A Movie LIVE! Comic Con Special",
+      "date": "2024-07-28",
+      "duration": 10796,
+      "snapshotViews": 10172,
+      "url": "https://www.youtube.com/watch?v=Tb-MdHt_NA4",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 21,
+      "atlasPriorityRank": 91,
+      "atlasPriorityScore": 66.9,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.6,
+        "recency": 22.3,
+        "franchise": 0
+      },
+      "id": "OjQ2YzIldLA",
+      "title": "We Watched A Movie Live 7/23",
+      "date": "2024-07-24",
+      "duration": 11182,
+      "snapshotViews": 9334,
+      "url": "https://www.youtube.com/watch?v=OjQ2YzIldLA",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 22,
+      "atlasPriorityRank": 86,
+      "atlasPriorityScore": 67.0,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.7,
+        "recency": 22.3,
+        "franchise": 0
+      },
+      "id": "2sWWa9NDWio",
+      "title": "We Watched A Movie LIVE 7/20",
+      "date": "2024-07-21",
+      "duration": 12281,
+      "snapshotViews": 9626,
+      "url": "https://www.youtube.com/watch?v=2sWWa9NDWio",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 23,
+      "atlasPriorityRank": 131,
+      "atlasPriorityScore": 64.8,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.6,
+        "recency": 22.2,
+        "franchise": 0
+      },
+      "id": "x7ugsiecMio",
+      "title": "LONGLEGS Spoiler Talk Live!",
+      "date": "2024-07-16",
+      "duration": 5856,
+      "snapshotViews": 6256,
+      "url": "https://www.youtube.com/watch?v=x7ugsiecMio",
+      "contentMode": "spoiler-review",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 24,
+      "atlasPriorityRank": 75,
+      "atlasPriorityScore": 67.5,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.3,
+        "recency": 22.2,
+        "franchise": 0
+      },
+      "id": "fH3kzyK_PlA",
+      "title": "We Watched A Movie Live! 7/12",
+      "date": "2024-07-13",
+      "duration": 10280,
+      "snapshotViews": 10851,
+      "url": "https://www.youtube.com/watch?v=fH3kzyK_PlA",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 25,
+      "atlasPriorityRank": 147,
+      "atlasPriorityScore": 62.9,
+      "atlasPriorityBreakdown": {
+        "popularity": 40.8,
+        "recency": 22.1,
+        "franchise": 0
+      },
+      "id": "5rM39QsTBk4",
+      "title": "MAXXXINE Spoiler Party LIVE!",
+      "date": "2024-07-09",
+      "duration": 6348,
+      "snapshotViews": 4269,
+      "url": "https://www.youtube.com/watch?v=5rM39QsTBk4",
+      "contentMode": "spoiler-review",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 26,
+      "atlasPriorityRank": 82,
+      "atlasPriorityScore": 67.3,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.3,
+        "recency": 22.0,
+        "franchise": 0
+      },
+      "id": "vsTaZbWHdSU",
+      "title": "We Watched A Movie LIVE! 6/29",
+      "date": "2024-06-30",
+      "duration": 11079,
+      "snapshotViews": 10922,
+      "url": "https://www.youtube.com/watch?v=vsTaZbWHdSU",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 27,
+      "atlasPriorityRank": 74,
+      "atlasPriorityScore": 67.6,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.6,
+        "recency": 22.0,
+        "franchise": 0
+      },
+      "id": "jJz8zJp4JHM",
+      "title": "We Watched A Movie LIVE! 6/25",
+      "date": "2024-06-26",
+      "duration": 13049,
+      "snapshotViews": 11493,
+      "url": "https://www.youtube.com/watch?v=jJz8zJp4JHM",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 28,
+      "atlasPriorityRank": 146,
+      "atlasPriorityScore": 63.0,
+      "atlasPriorityBreakdown": {
+        "popularity": 41.1,
+        "recency": 21.9,
+        "franchise": 0
+      },
+      "id": "49fgU_fj9_0",
+      "title": "We Watched A Movie LIVE! 6/20",
+      "date": "2024-06-20",
+      "duration": 3490,
+      "snapshotViews": 4553,
+      "url": "https://www.youtube.com/watch?v=49fgU_fj9_0",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 29,
+      "atlasPriorityRank": 97,
+      "atlasPriorityScore": 66.6,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.7,
+        "recency": 21.9,
+        "franchise": 0
+      },
+      "id": "N2yPy4crLos",
+      "title": "We Watched A Movie LIVE! 6/18",
+      "date": "2024-06-19",
+      "duration": 10767,
+      "snapshotViews": 9540,
+      "url": "https://www.youtube.com/watch?v=N2yPy4crLos",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 30,
+      "atlasPriorityRank": 81,
+      "atlasPriorityScore": 67.3,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.5,
+        "recency": 21.8,
+        "franchise": 0
+      },
+      "id": "TfITyYggBU4",
+      "title": "We Watched A Movie LIVE 6/4",
+      "date": "2024-06-05",
+      "duration": 11648,
+      "snapshotViews": 11300,
+      "url": "https://www.youtube.com/watch?v=TfITyYggBU4",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 31,
+      "atlasPriorityRank": 121,
+      "atlasPriorityScore": 65.4,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.7,
+        "recency": 21.7,
+        "franchise": 0
+      },
+      "id": "XGsR_X8INFs",
+      "title": "We Watched A Movie LIVE 5/29",
+      "date": "2024-05-30",
+      "duration": 10782,
+      "snapshotViews": 7835,
+      "url": "https://www.youtube.com/watch?v=XGsR_X8INFs",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 32,
+      "atlasPriorityRank": 106,
+      "atlasPriorityScore": 66.3,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.6,
+        "recency": 21.7,
+        "franchise": 0
+      },
+      "id": "Var4sSlt-dk",
+      "title": "We Watched A Movie Live 5/25!",
+      "date": "2024-05-26",
+      "duration": 10725,
+      "snapshotViews": 9394,
+      "url": "https://www.youtube.com/watch?v=Var4sSlt-dk",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 33,
+      "atlasPriorityRank": 72,
+      "atlasPriorityScore": 67.9,
+      "atlasPriorityBreakdown": {
+        "popularity": 46.3,
+        "recency": 21.6,
+        "franchise": 0
+      },
+      "id": "s45QFC7m3WU",
+      "title": "We Watched A Movie LIVE! 5/20",
+      "date": "2024-05-21",
+      "duration": 10737,
+      "snapshotViews": 13311,
+      "url": "https://www.youtube.com/watch?v=s45QFC7m3WU",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 34,
+      "atlasPriorityRank": 90,
+      "atlasPriorityScore": 66.9,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.4,
+        "recency": 21.5,
+        "franchise": 0
+      },
+      "id": "bBp6tSU8kAM",
+      "title": "Top 10 Movies of 1994 Ranked Live!",
+      "date": "2024-05-15",
+      "duration": 11473,
+      "snapshotViews": 11050,
+      "url": "https://www.youtube.com/watch?v=bBp6tSU8kAM",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 35,
+      "atlasPriorityRank": 80,
+      "atlasPriorityScore": 67.3,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.8,
+        "recency": 21.5,
+        "franchise": 0
+      },
+      "id": "mboTGaGnU_M",
+      "title": "80's VS 90's Movies + More Part 3!!!!!!",
+      "date": "2024-05-09",
+      "duration": 11196,
+      "snapshotViews": 11985,
+      "url": "https://www.youtube.com/watch?v=mboTGaGnU_M",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 36,
+      "atlasPriorityRank": 89,
+      "atlasPriorityScore": 66.9,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.6,
+        "recency": 21.3,
+        "franchise": 0
+      },
+      "id": "Q_CprCuIXLk",
+      "title": "Deadpool & Wolverine Trailer Reaction LIVE",
+      "date": "2024-04-22",
+      "duration": 2208,
+      "snapshotViews": 11535,
+      "url": "https://www.youtube.com/watch?v=Q_CprCuIXLk",
+      "contentMode": "trailer-reaction",
+      "rightsMode": "source-audio-boundary-unverified",
+      "restrictedToTopicNavigation": true,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 37,
+      "atlasPriorityRank": 88,
+      "atlasPriorityScore": 66.9,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.6,
+        "recency": 21.3,
+        "franchise": 0
+      },
+      "id": "f5E6TyFb6lk",
+      "title": "Let's Watch Scary Videos Together Part 3! LIVE!",
+      "date": "2024-04-18",
+      "duration": 10060,
+      "snapshotViews": 11612,
+      "url": "https://www.youtube.com/watch?v=f5E6TyFb6lk",
+      "contentMode": "source-video-watch-party",
+      "rightsMode": "source-audio-boundary-unverified",
+      "restrictedToTopicNavigation": true,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 38,
+      "atlasPriorityRank": 110,
+      "atlasPriorityScore": 66.2,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.0,
+        "recency": 21.2,
+        "franchise": 0
+      },
+      "id": "ZyO2O4olq9U",
+      "title": "We Watched A Movie LIVE! 4/12",
+      "date": "2024-04-13",
+      "duration": 11162,
+      "snapshotViews": 10274,
+      "url": "https://www.youtube.com/watch?v=ZyO2O4olq9U",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 39,
+      "atlasPriorityRank": 73,
+      "atlasPriorityScore": 67.6,
+      "atlasPriorityBreakdown": {
+        "popularity": 46.8,
+        "recency": 20.8,
+        "franchise": 0
+      },
+      "id": "jOCbki3YeF8",
+      "title": "A24 Movie Tier List Ranking LIVE!",
+      "date": "2024-03-05",
+      "duration": 11048,
+      "snapshotViews": 14610,
+      "url": "https://www.youtube.com/watch?v=jOCbki3YeF8",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 40,
+      "atlasPriorityRank": 85,
+      "atlasPriorityScore": 67.0,
+      "atlasPriorityBreakdown": {
+        "popularity": 46.2,
+        "recency": 20.8,
+        "franchise": 0
+      },
+      "id": "MMmb1BMGDvI",
+      "title": "We Watched A Movie LIVE 3/1",
+      "date": "2024-03-02",
+      "duration": 11031,
+      "snapshotViews": 12955,
+      "url": "https://www.youtube.com/watch?v=MMmb1BMGDvI",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 41,
+      "atlasPriorityRank": 123,
+      "atlasPriorityScore": 65.3,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.6,
+        "recency": 20.7,
+        "franchise": 0
+      },
+      "id": "WhYhDxRtlyY",
+      "title": "We Watched A Movie LIVE 2/22",
+      "date": "2024-02-23",
+      "duration": 9445,
+      "snapshotViews": 9430,
+      "url": "https://www.youtube.com/watch?v=WhYhDxRtlyY",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 42,
+      "atlasPriorityRank": 109,
+      "atlasPriorityScore": 66.2,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.6,
+        "recency": 20.6,
+        "franchise": 0
+      },
+      "id": "nyh4QcHc_UQ",
+      "title": "Top 10 Movies of 1993 Live!",
+      "date": "2024-02-18",
+      "duration": 11828,
+      "snapshotViews": 11463,
+      "url": "https://www.youtube.com/watch?v=nyh4QcHc_UQ",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 43,
+      "atlasPriorityRank": 141,
+      "atlasPriorityScore": 64.1,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.5,
+        "recency": 20.6,
+        "franchise": 0
+      },
+      "id": "P4P4SS1mwIQ",
+      "title": "WWAM Live! Superbowl Trailers Tier List Ranking (& More!)",
+      "date": "2024-02-13",
+      "duration": 9939,
+      "snapshotViews": 7493,
+      "url": "https://www.youtube.com/watch?v=P4P4SS1mwIQ",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 44,
+      "atlasPriorityRank": 98,
+      "atlasPriorityScore": 66.5,
+      "atlasPriorityBreakdown": {
+        "popularity": 46.1,
+        "recency": 20.4,
+        "franchise": 0
+      },
+      "id": "vnWygfSHC6M",
+      "title": "We Watched A Movie LIVE 1/31",
+      "date": "2024-02-01",
+      "duration": 11629,
+      "snapshotViews": 12678,
+      "url": "https://www.youtube.com/watch?v=vnWygfSHC6M",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 45,
+      "atlasPriorityRank": 92,
+      "atlasPriorityScore": 66.7,
+      "atlasPriorityBreakdown": {
+        "popularity": 46.3,
+        "recency": 20.4,
+        "franchise": 0
+      },
+      "id": "MEtWrdeOi50",
+      "title": "We Watched A Movie Live! 1/26",
+      "date": "2024-01-27",
+      "duration": 11365,
+      "snapshotViews": 13247,
+      "url": "https://www.youtube.com/watch?v=MEtWrdeOi50",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 46,
+      "atlasPriorityRank": 140,
+      "atlasPriorityScore": 64.1,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.7,
+        "recency": 20.4,
+        "franchise": 0
+      },
+      "id": "AehBrfbe0Co",
+      "title": "We Watched A Movie Live! 1/24",
+      "date": "2024-01-25",
+      "duration": 11457,
+      "snapshotViews": 7824,
+      "url": "https://www.youtube.com/watch?v=AehBrfbe0Co",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 47,
+      "atlasPriorityRank": 120,
+      "atlasPriorityScore": 65.4,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.1,
+        "recency": 20.3,
+        "franchise": 0
+      },
+      "id": "6ylkcj3OKiM",
+      "title": "We Watched A Movie LIVE! 1/17",
+      "date": "2024-01-18",
+      "duration": 11214,
+      "snapshotViews": 10344,
+      "url": "https://www.youtube.com/watch?v=6ylkcj3OKiM",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 48,
+      "atlasPriorityRank": 116,
+      "atlasPriorityScore": 65.7,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.5,
+        "recency": 20.2,
+        "franchise": 0
+      },
+      "id": "JSLAsKX-fdM",
+      "title": "We Watched A Movie LIVE 1/10",
+      "date": "2024-01-11",
+      "duration": 10811,
+      "snapshotViews": 11235,
+      "url": "https://www.youtube.com/watch?v=JSLAsKX-fdM",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 49,
+      "atlasPriorityRank": 127,
+      "atlasPriorityScore": 65.1,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.0,
+        "recency": 20.1,
+        "franchise": 0
+      },
+      "id": "bK5e-m1HUjs",
+      "title": "We Watched A Movie Live! 1/2",
+      "date": "2024-01-03",
+      "duration": 10478,
+      "snapshotViews": 10167,
+      "url": "https://www.youtube.com/watch?v=bK5e-m1HUjs",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 50,
+      "atlasPriorityRank": 113,
+      "atlasPriorityScore": 66.0,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.9,
+        "recency": 20.1,
+        "franchise": 0
+      },
+      "id": "pW7eDFkiuYc",
+      "title": "We Watched A Movie LIVE! 12/27",
+      "date": "2023-12-28",
+      "duration": 12051,
+      "snapshotViews": 12323,
+      "url": "https://www.youtube.com/watch?v=pW7eDFkiuYc",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 51,
+      "atlasPriorityRank": 119,
+      "atlasPriorityScore": 65.5,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.5,
+        "recency": 20.0,
+        "franchise": 0
+      },
+      "id": "RdLXb39fmB8",
+      "title": "We Watched A Movie LIVE! 12/20",
+      "date": "2023-12-21",
+      "duration": 11731,
+      "snapshotViews": 11234,
+      "url": "https://www.youtube.com/watch?v=RdLXb39fmB8",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 52,
+      "atlasPriorityRank": 126,
+      "atlasPriorityScore": 65.2,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.3,
+        "recency": 19.9,
+        "franchise": 0
+      },
+      "id": "rFupDurPI1g",
+      "title": "We Watched A Movie LIVE Q & A + Random Movie Generator Battles",
+      "date": "2023-12-14",
+      "duration": 10797,
+      "snapshotViews": 10798,
+      "url": "https://www.youtube.com/watch?v=rFupDurPI1g",
+      "contentMode": "q-and-a",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 53,
+      "atlasPriorityRank": 150,
+      "atlasPriorityScore": 62.8,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.0,
+        "recency": 19.8,
+        "franchise": 0
+      },
+      "id": "qp2CZsyy0H4",
+      "title": "We Watched A Movie LIVE! 12/7",
+      "date": "2023-12-07",
+      "duration": 6388,
+      "snapshotViews": 6710,
+      "url": "https://www.youtube.com/watch?v=qp2CZsyy0H4",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 54,
+      "atlasPriorityRank": 130,
+      "atlasPriorityScore": 64.8,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.0,
+        "recency": 19.8,
+        "franchise": 0
+      },
+      "id": "I7r-aiToUMg",
+      "title": "Tarantino + Roth + Rodriguez Movies Tier List LIVE!",
+      "date": "2023-11-29",
+      "duration": 9164,
+      "snapshotViews": 10249,
+      "url": "https://www.youtube.com/watch?v=I7r-aiToUMg",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 55,
+      "atlasPriorityRank": 132,
+      "atlasPriorityScore": 64.7,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.1,
+        "recency": 19.6,
+        "franchise": 0
+      },
+      "id": "_pS3Hq2yAos",
+      "title": "We Watched A Movie LIVE! 11/15",
+      "date": "2023-11-16",
+      "duration": 10623,
+      "snapshotViews": 10308,
+      "url": "https://www.youtube.com/watch?v=_pS3Hq2yAos",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 56,
+      "atlasPriorityRank": 139,
+      "atlasPriorityScore": 64.1,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.5,
+        "recency": 19.6,
+        "franchise": 0
+      },
+      "id": "FiEr7j2Ze04",
+      "title": "We Watched A Movie Live 11/8 (Ghostbusters Frozen Empire & Whatever)",
+      "date": "2023-11-09",
+      "duration": 10718,
+      "snapshotViews": 9239,
+      "url": "https://www.youtube.com/watch?v=FiEr7j2Ze04",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 57,
+      "atlasPriorityRank": 108,
+      "atlasPriorityScore": 66.2,
+      "atlasPriorityBreakdown": {
+        "popularity": 46.9,
+        "recency": 19.3,
+        "franchise": 0
+      },
+      "id": "Ry3uOD5qlao",
+      "title": "FOUND FOOTAGE MOVIES TIER LIST LIVE!",
+      "date": "2023-10-19",
+      "duration": 10770,
+      "snapshotViews": 15114,
+      "url": "https://www.youtube.com/watch?v=Ry3uOD5qlao",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 58,
+      "atlasPriorityRank": 128,
+      "atlasPriorityScore": 65.0,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.7,
+        "recency": 19.3,
+        "franchise": 0
+      },
+      "id": "bTzVQKD73L0",
+      "title": "Let's Watch Scary Videos Together Live Part 2",
+      "date": "2023-10-17",
+      "duration": 10555,
+      "snapshotViews": 11661,
+      "url": "https://www.youtube.com/watch?v=bTzVQKD73L0",
+      "contentMode": "source-video-watch-party",
+      "rightsMode": "source-audio-boundary-unverified",
+      "restrictedToTopicNavigation": true,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 59,
+      "atlasPriorityRank": 125,
+      "atlasPriorityScore": 65.2,
+      "atlasPriorityBreakdown": {
+        "popularity": 46.0,
+        "recency": 19.2,
+        "franchise": 0
+      },
+      "id": "vjyNEQmgxC8",
+      "title": "Let's Watch Scary Videos Together! Live!",
+      "date": "2023-10-07",
+      "duration": 10806,
+      "snapshotViews": 12453,
+      "url": "https://www.youtube.com/watch?v=vjyNEQmgxC8",
+      "contentMode": "source-video-watch-party",
+      "rightsMode": "source-audio-boundary-unverified",
+      "restrictedToTopicNavigation": true,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 60,
+      "atlasPriorityRank": 49,
+      "atlasPriorityScore": 72.2,
+      "atlasPriorityBreakdown": {
+        "popularity": 47.1,
+        "recency": 19.1,
+        "franchise": 6
+      },
+      "id": "RMQGbk9-bus",
+      "title": "October Horror Movie Releases ALL TIME Tier List",
+      "date": "2023-09-24",
+      "duration": 10487,
+      "snapshotViews": 15554,
+      "url": "https://www.youtube.com/watch?v=RMQGbk9-bus",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 61,
+      "atlasPriorityRank": 137,
+      "atlasPriorityScore": 64.2,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.2,
+        "recency": 19.0,
+        "franchise": 0
+      },
+      "id": "xKP-PRm9xzo",
+      "title": "We Watched A Movie LIVE 9/13",
+      "date": "2023-09-14",
+      "duration": 10714,
+      "snapshotViews": 10613,
+      "url": "https://www.youtube.com/watch?v=xKP-PRm9xzo",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 62,
+      "atlasPriorityRank": 138,
+      "atlasPriorityScore": 64.1,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.2,
+        "recency": 18.9,
+        "franchise": 0
+      },
+      "id": "hFOUkfhv5wI",
+      "title": "We Watched a Movie Live! 9/9",
+      "date": "2023-09-10",
+      "duration": 10584,
+      "snapshotViews": 10561,
+      "url": "https://www.youtube.com/watch?v=hFOUkfhv5wI",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 63,
+      "atlasPriorityRank": 122,
+      "atlasPriorityScore": 65.3,
+      "atlasPriorityBreakdown": {
+        "popularity": 46.5,
+        "recency": 18.8,
+        "franchise": 0
+      },
+      "id": "Aq4UJI-F0Vc",
+      "title": "DARK DIRECTORS Movie Tier List Rankings! (Fincher, Snyder, Del Toro + Villeneuve)",
+      "date": "2023-08-31",
+      "duration": 10854,
+      "snapshotViews": 13751,
+      "url": "https://www.youtube.com/watch?v=Aq4UJI-F0Vc",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 64,
+      "atlasPriorityRank": 144,
+      "atlasPriorityScore": 63.4,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.6,
+        "recency": 18.8,
+        "franchise": 0
+      },
+      "id": "rP6zYo7ivNU",
+      "title": "We Watched A Movie LIVE! 8/28",
+      "date": "2023-08-29",
+      "duration": 10161,
+      "snapshotViews": 9353,
+      "url": "https://www.youtube.com/watch?v=rP6zYo7ivNU",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 65,
+      "atlasPriorityRank": 129,
+      "atlasPriorityScore": 64.9,
+      "atlasPriorityBreakdown": {
+        "popularity": 46.2,
+        "recency": 18.7,
+        "franchise": 0
+      },
+      "id": "50EUINhRKh8",
+      "title": "We Watched A Movie LIVE 8/19",
+      "date": "2023-08-20",
+      "duration": 10730,
+      "snapshotViews": 12914,
+      "url": "https://www.youtube.com/watch?v=50EUINhRKh8",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 66,
+      "atlasPriorityRank": 135,
+      "atlasPriorityScore": 64.3,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.7,
+        "recency": 18.6,
+        "franchise": 0
+      },
+      "id": "Mxx-vZahtqk",
+      "title": "We Watched a Movie Live! 8/14",
+      "date": "2023-08-15",
+      "duration": 10756,
+      "snapshotViews": 11762,
+      "url": "https://www.youtube.com/watch?v=Mxx-vZahtqk",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 67,
+      "atlasPriorityRank": 112,
+      "atlasPriorityScore": 66.0,
+      "atlasPriorityBreakdown": {
+        "popularity": 47.4,
+        "recency": 18.6,
+        "franchise": 0
+      },
+      "id": "LVVGdGxTBfI",
+      "title": "DIMENSION FILMS Tier List Live!",
+      "date": "2023-08-08",
+      "duration": 11516,
+      "snapshotViews": 16643,
+      "url": "https://www.youtube.com/watch?v=LVVGdGxTBfI",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 68,
+      "atlasPriorityRank": 124,
+      "atlasPriorityScore": 65.2,
+      "atlasPriorityBreakdown": {
+        "popularity": 46.9,
+        "recency": 18.3,
+        "franchise": 0
+      },
+      "id": "No1ewJFtOHI",
+      "title": "Box Office Rematch! Movie Showtimes Nostalgia (90s - 2000s)",
+      "date": "2023-07-16",
+      "duration": 12302,
+      "snapshotViews": 15108,
+      "url": "https://www.youtube.com/watch?v=No1ewJFtOHI",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 69,
+      "atlasPriorityRank": 51,
+      "atlasPriorityScore": 72.1,
+      "atlasPriorityBreakdown": {
+        "popularity": 47.9,
+        "recency": 18.2,
+        "franchise": 6
+      },
+      "id": "C5B3lXAHoxY",
+      "title": "BLUMHOUSE Horror Movie Tier List Live!",
+      "date": "2023-07-09",
+      "duration": 10644,
+      "snapshotViews": 18334,
+      "url": "https://www.youtube.com/watch?v=C5B3lXAHoxY",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 70,
+      "atlasPriorityRank": 134,
+      "atlasPriorityScore": 64.3,
+      "atlasPriorityBreakdown": {
+        "popularity": 46.3,
+        "recency": 18.0,
+        "franchise": 0
+      },
+      "id": "3xDO7AYOjcs",
+      "title": "THE FLASH Spoiler Party! Live!",
+      "date": "2023-06-20",
+      "duration": 11574,
+      "snapshotViews": 13409,
+      "url": "https://www.youtube.com/watch?v=3xDO7AYOjcs",
+      "contentMode": "spoiler-review",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 71,
+      "atlasPriorityRank": 118,
+      "atlasPriorityScore": 65.6,
+      "atlasPriorityBreakdown": {
+        "popularity": 47.6,
+        "recency": 18.0,
+        "franchise": 0
+      },
+      "id": "fRp8Uz1HwMg",
+      "title": "We Watched A Movie Live! The Flash + Secret Invasion + More!",
+      "date": "2023-06-15",
+      "duration": 10983,
+      "snapshotViews": 17184,
+      "url": "https://www.youtube.com/watch?v=fRp8Uz1HwMg",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 72,
+      "atlasPriorityRank": 60,
+      "atlasPriorityScore": 71.2,
+      "atlasPriorityBreakdown": {
+        "popularity": 47.3,
+        "recency": 17.9,
+        "franchise": 6
+      },
+      "id": "PxEmjV5KgS8",
+      "title": "PG-13 Horror Movies Tier List!",
+      "date": "2023-06-08",
+      "duration": 11671,
+      "snapshotViews": 16201,
+      "url": "https://www.youtube.com/watch?v=PxEmjV5KgS8",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 73,
+      "atlasPriorityRank": 170,
+      "atlasPriorityScore": 60.4,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.5,
+        "recency": 17.9,
+        "franchise": 0
+      },
+      "id": "RtiAz5k6rhg",
+      "title": "THE BOOGEYMAN Spoiler Party + Movie News!",
+      "date": "2023-06-06",
+      "duration": 8498,
+      "snapshotViews": 6152,
+      "url": "https://www.youtube.com/watch?v=RtiAz5k6rhg",
+      "contentMode": "spoiler-review",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 74,
+      "atlasPriorityRank": 63,
+      "atlasPriorityScore": 70.5,
+      "atlasPriorityBreakdown": {
+        "popularity": 46.7,
+        "recency": 17.8,
+        "franchise": 6
+      },
+      "id": "ArR3iJVkK20",
+      "title": "Horror Comedies Tier List LIVE!",
+      "date": "2023-05-30",
+      "duration": 9897,
+      "snapshotViews": 14496,
+      "url": "https://www.youtube.com/watch?v=ArR3iJVkK20",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 75,
+      "atlasPriorityRank": 142,
+      "atlasPriorityScore": 64.0,
+      "atlasPriorityBreakdown": {
+        "popularity": 46.2,
+        "recency": 17.8,
+        "franchise": 0
+      },
+      "id": "n_2Q4ely9q8",
+      "title": "4TH SEQUELS in Movie Franchises TIER LIST! Live!",
+      "date": "2023-05-23",
+      "duration": 9671,
+      "snapshotViews": 12954,
+      "url": "https://www.youtube.com/watch?v=n_2Q4ely9q8",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 76,
+      "atlasPriorityRank": 180,
+      "atlasPriorityScore": 59.7,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.1,
+        "recency": 17.6,
+        "franchise": 0
+      },
+      "id": "Dqud1UFaQcQ",
+      "title": "Guardians of the Galaxy Vol 3 SPOILER PARTY",
+      "date": "2023-05-09",
+      "duration": 8381,
+      "snapshotViews": 5623,
+      "url": "https://www.youtube.com/watch?v=Dqud1UFaQcQ",
+      "contentMode": "spoiler-review",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 77,
+      "atlasPriorityRank": 16,
+      "atlasPriorityScore": 79.8,
+      "atlasPriorityBreakdown": {
+        "popularity": 48.3,
+        "recency": 17.5,
+        "franchise": 14
+      },
+      "id": "uoxOvi0J5zQ",
+      "title": "Movie News Live! The Flash Trailer #2, Alien Day + More!",
+      "date": "2023-04-27",
+      "duration": 10090,
+      "snapshotViews": 20013,
+      "url": "https://www.youtube.com/watch?v=uoxOvi0J5zQ",
+      "contentMode": "trailer-reaction",
+      "rightsMode": "source-audio-boundary-unverified",
+      "restrictedToTopicNavigation": true,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 78,
+      "atlasPriorityRank": 15,
+      "atlasPriorityScore": 79.9,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.5,
+        "recency": 17.4,
+        "franchise": 20
+      },
+      "id": "wW9bdu_GtgQ",
+      "title": "Insidious The Red Door Trailer Reaction + Scream News + Evil Dead Rise LIVE",
+      "date": "2023-04-19",
+      "duration": 3597,
+      "snapshotViews": 6089,
+      "url": "https://www.youtube.com/watch?v=wW9bdu_GtgQ",
+      "contentMode": "trailer-reaction",
+      "rightsMode": "source-audio-boundary-unverified",
+      "restrictedToTopicNavigation": true,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 79,
+      "atlasPriorityRank": 143,
+      "atlasPriorityScore": 63.5,
+      "atlasPriorityBreakdown": {
+        "popularity": 46.1,
+        "recency": 17.4,
+        "franchise": 0
+      },
+      "id": "bw7UfHz3WBU",
+      "title": "EXORCISM + VAMPIRE Movies Tier List Live!",
+      "date": "2023-04-15",
+      "duration": 10590,
+      "snapshotViews": 12670,
+      "url": "https://www.youtube.com/watch?v=bw7UfHz3WBU",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 80,
+      "atlasPriorityRank": 158,
+      "atlasPriorityScore": 61.2,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.1,
+        "recency": 17.1,
+        "franchise": 0
+      },
+      "id": "iBmu5vSi5_M",
+      "title": "Action Movie Heroes Tier List LIVE!",
+      "date": "2023-03-23",
+      "duration": 7443,
+      "snapshotViews": 8530,
+      "url": "https://www.youtube.com/watch?v=iBmu5vSi5_M",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 81,
+      "atlasPriorityRank": 165,
+      "atlasPriorityScore": 60.9,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.9,
+        "recency": 17.0,
+        "franchise": 0
+      },
+      "id": "IaKzSKOr-iI",
+      "title": "Movie News Live w WWAM! 3/16",
+      "date": "2023-03-16",
+      "duration": 7998,
+      "snapshotViews": 8139,
+      "url": "https://www.youtube.com/watch?v=IaKzSKOr-iI",
+      "contentMode": "movie-news",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 82,
+      "atlasPriorityRank": 7,
+      "atlasPriorityScore": 81.2,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.3,
+        "recency": 16.9,
+        "franchise": 20
+      },
+      "id": "Ppb0cXyB3rk",
+      "title": "SCREAM VI Final Trailer Breakdown + Update LIVE!",
+      "date": "2023-03-08",
+      "duration": 5034,
+      "snapshotViews": 8743,
+      "url": "https://www.youtube.com/watch?v=Ppb0cXyB3rk",
+      "contentMode": "trailer-reaction",
+      "rightsMode": "source-audio-boundary-unverified",
+      "restrictedToTopicNavigation": true,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 83,
+      "atlasPriorityRank": 153,
+      "atlasPriorityScore": 62.1,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.2,
+        "recency": 16.9,
+        "franchise": 0
+      },
+      "id": "fYkXhXtgtrY",
+      "title": "WWAM Movie News Live! 3/7",
+      "date": "2023-03-07",
+      "duration": 7098,
+      "snapshotViews": 10643,
+      "url": "https://www.youtube.com/watch?v=fYkXhXtgtrY",
+      "contentMode": "movie-news",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 84,
+      "atlasPriorityRank": 183,
+      "atlasPriorityScore": 59.6,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.7,
+        "recency": 16.9,
+        "franchise": 0
+      },
+      "id": "7sQqG03iDeE",
+      "title": "WWAM Movies In The Morning 3/2",
+      "date": "2023-03-02",
+      "duration": 5808,
+      "snapshotViews": 6390,
+      "url": "https://www.youtube.com/watch?v=7sQqG03iDeE",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 85,
+      "atlasPriorityRank": 177,
+      "atlasPriorityScore": 60.0,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.1,
+        "recency": 16.9,
+        "franchise": 0
+      },
+      "id": "VI211APs3Xo",
+      "title": "WWAM Movie News Live 2/28",
+      "date": "2023-02-28",
+      "duration": 7158,
+      "snapshotViews": 6924,
+      "url": "https://www.youtube.com/watch?v=VI211APs3Xo",
+      "contentMode": "movie-news",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 86,
+      "atlasPriorityRank": 160,
+      "atlasPriorityScore": 61.1,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.3,
+        "recency": 16.8,
+        "franchise": 0
+      },
+      "id": "59kMp_6Tah0",
+      "title": "Movie News Live! WWAM In The Morning 2/23",
+      "date": "2023-02-23",
+      "duration": 6805,
+      "snapshotViews": 8793,
+      "url": "https://www.youtube.com/watch?v=59kMp_6Tah0",
+      "contentMode": "movie-news",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 87,
+      "atlasPriorityRank": 182,
+      "atlasPriorityScore": 59.6,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.8,
+        "recency": 16.8,
+        "franchise": 0
+      },
+      "id": "8tWl7wewlX8",
+      "title": "WWAM Movie News Live 2/21",
+      "date": "2023-02-21",
+      "duration": 7263,
+      "snapshotViews": 6475,
+      "url": "https://www.youtube.com/watch?v=8tWl7wewlX8",
+      "contentMode": "movie-news",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 88,
+      "atlasPriorityRank": 179,
+      "atlasPriorityScore": 59.7,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.0,
+        "recency": 16.7,
+        "franchise": 0
+      },
+      "id": "_MXflibfyOg",
+      "title": "Movie News Live! 2/17",
+      "date": "2023-02-17",
+      "duration": 7759,
+      "snapshotViews": 6695,
+      "url": "https://www.youtube.com/watch?v=_MXflibfyOg",
+      "contentMode": "movie-news",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 89,
+      "atlasPriorityRank": 156,
+      "atlasPriorityScore": 61.5,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.8,
+        "recency": 16.7,
+        "franchise": 0
+      },
+      "id": "AxpVPxngW-0",
+      "title": "Movie News Live! WWAM In the Morning",
+      "date": "2023-02-14",
+      "duration": 7186,
+      "snapshotViews": 9796,
+      "url": "https://www.youtube.com/watch?v=AxpVPxngW-0",
+      "contentMode": "movie-news",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 90,
+      "atlasPriorityRank": 8,
+      "atlasPriorityScore": 81.0,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.3,
+        "recency": 16.7,
+        "franchise": 20
+      },
+      "id": "7PpJUHsBsug",
+      "title": "SCREAM VI Update + Superbowl Spot Breakdown LIVE!",
+      "date": "2023-02-08",
+      "duration": 5032,
+      "snapshotViews": 8819,
+      "url": "https://www.youtube.com/watch?v=7PpJUHsBsug",
+      "contentMode": "trailer-reaction",
+      "rightsMode": "source-audio-boundary-unverified",
+      "restrictedToTopicNavigation": true,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 91,
+      "atlasPriorityRank": 171,
+      "atlasPriorityScore": 60.3,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.7,
+        "recency": 16.6,
+        "franchise": 0
+      },
+      "id": "Ioqyy-phuDk",
+      "title": "Knock at the Cabin SPOILER PARTY + Top 10 M Night Shyamalan Movies",
+      "date": "2023-02-07",
+      "duration": 10261,
+      "snapshotViews": 7792,
+      "url": "https://www.youtube.com/watch?v=Ioqyy-phuDk",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 92,
+      "atlasPriorityRank": 181,
+      "atlasPriorityScore": 59.6,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.4,
+        "recency": 16.2,
+        "franchise": 0
+      },
+      "id": "TTt__fuFVxM",
+      "title": "Friday Night Fights! Christmas Movie Face Off!",
+      "date": "2022-12-24",
+      "duration": 11276,
+      "snapshotViews": 7359,
+      "url": "https://www.youtube.com/watch?v=TTt__fuFVxM",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 93,
+      "atlasPriorityRank": 161,
+      "atlasPriorityScore": 61.0,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.0,
+        "recency": 16.0,
+        "franchise": 0
+      },
+      "id": "qcfomMdB0Cw",
+      "title": "Top 15 Antiheroes of All Time LIVE!",
+      "date": "2022-12-08",
+      "duration": 9912,
+      "snapshotViews": 10101,
+      "url": "https://www.youtube.com/watch?v=qcfomMdB0Cw",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 94,
+      "atlasPriorityRank": 115,
+      "atlasPriorityScore": 65.8,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.0,
+        "recency": 15.8,
+        "franchise": 6
+      },
+      "id": "Iq5BUKM7JD0",
+      "title": "FRIDAY NIGHT FIGHTS! Horror Icons VS Action Stars",
+      "date": "2022-11-19",
+      "duration": 7718,
+      "snapshotViews": 8272,
+      "url": "https://www.youtube.com/watch?v=Iq5BUKM7JD0",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 95,
+      "atlasPriorityRank": 176,
+      "atlasPriorityScore": 60.0,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.4,
+        "recency": 15.6,
+        "franchise": 0
+      },
+      "id": "hsx_msifZdg",
+      "title": "Ranking Kevin Smith Movies LIVE! + Movie News",
+      "date": "2022-11-03",
+      "duration": 10086,
+      "snapshotViews": 9081,
+      "url": "https://www.youtube.com/watch?v=hsx_msifZdg",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 96,
+      "atlasPriorityRank": 155,
+      "atlasPriorityScore": 61.7,
+      "atlasPriorityBreakdown": {
+        "popularity": 46.3,
+        "recency": 15.4,
+        "franchise": 0
+      },
+      "id": "7ZqvoxBhqj4",
+      "title": "Top 20 Stephen King Movies RANKED Live",
+      "date": "2022-10-12",
+      "duration": 12102,
+      "snapshotViews": 13255,
+      "url": "https://www.youtube.com/watch?v=7ZqvoxBhqj4",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 97,
+      "atlasPriorityRank": 159,
+      "atlasPriorityScore": 61.1,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.7,
+        "recency": 15.4,
+        "franchise": 0
+      },
+      "id": "Oj7RtniiOZg",
+      "title": "50 Million Views Hangout Q + A",
+      "date": "2022-10-09",
+      "duration": 10902,
+      "snapshotViews": 11640,
+      "url": "https://www.youtube.com/watch?v=Oj7RtniiOZg",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 98,
+      "atlasPriorityRank": 172,
+      "atlasPriorityScore": 60.2,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.2,
+        "recency": 15.0,
+        "franchise": 0
+      },
+      "id": "MvvLpIMt2WU",
+      "title": "We Watched A Movie Live! 9/6",
+      "date": "2022-09-07",
+      "duration": 9795,
+      "snapshotViews": 10637,
+      "url": "https://www.youtube.com/watch?v=MvvLpIMt2WU",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 99,
+      "atlasPriorityRank": 0,
+      "atlasPriorityScore": 0,
+      "atlasPriorityBreakdown": {
+        "popularity": 0,
+        "recency": 0,
+        "franchise": 0
+      },
+      "id": "cQAVmNFQmoI",
+      "title": "Ranking the Predator + Robocop + Terminator & Alien Franchises LIVE!",
+      "date": "2022-08-13",
+      "duration": 11062,
+      "snapshotViews": 34523,
+      "url": "https://www.youtube.com/watch?v=cQAVmNFQmoI",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 100,
+      "atlasPriorityRank": 201,
+      "atlasPriorityScore": 56.9,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.7,
+        "recency": 14.2,
+        "franchise": 0
+      },
+      "id": "4VGC0DogG80",
+      "title": "Friday Night Fights! James Wan VS M Night Shyamalan",
+      "date": "2022-06-18",
+      "duration": 10473,
+      "snapshotViews": 6387,
+      "url": "https://www.youtube.com/watch?v=4VGC0DogG80",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 101,
+      "atlasPriorityRank": 185,
+      "atlasPriorityScore": 59.5,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.4,
+        "recency": 14.1,
+        "franchise": 0
+      },
+      "id": "2z265Qbm6Ww",
+      "title": "We Watched A Movie Live Movie News!",
+      "date": "2022-06-09",
+      "duration": 9321,
+      "snapshotViews": 10968,
+      "url": "https://www.youtube.com/watch?v=2z265Qbm6Ww",
+      "contentMode": "movie-news",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 102,
+      "atlasPriorityRank": 175,
+      "atlasPriorityScore": 60.0,
+      "atlasPriorityBreakdown": {
+        "popularity": 46.1,
+        "recency": 13.9,
+        "franchise": 0
+      },
+      "id": "j0rFY5WOTp4",
+      "title": "Top 10 Zombie Movies of All Time RANKED",
+      "date": "2022-05-21",
+      "duration": 10070,
+      "snapshotViews": 12797,
+      "url": "https://www.youtube.com/watch?v=j0rFY5WOTp4",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 103,
+      "atlasPriorityRank": 200,
+      "atlasPriorityScore": 57.0,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.2,
+        "recency": 13.8,
+        "franchise": 0
+      },
+      "id": "eibPtSx-Xu0",
+      "title": "Doctor Strange Into The Multiverse of Madness SPOILER PARTY",
+      "date": "2022-05-10",
+      "duration": 8997,
+      "snapshotViews": 7029,
+      "url": "https://www.youtube.com/watch?v=eibPtSx-Xu0",
+      "contentMode": "spoiler-review",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 104,
+      "atlasPriorityRank": 2,
+      "atlasPriorityScore": 81.5,
+      "atlasPriorityBreakdown": {
+        "popularity": 47.9,
+        "recency": 13.6,
+        "franchise": 20
+      },
+      "id": "WE3_YeRy7Xk",
+      "title": "HALLOWEEN ENDS Trailer Description + Reactions LIVE",
+      "date": "2022-04-28",
+      "duration": 4855,
+      "snapshotViews": 18549,
+      "url": "https://www.youtube.com/watch?v=WE3_YeRy7Xk",
+      "contentMode": "trailer-reaction",
+      "rightsMode": "source-audio-boundary-unverified",
+      "restrictedToTopicNavigation": true,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 105,
+      "atlasPriorityRank": 174,
+      "atlasPriorityScore": 60.1,
+      "atlasPriorityBreakdown": {
+        "popularity": 46.5,
+        "recency": 13.6,
+        "franchise": 0
+      },
+      "id": "TpSuIqTG_Q4",
+      "title": "Every MCU Movie Ranked LIVE!",
+      "date": "2022-04-26",
+      "duration": 11778,
+      "snapshotViews": 13808,
+      "url": "https://www.youtube.com/watch?v=TpSuIqTG_Q4",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 106,
+      "atlasPriorityRank": 191,
+      "atlasPriorityScore": 58.5,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.2,
+        "recency": 13.3,
+        "franchise": 0
+      },
+      "id": "IutbJUI9Yks",
+      "title": "We Watched A Movie LIVE 3/28",
+      "date": "2022-03-29",
+      "duration": 9133,
+      "snapshotViews": 10629,
+      "url": "https://www.youtube.com/watch?v=IutbJUI9Yks",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 107,
+      "atlasPriorityRank": 208,
+      "atlasPriorityScore": 56.0,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.7,
+        "recency": 13.3,
+        "franchise": 0
+      },
+      "id": "Se2BOJ4L92I",
+      "title": "BOX OFFICE REMATCH LIVE! 3/23",
+      "date": "2022-03-24",
+      "duration": 9367,
+      "snapshotViews": 6406,
+      "url": "https://www.youtube.com/watch?v=Se2BOJ4L92I",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 108,
+      "atlasPriorityRank": 157,
+      "atlasPriorityScore": 61.3,
+      "atlasPriorityBreakdown": {
+        "popularity": 48.2,
+        "recency": 13.1,
+        "franchise": 0
+      },
+      "id": "PW5_VSGfkyA",
+      "title": "YOU Rank Everything BATMAN Live!",
+      "date": "2022-03-10",
+      "duration": 11098,
+      "snapshotViews": 19409,
+      "url": "https://www.youtube.com/watch?v=PW5_VSGfkyA",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 109,
+      "atlasPriorityRank": 184,
+      "atlasPriorityScore": 59.5,
+      "atlasPriorityBreakdown": {
+        "popularity": 46.4,
+        "recency": 13.1,
+        "franchise": 0
+      },
+      "id": "Nq-swqtGF5Y",
+      "title": "THE BATMAN Spoiler Party!",
+      "date": "2022-03-08",
+      "duration": 8652,
+      "snapshotViews": 13616,
+      "url": "https://www.youtube.com/watch?v=Nq-swqtGF5Y",
+      "contentMode": "spoiler-review",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 110,
+      "atlasPriorityRank": 193,
+      "atlasPriorityScore": 57.9,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.8,
+        "recency": 13.1,
+        "franchise": 0
+      },
+      "id": "zPJ9hYgPH44",
+      "title": "THE BATMAN Spoiler Free Review Live!",
+      "date": "2022-03-05",
+      "duration": 6815,
+      "snapshotViews": 9723,
+      "url": "https://www.youtube.com/watch?v=zPJ9hYgPH44",
+      "contentMode": "spoiler-review",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 111,
+      "atlasPriorityRank": 162,
+      "atlasPriorityScore": 60.9,
+      "atlasPriorityBreakdown": {
+        "popularity": 47.9,
+        "recency": 13.0,
+        "franchise": 0
+      },
+      "id": "Li3ClZHMcdM",
+      "title": "THE DARK KNIGHT + DARK KNIGHT RISES Reviews",
+      "date": "2022-03-03",
+      "duration": 8344,
+      "snapshotViews": 18535,
+      "url": "https://www.youtube.com/watch?v=Li3ClZHMcdM",
+      "contentMode": "review-show",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 112,
+      "atlasPriorityRank": 196,
+      "atlasPriorityScore": 57.7,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.8,
+        "recency": 12.9,
+        "franchise": 0
+      },
+      "id": "fhxOETJ63TU",
+      "title": "We Watched A Movie LIVE 2/16",
+      "date": "2022-02-17",
+      "duration": 8243,
+      "snapshotViews": 9756,
+      "url": "https://www.youtube.com/watch?v=fhxOETJ63TU",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 113,
+      "atlasPriorityRank": 207,
+      "atlasPriorityScore": 56.1,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.3,
+        "recency": 12.8,
+        "franchise": 0
+      },
+      "id": "ZzrE0qPyrSI",
+      "title": "We Watched A Movie LIVE 2/9!",
+      "date": "2022-02-10",
+      "duration": 7509,
+      "snapshotViews": 7149,
+      "url": "https://www.youtube.com/watch?v=ZzrE0qPyrSI",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 114,
+      "atlasPriorityRank": 203,
+      "atlasPriorityScore": 56.7,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.9,
+        "recency": 12.8,
+        "franchise": 0
+      },
+      "id": "ztg6egSDHTo",
+      "title": "We Watched A Movie LIVE! 2/7",
+      "date": "2022-02-08",
+      "duration": 8951,
+      "snapshotViews": 8046,
+      "url": "https://www.youtube.com/watch?v=ztg6egSDHTo",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 115,
+      "atlasPriorityRank": 195,
+      "atlasPriorityScore": 57.8,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.1,
+        "recency": 12.7,
+        "franchise": 0
+      },
+      "id": "eKfAjnmk9eE",
+      "title": "We Watched A Movie Live! 2/2",
+      "date": "2022-02-03",
+      "duration": 9024,
+      "snapshotViews": 10420,
+      "url": "https://www.youtube.com/watch?v=eKfAjnmk9eE",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 116,
+      "atlasPriorityRank": 198,
+      "atlasPriorityScore": 57.2,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.6,
+        "recency": 12.6,
+        "franchise": 0
+      },
+      "id": "rJVT12obkPY",
+      "title": "We Watched A Movie LIVE! 1/24",
+      "date": "2022-01-25",
+      "duration": 8757,
+      "snapshotViews": 9435,
+      "url": "https://www.youtube.com/watch?v=rJVT12obkPY",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 117,
+      "atlasPriorityRank": 217,
+      "atlasPriorityScore": 54.6,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.2,
+        "recency": 12.4,
+        "franchise": 0
+      },
+      "id": "qiZk54IxyHY",
+      "title": "Box Office Rematch Live! January!",
+      "date": "2022-01-06",
+      "duration": 10100,
+      "snapshotViews": 5722,
+      "url": "https://www.youtube.com/watch?v=qiZk54IxyHY",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 118,
+      "atlasPriorityRank": 199,
+      "atlasPriorityScore": 57.0,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.6,
+        "recency": 12.4,
+        "franchise": 0
+      },
+      "id": "MaQi47XSgek",
+      "title": "We Watched A Movie LIVE! 1/3",
+      "date": "2022-01-04",
+      "duration": 8913,
+      "snapshotViews": 9379,
+      "url": "https://www.youtube.com/watch?v=MaQi47XSgek",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 119,
+      "atlasPriorityRank": 205,
+      "atlasPriorityScore": 56.6,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.3,
+        "recency": 12.3,
+        "franchise": 0
+      },
+      "id": "YHQqHYJ2_Kc",
+      "title": "Spider-Man No Way Home SPOILER STREAM",
+      "date": "2021-12-21",
+      "duration": 8203,
+      "snapshotViews": 8821,
+      "url": "https://www.youtube.com/watch?v=YHQqHYJ2_Kc",
+      "contentMode": "spoiler-review",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 120,
+      "atlasPriorityRank": 209,
+      "atlasPriorityScore": 55.7,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.5,
+        "recency": 12.2,
+        "franchise": 0
+      },
+      "id": "mhX_6NGkF8Q",
+      "title": "WeWatchedAMovie's BOX OFFICE REMATCH! Live!",
+      "date": "2021-12-11",
+      "duration": 10672,
+      "snapshotViews": 7503,
+      "url": "https://www.youtube.com/watch?v=mhX_6NGkF8Q",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 121,
+      "atlasPriorityRank": 149,
+      "atlasPriorityScore": 62.8,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.7,
+        "recency": 12.1,
+        "franchise": 6
+      },
+      "id": "2E4JlP3Mx8w",
+      "title": "FRIDAY NIGHT FIGHTS! 90's Teen Horror",
+      "date": "2021-12-04",
+      "duration": 10328,
+      "snapshotViews": 9586,
+      "url": "https://www.youtube.com/watch?v=2E4JlP3Mx8w",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 122,
+      "atlasPriorityRank": 216,
+      "atlasPriorityScore": 54.6,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.6,
+        "recency": 12.0,
+        "franchise": 0
+      },
+      "id": "WJF2aad7AZE",
+      "title": "We Watched A Movie LIVE! 11/24",
+      "date": "2021-11-25",
+      "duration": 8216,
+      "snapshotViews": 6252,
+      "url": "https://www.youtube.com/watch?v=WJF2aad7AZE",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 123,
+      "atlasPriorityRank": 233,
+      "atlasPriorityScore": 52.8,
+      "atlasPriorityBreakdown": {
+        "popularity": 40.9,
+        "recency": 11.9,
+        "franchise": 0
+      },
+      "id": "recbCTm5AH0",
+      "title": "We Watched A Movie Live! 11/19",
+      "date": "2021-11-19",
+      "duration": 6399,
+      "snapshotViews": 4403,
+      "url": "https://www.youtube.com/watch?v=recbCTm5AH0",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 124,
+      "atlasPriorityRank": 223,
+      "atlasPriorityScore": 53.8,
+      "atlasPriorityBreakdown": {
+        "popularity": 41.9,
+        "recency": 11.9,
+        "franchise": 0
+      },
+      "id": "Q13obIV4Dqc",
+      "title": "We Watched A Movie LIVE! 11/17",
+      "date": "2021-11-17",
+      "duration": 6469,
+      "snapshotViews": 5349,
+      "url": "https://www.youtube.com/watch?v=Q13obIV4Dqc",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 125,
+      "atlasPriorityRank": 225,
+      "atlasPriorityScore": 53.6,
+      "atlasPriorityBreakdown": {
+        "popularity": 41.7,
+        "recency": 11.9,
+        "franchise": 0
+      },
+      "id": "DAdGhuFnM-c",
+      "title": "We Watched A Movie LIVE! Movie News + More",
+      "date": "2021-11-15",
+      "duration": 7703,
+      "snapshotViews": 5196,
+      "url": "https://www.youtube.com/watch?v=DAdGhuFnM-c",
+      "contentMode": "movie-news",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 126,
+      "atlasPriorityRank": 211,
+      "atlasPriorityScore": 55.1,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.8,
+        "recency": 11.3,
+        "franchise": 0
+      },
+      "id": "ZD11G0ajs4I",
+      "title": "We Watched A Movie LIVE! 9/24",
+      "date": "2021-09-24",
+      "duration": 7513,
+      "snapshotViews": 7970,
+      "url": "https://www.youtube.com/watch?v=ZD11G0ajs4I",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 127,
+      "atlasPriorityRank": 210,
+      "atlasPriorityScore": 55.5,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.2,
+        "recency": 11.3,
+        "franchise": 0
+      },
+      "id": "loHwsKNRWvE",
+      "title": "We Watched A Movie LIVE! 9/15",
+      "date": "2021-09-16",
+      "duration": 8911,
+      "snapshotViews": 8603,
+      "url": "https://www.youtube.com/watch?v=loHwsKNRWvE",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 128,
+      "atlasPriorityRank": 215,
+      "atlasPriorityScore": 54.7,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.6,
+        "recency": 11.1,
+        "franchise": 0
+      },
+      "id": "Cl5w0i952iI",
+      "title": "We Watched A Movie LIVE! 8/27",
+      "date": "2021-08-28",
+      "duration": 8137,
+      "snapshotViews": 7577,
+      "url": "https://www.youtube.com/watch?v=Cl5w0i952iI",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 129,
+      "atlasPriorityRank": 228,
+      "atlasPriorityScore": 53.3,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.4,
+        "recency": 10.9,
+        "franchise": 0
+      },
+      "id": "0DhkMsaGxDs",
+      "title": "We Watched a Movie LIVE! Wednesday 8/10",
+      "date": "2021-08-12",
+      "duration": 8702,
+      "snapshotViews": 5987,
+      "url": "https://www.youtube.com/watch?v=0DhkMsaGxDs",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 130,
+      "atlasPriorityRank": 212,
+      "atlasPriorityScore": 55.0,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.2,
+        "recency": 10.8,
+        "franchise": 0
+      },
+      "id": "ajlAfarLVbM",
+      "title": "We Watched a Movie LIVE! Friday 8/6",
+      "date": "2021-08-07",
+      "duration": 8265,
+      "snapshotViews": 8714,
+      "url": "https://www.youtube.com/watch?v=ajlAfarLVbM",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 131,
+      "atlasPriorityRank": 227,
+      "atlasPriorityScore": 53.5,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.7,
+        "recency": 10.8,
+        "franchise": 0
+      },
+      "id": "NAnLPtp4wUg",
+      "title": "We Watched a Movie LIVE! Movie News!",
+      "date": "2021-07-31",
+      "duration": 7105,
+      "snapshotViews": 6288,
+      "url": "https://www.youtube.com/watch?v=NAnLPtp4wUg",
+      "contentMode": "movie-news",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 132,
+      "atlasPriorityRank": 229,
+      "atlasPriorityScore": 53.2,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.5,
+        "recency": 10.7,
+        "franchise": 0
+      },
+      "id": "IoMZM9PEc8I",
+      "title": "We Watched a Movie LIVE! Friday 7/22",
+      "date": "2021-07-23",
+      "duration": 6149,
+      "snapshotViews": 6072,
+      "url": "https://www.youtube.com/watch?v=IoMZM9PEc8I",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 133,
+      "atlasPriorityRank": 273,
+      "atlasPriorityScore": 48.9,
+      "atlasPriorityBreakdown": {
+        "popularity": 38.2,
+        "recency": 10.7,
+        "franchise": 0
+      },
+      "id": "9PMqhA8L_lA",
+      "title": "We Watched a Movie LIVE! Friday 7/22",
+      "date": "2021-07-23",
+      "duration": 1344,
+      "snapshotViews": 2532,
+      "url": "https://www.youtube.com/watch?v=9PMqhA8L_lA",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 134,
+      "atlasPriorityRank": 219,
+      "atlasPriorityScore": 54.4,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.7,
+        "recency": 10.7,
+        "franchise": 0
+      },
+      "id": "SYP9LLbuj2A",
+      "title": "We Watched a Movie LIVE 7/21",
+      "date": "2021-07-22",
+      "duration": 8312,
+      "snapshotViews": 7741,
+      "url": "https://www.youtube.com/watch?v=SYP9LLbuj2A",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 135,
+      "atlasPriorityRank": 232,
+      "atlasPriorityScore": 52.8,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.2,
+        "recency": 10.6,
+        "franchise": 0
+      },
+      "id": "Kv8kH3dusjM",
+      "title": "We Watched a Movie Live! Friday 1PM EST!",
+      "date": "2021-07-16",
+      "duration": 6685,
+      "snapshotViews": 5775,
+      "url": "https://www.youtube.com/watch?v=Kv8kH3dusjM",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 136,
+      "atlasPriorityRank": 226,
+      "atlasPriorityScore": 53.5,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.9,
+        "recency": 10.6,
+        "franchise": 0
+      },
+      "id": "SOY31sk9MK8",
+      "title": "We Watched a Movie LIVE 7/14",
+      "date": "2021-07-15",
+      "duration": 9407,
+      "snapshotViews": 6667,
+      "url": "https://www.youtube.com/watch?v=SOY31sk9MK8",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 137,
+      "atlasPriorityRank": 213,
+      "atlasPriorityScore": 54.9,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.4,
+        "recency": 10.5,
+        "franchise": 0
+      },
+      "id": "uIey2hGanxA",
+      "title": "We Watched A Movie LIVE! Friday 7/2",
+      "date": "2021-07-03",
+      "duration": 10008,
+      "snapshotViews": 8906,
+      "url": "https://www.youtube.com/watch?v=uIey2hGanxA",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 138,
+      "atlasPriorityRank": 13,
+      "atlasPriorityScore": 80.2,
+      "atlasPriorityBreakdown": {
+        "popularity": 49.8,
+        "recency": 10.4,
+        "franchise": 20
+      },
+      "id": "oKVZG4z5wuU",
+      "title": "HALLOWEEN KILLS TRAILER BREAKDOWN LIVE!",
+      "date": "2021-06-29",
+      "duration": 10199,
+      "snapshotViews": 27307,
+      "url": "https://www.youtube.com/watch?v=oKVZG4z5wuU",
+      "contentMode": "trailer-reaction",
+      "rightsMode": "source-audio-boundary-unverified",
+      "restrictedToTopicNavigation": true,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 139,
+      "atlasPriorityRank": 238,
+      "atlasPriorityScore": 52.3,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.0,
+        "recency": 10.3,
+        "franchise": 0
+      },
+      "id": "3kAQ202JA94",
+      "title": "We Watched A Movie LIVE! Wednesday 6/16",
+      "date": "2021-06-17",
+      "duration": 7770,
+      "snapshotViews": 5479,
+      "url": "https://www.youtube.com/watch?v=3kAQ202JA94",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 140,
+      "atlasPriorityRank": 236,
+      "atlasPriorityScore": 52.4,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.2,
+        "recency": 10.2,
+        "franchise": 0
+      },
+      "id": "1XzitdCZD2w",
+      "title": "FRIDAY NIGHT FIGHTS! 90's Soundtracks!",
+      "date": "2021-06-12",
+      "duration": 7172,
+      "snapshotViews": 5705,
+      "url": "https://www.youtube.com/watch?v=1XzitdCZD2w",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 141,
+      "atlasPriorityRank": 241,
+      "atlasPriorityScore": 52.1,
+      "atlasPriorityBreakdown": {
+        "popularity": 41.9,
+        "recency": 10.2,
+        "franchise": 0
+      },
+      "id": "gjgyegV_Uj8",
+      "title": "We Watched A Movie LIVE! 6/9",
+      "date": "2021-06-10",
+      "duration": 7219,
+      "snapshotViews": 5420,
+      "url": "https://www.youtube.com/watch?v=gjgyegV_Uj8",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 142,
+      "atlasPriorityRank": 231,
+      "atlasPriorityScore": 52.8,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.6,
+        "recency": 10.2,
+        "franchise": 0
+      },
+      "id": "2b8bUpDXi0Y",
+      "title": "We Watched A Movie LIVE! In Person! Friday 6/4",
+      "date": "2021-06-05",
+      "duration": 7500,
+      "snapshotViews": 6202,
+      "url": "https://www.youtube.com/watch?v=2b8bUpDXi0Y",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 143,
+      "atlasPriorityRank": 235,
+      "atlasPriorityScore": 52.4,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.3,
+        "recency": 10.1,
+        "franchise": 0
+      },
+      "id": "vVSWSrCAkH8",
+      "title": "We Watched A Movie LIVE! Wednesday 6/2",
+      "date": "2021-06-03",
+      "duration": 8258,
+      "snapshotViews": 5900,
+      "url": "https://www.youtube.com/watch?v=vVSWSrCAkH8",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 144,
+      "atlasPriorityRank": 243,
+      "atlasPriorityScore": 52.0,
+      "atlasPriorityBreakdown": {
+        "popularity": 41.9,
+        "recency": 10.1,
+        "franchise": 0
+      },
+      "id": "Lm6WKlOmzhY",
+      "title": "We Watched A Movie LIVE! Friday 5/28",
+      "date": "2021-05-29",
+      "duration": 7861,
+      "snapshotViews": 5423,
+      "url": "https://www.youtube.com/watch?v=Lm6WKlOmzhY",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 145,
+      "atlasPriorityRank": 258,
+      "atlasPriorityScore": 50.8,
+      "atlasPriorityBreakdown": {
+        "popularity": 40.7,
+        "recency": 10.1,
+        "franchise": 0
+      },
+      "id": "VDnQKxo3EyY",
+      "title": "We Watched a Movie Live! Together!",
+      "date": "2021-05-27",
+      "duration": 3678,
+      "snapshotViews": 4176,
+      "url": "https://www.youtube.com/watch?v=VDnQKxo3EyY",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 146,
+      "atlasPriorityRank": 224,
+      "atlasPriorityScore": 53.6,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.6,
+        "recency": 10.0,
+        "franchise": 0
+      },
+      "id": "qRcoPW7FLaQ",
+      "title": "Top 50 Marvel + DC Movies Ranked LIVE!",
+      "date": "2021-05-22",
+      "duration": 10896,
+      "snapshotViews": 7578,
+      "url": "https://www.youtube.com/watch?v=qRcoPW7FLaQ",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 147,
+      "atlasPriorityRank": 256,
+      "atlasPriorityScore": 51.0,
+      "atlasPriorityBreakdown": {
+        "popularity": 41.0,
+        "recency": 10.0,
+        "franchise": 0
+      },
+      "id": "ge8mbFgT3S8",
+      "title": "We Watched A Movie LIVE Wednesday 5/19",
+      "date": "2021-05-20",
+      "duration": 7478,
+      "snapshotViews": 4507,
+      "url": "https://www.youtube.com/watch?v=ge8mbFgT3S8",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 148,
+      "atlasPriorityRank": 237,
+      "atlasPriorityScore": 52.3,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.4,
+        "recency": 9.9,
+        "franchise": 0
+      },
+      "id": "8Ah9nhO3DIE",
+      "title": "We Watched a Movie LIVE! SPIRAL + Movie News",
+      "date": "2021-05-14",
+      "duration": 8246,
+      "snapshotViews": 5913,
+      "url": "https://www.youtube.com/watch?v=8Ah9nhO3DIE",
+      "contentMode": "movie-news",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 149,
+      "atlasPriorityRank": 250,
+      "atlasPriorityScore": 51.5,
+      "atlasPriorityBreakdown": {
+        "popularity": 41.6,
+        "recency": 9.9,
+        "franchise": 0
+      },
+      "id": "8cJ8HjSwH8w",
+      "title": "We Watched A Movie LIVE! Wednesday 5/12",
+      "date": "2021-05-13",
+      "duration": 6813,
+      "snapshotViews": 5019,
+      "url": "https://www.youtube.com/watch?v=8cJ8HjSwH8w",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 150,
+      "atlasPriorityRank": 247,
+      "atlasPriorityScore": 51.9,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.0,
+        "recency": 9.9,
+        "franchise": 0
+      },
+      "id": "LOijhGkBuX4",
+      "title": "We Watched A Movie LIVE Friday 5/7",
+      "date": "2021-05-08",
+      "duration": 8166,
+      "snapshotViews": 5465,
+      "url": "https://www.youtube.com/watch?v=LOijhGkBuX4",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 151,
+      "atlasPriorityRank": 257,
+      "atlasPriorityScore": 50.8,
+      "atlasPriorityBreakdown": {
+        "popularity": 41.0,
+        "recency": 9.8,
+        "franchise": 0
+      },
+      "id": "_aezqDw6Sx0",
+      "title": "We Watched A Movie LIVE! Wednesday 5/5",
+      "date": "2021-05-06",
+      "duration": 7214,
+      "snapshotViews": 4447,
+      "url": "https://www.youtube.com/watch?v=_aezqDw6Sx0",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 152,
+      "atlasPriorityRank": 245,
+      "atlasPriorityScore": 51.9,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.1,
+        "recency": 9.8,
+        "franchise": 0
+      },
+      "id": "0nrjUWmnzag",
+      "title": "Keanu Reeves VS Tom Cruise! Friday Night Fights Live!",
+      "date": "2021-05-01",
+      "duration": 9962,
+      "snapshotViews": 5621,
+      "url": "https://www.youtube.com/watch?v=0nrjUWmnzag",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 153,
+      "atlasPriorityRank": 246,
+      "atlasPriorityScore": 51.9,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.1,
+        "recency": 9.8,
+        "franchise": 0
+      },
+      "id": "GDsexmabrDg",
+      "title": "We Watched A Movie LIVE! Wednesday April 28th, 2021",
+      "date": "2021-04-29",
+      "duration": 8934,
+      "snapshotViews": 5589,
+      "url": "https://www.youtube.com/watch?v=GDsexmabrDg",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 154,
+      "atlasPriorityRank": 163,
+      "atlasPriorityScore": 60.9,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.3,
+        "recency": 9.6,
+        "franchise": 6
+      },
+      "id": "ltQ3b_93Bgk",
+      "title": "ACTION HEROES VS HORROR VILLAINS",
+      "date": "2021-04-17",
+      "duration": 10017,
+      "snapshotViews": 10732,
+      "url": "https://www.youtube.com/watch?v=ltQ3b_93Bgk",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 155,
+      "atlasPriorityRank": 52,
+      "atlasPriorityScore": 72.0,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.4,
+        "recency": 9.6,
+        "franchise": 20
+      },
+      "id": "GBOlv58BBXg",
+      "title": "SCREAM News and Theories + THE BABADOOK Revisited",
+      "date": "2021-04-15",
+      "duration": 9499,
+      "snapshotViews": 5920,
+      "url": "https://www.youtube.com/watch?v=GBOlv58BBXg",
+      "contentMode": "movie-news",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 156,
+      "atlasPriorityRank": 242,
+      "atlasPriorityScore": 52.0,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.4,
+        "recency": 9.6,
+        "franchise": 0
+      },
+      "id": "M0VIoNjnoFc",
+      "title": "Justice League Writer GOES OFF + More Movie News",
+      "date": "2021-04-10",
+      "duration": 8359,
+      "snapshotViews": 5963,
+      "url": "https://www.youtube.com/watch?v=M0VIoNjnoFc",
+      "contentMode": "movie-news",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 157,
+      "atlasPriorityRank": 249,
+      "atlasPriorityScore": 51.6,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.1,
+        "recency": 9.5,
+        "franchise": 0
+      },
+      "id": "GL_WYPtWgbM",
+      "title": "WWAM Video Live! Ghostbusters, Rocky + Movie News",
+      "date": "2021-04-08",
+      "duration": 10442,
+      "snapshotViews": 5621,
+      "url": "https://www.youtube.com/watch?v=GL_WYPtWgbM",
+      "contentMode": "movie-news",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 158,
+      "atlasPriorityRank": 190,
+      "atlasPriorityScore": 58.7,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.2,
+        "recency": 9.5,
+        "franchise": 6
+      },
+      "id": "-4VdRLU4l_U",
+      "title": "BEST HORROR MOVIES of 1999 FRIDAY NIGHT FIGHT!",
+      "date": "2021-04-03",
+      "duration": 8842,
+      "snapshotViews": 7005,
+      "url": "https://www.youtube.com/watch?v=-4VdRLU4l_U",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 159,
+      "atlasPriorityRank": 47,
+      "atlasPriorityScore": 72.4,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.9,
+        "recency": 9.5,
+        "franchise": 20
+      },
+      "id": "mmUOFsbGtfg",
+      "title": "Halloween Kills, Godzilla VS Kong + SPIRAL Reaction LIVE!!!!",
+      "date": "2021-04-01",
+      "duration": 9326,
+      "snapshotViews": 6632,
+      "url": "https://www.youtube.com/watch?v=mmUOFsbGtfg",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 160,
+      "atlasPriorityRank": 255,
+      "atlasPriorityScore": 51.0,
+      "atlasPriorityBreakdown": {
+        "popularity": 41.6,
+        "recency": 9.4,
+        "franchise": 0
+      },
+      "id": "DPZGZBWat04",
+      "title": "The Suicide Squad, NOBODY + More! WWAM Video Live!",
+      "date": "2021-03-27",
+      "duration": 7280,
+      "snapshotViews": 5032,
+      "url": "https://www.youtube.com/watch?v=DPZGZBWat04",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 161,
+      "atlasPriorityRank": 221,
+      "atlasPriorityScore": 54.1,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.7,
+        "recency": 9.4,
+        "franchise": 0
+      },
+      "id": "NQtFSzceYjA",
+      "title": "ZACK SNYDER'S JUSTICE LEAGUE Spoilers + Futures LIVE!",
+      "date": "2021-03-23",
+      "duration": 10815,
+      "snapshotViews": 9504,
+      "url": "https://www.youtube.com/watch?v=NQtFSzceYjA",
+      "contentMode": "spoiler-review",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 162,
+      "atlasPriorityRank": 214,
+      "atlasPriorityScore": 54.8,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.5,
+        "recency": 9.3,
+        "franchise": 0
+      },
+      "id": "UidcnWgctvU",
+      "title": "ST PATTY'S DAY PARTY! Eric Striffler + Snyder Cut Reviews!",
+      "date": "2021-03-18",
+      "duration": 12320,
+      "snapshotViews": 11294,
+      "url": "https://www.youtube.com/watch?v=UidcnWgctvU",
+      "contentMode": "review-show",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 163,
+      "atlasPriorityRank": 254,
+      "atlasPriorityScore": 51.0,
+      "atlasPriorityBreakdown": {
+        "popularity": 41.7,
+        "recency": 9.3,
+        "franchise": 0
+      },
+      "id": "7mTZZJ28YBU",
+      "title": "Damian Maffei Interview + Movie News & WandaVision!",
+      "date": "2021-03-13",
+      "duration": 9905,
+      "snapshotViews": 5185,
+      "url": "https://www.youtube.com/watch?v=7mTZZJ28YBU",
+      "contentMode": "movie-news",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 164,
+      "atlasPriorityRank": 252,
+      "atlasPriorityScore": 51.3,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.2,
+        "recency": 9.1,
+        "franchise": 0
+      },
+      "id": "S-vZztE1TE4",
+      "title": "Jim Carrey VS Adam Sandler + Mortal Kombat Trailer Reaction Live!",
+      "date": "2021-02-20",
+      "duration": 5440,
+      "snapshotViews": 5725,
+      "url": "https://www.youtube.com/watch?v=S-vZztE1TE4",
+      "contentMode": "trailer-reaction",
+      "rightsMode": "source-audio-boundary-unverified",
+      "restrictedToTopicNavigation": true,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 165,
+      "atlasPriorityRank": 266,
+      "atlasPriorityScore": 50.0,
+      "atlasPriorityBreakdown": {
+        "popularity": 40.9,
+        "recency": 9.1,
+        "franchise": 0
+      },
+      "id": "0H8tsOxMw64",
+      "title": "Jim Carrey VS Adam Sandler + Mortal Kombat Trailer Reaction Live!",
+      "date": "2021-02-20",
+      "duration": 6115,
+      "snapshotViews": 4390,
+      "url": "https://www.youtube.com/watch?v=0H8tsOxMw64",
+      "contentMode": "trailer-reaction",
+      "rightsMode": "source-audio-boundary-unverified",
+      "restrictedToTopicNavigation": true,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 166,
+      "atlasPriorityRank": 48,
+      "atlasPriorityScore": 72.3,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.4,
+        "recency": 8.9,
+        "franchise": 20
+      },
+      "id": "2XB80vTobTM",
+      "title": "Halloween Game Coming Soon? + Movie News + Superbowl Party LIVE!",
+      "date": "2021-02-06",
+      "duration": 11965,
+      "snapshotViews": 7388,
+      "url": "https://www.youtube.com/watch?v=2XB80vTobTM",
+      "contentMode": "movie-news",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 167,
+      "atlasPriorityRank": 46,
+      "atlasPriorityScore": 72.9,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.0,
+        "recency": 8.9,
+        "franchise": 20
+      },
+      "id": "VvQcHgpP1Y0",
+      "title": "Zack Snyder's Justice League + Halloween Kills + More! Live!",
+      "date": "2021-02-04",
+      "duration": 10930,
+      "snapshotViews": 8235,
+      "url": "https://www.youtube.com/watch?v=VvQcHgpP1Y0",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 168,
+      "atlasPriorityRank": 0,
+      "atlasPriorityScore": 0,
+      "atlasPriorityBreakdown": {
+        "popularity": 0,
+        "recency": 0,
+        "franchise": 0
+      },
+      "id": "VNx810srEmw",
+      "title": "WWAM Video Live! Friday the 13th, The Snyder Cut, Deadpool 3 + The Abyss!",
+      "date": "2021-01-30",
+      "duration": 11690,
+      "snapshotViews": 7923,
+      "url": "https://www.youtube.com/watch?v=VNx810srEmw",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 169,
+      "atlasPriorityRank": 260,
+      "atlasPriorityScore": 50.4,
+      "atlasPriorityBreakdown": {
+        "popularity": 41.6,
+        "recency": 8.8,
+        "franchise": 0
+      },
+      "id": "_8SAxrgtVkc",
+      "title": "Movie News + The Little Things Review + Top 10 Buddy Cop Movies",
+      "date": "2021-01-28",
+      "duration": 10450,
+      "snapshotViews": 5013,
+      "url": "https://www.youtube.com/watch?v=_8SAxrgtVkc",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 170,
+      "atlasPriorityRank": 262,
+      "atlasPriorityScore": 50.2,
+      "atlasPriorityBreakdown": {
+        "popularity": 41.5,
+        "recency": 8.7,
+        "franchise": 0
+      },
+      "id": "v-o_6nMccZo",
+      "title": "WWAM Video Live! Movie News + Nathan Baesel",
+      "date": "2021-01-22",
+      "duration": 10598,
+      "snapshotViews": 4915,
+      "url": "https://www.youtube.com/watch?v=v-o_6nMccZo",
+      "contentMode": "movie-news",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 171,
+      "atlasPriorityRank": 244,
+      "atlasPriorityScore": 51.9,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.2,
+        "recency": 8.7,
+        "franchise": 0
+      },
+      "id": "30_mv7Baq-s",
+      "title": "WWAM Video Live! Most Anticipated Films of 2021 + Behind the Mask Review!",
+      "date": "2021-01-14",
+      "duration": 10275,
+      "snapshotViews": 7054,
+      "url": "https://www.youtube.com/watch?v=30_mv7Baq-s",
+      "contentMode": "review-show",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 172,
+      "atlasPriorityRank": 265,
+      "atlasPriorityScore": 50.0,
+      "atlasPriorityBreakdown": {
+        "popularity": 41.4,
+        "recency": 8.6,
+        "franchise": 0
+      },
+      "id": "c7uEWGdxKEA",
+      "title": "Friday Night Fights LIVE! Sam Raimi VS James Wan",
+      "date": "2021-01-09",
+      "duration": 9305,
+      "snapshotViews": 4855,
+      "url": "https://www.youtube.com/watch?v=c7uEWGdxKEA",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 173,
+      "atlasPriorityRank": 281,
+      "atlasPriorityScore": 46.5,
+      "atlasPriorityBreakdown": {
+        "popularity": 37.9,
+        "recency": 8.6,
+        "franchise": 0
+      },
+      "id": "AsIhCER-93I",
+      "title": "Friday Night Fights LIVE! Sam Raimi VS James Wan",
+      "date": "2021-01-09",
+      "duration": 2040,
+      "snapshotViews": 2360,
+      "url": "https://www.youtube.com/watch?v=AsIhCER-93I",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 174,
+      "atlasPriorityRank": 50,
+      "atlasPriorityScore": 72.2,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.6,
+        "recency": 8.6,
+        "franchise": 20
+      },
+      "id": "GlkmFBIw2Ic",
+      "title": "WWAM Video Live! The Halloween 4 We Never Saw + Cobra Kai Spoilers!",
+      "date": "2021-01-05",
+      "duration": 11015,
+      "snapshotViews": 7578,
+      "url": "https://www.youtube.com/watch?v=GlkmFBIw2Ic",
+      "contentMode": "spoiler-review",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 175,
+      "atlasPriorityRank": 0,
+      "atlasPriorityScore": 0,
+      "atlasPriorityBreakdown": {
+        "popularity": 0,
+        "recency": 0,
+        "franchise": 0
+      },
+      "id": "ojsn75be_gI",
+      "title": "WWAM Video Live! Batman Rumors, Dave McRae + Hot Noodles",
+      "date": "2020-12-31",
+      "duration": 11830,
+      "snapshotViews": 10410,
+      "url": "https://www.youtube.com/watch?v=ojsn75be_gI",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 176,
+      "atlasPriorityRank": 268,
+      "atlasPriorityScore": 49.8,
+      "atlasPriorityBreakdown": {
+        "popularity": 41.4,
+        "recency": 8.4,
+        "franchise": 0
+      },
+      "id": "B4KDJw00Cj0",
+      "title": "WWAM Video Live! The Mandalorian, WWE TLC + Gareth West",
+      "date": "2020-12-22",
+      "duration": 10510,
+      "snapshotViews": 4853,
+      "url": "https://www.youtube.com/watch?v=B4KDJw00Cj0",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 177,
+      "atlasPriorityRank": 218,
+      "atlasPriorityScore": 54.5,
+      "atlasPriorityBreakdown": {
+        "popularity": 46.1,
+        "recency": 8.4,
+        "franchise": 0
+      },
+      "id": "zWKRDJ3zXIA",
+      "title": "Friday Night Fights! The Fast Food Wars",
+      "date": "2020-12-19",
+      "duration": 12155,
+      "snapshotViews": 12756,
+      "url": "https://www.youtube.com/watch?v=zWKRDJ3zXIA",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 178,
+      "atlasPriorityRank": 267,
+      "atlasPriorityScore": 49.8,
+      "atlasPriorityBreakdown": {
+        "popularity": 41.4,
+        "recency": 8.4,
+        "franchise": 0
+      },
+      "id": "BVXDxCMoMrc",
+      "title": "WWAM Video Live! Top 5 Movies of 2020, Movie News + Unboxings",
+      "date": "2020-12-17",
+      "duration": 9275,
+      "snapshotViews": 4885,
+      "url": "https://www.youtube.com/watch?v=BVXDxCMoMrc",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 179,
+      "atlasPriorityRank": 277,
+      "atlasPriorityScore": 47.6,
+      "atlasPriorityBreakdown": {
+        "popularity": 39.3,
+        "recency": 8.3,
+        "franchise": 0
+      },
+      "id": "Sfesf9pImEo",
+      "title": "90's Stream Live! Buffy, 10 Things + Disturbing Behaviro",
+      "date": "2020-12-15",
+      "duration": 6515,
+      "snapshotViews": 3137,
+      "url": "https://www.youtube.com/watch?v=Sfesf9pImEo",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 180,
+      "atlasPriorityRank": 0,
+      "atlasPriorityScore": 0,
+      "atlasPriorityBreakdown": {
+        "popularity": 0,
+        "recency": 0,
+        "franchise": 0
+      },
+      "id": "5jnBdRdeBOA",
+      "title": "DISNEY PLUS VS HBO MAX LIVE!!!!!",
+      "date": "2020-12-12",
+      "duration": 11405,
+      "snapshotViews": 7189,
+      "url": "https://www.youtube.com/watch?v=5jnBdRdeBOA",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 181,
+      "atlasPriorityRank": 269,
+      "atlasPriorityScore": 49.4,
+      "atlasPriorityBreakdown": {
+        "popularity": 41.1,
+        "recency": 8.3,
+        "franchise": 0
+      },
+      "id": "vK4nC67xues",
+      "title": "WWAM Video Live! Spider-Man 3, John Carpenter, Ben Affleck's Batman + More!",
+      "date": "2020-12-10",
+      "duration": 7575,
+      "snapshotViews": 4581,
+      "url": "https://www.youtube.com/watch?v=vK4nC67xues",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 182,
+      "atlasPriorityRank": 264,
+      "atlasPriorityScore": 50.1,
+      "atlasPriorityBreakdown": {
+        "popularity": 41.8,
+        "recency": 8.3,
+        "franchise": 0
+      },
+      "id": "jRxKoc_R-t0",
+      "title": "Top 10 Movies of 1995 - WWAM Video Live!",
+      "date": "2020-12-08",
+      "duration": 8570,
+      "snapshotViews": 5318,
+      "url": "https://www.youtube.com/watch?v=jRxKoc_R-t0",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 183,
+      "atlasPriorityRank": 202,
+      "atlasPriorityScore": 56.9,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.7,
+        "recency": 8.2,
+        "franchise": 6
+      },
+      "id": "uL6liAT2lxI",
+      "title": "FRIDAY NIGHT FIGHTS Live! Horror Comedies",
+      "date": "2020-12-05",
+      "duration": 8570,
+      "snapshotViews": 6319,
+      "url": "https://www.youtube.com/watch?v=uL6liAT2lxI",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 184,
+      "atlasPriorityRank": 145,
+      "atlasPriorityScore": 63.1,
+      "atlasPriorityBreakdown": {
+        "popularity": 40.9,
+        "recency": 8.2,
+        "franchise": 14
+      },
+      "id": "Nft3tmGsv7I",
+      "title": "WWAM Video Live! Hellraiser, Daredevil + More Movie News",
+      "date": "2020-12-03",
+      "duration": 9045,
+      "snapshotViews": 4380,
+      "url": "https://www.youtube.com/watch?v=Nft3tmGsv7I",
+      "contentMode": "movie-news",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 185,
+      "atlasPriorityRank": 261,
+      "atlasPriorityScore": 50.3,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.2,
+        "recency": 8.1,
+        "franchise": 0
+      },
+      "id": "B8cmSSCUUPE",
+      "title": "FRIDAY NIGHT FIGHTS! Marvel VS DC Live!",
+      "date": "2020-11-21",
+      "duration": 11705,
+      "snapshotViews": 5727,
+      "url": "https://www.youtube.com/watch?v=B8cmSSCUUPE",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 186,
+      "atlasPriorityRank": 234,
+      "atlasPriorityScore": 52.7,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.8,
+        "recency": 7.9,
+        "franchise": 0
+      },
+      "id": "cTylZeGPJqs",
+      "title": "FRIDAY NIGHT FIGHTS CHAMPIONSHIP LIVE!!!!",
+      "date": "2020-10-31",
+      "duration": 7860,
+      "snapshotViews": 9855,
+      "url": "https://www.youtube.com/watch?v=cTylZeGPJqs",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 187,
+      "atlasPriorityRank": 187,
+      "atlasPriorityScore": 58.9,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.1,
+        "recency": 7.8,
+        "franchise": 6
+      },
+      "id": "ihaGeV01C8k",
+      "title": "FRIDAY NIGHT FIGHTS! Ultimate Horror Vote Round 4!",
+      "date": "2020-10-24",
+      "duration": 10991,
+      "snapshotViews": 10457,
+      "url": "https://www.youtube.com/watch?v=ihaGeV01C8k",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 188,
+      "atlasPriorityRank": 197,
+      "atlasPriorityScore": 57.7,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.0,
+        "recency": 7.7,
+        "franchise": 6
+      },
+      "id": "JVRpguGjUDk",
+      "title": "Friday Night Horror Franchise Fight! Round 3!",
+      "date": "2020-10-17",
+      "duration": 9275,
+      "snapshotViews": 8334,
+      "url": "https://www.youtube.com/watch?v=JVRpguGjUDk",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 189,
+      "atlasPriorityRank": 194,
+      "atlasPriorityScore": 57.9,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.3,
+        "recency": 7.6,
+        "franchise": 6
+      },
+      "id": "G17N8Bz5oeA",
+      "title": "Friday Night Fights Round 2! Ultimate Horror Movie Royal Rumble!",
+      "date": "2020-10-10",
+      "duration": 9549,
+      "snapshotViews": 8735,
+      "url": "https://www.youtube.com/watch?v=G17N8Bz5oeA",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 190,
+      "atlasPriorityRank": 166,
+      "atlasPriorityScore": 60.8,
+      "atlasPriorityBreakdown": {
+        "popularity": 47.4,
+        "recency": 7.4,
+        "franchise": 6
+      },
+      "id": "KQAJrK3zMQU",
+      "title": "What's The Best Horror Remake of the 2000's?",
+      "date": "2020-09-19",
+      "duration": 11111,
+      "snapshotViews": 16470,
+      "url": "https://www.youtube.com/watch?v=KQAJrK3zMQU",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 191,
+      "atlasPriorityRank": 192,
+      "atlasPriorityScore": 58.1,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.8,
+        "recency": 7.3,
+        "franchise": 6
+      },
+      "id": "E--68f8UhhI",
+      "title": "What's The Best THIRD Movie in a Slasher Franchise?",
+      "date": "2020-09-12",
+      "duration": 8960,
+      "snapshotViews": 9846,
+      "url": "https://www.youtube.com/watch?v=E--68f8UhhI",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 192,
+      "atlasPriorityRank": 259,
+      "atlasPriorityScore": 50.5,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.3,
+        "recency": 7.2,
+        "franchise": 0
+      },
+      "id": "yx3_TvhqBfQ",
+      "title": "WEREWOLVES VS VAMPIRES - Friday Night Fights!",
+      "date": "2020-08-29",
+      "duration": 9495,
+      "snapshotViews": 7244,
+      "url": "https://www.youtube.com/watch?v=yx3_TvhqBfQ",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 193,
+      "atlasPriorityRank": 230,
+      "atlasPriorityScore": 52.8,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.7,
+        "recency": 7.1,
+        "franchise": 0
+      },
+      "id": "MrBpbfwDlAQ",
+      "title": "DC FAN DOME LIVE! The Batman Panel",
+      "date": "2020-08-23",
+      "duration": 2220,
+      "snapshotViews": 11747,
+      "url": "https://www.youtube.com/watch?v=MrBpbfwDlAQ",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 194,
+      "atlasPriorityRank": 240,
+      "atlasPriorityScore": 52.2,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.1,
+        "recency": 7.1,
+        "franchise": 0
+      },
+      "id": "v7RFMdStnSk",
+      "title": "What's The Best WEREWOLF Movie Ever? Friday Night Fights!",
+      "date": "2020-08-15",
+      "duration": 9305,
+      "snapshotViews": 10400,
+      "url": "https://www.youtube.com/watch?v=v7RFMdStnSk",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 195,
+      "atlasPriorityRank": 239,
+      "atlasPriorityScore": 52.2,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.2,
+        "recency": 7.0,
+        "franchise": 0
+      },
+      "id": "BddmM95lfpc",
+      "title": "Friday Night Fights! The Best Vampire Movie of All Time!",
+      "date": "2020-08-08",
+      "duration": 8938,
+      "snapshotViews": 10578,
+      "url": "https://www.youtube.com/watch?v=BddmM95lfpc",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 196,
+      "atlasPriorityRank": 189,
+      "atlasPriorityScore": 58.7,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.8,
+        "recency": 6.9,
+        "franchise": 6
+      },
+      "id": "wtM_k1sG_Qw",
+      "title": "Friday Night Franchise Fights! Slasher Franchises!",
+      "date": "2020-08-01",
+      "duration": 8055,
+      "snapshotViews": 12072,
+      "url": "https://www.youtube.com/watch?v=wtM_k1sG_Qw",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 197,
+      "atlasPriorityRank": 0,
+      "atlasPriorityScore": 0,
+      "atlasPriorityBreakdown": {
+        "popularity": 0,
+        "recency": 0,
+        "franchise": 0
+      },
+      "id": "NF7_ldiPXpQ",
+      "title": "FRIDAY NIGHT FRANCHISE FIGHTS! John Carpenter Vs Wes Craven",
+      "date": "2020-07-18",
+      "duration": 9390,
+      "snapshotViews": 15515,
+      "url": "https://www.youtube.com/watch?v=NF7_ldiPXpQ",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 198,
+      "atlasPriorityRank": 263,
+      "atlasPriorityScore": 50.1,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.4,
+        "recency": 6.7,
+        "franchise": 0
+      },
+      "id": "7Mf_ld0vrz4",
+      "title": "FRIDAY NIGHT FIGHTS! James Cameron VS David Fincher",
+      "date": "2020-07-11",
+      "duration": 9180,
+      "snapshotViews": 7302,
+      "url": "https://www.youtube.com/watch?v=7Mf_ld0vrz4",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 199,
+      "atlasPriorityRank": 36,
+      "atlasPriorityScore": 73.8,
+      "atlasPriorityBreakdown": {
+        "popularity": 47.2,
+        "recency": 6.6,
+        "franchise": 20
+      },
+      "id": "RR8A7Echta0",
+      "title": "HALLOWEEN KILLS TRAILER + DELAY Talk!",
+      "date": "2020-07-08",
+      "duration": 2665,
+      "snapshotViews": 15818,
+      "url": "https://www.youtube.com/watch?v=RR8A7Echta0",
+      "contentMode": "trailer-reaction",
+      "rightsMode": "source-audio-boundary-unverified",
+      "restrictedToTopicNavigation": true,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 200,
+      "atlasPriorityRank": 57,
+      "atlasPriorityScore": 71.4,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.9,
+        "recency": 6.5,
+        "franchise": 20
+      },
+      "id": "__bkfXziVXA",
+      "title": "SCREAM VS EVIL DEAD - Friday Night Franchise Fights!",
+      "date": "2020-06-27",
+      "duration": 8080,
+      "snapshotViews": 9895,
+      "url": "https://www.youtube.com/watch?v=__bkfXziVXA",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 201,
+      "atlasPriorityRank": 251,
+      "atlasPriorityScore": 51.3,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.8,
+        "recency": 6.5,
+        "franchise": 0
+      },
+      "id": "LenY9C3lrrQ",
+      "title": "SCHWARZENEGGER VS STALLONE Friday Night Franchise Fights!",
+      "date": "2020-06-20",
+      "duration": 9535,
+      "snapshotViews": 9859,
+      "url": "https://www.youtube.com/watch?v=LenY9C3lrrQ",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 202,
+      "atlasPriorityRank": 117,
+      "atlasPriorityScore": 65.7,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.3,
+        "recency": 6.4,
+        "franchise": 14
+      },
+      "id": "HmxrW0Fw7EI",
+      "title": "Child's Play VS Hellraiser - Friday Night Franchise Fights LIVE!",
+      "date": "2020-06-13",
+      "duration": 8835,
+      "snapshotViews": 10708,
+      "url": "https://www.youtube.com/watch?v=HmxrW0Fw7EI",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 203,
+      "atlasPriorityRank": 55,
+      "atlasPriorityScore": 71.7,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.4,
+        "recency": 6.3,
+        "franchise": 20
+      },
+      "id": "pJUDTzHv8Vo",
+      "title": "HORROR NEWS LIVE! Halloween Kills, Evil Dead NOW, Candyman + MORE!",
+      "date": "2020-06-09",
+      "duration": 8660,
+      "snapshotViews": 10972,
+      "url": "https://www.youtube.com/watch?v=pJUDTzHv8Vo",
+      "contentMode": "movie-news",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 204,
+      "atlasPriorityRank": 270,
+      "atlasPriorityScore": 49.3,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.0,
+        "recency": 6.3,
+        "franchise": 0
+      },
+      "id": "W3_iCjS8gyQ",
+      "title": "JCVD Vs. Steven Seagal FRIDAY NIGHT FIGHTS",
+      "date": "2020-06-06",
+      "duration": 8320,
+      "snapshotViews": 6700,
+      "url": "https://www.youtube.com/watch?v=W3_iCjS8gyQ",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 205,
+      "atlasPriorityRank": 0,
+      "atlasPriorityScore": 0,
+      "atlasPriorityBreakdown": {
+        "popularity": 0,
+        "recency": 0,
+        "franchise": 0
+      },
+      "id": "-n2VP07ci-I",
+      "title": "Friday the 13th VS A Nightmare On Elm Street LIVE!",
+      "date": "2020-05-30",
+      "duration": 9895,
+      "snapshotViews": 15222,
+      "url": "https://www.youtube.com/watch?v=-n2VP07ci-I",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 206,
+      "atlasPriorityRank": 136,
+      "atlasPriorityScore": 64.3,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.1,
+        "recency": 6.2,
+        "franchise": 14
+      },
+      "id": "UrCR1-tyIzo",
+      "title": "FRIDAY NIGHT FRANCHISE FIGHTS! The Conjuring Universe Vs. Paranormal Activity",
+      "date": "2020-05-23",
+      "duration": 7361,
+      "snapshotViews": 8379,
+      "url": "https://www.youtube.com/watch?v=UrCR1-tyIzo",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 207,
+      "atlasPriorityRank": 272,
+      "atlasPriorityScore": 49.0,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.9,
+        "recency": 6.1,
+        "franchise": 0
+      },
+      "id": "ODzXfC75h28",
+      "title": "The Snyder Cut Is Being Released! Plus Q and A",
+      "date": "2020-05-21",
+      "duration": 7746,
+      "snapshotViews": 6562,
+      "url": "https://www.youtube.com/watch?v=ODzXfC75h28",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 208,
+      "atlasPriorityRank": 61,
+      "atlasPriorityScore": 70.7,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.6,
+        "recency": 6.1,
+        "franchise": 20
+      },
+      "id": "uJzJuUDocSQ",
+      "title": "Top 10 Most Iconic Horror Weapons + Scream 5 Update!",
+      "date": "2020-05-19",
+      "duration": 9893,
+      "snapshotViews": 9455,
+      "url": "https://www.youtube.com/watch?v=uJzJuUDocSQ",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 209,
+      "atlasPriorityRank": 53,
+      "atlasPriorityScore": 71.9,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.8,
+        "recency": 6.1,
+        "franchise": 20
+      },
+      "id": "vxKUwIxs72A",
+      "title": "Halloween Kills UPDATE!!!! #HalloweenAtHome Post show",
+      "date": "2020-05-16",
+      "duration": 2879,
+      "snapshotViews": 11889,
+      "url": "https://www.youtube.com/watch?v=vxKUwIxs72A",
+      "contentMode": "movie-news",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 210,
+      "atlasPriorityRank": 59,
+      "atlasPriorityScore": 71.3,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.2,
+        "recency": 6.1,
+        "franchise": 20
+      },
+      "id": "oF1WJKdhWQU",
+      "title": "HALLOWEEN KILLS + SCREAM 5 UPDATES! Live!",
+      "date": "2020-05-14",
+      "duration": 7495,
+      "snapshotViews": 10648,
+      "url": "https://www.youtube.com/watch?v=oF1WJKdhWQU",
+      "contentMode": "movie-news",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 211,
+      "atlasPriorityRank": 78,
+      "atlasPriorityScore": 67.5,
+      "atlasPriorityBreakdown": {
+        "popularity": 41.5,
+        "recency": 6.0,
+        "franchise": 20
+      },
+      "id": "gRdXvl5s_ys",
+      "title": "Monday Movie News LIVE! + Loomis & Michael",
+      "date": "2020-05-12",
+      "duration": 6615,
+      "snapshotViews": 4952,
+      "url": "https://www.youtube.com/watch?v=gRdXvl5s_ys",
+      "contentMode": "movie-news",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 212,
+      "atlasPriorityRank": 222,
+      "atlasPriorityScore": 54.0,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.0,
+        "recency": 6.0,
+        "franchise": 6
+      },
+      "id": "IFWmk0uXaVk",
+      "title": "Top 5 Most Recognizable Horror Themes",
+      "date": "2020-05-08",
+      "duration": 9175,
+      "snapshotViews": 5517,
+      "url": "https://www.youtube.com/watch?v=IFWmk0uXaVk",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 213,
+      "atlasPriorityRank": 220,
+      "atlasPriorityScore": 54.3,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.4,
+        "recency": 5.9,
+        "franchise": 6
+      },
+      "id": "Y9cy-xHHE9U",
+      "title": "YOU CHOOSE Top 10 Scariest Sci Fi Horror Films Ever! Live!",
+      "date": "2020-05-02",
+      "duration": 7859,
+      "snapshotViews": 5973,
+      "url": "https://www.youtube.com/watch?v=Y9cy-xHHE9U",
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 214,
+      "atlasPriorityRank": 276,
+      "atlasPriorityScore": 47.9,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.0,
+        "recency": 5.9,
+        "franchise": 0
+      },
+      "id": "aKEPm4kYc1s",
+      "title": "Unboxing + MRE Taste Test LIVE!",
+      "date": "2020-04-30",
+      "duration": 8979,
+      "snapshotViews": 5537,
+      "url": "https://www.youtube.com/watch?v=aKEPm4kYc1s",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 215,
+      "atlasPriorityRank": 64,
+      "atlasPriorityScore": 69.9,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.0,
+        "recency": 5.9,
+        "franchise": 20
+      },
+      "id": "cDPaCYL8FgQ",
+      "title": "HELLRAISER + HALLOWEEN KILLS Live Update + Q&A!",
+      "date": "2020-04-29",
+      "duration": 5544,
+      "snapshotViews": 8361,
+      "url": "https://www.youtube.com/watch?v=cDPaCYL8FgQ",
+      "contentMode": "q-and-a",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 216,
+      "atlasPriorityRank": 279,
+      "atlasPriorityScore": 47.3,
+      "atlasPriorityBreakdown": {
+        "popularity": 41.5,
+        "recency": 5.8,
+        "franchise": 0
+      },
+      "id": "SRZdhswykkA",
+      "title": "Movie Review Marathon! Contracted, Creep (2004) & Clue",
+      "date": "2020-04-23",
+      "duration": 6609,
+      "snapshotViews": 4994,
+      "url": "https://www.youtube.com/watch?v=SRZdhswykkA",
+      "contentMode": "review-show",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 217,
+      "atlasPriorityRank": 62,
+      "atlasPriorityScore": 70.6,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.8,
+        "recency": 5.8,
+        "franchise": 20
+      },
+      "id": "Vumn69JZ_ug",
+      "title": "HALLOWEEN KILLS, Drive Ins and Delays LIVE!",
+      "date": "2020-04-22",
+      "duration": 7311,
+      "snapshotViews": 9725,
+      "url": "https://www.youtube.com/watch?v=Vumn69JZ_ug",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 218,
+      "atlasPriorityRank": 0,
+      "atlasPriorityScore": 0,
+      "atlasPriorityBreakdown": {
+        "popularity": 0,
+        "recency": 0,
+        "franchise": 0
+      },
+      "id": "_QLSlETb9E0",
+      "title": "Live w Roy from 'The Merkins'!",
+      "date": "2020-04-19",
+      "duration": 4676,
+      "snapshotViews": 7183,
+      "url": "https://www.youtube.com/watch?v=_QLSlETb9E0",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 219,
+      "atlasPriorityRank": 45,
+      "atlasPriorityScore": 72.9,
+      "atlasPriorityBreakdown": {
+        "popularity": 47.1,
+        "recency": 5.8,
+        "franchise": 20
+      },
+      "id": "pVEeei_H4g4",
+      "title": "LIVE w 'Halloween' F/X Designer Chris Nelson!",
+      "date": "2020-04-16",
+      "duration": 6328,
+      "snapshotViews": 15493,
+      "url": "https://www.youtube.com/watch?v=pVEeei_H4g4",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 220,
+      "atlasPriorityRank": 54,
+      "atlasPriorityScore": 71.8,
+      "atlasPriorityBreakdown": {
+        "popularity": 46.0,
+        "recency": 5.8,
+        "franchise": 20
+      },
+      "id": "mLjRZFV93xc",
+      "title": "HALLOWEEN Movie Franchise Q & A Live!",
+      "date": "2020-04-15",
+      "duration": 6805,
+      "snapshotViews": 12459,
+      "url": "https://www.youtube.com/watch?v=mLjRZFV93xc",
+      "contentMode": "q-and-a",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 221,
+      "atlasPriorityRank": 152,
+      "atlasPriorityScore": 62.3,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.6,
+        "recency": 5.7,
+        "franchise": 14
+      },
+      "id": "QsDAKLv8XBg",
+      "title": "HELLRAISER UPDATE + Hot Noodles Challenge LIVE!",
+      "date": "2020-04-11",
+      "duration": 5185,
+      "snapshotViews": 6256,
+      "url": "https://www.youtube.com/watch?v=QsDAKLv8XBg",
+      "contentMode": "movie-news",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 222,
+      "atlasPriorityRank": 285,
+      "atlasPriorityScore": 45.3,
+      "atlasPriorityBreakdown": {
+        "popularity": 39.6,
+        "recency": 5.7,
+        "franchise": 0
+      },
+      "id": "_PiftDXSf8k",
+      "title": "Who's in your Mafia Film Mount Rushmore? LIVE!",
+      "date": "2020-04-10",
+      "duration": 4701,
+      "snapshotViews": 3350,
+      "url": "https://www.youtube.com/watch?v=_PiftDXSf8k",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 223,
+      "atlasPriorityRank": 284,
+      "atlasPriorityScore": 45.5,
+      "atlasPriorityBreakdown": {
+        "popularity": 39.8,
+        "recency": 5.7,
+        "franchise": 0
+      },
+      "id": "G2OGPR70z_Y",
+      "title": "DEMOLITION MAN Review LIVE!",
+      "date": "2020-04-09",
+      "duration": 4150,
+      "snapshotViews": 3510,
+      "url": "https://www.youtube.com/watch?v=G2OGPR70z_Y",
+      "contentMode": "review-show",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 224,
+      "atlasPriorityRank": 282,
+      "atlasPriorityScore": 46.2,
+      "atlasPriorityBreakdown": {
+        "popularity": 40.5,
+        "recency": 5.7,
+        "franchise": 0
+      },
+      "id": "Uw6BqBnxDVA",
+      "title": "George Miller's Justice League Script Recap LIVE!",
+      "date": "2020-04-08",
+      "duration": 4899,
+      "snapshotViews": 4055,
+      "url": "https://www.youtube.com/watch?v=Uw6BqBnxDVA",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 225,
+      "atlasPriorityRank": 271,
+      "atlasPriorityScore": 49.1,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.5,
+        "recency": 5.6,
+        "franchise": 0
+      },
+      "id": "H_q3PPhNDOU",
+      "title": "WWAM Livescream! Uh...LIVE! Q and A!",
+      "date": "2020-04-02",
+      "duration": 7460,
+      "snapshotViews": 7538,
+      "url": "https://www.youtube.com/watch?v=H_q3PPhNDOU",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 226,
+      "atlasPriorityRank": 56,
+      "atlasPriorityScore": 71.5,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.9,
+        "recency": 5.6,
+        "franchise": 20
+      },
+      "id": "0IcuNT8SWYU",
+      "title": "HALLOWEEN KILLS UPDATE STREAM! Trailer Coming Soon!",
+      "date": "2020-03-29",
+      "duration": 3238,
+      "snapshotViews": 12295,
+      "url": "https://www.youtube.com/watch?v=0IcuNT8SWYU",
+      "contentMode": "trailer-reaction",
+      "rightsMode": "source-audio-boundary-unverified",
+      "restrictedToTopicNavigation": true,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 227,
+      "atlasPriorityRank": 274,
+      "atlasPriorityScore": 48.0,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.7,
+        "recency": 5.3,
+        "franchise": 0
+      },
+      "id": "HpAd2zWZofA",
+      "title": "WWAM VIDEO LIVESTREAM!!!!!!",
+      "date": "2020-03-07",
+      "duration": 8546,
+      "snapshotViews": 6393,
+      "url": "https://www.youtube.com/watch?v=HpAd2zWZofA",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 228,
+      "atlasPriorityRank": 253,
+      "atlasPriorityScore": 51.0,
+      "atlasPriorityBreakdown": {
+        "popularity": 46.8,
+        "recency": 4.2,
+        "franchise": 0
+      },
+      "id": "MbbQPoGezy0",
+      "title": "PLAY BUTTON UNBOXING LIVE!!!!!!",
+      "date": "2019-11-24",
+      "duration": 6656,
+      "snapshotViews": 14791,
+      "url": "https://www.youtube.com/watch?v=MbbQPoGezy0",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 229,
+      "atlasPriorityRank": 65,
+      "atlasPriorityScore": 69.4,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.4,
+        "recency": 4.0,
+        "franchise": 20
+      },
+      "id": "NjH2tcGvmAY",
+      "title": "HALLOWEEN LIVE STREAM COMMENTARY!!!!!!",
+      "date": "2019-10-31",
+      "duration": 6640,
+      "snapshotViews": 11147,
+      "url": "https://www.youtube.com/watch?v=NjH2tcGvmAY",
+      "contentMode": "movie-commentary",
+      "rightsMode": "source-audio-boundary-unverified",
+      "restrictedToTopicNavigation": true,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 230,
+      "atlasPriorityRank": 288,
+      "atlasPriorityScore": 42.2,
+      "atlasPriorityBreakdown": {
+        "popularity": 38.3,
+        "recency": 3.9,
+        "franchise": 0
+      },
+      "id": "hQbKp-aEacY",
+      "title": "LIVESTREAM 100K CELEBRATION!!!!!!!",
+      "date": "2019-10-27",
+      "duration": 645,
+      "snapshotViews": 2600,
+      "url": "https://www.youtube.com/watch?v=hQbKp-aEacY",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 231,
+      "atlasPriorityRank": 248,
+      "atlasPriorityScore": 51.6,
+      "atlasPriorityBreakdown": {
+        "popularity": 47.7,
+        "recency": 3.9,
+        "franchise": 0
+      },
+      "id": "d7cuRT5iM6Y",
+      "title": "LIVESTREAM 100K CELEBRATION!!!!!!!",
+      "date": "2019-10-27",
+      "duration": 9769,
+      "snapshotViews": 17712,
+      "url": "https://www.youtube.com/watch?v=d7cuRT5iM6Y",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 232,
+      "atlasPriorityRank": 278,
+      "atlasPriorityScore": 47.5,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.6,
+        "recency": 2.9,
+        "franchise": 0
+      },
+      "id": "xVUR68diEHQ",
+      "title": "90K Subscribers Live Stream Q and A Celebration!!!!!",
+      "date": "2019-07-21",
+      "duration": 6434,
+      "snapshotViews": 9441,
+      "url": "https://www.youtube.com/watch?v=xVUR68diEHQ",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 233,
+      "atlasPriorityRank": 178,
+      "atlasPriorityScore": 59.9,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.3,
+        "recency": 2.6,
+        "franchise": 14
+      },
+      "id": "2m0BgJzEPCk",
+      "title": "CHILD'S PLAY Spoiler Review LIVE!!!!!!",
+      "date": "2019-06-24",
+      "duration": 3977,
+      "snapshotViews": 7167,
+      "url": "https://www.youtube.com/watch?v=2m0BgJzEPCk",
+      "contentMode": "spoiler-review",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 234,
+      "atlasPriorityRank": 287,
+      "atlasPriorityScore": 43.3,
+      "atlasPriorityBreakdown": {
+        "popularity": 40.9,
+        "recency": 2.4,
+        "franchise": 0
+      },
+      "id": "DDY3dPaghWg",
+      "title": "MA & GODZILLA LIVE STREAM REVIEWS + Q and A!!!!",
+      "date": "2019-06-03",
+      "duration": 6185,
+      "snapshotViews": 4432,
+      "url": "https://www.youtube.com/watch?v=DDY3dPaghWg",
+      "contentMode": "review-show",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 235,
+      "atlasPriorityRank": 206,
+      "atlasPriorityScore": 56.4,
+      "atlasPriorityBreakdown": {
+        "popularity": 40.1,
+        "recency": 2.3,
+        "franchise": 14
+      },
+      "id": "zJtK9KDE-sI",
+      "title": "CULT OF CHUCKY LIVE STREAM COMMENTARY!!!!!!",
+      "date": "2019-05-20",
+      "duration": 6247,
+      "snapshotViews": 3755,
+      "url": "https://www.youtube.com/watch?v=zJtK9KDE-sI",
+      "contentMode": "movie-commentary",
+      "rightsMode": "source-audio-boundary-unverified",
+      "restrictedToTopicNavigation": true,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 236,
+      "atlasPriorityRank": 289,
+      "atlasPriorityScore": 39.8,
+      "atlasPriorityBreakdown": {
+        "popularity": 37.5,
+        "recency": 2.3,
+        "franchise": 0
+      },
+      "id": "nPLI-6xF4IE",
+      "title": "GAME OF THRONES FINALE RECAP LIVE!!!!!!!",
+      "date": "2019-05-20",
+      "duration": 2921,
+      "snapshotViews": 2188,
+      "url": "https://www.youtube.com/watch?v=nPLI-6xF4IE",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 237,
+      "atlasPriorityRank": 290,
+      "atlasPriorityScore": 39.6,
+      "atlasPriorityBreakdown": {
+        "popularity": 37.4,
+        "recency": 2.2,
+        "franchise": 0
+      },
+      "id": "zAbh9eGZJnY",
+      "title": "GAME OF THRONES \"THE BELLS\" RECAP LIVE!!!!!!!!",
+      "date": "2019-05-13",
+      "duration": 3123,
+      "snapshotViews": 2133,
+      "url": "https://www.youtube.com/watch?v=zAbh9eGZJnY",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 238,
+      "atlasPriorityRank": 188,
+      "atlasPriorityScore": 58.9,
+      "atlasPriorityBreakdown": {
+        "popularity": 42.7,
+        "recency": 2.2,
+        "franchise": 14
+      },
+      "id": "WqXiUhdG2PU",
+      "title": "CURSE OF CHUCKY Live Commentary!!!!!",
+      "date": "2019-05-13",
+      "duration": 6684,
+      "snapshotViews": 6315,
+      "url": "https://www.youtube.com/watch?v=WqXiUhdG2PU",
+      "contentMode": "movie-commentary",
+      "rightsMode": "source-audio-boundary-unverified",
+      "restrictedToTopicNavigation": true,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 239,
+      "atlasPriorityRank": 292,
+      "atlasPriorityScore": 37.2,
+      "atlasPriorityBreakdown": {
+        "popularity": 35.1,
+        "recency": 2.1,
+        "franchise": 0
+      },
+      "id": "hZnTgxx7oUE",
+      "title": "GAME OF THRONES RECAP LIVE! Episode 4 \"The Last of The Starks' Season 8",
+      "date": "2019-05-06",
+      "duration": 2735,
+      "snapshotViews": 1325,
+      "url": "https://www.youtube.com/watch?v=hZnTgxx7oUE",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 240,
+      "atlasPriorityRank": 167,
+      "atlasPriorityScore": 60.8,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.7,
+        "recency": 2.1,
+        "franchise": 14
+      },
+      "id": "YegOLKaN5dM",
+      "title": "SEED OF CHUCKY LIVE COMMENTARY!!!!!!",
+      "date": "2019-05-06",
+      "duration": 6129,
+      "snapshotViews": 9533,
+      "url": "https://www.youtube.com/watch?v=YegOLKaN5dM",
+      "contentMode": "movie-commentary",
+      "rightsMode": "source-audio-boundary-unverified",
+      "restrictedToTopicNavigation": true,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 241,
+      "atlasPriorityRank": 291,
+      "atlasPriorityScore": 38.9,
+      "atlasPriorityBreakdown": {
+        "popularity": 36.9,
+        "recency": 2.0,
+        "franchise": 0
+      },
+      "id": "jBVlQGkeh-Q",
+      "title": "GAME OF THRONES RECAP LIVE! Season 8 Episode 3 \"The Long Night\"",
+      "date": "2019-04-29",
+      "duration": 1446,
+      "snapshotViews": 1926,
+      "url": "https://www.youtube.com/watch?v=jBVlQGkeh-Q",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 242,
+      "atlasPriorityRank": 186,
+      "atlasPriorityScore": 59.5,
+      "atlasPriorityBreakdown": {
+        "popularity": 43.5,
+        "recency": 2.0,
+        "franchise": 14
+      },
+      "id": "3Lu5KPrQhc8",
+      "title": "BRIDE OF CHUCKY LIVE COMMENTARY!",
+      "date": "2019-04-29",
+      "duration": 5604,
+      "snapshotViews": 7507,
+      "url": "https://www.youtube.com/watch?v=3Lu5KPrQhc8",
+      "contentMode": "movie-commentary",
+      "rightsMode": "source-audio-boundary-unverified",
+      "restrictedToTopicNavigation": true,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 243,
+      "atlasPriorityRank": 286,
+      "atlasPriorityScore": 43.9,
+      "atlasPriorityBreakdown": {
+        "popularity": 41.9,
+        "recency": 2.0,
+        "franchise": 0
+      },
+      "id": "1luh7mKQfz8",
+      "title": "AVENGERS: ENDGAME SPOILER REVIEW LIVE!!!!!!!",
+      "date": "2019-04-29",
+      "duration": 3321,
+      "snapshotViews": 5436,
+      "url": "https://www.youtube.com/watch?v=1luh7mKQfz8",
+      "contentMode": "spoiler-review",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 244,
+      "atlasPriorityRank": 169,
+      "atlasPriorityScore": 60.7,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.7,
+        "recency": 2.0,
+        "franchise": 14
+      },
+      "id": "4UWF7ZsZfTY",
+      "title": "CHILD'S PLAY 3 Live Commentary!!!!!",
+      "date": "2019-04-22",
+      "duration": 6136,
+      "snapshotViews": 9541,
+      "url": "https://www.youtube.com/watch?v=4UWF7ZsZfTY",
+      "contentMode": "movie-commentary",
+      "rightsMode": "source-audio-boundary-unverified",
+      "restrictedToTopicNavigation": true,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 245,
+      "atlasPriorityRank": 164,
+      "atlasPriorityScore": 60.9,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.0,
+        "recency": 1.9,
+        "franchise": 14
+      },
+      "id": "ei1MrbmBcHA",
+      "title": "CHILD'S PLAY 2 LIVE STREAM COMMENTARY!",
+      "date": "2019-04-15",
+      "duration": 6273,
+      "snapshotViews": 10139,
+      "url": "https://www.youtube.com/watch?v=ei1MrbmBcHA",
+      "contentMode": "movie-commentary",
+      "rightsMode": "source-audio-boundary-unverified",
+      "restrictedToTopicNavigation": true,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 246,
+      "atlasPriorityRank": 173,
+      "atlasPriorityScore": 60.2,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.5,
+        "recency": 1.7,
+        "franchise": 14
+      },
+      "id": "Lllp-P-euww",
+      "title": "CHILD'S PLAY LIVE COMMENTARY",
+      "date": "2019-04-01",
+      "duration": 6462,
+      "snapshotViews": 9171,
+      "url": "https://www.youtube.com/watch?v=Lllp-P-euww",
+      "contentMode": "movie-commentary",
+      "rightsMode": "source-audio-boundary-unverified",
+      "restrictedToTopicNavigation": true,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 247,
+      "atlasPriorityRank": 280,
+      "atlasPriorityScore": 46.9,
+      "atlasPriorityBreakdown": {
+        "popularity": 45.2,
+        "recency": 1.7,
+        "franchise": 0
+      },
+      "id": "b5zdTJsgHmw",
+      "title": "PET SEMATARY LIVE COMMENTARY (1989 Full Movie)",
+      "date": "2019-03-27",
+      "duration": 6897,
+      "snapshotViews": 10615,
+      "url": "https://www.youtube.com/watch?v=b5zdTJsgHmw",
+      "contentMode": "movie-commentary",
+      "rightsMode": "source-audio-boundary-unverified",
+      "restrictedToTopicNavigation": true,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 248,
+      "atlasPriorityRank": 283,
+      "atlasPriorityScore": 46.1,
+      "atlasPriorityBreakdown": {
+        "popularity": 44.7,
+        "recency": 1.4,
+        "franchise": 0
+      },
+      "id": "0NHYmg_pXyc",
+      "title": "LIVE STREAM!!!!!!!!!",
+      "date": "2019-03-03",
+      "duration": 6358,
+      "snapshotViews": 9558,
+      "url": "https://www.youtube.com/watch?v=0NHYmg_pXyc",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 249,
+      "atlasPriorityRank": 275,
+      "atlasPriorityScore": 47.9,
+      "atlasPriorityBreakdown": {
+        "popularity": 47.3,
+        "recency": 0.6,
+        "franchise": 0
+      },
+      "id": "m1XIB-ZdQ3Y",
+      "title": "20 MILLION VIEWS LIVE STREAM!!!!!!",
+      "date": "2018-12-16",
+      "duration": 6195,
+      "snapshotViews": 16238,
+      "url": "https://www.youtube.com/watch?v=m1XIB-ZdQ3Y",
+      "contentMode": "livestream",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 250,
+      "atlasPriorityRank": 67,
+      "atlasPriorityScore": 68.9,
+      "atlasPriorityBreakdown": {
+        "popularity": 48.9,
+        "recency": 0,
+        "franchise": 20
+      },
+      "id": "-k3YduzBoGs",
+      "title": "LIVE! HALLOWEEN 2018 REVIEW + Q and A",
+      "date": "2018-10-19",
+      "duration": 5592,
+      "snapshotViews": 22786,
+      "url": "https://www.youtube.com/watch?v=-k3YduzBoGs",
+      "contentMode": "review-show",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "promotionAllowed": false
+    },
+    {
+      "rank": 251,
+      "atlasPriorityRank": 0,
+      "atlasPriorityScore": 0,
+      "atlasPriorityBreakdown": {
+        "popularity": 0,
+        "recency": 0,
+        "franchise": 0
+      },
+      "id": "AzrcgoyE7C4",
+      "title": "Rob Zombie's Halloween II",
+      "date": "2018-03-22",
+      "duration": 7247,
+      "snapshotViews": 25612,
+      "url": "https://www.youtube.com/watch?v=AzrcgoyE7C4",
+      "contentMode": "movie-commentary",
+      "rightsMode": "film-audio-boundary-unverified",
+      "restrictedToTopicNavigation": true,
+      "promotionAllowed": false,
+      "exactSourceTranscriptState": "held-age-gated",
+      "exactSourceHoldReason": "The official YouTube upload exposes no public caption track and requires age-authenticated media access. No authenticated browser session or cookies were used.",
+      "alternateOfficialSource": {
+        "kind": "official-podcast-edition",
+        "title": "Rob Zombies H2 Commentary",
+        "description": "Rob Zombies H2 Live Commentary",
+        "episodeUrl": "https://podcasters.spotify.com/pod/show/wewatchedamovie/episodes/Rob-Zombies-H2-Commentary-ehti0c",
+        "enclosureUrl": "https://traffic.megaphone.fm/APO8004693726.mp3",
+        "published": "2018-10-08T23:49:00Z",
+        "duration": 7352.61,
+        "canonicalYouTubeDuration": 7247,
+        "durationDelta": 105.61,
+        "timestampIsomorphic": false,
+        "publicPlaybackAllowed": true,
+        "evidenceBoundary": "Official WWAM podcast edition; not substituted for YouTube timestamps."
+      }
+    }
+  ],
+  "recordsSha256": "sha256:e5255538bb47682edf0eb95bedc5c146f16813196a01af6512288526476141da"
+}

@@ -13,6 +13,16 @@ const html = read("index.html");
 const featureLoader = read("feature-loader.js");
 const atlasUi = read("archive-atlas-ui.js");
 
+function runtimeVersion(file) {
+  const version = read(file).match(/\bvar VERSION = "(\d+\.\d+\.\d+)"/)?.[1];
+  assert.ok(version, `${file} is missing its semantic runtime VERSION`);
+  return version;
+}
+
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function namedFunction(source, name) {
   const start = source.indexOf(`function ${name}(`);
   assert.ok(start >= 0, `function ${name} is missing`);
@@ -447,9 +457,32 @@ test("dossier CSS and scripts load lazily through the feature loader, never eage
   );
 
   const loader = namedFunction(app, "loadSourceDossier");
-  assert.match(loader, /loader\.loadStyle\("source-dossier\.css\?v=2\.2\.1-grid-nav"\)/);
-  assert.match(loader, /"episode-recap-engine\.js\?v=1\.2\.0-full-story"/);
-  assert.match(loader, /"wwam-episode-recap-adapter\.js\?v=1\.2\.0-full-story"/);
+  const cssVersion = read("source-dossier.css").match(
+    /^\/\* V(\d+\.\d+) \/\//,
+  )?.[1];
+  assert.ok(cssVersion, "source-dossier.css is missing its Vx.y release header");
+  assert.match(
+    loader,
+    new RegExp(
+      `loader\\.loadStyle\\("source-dossier\\.css\\?v=${escapeRegex(cssVersion)}-[a-z0-9-]+"\\)`,
+    ),
+  );
+  for (const asset of [
+    "episode-recap-engine.js",
+    "wwam-episode-recap-adapter.js",
+    "source-dossier-engine.js",
+    "wwam-source-dossier-adapter.js",
+    "source-query-engine.js",
+    "source-dossier-ui.js",
+  ]) {
+    assert.match(
+      loader,
+      new RegExp(
+        `"${escapeRegex(asset)}\\?v=${escapeRegex(runtimeVersion(asset))}-[a-z0-9-]+"`,
+      ),
+      `${asset} cache key must match its exported runtime VERSION`,
+    );
+  }
   assert.match(loader, /loadDemoScript\("creator-studio-engine\.js"\)\.then\(createClipLab\)/);
   assert.doesNotMatch(loader, /createCreatorEngines/);
   const scriptList = loader

@@ -10,7 +10,7 @@
    * question, and every content result remains inside that exact source.
    */
 
-  var VERSION = "1.4.0";
+  var VERSION = "1.6.0";
   var REQUEST_SCHEMA = "shokker-source-query/v1";
   var RESULT_SCHEMA = "shokker-source-query-result/v1";
   var DOSSIER_SCHEMA = "shokker-source-dossier/v1";
@@ -42,6 +42,20 @@
   ]);
 
   var DEFAULT_VOCABULARY = Object.freeze({
+    alternate: Object.freeze([
+      "can i play this here",
+      "can i play the show here",
+      "can i listen here",
+      "is there another official edition",
+      "another official edition",
+      "official alternate",
+      "alternate edition",
+      "playable alternate",
+      "official podcast edition",
+      "podcast edition",
+      "other official version",
+      "alternate source"
+    ]),
     inventory: Object.freeze([
       "what is indexed",
       "what is actually indexed",
@@ -515,6 +529,7 @@
     var normalized = normalize(query);
     if (hasAnyPhrase(normalized, vocabulary.speaker)) return "speaker";
     if (hasAnyPhrase(normalized, vocabulary.ranking)) return "ranking";
+    if (hasAnyPhrase(normalized, vocabulary.alternate)) return "alternate";
     if (hasAnyPhrase(normalized, vocabulary.metadata)) return "metadata";
     if (hasAnyPhrase(normalized, vocabulary.summary)) return "summary";
     if (hasAnyPhrase(normalized, vocabulary.artifact)) return "artifact";
@@ -528,6 +543,7 @@
   function controlTerms(vocabulary) {
     return unique(
       vocabulary.stopwords
+        .concat(vocabulary.alternate)
         .concat(vocabulary.inventory)
         .concat(vocabulary.receipt)
         .concat(vocabulary.entity)
@@ -548,6 +564,142 @@
     return unique(tokens(query).filter(function (token) {
       return token.length > 1 && !controls.has(token);
     }));
+  }
+
+  function boundedProofText(value, maximum, path) {
+    if (typeof value !== "string") {
+      fail("INVALID_ACCESS_PROOF", path + " must be text.", path);
+    }
+    var result = clean(value, maximum);
+    if (!result) {
+      fail("INVALID_ACCESS_PROOF", path + " must not be empty.", path);
+    }
+    return result;
+  }
+
+  function boundedProofNumber(value, minimum, path) {
+    if (!Number.isFinite(value) || value < minimum) {
+      fail("INVALID_ACCESS_PROOF", path + " must be a bounded finite number.", path);
+    }
+    return value;
+  }
+
+  function boundedProofUrl(value, path) {
+    var result = boundedProofText(value, 900, path);
+    if (!/^https:\/\/[A-Za-z0-9.-]+(?:[/:?#]|$)/.test(result)) {
+      fail("INVALID_ACCESS_PROOF", path + " must be an absolute HTTPS URL.", path);
+    }
+    return result;
+  }
+
+  function exactSourceHoldProof(source) {
+    var hold = source && source.exactSourceHold;
+    if (hold == null) return null;
+    if (!hold || typeof hold !== "object" || Array.isArray(hold)) {
+      fail(
+        "INVALID_ACCESS_PROOF",
+        "dossier.source.exactSourceHold must be an object or null.",
+        "dossier.source.exactSourceHold"
+      );
+    }
+    var state = boundedProofText(
+      hold.state,
+      100,
+      "dossier.source.exactSourceHold.state"
+    );
+    if (state !== "held-age-gated") {
+      fail(
+        "INVALID_ACCESS_PROOF",
+        "dossier.source.exactSourceHold.state is not a supported exact-source hold.",
+        "dossier.source.exactSourceHold.state"
+      );
+    }
+    return {
+      state: state,
+      reason: boundedProofText(
+        hold.reason,
+        600,
+        "dossier.source.exactSourceHold.reason"
+      )
+    };
+  }
+
+  function officialAlternateProof(source) {
+    var alternate = source && source.officialAlternate;
+    if (alternate == null) return null;
+    if (!alternate || typeof alternate !== "object" || Array.isArray(alternate)) {
+      fail(
+        "INVALID_ACCESS_PROOF",
+        "dossier.source.officialAlternate must be an object or null.",
+        "dossier.source.officialAlternate"
+      );
+    }
+    if (alternate.timestampIsomorphic !== false ||
+        alternate.publicPlaybackAllowed !== true) {
+      fail(
+        "ALTERNATE_SOURCE_BOUNDARY",
+        "The official alternate must remain playable but outside the canonical timestamp map.",
+        "dossier.source.officialAlternate"
+      );
+    }
+    var duration = boundedProofNumber(
+      alternate.duration,
+      1,
+      "dossier.source.officialAlternate.duration"
+    );
+    var canonicalDuration = boundedProofNumber(
+      alternate.canonicalDuration,
+      1,
+      "dossier.source.officialAlternate.canonicalDuration"
+    );
+    var durationDelta = boundedProofNumber(
+      alternate.durationDelta,
+      -Number.MAX_VALUE,
+      "dossier.source.officialAlternate.durationDelta"
+    );
+    if (
+      Math.abs(canonicalDuration - Number(source.duration)) > 0.01 ||
+      Math.abs(
+        Math.round((duration - canonicalDuration) * 100) / 100 -
+        Math.round(durationDelta * 100) / 100
+      ) > 0.001
+    ) {
+      fail(
+        "ALTERNATE_SOURCE_BOUNDARY",
+        "The official alternate timing must remain bound to the canonical runtime and its declared edit delta.",
+        "dossier.source.officialAlternate"
+      );
+    }
+    return {
+      kind: boundedProofText(
+        alternate.kind,
+        100,
+        "dossier.source.officialAlternate.kind"
+      ),
+      title: boundedProofText(
+        alternate.title,
+        320,
+        "dossier.source.officialAlternate.title"
+      ),
+      episodeUrl: boundedProofUrl(
+        alternate.episodeUrl,
+        "dossier.source.officialAlternate.episodeUrl"
+      ),
+      enclosureUrl: boundedProofUrl(
+        alternate.enclosureUrl,
+        "dossier.source.officialAlternate.enclosureUrl"
+      ),
+      duration: duration,
+      canonicalDuration: canonicalDuration,
+      durationDelta: durationDelta,
+      timestampIsomorphic: false,
+      publicPlaybackAllowed: true,
+      evidenceBoundary: boundedProofText(
+        alternate.evidenceBoundary,
+        420,
+        "dossier.source.officialAlternate.evidenceBoundary"
+      )
+    };
   }
 
   function validateDossier(raw, sourceId) {
@@ -591,6 +743,8 @@
         );
       }
     });
+    dossier.source.exactSourceHold = exactSourceHoldProof(dossier.source);
+    dossier.source.officialAlternate = officialAlternateProof(dossier.source);
     return dossier;
   }
 
@@ -666,7 +820,9 @@
       artifactCount: source.artifacts.length,
       connectionCount: dossier.wake.later.length + dossier.wake.earlier.length,
       summaryAvailable: Boolean(source.summary),
-      sourceBriefAvailable: Boolean(source.showWiki && source.showWiki.brief)
+      sourceBriefAvailable: Boolean(source.showWiki && source.showWiki.brief),
+      exactSourceHold: exactSourceHoldProof(source),
+      officialAlternate: officialAlternateProof(source)
     };
   }
 
@@ -713,6 +869,22 @@
     };
   }
 
+  function officialAlternateResult(dossier) {
+    var source = dossier.source;
+    var alternate = officialAlternateProof(source);
+    return metadataResult(
+      dossier,
+      "official-alternate",
+      {
+        available: Boolean(alternate),
+        canonicalOfficialUrl: source.url,
+        exactSourceHold: exactSourceHoldProof(source),
+        officialAlternate: alternate
+      },
+      "canonical-source-access-proof"
+    );
+  }
+
   function proofResult(dossier) {
     return metadataResult(
       dossier,
@@ -729,7 +901,9 @@
         availability: dossier.source.availability,
         liveStatus: dossier.source.liveStatus,
         officialUrl: dossier.source.url,
-        sourceFingerprint: dossier.source.sourceFingerprint
+        sourceFingerprint: dossier.source.sourceFingerprint,
+        exactSourceHold: exactSourceHoldProof(dossier.source),
+        officialAlternate: officialAlternateProof(dossier.source)
       },
       "canonical-source-dossier"
     );
@@ -751,7 +925,9 @@
         summaryAvailable: Boolean(dossier.source.summary),
         sourceBriefAvailable: Boolean(
           dossier.source.showWiki && dossier.source.showWiki.brief
-        )
+        ),
+        exactSourceHold: exactSourceHoldProof(dossier.source),
+        officialAlternate: officialAlternateProof(dossier.source)
       },
       "registered-dossier-inventory"
     );
@@ -766,6 +942,23 @@
         basis: dossier.source.summary.basis
       },
       dossier.source.summary.basis
+    );
+  }
+
+  function episodeRecapSummaryResult(dossier) {
+    var recap = dossier.source.showWiki && dossier.source.showWiki.episodeRecap;
+    return metadataResult(
+      dossier,
+      "registered-summary",
+      {
+        text: recap.overview,
+        headline: recap.headline,
+        deck: recap.deck,
+        label: recap.label,
+        badge: recap.badge,
+        basis: recap.schema
+      },
+      recap.schema
     );
   }
 
@@ -786,6 +979,8 @@
         availability: source.availability,
         liveStatus: source.liveStatus,
         officialUrl: source.url,
+        exactSourceHold: exactSourceHoldProof(source),
+        officialAlternate: officialAlternateProof(source),
         format: brief.format,
         formatBasis: brief.formatBasis,
         scope: brief.scope
@@ -1199,7 +1394,28 @@
         showWiki.brief.queryAliases, [], 1, showWiki.description
       );
     }
-    if (showWiki.recap) {
+    if (showWiki.episodeRecap) {
+      var feldmanKeys = [];
+      (Array.isArray(showWiki.episodeRecap.sections) ?
+        showWiki.episodeRecap.sections : []).forEach(function (section) {
+        feldmanKeys = feldmanKeys.concat(
+          Array.isArray(section.receiptKeys) ? section.receiptKeys : []
+        );
+      });
+      if (!feldmanKeys.length) {
+        (Array.isArray(showWiki.episodeRecap.story) ?
+          showWiki.episodeRecap.story : []).forEach(function (segment) {
+          feldmanKeys = feldmanKeys.concat(
+            Array.isArray(segment.receiptKeys) ? segment.receiptKeys : []
+          );
+        });
+      }
+      add(
+        "recap", "episode-recap", "EPISODE RECAP",
+        (showWiki.recap && showWiki.recap.queryAliases) || [],
+        feldmanKeys, 5, showWiki.episodeRecap.overview
+      );
+    } else if (showWiki.recap) {
       var recapKeys = [];
       (Array.isArray(showWiki.recap.blocks) ? showWiki.recap.blocks : []).forEach(function (block) {
         recapKeys = recapKeys.concat(Array.isArray(block.receiptKeys) ? block.receiptKeys : []);
@@ -1384,7 +1600,14 @@
     }
     var results = [];
     var receiptLimit = request.limit;
-    if (match.kind === "recap" && dossier.source.summary) {
+    var episodeRecap = dossier.source.showWiki &&
+      dossier.source.showWiki.episodeRecap;
+    var hasReadyEpisodeRecap = match.kind === "recap" &&
+      episodeRecap && episodeRecap.state === "ready";
+    if (hasReadyEpisodeRecap) {
+      results.push(episodeRecapSummaryResult(dossier));
+      receiptLimit = Math.max(0, request.limit - 1);
+    } else if (match.kind === "recap" && !episodeRecap && dossier.source.summary) {
       results.push(summaryResult(dossier));
       receiptLimit = Math.max(0, request.limit - 1);
     }
@@ -1398,21 +1621,30 @@
       ? results.length > 0
       : selectedReceipts.length > 0;
     var message;
-    if (!allReceipts.length) {
-      message = "I checked this exact show’s registered " + match.label +
-        " lane. It has no playable receipt yet.";
+    if (hasReadyEpisodeRecap && !allReceipts.length) {
+      message = "Here is the same " + clean(episodeRecap.label || "episode recap") +
+        " shown on this episode page. " +
+        "The written recap is ready, but this version has no separate playable highlight.";
+    } else if (!allReceipts.length) {
+      message = "This exact show's " + match.label +
+        " collection does not have a playable moment yet.";
     } else if (terms.length && !selectedReceipts.length) {
-      message = "I checked all " + allReceipts.length + " registered " + match.label +
-        " receipt" + (allReceipts.length === 1 ? "" : "s") +
+      message = "I checked all " + allReceipts.length + " saved " + match.label +
+        " moment" + (allReceipts.length === 1 ? "" : "s") +
         " on this exact show; none match the requested subject.";
     } else if (countRequested) {
-      message = "This exact show has " + selectedReceipts.length + " matching registered " +
-        match.label + " receipt" + (selectedReceipts.length === 1 ? "" : "s") + ". " +
-        "That is a count of indexed source receipts, not every utterance or repeated mention; " +
+      message = "This exact show has " + selectedReceipts.length + " matching " +
+        match.label + " moment" + (selectedReceipts.length === 1 ? "" : "s") + ". " +
+        "That counts the timestamped highlights in this Wiki, not every utterance or repeated mention; " +
         shownReceipts + " playable result" + (shownReceipts === 1 ? " is" : "s are") + " shown.";
+    } else if (hasReadyEpisodeRecap) {
+      message = "Here is the same " + clean(episodeRecap.label || "episode recap") +
+        " shown on this episode page, " +
+        "followed by " + shownReceipts + " playable moment" +
+        (shownReceipts === 1 ? "" : "s") + " from this exact show.";
     } else {
-      message = "This exact show has " + allReceipts.length + " registered " + match.label +
-        " receipt" + (allReceipts.length === 1 ? "" : "s") + "; " +
+      message = "This exact show has " + allReceipts.length + " saved " + match.label +
+        " moment" + (allReceipts.length === 1 ? "" : "s") + "; " +
         shownReceipts + " playable result" + (shownReceipts === 1 ? " is" : "s are") + " shown.";
     }
     return {
@@ -1485,6 +1717,22 @@
       (count === 1 ? "" : "s") + ".";
   }
 
+  function officialAlternateMessage(dossier) {
+    var alternate = officialAlternateProof(dossier.source);
+    var hold = exactSourceHoldProof(dossier.source);
+    if (alternate) {
+      return "Yes. The official alternate edition can play here. Its edit does not " +
+        "match the canonical YouTube timeline, so YouTube timestamps and chapters " +
+        "are never transferred to it.";
+    }
+    if (hold) {
+      return "The exact source is currently held, and no separate official alternate " +
+        "playback edition is registered for this show.";
+    }
+    return "No separate official alternate edition is registered for this show. " +
+      "The canonical official source link remains available in the source proof.";
+  }
+
   function create(options) {
     var optionDescriptors = recordDescriptors(options, "options");
     exactKeys(optionDescriptors, ["dossierEngine", "vocabulary"], "options");
@@ -1537,7 +1785,14 @@
         intent = queryIntent(request.query, vocabulary);
         var showWikiMatch = matchShowWikiIntent(dossier, request.query);
 
-        if (intent === "metadata") {
+        if (intent === "alternate") {
+          status = "proof";
+          results = [officialAlternateResult(dossier)];
+          customMessage = officialAlternateMessage(dossier);
+          limitations.push(
+            "An official alternate is a separate public edit. It never supplies canonical YouTube timestamps, chapters, quotes, or content receipts."
+          );
+        } else if (intent === "metadata") {
           status = "proof";
           results = [proofResult(dossier)];
         } else if (intent === "inventory") {

@@ -44,16 +44,21 @@ test("Halloween 4 carries public-domain art, financial context, and a trailer do
   assert.match(page.trailerId, /^[A-Za-z0-9_-]{11}$/);
 });
 
-test("the latest five shows expose 19 timed context doors and one honest trust gap", async () => {
+test("the latest five shows expose 23 timed context doors after exact-source recovery", async () => {
   const { WWAM_CONTEXT_ATLAS: atlas } = await loadWindow(["context-atlas.js"]);
   const expected = ["LV2rmwEA0w4", "iz0WFhe6LYM", "ag3axSC9BpU", "x6tvsGRHgU0", "7PzSj-oIRjA"];
   assert.deepEqual(Object.keys(atlas.recentShows), expected);
   const cards = Object.values(atlas.recentShows).flatMap((show) => show.cards);
-  assert.equal(cards.length, 19);
+  assert.equal(cards.length, 23);
   assert.ok(cards.every((card) => Number.isFinite(card.at) && card.at >= 0));
   assert.ok(cards.every((card) => card.claimState && card.sourceLabel));
-  assert.match(atlas.recentShows.x6tvsGRHgU0.gap, /no usable English caption/i);
-  assert.equal(atlas.recentShows.x6tvsGRHgU0.cards.length, 0);
+  assert.equal(atlas.recentShows.x6tvsGRHgU0.coverage, "caption-backed");
+  assert.equal(atlas.recentShows.x6tvsGRHgU0.gap, undefined);
+  assert.equal(atlas.recentShows.x6tvsGRHgU0.cards.length, 4);
+  assert.deepEqual(
+    Array.from(atlas.recentShows.x6tvsGRHgU0.cards, (card) => card.at),
+    [1972, 2331, 3166, 6773],
+  );
 });
 
 test("the companion preserves source separation, retry mounting, and in-modal navigation", async () => {
@@ -168,6 +173,24 @@ test("referenced YouTube players stay dormant until their details panel opens", 
     MutationObserver,
     requestAnimationFrame,
   }, { filename: "context-companion.js" });
+
+  const click = listeners.get("click");
+  let duplicateClosestCalls = 0;
+  assert.equal(typeof click, "function");
+  click({
+    defaultPrevented: true,
+    target: {
+      closest() {
+        duplicateClosestCalls += 1;
+        return null;
+      },
+    },
+  });
+  assert.equal(
+    duplicateClosestCalls,
+    0,
+    "the companion must not run a second scroll path after the dossier handles a jump",
+  );
 
   assert.equal(inserted.length, 1);
   assert.equal(inserted[0].position, "afterend");

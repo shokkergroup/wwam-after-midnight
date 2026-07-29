@@ -82,7 +82,13 @@ test("the release keeps Source Dossier media dormant and YouTube identity explic
   const bridge = readDemo("media-bridge.html");
   const index = readDemo("index.html");
 
-  assert.doesNotMatch(ui, /<iframe|<video|<audio|autoplay\s*=/i);
+  assert.doesNotMatch(ui, /<iframe|<video|autoplay\s*=/i);
+  assert.match(ui, /<audio controls preload="none"/i);
+  assert.match(
+    ui,
+    /clean\(alternate\.enclosureUrl\)[\s\S]{0,180}alternate\.timestampIsomorphic === false/,
+  );
+  assert.doesNotMatch(ui, /<audio[^>]*\bautoplay\b/i);
   assert.match(ui, /id="modalPlayer"/);
   assert.match(ui, /data-source-dossier-action="play-source"/);
   assert.match(index, /<meta name="referrer" content="strict-origin-when-cross-origin">/);

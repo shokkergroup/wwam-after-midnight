@@ -4,6 +4,7 @@
   var payload = root.WWAM_YEAR_CANON_2025_2026;
   var doc = root.document;
   root.WWAMYearCanonUI = Object.freeze({
+    applyRecoveryOverlay: applyRecoveryOverlay,
     displayText: displayText,
     observeLanguage: observeLanguage
   });
@@ -89,6 +90,101 @@
     return names.slice(0, -1).join(", ") + ", and " + names[names.length - 1];
   }
 
+  function cloneMeta(value) {
+    var source = value || {};
+    var counts = source.yearCounts || {};
+    return Object.assign({}, source, {
+      yearCounts: Object.keys(counts).reduce(function (output, year) {
+        output[year] = Object.assign({}, counts[year]);
+        return output;
+      }, {})
+    });
+  }
+
+  function applyRecoveryOverlay(canonPayload, completionPayload) {
+    var shows = canonPayload && Array.isArray(canonPayload.showIndex)
+      ? canonPayload.showIndex.slice() : [];
+    var meta = cloneMeta(canonPayload && canonPayload.meta);
+    var completionStreams = completionPayload && Array.isArray(completionPayload.streams)
+      ? completionPayload.streams : [];
+    var recovered = [];
+
+    completionStreams.forEach(function (stream) {
+      var showIndex = shows.findIndex(function (show) {
+        return show.id === stream.id && show.wikiState === "source-brief";
+      });
+      if (showIndex < 0 || stream.captioned !== true ||
+          !(stream.topics || []).length || !(Number(stream.wordsAudited) > 0)) return;
+
+      var base = shows[showIndex];
+      var topics = (stream.topics || []).map(function (topic) {
+        var at = Number.isFinite(Number(topic.at)) ? Number(topic.at) : Number(topic.peak);
+        return {
+          name: clean(topic.name),
+          at: Math.max(0, Math.round(Number(at) || 0)),
+          mentions: Math.max(0, Math.round(Number(topic.mentions) || 0)),
+          receipt: clean(topic.receipt)
+        };
+      }).filter(function (topic) { return topic.name; });
+      var moments = (stream.moments || []).filter(function (moment) {
+        return Number.isFinite(Number(moment.at != null ? moment.at : moment.t));
+      }).map(function (moment) {
+        return {
+          at: Math.max(0, Math.round(Number(moment.at != null ? moment.at : moment.t))),
+          label: clean(moment.category || "PLAYABLE MOMENT"),
+          excerpt: clean(moment.excerpt),
+          heat: Math.max(0, Math.round(Number(moment.heat) || 0))
+        };
+      });
+      var bestMoment = moments.slice().sort(function (left, right) {
+        return right.heat - left.heat || left.at - right.at;
+      })[0] || null;
+      var upInYa = moments.filter(function (moment) {
+        return moment.label.toUpperCase().indexOf("UP IN YA") >= 0;
+      }).length;
+      var steves = moments.filter(function (moment) {
+        return moment.label.toUpperCase().indexOf("STEVE") >= 0;
+      }).length;
+
+      shows[showIndex] = Object.assign({}, base, {
+        wikiState: "show-wiki",
+        coverage: "source-backed-local-asr",
+        wordsAudited: Number(stream.wordsAudited) || 0,
+        summary: clean(stream.summary || base.summary),
+        showShape: clean(stream.editorial && stream.editorial.showShape || base.showShape),
+        topics: topics,
+        bestMoment: bestMoment,
+        upInYa: upInYa,
+        steves: steves,
+        restricted: Boolean(stream.rightsPolicy &&
+          stream.rightsPolicy.restrictedToTopicNavigation),
+        contentMode: clean(stream.contentMode || base.contentMode)
+      });
+
+      meta.captionBacked = Number(meta.captionBacked || 0) + 1;
+      meta.sourceBriefs = Math.max(0, Number(meta.sourceBriefs || 0) - 1);
+      meta.wordsAudited = Number(meta.wordsAudited || 0) +
+        Number(stream.wordsAudited || 0) - Number(base.wordsAudited || 0);
+      meta.topicDoors = Number(meta.topicDoors || 0) +
+        topics.length - (base.topics || []).length;
+      meta.momentCandidates = Number(meta.momentCandidates || 0) + moments.length;
+      meta.upInYa = Number(meta.upInYa || 0) + upInYa - Number(base.upInYa || 0);
+      meta.straightToSteves = Number(meta.straightToSteves || 0) +
+        steves - Number(base.steves || 0);
+      var year = String(base.year || "").trim();
+      if (year && meta.yearCounts[year]) {
+        meta.yearCounts[year].captionBacked =
+          Number(meta.yearCounts[year].captionBacked || 0) + 1;
+        meta.yearCounts[year].sourceBriefs = Math.max(
+          0, Number(meta.yearCounts[year].sourceBriefs || 0) - 1
+        );
+      }
+      recovered.push(stream.id);
+    });
+
+    return { shows: shows, meta: meta, recovered: recovered };
+  }
+
   function fanSummary(show) {
     if (show.wikiState === "source-brief") {
       return "The official upload is here, but its captions aren't usable yet. Watch it from the start while we leave the recap blank.";
@@ -135,15 +231,18 @@
 
   var state = { year: "all", mode: "all", query: "", limit: 12 };
   var languageObserver = null;
-  var shows = payload && Array.isArray(payload.showIndex) ? payload.showIndex.slice() : [];
-  var meta = payload && payload.meta || {};
+  var recovery = applyRecoveryOverlay(payload, root.WWAM_ARCHIVE_COMPLETION);
+  var shows = recovery.shows;
+  var meta = recovery.meta;
 
   function proof() {
     var cards = [
       [meta.registered, "SHOWS ON THE SHELF", "Every official livestream from 2025 and 2026."],
       [meta.captionBacked, "SHOW WIKIS", "Recaps, topics, and playable moments from the original show."],
       [meta.topicDoors, "TOPIC JUMPS", "Open the original upload at the exact conversation."],
-      [meta.sourceBriefs, "WATCH ONLY", "One show has no usable captions, so we leave the guessing out."]
+      [meta.sourceBriefs, "SHOW WIKIS STILL HELD", Number(meta.sourceBriefs)
+        ? "A source stays watch-only when exact evidence is unavailable."
+        : "Every 2025–2026 show now has a source-backed Show Wiki."]
     ];
     elements.proof.innerHTML = cards.map(function (card) {
       return '<article><b>' + number(card[0]) + '</b><span>' + esc(card[1]) +
@@ -167,9 +266,9 @@
   function modeControls() {
     var options = [
       ["all", "ALL SHOWS"], ["wiki", "SHOW WIKIS"],
-      ["up", "WWAM UP IN YA"], ["steves", "STEVE'S ASSHOLE"],
-      ["gap", "WATCH ONLY"]
+      ["up", "WWAM UP IN YA"], ["steves", "STEVE'S ASSHOLE"]
     ];
+    if (Number(meta.sourceBriefs) > 0) options.push(["gap", "WATCH ONLY"]);
     elements.modes.innerHTML = options.map(function (option) {
       return '<button type="button" data-mode="' + option[0] + '" aria-pressed="' +
         (state.mode === option[0]) + '">' + esc(displayText(option[1], doc)) + '</button>';
@@ -305,7 +404,8 @@
 
   try {
     if (!payload || payload.schema !== "shokker-youtube-wiki/year-canon/v1" ||
-        shows.length !== 131 || Number(meta.captionBacked) !== 130) {
+        shows.length !== 131 || Number(meta.captionBacked) !== 131 ||
+        Number(meta.sourceBriefs) !== 0) {
       throw new Error("THE 2025-2026 SHOW SHELF IS TEMPORARILY UNAVAILABLE");
     }
     proof(); topicControls(); featured(); bind(); render();

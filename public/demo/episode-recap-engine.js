@@ -2,7 +2,7 @@
   "use strict";
 
   var SCHEMA = "shokker-episode-recap/v1";
-  var VERSION = "1.2.0";
+  var VERSION = "1.4.0";
 
   function clean(value) {
     return String(value == null ? "" : value).trim();
@@ -195,6 +195,43 @@
     }).slice(0, limit).map(function (receipt) { return clean(receipt.key); });
   }
 
+  function titleNamedTopics(title) {
+    var text = clean(title);
+    var rules = [
+      [/\b28\s+years?\s+later\b/i, "28 Years Later"],
+      [/\bpeacemaker\b/i, "Peacemaker"],
+      [/\b(?:the\s+)?conjuring\b/i, "The Conjuring"],
+      [/\bwelcome\s+to\s+derry\b|\bpennywise\b|\bstephen\s+king'?s\s+it\b|\bit\s+chapters?\s+(?:one|two|1|2)\b/i, "IT / Derry"],
+      [/\ba\s+nightmare\s+on\s+elm\s+street\b|\bfreddy\b/i, "A Nightmare on Elm Street"],
+      [/\bfriday\s+the\s+13(?:th)?\b|\bjason\b/i, "Friday the 13th"],
+      [/\bhalloween\b|\bmichael\s+myers\b/i, "Halloween"],
+      [/\bscream\b|\bghostface\b/i, "Scream"],
+      [/\btexas\s+chainsaw\b|\bleatherface\b/i, "Texas Chainsaw"],
+      [/\bevil\s+dead\b/i, "Evil Dead"],
+      [/\bhellraiser\b|\bpinhead\b/i, "Hellraiser"],
+      [/\bterrifier\b|\bart\s+the\s+clown\b/i, "Terrifier"],
+      [/\bchild'?s\s+play\b|\bchucky\b/i, "Chucky"],
+      [/\bsaw(?:\s+[xvi0-9]+)?\b/i, "Saw"],
+      [/\bpredator\b/i, "Predator"],
+      [/\brobo\s*cop\b/i, "RoboCop"],
+      [/\bterminator\b/i, "Terminator"],
+      [/\baliens?\b/i, "Alien"],
+      [/\bbatman\b/i, "Batman"],
+      [/\bsuperman\b/i, "Superman"],
+      [/\bmarvel\b|\bavengers\b/i, "Marvel"],
+      [/\bjurassic\b/i, "Jurassic"],
+      [/\bmortal\s+kombat\b/i, "Mortal Kombat"],
+      [/\bfinal\s+destination\b/i, "Final Destination"],
+      [/\bghostbusters?\b/i, "Ghostbusters"],
+      [/\bstranger\s+things\b/i, "Stranger Things"],
+    ];
+    return rules.filter(function (rule) {
+      return rule[0].test(text);
+    }).map(function (rule) {
+      return rule[1];
+    });
+  }
+
   function topicLabels(receipts, guide, source, context) {
     var title = clean(source.displayTitle || source.title);
     var fanWhy = record(record(guide).fanRead).whyThisNightMatters;
@@ -220,25 +257,50 @@
         clean(left.key).localeCompare(clean(right.key));
     }).map(receiptDisplayLabel);
     var titleTopics = array(record(context).titleTopics).map(displayLabel).filter(Boolean);
-    return orderedStrings(guidePriority.concat(guideThreads, titleTopics, topicReceipts))
+    var namedTitleTopics = titleNamedTopics(title);
+    return orderedStrings(
+      guidePriority.concat(namedTitleTopics, guideThreads, titleTopics, topicReceipts)
+    )
       .map(displayLabel)
       .filter(Boolean)
       .slice(0, 8);
   }
 
   function guideSections(source, receipts, guide) {
-    return array(guide.chapters).map(function (chapter, index) {
+    var duration = Math.max(1, number(source.duration));
+    var chapters = array(guide.chapters).slice().sort(function (left, right) {
+      return number(left && left.at) - number(right && right.at) ||
+        clean(left && left.id).localeCompare(clean(right && right.id));
+    });
+    return chapters.map(function (chapter, index) {
       var at = Math.max(0, number(chapter.at));
       var end = number(chapter.end) > at ? number(chapter.end) :
         Math.min(number(source.duration), at + 36);
-      var nearby = nearestReceiptKeys(receipts.filter(function (receipt) {
-        return Math.abs(receiptTime(receipt) - at) <= 120;
-      }), at, 3);
+      var previousAt = index ? Math.max(0, number(chapters[index - 1].at)) : 0;
+      var nextAt = index + 1 < chapters.length ?
+        Math.max(at, number(chapters[index + 1].at)) : duration;
+      var from = index ? Math.round((previousAt + at) / 2) : 0;
+      var to = index + 1 < chapters.length ?
+        Math.round((at + nextAt) / 2) : duration;
+      var chunk = receipts.filter(function (receipt) {
+        var receiptAt = receiptTime(receipt);
+        return receiptAt >= from &&
+          (index + 1 === chapters.length ? receiptAt <= to : receiptAt < to);
+      });
+      var topics = chunk.filter(function (receipt) {
+        return receiptKind(receipt) === "topic";
+      });
+      var moments = chunk.filter(function (receipt) {
+        return receiptKind(receipt) === "moment";
+      });
+      var characters = chunk.filter(function (receipt) {
+        return receiptKind(receipt) === "character";
+      });
       return {
         id: clean(chapter.id) || "act-" + String(index + 1).padStart(2, "0"),
         ordinal: index + 1,
-        from: at,
-        to: end,
+        from: from,
+        to: to,
         at: at,
         end: end,
         anchor: clean(chapter.topic) || clean(chapter.label) || "Saved chapter",
@@ -247,10 +309,22 @@
         subject: clean(chapter.topic) || clean(chapter.label),
         excerpt: clean(chapter.excerpt),
         sourceBody: clean(chapter.body),
-        receiptKeys: nearby,
+        topicLabels: orderedStrings(topics.map(receiptDisplayLabel)),
+        momentLabels: orderedStrings(moments.map(receiptDisplayLabel)),
+        characterLabels: orderedStrings(characters.reduce(function (values, receipt) {
+          return values.concat(characterLabels(receipt));
+        }, [])),
+        receiptBreakdown: {
+          moments: moments.length,
+          topics: topics.length,
+          characters: characters.length,
+        },
+        receiptKeys: chunk.map(function (receipt) {
+          return clean(receipt.key);
+        }),
         guideCutId: clean(chapter.cutId),
         evidenceBasis: clean(chapter.evidenceBasis) ||
-          "full-caption-episode-guide-chapter",
+          "full-caption-guide-chapter-with-chronological-receipt-group",
       };
     }).filter(function (section) {
       return section.guideCutId || section.receiptKeys.length;
@@ -266,18 +340,7 @@
     var selected = [];
     var usedKeys = {};
     var usedLabels = {};
-
-    /*
-     * A recap should explain what the show was about before it behaves like a
-     * funniest-moments playlist. Reserve roughly half of the act anchors for
-     * distinct topic receipts, ranked by title relevance and source-local
-     * signal, then use the remaining anchors to preserve the runtime's heat
-     * and character turns.
-     */
-    var reservedTopicCount = Math.min(
-      4,
-      Math.max(1, Math.floor(count / 2))
-    );
+    var reservedTopicCount = Math.min(4, Math.max(1, Math.floor(count / 2)));
     var reservedTopics = receipts.filter(function (receipt) {
       return receiptKind(receipt) === "topic";
     }).sort(function (left, right) {
@@ -350,7 +413,7 @@
         clean(left.key).localeCompare(clean(right.key));
     });
 
-    return selected.map(function (selectedReceipt, index) {
+    var sections = selected.map(function (selectedReceipt, index) {
       var previous = index ? receiptTime(selected[index - 1]) : 0;
       var current = receiptTime(selectedReceipt);
       var next = index + 1 < selected.length ?
@@ -423,6 +486,7 @@
         subject: subjects[0] || receiptDisplayLabel(spotlight),
         excerpt: safeExcerpt(spotlight, 18),
         topicLabels: orderedStrings(topics.map(receiptDisplayLabel)),
+        momentLabels: orderedStrings(moments.map(receiptDisplayLabel)),
         characterLabels: orderedStrings(characters.reduce(function (values, receipt) {
           return values.concat(characterLabels(receipt));
         }, [])),
@@ -435,7 +499,54 @@
         guideCutId: "",
         evidenceBasis: "source-local-receipts-temporally-bound-to-anchor",
       };
-    }).sort(function (left, right) {
+    });
+
+    /*
+     * Keep the curated act anchors above, then make sure no registered source
+     * moment disappears from the playable chronology. Unrepresented receipts
+     * join the nearest act with available evidence capacity.
+     */
+    var represented = {};
+    sections.forEach(function (section) {
+      section.receiptKeys.forEach(function (key) {
+        represented[key] = true;
+      });
+    });
+    receipts.filter(function (receipt) {
+      return !represented[clean(receipt.key)];
+    }).forEach(function (receipt) {
+      var candidates = sections.filter(function (section) {
+        return section.receiptKeys.length < 8;
+      }).sort(function (left, right) {
+        return Math.abs(left.at - receiptTime(receipt)) -
+          Math.abs(right.at - receiptTime(receipt)) ||
+          left.ordinal - right.ordinal;
+      });
+      var section = candidates[0];
+      if (!section) return;
+      var key = clean(receipt.key);
+      section.receiptKeys.push(key);
+      represented[key] = true;
+      var kind = receiptKind(receipt);
+      if (kind === "topic") {
+        section.topicLabels = orderedStrings(
+          section.topicLabels.concat(receiptDisplayLabel(receipt))
+        );
+        section.receiptBreakdown.topics += 1;
+      } else if (kind === "character") {
+        section.characterLabels = orderedStrings(
+          section.characterLabels.concat(characterLabels(receipt))
+        );
+        section.receiptBreakdown.characters += 1;
+      } else {
+        section.momentLabels = orderedStrings(
+          section.momentLabels.concat(receiptDisplayLabel(receipt))
+        );
+        section.receiptBreakdown.moments += 1;
+      }
+    });
+
+    return sections.sort(function (left, right) {
       return left.at - right.at || left.id.localeCompare(right.id);
     });
   }
@@ -607,15 +718,44 @@
   }
 
   function held(source, format) {
-    var fingerprint = hash([
-      source.id, source.title, source.date, source.duration, source.views,
-      clean(format.id), "held", VERSION
-    ].join("|"));
+    var hold = record(source.exactSourceHold);
+    var alternate = record(source.officialAlternate);
+    var heldEvidence = {
+      sourceId: clean(source.id),
+      title: clean(source.title),
+      date: clean(source.date),
+      duration: number(source.duration),
+      views: number(source.views),
+      formatId: clean(format.id),
+      coverage: clean(source.coverage),
+      hold: {
+        state: clean(hold.state),
+        reason: clean(hold.reason),
+      },
+      alternate: {
+        kind: clean(alternate.kind),
+        title: clean(alternate.title),
+        episodeUrl: clean(alternate.episodeUrl),
+        enclosureUrl: clean(alternate.enclosureUrl),
+        duration: number(alternate.duration),
+        canonicalDuration: number(alternate.canonicalDuration),
+        durationDelta: number(alternate.durationDelta),
+        timestampIsomorphic: alternate.timestampIsomorphic === false
+          ? false
+          : null,
+        publicPlaybackAllowed: alternate.publicPlaybackAllowed === true,
+        evidenceBoundary: clean(alternate.evidenceBoundary),
+      },
+      evidenceState: "held",
+      version: VERSION,
+    };
+    var fingerprint = hash(JSON.stringify(heldEvidence));
     return {
       schema: SCHEMA,
       generatorVersion: VERSION,
       sourceId: clean(source.id),
       sourceFingerprint: "fnv1a32:" + fingerprint,
+      evidenceFingerprint: "fnv1a32:" + fingerprint,
       semanticFingerprint: "fnv1a32:" + fingerprint,
       evidenceState: "held",
       mode: "source-safe-held",
@@ -641,6 +781,7 @@
       story: [],
       bestMoments: [],
       fanRead: {},
+      guideRecap: null,
       caseFile: {
         receiptCount: 0,
         topicCount: 0,
@@ -673,6 +814,7 @@
     }
     var format = record(input.format);
     var context = record(input.context);
+    var registeredOverview = clean(context.registeredOverview);
     var receipts = chronological(input.receipts, sourceId);
     var guide = record(input.episodeGuide || source.episodeGuide);
     var guideReady = clean(guide.schema) === "wwam-episode-guide/v2" &&
@@ -691,6 +833,42 @@
     var topics = topicLabels(receipts, guide, source, context);
     var mode = guideReady ? "full-chronicle" :
       moments.length ? "receipt-recap" : "topic-recap";
+    var guideRecap = guideReady ? {
+      overview: clean(guide.overview),
+      evidenceSummary: clean(guide.evidenceSummary),
+      recap: record(guide.recap),
+      lanes: record(guide.lanes),
+      takeArc: array(guide.takeArc),
+      reviewChecklist: array(guide.reviewChecklist).map(clean).filter(Boolean),
+      variant: clean(guide.variant),
+      format: clean(guide.format),
+    } : null;
+    var evidenceFingerprint = hash(JSON.stringify({
+      sourceId: sourceId,
+      receipts: receipts.map(function (receipt) {
+        return [
+          clean(receipt.key),
+          receiptKind(receipt),
+          receiptTime(receipt),
+          receiptEnd(receipt, source.duration),
+          clean(receipt.label),
+          safeExcerpt(receipt, 18),
+          clean(receipt.evidenceType),
+          receipt.publicExcerptAllowed !== false,
+        ];
+      }),
+      guideCuts: guideReady ? array(guide.cuts).map(function (cut) {
+        return [
+          clean(cut.id),
+          number(cut.at),
+          number(cut.end),
+          clean(cut.topic),
+          clean(cut.category),
+          clean(cut.excerpt),
+        ];
+      }) : [],
+      version: VERSION,
+    }));
     var semanticFingerprint = hash(JSON.stringify({
       sourceId: sourceId,
       mode: mode,
@@ -709,6 +887,8 @@
           segment.receiptKeys
         ];
       }),
+      guideRecap: guideRecap,
+      registeredOverview: registeredOverview,
       version: VERSION,
     }));
     return {
@@ -717,8 +897,9 @@
       sourceId: sourceId,
       sourceFingerprint: "fnv1a32:" + hash([
         sourceId, source.title, source.date, source.duration, source.views,
-        source.wordsAudited, receipts.length
+        source.wordsAudited, evidenceFingerprint
       ].join("|")),
+      evidenceFingerprint: "fnv1a32:" + evidenceFingerprint,
       semanticFingerprint: "fnv1a32:" + semanticFingerprint,
       evidenceState: "ready",
       mode: mode,
@@ -754,12 +935,14 @@
         context,
         guide
       ),
+      guideRecap: guideRecap,
+      registeredOverview: registeredOverview,
       guideOverview: guideReady ? clean(guide.overview) : "",
       guideWhyItMatters: guideReady ?
         clean(record(record(guide.fanRead).whyThisNightMatters).body) : "",
       limitations: [
-        "Automatic captions do not establish the speaker.",
-        "Story reels group receipt chronology; they do not establish causality.",
+        "Transcript timing does not establish the speaker.",
+        "Chronological grouping does not establish causality.",
         "Playback is the final word on context, delivery, and audio origin.",
         "The recap is fan-archive editorial, not creator approval.",
       ],
