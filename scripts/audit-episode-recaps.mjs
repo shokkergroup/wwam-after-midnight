@@ -171,6 +171,13 @@ function prose(value) {
     .trim();
 }
 
+function displaySubject(value) {
+  return String(value || "")
+    .replace(/^(?:TOPIC|CHARACTER PERFORMANCE|CHARACTER|MOMENT)\s*:\s*/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function usesExcerpt(section) {
   const excerptWords = prose(section.excerpt).split(" ").filter(Boolean);
   const body = ` ${prose(section.body)} `;
@@ -189,6 +196,15 @@ function receiptKind(receipt) {
   if (kind.includes("topic") || evidenceType.includes("topic")) return "topic";
   if (kind.includes("character") || evidenceType.includes("character")) return "character";
   return "moment";
+}
+
+function minimumHighlightCount(duration) {
+  const seconds = Number(duration || 0);
+  if (seconds < 2700) return 5;
+  if (seconds < 5400) return 8;
+  if (seconds < 7200) return 10;
+  if (seconds < 10800) return 12;
+  return 15;
 }
 
 function comparableExcerpt(value) {
@@ -413,17 +429,28 @@ const storyAnchorFailures = ready.flatMap((file) => {
   const receiptByKey = new Map(
     file.source.receipts.map((receipt) => [receipt.key, receipt]),
   );
-  return file.recap.story.flatMap((segment) => {
+  return file.recap.story.flatMap((segment, index, values) => {
     const anchor = receiptByKey.get(segment.anchorReceiptKey);
     const excerpt = comparableExcerpt(segment.excerpt);
     const ownedExcerpt = !excerpt || (
       anchor?.publicExcerptAllowed &&
       comparableExcerpt(anchor.excerpt).startsWith(excerpt)
     );
+    const runtimeWindow =
+      Number(segment.at) >= 0 &&
+      Number(segment.end) > Number(segment.at) &&
+      Number(segment.end) <= Number(file.source.duration) + 1 &&
+      Number(segment.anchorAt) >= Number(segment.at) &&
+      Number(segment.anchorAt) <= Number(segment.end) &&
+      (
+        index === 0 ||
+        Number(segment.at) >= Number(values[index - 1].at)
+      );
     return anchor &&
         segment.receiptKeys.includes(segment.anchorReceiptKey) &&
         Number(anchor.at) === Number(segment.anchorAt) &&
-        ownedExcerpt
+        ownedExcerpt &&
+        runtimeWindow
       ? []
       : [{
         sourceId: file.id,
@@ -432,6 +459,9 @@ const storyAnchorFailures = ready.flatMap((file) => {
         anchorAt: segment.anchorAt,
         receiptAt: anchor?.at ?? null,
         ownedExcerpt,
+        runtimeWindow,
+        at: segment.at,
+        end: segment.end,
       }];
   });
 });
@@ -603,30 +633,140 @@ const bestMomentSelectionFailures = ready.flatMap((file) => {
   const momentReceipts = file.source.receipts.filter(
     (receipt) => receiptKind(receipt) === "moment",
   );
-  const expected = strongestReceipts(momentReceipts, 3).map(
+  const strongest = strongestReceipts(momentReceipts, 1).map(
     (receipt) => String(receipt.key || ""),
   );
   const actual = file.recap.bestMoments.map(
     (moment) => String(moment.receiptKey || ""),
   );
+  const registered = new Set(momentReceipts.map(
+    (receipt) => String(receipt.key || ""),
+  ));
+  const expectedCount = Math.min(5, momentReceipts.length);
   const mirrorsFullMomentSet =
-    momentReceipts.length > 3 &&
+    momentReceipts.length > 5 &&
     actual.length === momentReceipts.length;
-  const selective = actual.length <= 3 && !mirrorsFullMomentSet;
-  const ranked = actual.length === expected.length &&
-    actual.every((key, index) => key === expected[index]);
-  return selective && ranked
+  const selective = actual.length === expectedCount && !mirrorsFullMomentSet;
+  const sourceBound = actual.every((key) => registered.has(key));
+  const uniqueSelection = new Set(actual).size === actual.length;
+  const strongestLeads = !strongest.length || actual[0] === strongest[0];
+  return selective && sourceBound && uniqueSelection && strongestLeads
     ? []
     : [{
       sourceId: file.id,
       registeredMomentReceipts: momentReceipts.length,
-      expected,
+      strongest,
+      expectedCount,
       actual,
       mirrorsFullMomentSet,
       selective,
-      ranked,
+      sourceBound,
+      uniqueSelection,
+      strongestLeads,
     }];
 });
+const highlightRunwayAudits = ready.map((file) => {
+  const registered = Array.isArray(file.source.receipts)
+    ? file.source.receipts
+    : [];
+  const guide = file.source.showWiki?.episodeGuide || {};
+  const guideCuts = Array.isArray(guide.cuts) ? guide.cuts : [];
+  const registeredByKey = new Map(registered.map((receipt) => [
+    String(receipt.key || ""),
+    receipt,
+  ]));
+  const guideCutById = new Map(guideCuts.map((cut) => [
+    String(cut.id || ""),
+    cut,
+  ]));
+  const requiredKeys = registered
+    .filter((receipt) => receiptKind(receipt) !== "topic")
+    .map((receipt) => String(receipt.key || ""))
+    .filter(Boolean);
+  const runway = Array.isArray(file.recap.highlightRunway)
+    ? file.recap.highlightRunway
+    : [];
+  const actualKeys = runway.map((moment) => {
+    const receiptKey = String(moment.receiptKey || "");
+    const guideCutId = String(moment.guideCutId || "");
+    return receiptKey ? `receipt:${receiptKey}` :
+      guideCutId ? `guide:${guideCutId}` : "";
+  }).filter(Boolean);
+  const uniqueKeys = new Set(actualKeys);
+  const expectedFloor = requiredKeys.length || guideCuts.length
+    ? Math.min(
+      minimumHighlightCount(file.source.duration),
+      registered.length + guideCuts.length,
+    )
+    : 0;
+  const missingRequired = requiredKeys.filter(
+    (key) => !uniqueKeys.has(`receipt:${key}`),
+  );
+  const foreignKeys = runway.filter((moment) => {
+    const receiptKey = String(moment.receiptKey || "");
+    const guideCutId = String(moment.guideCutId || "");
+    return receiptKey
+      ? !registeredByKey.has(receiptKey)
+      : guideCutId
+        ? !guideCutById.has(guideCutId)
+        : true;
+  }).map((moment) => String(
+    moment.receiptKey || moment.guideCutId || "MISSING_KEY",
+  ));
+  const chronological = runway.every((moment, index) =>
+    index === 0 ||
+    Number(runway[index - 1].at || 0) <= Number(moment.at || 0)
+  );
+  const categoriesComplete = runway.every((moment) =>
+    String(moment.category || "").trim()
+  );
+  const strictSteveKeys = new Set(
+    (file.source.showWiki?.lanes || [])
+      .filter((lane) =>
+        /straight[- ]to[- ]steve|steve'?s?\s+asshole/i.test(
+          `${lane.id || ""} ${lane.label || ""}`,
+        )
+      )
+      .flatMap((lane) => lane.receiptKeys || []),
+  );
+  const reviewedSteveCutId = String(guide.fanRead?.hated?.cutId || "");
+  const invalidSteveHighlights = runway.filter((moment) =>
+    moment.category === "STRAIGHT TO STEVE'S ASSHOLE" &&
+    !(
+      moment.receiptKey && strictSteveKeys.has(moment.receiptKey) ||
+      moment.guideCutId && moment.guideCutId === reviewedSteveCutId
+    )
+  ).map((moment) => moment.receiptKey || moment.guideCutId);
+  const countMatchesCaseFile =
+    Number(file.recap.caseFile?.highlightCount || 0) === runway.length;
+  return {
+    sourceId: file.id,
+    duration: Number(file.source.duration || 0),
+    registered: registered.length,
+    requiredMomentAndCharacterReceipts: requiredKeys.length,
+    expectedFloor,
+    count: runway.length,
+    missingRequired,
+    foreignKeys,
+    duplicateCount: actualKeys.length - uniqueKeys.size,
+    chronological,
+    categoriesComplete,
+    invalidSteveHighlights,
+    countMatchesCaseFile,
+    pass:
+      runway.length >= expectedFloor &&
+      missingRequired.length === 0 &&
+      foreignKeys.length === 0 &&
+      actualKeys.length === uniqueKeys.size &&
+      chronological &&
+      categoriesComplete &&
+      invalidSteveHighlights.length === 0 &&
+      countMatchesCaseFile,
+  };
+});
+const highlightRunwayFailures = highlightRunwayAudits.filter(
+  (audit) => !audit.pass,
+);
 const guideStoryCoverage = ready
   .filter((file) => file.source.showWiki?.episodeGuide?.schema === "wwam-episode-guide/v2")
   .map((file) => {
@@ -677,10 +817,81 @@ const excerptMisses = excerptSections.filter((section) => !usesExcerpt(section))
 const machineLeaks = ready.filter((file) =>
   /\bTOPIC\s*:|CHARACTER PERFORMANCE|A CHARACTER PERFORMANCE\b/i.test(recapText(file)),
 );
-const agreementErrors = ready.filter((file) =>
+const headlineAgreementErrors = ready.flatMap((file) =>
   /\b(?:RANKINGS? & LISTS?|REMAKES? & REBOOTS?|SEQUELS? & PREQUELS?|TRAILERS)\s+(?:GETS|WALKS|STARTS|OPENS|TAKES|LEAVES|HIDES|KICKS)\b/i
-    .test(file.recap.headline),
+    .test(file.recap.headline)
+    ? [{
+        sourceId: file.id,
+        location: "headline",
+        text: file.recap.headline,
+      }]
+    : []
 );
+const storyAgreementErrors = storySegments.flatMap((segment) => {
+  const body = String(segment.body || "").toLowerCase();
+  const primary = displaySubject(segment.narrative?.primarySubject).toLowerCase();
+  const topics = Array.from(new Set(
+    (segment.topicLabels || []).map(displaySubject).filter(Boolean),
+  )).filter((label) => label.toLowerCase() !== primary);
+  const moments = Array.from(new Set(
+    (segment.momentLabels || []).map(displaySubject).filter(Boolean),
+  ));
+  const characters = Array.from(new Set(
+    (segment.characterLabels || []).map(displaySubject).filter(Boolean),
+  ));
+  const failures = [];
+  if (topics.length === 1) {
+    const topic = topics[0].toLowerCase();
+    if (
+      body.includes(`${topic} crowd the same hallway`) ||
+      body.includes(`${topic} join ${primary}`)
+    ) {
+      failures.push("single-topic plural verb");
+    }
+  }
+  if (
+    moments.length === 1 &&
+    body.includes(`${moments[0].toLowerCase()} supply the places`)
+  ) {
+    failures.push("single-moment plural verb");
+  }
+  if (characters.length === 1) {
+    const character = characters[0].toLowerCase();
+    if (
+      body.includes(`${character} turn up in the same reel`) ||
+      body.includes(`${character} share this stretch`)
+    ) {
+      failures.push("single-character plural verb");
+    }
+  }
+  return failures.map((failure) => ({
+    sourceId: segment.sourceId,
+    location: segment.id || segment.label,
+    failure,
+    text: segment.body,
+  }));
+});
+const storyLabelAgreementErrors = storySegments.flatMap((segment) => {
+  const label = String(segment.label || "");
+  const failures = [];
+  if (
+    /\b(?:RANKINGS? & LISTS?|REMAKES? & REBOOTS?|SEQUELS? & PREQUELS?|TRAILERS)\s+(?:SETS|GETS|CHANGES|TAKES)\b/i
+      .test(label)
+  ) {
+    failures.push("plural story subject with singular verb");
+  }
+  if (/\bTHE THE\b/i.test(label)) {
+    failures.push("doubled story-label article");
+  }
+  return failures.map((failure) => ({
+    sourceId: segment.sourceId,
+    location: segment.id || segment.label,
+    failure,
+    text: label,
+  }));
+});
+const agreementErrors = headlineAgreementErrors
+  .concat(storyAgreementErrors, storyLabelAgreementErrors);
 const duplicateLabels = ready.filter((file) => {
   const labels = file.recap.sections.map((section) => section.label.toLowerCase());
   return new Set(labels).size !== labels.length;
@@ -739,6 +950,7 @@ const duplicateHeadlineGroups = Array.from(
 const heldSemanticClaimFailures = held.filter((file) =>
   file.recap.sections.length ||
   file.recap.story.length ||
+  file.recap.highlightRunway?.length ||
   file.recap.bestMoments.length ||
   file.recap.topics.length ||
   Object.keys(file.recap.fanRead || {}).length,
@@ -826,6 +1038,44 @@ const report = {
       ).length,
     },
     bestMomentsAverage: average(ready.map((file) => file.recap.bestMoments.length)),
+    highlightRunway: {
+      total: highlightRunwayAudits.reduce((total, audit) => total + audit.count, 0),
+      averagePerEligibleRecap: average(
+        highlightRunwayAudits
+          .filter((audit) => audit.requiredMomentAndCharacterReceipts > 0)
+          .map((audit) => audit.count),
+      ),
+      maximum: Math.max(0, ...highlightRunwayAudits.map((audit) => audit.count)),
+      recapsOver15: highlightRunwayAudits.filter((audit) => audit.count > 15).length,
+      byRuntime: {
+        under45Minutes: countBy(
+          highlightRunwayAudits.filter((audit) => audit.duration < 2700),
+          (audit) => audit.count,
+        ),
+        minutes45To89: countBy(
+          highlightRunwayAudits.filter((audit) =>
+            audit.duration >= 2700 && audit.duration < 5400
+          ),
+          (audit) => audit.count,
+        ),
+        minutes90To119: countBy(
+          highlightRunwayAudits.filter((audit) =>
+            audit.duration >= 5400 && audit.duration < 7200
+          ),
+          (audit) => audit.count,
+        ),
+        hours2To3: countBy(
+          highlightRunwayAudits.filter((audit) =>
+            audit.duration >= 7200 && audit.duration < 10800
+          ),
+          (audit) => audit.count,
+        ),
+        hours3Plus: countBy(
+          highlightRunwayAudits.filter((audit) => audit.duration >= 10800),
+          (audit) => audit.count,
+        ),
+      },
+    },
     fanReadLanes: countBy(
       ready.flatMap((file) => Object.keys(file.recap.fanRead || {})),
       (lane) => lane,
@@ -846,10 +1096,7 @@ const report = {
   },
   quality: {
     machineLabelLeaks: machineLeaks.map((file) => file.id),
-    pluralAgreementErrors: agreementErrors.map((file) => ({
-      sourceId: file.id,
-      headline: file.recap.headline,
-    })),
+    pluralAgreementErrors: agreementErrors,
     duplicateActLabels: duplicateLabels.map((file) => file.id),
     excerptBearingActs: excerptSections.length,
     excerptActsUsingSourceNugget: excerptSections.length - excerptMisses.length,
@@ -874,6 +1121,7 @@ const report = {
     storyNarrativeBeatFailures,
     storySemanticAnchorFailures,
     bestMomentSelectionFailures,
+    highlightRunwayFailures,
     guideStoryCoverageFailures,
   },
   unusedRegisteredOverviewSignal: {
@@ -938,6 +1186,8 @@ report.gates = {
     report.quality.storySemanticAnchorFailures.length === 0,
   bestMomentsAreSelective:
     report.quality.bestMomentSelectionFailures.length === 0,
+  highlightRunwaysPreserveEveryRegisteredMoment:
+    report.quality.highlightRunwayFailures.length === 0,
   reviewedGuideStoryCoveragePass:
     report.depth.story.guidePointsAccountedFor ===
       report.depth.story.registeredGuidePoints &&
@@ -1016,6 +1266,8 @@ if (sourceFlag >= 0) {
       `Narrative-beat evidence failures: ${report.quality.storyNarrativeBeatFailures.length}`,
       `Subject/anchor semantic failures: ${report.quality.storySemanticAnchorFailures.length}`,
       `Best-moment selection failures: ${report.quality.bestMomentSelectionFailures.length}`,
+      `Highlight runway: ${report.depth.highlightRunway.total} stops // ${report.depth.highlightRunway.averagePerEligibleRecap} eligible-show average // max ${report.depth.highlightRunway.maximum} // ${report.depth.highlightRunway.recapsOver15} shows over 15`,
+      `Highlight runway contract failures: ${report.quality.highlightRunwayFailures.length}`,
       `Reviewed-guide story coverage failures: ${report.quality.guideStoryCoverageFailures.length}`,
       `Held-source semantic claim failures: ${report.quality.heldSemanticClaimFailures.length}`,
       `RECAP QUALITY GATE: ${report.pass ? "PASS" : "FAIL"}`,

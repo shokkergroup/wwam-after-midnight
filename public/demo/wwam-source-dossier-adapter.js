@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.13.0";
+  var VERSION = "1.14.1";
   var SCHEMA = "shokker-source-dossier-input/v1";
   var PUBLIC_EXCERPT_WORDS = 16;
   var OFFICIAL_WWAM_CHANNEL_ID = "UC6ieEOZW4iXV8TcILJI8k5g";
@@ -361,6 +361,23 @@
       publicExcerptAllowed: Boolean(allowExcerpt && excerpt),
       signalScore: settings.signalScore == null ? null : settings.signalScore,
       signalBasis: settings.signalScore == null ? null : clean(settings.signalBasis),
+      topicMentions: settings.topicMentions == null
+        ? null
+        : Math.max(0, Math.round(number(settings.topicMentions))),
+      topicFirstAt: settings.topicFirstAt == null
+        ? null
+        : Math.max(0, number(settings.topicFirstAt)),
+      topicPeakAt: settings.topicPeakAt == null
+        ? null
+        : Math.max(0, number(settings.topicPeakAt)),
+      topicCluster: settings.topicCluster == null
+        ? null
+        : Math.max(0, Math.round(number(settings.topicCluster))),
+      topicMetricBasis: settings.topicMentions == null &&
+          settings.topicFirstAt == null &&
+          settings.topicPeakAt == null
+        ? null
+        : clean(settings.topicMetricBasis),
       entityIds: ids,
     };
   }
@@ -404,6 +421,10 @@
   function rawTopicReceipt(source, topic, index, basis, restricted, entityIdForLabel) {
     var at = numberOrNull(topic.peak);
     if (at == null) at = numberOrNull(topic.first);
+    var firstAt = numberOrNull(topic.first);
+    var peakAt = numberOrNull(topic.peak);
+    if (firstAt != null && (firstAt < 0 || firstAt > source.duration)) firstAt = null;
+    if (peakAt != null && (peakAt < 0 || peakAt > source.duration)) peakAt = null;
     var label = clean(topic.name || topic.label || "TOPIC");
     var signalScore = boundedSignal(topic.score);
     var signalBasis = signalScore == null ? null : "caption-derived-topic-score";
@@ -448,6 +469,11 @@
         publicExcerptAllowed: !restricted,
         signalScore: signalScore,
         signalBasis: signalBasis,
+        topicMentions: numberOrNull(topic.mentions),
+        topicFirstAt: firstAt,
+        topicPeakAt: peakAt,
+        topicCluster: numberOrNull(topic.cluster),
+        topicMetricBasis: "automatic-caption-topic-frequency-and-timing",
         entityIds: [entityIdForLabel(label, "topic")],
       }
     );
@@ -912,7 +938,7 @@
       label: "WWAM WATCH PATH",
       title: momentMode ? "THE MIDNIGHT CUT" : "THE TOPIC HOP",
       description: momentMode
-        ? "A five-stop route through this exact tape, balancing preserved archive heat, category variety, and separation across the runtime."
+        ? "An optional five-stop sampler through this exact tape, balancing preserved archive heat, category variety, and separation across the runtime. The complete Highlight Runway remains available separately."
         : "A chronological route through the exact topic doors registered to this tape; no reaction, speaker, or visual outcome is inferred.",
       selectionBasis: momentMode
         ? "machine-assembled-from-source-local-moments-using-heat-variety-and-runtime-separation"
@@ -1073,17 +1099,17 @@
     }).slice().sort(signalOrder);
     var funny = moments.filter(function (receipt) {
       return comedyCategories.has(receipt.label);
-    }).slice(0, 6);
+    });
     var upInYa = moments.filter(function (receipt) {
       return receipt.label === "UP IN YA" ||
         receipt.label === "OUT OF POCKET";
-    }).slice(0, 6);
-    var steves = moments.filter(negativeOpinionReceipt).slice(0, 6);
+    });
+    var steves = moments.filter(negativeOpinionReceipt);
     var characters = receipts.filter(function (receipt) {
       return receipt.evidenceType === "caption-character-signal" ||
         receipt.evidenceType === "caption-character-context" ||
         receipt.evidenceType === "curated-character-performance";
-    }).slice().sort(signalOrder).slice(0, 6);
+    }).slice().sort(signalOrder);
     var distilled = source.coverage === "caption-backed" &&
       Boolean(source.summary || receipts.length);
     var topicNavigationOnly = distilled && !moments.length && topics.length > 0;
@@ -1117,9 +1143,9 @@
       "best-moments": lane(
         "best-moments",
         "BEST MOMENTS",
-        "Up to six source-local moment receipts ranked by caption-derived signal score, then timestamp.",
+        "Every source-local moment receipt, ranked by caption-derived signal score and then timestamp. The list is not automatically capped.",
         "No source-local moment receipts are registered for this show yet.",
-        moments.slice(0, 6),
+        moments,
         [
           "best moments", "best moment", "top moments", "top moment",
           "strongest moments", "most memorable moments", "show the highlights",
@@ -1129,7 +1155,7 @@
       "funny-moments": lane(
         "funny-moments",
         "FUNNY MOMENTS",
-        "Up to six source-local moment receipts carrying a canonical WWAM comedy category.",
+        "Every source-local moment receipt carrying a canonical WWAM comedy category; the lane grows when the show earns more.",
         "No source-local moment with a canonical comedy category is registered for this show yet.",
         funny,
         [

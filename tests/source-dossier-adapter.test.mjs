@@ -635,7 +635,7 @@ test("Ask This Tape stays on the exact canonical WWAM upload across title collis
     richId,
     "Can I see the best moments?",
     "best-moments",
-    [3644, 7358, 1730, 2308, 7780, 4894],
+    [3644, 7358, 1730, 2308, 7780, 4894, 5039],
   );
   laneAnswer(
     richId,
@@ -678,13 +678,13 @@ test("Ask This Tape stays on the exact canonical WWAM upload across title collis
     richId,
     "Give me the episode highlights",
     "best-moments",
-    [3644, 7358, 1730, 2308, 7780, 4894],
+    [3644, 7358, 1730, 2308, 7780, 4894, 5039],
   );
   laneAnswer(
     "ThPjds8iI9U",
     "Can I see the best moments?",
     "best-moments",
-    [845, 997, 1419, 3804, 3004, 3740],
+    [845, 997, 1419, 3804, 3004, 3740, 4167, 3199],
   );
   const topicOnly = queryEngine.answer(
     request("M3P4mMDpXUc", "Can you show me the topics?"),
@@ -1007,6 +1007,7 @@ test("every source gets an honest Show Wiki shell with rigorously gated lanes", 
   let readyMomentRouteCount = 0;
   let readyTopicRouteCount = 0;
   let emptyRouteCount = 0;
+  let maxBestMomentLane = 0;
 
   result.sources.forEach((source) => {
     assert.equal(source.showWiki.label, "SHOW WIKI", source.id);
@@ -1190,25 +1191,29 @@ test("every source gets an honest Show Wiki shell with rigorously gated lanes", 
 
     const funny = moments.filter(
       (receipt) => comedyCategories.has(receipt.label),
-    ).slice(0, 6);
+    );
     const upInYa = moments.filter(
       (receipt) => receipt.label === "UP IN YA" ||
         receipt.label === "OUT OF POCKET",
-    ).slice(0, 6);
-    const steves = moments.filter(negativeGate).slice(0, 6);
+    );
+    const steves = moments.filter(negativeGate);
     const characters = source.receipts.filter((receipt) => (
       receipt.evidenceType === "caption-character-signal" ||
       receipt.evidenceType === "caption-character-context" ||
       receipt.evidenceType === "curated-character-performance"
-    )).sort(signalOrder).slice(0, 6);
+    )).sort(signalOrder);
 
     const lane = (id) => source.showWiki.lanes.find((item) => item.id === id);
     assert.deepEqual(plain(lane("topics").receiptKeys), plain(topics.map((item) => item.key)), source.id);
-    assert.deepEqual(plain(lane("best-moments").receiptKeys), plain(moments.slice(0, 6).map((item) => item.key)), source.id);
+    assert.deepEqual(plain(lane("best-moments").receiptKeys), plain(moments.map((item) => item.key)), source.id);
     assert.deepEqual(plain(lane("funny-moments").receiptKeys), plain(funny.map((item) => item.key)), source.id);
     assert.deepEqual(plain(lane("up-in-ya").receiptKeys), plain(upInYa.map((item) => item.key)), source.id);
     assert.deepEqual(plain(lane("straight-to-steves-asshole").receiptKeys), plain(steves.map((item) => item.key)), source.id);
     assert.deepEqual(plain(lane("character-bits").receiptKeys), plain(characters.map((item) => item.key)), source.id);
+    maxBestMomentLane = Math.max(
+      maxBestMomentLane,
+      lane("best-moments").receiptKeys.length,
+    );
 
     upInYaCount += upInYa.length;
     stevesCount += steves.length;
@@ -1241,6 +1246,7 @@ test("every source gets an honest Show Wiki shell with rigorously gated lanes", 
   assert.equal(stevesCount, 34);
   assert.equal(characterSourceCount, 170);
   assert.equal(characterCount, 355);
+  assert.ok(maxBestMomentLane > 6, "expected at least one uncapped Best Moments lane");
   assert.ok(rejectedNegativeCandidates > 0, "expected strict gate rejections");
 
   for (const [sourceId, at] of [

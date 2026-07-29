@@ -1163,8 +1163,8 @@ test("rich sources become navigable per-show Wikis with recap, Topic Hop, and ex
 
   assert.ok(html.includes("WWAM AFTER MIDNIGHT // SHOW WIKI // FULL SHOW WIKI"));
   assert.match(html, /aria-label="Explore this show"/);
-  assert.ok(html.includes('href="#sourceDossierPlayerSection">WATCH THE SHOW</a>'));
-  assert.ok(html.includes('href="#sourceDossierShowWikiSummary">SHOW SUMMARY</a>'));
+  assert.ok(html.includes('href="#sourceDossierPlayerSection">WATCH</a>'));
+  assert.ok(html.includes('href="#sourceDossierShowWikiSummary">SUMMARY</a>'));
   assert.ok(html.includes('href="#sourceDossierShowWikiExperience">THE MIDNIGHT CUT</a>'));
   assert.match(html, /COPY PAGE LINK/);
   assert.match(html, /THE SHOW IN PLAIN ENGLISH/);
@@ -1355,6 +1355,23 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
         receiptKeys: dossier.source.receipts.slice(6).map((receipt) => receipt.key),
       },
     ],
+    highlightRunway: dossier.source.receipts.map((receipt, index) => ({
+      receiptKey: receipt.key,
+      ordinal: index + 1,
+      kind: receipt.kind,
+      category: [
+        "WWAM UP IN YA / STINGER",
+        "STRAIGHT TO STEVE'S ASSHOLE",
+        "CHARACTER APPEARANCE",
+        "SOUNDBYTE / REPLAY",
+        "MAJOR TOPIC TURN",
+      ][index % 5],
+      at: receipt.at,
+      end: receipt.end,
+      label: `RUNWAY MOMENT ${index + 1}`,
+      excerpt: receipt.excerpt,
+      evidenceBasis: receipt.evidenceBasis,
+    })),
     fanRead: {
       hated: {
         label: "STRAIGHT TO STEVE'S ASSHOLE",
@@ -1404,8 +1421,8 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
   assert.match(html, /data-feldman-stat="topics"><b>7<\/b><small>TOPIC DOORS/);
   assert.match(html, /data-feldman-stat="moments"><b>10<\/b><small>SAVED SPIKES/);
   assert.match(html, /data-feldman-stat="characters"><b>4<\/b><small>CHARACTER LEADS/);
-  assert.match(html, /data-feldman-stat="coverage"><b>100%<\/b><small>WRITTEN RECAP COVERAGE/);
-  assert.match(html, /data-feldman-stat="span"><b>84%<\/b><small>TAPE SPAN/);
+  assert.match(html, /data-feldman-stat="coverage"><b>100%<\/b><small>INDEXED RECEIPTS ACCOUNTED FOR/);
+  assert.match(html, /data-feldman-stat="span"><b>84%<\/b><small>REGISTERED EVIDENCE SPAN/);
   assert.match(html, /JUMP THE TOPIC BOARD/);
   assert.match(html, /2 EXACT DOORS/);
   assert.match(html, />Halloween<\/b><time>/);
@@ -1469,6 +1486,41 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
   assert.match(html, /FEATURED SIGNATURE MOMENTS/);
   assert.match(html, /STRAIGHT TO STEVE&#39;S ASSHOLE/);
   assert.match(html, /id="sourceDossierFeldmanDamage-hated"/);
+  const compactRunway = html.match(
+    /<section class="source-dossier-feldman-best"[\s\S]*?<\/section>/,
+  );
+  assert.ok(compactRunway);
+  assert.match(compactRunway[0], /THE HIGHLIGHT RUNWAY \/\/ FULL-SHOW CUT/);
+  assert.match(compactRunway[0], /EVERY SAVED TURN THAT CLEARED THE TAPE/);
+  assert.match(compactRunway[0], /21 SOURCE-BOUND STOPS/);
+  assert.equal((compactRunway[0].match(/<article>/g) ?? []).length, 6);
+  assert.match(compactRunway[0], /RUNWAY MOMENT 1/);
+  assert.match(compactRunway[0], /RUNWAY MOMENT 6/);
+  assert.doesNotMatch(compactRunway[0], /RUNWAY MOMENT 7/);
+  assert.match(compactRunway[0], /WWAM UP IN YA \/ STINGER/);
+  assert.match(compactRunway[0], /STRAIGHT TO STEVE&#39;S ASSHOLE/);
+  assert.match(compactRunway[0], /CHARACTER APPEARANCE/);
+  assert.match(compactRunway[0], /SOUNDBYTE \/ REPLAY/);
+  assert.match(compactRunway[0], /MAJOR TOPIC TURN/);
+  assert.match(
+    compactRunway[0],
+    /<h6><small>WWAM UP IN YA \/ STINGER<\/small>RUNWAY MOMENT 1<\/h6>/,
+  );
+  assert.match(compactRunway[0], /OPEN THE FULL 21-STOP RUNWAY/);
+  assert.doesNotMatch(compactRunway[0], /\bFIVE\b/i);
+  const compactExplore = html.match(
+    /<nav class="source-dossier-explore"[\s\S]*?<\/nav>/,
+  );
+  assert.ok(compactExplore);
+  assert.equal(
+    (compactExplore[0].match(/>HIGHLIGHTS<\/a>/g) ?? []).length,
+    1,
+  );
+  assert.match(
+    compactExplore[0],
+    /href="#sourceDossierFeldmanBest">HIGHLIGHTS<\/a>/,
+  );
+  assert.doesNotMatch(html, /class="source-dossier-wiki-local-nav"/);
   assert.ok(
     html.indexOf('class="source-dossier-feldman-quick-take"') <
       html.indexOf('class="source-dossier-feldman-story"') &&
@@ -1487,21 +1539,14 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
   const populatedDamageExplore = html.match(
     /<nav class="source-dossier-explore"[\s\S]*?<\/nav>/,
   );
-  const populatedDamageLocalNav = html.match(
-    /<nav class="source-dossier-wiki-local-nav"[\s\S]*?<\/nav>/,
-  );
   assert.ok(populatedDamageExplore);
-  assert.ok(populatedDamageLocalNav);
+  assert.doesNotMatch(html, /class="source-dossier-wiki-local-nav"/);
   assert.match(
     populatedDamageExplore[0],
     /href="#sourceDossierFeldmanTopics">TOPICS/,
   );
   assert.doesNotMatch(
     populatedDamageExplore[0],
-    /href="#sourceDossierFeldmanDamage-hated"/,
-  );
-  assert.doesNotMatch(
-    populatedDamageLocalNav[0],
     /href="#sourceDossierFeldmanDamage-hated"/,
   );
 
@@ -1528,6 +1573,14 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
     mount.innerHTML,
     /class="source-dossier-feldman-story-toggle"/,
   );
+  const fullRunway = mount.innerHTML.match(
+    /<section class="source-dossier-feldman-best"[\s\S]*?<\/section>/,
+  );
+  assert.ok(fullRunway);
+  assert.equal((fullRunway[0].match(/<article>/g) ?? []).length, 21);
+  assert.match(fullRunway[0], /RUNWAY MOMENT 21/);
+  assert.doesNotMatch(fullRunway[0], /OPEN THE FULL 21-STOP RUNWAY/);
+  assert.doesNotMatch(fullRunway[0], /\bFIVE\b/i);
   ui.render(dossier.source.id);
 
   mount.click("toggle-episode-recap", { "data-owner-section": "wiki" });
@@ -1550,6 +1603,12 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
   );
   assert.match(mount.innerHTML, /aria-expanded="true">SHOW FEWER ACTS/);
   assert.match(mount.innerHTML, /data-feldman-act="act-4"/);
+  const expandedRunway = mount.innerHTML.match(
+    /<section class="source-dossier-feldman-best"[\s\S]*?<\/section>/,
+  );
+  assert.ok(expandedRunway);
+  assert.equal((expandedRunway[0].match(/<article>/g) ?? []).length, 21);
+  assert.match(expandedRunway[0], /RUNWAY MOMENT 21/);
 
   mount.click("toggle-episode-recap", { "data-owner-section": "wiki" });
   assert.match(mount.innerHTML, /data-feldman-view="highlights"/);
@@ -1566,6 +1625,9 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
   );
   assert.match(mount.innerHTML, /FULL SOURCE MAP/);
   assert.match(mount.innerHTML, /TOPIC NAVIGATION ONLY/);
+  assert.match(mount.innerHTML, /TOPIC DOORS? SHOWN/);
+  assert.match(mount.innerHTML, /REGISTERED TOPIC DOORS?/);
+  assert.doesNotMatch(mount.innerHTML, /HIGHLIGHTS? SHOWN/);
 
   mount.click("play-receipt", {
     "data-receipt-key": dossier.source.receipts[0].key,
@@ -1643,7 +1705,7 @@ test("combined Feldman recap and Episode Guide links reveal their full-file targ
 
   ui.render(dossier.source.id);
   assert.match(mount.innerHTML, /href="#sourceDossierEpisodeGuide"/);
-  assert.match(mount.innerHTML, /href="#sourceDossierFanRead"/);
+  assert.doesNotMatch(mount.innerHTML, /href="#sourceDossierFanRead"/);
   assert.doesNotMatch(mount.innerHTML, /id="sourceDossierEpisodeGuide"/);
   assert.doesNotMatch(mount.innerHTML, /id="sourceDossierFanRead"/);
 
@@ -1724,17 +1786,13 @@ test("Damage Report shortcuts replace empty Steve and Up In Ya lanes and expand 
   const explore = html.match(
     /<nav class="source-dossier-explore"[\s\S]*?<\/nav>/,
   );
-  const localNav = html.match(
-    /<nav class="source-dossier-wiki-local-nav"[\s\S]*?<\/nav>/,
-  );
   assert.ok(explore);
-  assert.ok(localNav);
+  assert.doesNotMatch(html, /class="source-dossier-wiki-local-nav"/);
   [
     ["sourceDossierFeldmanDamage-hated", "STRAIGHT TO STEVE&#39;S ASSHOLE"],
     ["sourceDossierFeldmanDamage-wildest-detour", "WWAM UP IN YA"],
   ].forEach(([id, label]) => {
     assert.ok(explore[0].includes(`href="#${id}">${label}</a>`));
-    assert.ok(localNav[0].includes(`href="#${id}">${label}</a>`));
     assert.ok(html.includes(`<article id="${id}"`));
   });
   assert.match(html, /data-feldman-recap-expanded="false"/);
@@ -2089,12 +2147,12 @@ test("Episode Guide V2 exposes the episode spine and plays bounded source-local 
     /class="source-dossier-deep-dive-cta" href="#sourceDossierEpisodeGuide">OPEN THE DEEP DIVE/,
   );
   assert.ok(
-    mount.innerHTML.indexOf('href="#sourceDossierShowWikiSummary">SHOW SUMMARY</a>') <
+    mount.innerHTML.indexOf('href="#sourceDossierShowWikiSummary">SUMMARY</a>') <
       mount.innerHTML.indexOf('href="#sourceDossierEpisodeGuide">DEEP DIVE</a>'),
     "the viewer-facing summary leads the research spine in the shortcut strip",
   );
   assert.match(mount.innerHTML, /data-episode-guide-view="start-here"/);
-  assert.match(mount.innerHTML, /href="#sourceDossierFanRead">FAN READ<\/a>/);
+  assert.doesNotMatch(mount.innerHTML, /href="#sourceDossierFanRead">FAN READ<\/a>/);
   assert.doesNotMatch(mount.innerHTML, /id="sourceDossierFanRead"/);
   assert.match(mount.innerHTML, /21 REGISTERED MOMENTS \/\/ 8 DEEP-DIVE CUTS/);
   assert.doesNotMatch(mount.innerHTML, /21 PLAYABLE MOMENTS/);
@@ -3513,7 +3571,7 @@ test("opening an exact receipt coordinate activates its canonical Now Playing re
   assert.match(mount.innerHTML, /<time>05:44&mdash;06:06<\/time>/);
 });
 
-test("local Show Wiki navigation includes only populated lanes and keeps Source Brief navigation compact", () => {
+test("one Show Menu replaces the duplicate local nav and keeps Source Brief navigation compact", () => {
   const dossier = makeDossier();
   dossier.source.showWiki.lanes.push({
     id: "empty-prototype",
@@ -3525,43 +3583,36 @@ test("local Show Wiki navigation includes only populated lanes and keeps Source 
   const { ui, mount } = setup(dossier);
   ui.render("SOURCE00001");
 
-  const localNavMatch = mount.innerHTML.match(
-    /<nav class="source-dossier-wiki-local-nav"[\s\S]*?<\/nav>/,
+  const showMenuMatch = mount.innerHTML.match(
+    /<nav class="source-dossier-explore"[\s\S]*?<\/nav>/,
   );
-  assert.ok(localNavMatch);
-  const localNav = localNavMatch[0];
-  assert.equal((localNav.match(/<a /g) ?? []).length, 9);
-  assert.ok(localNav.includes('href="#sourceDossierAftermath">AFTERMATH PACK</a>'));
-  assert.ok(localNav.includes('href="#sourceDossierShowWikiSummary">RECAP</a>'));
+  assert.ok(showMenuMatch);
+  const showMenu = showMenuMatch[0];
+  assert.equal((showMenu.match(/<a /g) ?? []).length, 6);
+  assert.ok(showMenu.includes('href="#sourceDossierPlayerSection">WATCH</a>'));
+  assert.ok(showMenu.includes('href="#sourceDossierShowWikiSummary">SUMMARY</a>'));
+  assert.ok(showMenu.includes('href="#sourceDossierShowWikiLane-up-in-ya-2">UP IN YA</a>'));
   assert.ok(
-    localNav.includes(
-      'href="#sourceDossierShowWikiExperience">THE MIDNIGHT CUT</a>',
+    showMenu.includes(
+      'href="#sourceDossierShowWikiLane-straight-to-steves-asshole-3">STEVE&#39;S ASSHOLE</a>',
     ),
   );
-  assert.ok(localNav.includes('href="#sourceDossierShowWikiLane-topics-0"'));
-  assert.ok(localNav.includes('href="#sourceDossierShowWikiLane-best-moments-1"'));
-  assert.ok(localNav.includes('href="#sourceDossierShowWikiLane-up-in-ya-2"'));
-  assert.ok(
-    localNav.includes(
-      'href="#sourceDossierShowWikiLane-straight-to-steves-asshole-3"',
-    ),
-  );
-  assert.ok(localNav.includes('href="#sourceDossierShowWikiLane-character-bits-4"'));
-  assert.ok(localNav.includes('href="#sourceDossierAsk">ASK THIS SHOW</a>'));
-  assert.doesNotMatch(localNav, /EMPTY PROTOTYPE/);
-  assert.doesNotMatch(localNav, /sourceDossierShowWikiLane-empty-prototype-5/);
+  assert.ok(showMenu.includes('href="#sourceDossierAsk">ASK THIS SHOW</a>'));
+  assert.ok(showMenu.includes('href="#sourceDossierInside">MORE</a>'));
+  assert.doesNotMatch(showMenu, /EMPTY PROTOTYPE/);
+  assert.doesNotMatch(showMenu, /sourceDossierShowWikiLane-empty-prototype-5/);
+  assert.doesNotMatch(mount.innerHTML, /class="source-dossier-wiki-local-nav"/);
 
   const sourceBrief = makeDossier({ metadataOnly: true, receiptCount: 0 });
   const briefSetup = setup(sourceBrief);
   briefSetup.ui.render("SOURCE00001");
   const briefNavMatch = briefSetup.mount.innerHTML.match(
-    /<nav class="source-dossier-wiki-local-nav"[\s\S]*?<\/nav>/,
+    /<nav class="source-dossier-explore"[\s\S]*?<\/nav>/,
   );
   assert.ok(briefNavMatch);
   const briefNav = briefNavMatch[0];
   assert.equal((briefNav.match(/<a /g) ?? []).length, 3);
   assert.ok(briefNav.includes('href="#sourceDossierShowWikiSummary">SOURCE BRIEF</a>'));
-  assert.ok(briefNav.includes('href="#sourceDossierAftermath">AFTERMATH PACK</a>'));
   assert.ok(briefNav.includes('href="#sourceDossierAsk">ASK SOURCE FACTS</a>'));
   assert.doesNotMatch(briefNav, /sourceDossierShowWikiExperience/);
   assert.doesNotMatch(briefNav, /sourceDossierShowWikiLane-/);
@@ -3622,6 +3673,11 @@ test("responsive stylesheet preserves touch targets, focus, and reduced motion",
   assert.match(cssSource, /\.source-dossier-feldman-case-file\s*\{/);
   assert.match(cssSource, /\.source-dossier-feldman-recap-toggle\s*\{/);
   assert.match(cssSource, /\.source-dossier-feldman-story\s*\{/);
+  assert.match(cssSource, /\.source-dossier-feldman-best\s*\{/);
+  assert.match(
+    cssSource,
+    /\.source-dossier-feldman-best h6 small\s*\{[^}]*display:\s*block[^}]*color:\s*var\(--dossier-lime/s,
+  );
   assert.match(
     cssSource,
     /\.source-dossier-feldman-story-reel\s*\{[^}]*grid-template-columns:\s*86px minmax\(0,\s*1fr\) auto/s,

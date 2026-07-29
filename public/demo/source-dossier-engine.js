@@ -10,7 +10,7 @@
    * captions, promote evidence, clear rights, or publish anything.
    */
 
-  var VERSION = "1.13.0";
+  var VERSION = "1.14.0";
   var INPUT_SCHEMA = "shokker-source-dossier-input/v1";
   var DOSSIER_SCHEMA = "shokker-source-dossier/v1";
   var EXPORT_SCHEMA = "shokker-source-dossier-export/v1";
@@ -413,6 +413,31 @@
       fail("SPEAKER_BOUNDARY", path + " must remain explicitly non-diarized.", path);
     }
     var signal = normalizeSignal(raw, path);
+    var topicMentions = raw.topicMentions == null ? null :
+      finiteNumber(raw.topicMentions, path + ".topicMentions", 0);
+    var topicFirstAt = raw.topicFirstAt == null ? null :
+      finiteNumber(raw.topicFirstAt, path + ".topicFirstAt", 0);
+    var topicPeakAt = raw.topicPeakAt == null ? null :
+      finiteNumber(raw.topicPeakAt, path + ".topicPeakAt", 0);
+    var topicCluster = raw.topicCluster == null ? null :
+      finiteNumber(raw.topicCluster, path + ".topicCluster", 0);
+    if (topicFirstAt != null && topicFirstAt > source.duration + 1 ||
+        topicPeakAt != null && topicPeakAt > source.duration + 1) {
+      fail(
+        "RECEIPT_TOPIC_TIMING_OUT_OF_RANGE",
+        path + " topic timing metrics exceed the registered source duration.",
+        path
+      );
+    }
+    var topicMetricBasis = clean(raw.topicMetricBasis, 180);
+    if (topicMetricBasis && topicMentions == null &&
+        topicFirstAt == null && topicPeakAt == null && topicCluster == null) {
+      fail(
+        "RECEIPT_TOPIC_METRIC_BASIS_WITHOUT_METRIC",
+        path + ".topicMetricBasis requires a registered topic metric.",
+        path + ".topicMetricBasis"
+      );
+    }
     var entityIds = stringList(raw.entityIds || [], path + ".entityIds", { max: 160 });
     entityIds.forEach(function (entityId, entityIndex) {
       if (!ENTITY_ID.test(entityId)) {
@@ -437,6 +462,11 @@
       publicExcerptAllowed: publicExcerptAllowed,
       signalScore: signal.signalScore,
       signalBasis: signal.signalBasis,
+      topicMentions: topicMentions,
+      topicFirstAt: topicFirstAt,
+      topicPeakAt: topicPeakAt,
+      topicCluster: topicCluster,
+      topicMetricBasis: topicMetricBasis,
       entityIds: entityIds,
       url: "https://www.youtube.com/watch?v=" + source.id + "&t=" + Math.round(at) + "s"
     };
@@ -1250,6 +1280,17 @@
         return clean(thread.name);
       })
     );
+    var guideThreadById = new Map(
+      array(episodeGuide && episodeGuide.threads).map(function (thread) {
+        var id = "thread-" + clean(thread.name).toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "");
+        return [id, thread];
+      }).filter(function (entry) {
+        return entry[0] !== "thread-";
+      })
+    );
+    var guideThreadIds = new Set(guideThreadById.keys());
     var topics = stringList(raw.topics || [], path + ".topics", { max: 180 });
     if (state === "held" && topics.length) {
       fail(
@@ -1347,6 +1388,46 @@
         .trim();
     }
 
+    function naturalEvidenceLabel(value) {
+      var text = evidenceLabel(value);
+      if (!text || text !== text.toUpperCase()) return text;
+      return text.toLowerCase().replace(/\b[a-z]/g, function (letter) {
+        return letter.toUpperCase();
+      })
+        .replace(/\bWwam\b/g, "WWAM")
+        .replace(/\bA24\b/gi, "A24")
+        .replace(/\bH20\b/gi, "H20")
+        .replace(/\bTv\b/g, "TV")
+        .replace(/\bVhs\b/g, "VHS");
+    }
+
+    function receiptProjectionLabel(receipt) {
+      var identity = clean(receipt && receipt.kind).toLowerCase() + " " +
+        clean(receipt && receipt.evidenceType).toLowerCase();
+      if (identity.indexOf("character") >= 0) {
+        var characterId = array(receipt && receipt.entityIds).find(function (id) {
+          return clean(id).toLowerCase().indexOf("character:") === 0;
+        });
+        if (characterId) {
+          var slug = clean(characterId).slice("character:".length).toLowerCase();
+          var known = {
+            "challis": "Dr. Challis",
+            "corey-feldman": "Corey Feldman",
+            "dr-challis": "Dr. Challis",
+            "dr-loomis": "Dr. Loomis",
+            "loomis": "Dr. Loomis",
+            "slender-man": "Slenderman",
+            "slenderman": "Slenderman",
+          };
+          if (known[slug]) return known[slug];
+          return slug.split(/[-_]+/).filter(Boolean).map(function (part) {
+            return part.charAt(0).toUpperCase() + part.slice(1);
+          }).join(" ");
+        }
+      }
+      return naturalEvidenceLabel(receipt && receipt.label);
+    }
+
     function sameWindow(actualAt, actualEnd, expected, itemPath, code) {
       if (Math.abs(actualAt - expected.at) > 0.001 ||
           Math.abs(actualEnd - expected.end) > 0.001) {
@@ -1368,6 +1449,217 @@
       return output;
     }
 
+    if (raw.topicMap != null && !Array.isArray(raw.topicMap)) {
+      fail(
+        "INVALID_EPISODE_RECAP_TOPIC_MAP",
+        path + ".topicMap must be an array.",
+        path + ".topicMap"
+      );
+    }
+    var topicMap = array(raw.topicMap).map(function (item, index) {
+      var itemPath = path + ".topicMap[" + index + "]";
+      if (!isRecord(item)) {
+        fail(
+          "INVALID_EPISODE_RECAP_TOPIC_MAP_ITEM",
+          itemPath + " must be an object.",
+          itemPath
+        );
+      }
+      var receiptKey = clean(item.receiptKey, 240);
+      var cutId = clean(item.guideCutId, 80);
+      if (receiptKey && !receiptMap.has(receiptKey)) {
+        fail(
+          "UNKNOWN_EPISODE_RECAP_TOPIC_RECEIPT",
+          itemPath + ".receiptKey is not local to this source.",
+          itemPath + ".receiptKey"
+        );
+      }
+      if (cutId && !guideCutMap.has(cutId) && !guideThreadIds.has(cutId)) {
+        fail(
+          "UNKNOWN_EPISODE_RECAP_TOPIC_GUIDE_POINT",
+          itemPath + ".guideCutId is not local to this source's Episode Guide.",
+          itemPath + ".guideCutId"
+        );
+      }
+      if (!receiptKey && !cutId) {
+        fail(
+          "EPISODE_RECAP_TOPIC_EVIDENCE_REQUIRED",
+          itemPath + " must resolve to a local receipt or reviewed guide thread.",
+          itemPath
+        );
+      }
+      var window = boundedWindow(item, itemPath);
+      var firstAt = finiteNumber(item.firstAt, itemPath + ".firstAt", 0);
+      var peakAt = finiteNumber(item.peakAt, itemPath + ".peakAt", 0);
+      if (firstAt > source.duration + 1 || peakAt > source.duration + 1) {
+        fail(
+          "EPISODE_RECAP_TOPIC_RUNTIME",
+          itemPath + " timing metrics must stay inside the owning source runtime.",
+          itemPath
+        );
+      }
+      var mentions = finiteNumber(item.mentions, itemPath + ".mentions", 0);
+      var cluster = finiteNumber(item.cluster, itemPath + ".cluster", 0);
+      var rank = finiteNumber(item.rank, itemPath + ".rank", 0);
+      var intensity = finiteNumber(item.intensity, itemPath + ".intensity", 0);
+      var arrivalPercent = finiteNumber(
+        item.arrivalPercent,
+        itemPath + ".arrivalPercent",
+        0
+      );
+      var peakPercent = finiteNumber(
+        item.peakPercent,
+        itemPath + ".peakPercent",
+        0
+      );
+      if (intensity > 100 || arrivalPercent > 100 || peakPercent > 100) {
+        fail(
+          "EPISODE_RECAP_TOPIC_PERCENT",
+          itemPath + " percentage metrics cannot exceed 100.",
+          itemPath
+        );
+      }
+      return {
+        receiptKey: receiptKey,
+        guideCutId: cutId,
+        label: requiredText(item.label, itemPath + ".label", 180),
+        at: window.at,
+        end: window.end,
+        mentions: mentions,
+        firstAt: firstAt,
+        peakAt: peakAt,
+        cluster: cluster,
+        rank: rank,
+        intensity: intensity,
+        arrivalPercent: arrivalPercent,
+        peakPercent: peakPercent,
+        metricBasis: clean(item.metricBasis, 240),
+      };
+    });
+    var expectedTopicMap = topicMap.map(function (topic) {
+      if (topic.receiptKey) {
+        var receipt = receiptMap.get(topic.receiptKey);
+        var mentions = receipt.topicMentions;
+        if (mentions == null &&
+            /topic-mention-count/i.test(clean(receipt.signalBasis))) {
+          mentions = receipt.signalScore;
+        }
+        mentions = mentions == null ? 0 : Math.max(0, Math.round(mentions));
+        var firstAt = receipt.topicFirstAt == null ?
+          receipt.at : receipt.topicFirstAt;
+        var peakAt = receipt.topicPeakAt == null ?
+          receipt.at : receipt.topicPeakAt;
+        var cluster = receipt.topicCluster == null ?
+          0 : Math.max(0, Math.round(receipt.topicCluster));
+        var metricBasis = clean(receipt.topicMetricBasis) ||
+          (/topic-mention-count/i.test(clean(receipt.signalBasis)) ?
+            "automatic-caption-topic-frequency-and-timing" : "");
+        var matchingThread = array(episodeGuide && episodeGuide.threads).find(
+          function (thread) {
+            return clean(thread.name).toLowerCase() ===
+              naturalEvidenceLabel(receipt.label).toLowerCase();
+          }
+        );
+        if (matchingThread) {
+          var receiptMentions = mentions;
+          mentions = Math.max(mentions, Number(matchingThread.mentions || 0));
+          firstAt = Math.min(firstAt, Number(matchingThread.first || 0));
+          if (Number(matchingThread.mentions || 0) >= receiptMentions) {
+            peakAt = Number(matchingThread.peak || 0);
+          }
+          metricBasis = metricBasis ||
+            "reviewed-episode-guide-thread-frequency-and-timing";
+        }
+        return {
+          receiptKey: topic.receiptKey,
+          guideCutId: "",
+          label: naturalEvidenceLabel(receipt.label),
+          at: receipt.at,
+          end: receipt.end,
+          mentions: mentions,
+          firstAt: firstAt,
+          peakAt: peakAt,
+          cluster: cluster,
+          metricBasis: metricBasis,
+        };
+      }
+      var thread = guideThreadById.get(topic.guideCutId);
+      return {
+        receiptKey: "",
+        guideCutId: topic.guideCutId,
+        label: naturalEvidenceLabel(thread && thread.name),
+        at: Number(thread && thread.peak || 0),
+        end: Math.min(
+          Number(source.duration),
+          Number(thread && thread.peak || 0) + 30
+        ),
+        mentions: Math.max(0, Math.round(Number(thread && thread.mentions || 0))),
+        firstAt: Math.max(0, Number(thread && thread.first || 0)),
+        peakAt: Math.max(0, Number(thread && thread.peak || 0)),
+        cluster: Math.max(0, Math.round(Number(thread && thread.score || 0))),
+        metricBasis: "reviewed-episode-guide-thread-frequency-and-timing",
+      };
+    });
+    var strongestTopicMentions = expectedTopicMap.reduce(function (maximum, topic) {
+      return Math.max(maximum, Number(topic.mentions || 0));
+    }, 0);
+    var expectedTopicOrder = expectedTopicMap.slice().sort(function (left, right) {
+      return right.mentions - left.mentions ||
+        right.cluster - left.cluster ||
+        left.firstAt - right.firstAt ||
+        left.label.localeCompare(right.label);
+    });
+    topicMap.forEach(function (topic, index) {
+      var expected = expectedTopicMap[index];
+      var expectedRanked = expectedTopicOrder[index];
+      var expectedIntensity = strongestTopicMentions ?
+        Math.max(
+          4,
+          Math.round(expected.mentions / strongestTopicMentions * 100)
+        ) : 0;
+      var expectedArrivalPercent = source.duration ?
+        Math.max(0, Math.min(100, Math.round(expected.firstAt / source.duration * 100))) :
+        0;
+      var expectedPeakPercent = source.duration ?
+        Math.max(0, Math.min(100, Math.round(expected.peakAt / source.duration * 100))) :
+        0;
+      var identityMatches =
+        topic.receiptKey === expected.receiptKey &&
+        topic.guideCutId === expected.guideCutId &&
+        topic.label === expected.label &&
+        topic.at === expected.at &&
+        topic.mentions === expected.mentions &&
+        topic.firstAt === expected.firstAt &&
+        topic.peakAt === expected.peakAt &&
+        topic.cluster === expected.cluster &&
+        topic.metricBasis === expected.metricBasis;
+      var windowMatches = topic.receiptKey ?
+        topic.end <= expected.end + 0.001 && topic.end > topic.at :
+        topic.end === expected.end;
+      var rankMatches =
+        topic.rank === index + 1 &&
+        topic.receiptKey === expectedRanked.receiptKey &&
+        topic.guideCutId === expectedRanked.guideCutId &&
+        topic.intensity === expectedIntensity &&
+        topic.arrivalPercent === expectedArrivalPercent &&
+        topic.peakPercent === expectedPeakPercent;
+      if (!identityMatches || !windowMatches || !rankMatches) {
+        fail(
+          "EPISODE_RECAP_TOPIC_MAP_DRIFT",
+          path + ".topicMap[" + index +
+            "] must project its local receipt or reviewed guide thread.",
+          path + ".topicMap[" + index + "]"
+        );
+      }
+    });
+    if (state === "held" && topicMap.length) {
+      fail(
+        "HELD_EPISODE_RECAP_TOPIC_MAP_OVERREACH",
+        path + ".topicMap must remain empty while the recap is held.",
+        path + ".topicMap"
+      );
+    }
+
     if (!Array.isArray(raw.sections)) {
       fail("INVALID_EPISODE_RECAP_SECTIONS", path + ".sections must be an array.", path + ".sections");
     }
@@ -1378,10 +1670,10 @@
         path + ".sections"
       );
     }
-    if (state === "ready" && (!raw.sections.length || raw.sections.length > 8)) {
+    if (state === "ready" && (!raw.sections.length || raw.sections.length > 12)) {
       fail(
         "EPISODE_RECAP_SECTION_COUNT",
-        path + ".sections must contain between one and eight evidence-bound sections.",
+        path + ".sections must contain between one and twelve evidence-bound sections.",
         path + ".sections"
       );
     }
@@ -1462,10 +1754,10 @@
       );
     }
     if (state === "ready" && receiptMap.size &&
-        (!raw.story.length || raw.story.length > 4)) {
+        (!raw.story.length || raw.story.length > 8)) {
       fail(
         "EPISODE_RECAP_STORY_COUNT",
-        path + ".story must contain between one and four evidence-bound reels.",
+        path + ".story must contain between one and eight evidence-bound reels.",
         path + ".story"
       );
     }
@@ -1731,6 +2023,191 @@
           };
         }
       }
+      function normalizeStoryReceiptEvidence(item, itemPath, expectedKind) {
+        if (!isRecord(item)) {
+          fail(
+            "INVALID_EPISODE_RECAP_STORY_EVIDENCE",
+            itemPath + " must be an object.",
+            itemPath
+          );
+        }
+        var key = requiredText(item.receiptKey, itemPath + ".receiptKey", 240);
+        var receipt = receiptMap.get(key);
+        if (!receipt || receiptKeys.indexOf(key) < 0) {
+          fail(
+            "UNKNOWN_EPISODE_RECAP_STORY_EVIDENCE",
+            itemPath + ".receiptKey must belong to this reel.",
+            itemPath + ".receiptKey"
+          );
+        }
+        var identity = clean(receipt.kind).toLowerCase() + " " +
+          clean(receipt.evidenceType).toLowerCase();
+        if (expectedKind === "topic" && identity.indexOf("topic") < 0 ||
+            expectedKind === "moment" && identity.indexOf("topic") >= 0) {
+          fail(
+            "EPISODE_RECAP_STORY_EVIDENCE_KIND",
+            itemPath + " does not match its registered receipt kind.",
+            itemPath
+          );
+        }
+        var evidenceWindow = boundedWindow(item, itemPath);
+        if (Math.abs(evidenceWindow.at - receipt.at) > 0.001 ||
+            evidenceWindow.end > receipt.end + 0.001) {
+          fail(
+            "EPISODE_RECAP_STORY_EVIDENCE_WINDOW",
+            itemPath + " must stay inside its local receipt window.",
+            itemPath
+          );
+        }
+        var evidenceExcerpt = clean(item.excerpt, 600);
+        if (evidenceExcerpt && (
+          !receipt.publicExcerptAllowed ||
+          comparableExcerpt(receipt.excerpt).indexOf(
+            comparableExcerpt(evidenceExcerpt)
+          ) !== 0
+        )) {
+          fail(
+            "EPISODE_RECAP_STORY_EVIDENCE_EXCERPT",
+            itemPath + ".excerpt must come from its local receipt.",
+            itemPath + ".excerpt"
+          );
+        }
+        return {
+          receiptKey: key,
+          at: evidenceWindow.at,
+          end: evidenceWindow.end,
+          label: requiredText(item.label, itemPath + ".label", 180),
+          excerpt: evidenceExcerpt,
+          signalScore: finiteNumber(
+            item.signalScore == null ? 0 : item.signalScore,
+            itemPath + ".signalScore",
+            0
+          ),
+          evidenceBasis: clean(item.evidenceBasis, 240),
+        };
+      }
+      var topicEvidence = array(segment.topicEvidence).map(function (item, evidenceIndex) {
+        var itemPath = segmentPath + ".topicEvidence[" + evidenceIndex + "]";
+        var evidence = normalizeStoryReceiptEvidence(item, itemPath, "topic");
+        evidence.mentions = finiteNumber(
+          item.mentions,
+          itemPath + ".mentions",
+          0
+        );
+        evidence.firstAt = finiteNumber(
+          item.firstAt,
+          itemPath + ".firstAt",
+          0
+        );
+        evidence.peakAt = finiteNumber(
+          item.peakAt,
+          itemPath + ".peakAt",
+          0
+        );
+        evidence.metricBasis = clean(item.metricBasis, 240);
+        return evidence;
+      });
+      var momentEvidence = array(segment.momentEvidence).map(
+        function (item, evidenceIndex) {
+          return normalizeStoryReceiptEvidence(
+            item,
+            segmentPath + ".momentEvidence[" + evidenceIndex + "]",
+            "moment"
+          );
+        }
+      );
+      var evidenceTrail = array(segment.evidenceTrail).map(function (item, evidenceIndex) {
+        var itemPath = segmentPath + ".evidenceTrail[" + evidenceIndex + "]";
+        if (!isRecord(item)) {
+          fail(
+            "INVALID_EPISODE_RECAP_STORY_TRAIL",
+            itemPath + " must be an object.",
+            itemPath
+          );
+        }
+        var trailReceiptKey = clean(item.receiptKey, 240);
+        var trailCutId = clean(item.guideCutId, 80);
+        var trailWindow = boundedWindow(item, itemPath);
+        var trailReceipt = trailReceiptKey ? receiptMap.get(trailReceiptKey) : null;
+        var trailCut = trailCutId ? guideCutMap.get(trailCutId) : null;
+        if (trailReceipt && receiptKeys.indexOf(trailReceiptKey) >= 0) {
+          if (Math.abs(trailWindow.at - trailReceipt.at) > 0.001 ||
+              trailWindow.end > trailReceipt.end + 0.001) {
+            fail(
+              "EPISODE_RECAP_STORY_TRAIL_WINDOW",
+              itemPath + " must stay inside its local receipt window.",
+              itemPath
+            );
+          }
+        } else if (trailCut && localGuideCutIds.indexOf(trailCutId) >= 0) {
+          sameWindow(
+            trailWindow.at,
+            trailWindow.end,
+            trailCut,
+            itemPath,
+            "EPISODE_RECAP_STORY_TRAIL_WINDOW"
+          );
+        } else {
+          fail(
+            "UNKNOWN_EPISODE_RECAP_STORY_TRAIL",
+            itemPath + " must belong to this reel's local evidence.",
+            itemPath
+          );
+        }
+        var trailExcerpt = clean(item.excerpt, 600);
+        var trailLabel = requiredText(item.label, itemPath + ".label", 180);
+        var trailSignal = finiteNumber(
+          item.signalScore,
+          itemPath + ".signalScore",
+          0
+        );
+        var trailBasis = requiredText(
+          item.evidenceBasis,
+          itemPath + ".evidenceBasis",
+          240
+        );
+        var expectedTrailLabel = trailReceipt ?
+          receiptProjectionLabel(trailReceipt) :
+          naturalEvidenceLabel(trailCut.topic || trailCut.category);
+        var expectedTrailSignal = Number(
+          trailReceipt ? trailReceipt.signalScore || 0 : trailCut.score || 0
+        );
+        var expectedTrailBasis = trailReceipt ?
+          clean(trailReceipt.evidenceBasis) ||
+            clean(trailReceipt.evidenceType) || "source-local-receipt" :
+          clean(trailCut.evidenceBasis) ||
+            "reviewed-episode-guide-timestamp";
+        var trailExcerptMatches = trailReceipt ?
+          !trailExcerpt || (
+            trailReceipt.publicExcerptAllowed &&
+            comparableExcerpt(trailReceipt.excerpt).indexOf(
+              comparableExcerpt(trailExcerpt)
+            ) === 0
+          ) :
+          comparableExcerpt(trailCut.excerpt).indexOf(
+            comparableExcerpt(trailExcerpt)
+          ) === 0;
+        if (trailLabel !== expectedTrailLabel ||
+            trailSignal !== expectedTrailSignal ||
+            trailBasis !== expectedTrailBasis ||
+            !trailExcerptMatches) {
+          fail(
+            "EPISODE_RECAP_STORY_TRAIL_DRIFT",
+            itemPath + " must project its local evidence without drift.",
+            itemPath
+          );
+        }
+        return {
+          receiptKey: trailReceiptKey,
+          guideCutId: trailCutId,
+          at: trailWindow.at,
+          end: trailWindow.end,
+          label: trailLabel,
+          excerpt: trailExcerpt,
+          signalScore: trailSignal,
+          evidenceBasis: trailBasis,
+        };
+      });
       var normalizedSegment = {
         id: id,
         ordinal: finiteNumber(segment.ordinal || index + 1, segmentPath + ".ordinal", 1),
@@ -1741,9 +2218,17 @@
         anchorReceiptKey: anchorReceiptKey,
         anchorAt: anchorAt,
         anchor: clean(segment.anchor, 180),
+        primarySubject: requiredText(
+          segment.primarySubject,
+          segmentPath + ".primarySubject",
+          180
+        ),
         excerpt: excerpt,
         topicLabels: topicLabels,
+        topicEvidence: topicEvidence,
         momentLabels: momentLabels,
+        momentEvidence: momentEvidence,
+        evidenceTrail: evidenceTrail,
         characterLabels: characterLabels,
         threadLabels: localThreadLabels,
         receiptKeys: receiptKeys,
@@ -1801,20 +2286,19 @@
         narrativePath + ".primarySubject",
         180
       );
-      var expectedPrimarySubject = clean(
-        guideAnchor && guideAnchor.topic ||
-        topicLabels[0] ||
-        characterLabels[0] ||
-        normalizedSegment.anchor ||
-        momentLabels[0] ||
-        "Saved checkpoint",
-        180
-      );
+      var expectedPrimarySubject = normalizedSegment.primarySubject;
       if (primarySubject !== expectedPrimarySubject) {
         fail(
           "EPISODE_RECAP_STORY_NARRATIVE_SUBJECT",
           narrativePath + ".primarySubject must come from this reel's local evidence.",
           narrativePath + ".primarySubject"
+        );
+      }
+      if (normalizedSegment.primarySubject !== primarySubject) {
+        fail(
+          "EPISODE_RECAP_STORY_PRIMARY_SUBJECT_DRIFT",
+          segmentPath + ".primarySubject must match its narrative subject.",
+          segmentPath + ".primarySubject"
         );
       }
       var allSubjects = uniqueStrings(
@@ -2178,7 +2662,7 @@
       };
     });
 
-    var bestMoments = array(raw.bestMoments).slice(0, 8).map(function (item, index) {
+    var bestMoments = array(raw.bestMoments).map(function (item, index) {
       var itemPath = path + ".bestMoments[" + index + "]";
       if (!isRecord(item)) {
         fail("INVALID_EPISODE_RECAP_MOMENT", itemPath + " must be an object.", itemPath);
@@ -2198,6 +2682,11 @@
         end: window.end,
         label: requiredText(item.label, itemPath + ".label", 180),
         excerpt: clean(item.excerpt, 600),
+        signalScore: finiteNumber(
+          item.signalScore,
+          itemPath + ".signalScore",
+          0
+        ),
         evidenceBasis: requiredText(item.evidenceBasis, itemPath + ".evidenceBasis", 240),
       };
     });
@@ -2209,6 +2698,179 @@
       );
     }
 
+    if (raw.highlightRunway != null && !Array.isArray(raw.highlightRunway)) {
+      fail(
+        "INVALID_EPISODE_RECAP_HIGHLIGHT_RUNWAY",
+        path + ".highlightRunway must be an array.",
+        path + ".highlightRunway"
+      );
+    }
+    var highlightEvidenceKeys = new Set();
+    var highlightRunway = array(raw.highlightRunway).map(function (item, index) {
+      var itemPath = path + ".highlightRunway[" + index + "]";
+      if (!isRecord(item)) {
+        fail(
+          "INVALID_EPISODE_RECAP_HIGHLIGHT",
+          itemPath + " must be an object.",
+          itemPath
+        );
+      }
+      var receiptKey = clean(item.receiptKey, 240);
+      var cutId = clean(item.guideCutId, 80);
+      var localEvidence = receiptKey ? receiptMap.get(receiptKey) :
+        cutId ? guideCutMap.get(cutId) : null;
+      if (!localEvidence) {
+        fail(
+          "UNKNOWN_EPISODE_RECAP_HIGHLIGHT",
+          itemPath + " must resolve to a local receipt or reviewed guide cut.",
+          itemPath
+        );
+      }
+      var evidenceKey = receiptKey ? "receipt:" + receiptKey : "guide:" + cutId;
+      if (highlightEvidenceKeys.has(evidenceKey)) {
+        fail(
+          "DUPLICATE_EPISODE_RECAP_HIGHLIGHT",
+          itemPath + " repeats a highlight already on this runway.",
+          itemPath
+        );
+      }
+      highlightEvidenceKeys.add(evidenceKey);
+      var window = boundedWindow(item, itemPath);
+      var windowMatchesEvidence = receiptKey ?
+        Math.abs(window.at - localEvidence.at) <= 0.001 &&
+          window.end <= localEvidence.end + 0.001 :
+        Math.abs(window.at - localEvidence.at) <= 0.001 &&
+          Math.abs(window.end - localEvidence.end) <= 0.001;
+      if (!windowMatchesEvidence) {
+        fail(
+          "EPISODE_RECAP_HIGHLIGHT_WINDOW",
+          itemPath + " must inherit a bounded timestamp window from local evidence.",
+          itemPath
+        );
+      }
+      var ordinal = finiteNumber(item.ordinal || index + 1, itemPath + ".ordinal", 1);
+      if (!Number.isInteger(ordinal) || ordinal !== index + 1) {
+        fail(
+          "EPISODE_RECAP_HIGHLIGHT_ORDINAL",
+          itemPath + ".ordinal must match its chronological runway position.",
+          itemPath + ".ordinal"
+        );
+      }
+      var excerpt = clean(item.excerpt, 600);
+      if (excerpt && wordCount(excerpt) > 25) {
+        fail(
+          "EPISODE_RECAP_HIGHLIGHT_EXCERPT_TOO_LONG",
+          itemPath + ".excerpt exceeds 25 words.",
+          itemPath + ".excerpt"
+        );
+      }
+      var projectedKind = requiredText(item.kind, itemPath + ".kind", 80);
+      var projectedLabel = requiredText(item.label, itemPath + ".label", 180);
+      var projectedSignal = finiteNumber(
+        item.signalScore,
+        itemPath + ".signalScore",
+        0
+      );
+      var projectedBasis = requiredText(
+        item.evidenceBasis,
+        itemPath + ".evidenceBasis",
+        240
+      );
+      var expectedKind;
+      var expectedLabel;
+      var expectedSignal;
+      var expectedBasis;
+      var excerptMatches;
+      if (receiptKey) {
+        var receiptIdentity = clean(localEvidence.kind).toLowerCase() + " " +
+          clean(localEvidence.evidenceType).toLowerCase();
+        expectedKind = receiptIdentity.indexOf("topic") >= 0 ? "topic" :
+          receiptIdentity.indexOf("character") >= 0 ? "character" : "moment";
+        expectedLabel = receiptProjectionLabel(localEvidence);
+        expectedSignal = Number(localEvidence.signalScore || 0);
+        if (!expectedSignal && expectedKind === "topic") {
+          expectedSignal = Number(localEvidence.topicMentions || 0);
+        }
+        expectedBasis = clean(localEvidence.evidenceBasis) ||
+          clean(localEvidence.evidenceType) || "source-local-receipt";
+        excerptMatches = !excerpt || (
+          localEvidence.publicExcerptAllowed &&
+          comparableExcerpt(localEvidence.excerpt).indexOf(
+            comparableExcerpt(excerpt)
+          ) === 0
+        );
+      } else {
+        expectedKind = "guide-cut";
+        expectedLabel = naturalEvidenceLabel(
+          localEvidence.topic || localEvidence.category || "Reviewed show cut"
+        );
+        expectedSignal = Number(localEvidence.score || 0);
+        expectedBasis = clean(localEvidence.evidenceBasis) ||
+          "reviewed-episode-guide-timestamp";
+        excerptMatches =
+          comparableExcerpt(excerpt) === comparableExcerpt(localEvidence.excerpt);
+      }
+      if (projectedKind !== expectedKind ||
+          projectedLabel !== expectedLabel ||
+          projectedSignal !== expectedSignal ||
+          projectedBasis !== expectedBasis ||
+          !excerptMatches) {
+        fail(
+          "EPISODE_RECAP_HIGHLIGHT_DRIFT",
+          itemPath + " must project its local evidence without semantic drift.",
+          itemPath
+        );
+      }
+      return {
+        receiptKey: receiptKey,
+        guideCutId: cutId,
+        ordinal: ordinal,
+        kind: projectedKind,
+        category: requiredText(item.category, itemPath + ".category", 120),
+        at: window.at,
+        end: window.end,
+        label: projectedLabel,
+        excerpt: excerpt,
+        signalScore: projectedSignal,
+        evidenceBasis: projectedBasis,
+      };
+    });
+    for (var highlightIndex = 1;
+      highlightIndex < highlightRunway.length;
+      highlightIndex += 1) {
+      if (highlightRunway[highlightIndex].at <
+          highlightRunway[highlightIndex - 1].at) {
+        fail(
+          "EPISODE_RECAP_HIGHLIGHT_ORDER",
+          path + ".highlightRunway must remain chronological.",
+          path + ".highlightRunway[" + highlightIndex + "]"
+        );
+      }
+    }
+    var missingEditorialHighlights = [];
+    receiptMap.forEach(function (receipt, key) {
+      var identity = clean(receipt.kind).toLowerCase() + " " +
+        clean(receipt.evidenceType).toLowerCase();
+      if (identity.indexOf("topic") < 0 &&
+          !highlightEvidenceKeys.has("receipt:" + key)) {
+        missingEditorialHighlights.push(key);
+      }
+    });
+    if (state === "ready" && missingEditorialHighlights.length) {
+      fail(
+        "EPISODE_RECAP_HIGHLIGHT_COVERAGE",
+        path + ".highlightRunway must retain every registered moment and character receipt.",
+        path + ".highlightRunway"
+      );
+    }
+    if (state === "held" && highlightRunway.length) {
+      fail(
+        "HELD_EPISODE_RECAP_HIGHLIGHT_OVERREACH",
+        path + ".highlightRunway must remain empty while the recap is held.",
+        path + ".highlightRunway"
+      );
+    }
+
     var caseFile = null;
     if (raw.caseFile != null) {
       var casePath = path + ".caseFile";
@@ -2217,6 +2879,27 @@
       }
       var receiptCount = finiteNumber(raw.caseFile.receiptCount, casePath + ".receiptCount", 0);
       var topicCount = finiteNumber(raw.caseFile.topicCount, casePath + ".topicCount", 0);
+      var topicMetricCount = finiteNumber(
+        raw.caseFile.topicMetricCount == null ? 0 : raw.caseFile.topicMetricCount,
+        casePath + ".topicMetricCount",
+        0
+      );
+      var topicMentionTotal = finiteNumber(
+        raw.caseFile.topicMentionTotal == null ? 0 : raw.caseFile.topicMentionTotal,
+        casePath + ".topicMentionTotal",
+        0
+      );
+      var highlightCount = finiteNumber(
+        raw.caseFile.highlightCount == null ? 0 : raw.caseFile.highlightCount,
+        casePath + ".highlightCount",
+        0
+      );
+      var highlightCategoryCount = finiteNumber(
+        raw.caseFile.highlightCategoryCount == null ?
+          0 : raw.caseFile.highlightCategoryCount,
+        casePath + ".highlightCategoryCount",
+        0
+      );
       var momentCount = finiteNumber(raw.caseFile.momentCount, casePath + ".momentCount", 0);
       var characterCount = finiteNumber(
         raw.caseFile.characterCount,
@@ -2254,6 +2937,16 @@
         casePath + ".tapeSpanPercent",
         0
       );
+      var firstAt = finiteNumber(
+        raw.caseFile.firstAt == null ? 0 : raw.caseFile.firstAt,
+        casePath + ".firstAt",
+        0
+      );
+      var lastAt = finiteNumber(
+        raw.caseFile.lastAt == null ? 0 : raw.caseFile.lastAt,
+        casePath + ".lastAt",
+        0
+      );
       var storyNarrativeBeatCount = finiteNumber(
         raw.caseFile.storyNarrativeBeatCount,
         casePath + ".storyNarrativeBeatCount",
@@ -2289,9 +2982,50 @@
         casePath + ".storyGuideThreadCount",
         0
       );
+      var firstPlayableAnchorAt = finiteNumber(
+        raw.caseFile.firstPlayableAnchorAt == null ?
+          0 : raw.caseFile.firstPlayableAnchorAt,
+        casePath + ".firstPlayableAnchorAt",
+        0
+      );
+      var lastPlayableAnchorAt = finiteNumber(
+        raw.caseFile.lastPlayableAnchorAt == null ?
+          0 : raw.caseFile.lastPlayableAnchorAt,
+        casePath + ".lastPlayableAnchorAt",
+        0
+      );
+      var firstPlayableAnchorPercent = finiteNumber(
+        raw.caseFile.firstPlayableAnchorPercent == null ?
+          0 : raw.caseFile.firstPlayableAnchorPercent,
+        casePath + ".firstPlayableAnchorPercent",
+        0
+      );
+      var lastPlayableAnchorPercent = finiteNumber(
+        raw.caseFile.lastPlayableAnchorPercent == null ?
+          0 : raw.caseFile.lastPlayableAnchorPercent,
+        casePath + ".lastPlayableAnchorPercent",
+        0
+      );
+      var runtimePhaseCount = finiteNumber(
+        raw.caseFile.runtimePhaseCount == null ?
+          0 : raw.caseFile.runtimePhaseCount,
+        casePath + ".runtimePhaseCount",
+        0
+      );
+      var openingPhaseCovered = raw.caseFile.openingPhaseCovered === true;
+      var middlePhaseCovered = raw.caseFile.middlePhaseCovered === true;
+      var closingPhaseCovered = raw.caseFile.closingPhaseCovered === true;
+      var runtimeCoverageLevel = clean(
+        raw.caseFile.runtimeCoverageLevel,
+        80
+      );
       [
         ["receiptCount", receiptCount],
         ["topicCount", topicCount],
+        ["topicMetricCount", topicMetricCount],
+        ["topicMentionTotal", topicMentionTotal],
+        ["highlightCount", highlightCount],
+        ["highlightCategoryCount", highlightCategoryCount],
         ["momentCount", momentCount],
         ["characterCount", characterCount],
         ["actCount", actCount],
@@ -2304,7 +3038,8 @@
         ["storyGuidePointCount", storyGuidePointCount],
         ["storyGuidePointExpected", storyGuidePointExpected],
         ["storyGuideChapterCount", storyGuideChapterCount],
-        ["storyGuideThreadCount", storyGuideThreadCount]
+        ["storyGuideThreadCount", storyGuideThreadCount],
+        ["runtimePhaseCount", runtimePhaseCount]
       ].forEach(function (entry) {
         if (!Number.isInteger(entry[1])) {
           fail(
@@ -2333,6 +3068,20 @@
           "EPISODE_RECAP_CASE_FILE_GUIDE_COVERAGE",
           casePath + ".storyGuidePointCoveragePercent cannot exceed 100.",
           casePath + ".storyGuidePointCoveragePercent"
+        );
+      }
+      if (firstPlayableAnchorPercent > 100 || lastPlayableAnchorPercent > 100) {
+        fail(
+          "EPISODE_RECAP_CASE_FILE_ANCHOR_PERCENT",
+          casePath + " playable-anchor percentages cannot exceed 100.",
+          casePath
+        );
+      }
+      if (runtimePhaseCount > 3) {
+        fail(
+          "EPISODE_RECAP_CASE_FILE_RUNTIME_PHASES",
+          casePath + ".runtimePhaseCount cannot exceed three.",
+          casePath + ".runtimePhaseCount"
         );
       }
       var expected = { receipts: 0, topics: 0, moments: 0, characters: 0 };
@@ -2368,9 +3117,86 @@
         Math.round(
           storyGuideCutIds.size / expectedGuidePointCount * 100
         ) : 100;
+      var expectedTopicMetricCount = topicMap.filter(function (topic) {
+        return clean(topic.metricBasis) &&
+          (topic.mentions || topic.firstAt || topic.peakAt);
+      }).length;
+      var expectedTopicMentionTotal = topicMap.reduce(function (total, topic) {
+        return total + Number(topic.mentions || 0);
+      }, 0);
+      var expectedHighlightCategoryCount = new Set(
+        highlightRunway.map(function (item) {
+          return clean(item.category);
+        }).filter(Boolean)
+      ).size;
+      var sectionAnchorTimes = sections.map(function (section) {
+        return Number(section.at || 0);
+      }).sort(function (left, right) {
+        return left - right;
+      });
+      var expectedFirstAnchorAt = sectionAnchorTimes.length ?
+        sectionAnchorTimes[0] : 0;
+      var expectedLastAnchorAt = sectionAnchorTimes.length ?
+        sectionAnchorTimes[sectionAnchorTimes.length - 1] : 0;
+      var expectedFirstAnchorPercent = source.duration ?
+        Math.max(
+          0,
+          Math.min(100, Math.round(expectedFirstAnchorAt / source.duration * 100))
+        ) : 0;
+      var expectedLastAnchorPercent = source.duration ?
+        Math.max(
+          0,
+          Math.min(100, Math.round(expectedLastAnchorAt / source.duration * 100))
+        ) : 0;
+      var expectedOpeningPhase = sectionAnchorTimes.some(function (at) {
+        return source.duration && at / source.duration <= 0.15;
+      });
+      var expectedMiddlePhase = sectionAnchorTimes.some(function (at) {
+        var progress = source.duration ? at / source.duration : 0;
+        return progress >= 0.35 && progress <= 0.65;
+      });
+      var expectedClosingPhase = sectionAnchorTimes.some(function (at) {
+        return source.duration && at / source.duration >= 0.85;
+      });
+      var expectedRuntimePhaseCount = Number(expectedOpeningPhase) +
+        Number(expectedMiddlePhase) + Number(expectedClosingPhase);
+      var expectedRuntimeCoverageLevel =
+        expectedOpeningPhase && expectedMiddlePhase && expectedClosingPhase ?
+          "opening-middle-closing" :
+          expectedClosingPhase ? "closing-represented" : "indexed-highlights";
+      var registeredReceiptValues = Array.from(receiptMap.values());
+      var expectedFirstAt = registeredReceiptValues.length ?
+        Math.min.apply(null, registeredReceiptValues.map(function (receipt) {
+          return Number(receipt.at);
+        })) : 0;
+      var latestReceiptAt = registeredReceiptValues.length ?
+        Math.max.apply(null, registeredReceiptValues.map(function (receipt) {
+          return Number(receipt.at);
+        })) : 0;
+      var latestReceiptEnd = registeredReceiptValues.length ?
+        Math.max.apply(null, registeredReceiptValues.map(function (receipt) {
+          return Number(receipt.end);
+        })) : 0;
+      var expectedTapeSpanPercent = source.duration && registeredReceiptValues.length ?
+        Math.max(
+          1,
+          Math.min(
+            100,
+            Math.round((lastAt - firstAt) / source.duration * 100)
+          )
+        ) : 0;
+      var sourceSpanMatches =
+        firstAt === expectedFirstAt &&
+        lastAt >= latestReceiptAt &&
+        lastAt <= latestReceiptEnd &&
+        tapeSpanPercent === expectedTapeSpanPercent;
       if (state === "ready" && (
         receiptCount !== expected.receipts ||
         topicCount !== expected.topics ||
+        topicMetricCount !== expectedTopicMetricCount ||
+        topicMentionTotal !== expectedTopicMentionTotal ||
+        highlightCount !== highlightRunway.length ||
+        highlightCategoryCount !== expectedHighlightCategoryCount ||
         momentCount !== expected.moments ||
         characterCount !== expected.characters ||
         actCount !== sections.length ||
@@ -2386,7 +3212,17 @@
         storyGuidePointExpected !== expectedGuidePointCount ||
         storyGuidePointCoveragePercent !== expectedGuideCoverage ||
         storyGuideChapterCount !== storyGuideChapterIds.size ||
-        storyGuideThreadCount !== storyThreadLabels.size
+        storyGuideThreadCount !== storyThreadLabels.size ||
+        firstPlayableAnchorAt !== expectedFirstAnchorAt ||
+        lastPlayableAnchorAt !== expectedLastAnchorAt ||
+        firstPlayableAnchorPercent !== expectedFirstAnchorPercent ||
+        lastPlayableAnchorPercent !== expectedLastAnchorPercent ||
+        openingPhaseCovered !== expectedOpeningPhase ||
+        middlePhaseCovered !== expectedMiddlePhase ||
+        closingPhaseCovered !== expectedClosingPhase ||
+        runtimePhaseCount !== expectedRuntimePhaseCount ||
+        runtimeCoverageLevel !== expectedRuntimeCoverageLevel ||
+        !sourceSpanMatches
       )) {
         fail(
           "EPISODE_RECAP_CASE_FILE_MISMATCH",
@@ -2395,12 +3231,19 @@
         );
       }
       if (state === "held" && (
-        receiptCount || topicCount || momentCount || characterCount || actCount ||
+        receiptCount || topicCount || topicMetricCount || topicMentionTotal ||
+        highlightCount || highlightCategoryCount ||
+        momentCount || characterCount || actCount ||
         guideCutCount || threadCount || storySegmentCount || storyReceiptCount ||
         storyCoveragePercent || storyNarrativeBeatCount ||
         storyNamedSegmentCount || storyGuidePointCount ||
         storyGuidePointExpected || storyGuideChapterCount ||
         storyGuideThreadCount || tapeSpanPercent ||
+        firstAt || lastAt ||
+        firstPlayableAnchorAt || lastPlayableAnchorAt ||
+        firstPlayableAnchorPercent || lastPlayableAnchorPercent ||
+        runtimePhaseCount || openingPhaseCovered || middlePhaseCovered ||
+        closingPhaseCovered || runtimeCoverageLevel ||
         storyGuidePointCoveragePercent !== 100
       )) {
         fail(
@@ -2412,6 +3255,10 @@
       caseFile = {
         receiptCount: receiptCount,
         topicCount: topicCount,
+        topicMetricCount: topicMetricCount,
+        topicMentionTotal: topicMentionTotal,
+        highlightCount: highlightCount,
+        highlightCategoryCount: highlightCategoryCount,
         momentCount: momentCount,
         characterCount: characterCount,
         actCount: actCount,
@@ -2428,8 +3275,17 @@
         storyGuideChapterCount: storyGuideChapterCount,
         storyGuideThreadCount: storyGuideThreadCount,
         tapeSpanPercent: tapeSpanPercent,
-        firstAt: finiteNumber(raw.caseFile.firstAt, casePath + ".firstAt", 0),
-        lastAt: finiteNumber(raw.caseFile.lastAt, casePath + ".lastAt", 0),
+        firstAt: firstAt,
+        lastAt: lastAt,
+        firstPlayableAnchorAt: firstPlayableAnchorAt,
+        lastPlayableAnchorAt: lastPlayableAnchorAt,
+        firstPlayableAnchorPercent: firstPlayableAnchorPercent,
+        lastPlayableAnchorPercent: lastPlayableAnchorPercent,
+        runtimePhaseCount: runtimePhaseCount,
+        openingPhaseCovered: openingPhaseCovered,
+        middlePhaseCovered: middlePhaseCovered,
+        closingPhaseCovered: closingPhaseCovered,
+        runtimeCoverageLevel: runtimeCoverageLevel,
         laneCounts: isRecord(raw.caseFile.laneCounts) ?
           serial(raw.caseFile.laneCounts) : {},
       };
@@ -2528,8 +3384,10 @@
       deck: requiredText(raw.deck, path + ".deck", 700),
       overview: requiredText(raw.overview, path + ".overview", 1800),
       topics: topics,
+      topicMap: topicMap,
       sections: sections,
       story: story,
+      highlightRunway: highlightRunway,
       bestMoments: bestMoments,
       fanRead: fanRead,
       guideRecap: guideRecap,

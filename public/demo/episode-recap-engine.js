@@ -2,7 +2,7 @@
   "use strict";
 
   var SCHEMA = "shokker-episode-recap/v1";
-  var VERSION = "1.5.0";
+  var VERSION = "1.6.0";
 
   function clean(value) {
     return String(value == null ? "" : value).trim();
@@ -11,6 +11,11 @@
   function number(value) {
     var parsed = Number(value);
     return Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  function optionalNumber(value) {
+    var parsed = Number(value);
+    return value == null || value === "" || !Number.isFinite(parsed) ? null : parsed;
   }
 
   function array(value) {
@@ -222,8 +227,10 @@
   function targetSectionCount(duration) {
     if (duration < 1800) return 5;
     if (duration < 3600) return 6;
-    if (duration < 7200) return 7;
-    return 8;
+    if (duration < 5400) return 7;
+    if (duration < 7200) return 8;
+    if (duration < 10800) return 10;
+    return 12;
   }
 
   function topReceipts(values, limit) {
@@ -232,6 +239,268 @@
         receiptTime(left) - receiptTime(right) ||
         clean(left.key).localeCompare(clean(right.key));
     }).slice(0, limit);
+  }
+
+  function bestMomentReceipts(values, duration, limit) {
+    var remaining = topReceipts(values, values.length);
+    var selected = [];
+    var labels = {};
+    var target = Math.min(Math.max(0, number(limit)), remaining.length);
+    while (remaining.length && selected.length < target) {
+      var bestIndex = 0;
+      var bestValue = -Infinity;
+      remaining.forEach(function (receipt, index) {
+        var signal = Math.min(140, Math.max(0, receiptSignal(receipt))) * 1.5;
+        var label = receiptDisplayLabel(receipt).toLowerCase();
+        var novelty = labels[label] ? 0 : 28;
+        var separation = selected.length ? Math.min.apply(null, selected.map(function (chosen) {
+          return Math.abs(receiptTime(chosen) - receiptTime(receipt)) /
+            Math.max(1, number(duration));
+        })) * 52 : 0;
+        var value = signal + novelty + separation;
+        if (value > bestValue || value === bestValue &&
+            (receiptTime(receipt) < receiptTime(remaining[bestIndex]) ||
+             receiptTime(receipt) === receiptTime(remaining[bestIndex]) &&
+               clean(receipt.key) < clean(remaining[bestIndex].key))) {
+          bestValue = value;
+          bestIndex = index;
+        }
+      });
+      var chosen = remaining.splice(bestIndex, 1)[0];
+      selected.push(chosen);
+      labels[receiptDisplayLabel(chosen).toLowerCase()] = true;
+    }
+    return selected;
+  }
+
+  function receiptBelongsToLane(receipt, context, identityPattern) {
+    var key = clean(receipt && receipt.key);
+    if (!key) return false;
+    return array(record(context).lanes).some(function (lane) {
+      var identity = clean(lane && lane.id) + " " + clean(lane && lane.label);
+      return identityPattern.test(identity) &&
+        array(lane && lane.receiptKeys).map(clean).indexOf(key) >= 0;
+    });
+  }
+
+  function highlightCategory(receipt, context) {
+    var kind = receiptKind(receipt);
+    var label = clean(receiptDisplayLabel(receipt)).toUpperCase();
+    if (kind === "character") return "CHARACTER APPEARANCE";
+    if (receiptBelongsToLane(
+      receipt,
+      context,
+      /straight[- ]to[- ]steve|steve'?s?\s+asshole/i
+    )) {
+      return "STRAIGHT TO STEVE'S ASSHOLE";
+    }
+    if (receiptBelongsToLane(
+      receipt,
+      context,
+      /up[- ]in[- ]ya|out[- ]of[- ]pocket/i
+    ) || /UP IN YA|OUT OF POCKET|FULL SEND|STINGER/.test(label)) {
+      return "UP IN YA / STINGER";
+    }
+    if (kind === "moment") return "SOUNDBYTE / REPLAY";
+    return "MAJOR TOPIC TURN";
+  }
+
+  function minimumHighlightCount(duration) {
+    if (duration < 2700) return 5;
+    if (duration < 5400) return 8;
+    if (duration < 7200) return 10;
+    if (duration < 10800) return 12;
+    return 15;
+  }
+
+  function guideHighlightCategory(cut, guide) {
+    var fanRead = record(record(guide).fanRead);
+    if (clean(record(fanRead.hated).cutId) === clean(cut && cut.id)) {
+      return "STRAIGHT TO STEVE'S ASSHOLE";
+    }
+    if (clean(record(fanRead.wildestDetour).cutId) === clean(cut && cut.id)) {
+      return "UP IN YA / STINGER";
+    }
+    var topic = clean(cut && cut.topic);
+    var characterThread = array(record(guide).threads).some(function (thread) {
+      return clean(thread && thread.kind).toLowerCase() === "character" &&
+        clean(thread && thread.name).toLowerCase() === topic.toLowerCase();
+    });
+    return characterThread ? "CHARACTER APPEARANCE" : "SOUNDBYTE / REPLAY";
+  }
+
+  function guideCutTime(cut) {
+    return Math.max(
+      0,
+      number(cut && (cut.at != null ? cut.at : cut.t))
+    );
+  }
+
+  function guideHighlightFeature(cut, guide, duration) {
+    var at = guideCutTime(cut);
+    var end = number(cut && cut.end) > at ?
+      number(cut.end) :
+      Math.min(number(duration), at + 30);
+    var topic = displayLabel(cut && cut.topic);
+    var category = displayLabel(cut && cut.category);
+    return {
+      receiptKey: "",
+      guideCutId: clean(cut && cut.id),
+      at: at,
+      end: Math.min(Math.max(at, number(duration)), end),
+      label: topic || category || "Reviewed show cut",
+      excerpt: clean(cut && cut.excerpt),
+      signalScore: number(cut && cut.score),
+      evidenceBasis: clean(cut && cut.evidenceBasis) ||
+        "reviewed-episode-guide-timestamp",
+      kind: "guide-cut",
+      category: guideHighlightCategory(cut, guide),
+    };
+  }
+
+  function highlightRunway(receipts, duration, guide, context) {
+    var reviewedGuideCuts = array(record(guide).cuts).filter(function (cut) {
+      return clean(cut && cut.id) &&
+        number(cut && cut.end) > guideCutTime(cut);
+    });
+    var hasPromotableHighlight = receipts.some(function (receipt) {
+      return receiptKind(receipt) !== "topic";
+    }) || reviewedGuideCuts.length > 0;
+    if (!hasPromotableHighlight) return [];
+    var minimum = Math.min(
+      minimumHighlightCount(duration),
+      receipts.length + reviewedGuideCuts.length
+    );
+    var remaining = receipts.slice();
+    var selected = [];
+    var selectedKeys = {};
+    var selectedLabels = {};
+
+    function take(receipt) {
+      var key = clean(receipt && receipt.key);
+      if (!key || selectedKeys[key]) return;
+      selected.push(receipt);
+      selectedKeys[key] = true;
+      selectedLabels[receiptDisplayLabel(receipt).toLowerCase()] = true;
+    }
+
+    [
+      "STRAIGHT TO STEVE'S ASSHOLE",
+      "UP IN YA / STINGER",
+      "CHARACTER APPEARANCE",
+      "SOUNDBYTE / REPLAY",
+      "MAJOR TOPIC TURN",
+    ].forEach(function (category) {
+      take(topReceipts(remaining.filter(function (receipt) {
+        return highlightCategory(receipt, context) === category;
+      }), 1)[0]);
+    });
+
+    // A runtime target is a floor, never a ceiling. Every registered moment or
+    // character receipt remains in the runway; strong recurring topics can
+    // join it, and future shows with 25 real moments retain all 25.
+    remaining.filter(function (receipt) {
+      return receiptKind(receipt) !== "topic";
+    }).forEach(take);
+    var topicCandidates = remaining.filter(function (receipt) {
+      return receiptKind(receipt) === "topic";
+    });
+    var strongestTopicSignal = topicCandidates.reduce(function (maximum, receipt) {
+      return Math.max(maximum, receiptSignal(receipt));
+    }, 0);
+    var topicThreshold = Math.max(10, strongestTopicSignal * 0.35);
+    topicCandidates.filter(function (receipt) {
+      return receiptSignal(receipt) >= topicThreshold;
+    }).forEach(take);
+
+    remaining = remaining.filter(function (receipt) {
+      return !selectedKeys[clean(receipt.key)];
+    });
+    while (remaining.length && selected.length < minimum) {
+      var bestIndex = 0;
+      var bestValue = -Infinity;
+      remaining.forEach(function (receipt, index) {
+        var kind = receiptKind(receipt);
+        var category = highlightCategory(receipt, context);
+        var label = receiptDisplayLabel(receipt).toLowerCase();
+        var signal = Math.min(140, Math.max(0, receiptSignal(receipt))) * 1.25;
+        var kindWeight = kind === "moment" ? 34 : kind === "character" ? 29 : 12;
+        var categoryNovelty = selected.some(function (chosen) {
+          return highlightCategory(chosen, context) === category;
+        }) ? 0 : 36;
+        var labelNovelty = selectedLabels[label] ? 0 : 20;
+        var separation = selected.length ? Math.min.apply(null, selected.map(function (chosen) {
+          return Math.abs(receiptTime(chosen) - receiptTime(receipt)) /
+            Math.max(1, number(duration));
+        })) * 70 : 0;
+        var value = signal + kindWeight + categoryNovelty + labelNovelty + separation;
+        if (value > bestValue || value === bestValue &&
+            (receiptTime(receipt) < receiptTime(remaining[bestIndex]) ||
+             receiptTime(receipt) === receiptTime(remaining[bestIndex]) &&
+               clean(receipt.key) < clean(remaining[bestIndex].key))) {
+          bestValue = value;
+          bestIndex = index;
+        }
+      });
+      take(remaining.splice(bestIndex, 1)[0]);
+    }
+
+    var selectedFeatures = selected.map(function (receipt) {
+      return Object.assign({}, feature(receipt, duration), {
+        kind: receiptKind(receipt),
+        category: highlightCategory(receipt, context),
+      });
+    });
+    var selectedGuideIds = {};
+    while (selectedFeatures.length < minimum) {
+      var guideCandidates = reviewedGuideCuts.filter(function (cut) {
+        if (selectedGuideIds[clean(cut.id)]) return false;
+        return !selectedFeatures.some(function (item) {
+          var sameWindow = Math.abs(number(item.at) - guideCutTime(cut)) <= 6;
+          var sameLabel = normalizedEvidenceText([item.label]) ===
+            normalizedEvidenceText([cut.topic || cut.category]);
+          var sameExcerpt = normalizedEvidenceText([item.excerpt]) &&
+            normalizedEvidenceText([item.excerpt]) ===
+              normalizedEvidenceText([cut.excerpt]);
+          return sameWindow && (sameLabel || sameExcerpt);
+        });
+      });
+      if (!guideCandidates.length) break;
+      guideCandidates.sort(function (left, right) {
+        var leftFeature = guideHighlightFeature(left, guide, duration);
+        var rightFeature = guideHighlightFeature(right, guide, duration);
+        function guideValue(feature) {
+          var categoryNovelty = selectedFeatures.some(function (item) {
+            return item.category === feature.category;
+          }) ? 0 : 34;
+          var separation = selectedFeatures.length ? Math.min.apply(
+            null,
+            selectedFeatures.map(function (item) {
+              return Math.abs(number(item.at) - number(feature.at)) /
+                Math.max(1, number(duration));
+            })
+          ) * 85 : 0;
+          return Math.min(160, number(feature.signalScore)) +
+            categoryNovelty + separation;
+        }
+        return guideValue(rightFeature) - guideValue(leftFeature) ||
+          guideCutTime(left) - guideCutTime(right) ||
+          clean(left.id).localeCompare(clean(right.id));
+      });
+      var guideCut = guideCandidates[0];
+      selectedGuideIds[clean(guideCut.id)] = true;
+      selectedFeatures.push(guideHighlightFeature(guideCut, guide, duration));
+    }
+
+    return selectedFeatures.sort(function (left, right) {
+      return number(left.at) - number(right.at) ||
+        clean(left.receiptKey || left.guideCutId)
+          .localeCompare(clean(right.receiptKey || right.guideCutId));
+    }).map(function (item, index) {
+      return Object.assign({}, item, {
+        ordinal: index + 1,
+      });
+    });
   }
 
   function nearestReceiptKeys(receipts, at, limit) {
@@ -311,6 +580,94 @@
       .map(displayLabel)
       .filter(Boolean)
       .slice(0, 8);
+  }
+
+  function topicTopology(receipts, duration, guide) {
+    var topics = receipts.filter(function (receipt) {
+      return receiptKind(receipt) === "topic";
+    }).map(function (receipt) {
+      var mentions = optionalNumber(receipt.topicMentions);
+      if (mentions == null &&
+          /topic-mention-count/i.test(clean(receipt.signalBasis))) {
+        mentions = optionalNumber(receipt.signalScore);
+      }
+      var firstAt = optionalNumber(receipt.topicFirstAt);
+      var peakAt = optionalNumber(receipt.topicPeakAt);
+      var cluster = optionalNumber(receipt.topicCluster);
+      if (firstAt == null) firstAt = receiptTime(receipt);
+      if (peakAt == null) peakAt = receiptTime(receipt);
+      return {
+        receiptKey: clean(receipt.key),
+        guideCutId: "",
+        label: receiptDisplayLabel(receipt),
+        at: receiptTime(receipt),
+        end: receiptEnd(receipt, duration),
+        mentions: mentions == null ? 0 : Math.max(0, Math.round(mentions)),
+        firstAt: Math.max(0, firstAt),
+        peakAt: Math.max(0, peakAt),
+        cluster: cluster == null ? 0 : Math.max(0, Math.round(cluster)),
+        metricBasis: clean(receipt.topicMetricBasis) ||
+          (/topic-mention-count/i.test(clean(receipt.signalBasis))
+            ? "automatic-caption-topic-frequency-and-timing"
+            : ""),
+      };
+    }).filter(function (topic) {
+      return Boolean(topic.label && topic.receiptKey);
+    });
+    var topicByLabel = {};
+    topics.forEach(function (topic) {
+      topicByLabel[topic.label.toLowerCase()] = topic;
+    });
+    guideThreads(guide).forEach(function (thread) {
+      var key = thread.name.toLowerCase();
+      var existing = topicByLabel[key];
+      if (existing) {
+        existing.mentions = Math.max(existing.mentions, thread.mentions);
+        existing.firstAt = Math.min(existing.firstAt, thread.first);
+        if (thread.mentions >= existing.mentions) existing.peakAt = thread.peak;
+        existing.metricBasis = existing.metricBasis ||
+          "reviewed-episode-guide-thread-frequency-and-timing";
+        return;
+      }
+      var guideTopic = {
+        receiptKey: "",
+        guideCutId: "thread-" + key.replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, ""),
+        label: thread.name,
+        at: thread.peak,
+        end: Math.min(number(duration), thread.peak + 30),
+        mentions: Math.max(0, Math.round(thread.mentions)),
+        firstAt: Math.max(0, thread.first),
+        peakAt: Math.max(0, thread.peak),
+        cluster: Math.max(0, Math.round(thread.score)),
+        metricBasis: "reviewed-episode-guide-thread-frequency-and-timing",
+      };
+      topics.push(guideTopic);
+      topicByLabel[key] = guideTopic;
+    });
+    topics.sort(function (left, right) {
+      return right.mentions - left.mentions ||
+        right.cluster - left.cluster ||
+        left.firstAt - right.firstAt ||
+        left.label.localeCompare(right.label);
+    });
+    var strongest = topics.reduce(function (maximum, topic) {
+      return Math.max(maximum, topic.mentions);
+    }, 0);
+    return topics.map(function (topic, index) {
+      return Object.assign({}, topic, {
+        rank: index + 1,
+        intensity: strongest
+          ? Math.max(4, Math.round(topic.mentions / strongest * 100))
+          : 0,
+        arrivalPercent: duration
+          ? Math.max(0, Math.min(100, Math.round(topic.firstAt / duration * 100)))
+          : 0,
+        peakPercent: duration
+          ? Math.max(0, Math.min(100, Math.round(topic.peakAt / duration * 100)))
+          : 0,
+      });
+    });
   }
 
   function guideSections(source, receipts, guide) {
@@ -781,14 +1138,34 @@
     });
   }
 
-  function storyArc(receipts, duration, guide) {
+  function storyArc(receipts, duration, guide, source) {
     if (!receipts.length) return [];
+    var topicOnly = receipts.every(function (receipt) {
+      return receiptKind(receipt) === "topic";
+    });
+    function storyTime(receipt) {
+      var firstAt = topicOnly ? optionalNumber(receipt && receipt.topicFirstAt) : null;
+      return firstAt == null ? receiptTime(receipt) : Math.max(0, firstAt);
+    }
+    if (topicOnly) {
+      receipts = receipts.slice().sort(function (left, right) {
+        return storyTime(left) - storyTime(right) ||
+          receiptTime(left) - receiptTime(right) ||
+          clean(left.key).localeCompare(clean(right.key));
+      });
+    }
     var guidePoints = guideEvidence(guide, duration);
     var guideThreadList = guideThreads(guide);
     var evidenceCount = receipts.length + guidePoints.length;
-    var segmentCount = evidenceCount >= 16 ? 4 :
+    var segmentCount = number(duration) >= 10800 && evidenceCount >= 12 ? 6 :
+      number(duration) >= 7200 && evidenceCount >= 10 ? 5 :
+        evidenceCount >= 16 ? 4 :
       evidenceCount >= 8 ? 3 :
         evidenceCount >= 4 ? 2 : 1;
+    var guideChapterCount = array(record(guide).chapters).length;
+    if (guideChapterCount) {
+      segmentCount = Math.max(segmentCount, Math.min(8, guideChapterCount));
+    }
     segmentCount = Math.max(1, Math.min(segmentCount, receipts.length));
     var segments = [];
 
@@ -801,10 +1178,10 @@
         receipts[Math.max(0, startIndex - 1)] : null;
       var nextChunkFirst = endIndex < receipts.length ? receipts[endIndex] : null;
       var fromBoundary = previousChunkLast ?
-        Math.round((receiptTime(previousChunkLast) + receiptTime(chunk[0])) / 2) : 0;
+        Math.round((storyTime(previousChunkLast) + storyTime(chunk[0])) / 2) : 0;
       var toBoundary = nextChunkFirst ?
         Math.round((
-          receiptTime(chunk[chunk.length - 1]) + receiptTime(nextChunkFirst)
+          storyTime(chunk[chunk.length - 1]) + storyTime(nextChunkFirst)
         ) / 2) : Math.max(1, number(duration));
       var localGuidePoints = guidePoints.filter(function (point) {
         return point.at >= fromBoundary &&
@@ -831,8 +1208,6 @@
           left.at - right.at ||
           left.id.localeCompare(right.id);
       })[0] || null;
-      var first = chunk[0];
-      var last = chunk[chunk.length - 1];
       var topicLabels = orderedStrings(
         localGuidePoints.map(function (point) {
           return point.topic;
@@ -861,8 +1236,22 @@
       }).map(function (thread) {
         return thread.name;
       });
+      var titlePreferredTopic = topicOnly ? topics.slice().sort(function (left, right) {
+        var leftScore = titleRelevance(
+          receiptDisplayLabel(left),
+          clean(record(source).displayTitle || record(source).title)
+        ) + receiptSignal(left);
+        var rightScore = titleRelevance(
+          receiptDisplayLabel(right),
+          clean(record(source).displayTitle || record(source).title)
+        ) + receiptSignal(right);
+        return rightScore - leftScore ||
+          receiptTime(left) - receiptTime(right) ||
+          clean(left.key).localeCompare(clean(right.key));
+      })[0] : null;
       var primarySubject = displayLabel(
         guideAnchor && (guideAnchor.topic || guideAnchor.category) ||
+        titlePreferredTopic && receiptDisplayLabel(titlePreferredTopic) ||
         topicLabels[0] ||
         characterLabelList[0] ||
         receiptDisplayLabel(strongestAnchor) ||
@@ -878,18 +1267,61 @@
         primaryEvidence
       );
       var anchorSubject = evidenceSubject(primaryEvidence);
+      var chunkStart = chunk.reduce(function (earliest, receipt) {
+        return Math.min(earliest, storyTime(receipt));
+      }, storyTime(chunk[0]));
+      var chunkEnd = chunk.reduce(function (latest, receipt) {
+        return Math.max(latest, receiptEnd(receipt, duration));
+      }, receiptEnd(chunk[0], duration));
       var at = Math.min(
-        receiptTime(first),
-        localGuidePoints.length ? localGuidePoints[0].at : receiptTime(first)
+        chunkStart,
+        localGuidePoints.length ? localGuidePoints[0].at : chunkStart
       );
       var end = Math.max(
-        receiptEnd(last, duration),
+        chunkEnd,
         localGuidePoints.length ?
           localGuidePoints.reduce(function (latest, point) {
             return Math.max(latest, point.end);
           }, 0) :
-          receiptEnd(last, duration)
+          chunkEnd
       );
+      var evidenceTrail = localGuidePoints.filter(function (point) {
+        return Boolean(clean(point.excerpt));
+      }).map(function (point) {
+        return {
+          guideCutId: clean(point.id),
+          receiptKey: "",
+          at: number(point.at),
+          end: number(point.end),
+          label: displayLabel(point.topic || point.category),
+          excerpt: clean(point.excerpt),
+          signalScore: number(point.score),
+          evidenceBasis: clean(point.evidenceBasis) ||
+            "reviewed-episode-guide-timestamp",
+        };
+      }).concat(chunk.filter(function (receipt) {
+        return Boolean(safeExcerpt(receipt, 18));
+      }).map(function (receipt) {
+        return feature(receipt, duration);
+      }).filter(Boolean)).sort(function (left, right) {
+        return number(right.signalScore) - number(left.signalScore) ||
+          number(left.at) - number(right.at) ||
+          clean(left.receiptKey || left.guideCutId)
+            .localeCompare(clean(right.receiptKey || right.guideCutId));
+      }).filter(function (item, index, values) {
+        var signature = [
+          Math.round(number(item.at)),
+          normalizedEvidenceText([item.excerpt]),
+        ].join("|");
+        return values.findIndex(function (candidate) {
+          return [
+            Math.round(number(candidate.at)),
+            normalizedEvidenceText([candidate.excerpt]),
+          ].join("|") === signature;
+        }) === index;
+      }).slice(0, 3).sort(function (left, right) {
+        return number(left.at) - number(right.at);
+      });
       segments.push({
         id: "reel-" + String(segmentIndex + 1).padStart(2, "0"),
         ordinal: segmentIndex + 1,
@@ -904,7 +1336,30 @@
         anchorSupportsPrimary: anchorSupportsPrimary,
         anchorSubject: anchorSubject,
         topicLabels: topicLabels,
+        topicEvidence: topics.map(function (receipt) {
+          var mentions = optionalNumber(receipt.topicMentions);
+          var firstAt = optionalNumber(receipt.topicFirstAt);
+          var peakAt = optionalNumber(receipt.topicPeakAt);
+          return {
+            receiptKey: clean(receipt.key),
+            label: receiptDisplayLabel(receipt),
+            at: receiptTime(receipt),
+            end: receiptEnd(receipt, duration),
+            mentions: mentions == null ? 0 : Math.max(0, Math.round(mentions)),
+            firstAt: firstAt == null ? receiptTime(receipt) : Math.max(0, firstAt),
+            peakAt: peakAt == null ? receiptTime(receipt) : Math.max(0, peakAt),
+            metricBasis: clean(receipt.topicMetricBasis),
+          };
+        }).sort(function (left, right) {
+          return right.mentions - left.mentions ||
+            left.firstAt - right.firstAt ||
+            left.label.localeCompare(right.label);
+        }),
         momentLabels: momentLabels,
+        momentEvidence: topReceipts(moments, 2).map(function (receipt) {
+          return feature(receipt, duration);
+        }).filter(Boolean),
+        evidenceTrail: evidenceTrail,
         characterLabels: characterLabelList,
         threadLabels: orderedStrings(threadLabels),
         receiptKeys: chunk.map(function (receipt) {
@@ -952,6 +1407,7 @@
       end: receiptEnd(receipt, duration),
       label: receiptDisplayLabel(receipt),
       excerpt: safeExcerpt(receipt, 20),
+      signalScore: receiptSignal(receipt),
       evidenceBasis: clean(receipt.evidenceBasis) || clean(receipt.evidenceType) ||
         "source-local-receipt",
     };
@@ -1016,7 +1472,16 @@
     };
   }
 
-  function caseFile(receipts, sections, story, duration, context, guide) {
+  function caseFile(
+    receipts,
+    sections,
+    story,
+    duration,
+    context,
+    guide,
+    topology,
+    runway
+  ) {
     var topics = receipts.filter(function (receipt) {
       return receiptKind(receipt) === "topic";
     });
@@ -1032,6 +1497,30 @@
     }, first) : 0;
     var span = duration && receipts.length ?
       Math.max(1, Math.min(100, Math.round((last - first) / duration * 100))) : 0;
+    var sectionAnchors = array(sections).map(function (section) {
+      return Math.max(0, number(section && section.at));
+    }).filter(function (at) {
+      return Number.isFinite(at);
+    }).sort(function (left, right) {
+      return left - right;
+    });
+    var firstAnchorAt = sectionAnchors.length ? sectionAnchors[0] : first;
+    var lastAnchorAt = sectionAnchors.length ?
+      sectionAnchors[sectionAnchors.length - 1] : first;
+    var firstAnchorPercent = duration ?
+      Math.max(0, Math.min(100, Math.round(firstAnchorAt / duration * 100))) : 0;
+    var lastAnchorPercent = duration ?
+      Math.max(0, Math.min(100, Math.round(lastAnchorAt / duration * 100))) : 0;
+    var openingPhaseCovered = sectionAnchors.some(function (at) {
+      return duration && at / duration <= 0.15;
+    });
+    var middlePhaseCovered = sectionAnchors.some(function (at) {
+      var progress = duration ? at / duration : 0;
+      return progress >= 0.35 && progress <= 0.65;
+    });
+    var closingPhaseCovered = sectionAnchors.some(function (at) {
+      return duration && at / duration >= 0.85;
+    });
     var laneCounts = {};
     array(record(context).lanes).forEach(function (lane) {
       var id = clean(lane && lane.id);
@@ -1059,6 +1548,17 @@
     return {
       receiptCount: receipts.length,
       topicCount: topics.length,
+      topicMetricCount: array(topology).filter(function (topic) {
+        return clean(topic.metricBasis) &&
+          (number(topic.mentions) || number(topic.firstAt) || number(topic.peakAt));
+      }).length,
+      topicMentionTotal: array(topology).reduce(function (total, topic) {
+        return total + number(topic.mentions);
+      }, 0),
+      highlightCount: array(runway).length,
+      highlightCategoryCount: orderedStrings(array(runway).map(function (item) {
+        return clean(item.category);
+      })).length,
       momentCount: moments.length,
       characterCount: characters.length,
       actCount: sections.length,
@@ -1084,6 +1584,20 @@
       tapeSpanPercent: span,
       firstAt: first,
       lastAt: last,
+      firstPlayableAnchorAt: firstAnchorAt,
+      lastPlayableAnchorAt: lastAnchorAt,
+      firstPlayableAnchorPercent: firstAnchorPercent,
+      lastPlayableAnchorPercent: lastAnchorPercent,
+      runtimePhaseCount: Number(openingPhaseCovered) +
+        Number(middlePhaseCovered) + Number(closingPhaseCovered),
+      openingPhaseCovered: openingPhaseCovered,
+      middlePhaseCovered: middlePhaseCovered,
+      closingPhaseCovered: closingPhaseCovered,
+      runtimeCoverageLevel: openingPhaseCovered && middlePhaseCovered && closingPhaseCovered
+        ? "opening-middle-closing"
+        : closingPhaseCovered
+          ? "closing-represented"
+          : "indexed-highlights",
       laneCounts: laneCounts,
     };
   }
@@ -1148,6 +1662,7 @@
         url: clean(source.url),
       },
       topics: [],
+      highlightRunway: [],
       sections: [],
       story: [],
       bestMoments: [],
@@ -1156,6 +1671,10 @@
       caseFile: {
         receiptCount: 0,
         topicCount: 0,
+        topicMetricCount: 0,
+        topicMentionTotal: 0,
+        highlightCount: 0,
+        highlightCategoryCount: 0,
         momentCount: 0,
         characterCount: 0,
         actCount: 0,
@@ -1204,11 +1723,18 @@
     var sections = guideReady ?
       guideSections(source, receipts, guide) :
       receiptSections(source, receipts);
-    var story = storyArc(receipts, source.duration, guide);
-    var moments = topReceipts(receipts.filter(function (receipt) {
+    var story = storyArc(receipts, source.duration, guide, source);
+    var moments = bestMomentReceipts(receipts.filter(function (receipt) {
       return receiptKind(receipt) === "moment";
-    }), 3);
+    }), source.duration, 5);
     var topics = topicLabels(receipts, guide, source, context);
+    var topology = topicTopology(receipts, source.duration, guide);
+    var runway = highlightRunway(
+      receipts,
+      source.duration,
+      guide,
+      context
+    );
     var mode = guideReady ? "full-chronicle" :
       moments.length ? "receipt-recap" : "topic-recap";
     var guideRecap = guideReady ? {
@@ -1233,12 +1759,16 @@
           safeExcerpt(receipt, 18),
           clean(receipt.evidenceType),
           receipt.publicExcerptAllowed !== false,
+          optionalNumber(receipt.topicMentions),
+          optionalNumber(receipt.topicFirstAt),
+          optionalNumber(receipt.topicPeakAt),
+          optionalNumber(receipt.topicCluster),
         ];
       }),
       guideCuts: guideReady ? array(guide.cuts).map(function (cut) {
         return [
           clean(cut.id),
-          number(cut.at),
+          guideCutTime(cut),
           number(cut.end),
           clean(cut.topic),
           clean(cut.category),
@@ -1252,6 +1782,8 @@
       mode: mode,
       format: clean(format.id),
       topics: topics,
+      topicTopology: topology,
+      highlightRunway: runway,
       sections: sections.map(function (section) {
         return [
           section.id, section.at, section.end, section.anchor, section.category,
@@ -1263,7 +1795,8 @@
           segment.id, segment.at, segment.end, segment.anchorReceiptKey,
           segment.anchorAt, segment.anchor,
           segment.receiptKeys, segment.guideCutIds, segment.guideChapterIds,
-          segment.threadLabels, segment.narrative
+          segment.threadLabels, segment.topicEvidence, segment.momentEvidence,
+          segment.evidenceTrail, segment.narrative
         ];
       }),
       guideRecap: guideRecap,
@@ -1300,6 +1833,8 @@
         url: clean(source.url),
       },
       topics: topics,
+      topicMap: topology,
+      highlightRunway: runway,
       sections: sections,
       story: story,
       bestMoments: moments.map(function (receipt) {
@@ -1312,7 +1847,9 @@
         story,
         source.duration,
         context,
-        guide
+        guide,
+        topology,
+        runway
       ),
       guideRecap: guideRecap,
       registeredOverview: registeredOverview,

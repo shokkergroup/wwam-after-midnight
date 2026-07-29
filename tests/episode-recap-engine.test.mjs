@@ -144,7 +144,7 @@ test("universal map and WWAM voice pack produce deterministic chronological reca
   assert.equal(firstMap.registeredOverview, input.context.registeredOverview);
   assert.match(first.overview, /turns toward Scream around 31:40/i);
   assert.match(first.overview, /top replay pick lands at 1:00:50 under Up In Ya/i);
-  assert.match(first.overview, /All 6 chapters are clickable/i);
+  assert.doesNotMatch(first.overview, /chapters are clickable/i);
   assert.ok(first.sections.some((section) => /bounded source excerpt/i.test(section.body)));
   assert.match(first.limitations.join(" "), /transcript timing does not establish the speaker/i);
 });
@@ -465,7 +465,7 @@ test("playable acts reserve distinct subject doors instead of becoming a heat-on
   });
   const topicActs = map.sections.filter((section) => section.category === "topic");
 
-  assert.equal(map.sections.length, 8);
+  assert.equal(map.sections.length, 10);
   assert.ok(topicActs.length >= 4);
   assert.ok(topicActs.some((section) => section.anchor === "Halloween"));
   assert.ok(topicActs.some((section) => section.anchor === "Scream"));
@@ -608,7 +608,7 @@ test("unmatched saved spikes are disclosed as separate from the broader reel sub
   );
 });
 
-test("best moments are the deterministic top three, never a mirror of every moment receipt", () => {
+test("best moments are a deterministic top five, never a mirror of a larger moment set", () => {
   const window = load();
   const receipts = [
     receipt("topic:halloween", 50, "topic", "Halloween", 15),
@@ -634,10 +634,158 @@ test("best moments are the deterministic top three, never a mirror of every mome
 
   assert.deepEqual(
     Array.from(map.bestMoments, (moment) => moment.receiptKey),
-    ["moment:first", "moment:second", "moment:third"],
+    [
+      "moment:first",
+      "moment:second",
+      "moment:third",
+      "moment:fourth",
+      "moment:fifth",
+    ],
   );
-  assert.equal(map.bestMoments.length, 3);
+  assert.equal(map.bestMoments.length, 5);
   assert.equal(topicOnlyMap.bestMoments.length, 0);
+});
+
+test("highlight runway runtime targets are minimums for every show length band", () => {
+  const window = load();
+  const runtimeBands = [
+    { duration: 1_800, minimum: 5 },
+    { duration: 3_600, minimum: 8 },
+    { duration: 6_000, minimum: 10 },
+    { duration: 7_200, minimum: 12 },
+    { duration: 10_800, minimum: 15 },
+  ];
+
+  for (const { duration, minimum } of runtimeBands) {
+    const receipts = [
+      receipt("moment:runway-anchor", 30, "moment", "THE ROOM BREAKS", 90),
+      ...Array.from({ length: 19 }, (_, index) =>
+        receipt(
+          `topic:runtime-${String(index + 1).padStart(2, "0")}`,
+          Math.floor(((index + 2) * duration) / 22),
+          "topic",
+          `Runtime topic ${index + 1}`,
+          1,
+        )),
+    ];
+    const map = window.ShokkerEpisodeRecap.build({
+      source: source({ duration }),
+      receipts,
+      format: { id: "livestream", label: "WWAM LIVESTREAM", basis: "title" },
+    });
+
+    assert.equal(
+      map.highlightRunway.length,
+      minimum,
+      `${duration}-second show should surface at least ${minimum} stops`,
+    );
+    assert.equal(map.caseFile.highlightCount, minimum);
+  }
+});
+
+test("highlight runway preserves every registered moment and character with no hard maximum", () => {
+  const window = load();
+  const moments = Array.from({ length: 25 }, (_, index) =>
+    receipt(
+      `moment:memory-${String(index + 1).padStart(2, "0")}`,
+      120 + index * 390,
+      "moment",
+      index === 0
+        ? "STEVE HATES THIS"
+        : index === 1
+          ? "UP IN YA"
+          : `MEMORABLE TURN ${index + 1}`,
+      100 - index,
+    ));
+  const characters = [
+    receipt("character:loomis", 1_005, "character", "DR. LOOMIS", 91),
+    receipt("character:challis", 5_115, "character", "DR. CHALLIS", 88),
+    receipt("character:slenderman", 9_225, "character", "SLENDERMAN", 85),
+  ];
+  const registered = [...moments, ...characters];
+  const map = window.ShokkerEpisodeRecap.build({
+    source: source({ duration: 12_000 }),
+    receipts: registered.slice().reverse(),
+    format: { id: "livestream", label: "WWAM LIVESTREAM", basis: "title" },
+  });
+  const runwayKeys = Array.from(
+    map.highlightRunway,
+    (highlight) => highlight.receiptKey,
+  );
+
+  assert.equal(map.highlightRunway.length, 28);
+  assert.ok(map.highlightRunway.length > 15, "15 is a floor, not a ceiling");
+  assert.equal(new Set(runwayKeys).size, registered.length);
+  assert.deepEqual(
+    runwayKeys.slice().sort(),
+    registered.map((item) => item.key).sort(),
+  );
+  assert.deepEqual(
+    Array.from(map.highlightRunway, (highlight) => highlight.at),
+    Array.from(map.highlightRunway, (highlight) => highlight.at)
+      .slice()
+      .sort((left, right) => left - right),
+  );
+  assert.deepEqual(
+    Array.from(map.highlightRunway, (highlight) => highlight.ordinal),
+    Array.from({ length: registered.length }, (_, index) => index + 1),
+  );
+  assert.equal(map.caseFile.highlightCount, registered.length);
+});
+
+test("highlight runway assigns native categories and remains chronological through the WWAM adapter", () => {
+  const window = load();
+  const receipts = [
+    receipt("topic:halloween", 500, "topic", "Halloween", 100),
+    receipt("moment:stinger", 400, "moment", "UP IN YA", 94),
+    receipt("character:loomis", 300, "character", "DR. LOOMIS", 92),
+    receipt("moment:steve", 200, "moment", "STEVE HATES THIS", 96),
+    receipt("moment:replay", 100, "moment", "THE ROOM BREAKS", 90),
+  ];
+  const map = window.ShokkerEpisodeRecap.build({
+    source: source({ duration: 1_800 }),
+    receipts,
+    format: { id: "livestream", label: "WWAM LIVESTREAM", basis: "title" },
+    context: {
+      lanes: [{
+        id: "straight-to-steves-asshole",
+        label: "STRAIGHT TO STEVE'S ASSHOLE",
+        receiptKeys: ["moment:steve"],
+      }],
+    },
+  });
+  const recap = window.WWAMEpisodeRecapAdapter.build({ map });
+  const categories = Array.from(
+    recap.highlightRunway,
+    (highlight) => highlight.category,
+  );
+
+  assert.deepEqual(
+    Array.from(recap.highlightRunway, (highlight) => highlight.receiptKey),
+    [
+      "moment:replay",
+      "moment:steve",
+      "character:loomis",
+      "moment:stinger",
+      "topic:halloween",
+    ],
+  );
+  assert.deepEqual(categories, [
+    "SOUNDBYTE / REPLAY",
+    "STRAIGHT TO STEVE'S ASSHOLE",
+    "CHARACTER APPEARANCE",
+    "UP IN YA / STINGER",
+    "MAJOR TOPIC TURN",
+  ]);
+  assert.deepEqual(
+    Array.from(recap.highlightRunway, (highlight) => highlight.ordinal),
+    [1, 2, 3, 4, 5],
+  );
+  assert.equal(recap.caseFile.highlightCategoryCount, 5);
+  assert.ok(recap.highlightRunway.every((highlight) =>
+    highlight.receiptKey &&
+    highlight.evidenceBasis === "synthetic-source-local-test"
+  ));
 });
 
 test("story narration uses deterministic language from the source format", () => {

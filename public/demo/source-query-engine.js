@@ -10,7 +10,7 @@
    * question, and every content result remains inside that exact source.
    */
 
-  var VERSION = "1.6.0";
+  var VERSION = "1.6.1";
   var REQUEST_SCHEMA = "shokker-source-query/v1";
   var RESULT_SCHEMA = "shokker-source-query-result/v1";
   var DOSSIER_SCHEMA = "shokker-source-dossier/v1";
@@ -1629,12 +1629,12 @@
       message = "This exact show's " + match.label +
         " collection does not have a playable moment yet.";
     } else if (terms.length && !selectedReceipts.length) {
-      message = "I checked all " + allReceipts.length + " saved " + match.label +
-        " moment" + (allReceipts.length === 1 ? "" : "s") +
+      message = "I checked all " + allReceipts.length + " saved entries in the " +
+        match.label + " lane" +
         " on this exact show; none match the requested subject.";
     } else if (countRequested) {
-      message = "This exact show has " + selectedReceipts.length + " matching " +
-        match.label + " moment" + (selectedReceipts.length === 1 ? "" : "s") + ". " +
+      message = "This exact show has " + selectedReceipts.length +
+        " matching entries in the " + match.label + " lane. " +
         "That counts the timestamped highlights in this Wiki, not every utterance or repeated mention; " +
         shownReceipts + " playable result" + (shownReceipts === 1 ? " is" : "s are") + " shown.";
     } else if (hasReadyEpisodeRecap) {
@@ -1643,8 +1643,8 @@
         "followed by " + shownReceipts + " playable moment" +
         (shownReceipts === 1 ? "" : "s") + " from this exact show.";
     } else {
-      message = "This exact show has " + allReceipts.length + " saved " + match.label +
-        " moment" + (allReceipts.length === 1 ? "" : "s") + "; " +
+      message = "This exact show has " + allReceipts.length +
+        " saved entries in the " + match.label + " lane; " +
         shownReceipts + " playable result" + (shownReceipts === 1 ? " is" : "s are") + " shown.";
     }
     return {
