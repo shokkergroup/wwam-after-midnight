@@ -47,7 +47,7 @@ function load() {
   return sandbox.window;
 }
 
-function buildFixture() {
+function buildFixture(configure) {
   const window = load();
   const showcase = window.WWAMShowcaseEngine.create({
     catalog: window.WWAM_CATALOG,
@@ -97,6 +97,15 @@ function buildFixture() {
       packFingerprint: "fnv1a32:test-fixture",
     },
   };
+  if (configure) {
+    configure({
+      window,
+      showcase,
+      clipLab,
+      archiveDeep,
+      input,
+    });
+  }
   return {
     window,
     showcase,
@@ -127,7 +136,7 @@ function wordCount(value) {
 test("adapter exposes the universal schema and exact 510-source WWAM union", () => {
   const { window, result } = buildFixture();
 
-  assert.equal(window.WWAMSourceDossierAdapter.VERSION, "1.7.0");
+  assert.equal(window.WWAMSourceDossierAdapter.VERSION, "1.9.1");
   assert.deepEqual(Object.keys(result), [
     "schema",
     "channel",
@@ -199,6 +208,96 @@ test("every canonical show receives a Feldman recap or an evidence-safe held sta
   assert.ok(held.every((recap) => recap.bestMoments.length === 0));
   assert.ok(held.every((recap) => recap.approval.actualApproval === false));
   assert.ok(held.every((recap) => !/feldman approved/i.test(recap.label)));
+});
+
+test("topic receipts preserve bounded source-local strength with explicit provenance", () => {
+  let expectedCluster = null;
+  let sourceId = "";
+  let scoredLabel = "";
+  let mentionedLabel = "";
+  let clusteredLabel = "";
+  let mentionedScore = null;
+  const { result } = buildFixture(({ window, input }) => {
+    const payload = plain(input.archiveDeepPortfolio.getSearchPayload());
+    const yearCanonIds = new Set(
+      window.WWAM_YEAR_CANON_2025_2026.streams.map((source) => source.id),
+    );
+    const raw = payload.streams.find((source) => (
+      !yearCanonIds.has(source.id) &&
+      Array.isArray(source.topics) &&
+      source.topics.length >= 3
+    ));
+    assert.ok(raw);
+    sourceId = raw.id;
+    scoredLabel = raw.topics[0].name || raw.topics[0].label;
+    mentionedLabel = raw.topics[1].name || raw.topics[1].label;
+    clusteredLabel = raw.topics[2].name || raw.topics[2].label;
+    mentionedScore = Math.max(0, Math.min(100, raw.topics[1].mentions));
+
+    raw.topics[0].score = 87;
+    delete raw.topics[2].score;
+    delete raw.topics[2].mentions;
+    expectedCluster = raw.topics[2].cluster;
+    input.archiveDeepPortfolio = {
+      getSearchPayload() {
+        return payload;
+      },
+    };
+  });
+  const source = byId(result, sourceId);
+  const topic = (label) => source.receipts.find(
+    (receipt) => receipt.kind === "topic-navigation" && receipt.label === label,
+  );
+
+  assert.equal(topic(scoredLabel).signalScore, 87);
+  assert.equal(topic(scoredLabel).signalBasis, "caption-derived-topic-score");
+  assert.equal(topic(mentionedLabel).signalScore, mentionedScore);
+  assert.equal(
+    topic(mentionedLabel).signalBasis,
+    "caption-derived-topic-mention-count-bounded",
+  );
+  assert.equal(topic(clusteredLabel).signalScore, expectedCluster);
+  assert.equal(topic(clusteredLabel).signalBasis, "caption-derived-topic-cluster");
+  assert.ok(new Set(source.receipts.filter(
+    (receipt) => receipt.kind === "topic-navigation",
+  ).map((receipt) => receipt.signalScore)).size > 1);
+});
+
+test("episode recap receives source-local context only after Show Wiki lanes exist", () => {
+  let captured = null;
+  const { result } = buildFixture(({ window }) => {
+    const core = window.ShokkerEpisodeRecap;
+    window.ShokkerEpisodeRecap = Object.freeze({
+      SCHEMA: core.SCHEMA,
+      VERSION: core.VERSION,
+      build(input) {
+        if (input.source.id === "5k6I18ZekPQ") {
+          captured = plain(input.context);
+        }
+        return core.build(input);
+      },
+    });
+  });
+  const source = byId(result, "5k6I18ZekPQ");
+
+  assert.ok(captured);
+  assert.equal(captured.title, "ALIEN: EARTH After Party Hangout");
+  assert.equal(captured.summary.basis, "archive-deep-derived-summary");
+  assert.ok(captured.summary.text);
+  assert.equal(captured.editorial.showShape, "OPEN-LINE MOVIE NEWS");
+  assert.ok(captured.editorial.signature);
+  assert.ok(captured.editorial.bestEntry);
+  assert.ok(Number.isFinite(captured.indices.chaosIndex));
+  assert.ok(Number.isFinite(captured.peak.heat));
+  assert.deepEqual(
+    captured.lanes.map((lane) => lane.id),
+    plain(source.showWiki.lanes.map((lane) => lane.id)),
+  );
+  assert.deepEqual(
+    captured.lanes.map((lane) => lane.receiptKeys),
+    plain(source.showWiki.lanes.map((lane) => lane.receiptKeys)),
+  );
+  assert.deepEqual(plain(source.showWiki.episodeRecap), plain(source.episodeRecap));
 });
 
 test("Ask This Tape stays on the exact canonical WWAM upload across title collisions and evidence gaps", () => {
@@ -1079,6 +1178,7 @@ test("title metadata drives specific formats and title-first recap topics", () =
     ["WKs1uPGMQvw", "Scream"],
     ["QxJyVaAgZ_Y", "Friday the 13th"],
     ["jG93HvyP420", "TOPIC: HALLOWEEN"],
+    ["Oi-s0ZuWDbM", "TOPIC: HORROR"],
   ]) {
     const source = byId(result, sourceId);
     const topicBlock = source.showWiki.recap.blocks.find(

@@ -452,17 +452,17 @@
         }
         return clipLabEngine?null:loadDemoScript("creator-studio-engine.js").then(createClipLab);
       })
-      .then(function () { return loader.loadStyle("source-dossier.css?v=2.0.0-feldman"); })
+      .then(function () { return loader.loadStyle("source-dossier.css?v=2.1.2-legible-rail"); })
       .then(function () {
         return ["channel-pack-contract.js", "wwam-channel-pack-adapter.js",
           "episode-guides.js?v=2.1.5-referent",
-          "episode-recap-engine.js?v=1.0.0",
-          "wwam-episode-recap-adapter.js?v=1.0.0",
-          "source-dossier-engine.js?v=1.8.0-feldman",
-          "wwam-source-dossier-adapter.js?v=1.9.0-feldman",
+          "episode-recap-engine.js?v=1.1.1-temporal",
+          "wwam-episode-recap-adapter.js?v=1.1.1-temporal",
+          "source-dossier-engine.js?v=1.8.0-recap-v2",
+          "wwam-source-dossier-adapter.js?v=1.9.1-title-priority",
           "source-query-engine.js?v=1.4.0",
           "aftermath-pack-engine.js?v=1.0.0",
-          "source-dossier-ui.js?v=2.0.0-feldman"].reduce(function (promise, source) {
+          "source-dossier-ui.js?v=2.1.1-damage-links"].reduce(function (promise, source) {
           return promise.then(function () { return loader.load(source); });
         }, Promise.resolve());
       })

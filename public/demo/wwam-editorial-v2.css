@@ -712,25 +712,16 @@ body.wwam-directory-open .evidence-bag-toggle { opacity: 0; pointer-events: none
 .source-dossier-explore > span { margin-right: auto; }
 .source-dossier-explore > .wwam-dossier-primary-link { min-height: 44px; display: inline-flex; align-items: center; padding: 0 14px; border-color: rgba(212,255,36,.48); }
 .source-dossier-explore > .wwam-dossier-primary-link[href="#sourceDossierPlayerSection"] { background: var(--wwam-acid); color: #080808; }
-.wwam-dossier-more { position: relative; }
-.wwam-dossier-more > summary { min-height: 44px; display: inline-flex; align-items: center; padding: 0 14px; border: 1px solid #4a424b; color: #d5cdd5; cursor: pointer; list-style: none; font: 800 9px/1 var(--mono); letter-spacing: .06em; }
-.wwam-dossier-more > summary::-webkit-details-marker { display: none; }
-.wwam-dossier-more > summary::after { content: "+"; margin-left: 10px; color: var(--wwam-acid); font-size: 15px; }
-.wwam-dossier-more[open] > summary::after { content: "-"; }
-.wwam-dossier-more-tray { position: absolute; z-index: 12; top: calc(100% + 8px); right: 0; width: min(620px, 86vw); display: grid; grid-template-columns: 1fr 1fr; gap: 1px; padding: 1px; background: #3c343d; box-shadow: 0 24px 60px rgba(0,0,0,.7); }
-.wwam-dossier-more-tray a { min-height: 46px; display: flex; align-items: center; padding: 0 13px; background: #100d10; color: #d7cfd6; font: 750 10px/1.2 var(--body); }
-.wwam-dossier-more-tray a:hover { background: rgba(212,255,36,.08); color: var(--wwam-acid); }
 @media (max-width: 680px) {
   .source-dossier-explore > span { width: 100%; margin: 0; }
   .source-dossier-explore > .wwam-dossier-primary-link { flex: 1 1 calc(50% - 8px); justify-content: center; padding-inline: 8px; font-size: 8px; }
-  .wwam-dossier-more { width: 100%; }
-  .wwam-dossier-more > summary { width: 100%; justify-content: center; }
-  .wwam-dossier-more-tray { position: static; width: 100%; grid-template-columns: 1fr; margin-top: 7px; box-shadow: none; }
 }
 
 .source-dossier-explore > div { display: flex; flex: 1 1 auto; flex-wrap: wrap; align-items: center; gap: 8px; }
 .source-dossier-explore > div > .wwam-dossier-primary-link { min-height: 44px; display: inline-flex; align-items: center; padding: 0 14px; border-color: rgba(212,255,36,.48); }
 .source-dossier-explore > div > .wwam-dossier-primary-link[href="#sourceDossierPlayerSection"] { background: var(--wwam-acid); color: #080808; }
+.source-dossier-explore > div > .wwam-dossier-secondary-link { border-color: #3b343d; color: #c7bec6; }
+.source-dossier-explore > div > .wwam-dossier-secondary-link:hover { border-color: rgba(255,57,127,.58); color: #fff4f8; }
 .tape-modal { overflow-x: hidden; }
 .source-dossier > .source-dossier-explore {
   position: sticky;
@@ -1311,4 +1302,38 @@ body[data-guided-journey="highlights"] #steves-asshole {
 
   .evidence-bag-toggle { min-height: 44px; }
   .wwam-route-home { margin-left: -10px; padding-inline: 10px; }
+}
+
+/*
+ * Keep the Show Wiki's phone wayfinder on one usable row.
+ * This lives at the end of the editorial layer so its flex rules cannot
+ * re-wrap the rail that source-dossier.css deliberately makes scrollable.
+ */
+@media (max-width: 680px) {
+  .source-dossier > .source-dossier-explore {
+    display: block;
+    max-height: 60px;
+    padding-right: 72px !important;
+    overflow: hidden;
+  }
+
+  .source-dossier-explore > div {
+    display: flex;
+    width: 100%;
+    min-height: 44px;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 7px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+  }
+
+  .source-dossier-explore > div > .wwam-dossier-primary-link {
+    flex: 0 0 auto;
+    width: auto;
+    min-height: 44px;
+    padding-inline: 12px;
+    white-space: nowrap;
+  }
 }

@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.10.0";
+  var VERSION = "1.11.0";
   var DOSSIER_SCHEMA = "shokker-source-dossier/v1";
   var QUERY_SCHEMA = "shokker-source-query/v1";
   var QUERY_RESULT_SCHEMA = "shokker-source-query-result/v1";
@@ -230,6 +230,7 @@
       hasAnchor: false,
       section: "",
       fullFile: false,
+      recapExpanded: false,
       expanded: {},
       query: DEFAULT_SOURCE_QUERY,
       queryAnswer: null,
@@ -781,6 +782,45 @@
         clean(recap.state) === "ready";
     }
 
+    function feldmanDamageCardId(key) {
+      return "sourceDossierFeldmanDamage-" + token(titleCase(key));
+    }
+
+    function feldmanDamageShortcutSpecs(dossier) {
+      if (!hasReadyEpisodeRecap(dossier)) return [];
+      var fanRead = record(episodeRecapFor(dossier).fanRead);
+      var lanes = array(record(dossier.source.showWiki).lanes).map(record);
+      var specs = [
+        {
+          key: "hated",
+          label: "STRAIGHT TO STEVE'S ASSHOLE",
+          matchesLane: function (identity) {
+            return identity.indexOf("steve") >= 0 && identity.indexOf("asshole") >= 0;
+          }
+        },
+        {
+          key: "wildestDetour",
+          label: "WWAM UP IN YA",
+          matchesLane: function (identity) {
+            return identity.indexOf("up-in-ya") >= 0;
+          }
+        }
+      ];
+      return specs.filter(function (spec) {
+        if (!clean(record(fanRead[spec.key]).body)) return false;
+        return !lanes.some(function (lane) {
+          var identity = token(clean(lane.id) + " " + clean(lane.label));
+          return spec.matchesLane(identity) &&
+            showWikiLaneReceipts(dossier, lane).length > 0;
+        });
+      }).map(function (spec) {
+        return {
+          id: feldmanDamageCardId(spec.key),
+          label: spec.label
+        };
+      });
+    }
+
     function showWikiLocalNavMarkup(dossier) {
       var wiki = record(dossier.source.showWiki);
       var lanes = array(wiki.lanes).map(record);
@@ -811,6 +851,7 @@
           if (!showWikiLaneReceipts(dossier, lane).length) return;
           links.push({ id: showWikiLaneId(lane, index), label: clean(lane.label) });
         });
+        links = links.concat(feldmanDamageShortcutSpecs(dossier));
       }
       links.push({ id: SECTION_IDS.aftermath, label: "AFTERMATH PACK" });
       links.push({
@@ -859,6 +900,9 @@
       }).filter(function (link) {
         return link.label && link.populated;
       }));
+      if (!sourceBrief) {
+        links = links.concat(feldmanDamageShortcutSpecs(dossier));
+      }
       links.push({
         id: SECTION_IDS.ask,
         label: sourceBrief ? "ASK SOURCE FACTS" : "ASK THIS SHOW"
@@ -1002,27 +1046,114 @@
       if (clean(recap.schema) !== "wwam-feldman-recap/v1") return "";
       var ready = clean(recap.state) === "ready";
       var sections = array(recap.sections).map(record);
-      var visibleSections = compact ? sections.slice(0, 3) : sections;
+      var recapExpanded = !compact || state.recapExpanded;
+      var visibleSections = recapExpanded ? sections : sections.slice(0, 3);
       var fanRead = record(recap.fanRead);
+      var sourceTitle = clean(source.displayTitle) || clean(source.title);
+      var sourceMeta = [
+        clean(source.date) ? formatDate(source.date) : "",
+        number(source.duration) > 0 ? formatDuration(source.duration) : ""
+      ].filter(Boolean).join(" // ");
+      var sourceIdentity = sourceTitle ? (
+        '<div class="source-dossier-feldman-identity">' +
+        (clean(source.thumbnail) ? '<img src="' + esc(source.thumbnail) +
+          '" alt="" loading="lazy" decoding="async">' : '') +
+        '<div><small>THIS EXACT SHOW</small><strong>' + esc(sourceTitle) +
+        '</strong>' + (sourceMeta ? '<span>' + esc(sourceMeta) + '</span>' : '') +
+        '</div></div>'
+      ) : "";
 
-      function recapPlayButton(item, label) {
+      function recapPlayAttributes(item, label) {
         var receiptKey = clean(array(item.receiptKeys)[0] || item.receiptKey);
         var at = number(item.at);
         var end = number(item.end) > at ? number(item.end) :
           Math.min(number(source.duration), at + 30);
         if (receiptKey && sourceReceiptByKey(dossier, receiptKey)) {
-          return '<button type="button" data-source-dossier-action="play-receipt" ' +
+          return 'data-source-dossier-action="play-receipt" ' +
             'data-receipt-key="' + esc(receiptKey) + '" aria-label="' +
-            esc(label + " at " + formatTime(at)) + '">&#9654; ' +
-            esc(formatTime(at)) + '</button>';
+            esc(label + " at " + formatTime(at)) + '"';
         }
         if (clean(item.guideCutId)) {
-          return '<button type="button" data-source-dossier-action="play-guide-cut" ' +
+          return 'data-source-dossier-action="play-guide-cut" ' +
             'data-guide-at="' + esc(at) + '" data-guide-end="' + esc(end) +
             '" aria-label="' + esc(label + " at " + formatTime(at)) +
-            '">&#9654; ' + esc(formatTime(at)) + '</button>';
+            '"';
         }
         return "";
+      }
+
+      function recapPlayButton(item, label) {
+        var attributes = recapPlayAttributes(item, label);
+        if (!attributes) return "";
+        return '<button type="button" ' + attributes +
+          '><span aria-hidden="true">&#9654;</span> PLAY ' +
+          esc(formatTime(item.at)) + '</button>';
+      }
+
+      function recapCaseFileMarkup() {
+        var caseFile = record(recap.caseFile);
+        var evidenceProfile = record(recap.evidenceProfile);
+        var profile = Object.keys(caseFile).length ? caseFile : evidenceProfile;
+        if (!Object.keys(profile).length) return "";
+        var counts = record(profile.counts);
+
+        function metric(keys) {
+          var value = null;
+          keys.some(function (key) {
+            if (Object.prototype.hasOwnProperty.call(profile, key)) {
+              value = profile[key];
+              return true;
+            }
+            if (Object.prototype.hasOwnProperty.call(counts, key)) {
+              value = counts[key];
+              return true;
+            }
+            return false;
+          });
+          if (value == null || value === "" || !Number.isFinite(Number(value))) return null;
+          return Math.max(0, Number(value));
+        }
+
+        var stats;
+        if (clean(recap.tier) === "full-chronicle") {
+          stats = [
+            ["receipts", "REGISTERED RECEIPTS",
+              metric(["receiptCount", "receipts", "registeredReceipts"])],
+            ["cuts", "FULL-CAPTION CUTS", metric(["guideCutCount", "cuts"])],
+            ["threads", "STORY THREADS", metric(["threadCount", "threads"])],
+            ["acts", "RECAP ACTS", metric(["actCount", "acts"])],
+            ["span", "INDEXED SPAN", metric(["tapeSpanPercent", "spanPercent", "tapeSpan"])]
+          ];
+        } else if (clean(recap.tier) === "topic-recap") {
+          stats = [
+            ["receipts", "REGISTERED RECEIPTS",
+              metric(["receiptCount", "receipts", "registeredReceipts"])],
+            ["topics", "TOPIC DOORS", metric(["topicCount", "topics", "topicDoors"])],
+            ["acts", "PLAYABLE ACTS", metric(["actCount", "acts"])],
+            ["span", "INDEXED SPAN", metric(["tapeSpanPercent", "spanPercent", "tapeSpan"])]
+          ];
+        } else {
+          stats = [
+            ["receipts", "RECEIPTS", metric(["receiptCount", "receipts", "registeredReceipts"])],
+            ["topics", "TOPIC DOORS", metric(["topicCount", "topics", "topicDoors"])],
+            ["moments", "SAVED SPIKES", metric(["momentCount", "moments", "savedSpikes"])],
+            ["characters", "CHARACTER LEADS",
+              metric(["characterCount", "characters", "characterLeads"])],
+            ["span", "TAPE SPAN", metric(["tapeSpanPercent", "spanPercent", "tapeSpan"])]
+          ];
+        }
+        stats = stats.filter(function (stat) { return stat[2] != null; });
+        if (!stats.length) return "";
+        return '<aside class="source-dossier-feldman-case-file" ' +
+          'aria-label="Exact-show recap evidence profile"><header><span>' +
+          'EXACT-SHOW CASE FILE</span><small>' + esc(stats.length) +
+          ' SOURCE MEASUREMENTS</small></header><div>' +
+          stats.map(function (stat) {
+            var value = stat[0] === "span" ?
+              Math.round(stat[2]) + "%" : formatNumber(Math.round(stat[2]));
+            return '<span data-feldman-stat="' + esc(stat[0]) + '"><b>' +
+              esc(value) + '</b><small>' + esc(stat[1]) + '</small></span>';
+          }).join("") + '</div></aside>';
       }
 
       if (!ready) {
@@ -1035,17 +1166,21 @@
         ];
         return '<section class="source-dossier-feldman-recap is-held" ' +
           'id="sourceDossierShowWikiSummary" data-feldman-recap="held">' +
-          '<header><div><span>' + esc(recap.label) + '</span><h4>' +
-          esc(recap.headline) + '</h4></div><b>' + esc(recap.badge) +
+          '<header><div class="source-dossier-feldman-heading"><span>' +
+          esc(recap.label) + '</span><h4>' + esc(recap.headline) +
+          '</h4>' + sourceIdentity + '</div><b>' + esc(recap.badge) +
           '</b></header><p class="source-dossier-feldman-deck">' +
           esc(recap.deck) + '</p><p class="source-dossier-feldman-overview">' +
-          esc(recap.overview) + '</p><div class="source-dossier-feldman-facts">' +
+          esc(recap.overview) + '</p><div class="source-dossier-feldman-held-action">' +
+          '<button type="button" data-source-dossier-action="stage-intake">' +
+          '<span>START THE SOURCE-LOCAL DEEP DIVE</span><b>QUEUE THE TAPE &#8594;</b>' +
+          '</button><small>No episode claims are created until this exact upload has usable evidence.</small>' +
+          '</div><div class="source-dossier-feldman-facts">' +
           facts.map(function (fact) {
             return '<span><small>' + esc(fact[0]) + '</small><b>' +
               esc(fact[1] || "NOT REGISTERED") + '</b></span>';
           }).join("") + '</div><footer><small>NO MADE-UP EPISODE EVENTS // SOURCE DETAILS ONLY</small>' +
-          '<button type="button" data-source-dossier-action="stage-intake">' +
-          'QUEUE THE TAPE &#8594;</button><a href="' + esc(source.url) +
+          '<a href="' + esc(source.url) +
           '" target="_blank" rel="noopener">WATCH ON YOUTUBE &#8599;</a></footer></section>';
       }
 
@@ -1061,10 +1196,14 @@
           '<small>EXACT-SHOW EVIDENCE</small></footer></article>';
       }).join("");
       var openingSection = record(sections[0]);
-      var openingJump = compact && clean(openingSection.id) ?
-        '<div class="source-dossier-feldman-start"><span>START WITH THE TAPE</span><b>' +
-        esc(openingSection.label) + '</b>' +
-        recapPlayButton(openingSection, "Play the first saved turn") + '</div>' : '';
+      var openingAttributes = recapPlayAttributes(
+        openingSection, "Play the first saved turn"
+      );
+      var openingJump = compact && clean(openingSection.id) && openingAttributes ?
+        '<button type="button" class="source-dossier-feldman-start" ' +
+        openingAttributes + '><span>START WITH THE TAPE</span><b>' +
+        esc(openingSection.label) + '</b><time><i aria-hidden="true">&#9654;</i> PLAY ' +
+        esc(formatTime(openingSection.at)) + '</time></button>' : '';
 
       var damageSpecs = [
         ["loved", "WHAT THE TAPE DEFENDED"],
@@ -1076,32 +1215,47 @@
         var item = record(fanRead[spec[0]]);
         if (!clean(item.body)) return "";
         var excerpt = cleanCaptionExcerpt(item.excerpt);
-        return '<article data-feldman-damage="' + esc(spec[0]) + '"><span>' +
+        return '<article id="' + esc(feldmanDamageCardId(spec[0])) +
+          '" data-feldman-damage="' + esc(spec[0]) + '"><span>' +
           esc(clean(item.label) || spec[1]) + '</span><h5>' +
           esc(clean(item.topic) || spec[1]) + '</h5><p>' + esc(item.body) +
           '</p>' + (excerpt ? '<blockquote>&ldquo;' + esc(excerpt) +
             '&rdquo;</blockquote>' : '') + recapPlayButton(item, "Play " + spec[1]) +
           '</article>';
       }).filter(Boolean).join("");
+      var caseFileMarkup = recapCaseFileMarkup();
+      var recapControls = [
+        "sourceDossierFeldmanOverview",
+        "sourceDossierFeldmanActs"
+      ].concat(damageMarkup ? ["sourceDossierFeldmanDamage"] : []).join(" ");
+      var recapToggle = compact ?
+        '<button type="button" class="source-dossier-feldman-recap-toggle" ' +
+        'data-source-dossier-action="toggle-episode-recap" aria-controls="' +
+        esc(recapControls) + '" ' +
+        'aria-expanded="' + (recapExpanded ? 'true' : 'false') + '">' +
+        (recapExpanded ? 'COLLAPSE RECAP &#8593;' : 'READ FULL RECAP &#8595;') +
+        '</button>' : '';
 
       return '<section class="source-dossier-feldman-recap is-ready" ' +
         'id="sourceDossierShowWikiSummary" data-feldman-recap="ready" ' +
         'data-feldman-tier="' + esc(recap.tier) + '" data-feldman-view="' +
-        (compact ? 'highlights' : 'full') + '"><header><div><span>' +
+        (compact ? (recapExpanded ? 'recap' : 'highlights') : 'full') +
+        '" data-feldman-recap-expanded="' + (recapExpanded ? 'true' : 'false') +
+        '"><header><div class="source-dossier-feldman-heading"><span>' +
         esc(recap.label) + '</span><h4>' + esc(recap.headline) +
-        '</h4></div><b>' + esc(recap.badge) + '</b></header>' +
+        '</h4>' + sourceIdentity + '</div><b>' + esc(recap.badge) + '</b></header>' +
         openingJump +
         '<p class="source-dossier-feldman-deck">' + esc(recap.deck) +
-        '</p><p class="source-dossier-feldman-overview">' +
-        esc(recap.overview) + '</p><div class="source-dossier-feldman-acts">' +
+        '</p>' + caseFileMarkup +
+        '<p class="source-dossier-feldman-overview" id="sourceDossierFeldmanOverview">' +
+        esc(recap.overview) + '</p>' + recapToggle +
+        '<div class="source-dossier-feldman-acts" id="sourceDossierFeldmanActs">' +
         sectionMarkup + '</div>' +
-        (compact && sections.length > visibleSections.length ?
-          '<button type="button" class="source-dossier-feldman-expand" ' +
-          'data-source-dossier-action="open-full-file">OPEN ALL ' +
-          esc(sections.length) + ' RECAP ACTS &#8594;</button>' : '') +
-        (damageMarkup ? '<section class="source-dossier-feldman-damage"><header><span>' +
+        (damageMarkup ? '<section class="source-dossier-feldman-damage" ' +
+          'id="sourceDossierFeldmanDamage"><header><span>' +
           'DAMAGE REPORT</span><b>ONLY WHAT THIS TAPE CAN PROVE</b></header><div>' +
           damageMarkup + '</div></section>' : '') +
+        (compact && recapExpanded ? recapToggle : '') +
         '<details class="source-dossier-feldman-receipts"><summary>SHOW YOUR RECEIPTS</summary><p>' +
         esc(clean(record(recap.approval).disclosure)) +
         ' Every paragraph above resolves to a timestamp from this exact upload. ' +
@@ -2550,6 +2704,12 @@
       var href = clean(link.getAttribute("href"));
       var targetId = href.slice(1);
       if (!/^sourceDossier[A-Za-z0-9_-]+$/.test(targetId)) return false;
+      var recapDamageDestination = /^sourceDossierFeldmanDamage-[A-Za-z0-9_-]+$/
+        .test(targetId);
+      if (recapDamageDestination && !state.fullFile && !state.recapExpanded) {
+        state.recapExpanded = true;
+        renderCurrent();
+      }
       var target = mount.querySelector("#" + targetId);
       var hiddenResearch = target && typeof target.closest === "function" ?
         target.closest("#sourceDossierDeepResearch[hidden]") : null;
@@ -2735,6 +2895,10 @@
       } else if (action === "open-full-file") {
         state.fullFile = true;
         renderCurrent();
+      } else if (action === "toggle-episode-recap") {
+        state.recapExpanded = !state.recapExpanded;
+        renderCurrent();
+        if (!state.recapExpanded) queueJumpAfterReflow("sourceDossierShowWikiSummary");
       } else if (action === "close-full-file") {
         state.fullFile = false;
         state.expanded = {};
@@ -2776,6 +2940,7 @@
       state.fullFile = settings.fullFile === true || settings.full === true ||
         Boolean(state.section && ["player", "wiki"].indexOf(state.section) < 0) ||
         Boolean(clean(settings.query));
+      state.recapExpanded = false;
       state.expanded = {};
       var deepSection = safeSection(settings.deepSection || settings.section);
       if (EXPANDABLE_SECTIONS.indexOf(deepSection) >= 0) {

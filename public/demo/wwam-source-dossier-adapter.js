@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.7.0";
+  var VERSION = "1.9.1";
   var SCHEMA = "shokker-source-dossier-input/v1";
   var PUBLIC_EXCERPT_WORDS = 16;
   var OFFICIAL_WWAM_CHANNEL_ID = "UC6ieEOZW4iXV8TcILJI8k5g";
@@ -43,6 +43,12 @@
   function number(value) {
     var parsed = numberOrNull(value);
     return parsed == null ? 0 : parsed;
+  }
+
+  function boundedSignal(value) {
+    var parsed = numberOrNull(value);
+    if (parsed == null) return null;
+    return Math.max(0, Math.min(100, parsed));
   }
 
   function unique(values) {
@@ -399,6 +405,20 @@
     var at = numberOrNull(topic.peak);
     if (at == null) at = numberOrNull(topic.first);
     var label = clean(topic.name || topic.label || "TOPIC");
+    var signalScore = boundedSignal(topic.score);
+    var signalBasis = signalScore == null ? null : "caption-derived-topic-score";
+    if (signalScore == null) {
+      signalScore = boundedSignal(topic.mentions);
+      signalBasis = signalScore == null
+        ? null
+        : "caption-derived-topic-mention-count-bounded";
+    }
+    if (signalScore == null) {
+      signalScore = boundedSignal(topic.cluster);
+      signalBasis = signalScore == null
+        ? null
+        : "caption-derived-topic-cluster";
+    }
     return normalizedReceipt(
       {
         id: [
@@ -425,6 +445,8 @@
           ? "quarantined-topic-navigation"
           : "machine-surfaced",
         publicExcerptAllowed: !restricted,
+        signalScore: signalScore,
+        signalBasis: signalBasis,
         entityIds: [entityIdForLabel(label, "topic")],
       }
     );
@@ -693,10 +715,12 @@
     var title = normalized(clean(source.title + " " + source.displayTitle));
     var topic = normalized([receipt.label].concat(array(receipt.entityIds)).join(" "));
     if (!title || !topic) return 0;
-    // Caption-derived concentration is the primary ordering signal. Title
-    // overlap is useful context, not proof that a subject dominated the show.
+    // The title subject is the clearest entry door for an episode Wiki. The
+    // caption-derived signal orders the remaining subjects without claiming
+    // that title overlap proves a dominant opinion or verdict.
     var score = number(receipt.signalScore) * 10;
-    if ((" " + title + " ").indexOf(" " + normalized(receipt.label) + " ") >= 0) score += 40;
+    var proseTopic = normalized(showWikiProseLabel(receipt.label));
+    if (proseTopic && (" " + title + " ").indexOf(" " + proseTopic + " ") >= 0) score += 1200;
     SHOW_WIKI_FRANCHISE_TOPIC_ALIASES.forEach(function (group) {
       var titleMatch = group.title.some(function (alias) {
         return (" " + title + " ").indexOf(" " + normalized(alias) + " ") >= 0;
@@ -704,7 +728,7 @@
       var topicMatch = group.topic.some(function (alias) {
         return (" " + topic + " ").indexOf(" " + normalized(alias) + " ") >= 0;
       });
-      if (titleMatch && topicMatch) score += 60;
+      if (titleMatch && topicMatch) score += 1200;
     });
     var titleTokens = new Set(title.split(" ").filter(function (token) {
       return token.length > 2 && !SHOW_WIKI_TOPIC_STOPWORDS.has(token);
@@ -1962,6 +1986,13 @@
         }
       }
       receipts = stableReceipts(receipts);
+      var showWiki = showWikiFor(
+        source,
+        receipts,
+        showWikiCharacterNameMap,
+        showWikiComedyCategories,
+        null
+      );
       var episodeRecap = null;
       if (root.ShokkerEpisodeRecap && root.WWAMEpisodeRecapAdapter) {
         episodeRecap = root.WWAMEpisodeRecapAdapter.build({
@@ -1970,18 +2001,43 @@
             receipts: receipts,
             episodeGuide: source.episodeGuide,
             format: showWikiFormat(source),
+            context: {
+              title: clean(source.displayTitle || source.title),
+              titleTopics: showWikiSelectedTopics(
+                source,
+                receipts.filter(function (receipt) {
+                  return clean(receipt.kind).toLowerCase().indexOf("topic") >= 0 ||
+                    clean(receipt.evidenceType).toLowerCase().indexOf("topic") >= 0;
+                }),
+                8
+              ).map(function (receipt) {
+                return showWikiProseLabel(receipt.label);
+              }),
+              summary: source.summary ? clone(source.summary) : null,
+              editorial: overlay && overlay.editorial
+                ? clone(overlay.editorial)
+                : null,
+              indices: overlay && overlay.indices
+                ? clone(overlay.indices)
+                : null,
+              peak: overlay && overlay.peak
+                ? clone(overlay.peak)
+                : null,
+              lanes: showWiki.lanes.map(function (lane) {
+                return {
+                  id: lane.id,
+                  label: lane.label,
+                  receiptKeys: lane.receiptKeys.slice(),
+                };
+              }),
+            },
           }),
           source: source,
         });
       }
       source.episodeRecap = episodeRecap;
-      source.showWiki = showWikiFor(
-        source,
-        receipts,
-        showWikiCharacterNameMap,
-        showWikiComedyCategories,
-        episodeRecap
-      );
+      showWiki.episodeRecap = episodeRecap;
+      source.showWiki = showWiki;
       if (source.showWiki.recap) {
         source.summary = {
           text: source.showWiki.recap.overview,

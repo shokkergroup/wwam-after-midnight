@@ -445,9 +445,9 @@ test("dossier CSS and scripts load lazily through the feature loader, never eage
   );
 
   const loader = namedFunction(app, "loadSourceDossier");
-  assert.match(loader, /loader\.loadStyle\("source-dossier\.css\?v=2\.0\.0-feldman"\)/);
-  assert.match(loader, /"episode-recap-engine\.js\?v=1\.0\.0"/);
-  assert.match(loader, /"wwam-episode-recap-adapter\.js\?v=1\.0\.0"/);
+  assert.match(loader, /loader\.loadStyle\("source-dossier\.css\?v=2\.1\.2-legible-rail"\)/);
+  assert.match(loader, /"episode-recap-engine\.js\?v=1\.1\.1-temporal"/);
+  assert.match(loader, /"wwam-episode-recap-adapter\.js\?v=1\.1\.1-temporal"/);
   assert.match(loader, /loadDemoScript\("creator-studio-engine\.js"\)\.then\(createClipLab\)/);
   assert.doesNotMatch(loader, /createCreatorEngines/);
   const scriptList = loader

@@ -14,6 +14,10 @@ const cssSource = fs.readFileSync(
   path.join(root, "public", "demo", "source-dossier.css"),
   "utf8",
 );
+const editorialCssSource = fs.readFileSync(
+  path.join(root, "public", "demo", "wwam-editorial-v2.css"),
+  "utf8",
+);
 
 function runtime() {
   const window = {};
@@ -826,8 +830,8 @@ test("exports the per-show Wiki UI, keeps curated lanes first, and destroys clea
   const { api, ui, mount, engine, dossier } = setup();
   const rendered = ui.render("SOURCE00001", { at: 333 });
 
-  assert.equal(api.VERSION, "1.10.0");
-  assert.equal(ui.version, "1.10.0");
+  assert.equal(api.VERSION, "1.11.0");
+  assert.equal(ui.version, "1.11.0");
   assert.equal(rendered, dossier);
   assert.deepEqual(engine.buildCalls, ["SOURCE00001"]);
   assert.equal(mount.getAttribute("data-source-dossier-state"), "ready");
@@ -1240,6 +1244,15 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
         excerpt: dossier.source.receipts[0].excerpt,
         receiptKeys: [dossier.source.receipts[0].key],
       },
+      ...[1, 2, 3].map((index) => ({
+        id: `act-${index + 1}`,
+        label: `ACT ${index + 1} // THE NEXT TURN`,
+        body: `Chronological recap body ${index + 1}.`,
+        at: dossier.source.receipts[index].at,
+        end: dossier.source.receipts[index].end,
+        excerpt: dossier.source.receipts[index].excerpt,
+        receiptKeys: [dossier.source.receipts[index].key],
+      })),
     ],
     fanRead: {
       hated: {
@@ -1251,6 +1264,13 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
         receiptKey: dossier.source.receipts[5].key,
         excerpt: dossier.source.receipts[5].excerpt,
       },
+    },
+    caseFile: {
+      receiptCount: 21,
+      topicCount: 7,
+      momentCount: 10,
+      characterCount: 4,
+      tapeSpanPercent: 84,
     },
     approval: {
       actualApproval: false,
@@ -1267,15 +1287,59 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
   const html = mount.innerHTML;
 
   assert.match(html, /data-feldman-recap="ready"/);
+  assert.match(html, /data-feldman-recap-expanded="false"/);
   assert.match(html, /WWAM FELDMAN APPROVED RECAP/);
+  assert.match(html, /THIS EXACT SHOW/);
+  assert.match(html, /THE TAPE THAT REFUSED TO DIE/);
+  assert.match(html, /07\.23\.2026 \/\/ 2H 03M/);
+  assert.match(html, /EXACT-SHOW CASE FILE/);
+  assert.match(html, /data-feldman-stat="receipts"><b>21<\/b><small>RECEIPTS/);
+  assert.match(html, /data-feldman-stat="topics"><b>7<\/b><small>TOPIC DOORS/);
+  assert.match(html, /data-feldman-stat="moments"><b>10<\/b><small>SAVED SPIKES/);
+  assert.match(html, /data-feldman-stat="characters"><b>4<\/b><small>CHARACTER LEADS/);
+  assert.match(html, /data-feldman-stat="span"><b>84%<\/b><small>TAPE SPAN/);
   assert.match(html, /START WITH THE TAPE/);
   assert.match(html, /Play the first saved turn at 01:00/);
+  assert.match(
+    html,
+    /<button type="button" class="source-dossier-feldman-start" data-source-dossier-action="play-receipt"/,
+  );
+  assert.match(html, /data-source-dossier-action="toggle-episode-recap"/);
+  assert.match(html, /aria-expanded="false">READ FULL RECAP/);
+  assert.doesNotMatch(html, /data-feldman-act="act-4"/);
   assert.match(
     html,
     /data-source-dossier-action="play-receipt" data-receipt-key="SOURCE00001:receipt-0"/,
   );
   assert.match(html, /DAMAGE REPORT/);
   assert.match(html, /STRAIGHT TO STEVE&#39;S ASSHOLE/);
+  assert.match(html, /id="sourceDossierFeldmanDamage-hated"/);
+  const populatedDamageExplore = html.match(
+    /<nav class="source-dossier-explore"[\s\S]*?<\/nav>/,
+  );
+  const populatedDamageLocalNav = html.match(
+    /<nav class="source-dossier-wiki-local-nav"[\s\S]*?<\/nav>/,
+  );
+  assert.ok(populatedDamageExplore);
+  assert.ok(populatedDamageLocalNav);
+  assert.doesNotMatch(
+    populatedDamageExplore[0],
+    /href="#sourceDossierFeldmanDamage-hated"/,
+  );
+  assert.doesNotMatch(
+    populatedDamageLocalNav[0],
+    /href="#sourceDossierFeldmanDamage-hated"/,
+  );
+
+  mount.click("toggle-episode-recap", { "data-owner-section": "wiki" });
+  assert.match(mount.innerHTML, /data-feldman-view="recap"/);
+  assert.match(mount.innerHTML, /data-feldman-recap-expanded="true"/);
+  assert.match(mount.innerHTML, /aria-expanded="true">COLLAPSE RECAP/);
+  assert.match(mount.innerHTML, /data-feldman-act="act-4"/);
+
+  mount.click("toggle-episode-recap", { "data-owner-section": "wiki" });
+  assert.match(mount.innerHTML, /data-feldman-view="highlights"/);
+  assert.match(mount.innerHTML, /data-feldman-recap-expanded="false"/);
 
   mount.click("play-receipt", {
     "data-receipt-key": dossier.source.receipts[0].key,
@@ -1284,6 +1348,146 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
   assert.equal(plays.length, 1);
   assert.equal(plays[0].receipt, dossier.source.receipts[0]);
   assert.equal(plays[0].section, "wiki");
+});
+
+test("Damage Report shortcuts replace empty Steve and Up In Ya lanes and expand compact recaps", () => {
+  const dossier = makeDossier();
+  dossier.source.showWiki.lanes
+    .filter((lane) => ["up-in-ya", "straight-to-steves-asshole"].includes(lane.id))
+    .forEach((lane) => {
+      lane.receiptKeys = [];
+    });
+  dossier.source.showWiki.episodeRecap = {
+    schema: "wwam-feldman-recap/v1",
+    state: "ready",
+    tier: "receipt-recap",
+    label: "WWAM FELDMAN APPROVED RECAP",
+    badge: "RECEIPT RECAP",
+    headline: "THE DAMAGE REPORT HAS ITS OWN DOOR.",
+    deck: "Two source-backed turns remain playable from the recap.",
+    overview: "This exact show retains both named Damage Report categories.",
+    sections: [
+      {
+        id: "cold-open",
+        label: "COLD OPEN",
+        body: "The tape opens with a registered receipt.",
+        at: dossier.source.receipts[0].at,
+        end: dossier.source.receipts[0].end,
+        receiptKeys: [dossier.source.receipts[0].key],
+      },
+    ],
+    fanRead: {
+      hated: {
+        label: "STRAIGHT TO STEVE'S ASSHOLE",
+        topic: "THE COMPLAINT DESK",
+        body: "The strongest negative turn remains attached to this tape.",
+        at: dossier.source.receipts[5].at,
+        end: dossier.source.receipts[5].end,
+        receiptKey: dossier.source.receipts[5].key,
+      },
+      wildestDetour: {
+        label: "WWAM UP IN YA",
+        topic: "THE ROOM LEAVES THE ROAD",
+        body: "The wildest detour remains attached to this tape.",
+        at: dossier.source.receipts[4].at,
+        end: dossier.source.receipts[4].end,
+        receiptKey: dossier.source.receipts[4].key,
+      },
+    },
+    approval: {
+      actualApproval: false,
+      disclosure: "A running-bit label, not a creator endorsement.",
+    },
+    semanticFingerprint: "feldman-damage-shortcut-fixture",
+  };
+  const { ui, mount } = setup(dossier);
+  ui.render(dossier.source.id);
+
+  const html = mount.innerHTML;
+  const explore = html.match(
+    /<nav class="source-dossier-explore"[\s\S]*?<\/nav>/,
+  );
+  const localNav = html.match(
+    /<nav class="source-dossier-wiki-local-nav"[\s\S]*?<\/nav>/,
+  );
+  assert.ok(explore);
+  assert.ok(localNav);
+  [
+    ["sourceDossierFeldmanDamage-hated", "STRAIGHT TO STEVE&#39;S ASSHOLE"],
+    ["sourceDossierFeldmanDamage-wildest-detour", "WWAM UP IN YA"],
+  ].forEach(([id, label]) => {
+    assert.ok(explore[0].includes(`href="#${id}">${label}</a>`));
+    assert.ok(localNav[0].includes(`href="#${id}">${label}</a>`));
+    assert.ok(html.includes(`<article id="${id}"`));
+  });
+  assert.match(html, /data-feldman-recap-expanded="false"/);
+
+  const target = mount.registerJumpTarget("sourceDossierFeldmanDamage-hated");
+  assert.equal(
+    mount.clickLink("#sourceDossierFeldmanDamage-hated"),
+    true,
+  );
+  assert.match(mount.innerHTML, /data-feldman-recap-expanded="true"/);
+  assert.match(mount.innerHTML, /data-feldman-view="recap"/);
+  assert.equal(target.scrollCalls.length, 1);
+  assert.equal(target.scrollCalls[0].block, "start");
+  assert.equal(target.heading.focusCount, 1);
+});
+
+test("full chronicles replace empty receipt classes with guide cuts and story threads", () => {
+  const dossier = makeDossier();
+  dossier.source.showWiki.episodeRecap = {
+    schema: "wwam-feldman-recap/v1",
+    state: "ready",
+    tier: "full-chronicle",
+    label: "WWAM FELDMAN APPROVED RECAP",
+    badge: "FULL CHRONICLE",
+    headline: "HALLOWEEN AFTER MIDNIGHT.",
+    deck: "A full-caption watchalong file.",
+    overview: "The exact show has a playable full-runtime story.",
+    sections: [{
+      id: "act-01",
+      label: "COLD OPEN // MICHAEL MYERS",
+      body: "The first exact-show chapter.",
+      at: dossier.source.receipts[0].at,
+      end: dossier.source.receipts[0].end,
+      excerpt: dossier.source.receipts[0].excerpt,
+      receiptKeys: [dossier.source.receipts[0].key],
+    }],
+    fanRead: {},
+    caseFile: {
+      receiptCount: 8,
+      topicCount: 0,
+      momentCount: 8,
+      characterCount: 0,
+      actCount: 5,
+      guideCutCount: 13,
+      threadCount: 6,
+      tapeSpanPercent: 65,
+    },
+    approval: {
+      actualApproval: false,
+      disclosure: "A running-bit label, not a creator endorsement.",
+    },
+    semanticFingerprint: "feldman-full-chronicle-ui-fixture",
+  };
+  const { ui, mount } = setup(dossier);
+
+  ui.render(dossier.source.id);
+
+  assert.match(
+    mount.innerHTML,
+    /data-feldman-stat="cuts"><b>13<\/b><small>FULL-CAPTION CUTS/,
+  );
+  assert.match(
+    mount.innerHTML,
+    /data-feldman-stat="threads"><b>6<\/b><small>STORY THREADS/,
+  );
+  assert.match(
+    mount.innerHTML,
+    /data-feldman-stat="acts"><b>5<\/b><small>RECAP ACTS/,
+  );
+  assert.doesNotMatch(mount.innerHTML, /<b>0<\/b><small>TOPIC DOORS/);
 });
 
 test("held episode recaps wait on the tape without claiming Feldman approval", () => {
@@ -1316,6 +1520,14 @@ test("held episode recaps wait on the tape without claiming Feldman approval", (
   assert.match(html, /data-feldman-recap="held"/);
   assert.match(html, /RECAP WAITING ON THE TAPE/);
   assert.match(html, /NO MADE-UP EPISODE EVENTS/);
+  assert.match(html, /THIS EXACT SHOW/);
+  assert.match(html, /source-dossier-feldman-held-action/);
+  assert.match(html, /START THE SOURCE-LOCAL DEEP DIVE/);
+  assert.ok(
+    html.indexOf('class="source-dossier-feldman-held-action"') <
+      html.indexOf('class="source-dossier-feldman-facts"'),
+    "the primary queue action appears before secondary upload metadata",
+  );
   assert.doesNotMatch(html, /WWAM FELDMAN APPROVED RECAP/);
   assert.doesNotMatch(html, /FELDMAN APPROVED/i);
 });
@@ -2858,6 +3070,20 @@ test("responsive stylesheet preserves touch targets, focus, and reduced motion",
   assert.match(cssSource, /\.source-dossier-wiki-crosslinks\s*\{/);
   assert.match(cssSource, /\.source-dossier-wiki-empty-lanes\s*\{/);
   assert.match(cssSource, /\.source-dossier-aftermath\s*\{/);
+  assert.match(cssSource, /\.source-dossier-feldman-case-file\s*\{/);
+  assert.match(cssSource, /\.source-dossier-feldman-recap-toggle\s*\{/);
+  assert.match(
+    cssSource,
+    /\[data-feldman-recap-expanded="false"\] \.source-dossier-feldman-overview/,
+  );
+  assert.match(
+    cssSource,
+    /@media \(max-width:\s*600px\)[\s\S]*\.source-dossier-feldman-facts\s*\{[^}]*grid-template-columns:\s*repeat\(2/s,
+  );
+  assert.match(
+    cssSource,
+    /@media \(max-width:\s*380px\)[\s\S]*\.source-dossier-feldman-facts\s*\{[^}]*grid-template-columns:\s*1fr/s,
+  );
   assert.match(cssSource, /\.source-aftermath-workbench\s*\{/);
   assert.match(cssSource, /\.source-aftermath-decision textarea\s*\{/);
   assert.match(
@@ -2870,7 +3096,7 @@ test("responsive stylesheet preserves touch targets, focus, and reduced motion",
   );
   assert.match(
     cssSource,
-    /@media \(max-width:\s*600px\)[\s\S]*\.source-dossier-explore > div[\s\S]*grid-template-columns:\s*repeat\(2/,
+    /@media \(max-width:\s*600px\)[\s\S]*\.source-dossier-explore > div\s*\{[^}]*display:\s*flex[^}]*flex-wrap:\s*nowrap[^}]*overflow-x:\s*auto/s,
   );
   assert.match(
     cssSource,
@@ -2890,7 +3116,7 @@ test("responsive stylesheet preserves touch targets, focus, and reduced motion",
   );
   assert.match(
     cssSource,
-    /@media \(max-width:\s*600px\)[\s\S]*\.source-dossier > \.source-dossier-explore\s*\{[^}]*position:\s*static\s*!important[^}]*max-height:\s*none[^}]*overflow:\s*visible/s,
+    /@media \(max-width:\s*600px\)[\s\S]*\.source-dossier > \.source-dossier-explore\s*\{[^}]*position:\s*sticky\s*!important[^}]*max-height:\s*60px[^}]*overflow:\s*hidden/s,
   );
   assert.doesNotMatch(cssSource, /@import/i);
 });
@@ -2898,7 +3124,13 @@ test("390px full Show Wiki controls retain thumb-safe tap targets without overfl
   const contract = cssSource.slice(cssSource.indexOf(
     "/* Mobile full-file tap contract",
   ));
+  const editorialWayfinder = editorialCssSource.slice(
+    editorialCssSource.indexOf(
+      "Keep the Show Wiki's phone wayfinder on one usable row",
+    ),
+  );
   assert.ok(contract.length > 0);
+  assert.ok(editorialWayfinder.length > 0);
   assert.match(contract, /@media \(max-width:\s*600px\)/);
   assert.match(
     contract,
@@ -2916,6 +3148,26 @@ test("390px full Show Wiki controls retain thumb-safe tap targets without overfl
     cssSource.indexOf("/* Mobile full-file tap contract") >
       cssSource.indexOf(".source-dossier-fan-read button"),
     "the mobile contract must win the cascade after the 42px Fan Read rule",
+  );
+  assert.match(
+    editorialWayfinder,
+    /\.source-dossier > \.source-dossier-explore\s*\{[^}]*max-height:\s*60px[^}]*padding-right:\s*72px\s*!important[^}]*overflow:\s*hidden/s,
+  );
+  assert.match(
+    editorialWayfinder,
+    /\.source-dossier-explore > div\s*\{[^}]*min-height:\s*44px[^}]*flex-wrap:\s*nowrap[^}]*overflow-x:\s*auto[^}]*overflow-y:\s*hidden/s,
+  );
+  assert.match(
+    editorialWayfinder,
+    /\.source-dossier-explore > div > \.wwam-dossier-primary-link\s*\{[^}]*flex:\s*0 0 auto[^}]*width:\s*auto[^}]*min-height:\s*44px[^}]*white-space:\s*nowrap/s,
+  );
+  assert.match(
+    cssSource,
+    /\.source-dossier-feldman-recap\.is-held > footer a\s*\{[^}]*min-height:\s*44px/s,
+  );
+  assert.match(
+    cssSource,
+    /@media \(max-width:\s*600px\)[\s\S]*\.source-dossier-feldman-case-file small\s*\{[^}]*font-size:\s*8px/s,
   );
 });
 test("Show Wiki keeps the archive truth but removes machine-room language and duplicate sticky UI", () => {

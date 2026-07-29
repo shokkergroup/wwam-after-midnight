@@ -163,7 +163,7 @@ test("V5.18 package, lane-specific cache keys, and Ask This Tape docs move toget
   assert.match(html, /styles\.css\?v=0\.5\.34-livewire-mobile/);
   assert.match(html, /search-engine\.js\?v=0\.5\.39-verify/);
   assert.match(html, /youtube-playback\.js\?v=2\.4\.2-host-local/);
-  assert.match(html, /app\.js\?v=0\.5\.42-feldman/);
+  assert.match(html, /app\.js\?v=0\.5\.43-recap-v2e/);
   assert.match(html, /guided-shell\.js\?v=1\.2\.2-dossier/);
 
   const guidePath = path.join(root, "docs", "ASK_THIS_TAPE.md");

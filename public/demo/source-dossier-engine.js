@@ -10,7 +10,7 @@
    * captions, promote evidence, clear rights, or publish anything.
    */
 
-  var VERSION = "1.7.0";
+  var VERSION = "1.8.0";
   var INPUT_SCHEMA = "shokker-source-dossier-input/v1";
   var DOSSIER_SCHEMA = "shokker-source-dossier/v1";
   var EXPORT_SCHEMA = "shokker-source-dossier-export/v1";
@@ -950,6 +950,98 @@
       );
     }
 
+    var caseFile = null;
+    if (raw.caseFile != null) {
+      var casePath = path + ".caseFile";
+      if (!isRecord(raw.caseFile)) {
+        fail("INVALID_EPISODE_RECAP_CASE_FILE", casePath + " must be an object.", casePath);
+      }
+      var receiptCount = finiteNumber(raw.caseFile.receiptCount, casePath + ".receiptCount", 0);
+      var topicCount = finiteNumber(raw.caseFile.topicCount, casePath + ".topicCount", 0);
+      var momentCount = finiteNumber(raw.caseFile.momentCount, casePath + ".momentCount", 0);
+      var characterCount = finiteNumber(
+        raw.caseFile.characterCount,
+        casePath + ".characterCount",
+        0
+      );
+      var actCount = finiteNumber(raw.caseFile.actCount, casePath + ".actCount", 0);
+      var guideCutCount = finiteNumber(
+        raw.caseFile.guideCutCount,
+        casePath + ".guideCutCount",
+        0
+      );
+      var threadCount = finiteNumber(
+        raw.caseFile.threadCount,
+        casePath + ".threadCount",
+        0
+      );
+      var tapeSpanPercent = finiteNumber(
+        raw.caseFile.tapeSpanPercent,
+        casePath + ".tapeSpanPercent",
+        0
+      );
+      if (tapeSpanPercent > 100) {
+        fail(
+          "EPISODE_RECAP_CASE_FILE_SPAN",
+          casePath + ".tapeSpanPercent cannot exceed 100.",
+          casePath + ".tapeSpanPercent"
+        );
+      }
+      var expected = { receipts: 0, topics: 0, moments: 0, characters: 0 };
+      receiptMap.forEach(function (receipt) {
+        expected.receipts += 1;
+        var kind = clean(receipt.kind).toLowerCase();
+        var evidenceType = clean(receipt.evidenceType).toLowerCase();
+        if (kind.indexOf("topic") >= 0 || evidenceType.indexOf("topic") >= 0) {
+          expected.topics += 1;
+        } else if (kind.indexOf("character") >= 0 ||
+            evidenceType.indexOf("character") >= 0) {
+          expected.characters += 1;
+        } else {
+          expected.moments += 1;
+        }
+      });
+      if (state === "ready" && (
+        receiptCount !== expected.receipts ||
+        topicCount !== expected.topics ||
+        momentCount !== expected.moments ||
+        characterCount !== expected.characters ||
+        actCount !== sections.length ||
+        guideCutCount !== array(episodeGuide && episodeGuide.cuts).length ||
+        threadCount !== array(episodeGuide && episodeGuide.threads).length
+      )) {
+        fail(
+          "EPISODE_RECAP_CASE_FILE_MISMATCH",
+          casePath + " counts must match this source's registered receipts and recap acts.",
+          casePath
+        );
+      }
+      if (state === "held" && (
+        receiptCount || topicCount || momentCount || characterCount || actCount ||
+        guideCutCount || threadCount || tapeSpanPercent
+      )) {
+        fail(
+          "HELD_EPISODE_RECAP_CASE_FILE_OVERREACH",
+          casePath + " must remain empty while the recap is held.",
+          casePath
+        );
+      }
+      caseFile = {
+        receiptCount: receiptCount,
+        topicCount: topicCount,
+        momentCount: momentCount,
+        characterCount: characterCount,
+        actCount: actCount,
+        guideCutCount: guideCutCount,
+        threadCount: threadCount,
+        tapeSpanPercent: tapeSpanPercent,
+        firstAt: finiteNumber(raw.caseFile.firstAt, casePath + ".firstAt", 0),
+        lastAt: finiteNumber(raw.caseFile.lastAt, casePath + ".lastAt", 0),
+        laneCounts: isRecord(raw.caseFile.laneCounts) ?
+          serial(raw.caseFile.laneCounts) : {},
+      };
+    }
+
     return {
       schema: schema,
       generatorVersion: requiredText(raw.generatorVersion, path + ".generatorVersion", 40),
@@ -967,6 +1059,7 @@
       sections: sections,
       bestMoments: bestMoments,
       fanRead: fanRead,
+      caseFile: caseFile,
       coverage: isRecord(raw.coverage) ? serial(raw.coverage) : {},
       format: isRecord(raw.format) ? serial(raw.format) : {},
       limitations: stringList(raw.limitations || [], path + ".limitations", { max: 360 }),

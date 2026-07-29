@@ -224,9 +224,9 @@ test("Ask page wires the bridge lazily and keeps the release byte ceiling", asyn
   assert.match(app, /data-ask-source[\s\S]{0,240}data-time[\s\S]{0,120}data-end/);
   assert.match(app, /openDossier\(button\.dataset\.id,\+button\.dataset\.time,\+button\.dataset\.end\)/);
   assert.match(app, /loadPlayer\(sourceId,\+startTime,settings\.end\)/);
-  assert.match(app, /episode-recap-engine\.js\?v=1\.0\.0/);
-  assert.match(app, /wwam-episode-recap-adapter\.js\?v=1\.0\.0/);
-  assert.match(app, /source-dossier-engine\.js\?v=1\.8\.0-feldman/);
+  assert.match(app, /episode-recap-engine\.js\?v=1\.1\.1-temporal/);
+  assert.match(app, /wwam-episode-recap-adapter\.js\?v=1\.1\.1-temporal/);
+  assert.match(app, /source-dossier-engine\.js\?v=1\.8\.0-recap-v2/);
   assert.doesNotMatch(html, /<script[^>]+(?:ask-deep-cut|episode-guides)\.js/i);
   assert.ok(
     appInfo.size < 275000,

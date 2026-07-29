@@ -19,14 +19,24 @@
     if (href === "#sourceDossierAsk") link.textContent = "ASK THIS SHOW";
   }
 
+  function shortcutRank(link) {
+    var href = link.getAttribute("href") || "";
+    if (href === "#sourceDossierPlayerSection") return 0;
+    if (href === "#sourceDossierShowWikiSummary") return 1;
+    if (href.indexOf("sourceDossierShowWikiLane-best-moments") >= 0) return 2;
+    if (href.indexOf("sourceDossierShowWikiLane-up-in-ya") >= 0 ||
+        href === "#sourceDossierFeldmanDamage-wildest-detour") return 3;
+    if (href.indexOf("sourceDossierShowWikiLane-straight-to-steves-asshole") >= 0 ||
+        href === "#sourceDossierFeldmanDamage-hated") return 4;
+    if (href === "#sourceDossierAsk") return 5;
+    if (href === "#sourceDossierFanRead") return 6;
+    if (href === "#sourceDossierEpisodeGuide") return 7;
+    return 20;
+  }
+
   function enhance(nav) {
     if (!nav) return;
     var host = nav.querySelector(":scope > div") || nav;
-    var signature = Array.prototype.slice.call(host.querySelectorAll('a[href]')).map(function (link) {
-      return link.getAttribute("href") || "";
-    }).sort().join("|");
-    if (nav.dataset.editorialSignature === signature) return;
-    nav.dataset.editorialSignature = signature;
     var existing = host.querySelector(":scope > .wwam-dossier-more");
     if (existing) {
       var existingTray = existing.querySelector(":scope > .wwam-dossier-more-tray");
@@ -37,30 +47,34 @@
       existing.remove();
     }
     var links = Array.prototype.slice.call(host.querySelectorAll(":scope > a"));
+    var signature = links.map(function (link) {
+      return link.getAttribute("href") || "";
+    }).sort().join("|");
+    if (nav.dataset.editorialSignature === signature) return;
+    nav.dataset.editorialSignature = signature;
     if (links.length < 4) return;
     nav.dataset.editorialNav = "true";
     nav.setAttribute("aria-label", "Show Wiki shortcuts");
 
     links.forEach(function (link) {
       link.classList.remove("wwam-dossier-primary-link");
+      link.classList.remove("wwam-dossier-secondary-link");
     });
-    links.filter(isPrimary).forEach(function (link) {
-      relabel(link);
-      link.classList.add("wwam-dossier-primary-link");
+    links.forEach(function (link) {
+      if (isPrimary(link)) {
+        relabel(link);
+        link.classList.add("wwam-dossier-primary-link");
+      } else {
+        link.classList.add("wwam-dossier-secondary-link");
+      }
     });
-
-    var secondary = links.filter(function (link) { return !isPrimary(link); });
-    if (!secondary.length) return;
-    var details = document.createElement("details");
-    details.className = "wwam-dossier-more";
-    var summary = document.createElement("summary");
-    summary.textContent = "EXPLORE ALL";
-    var tray = document.createElement("div");
-    tray.className = "wwam-dossier-more-tray";
-    secondary.forEach(function (link) { tray.appendChild(link); });
-    details.appendChild(summary);
-    details.appendChild(tray);
-    host.appendChild(details);
+    links.map(function (link, index) {
+      return { link: link, index: index, rank: shortcutRank(link) };
+    }).sort(function (left, right) {
+      return left.rank - right.rank || left.index - right.index;
+    }).forEach(function (entry) {
+      host.appendChild(entry.link);
+    });
   }
 
   function scan(root) {
