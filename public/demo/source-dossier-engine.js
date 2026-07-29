@@ -10,7 +10,7 @@
    * captions, promote evidence, clear rights, or publish anything.
    */
 
-  var VERSION = "1.8.0";
+  var VERSION = "1.9.0";
   var INPUT_SCHEMA = "shokker-source-dossier-input/v1";
   var DOSSIER_SCHEMA = "shokker-source-dossier/v1";
   var EXPORT_SCHEMA = "shokker-source-dossier-export/v1";
@@ -746,6 +746,14 @@
     var guideCutIds = new Set(array(episodeGuide && episodeGuide.cuts).map(function (cut) {
       return clean(cut.id);
     }));
+    var topics = stringList(raw.topics || [], path + ".topics", { max: 180 });
+    if (state === "held" && topics.length) {
+      fail(
+        "HELD_EPISODE_RECAP_TOPIC_OVERREACH",
+        path + ".topics must remain empty while the recap is held.",
+        path + ".topics"
+      );
+    }
 
     function boundedWindow(item, itemPath) {
       var at = finiteNumber(item.at, itemPath + ".at", 0);
@@ -780,6 +788,16 @@
         }
       });
       return keys;
+    }
+
+    function comparableExcerpt(value) {
+      return clean(value, 600)
+        .replace(
+          /^[\s.\u2026\u00e2\u20ac\u00a6]+|[\s.\u2026\u00e2\u20ac\u00a6]+$/g,
+          ""
+        )
+        .replace(/\s+/g, " ")
+        .toLowerCase();
     }
 
     function guideCutId(value, itemPath) {
@@ -871,6 +889,166 @@
           path + ".sections[" + sectionIndex + "]"
         );
       }
+    }
+
+    if (!Array.isArray(raw.story)) {
+      fail(
+        "INVALID_EPISODE_RECAP_STORY",
+        path + ".story must be an array.",
+        path + ".story"
+      );
+    }
+    if (state === "held" && raw.story.length) {
+      fail(
+        "HELD_EPISODE_RECAP_STORY_OVERREACH",
+        path + ".story must remain empty while the recap is held.",
+        path + ".story"
+      );
+    }
+    if (state === "ready" && receiptMap.size &&
+        (!raw.story.length || raw.story.length > 4)) {
+      fail(
+        "EPISODE_RECAP_STORY_COUNT",
+        path + ".story must contain between one and four evidence-bound reels.",
+        path + ".story"
+      );
+    }
+    var storyIds = new Set();
+    var storyReceiptKeys = new Set();
+    var story = raw.story.map(function (segment, index) {
+      var segmentPath = path + ".story[" + index + "]";
+      if (!isRecord(segment)) {
+        fail(
+          "INVALID_EPISODE_RECAP_STORY_SEGMENT",
+          segmentPath + " must be an object.",
+          segmentPath
+        );
+      }
+      var id = requiredText(segment.id, segmentPath + ".id", 80);
+      if (!KEBAB_ID.test(id) || storyIds.has(id)) {
+        fail(
+          "INVALID_EPISODE_RECAP_STORY_ID",
+          segmentPath + ".id must be unique kebab-case.",
+          segmentPath + ".id"
+        );
+      }
+      storyIds.add(id);
+      var window = boundedWindow(segment, segmentPath);
+      var receiptKeys = localReceiptKeys(
+        segment.receiptKeys,
+        segmentPath + ".receiptKeys",
+        12
+      );
+      if (!receiptKeys.length) {
+        fail(
+          "EPISODE_RECAP_STORY_EVIDENCE_REQUIRED",
+          segmentPath + " must resolve to at least one local receipt.",
+          segmentPath
+        );
+      }
+      var anchorReceiptKey = requiredText(
+        segment.anchorReceiptKey,
+        segmentPath + ".anchorReceiptKey",
+        240
+      );
+      if (receiptKeys.indexOf(anchorReceiptKey) < 0 ||
+          !receiptMap.has(anchorReceiptKey)) {
+        fail(
+          "EPISODE_RECAP_STORY_ANCHOR_SCOPE",
+          segmentPath + ".anchorReceiptKey must belong to this reel.",
+          segmentPath + ".anchorReceiptKey"
+        );
+      }
+      var anchorReceipt = receiptMap.get(anchorReceiptKey);
+      var anchorAt = finiteNumber(
+        segment.anchorAt,
+        segmentPath + ".anchorAt",
+        0
+      );
+      if (Math.abs(anchorReceipt.at - anchorAt) > 0.001 ||
+          anchorAt < window.at - 0.001 ||
+          anchorAt > window.end + 0.001) {
+        fail(
+          "EPISODE_RECAP_STORY_ANCHOR_TIME",
+          segmentPath + ".anchorAt must match its local anchor receipt inside the reel.",
+          segmentPath + ".anchorAt"
+        );
+      }
+      receiptKeys.forEach(function (key) { storyReceiptKeys.add(key); });
+      var excerpt = clean(segment.excerpt, 600);
+      if (excerpt && wordCount(excerpt) > 25) {
+        fail(
+          "EPISODE_RECAP_STORY_EXCERPT_TOO_LONG",
+          segmentPath + ".excerpt exceeds 25 words.",
+          segmentPath + ".excerpt"
+        );
+      }
+      if (excerpt && (
+        !anchorReceipt.publicExcerptAllowed ||
+        !comparableExcerpt(anchorReceipt.excerpt) ||
+        comparableExcerpt(anchorReceipt.excerpt).indexOf(
+          comparableExcerpt(excerpt)
+        ) !== 0
+      )) {
+        fail(
+          "EPISODE_RECAP_STORY_ANCHOR_EXCERPT",
+          segmentPath + ".excerpt must come from its public anchor receipt.",
+          segmentPath + ".excerpt"
+        );
+      }
+      return {
+        id: id,
+        ordinal: finiteNumber(segment.ordinal || index + 1, segmentPath + ".ordinal", 1),
+        label: requiredText(segment.label, segmentPath + ".label", 240),
+        body: requiredText(segment.body, segmentPath + ".body", 1400),
+        at: window.at,
+        end: window.end,
+        anchorReceiptKey: anchorReceiptKey,
+        anchorAt: anchorAt,
+        anchor: clean(segment.anchor, 180),
+        excerpt: excerpt,
+        topicLabels: stringList(
+          segment.topicLabels || [],
+          segmentPath + ".topicLabels",
+          { max: 180 }
+        ),
+        momentLabels: stringList(
+          segment.momentLabels || [],
+          segmentPath + ".momentLabels",
+          { max: 180 }
+        ),
+        characterLabels: stringList(
+          segment.characterLabels || [],
+          segmentPath + ".characterLabels",
+          { max: 180 }
+        ),
+        receiptKeys: receiptKeys,
+        evidenceBasis: requiredText(
+          segment.evidenceBasis,
+          segmentPath + ".evidenceBasis",
+          240
+        ),
+      };
+    });
+    for (var storyIndex = 1; storyIndex < story.length; storyIndex += 1) {
+      if (story[storyIndex].at < story[storyIndex - 1].at) {
+        fail(
+          "EPISODE_RECAP_STORY_ORDER",
+          path + ".story must remain chronological.",
+          path + ".story[" + storyIndex + "]"
+        );
+      }
+    }
+    if (state === "ready" && receiptMap.size &&
+        (storyReceiptKeys.size !== receiptMap.size ||
+          Array.from(receiptMap.keys()).some(function (key) {
+            return !storyReceiptKeys.has(key);
+          }))) {
+      fail(
+        "EPISODE_RECAP_STORY_COVERAGE",
+        path + ".story must account for every registered receipt exactly by source-local key.",
+        path + ".story"
+      );
     }
 
     var fanRead = {};
@@ -975,6 +1153,21 @@
         casePath + ".threadCount",
         0
       );
+      var storySegmentCount = finiteNumber(
+        raw.caseFile.storySegmentCount,
+        casePath + ".storySegmentCount",
+        0
+      );
+      var storyReceiptCount = finiteNumber(
+        raw.caseFile.storyReceiptCount,
+        casePath + ".storyReceiptCount",
+        0
+      );
+      var storyCoveragePercent = finiteNumber(
+        raw.caseFile.storyCoveragePercent,
+        casePath + ".storyCoveragePercent",
+        0
+      );
       var tapeSpanPercent = finiteNumber(
         raw.caseFile.tapeSpanPercent,
         casePath + ".tapeSpanPercent",
@@ -985,6 +1178,13 @@
           "EPISODE_RECAP_CASE_FILE_SPAN",
           casePath + ".tapeSpanPercent cannot exceed 100.",
           casePath + ".tapeSpanPercent"
+        );
+      }
+      if (storyCoveragePercent > 100) {
+        fail(
+          "EPISODE_RECAP_CASE_FILE_STORY_COVERAGE",
+          casePath + ".storyCoveragePercent cannot exceed 100.",
+          casePath + ".storyCoveragePercent"
         );
       }
       var expected = { receipts: 0, topics: 0, moments: 0, characters: 0 };
@@ -1008,7 +1208,11 @@
         characterCount !== expected.characters ||
         actCount !== sections.length ||
         guideCutCount !== array(episodeGuide && episodeGuide.cuts).length ||
-        threadCount !== array(episodeGuide && episodeGuide.threads).length
+        threadCount !== array(episodeGuide && episodeGuide.threads).length ||
+        storySegmentCount !== story.length ||
+        storyReceiptCount !== storyReceiptKeys.size ||
+        storyCoveragePercent !==
+          Math.round(storyReceiptKeys.size / Math.max(1, expected.receipts) * 100)
       )) {
         fail(
           "EPISODE_RECAP_CASE_FILE_MISMATCH",
@@ -1018,7 +1222,8 @@
       }
       if (state === "held" && (
         receiptCount || topicCount || momentCount || characterCount || actCount ||
-        guideCutCount || threadCount || tapeSpanPercent
+        guideCutCount || threadCount || storySegmentCount || storyReceiptCount ||
+        storyCoveragePercent || tapeSpanPercent
       )) {
         fail(
           "HELD_EPISODE_RECAP_CASE_FILE_OVERREACH",
@@ -1034,6 +1239,9 @@
         actCount: actCount,
         guideCutCount: guideCutCount,
         threadCount: threadCount,
+        storySegmentCount: storySegmentCount,
+        storyReceiptCount: storyReceiptCount,
+        storyCoveragePercent: storyCoveragePercent,
         tapeSpanPercent: tapeSpanPercent,
         firstAt: finiteNumber(raw.caseFile.firstAt, casePath + ".firstAt", 0),
         lastAt: finiteNumber(raw.caseFile.lastAt, casePath + ".lastAt", 0),
@@ -1056,7 +1264,9 @@
       headline: requiredText(raw.headline, path + ".headline", 320),
       deck: requiredText(raw.deck, path + ".deck", 700),
       overview: requiredText(raw.overview, path + ".overview", 1800),
+      topics: topics,
       sections: sections,
+      story: story,
       bestMoments: bestMoments,
       fanRead: fanRead,
       caseFile: caseFile,

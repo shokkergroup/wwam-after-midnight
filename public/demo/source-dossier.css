@@ -326,6 +326,215 @@
   font: 590 clamp(17px, 1.8vw, 22px)/1.62 var(--body, sans-serif);
 }
 
+.source-dossier-feldman-topic-rail {
+  margin: 0 clamp(26px, 4vw, 46px) 24px;
+  border: 1px solid #46501e;
+  background: #090b07;
+}
+
+.source-dossier-feldman-topic-rail > header {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 13px;
+  border-bottom: 1px solid #46501e;
+  color: var(--dossier-acid, #d8ff38);
+  font: 820 8px/1.35 var(--mono, monospace);
+  letter-spacing: .085em;
+}
+
+.source-dossier-feldman-topic-rail > header b {
+  color: #7f8961;
+  font-size: 7px;
+}
+
+.source-dossier-feldman-topic-rail > div {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+.source-dossier-feldman-topic-rail button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px 12px;
+  min-height: 72px;
+  padding: 12px 13px;
+  border: 0;
+  border-right: 1px solid #30351d;
+  border-bottom: 1px solid #30351d;
+  color: #fff;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.source-dossier-feldman-topic-rail button:hover,
+.source-dossier-feldman-topic-rail button:focus-visible {
+  background: rgba(216, 255, 56, .08);
+  outline: 2px solid var(--dossier-acid, #d8ff38);
+  outline-offset: -2px;
+}
+
+.source-dossier-feldman-topic-rail button span {
+  grid-column: 1 / -1;
+  color: #7f8961;
+  font: 800 7px/1.2 var(--mono, monospace);
+  letter-spacing: .08em;
+}
+
+.source-dossier-feldman-topic-rail button b {
+  overflow: hidden;
+  color: #fff8fb;
+  font: 860 clamp(17px, 1.6vw, 22px)/1 var(--display, sans-serif);
+  text-overflow: ellipsis;
+}
+
+.source-dossier-feldman-topic-rail button time {
+  align-self: end;
+  color: var(--dossier-pink, #ff2f7d);
+  font: 820 8px/1.2 var(--mono, monospace);
+  white-space: nowrap;
+}
+
+.source-dossier-feldman-story {
+  margin: 0 clamp(26px, 4vw, 46px) 30px;
+  border: 1px solid #59414c;
+  background:
+    linear-gradient(135deg, rgba(255, 47, 125, .08), transparent 42%),
+    #090709;
+}
+
+.source-dossier-feldman-story > header {
+  display: flex;
+  gap: 20px;
+  align-items: end;
+  justify-content: space-between;
+  padding: 18px 20px;
+  border-bottom: 1px solid #59414c;
+}
+
+.source-dossier-feldman-story > header > div {
+  display: grid;
+  gap: 5px;
+}
+
+.source-dossier-feldman-story > header span {
+  color: var(--dossier-acid, #d8ff38);
+  font: 850 8px/1.25 var(--mono, monospace);
+  letter-spacing: .11em;
+}
+
+.source-dossier-feldman-story > header h5 {
+  margin: 0;
+  color: #fff7fb;
+  font: 920 clamp(25px, 3vw, 40px)/.98 var(--display, sans-serif);
+  letter-spacing: -.02em;
+}
+
+.source-dossier-feldman-story > header b {
+  max-width: 260px;
+  color: #a99ca3;
+  font: 790 8px/1.45 var(--mono, monospace);
+  letter-spacing: .07em;
+  text-align: right;
+}
+
+.source-dossier-feldman-story-note {
+  margin: 0;
+  padding: 10px 20px;
+  border-bottom: 1px solid #352b31;
+  color: #8f858a;
+  background: rgba(0, 0, 0, .24);
+  font: 760 8px/1.45 var(--mono, monospace);
+  letter-spacing: .065em;
+}
+
+.source-dossier-feldman-story > div {
+  display: grid;
+}
+
+.source-dossier-feldman-story article {
+  display: grid;
+  grid-template-columns: 108px minmax(0, 1fr) 126px;
+  gap: 22px;
+  align-items: start;
+  padding: 22px 20px;
+  border-top: 1px solid #352b31;
+  box-shadow: inset 3px 0 0 transparent;
+}
+
+.source-dossier-feldman-story article:first-child {
+  border-top: 0;
+}
+
+.source-dossier-feldman-story article:nth-child(even) {
+  background: rgba(255, 255, 255, .018);
+  box-shadow: inset 3px 0 0 rgba(216, 255, 56, .45);
+}
+
+.source-dossier-feldman-story article > header,
+.source-dossier-feldman-story article > footer,
+.source-dossier-feldman-story article > div {
+  display: grid;
+  gap: 8px;
+}
+
+.source-dossier-feldman-story article > header span,
+.source-dossier-feldman-story article > footer small {
+  color: var(--dossier-pink, #ff2f7d);
+  font: 850 8px/1.25 var(--mono, monospace);
+  letter-spacing: .09em;
+}
+
+.source-dossier-feldman-story article > header time {
+  color: #fff;
+  font: 880 14px/1.15 var(--display, sans-serif);
+}
+
+.source-dossier-feldman-story article h6 {
+  margin: 0;
+  color: #fff3f9;
+  font: 900 clamp(22px, 2.3vw, 31px)/1 var(--display, sans-serif);
+  letter-spacing: -.018em;
+}
+
+.source-dossier-feldman-story article p {
+  max-width: 880px;
+  margin: 0;
+  color: #d8ccd2;
+  font: 560 14px/1.72 var(--body, sans-serif);
+}
+
+.source-dossier-feldman-story article > footer {
+  justify-items: stretch;
+}
+
+.source-dossier-feldman-story article button {
+  min-height: 42px;
+  padding: 9px 11px;
+  border: 1px solid var(--dossier-acid, #d8ff38);
+  color: #090a08;
+  background: var(--dossier-acid, #d8ff38);
+  cursor: pointer;
+  font: 850 8px/1.25 var(--mono, monospace);
+  letter-spacing: .055em;
+}
+
+.source-dossier-feldman-story article > footer small {
+  color: #786f74;
+  text-align: center;
+}
+
+.source-dossier-feldman-story-held {
+  display: block;
+  padding: 12px 20px;
+  border-top: 1px solid #352b31;
+  color: #8f8389;
+  font: 780 8px/1.4 var(--mono, monospace);
+  letter-spacing: .08em;
+}
+
 .source-dossier-feldman-acts {
   border-top: 1px solid #493943;
 }
@@ -773,6 +982,80 @@
     line-height: 1.55;
   }
 
+  .source-dossier-feldman-topic-rail {
+    margin: 0 14px 18px;
+  }
+
+  .source-dossier-feldman-topic-rail > div {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .source-dossier-feldman-topic-rail button {
+    min-height: 68px;
+    padding: 11px;
+  }
+
+  .source-dossier-feldman-topic-rail button b {
+    font-size: 18px;
+  }
+
+  .source-dossier-feldman-story {
+    margin: 0 14px 22px;
+  }
+
+  .source-dossier-feldman-story > header {
+    display: grid;
+    gap: 10px;
+    align-items: start;
+    padding: 15px 13px;
+  }
+
+  .source-dossier-feldman-story > header h5 {
+    font-size: 27px;
+  }
+
+  .source-dossier-feldman-story > header b {
+    max-width: none;
+    font-size: 8px;
+    text-align: left;
+  }
+
+  .source-dossier-feldman-story-note {
+    padding: 10px 13px;
+    font-size: 7px;
+  }
+
+  .source-dossier-feldman-story article {
+    grid-template-columns: 1fr;
+    gap: 13px;
+    padding: 18px 13px;
+  }
+
+  .source-dossier-feldman-story article > header {
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+
+  .source-dossier-feldman-story article h6 {
+    font-size: 25px;
+  }
+
+  .source-dossier-feldman-story article p {
+    font-size: 14px;
+    line-height: 1.62;
+  }
+
+  .source-dossier-feldman-story article > footer {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+
+  .source-dossier-feldman-story-held {
+    padding-inline: 13px;
+  }
+
   [data-feldman-recap-expanded="false"] .source-dossier-feldman-overview {
     display: -webkit-box;
     overflow: hidden;
@@ -1023,13 +1306,14 @@
 }
 
 .source-dossier-explore > div {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   min-width: 0;
-  flex-wrap: wrap;
   gap: 6px;
 }
 
 .source-dossier-explore a {
+  width: 100%;
   min-width: 0;
   min-height: 44px;
   padding: 10px 12px;

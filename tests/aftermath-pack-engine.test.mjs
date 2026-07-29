@@ -513,6 +513,6 @@ test("the three-show showcase is a reviewable workflow with no product offer", (
   assert.equal(showcase.sources[0].id, SOURCE_ID);
   assert.ok(showcase.sources.every((source) => source.packFingerprint.startsWith("ap1-")));
   assert.ok(showcase.excluded.includes("performance or audience-impact claims"));
-  assert.match(showcase.prototypeBoundary, /reviewable prototype/i);
+  assert.match(showcase.prototypeBoundary, /editorial workbench/i);
   assert.doesNotMatch(JSON.stringify(showcase), /\$|price|purchase|revenue|invoice/i);
 });

@@ -133,6 +133,6 @@ test("loads the canon into the product, Ask layer, and Mike-facing proof", () =>
   assert.match(html, /ONE WATCH-ONLY SHOW/);
   assert.match(
     app,
-    /archiveDeepPayload = Object\.assign\(\{\}, archiveDeepPayload,[\s\S]{0,500}yearCanon:/,
+    /archiveDeepPayload = Object\.assign\(\{\}, archiveDeepPayload,[\s\S]{0,1200}yearCanon:/,
   );
 });

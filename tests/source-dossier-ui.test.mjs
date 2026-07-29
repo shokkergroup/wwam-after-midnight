@@ -830,8 +830,8 @@ test("exports the per-show Wiki UI, keeps curated lanes first, and destroys clea
   const { api, ui, mount, engine, dossier } = setup();
   const rendered = ui.render("SOURCE00001", { at: 333 });
 
-  assert.equal(api.VERSION, "1.11.0");
-  assert.equal(ui.version, "1.11.0");
+  assert.equal(api.VERSION, "1.12.1");
+  assert.equal(ui.version, "1.12.1");
   assert.equal(rendered, dossier);
   assert.deepEqual(engine.buildCalls, ["SOURCE00001"]);
   assert.equal(mount.getAttribute("data-source-dossier-state"), "ready");
@@ -1225,6 +1225,12 @@ test("rich sources become navigable per-show Wikis with recap, Topic Hop, and ex
 
 test("ready episode recaps render the Feldman label, playable evidence, and Damage Report", () => {
   const dossier = makeDossier();
+  dossier.source.receipts[0].kind = "topic-receipt";
+  dossier.source.receipts[0].evidenceType = "caption-topic-receipt";
+  dossier.source.receipts[0].label = "TOPIC: HALLOWEEN";
+  dossier.source.receipts[1].kind = "topic-receipt";
+  dossier.source.receipts[1].evidenceType = "caption-topic-receipt";
+  dossier.source.receipts[1].label = "TOPIC: SCREAM";
   dossier.source.showWiki.episodeRecap = {
     schema: "wwam-feldman-recap/v1",
     state: "ready",
@@ -1234,6 +1240,7 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
     headline: "THE TAPE PUTS ON THE PURPLE JACKET.",
     deck: "The source-linked cuts provide the damage.",
     overview: "A chronological episode story assembled from this exact upload.",
+    topics: ["Halloween", "Scream"],
     sections: [
       {
         id: "cold-open",
@@ -1254,6 +1261,36 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
         receiptKeys: [dossier.source.receipts[index].key],
       })),
     ],
+    story: [
+      {
+        id: "reel-01",
+        label: "REEL ONE // THE NIGHT SHIFT CLOCKS IN",
+        body: "The written opening accounts for the first half of the registered source receipts.",
+        at: dossier.source.receipts[0].at,
+        end: dossier.source.receipts[1].end,
+        anchorReceiptKey: dossier.source.receipts[1].key,
+        anchorAt: dossier.source.receipts[1].at,
+        excerpt: dossier.source.receipts[1].excerpt,
+        receiptKeys: [
+          dossier.source.receipts[0].key,
+          dossier.source.receipts[1].key,
+        ],
+      },
+      {
+        id: "reel-02",
+        label: "LAST REEL // CLOSING TIME NEEDS A LAWYER",
+        body: "The written close accounts for the remaining registered source receipts.",
+        at: dossier.source.receipts[2].at,
+        end: dossier.source.receipts[3].end,
+        anchorReceiptKey: dossier.source.receipts[3].key,
+        anchorAt: dossier.source.receipts[3].at,
+        excerpt: dossier.source.receipts[3].excerpt,
+        receiptKeys: [
+          dossier.source.receipts[2].key,
+          dossier.source.receipts[3].key,
+        ],
+      },
+    ],
     fanRead: {
       hated: {
         label: "STRAIGHT TO STEVE'S ASSHOLE",
@@ -1270,6 +1307,9 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
       topicCount: 7,
       momentCount: 10,
       characterCount: 4,
+      storySegmentCount: 2,
+      storyReceiptCount: 21,
+      storyCoveragePercent: 100,
       tapeSpanPercent: 84,
     },
     approval: {
@@ -1297,7 +1337,26 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
   assert.match(html, /data-feldman-stat="topics"><b>7<\/b><small>TOPIC DOORS/);
   assert.match(html, /data-feldman-stat="moments"><b>10<\/b><small>SAVED SPIKES/);
   assert.match(html, /data-feldman-stat="characters"><b>4<\/b><small>CHARACTER LEADS/);
+  assert.match(html, /data-feldman-stat="coverage"><b>100%<\/b><small>WRITTEN RECAP COVERAGE/);
   assert.match(html, /data-feldman-stat="span"><b>84%<\/b><small>TAPE SPAN/);
+  assert.match(html, /JUMP THE TOPIC BOARD/);
+  assert.match(html, /2 EXACT DOORS/);
+  assert.match(html, />Halloween<\/b><time>/);
+  assert.match(html, />Scream<\/b><time>/);
+  assert.match(
+    html,
+    /Play Halloween from this show at 01:00/,
+  );
+  assert.match(html, /THE WHOLE NIGHT \/\/ WRITTEN OUT/);
+  assert.match(html, /THE EPISODE IN 2 REELS/);
+  assert.match(html, /CHRONOLOGY, NOT INVENTED CAUSALITY/);
+  assert.match(html, /21 OF 21 TIMESTAMPED MOMENTS IN THE RECAP/);
+  assert.match(html, /data-feldman-story="reel-01"/);
+  assert.doesNotMatch(html, /data-feldman-story="reel-02"/);
+  assert.match(
+    html,
+    /data-feldman-story="reel-01"[\s\S]*?data-receipt-key="SOURCE00001:receipt-1"[\s\S]*?PLAY 02:11/,
+  );
   assert.match(html, /START WITH THE TAPE/);
   assert.match(html, /Play the first saved turn at 01:00/);
   assert.match(
@@ -1322,6 +1381,10 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
   );
   assert.ok(populatedDamageExplore);
   assert.ok(populatedDamageLocalNav);
+  assert.match(
+    populatedDamageExplore[0],
+    /href="#sourceDossierFeldmanTopics">TOPICS/,
+  );
   assert.doesNotMatch(
     populatedDamageExplore[0],
     /href="#sourceDossierFeldmanDamage-hated"/,
@@ -1331,15 +1394,37 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
     /href="#sourceDossierFeldmanDamage-hated"/,
   );
 
+  ui.render(dossier.source.id, { fullFile: true });
+  const fullExplore = mount.innerHTML.match(
+    /<nav class="source-dossier-explore"[\s\S]*?<\/nav>/,
+  );
+  assert.ok(fullExplore);
+  assert.match(
+    fullExplore[0],
+    /href="#sourceDossierFeldmanTopics">TOPICS/,
+  );
+  assert.doesNotMatch(
+    fullExplore[0],
+    /href="#sourceDossierShowWikiLane-topics-/,
+  );
+  ui.render(dossier.source.id);
+
   mount.click("toggle-episode-recap", { "data-owner-section": "wiki" });
   assert.match(mount.innerHTML, /data-feldman-view="recap"/);
   assert.match(mount.innerHTML, /data-feldman-recap-expanded="true"/);
   assert.match(mount.innerHTML, /aria-expanded="true">COLLAPSE RECAP/);
   assert.match(mount.innerHTML, /data-feldman-act="act-4"/);
+  assert.match(mount.innerHTML, /data-feldman-story="reel-02"/);
 
   mount.click("toggle-episode-recap", { "data-owner-section": "wiki" });
   assert.match(mount.innerHTML, /data-feldman-view="highlights"/);
   assert.match(mount.innerHTML, /data-feldman-recap-expanded="false"/);
+
+  dossier.source.showWiki.episodeRecap.tier = "topic-recap";
+  ui.render(dossier.source.id);
+  assert.match(mount.innerHTML, /THE WHOLE SOURCE \/\/ MAPPED HONESTLY/);
+  assert.match(mount.innerHTML, /THE SOURCE MAP IN 2 REELS/);
+  assert.match(mount.innerHTML, /TOPIC NAVIGATION ONLY/);
 
   mount.click("play-receipt", {
     "data-receipt-key": dossier.source.receipts[0].key,
@@ -1522,7 +1607,7 @@ test("held episode recaps wait on the tape without claiming Feldman approval", (
   assert.match(html, /NO MADE-UP EPISODE EVENTS/);
   assert.match(html, /THIS EXACT SHOW/);
   assert.match(html, /source-dossier-feldman-held-action/);
-  assert.match(html, /START THE SOURCE-LOCAL DEEP DIVE/);
+  assert.match(html, /START THIS SHOW'S DEEP DIVE/);
   assert.ok(
     html.indexOf('class="source-dossier-feldman-held-action"') <
       html.indexOf('class="source-dossier-feldman-facts"'),

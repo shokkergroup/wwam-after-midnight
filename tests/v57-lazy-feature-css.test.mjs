@@ -95,7 +95,7 @@ function fingerprint(entries) {
 test("the two V5.5 sections own lazy standalone stylesheets", () => {
   assert.match(
     html,
-    /id="companion"[\s\S]{0,180}data-feature-styles="tape-companion\.css"[\s\S]{0,180}data-feature-scripts="archive-atlas-data\.js,red-band-ranking-v2\.js,tape-companion-engine\.js,tape-companion-ui\.js\?v=1\.1\.0-human"/,
+    /id="companion"[\s\S]{0,180}data-feature-styles="tape-companion\.css"[\s\S]{0,180}data-feature-scripts="archive-atlas-data\.js\?v=1\.4\.0-year-canon,red-band-ranking-v2\.js,tape-companion-engine\.js,tape-companion-ui\.js\?v=1\.1\.0-human"/,
   );
   assert.match(
     html,

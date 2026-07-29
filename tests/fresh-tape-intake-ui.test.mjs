@@ -187,7 +187,7 @@ test("synthetic proof and real-source boundaries remain impossible to confuse", 
   assert.match(html, /cannot identify a speaker/);
   assert.match(ui, /SPEAKER UNKNOWN/);
   assert.match(ui, /NOT DIARIZED/);
-  assert.match(ui, /PROMOTION FORBIDDEN/);
+  assert.match(ui, /HUMAN REVIEW REQUIRED/);
 });
 
 test("the bundled synthetic demo survives the real engine without gaining authority", () => {

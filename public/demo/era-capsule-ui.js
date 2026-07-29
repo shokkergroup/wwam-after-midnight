@@ -272,7 +272,7 @@
       var batch = clean(
         rawBatch && typeof rawBatch === "object" ? rawBatch.id : rawBatch
       ) || "BATCH RECEIPT HELD";
-      return "<li><span>MACHINE-SURFACED // PROMOTION FORBIDDEN</span><b>" +
+      return "<li><span>TAPE-INDEXED CANDIDATE // NOT YET CANON</span><b>" +
         esc(excerpt) + "</b><small>" + esc(title) + " // " + esc(batch.toUpperCase()) +
         " // SPEAKER UNKNOWN / NOT DIARIZED</small></li>";
     }

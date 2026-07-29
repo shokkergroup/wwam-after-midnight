@@ -130,6 +130,8 @@
     if (!window.WWAM_ARCHIVE_DEEP || !window.WWAM_ARCHIVE_DEEP_BATCH2 ||
         !window.WWAM_ARCHIVE_DEEP_BATCH3 || !window.WWAM_ARCHIVE_DEEP_BATCH4 ||
         !window.WWAM_YEAR_CANON_2025_2026 ||
+        !window.WWAM_ARCHIVE_RECOVERY_BATCH1 ||
+        !window.WWAM_ARCHIVE_RECOVERY_BATCH2 ||
         !window.WWAMArchiveDeepEngine || !window.WWAMArchiveDeepPortfolio) return null;
     archiveDeepEngine = attempt(function () {
       return window.WWAMArchiveDeepPortfolio.create(
@@ -144,19 +146,50 @@
     var recentCanonStreams = (window.WWAM_YEAR_CANON_2025_2026.streams || []).map(function (stream) {
       return JSON.parse(JSON.stringify(stream));
     });
+    var recoveryStreams = (window.WWAM_ARCHIVE_RECOVERY_BATCH1.streams || [])
+      .concat(window.WWAM_ARCHIVE_RECOVERY_BATCH2.streams || []).map(function (stream) {
+      return JSON.parse(JSON.stringify(stream));
+    });
     var archiveDeepIds = new Set(archiveDeepStreams.map(function (stream) { return stream.id; }));
-    recentCanonStreams.forEach(function (stream) {
-      if (!archiveDeepIds.has(stream.id)) archiveDeepStreams.push(stream);
+    recentCanonStreams.concat(recoveryStreams).forEach(function (stream) {
+      if (!archiveDeepIds.has(stream.id)) {
+        archiveDeepIds.add(stream.id);
+        archiveDeepStreams.push(stream);
+      }
     });
     archiveDeepPayload = Object.assign({}, archiveDeepPayload, {
       streams: archiveDeepStreams,
-      topicIndex: (archiveDeepPayload.topicIndex || []).concat(window.WWAM_YEAR_CANON_2025_2026.topicIndex || []),
-      characterIndex: (archiveDeepPayload.characterIndex || []).concat(window.WWAM_YEAR_CANON_2025_2026.characterIndex || []),
+      topicIndex: (archiveDeepPayload.topicIndex || []).concat(window.WWAM_YEAR_CANON_2025_2026.topicIndex || [])
+        .concat(window.WWAM_ARCHIVE_RECOVERY_BATCH1.topicIndex || [])
+        .concat(window.WWAM_ARCHIVE_RECOVERY_BATCH2.topicIndex || []),
+      characterIndex: (archiveDeepPayload.characterIndex || []).concat(window.WWAM_YEAR_CANON_2025_2026.characterIndex || [])
+        .concat(window.WWAM_ARCHIVE_RECOVERY_BATCH1.characterIndex || [])
+        .concat(window.WWAM_ARCHIVE_RECOVERY_BATCH2.characterIndex || []),
       yearCanon: {
         schema: window.WWAM_YEAR_CANON_2025_2026.schema,
         meta: window.WWAM_YEAR_CANON_2025_2026.meta,
         fingerprints: window.WWAM_YEAR_CANON_2025_2026.fingerprints,
       },
+      recoveryBatch: {
+        schema: window.WWAM_ARCHIVE_RECOVERY_BATCH1.schema,
+        lane: window.WWAM_ARCHIVE_RECOVERY_BATCH1.lane,
+        meta: window.WWAM_ARCHIVE_RECOVERY_BATCH1.meta,
+        fingerprints: window.WWAM_ARCHIVE_RECOVERY_BATCH1.fingerprints,
+      },
+      recoveryBatches: [
+        {
+          schema: window.WWAM_ARCHIVE_RECOVERY_BATCH1.schema,
+          lane: window.WWAM_ARCHIVE_RECOVERY_BATCH1.lane,
+          meta: window.WWAM_ARCHIVE_RECOVERY_BATCH1.meta,
+          fingerprints: window.WWAM_ARCHIVE_RECOVERY_BATCH1.fingerprints,
+        },
+        {
+          schema: window.WWAM_ARCHIVE_RECOVERY_BATCH2.schema,
+          lane: window.WWAM_ARCHIVE_RECOVERY_BATCH2.lane,
+          meta: window.WWAM_ARCHIVE_RECOVERY_BATCH2.meta,
+          fingerprints: window.WWAM_ARCHIVE_RECOVERY_BATCH2.fingerprints,
+        },
+      ],
     });
     archiveDeepStreams.forEach(function (stream) {
       stream._lane = "archive";
@@ -177,7 +210,9 @@
     if (archiveDeepLoadPromise) return archiveDeepLoadPromise;
     archiveDeepLoadPromise = [
       "archive-deep-distill.js","archive-deep-batch2.js","archive-deep-batch3.js","archive-deep-batch4.js",
-      "year-canon-2025-2026.js?v=1.0.0","year-canon-ui.js?v=1.1.1",
+      "year-canon-2025-2026.js?v=1.0.0","archive-recovery-batch1.js?v=1.0.0",
+      "archive-recovery-batch2.js?v=1.0.0",
+      "year-canon-ui.js?v=1.1.1",
       "archive-deep-engine.js","archive-deep-portfolio.js",
     ].reduce(function(p,s){return p.then(function(){return loadDemoScript(s);});},
       Promise.resolve()).then(createArchiveDeep)
@@ -255,6 +290,27 @@
     return {id:pack.identity.id,label:pack.identity.channel,packFingerprint:pack.fingerprint};
   }
 
+  function activateReviewedEpisodeGuides() {
+    var base = window.WWAM_EPISODE_GUIDES;
+    var release = window.WWAM_EPISODE_GUIDE_V2_REVIEWED_RELEASE;
+    var merger = window.WWAM_EPISODE_GUIDE_V2_REVIEWED_MERGE;
+    if (!base || !release || !merger || typeof merger.merge !== "function") {
+      throw new Error("The reviewed Episode Guide release boundary is unavailable.");
+    }
+    var releases = base.provenance && base.provenance.additiveReleases || [];
+    var alreadyInstalled = releases.some(function (receipt) {
+      return receipt && receipt.releaseSha256 === release.releaseSha256;
+    });
+    if (!alreadyInstalled) {
+      base = merger.merge(base, release);
+      window.WWAM_EPISODE_GUIDES = base;
+    }
+    if (!base.meta || Number(base.meta.reviewedReleaseGuides) !== release.guides.length) {
+      throw new Error("The reviewed Episode Guide release did not install completely.");
+    }
+    return base;
+  }
+
   function aftermathReviewKey(sourceId) {
     return "wwam-aftermath-review-v1:" + String(sourceId || "").trim();
   }
@@ -316,11 +372,12 @@
     if(!window.ShokkerSourceDossier||!window.ShokkerSourceQuery||!window.WWAMSourceDossierAdapter||
         !window.ShokkerAftermathPack||!window.WWAMSourceDossierUI||!archiveAtlasPayload)
       throw new Error("Source Dossier runtime held");
+    var episodeGuides = activateReviewedEpisodeGuides();
     var payload = window.WWAMSourceDossierAdapter.build({
       archiveAtlas: archiveAtlasPayload,
       catalog: catalog,
       deep: deep,
-      episodeGuides: window.WWAM_EPISODE_GUIDES || { guides: [] },
+      episodeGuides: episodeGuides,
       live: live,
       popular: popular,
       archiveDeep: archiveDeepStreams,
@@ -437,13 +494,26 @@
             return stream.id;
           })
         );
+        var recoveryIds = new Set(
+          (window.WWAM_ARCHIVE_RECOVERY_BATCH1 &&
+            window.WWAM_ARCHIVE_RECOVERY_BATCH1.streams || [])
+            .concat(window.WWAM_ARCHIVE_RECOVERY_BATCH2 &&
+              window.WWAM_ARCHIVE_RECOVERY_BATCH2.streams || [])
+            .map(function (stream) {
+            return stream.id;
+          })
+        );
         var archiveEvidenceIds = new Set(archiveDeepStreams.map(function (stream) {
           return stream.id;
         }));
         var missingYearCanon = Array.from(yearCanonIds).filter(function (id) {
           return !archiveEvidenceIds.has(id);
         });
-        if (!archiveDeepEngine || archiveDeepStreams.length < 40 || missingYearCanon.length) {
+        var missingRecovery = Array.from(recoveryIds).filter(function (id) {
+          return !archiveEvidenceIds.has(id);
+        });
+        if (!archiveDeepEngine || archiveDeepStreams.length < 65 ||
+            missingYearCanon.length || missingRecovery.length) {
           throw new Error("The living archive evidence overlay is incomplete.");
         }
         if (!showcaseEngine) createDeepEngines();
@@ -452,17 +522,19 @@
         }
         return clipLabEngine?null:loadDemoScript("creator-studio-engine.js").then(createClipLab);
       })
-      .then(function () { return loader.loadStyle("source-dossier.css?v=2.1.2-legible-rail"); })
+      .then(function () { return loader.loadStyle("source-dossier.css?v=2.2.1-grid-nav"); })
       .then(function () {
         return ["channel-pack-contract.js", "wwam-channel-pack-adapter.js",
           "episode-guides.js?v=2.1.5-referent",
-          "episode-recap-engine.js?v=1.1.1-temporal",
-          "wwam-episode-recap-adapter.js?v=1.1.1-temporal",
-          "source-dossier-engine.js?v=1.8.0-recap-v2",
-          "wwam-source-dossier-adapter.js?v=1.9.1-title-priority",
+          "episode-guide-v2-reviewed-release.js?v=1.0.1-runtime-eligible",
+          "episode-guide-v2-reviewed-merge.js?v=1.0.1-runtime-eligible",
+          "episode-recap-engine.js?v=1.2.0-full-story",
+          "wwam-episode-recap-adapter.js?v=1.2.0-full-story",
+          "source-dossier-engine.js?v=1.9.0-full-story",
+          "wwam-source-dossier-adapter.js?v=1.10.0-recovery2-guides",
           "source-query-engine.js?v=1.4.0",
           "aftermath-pack-engine.js?v=1.0.0",
-          "source-dossier-ui.js?v=2.1.1-damage-links"].reduce(function (promise, source) {
+          "source-dossier-ui.js?v=1.12.1-topic-dedupe"].reduce(function (promise, source) {
           return promise.then(function () { return loader.load(source); });
         }, Promise.resolve());
       })
@@ -1269,7 +1341,9 @@
   }
 
   function displayUiText(value) {
-    return applyLanguageMode(value);
+    return applyLanguageMode(value)
+      .replace(/\bMACHINE[- ]SURFACED\b/gi, "TAPE-INDEXED CANDIDATE")
+      .replace(/\bSOURCE-LOCAL\b/gi, "THIS SHOW");
   }
 
   function displayGeneratedText(value) {
@@ -2566,7 +2640,7 @@
       analysis.status === "surface-handoff" ? "OPENING THE RANKED ARCHIVE" :
       analysis.status === "out-of-range" ? "PICK A NUMBER FROM 1 TO 100" :
       analysis.status === "machine-ranked" && results.length ?
-        "MEMORABILITY LIST // MACHINE-SURFACED" :
+        "MEMORABILITY LIST // TAPE-INDEXED CANDIDATES" :
         collectionStatus ? collectionStatus :
         results.length ?
           results.length + (results.length === 1 ? " RESULT SHOWN" : " RESULTS SHOWN") :
@@ -2630,7 +2704,7 @@
             result.evidenceWarnings.slice(0, 3).map(function (warning) {
               return '<li>' + esc(displayUiText(warning)) + '</li>';
             }).join("") + '</ul>' : "") + '</details>' + (result.trajectoryEvidence ?
-            '<div class="trajectory-signal"><span>MACHINE-SURFACED TAKE SIGNAL</span><b>' +
+            '<div class="trajectory-signal"><span>CAPTION-BASED TAKE SIGNAL</span><b>' +
             esc(displayUiText((result.trajectoryEvidence.evaluativeTerms || []).join(" + ").toUpperCase())) +
             ' // TARGET: ' +
             esc(displayUiText((result.trajectoryEvidence.targetTerms || []).join(" + ").toUpperCase())) +
@@ -2924,7 +2998,7 @@
     if (!court) return '<p class="memory-empty">COURT IS ADJOURNED UNTIL BOTH SIDES HAVE RECEIPTS.</p>';
     var prosecution = (court.prosecution || court.negative || []).map(enrichEvidence);
     var defense = (court.defense || court.positive || []).map(enrichEvidence);
-    return '<div class="court-title"><span>MACHINE-SURFACED ARGUMENT BOARD // VERDICT OPEN</span><h3>' +
+    return '<div class="court-title"><span>TAPE-INDEXED ARGUMENT BOARD // VERDICT OPEN</span><h3>' +
       esc(court.title || court.caseName || "THE PEOPLE VS. THE FRANCHISE") + '</h3><p>These signals have not passed whole-work review. Contradictory receipts stay together; no host verdict is declared.</p></div><div class="court-grid"><section><header>PROSECUTION CANDIDATES</header>' +
       prosecution.slice(0, 3).map(memoryReceipt).join("") + '</section><div class="court-vs">VS</div><section><header>THE DEFENSE</header>' +
       defense.slice(0, 3).map(memoryReceipt).join("") + '</section></div>';
@@ -4340,7 +4414,7 @@
       '<label><span>YOUTUBE VIDEO ID</span><input id="contributionSource" required maxlength="20" placeholder="5HfhwoDSQ0E"></label>' +
       '<label><span>TIMESTAMP (SECONDS OR M:SS)</span><input id="contributionTime" required placeholder="1:50:40"></label>' +
       '<label><span>SHORT CONTEXT NOTE</span><textarea id="contributionExcerpt" maxlength="240" placeholder="What should an editor verify here?"></textarea></label>' +
-      '<button>BUILD UNREVIEWED PROPOSAL →</button><small>No upload occurs in this prototype. Export the packet and send it to the archive owner.</small></form>' +
+      '<button>BUILD UNREVIEWED PROPOSAL →</button><small>Nothing uploads from this page. Export the packet and send it to the archive owner.</small></form>' +
       '<aside><div class="missing-memory"><span>KNOWN MEMORY GAPS</span>' +
       missing.map(function (packet) {
         return '<button data-fill-contribution="' + esc(packet.proposedEvidence.sourceId) + '"><b>' +
@@ -4619,7 +4693,7 @@
       if (aftermathPilot) {
         markdown += "\n\n# CREATOR WORKFLOW SHOWCASE\n\n" +
           aftermathPilot.scope.label + "\n\n" + aftermathPilot.summary +
-          "\n\nReviewable prototype. Human review required.\n";
+          "\n\nEditorial workbench. Human review required.\n";
       }
       copy(markdown, "CREATOR WORKFLOW BRIEF COPIED // STILL A DRAFT");
     };

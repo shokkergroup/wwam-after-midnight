@@ -1,0 +1,509 @@
+{
+  "schema": "shokker-youtube-wiki/archive-recovery-manifest/v1",
+  "frozenAt": "2026-07-29T09:45:24Z",
+  "selectionBasis": "Ranked evidence-recovery batch from the 301 source-safe-held audit; value, format variety, WWAM franchise relevance, and freshly verified anonymous English caption availability.",
+  "sourceAtlasSnapshotDate": "2026-07-23",
+  "sourceAtlasArchiveSha256": "sha256:3922cf2153548afd33cd9851031b28378db8d1555a4b19474bcfdcec0cb1b1cb",
+  "records": [
+    {
+      "rank": 1,
+      "id": "ooLNfFkpH6M",
+      "title": "Horror Franchise Tier List Ranking LIVE",
+      "date": "2024-04-30",
+      "duration": 10735,
+      "snapshotViews": 25429,
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "visualClaimsAllowed": false,
+      "promotionAllowed": false,
+      "probe": {
+        "observedAt": "2026-07-29T09:45:24Z",
+        "availability": "public",
+        "liveStatus": "was_live",
+        "ageLimit": 0,
+        "englishJson3": true
+      }
+    },
+    {
+      "rank": 2,
+      "id": "7hPJ_zey7hc",
+      "title": "Stephen King Movies Tier List!",
+      "date": "2023-07-18",
+      "duration": 11915,
+      "snapshotViews": 28357,
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "visualClaimsAllowed": false,
+      "promotionAllowed": false,
+      "probe": {
+        "observedAt": "2026-07-29T09:45:24Z",
+        "availability": "public",
+        "liveStatus": "was_live",
+        "ageLimit": 0,
+        "englishJson3": true
+      }
+    },
+    {
+      "rank": 3,
+      "id": "QwJb31dSo9Y",
+      "title": "HALLOWEEN KILLS Review Live! Spoiler Free!",
+      "date": "2021-10-15",
+      "duration": 5220,
+      "snapshotViews": 27303,
+      "contentMode": "spoiler-review",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "visualClaimsAllowed": false,
+      "promotionAllowed": false,
+      "probe": {
+        "observedAt": "2026-07-29T09:45:24Z",
+        "availability": "public",
+        "liveStatus": "was_live",
+        "ageLimit": 0,
+        "englishJson3": true
+      }
+    },
+    {
+      "rank": 4,
+      "id": "dZb-to77C_0",
+      "title": "Top 20 Horror Movies of the 2000's RANKED",
+      "date": "2022-06-28",
+      "duration": 12300,
+      "snapshotViews": 22955,
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "visualClaimsAllowed": false,
+      "promotionAllowed": false,
+      "probe": {
+        "observedAt": "2026-07-29T09:45:24Z",
+        "availability": "public",
+        "liveStatus": "was_live",
+        "ageLimit": 0,
+        "englishJson3": true
+      }
+    },
+    {
+      "rank": 5,
+      "id": "nNglwg-IU5g",
+      "title": "TEXAS CHAINSAW MASSACRE SPOILER PARTY",
+      "date": "2022-02-22",
+      "duration": 9332,
+      "snapshotViews": 24407,
+      "contentMode": "spoiler-review",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "visualClaimsAllowed": false,
+      "promotionAllowed": false,
+      "probe": {
+        "observedAt": "2026-07-29T09:45:24Z",
+        "availability": "public",
+        "liveStatus": "was_live",
+        "ageLimit": 0,
+        "englishJson3": true
+      }
+    },
+    {
+      "rank": 6,
+      "id": "3H85iQLAVYo",
+      "title": "The Best + Worst 3rd Movies in Franchises Tier Ranking",
+      "date": "2023-05-03",
+      "duration": 10374,
+      "snapshotViews": 22682,
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "visualClaimsAllowed": false,
+      "promotionAllowed": false,
+      "probe": {
+        "observedAt": "2026-07-29T09:45:24Z",
+        "availability": "public",
+        "liveStatus": "was_live",
+        "ageLimit": 0,
+        "englishJson3": true
+      }
+    },
+    {
+      "rank": 7,
+      "id": "S5KPkbgv40g",
+      "title": "SCREAM Spoiler Stream!",
+      "date": "2022-01-18",
+      "duration": 8227,
+      "snapshotViews": 21124,
+      "contentMode": "spoiler-review",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "visualClaimsAllowed": false,
+      "promotionAllowed": false,
+      "probe": {
+        "observedAt": "2026-07-29T09:45:24Z",
+        "availability": "public",
+        "liveStatus": "was_live",
+        "ageLimit": 0,
+        "englishJson3": true
+      }
+    },
+    {
+      "rank": 8,
+      "id": "mgBbSd7yq6g",
+      "title": "Top 10 Scariest Movies of all Time LIVE!",
+      "date": "2023-05-25",
+      "duration": 10905,
+      "snapshotViews": 20613,
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "visualClaimsAllowed": false,
+      "promotionAllowed": false,
+      "probe": {
+        "observedAt": "2026-07-29T09:45:24Z",
+        "availability": "public",
+        "liveStatus": "was_live",
+        "ageLimit": 0,
+        "englishJson3": true
+      }
+    },
+    {
+      "rank": 9,
+      "id": "kl8j1AichcI",
+      "title": "Top 10 HORROR Movies of the Decade",
+      "date": "2022-05-31",
+      "duration": 10839,
+      "snapshotViews": 20598,
+      "contentMode": "ranking-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "visualClaimsAllowed": false,
+      "promotionAllowed": false,
+      "probe": {
+        "observedAt": "2026-07-29T09:45:24Z",
+        "availability": "public",
+        "liveStatus": "was_live",
+        "ageLimit": 0,
+        "englishJson3": true
+      }
+    },
+    {
+      "rank": 10,
+      "id": "68pBajICSl8",
+      "title": "EVIL DEAD RISE Spoiler Party + Ranking",
+      "date": "2023-04-25",
+      "duration": 9175,
+      "snapshotViews": 18037,
+      "contentMode": "spoiler-ranking",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "visualClaimsAllowed": false,
+      "promotionAllowed": false,
+      "probe": {
+        "observedAt": "2026-07-29T09:45:24Z",
+        "availability": "public",
+        "liveStatus": "was_live",
+        "ageLimit": 0,
+        "englishJson3": true
+      }
+    },
+    {
+      "rank": 11,
+      "id": "tCDWbT6XjjQ",
+      "title": "SAW X Spoiler Party + Saw Franchise Tier List Ranking!",
+      "date": "2023-10-04",
+      "duration": 11116,
+      "snapshotViews": 16633,
+      "contentMode": "spoiler-ranking",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "visualClaimsAllowed": false,
+      "promotionAllowed": false,
+      "probe": {
+        "observedAt": "2026-07-29T09:45:24Z",
+        "availability": "public",
+        "liveStatus": "was_live",
+        "ageLimit": 0,
+        "englishJson3": true
+      }
+    },
+    {
+      "rank": 12,
+      "id": "XEgekYXzWik",
+      "title": "Friday Night Fights! 80's VS 90's!",
+      "date": "2022-06-25",
+      "duration": 10322,
+      "snapshotViews": 17911,
+      "contentMode": "versus-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "visualClaimsAllowed": false,
+      "promotionAllowed": false,
+      "probe": {
+        "observedAt": "2026-07-29T09:45:24Z",
+        "availability": "public",
+        "liveStatus": "was_live",
+        "ageLimit": 0,
+        "englishJson3": true
+      }
+    },
+    {
+      "rank": 13,
+      "id": "dzlZXJXCQXw",
+      "title": "HALLOWEEN KILLS Reviews Reaction LIVE!",
+      "date": "2021-09-09",
+      "duration": 7044,
+      "snapshotViews": 22706,
+      "contentMode": "review-reaction",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "visualClaimsAllowed": false,
+      "promotionAllowed": false,
+      "probe": {
+        "observedAt": "2026-07-29T09:45:24Z",
+        "availability": "public",
+        "liveStatus": "was_live",
+        "ageLimit": 0,
+        "englishJson3": true
+      }
+    },
+    {
+      "rank": 14,
+      "id": "YvjsGkVEu0A",
+      "title": "A Wild Halloween Theory, The Snyder Cut + More Movie News",
+      "date": "2021-03-11",
+      "duration": 12270,
+      "snapshotViews": 18425,
+      "contentMode": "movie-news",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "visualClaimsAllowed": false,
+      "promotionAllowed": false,
+      "probe": {
+        "observedAt": "2026-07-29T09:45:24Z",
+        "availability": "public",
+        "liveStatus": "was_live",
+        "ageLimit": 0,
+        "englishJson3": true
+      }
+    },
+    {
+      "rank": 15,
+      "id": "LEK_T8OBdSU",
+      "title": "The Most Anticipated Movies of 2024 LIVE!",
+      "date": "2023-12-19",
+      "duration": 12341,
+      "snapshotViews": 18816,
+      "contentMode": "anticipated-movies",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "visualClaimsAllowed": false,
+      "promotionAllowed": false,
+      "probe": {
+        "observedAt": "2026-07-29T09:45:24Z",
+        "availability": "public",
+        "liveStatus": "was_live",
+        "ageLimit": 0,
+        "englishJson3": true
+      }
+    },
+    {
+      "rank": 16,
+      "id": "WB8VKYvkMK8",
+      "title": "We Watched A Movie Live! 9/13 Movie News & Q+A",
+      "date": "2022-09-14",
+      "duration": 9332,
+      "snapshotViews": 16388,
+      "contentMode": "news-q-and-a",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "visualClaimsAllowed": false,
+      "promotionAllowed": false,
+      "probe": {
+        "observedAt": "2026-07-29T09:45:24Z",
+        "availability": "public",
+        "liveStatus": "was_live",
+        "ageLimit": 0,
+        "englishJson3": true
+      }
+    },
+    {
+      "rank": 17,
+      "id": "zEF9lyBiOak",
+      "title": "150K Subscribers Q+A Live!",
+      "date": "2022-11-29",
+      "duration": 11073,
+      "snapshotViews": 14934,
+      "contentMode": "q-and-a",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "visualClaimsAllowed": false,
+      "promotionAllowed": false,
+      "probe": {
+        "observedAt": "2026-07-29T09:45:24Z",
+        "availability": "public",
+        "liveStatus": "was_live",
+        "ageLimit": 0,
+        "englishJson3": true
+      }
+    },
+    {
+      "rank": 18,
+      "id": "3atfcfvXDzc",
+      "title": "We Watched A Movie LIVE 2/5! TCM + Evil Dead & Saw XI News!",
+      "date": "2024-02-06",
+      "duration": 11746,
+      "snapshotViews": 13240,
+      "contentMode": "movie-news",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "visualClaimsAllowed": false,
+      "promotionAllowed": false,
+      "probe": {
+        "observedAt": "2026-07-29T09:45:24Z",
+        "availability": "public",
+        "liveStatus": "was_live",
+        "ageLimit": 0,
+        "englishJson3": true
+      }
+    },
+    {
+      "rank": 19,
+      "id": "dwS6txtWLn4",
+      "title": "We Watched A Movie Q & A LIVE 11/22",
+      "date": "2023-11-23",
+      "duration": 10493,
+      "snapshotViews": 14382,
+      "contentMode": "q-and-a",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "visualClaimsAllowed": false,
+      "promotionAllowed": false,
+      "probe": {
+        "observedAt": "2026-07-29T09:45:24Z",
+        "availability": "public",
+        "liveStatus": "was_live",
+        "ageLimit": 0,
+        "englishJson3": true
+      }
+    },
+    {
+      "rank": 20,
+      "id": "JRSVp0Ss2Eg",
+      "title": "Movie News + Halloween 4 and Wrong Turn Writer Alan McElroy!",
+      "date": "2021-02-11",
+      "duration": 9745,
+      "snapshotViews": 8346,
+      "contentMode": "guest-interview",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "visualClaimsAllowed": false,
+      "promotionAllowed": false,
+      "probe": {
+        "observedAt": "2026-07-29T09:45:24Z",
+        "availability": "public",
+        "liveStatus": "was_live",
+        "ageLimit": 0,
+        "englishJson3": true
+      }
+    },
+    {
+      "rank": 21,
+      "id": "6kxLBYFGiaY",
+      "title": "Halloween Kills, Batman, Movie News + Wrong Turn Director Mike Nelson!",
+      "date": "2021-02-18",
+      "duration": 12746,
+      "snapshotViews": 8318,
+      "contentMode": "guest-interview",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "visualClaimsAllowed": false,
+      "promotionAllowed": false,
+      "probe": {
+        "observedAt": "2026-07-29T09:45:24Z",
+        "availability": "public",
+        "liveStatus": "was_live",
+        "ageLimit": 0,
+        "englishJson3": true
+      }
+    },
+    {
+      "rank": 22,
+      "id": "pkiR140lzSY",
+      "title": "FRIDAY NIGHT FIGHTS! Top 10 All Time + SON Review",
+      "date": "2021-03-06",
+      "duration": 13240,
+      "snapshotViews": 16581,
+      "contentMode": "fight-ranking",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "visualClaimsAllowed": false,
+      "promotionAllowed": false,
+      "probe": {
+        "observedAt": "2026-07-29T09:45:24Z",
+        "availability": "public",
+        "liveStatus": "was_live",
+        "ageLimit": 0,
+        "englishJson3": true
+      }
+    },
+    {
+      "rank": 23,
+      "id": "iUo_6GuJoJ4",
+      "title": "What Slasher Franchise Has The Best First Sequel?",
+      "date": "2020-09-05",
+      "duration": 9630,
+      "snapshotViews": 16724,
+      "contentMode": "franchise-discussion",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "visualClaimsAllowed": false,
+      "promotionAllowed": false,
+      "probe": {
+        "observedAt": "2026-07-29T09:45:24Z",
+        "availability": "public",
+        "liveStatus": "was_live",
+        "ageLimit": 0,
+        "englishJson3": true
+      }
+    },
+    {
+      "rank": 24,
+      "id": "pBpNYDImiPE",
+      "title": "80s Movies VS 90s Movies! (+ More)",
+      "date": "2023-07-06",
+      "duration": 12079,
+      "snapshotViews": 13326,
+      "contentMode": "versus-show",
+      "rightsMode": "visual-result-unverified",
+      "restrictedToTopicNavigation": false,
+      "visualClaimsAllowed": false,
+      "promotionAllowed": false,
+      "probe": {
+        "observedAt": "2026-07-29T09:45:24Z",
+        "availability": "public",
+        "liveStatus": "was_live",
+        "ageLimit": 0,
+        "englishJson3": true
+      }
+    },
+    {
+      "rank": 25,
+      "id": "oRHhdhpkTfQ",
+      "title": "Evil Dead Rise Breakdown + Ready to Rumble Review + More!",
+      "date": "2023-01-05",
+      "duration": 6529,
+      "snapshotViews": 18146,
+      "contentMode": "review-discussion",
+      "rightsMode": "standard-caption-candidates",
+      "restrictedToTopicNavigation": false,
+      "visualClaimsAllowed": false,
+      "promotionAllowed": false,
+      "probe": {
+        "observedAt": "2026-07-29T09:45:24Z",
+        "availability": "public",
+        "liveStatus": "was_live",
+        "ageLimit": 0,
+        "englishJson3": true
+      }
+    }
+  ]
+}

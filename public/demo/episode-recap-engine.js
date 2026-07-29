@@ -2,7 +2,7 @@
   "use strict";
 
   var SCHEMA = "shokker-episode-recap/v1";
-  var VERSION = "1.1.1";
+  var VERSION = "1.2.0";
 
   function clean(value) {
     return String(value == null ? "" : value).trim();
@@ -173,9 +173,10 @@
   }
 
   function targetSectionCount(duration) {
-    if (duration < 3600) return 4;
-    if (duration < 7200) return 5;
-    return 6;
+    if (duration < 1800) return 5;
+    if (duration < 3600) return 6;
+    if (duration < 7200) return 7;
+    return 8;
   }
 
   function topReceipts(values, limit) {
@@ -266,6 +267,44 @@
     var usedKeys = {};
     var usedLabels = {};
 
+    /*
+     * A recap should explain what the show was about before it behaves like a
+     * funniest-moments playlist. Reserve roughly half of the act anchors for
+     * distinct topic receipts, ranked by title relevance and source-local
+     * signal, then use the remaining anchors to preserve the runtime's heat
+     * and character turns.
+     */
+    var reservedTopicCount = Math.min(
+      4,
+      Math.max(1, Math.floor(count / 2))
+    );
+    var reservedTopics = receipts.filter(function (receipt) {
+      return receiptKind(receipt) === "topic";
+    }).sort(function (left, right) {
+      var leftLabel = receiptDisplayLabel(left);
+      var rightLabel = receiptDisplayLabel(right);
+      var leftScore = titleRelevance(leftLabel, title) +
+        Math.min(140, Math.max(0, receiptSignal(left))) * 2 +
+        Math.max(0, 40 - receiptTime(left) / duration * 40);
+      var rightScore = titleRelevance(rightLabel, title) +
+        Math.min(140, Math.max(0, receiptSignal(right))) * 2 +
+        Math.max(0, 40 - receiptTime(right) / duration * 40);
+      return rightScore - leftScore ||
+        receiptTime(left) - receiptTime(right) ||
+        clean(left.key).localeCompare(clean(right.key));
+    }).filter(function (receipt, index, values) {
+      var label = receiptDisplayLabel(receipt).toLowerCase();
+      return values.findIndex(function (candidate) {
+        return receiptDisplayLabel(candidate).toLowerCase() === label;
+      }) === index;
+    }).slice(0, reservedTopicCount);
+
+    reservedTopics.forEach(function (receipt) {
+      selected.push(receipt);
+      usedKeys[clean(receipt.key)] = true;
+      usedLabels[receiptDisplayLabel(receipt).toLowerCase()] = true;
+    });
+
     function selectionScore(receipt, center, width) {
       var distance = Math.abs(receiptTime(receipt) - center);
       var proximity = Math.max(0, 1 - distance / Math.max(1, width)) * 55;
@@ -279,7 +318,7 @@
       return proximity + signal + kindBonus + relevance - repetitionPenalty;
     }
 
-    for (var bucket = 0; bucket < count; bucket += 1) {
+    for (var bucket = 0; bucket < count && selected.length < count; bucket += 1) {
       var start = duration * bucket / count;
       var finish = duration * (bucket + 1) / count;
       var center = (start + finish) / 2;
@@ -321,7 +360,7 @@
         Math.round((current + next) / 2) : duration;
       var associationRadius = Math.min(
         150,
-        Math.max(60, Math.round((to - from) * 0.1))
+        Math.max(120, Math.round((to - from) * 0.1))
       );
       var nearby = receipts.filter(function (receipt) {
         return Math.abs(receiptTime(receipt) - current) <= associationRadius;
@@ -401,6 +440,56 @@
     });
   }
 
+  function storyArc(receipts, duration) {
+    if (!receipts.length) return [];
+    var segmentCount = receipts.length >= 16 ? 4 :
+      receipts.length >= 8 ? 3 :
+        receipts.length >= 4 ? 2 : 1;
+    var segments = [];
+
+    for (var segmentIndex = 0; segmentIndex < segmentCount; segmentIndex += 1) {
+      var startIndex = Math.floor(segmentIndex * receipts.length / segmentCount);
+      var endIndex = Math.floor((segmentIndex + 1) * receipts.length / segmentCount);
+      var chunk = receipts.slice(startIndex, Math.max(startIndex + 1, endIndex));
+      if (!chunk.length) continue;
+      var topics = chunk.filter(function (receipt) {
+        return receiptKind(receipt) === "topic";
+      });
+      var moments = chunk.filter(function (receipt) {
+        return receiptKind(receipt) === "moment";
+      });
+      var characters = chunk.filter(function (receipt) {
+        return receiptKind(receipt) === "character";
+      });
+      var excerptReceipt = topReceipts(chunk.filter(function (receipt) {
+        return Boolean(safeExcerpt(receipt, 18));
+      }), 1)[0] || null;
+      var anchor = excerptReceipt || topReceipts(chunk, 1)[0] || chunk[0];
+      var first = chunk[0];
+      var last = chunk[chunk.length - 1];
+      segments.push({
+        id: "reel-" + String(segmentIndex + 1).padStart(2, "0"),
+        ordinal: segmentIndex + 1,
+        at: receiptTime(first),
+        end: receiptEnd(last, duration),
+        anchorReceiptKey: clean(anchor.key),
+        anchorAt: receiptTime(anchor),
+        anchor: receiptDisplayLabel(anchor),
+        excerpt: safeExcerpt(anchor, 18),
+        topicLabels: orderedStrings(topics.map(receiptDisplayLabel)),
+        momentLabels: orderedStrings(moments.map(receiptDisplayLabel)),
+        characterLabels: orderedStrings(characters.reduce(function (values, receipt) {
+          return values.concat(characterLabels(receipt));
+        }, [])),
+        receiptKeys: chunk.map(function (receipt) {
+          return clean(receipt.key);
+        }),
+        evidenceBasis: "all-source-local-receipts-grouped-chronologically",
+      });
+    }
+    return segments;
+  }
+
   function feature(receipt, duration) {
     if (!receipt) return null;
     return {
@@ -473,7 +562,7 @@
     };
   }
 
-  function caseFile(receipts, sections, duration, context, guide) {
+  function caseFile(receipts, sections, story, duration, context, guide) {
     var topics = receipts.filter(function (receipt) {
       return receiptKind(receipt) === "topic";
     });
@@ -494,6 +583,11 @@
       var id = clean(lane && lane.id);
       if (id) laneCounts[id] = array(lane && lane.receiptKeys).length;
     });
+    var storyReceiptKeys = orderedStrings(array(story).reduce(function (keys, segment) {
+      return keys.concat(array(segment && segment.receiptKeys));
+    }, []));
+    var storyCoveragePercent = receipts.length ?
+      Math.round(storyReceiptKeys.length / receipts.length * 100) : 0;
     return {
       receiptCount: receipts.length,
       topicCount: topics.length,
@@ -502,6 +596,9 @@
       actCount: sections.length,
       guideCutCount: array(record(guide).cuts).length,
       threadCount: array(record(guide).threads).length,
+      storySegmentCount: array(story).length,
+      storyReceiptCount: storyReceiptKeys.length,
+      storyCoveragePercent: storyCoveragePercent,
       tapeSpanPercent: span,
       firstAt: first,
       lastAt: last,
@@ -541,6 +638,7 @@
       },
       topics: [],
       sections: [],
+      story: [],
       bestMoments: [],
       fanRead: {},
       caseFile: {
@@ -551,6 +649,9 @@
         actCount: 0,
         guideCutCount: 0,
         threadCount: 0,
+        storySegmentCount: 0,
+        storyReceiptCount: 0,
+        storyCoveragePercent: 0,
         tapeSpanPercent: 0,
         firstAt: 0,
         lastAt: 0,
@@ -583,6 +684,7 @@
     var sections = guideReady ?
       guideSections(source, receipts, guide) :
       receiptSections(source, receipts);
+    var story = storyArc(receipts, source.duration);
     var moments = topReceipts(receipts.filter(function (receipt) {
       return receiptKind(receipt) === "moment";
     }), 8);
@@ -598,6 +700,13 @@
         return [
           section.id, section.at, section.end, section.anchor, section.category,
           section.receiptKeys, section.guideCutId
+        ];
+      }),
+      story: story.map(function (segment) {
+        return [
+          segment.id, segment.at, segment.end, segment.anchorReceiptKey,
+          segment.anchorAt, segment.anchor,
+          segment.receiptKeys
         ];
       }),
       version: VERSION,
@@ -632,16 +741,25 @@
       },
       topics: topics,
       sections: sections,
+      story: story,
       bestMoments: moments.map(function (receipt) {
         return feature(receipt, source.duration);
       }).filter(Boolean),
       fanRead: derivedFanRead(receipts, guide, source.duration, context),
-      caseFile: caseFile(receipts, sections, source.duration, context, guide),
+      caseFile: caseFile(
+        receipts,
+        sections,
+        story,
+        source.duration,
+        context,
+        guide
+      ),
       guideOverview: guideReady ? clean(guide.overview) : "",
       guideWhyItMatters: guideReady ?
         clean(record(record(guide.fanRead).whyThisNightMatters).body) : "",
       limitations: [
         "Automatic captions do not establish the speaker.",
+        "Story reels group receipt chronology; they do not establish causality.",
         "Playback is the final word on context, delivery, and audio origin.",
         "The recap is fan-archive editorial, not creator approval.",
       ],

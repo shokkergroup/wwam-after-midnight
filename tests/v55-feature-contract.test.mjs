@@ -20,7 +20,7 @@ test("every V5.5 lazy feature asset exists and stays below the per-script cap", 
   const chains = lazyChains();
   const requiredV55Chains = [
     [
-      "archive-atlas-data.js",
+      "archive-atlas-data.js?v=1.4.0-year-canon",
       "red-band-ranking-v2.js",
       "tape-companion-engine.js",
       "tape-companion-ui.js?v=1.1.0-human",

@@ -909,7 +909,7 @@
       var showcase = {
         schema: SHOWCASE_SCHEMA,
         version: VERSION,
-        status: "PROTOTYPE / HUMAN REVIEW REQUIRED",
+        status: "EDITORIAL WORKBENCH / HUMAN REVIEW REQUIRED",
         scope: {
           shows: 3,
           label: "THREE-SHOW SOURCE REVIEW"
@@ -947,7 +947,7 @@
           "publishing",
           "performance or audience-impact claims"
         ],
-        prototypeBoundary: "This workflow is a reviewable prototype. It records no creator approval, publishing authority, rights clearance, or performance claim."
+        prototypeBoundary: "This editorial workbench records no creator approval, publishing authority, rights clearance, or performance claim."
       };
       showcase.fingerprint = fingerprint("sw1", showcase);
       return freezeDeep(showcase);

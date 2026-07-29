@@ -361,7 +361,7 @@
 
   function policyMarkup() {
     return '<div class="intake-policy" aria-label="Fresh Tape Intake evidence boundary">' +
-      "<span>MACHINE SURFACED</span><span>PROMOTION FORBIDDEN</span>" +
+      "<span>TAPE-INDEXED CANDIDATE</span><span>HUMAN REVIEW REQUIRED</span>" +
       "<span>SPEAKER UNKNOWN / NOT DIARIZED</span>" +
       "<span>CHANNEL OWNERSHIP UNVERIFIED</span>" +
       "<span>RAW TRANSCRIPT OMITTED FROM EXPORT</span>" +
@@ -423,7 +423,7 @@
       '" target="_blank" rel="noopener">' + timecode(candidate.at) +
       " OPEN SOURCE &nearr;</a></header><h4>" + esc(candidate.label) +
       "</h4><blockquote>&ldquo;" + esc(displayText(candidate.excerpt.text)) +
-      "&rdquo;</blockquote><div><span>MACHINE SURFACED</span>" +
+      "&rdquo;</blockquote><div><span>TAPE-INDEXED CANDIDATE</span>" +
       "<span>QUARANTINE ONLY</span><span>SPEAKER UNKNOWN</span>" +
       "<span>NOT DIARIZED</span></div><footer><b>EXACT EVENT " +
       timecode(candidate.at) + "-" + timecode(candidate.end) +

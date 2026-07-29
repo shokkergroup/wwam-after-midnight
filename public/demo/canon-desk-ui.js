@@ -10,7 +10,7 @@
       return b.projectedOrAmbiguousReceiptIds.length - a.projectedOrAmbiguousReceiptIds.length;
     }).slice(0, 8);
     var courts = trustEngine.courtAudits.slice(0, 6);
-    return '<div class="canon-lane-head warning"><div><span>DISCOVERY CANDIDATES // NOT CREATOR-CERTIFIED CANON</span><h3>0 TAKE TIMELINES AND 0 COURTS CURRENTLY PASS THE STRICT CANON GATE.</h3></div><p>Receipt trails and machine-surfaced argument boards—not host-change claims or verdicts.</p></div>' +
+    return '<div class="canon-lane-head warning"><div><span>DISCOVERY CANDIDATES // NOT CREATOR-CERTIFIED CANON</span><h3>0 TAKE TIMELINES AND 0 COURTS CURRENTLY PASS THE STRICT CANON GATE.</h3></div><p>Receipt trails and tape-indexed argument boards—not host-change claims or verdicts.</p></div>' +
       '<div class="claim-audit"><section><header><span>TAKE TIMELINE AUDIT</span><b>' +
       trustEngine.metrics.timelines + ' REVIEWED</b></header>' + timelines.map(function (timeline) {
         return '<article><div><h4>' + esc(timeline.subject) + '</h4><b>' +
@@ -93,7 +93,7 @@
       '<label class="wide"><span>EXACT WORDING YOU PERSONALLY CHECKED // REQUIRED FOR WORDING CHECKED</span>' +
       '<textarea id="reviewWording" placeholder="Do not paste a certification label. Preserve the evidence boundary."></textarea></label>' +
       '<label class="wide review-attestation"><input id="reviewAttestation" type="checkbox" required>' +
-      '<span>I ATTEST THIS DECISION WAS MADE BY A HUMAN REVIEWER. THIS LOCAL PROTOTYPE DOES NOT AUTHENTICATE IDENTITY.</span></label>' +
+      '<span>I ATTEST THIS DECISION WAS MADE BY A HUMAN REVIEWER. THIS LOCAL REVIEW DESK DOES NOT AUTHENTICATE IDENTITY.</span></label>' +
       '</div><div class="review-actions">' +
       (transitions.length ? transitions.map(function (status) {
         var positive = status === "wording-checked" || status === "ready-for-creator-review";

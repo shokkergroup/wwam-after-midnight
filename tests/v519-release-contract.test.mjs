@@ -47,7 +47,7 @@ test("V5.19 package, cache keys, and public documentation move together", () => 
     "independently versioned runtime lanes unexpectedly collapsed",
   );
   assert.match(html, /youtube-playback\.js\?v=2\.4\.2-host-local/);
-  assert.match(html, /app\.js\?v=0\.5\.43-recap-v2e/);
+  assert.match(html, /app\.js\?v=0\.5\.47-release-polish/);
 
   assert.match(readme, /Current documented release: \*\*V5\.21 \/ 0\.5\.21\*\*/);
   assert.match(readme, /docs\/THE_MIDNIGHT_CUT\.md/);

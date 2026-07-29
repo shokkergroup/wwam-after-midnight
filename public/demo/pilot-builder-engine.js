@@ -150,7 +150,7 @@
           description:
             "A queue for wording checks, context holds, rejection candidates, and creator review.",
           acceptanceCheck:
-            "Machine-surfaced candidates cannot self-certify or silently mutate the public canon."
+            "Indexed candidates cannot self-certify or silently mutate the public canon."
         }
       ],
       instruments: [
@@ -536,7 +536,7 @@
         owner: "HUMAN EDITOR",
         decision:
           "Check surrounding context, wording, speaker attribution, and the exact acceptance checks.",
-        gate: "Machine-surfaced output cannot approve itself."
+        gate: "Indexed output cannot approve itself."
       },
       {
         order: 4,
@@ -569,7 +569,7 @@
       evaluationRule:
         "The creator chooses the sample, observation window, and acceptable result before interpreting review observations.",
       claimsBoundary:
-        "This static prototype contains no verified workflow, labor-savings, or audience-impact result."
+        "This static workbench contains no verified workflow, labor-savings, or audience-impact result."
     };
   }
 
@@ -605,7 +605,7 @@
       goal: clone(goal),
       summary:
         goal.promise +
-        " This prototype is deliberately bounded so the creator can judge the workflow with source evidence before expanding it.",
+        " This workflow is deliberately bounded so the creator can judge it with source evidence before expanding it.",
       currentProof: {
         label: "CURRENT PROMOTED-CORPUS SNAPSHOT / NOT A PERFORMANCE CLAIM",
         summary: goalProofSummary(goal.id, builder.metrics),
@@ -641,7 +641,7 @@
         "Choose continue, revise, or stop after reviewing workflow evidence."
       ],
       prototypeBoundary:
-        "This workflow is a reviewable prototype. It records no creator approval, publishing authority, rights clearance, or performance claim.",
+        "This editorial workbench records no creator approval, publishing authority, rights clearance, or performance claim.",
       proofLedger: {
         inputFingerprint: builder.inputFingerprint,
         engineFingerprints: clone(builder.engineFingerprints),

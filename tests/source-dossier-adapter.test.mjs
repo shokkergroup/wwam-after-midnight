@@ -20,6 +20,8 @@ function load() {
     "catalog.js",
     "deep-distill.js",
     "episode-guides.js",
+    "episode-guide-v2-reviewed-release.js",
+    "episode-guide-v2-reviewed-merge.js",
     "livestream-distill.js",
     "popular-live-distill.js",
     "character-lore.js",
@@ -34,6 +36,8 @@ function load() {
     "archive-deep-engine.js",
     "archive-deep-portfolio.js",
     "year-canon-2025-2026.js",
+    "archive-recovery-batch1.js",
+    "archive-recovery-batch2.js",
     "episode-recap-engine.js",
     "wwam-episode-recap-adapter.js",
     "wwam-source-dossier-adapter.js",
@@ -44,6 +48,11 @@ function load() {
       filename: file,
     });
   });
+  sandbox.window.WWAM_EPISODE_GUIDES =
+    sandbox.window.WWAM_EPISODE_GUIDE_V2_REVIEWED_MERGE.merge(
+      sandbox.window.WWAM_EPISODE_GUIDES,
+      sandbox.window.WWAM_EPISODE_GUIDE_V2_REVIEWED_RELEASE,
+    );
   return sandbox.window;
 }
 
@@ -69,10 +78,20 @@ function buildFixture(configure) {
   );
   const archiveSearchBase = archiveDeepBase.getSearchPayload();
   const archiveSearch = Object.assign({}, archiveSearchBase, {
-    streams: archiveSearchBase.streams.concat(window.WWAM_YEAR_CANON_2025_2026.streams),
-    topicIndex: archiveSearchBase.topicIndex.concat(window.WWAM_YEAR_CANON_2025_2026.topicIndex),
+    streams: archiveSearchBase.streams.concat(
+      window.WWAM_YEAR_CANON_2025_2026.streams,
+      window.WWAM_ARCHIVE_RECOVERY_BATCH1.streams,
+      window.WWAM_ARCHIVE_RECOVERY_BATCH2.streams,
+    ),
+    topicIndex: archiveSearchBase.topicIndex.concat(
+      window.WWAM_YEAR_CANON_2025_2026.topicIndex,
+      window.WWAM_ARCHIVE_RECOVERY_BATCH1.topicIndex,
+      window.WWAM_ARCHIVE_RECOVERY_BATCH2.topicIndex,
+    ),
     characterIndex: archiveSearchBase.characterIndex.concat(
       window.WWAM_YEAR_CANON_2025_2026.characterIndex,
+      window.WWAM_ARCHIVE_RECOVERY_BATCH1.characterIndex,
+      window.WWAM_ARCHIVE_RECOVERY_BATCH2.characterIndex,
     ),
   });
   const archiveDeep = {
@@ -136,7 +155,7 @@ function wordCount(value) {
 test("adapter exposes the universal schema and exact 510-source WWAM union", () => {
   const { window, result } = buildFixture();
 
-  assert.equal(window.WWAMSourceDossierAdapter.VERSION, "1.9.1");
+  assert.equal(window.WWAMSourceDossierAdapter.VERSION, "1.10.0");
   assert.deepEqual(Object.keys(result), [
     "schema",
     "channel",
@@ -167,14 +186,14 @@ test("adapter exposes the universal schema and exact 510-source WWAM union", () 
     ["commentary-catalog", "streams-feed"],
   );
   assert.deepEqual(countBy(result.sources, "coverage"), {
-    "caption-backed": 209,
+    "caption-backed": 259,
     "caption-limited": 9,
-    "metadata-only": 292,
+    "metadata-only": 242,
   });
   assert.deepEqual(countBy(result.sources, "authority"), {
     "promoted-lane": 74,
-    "quarantined-lane": 138,
-    "source-only": 298,
+    "quarantined-lane": 188,
+    "source-only": 248,
   });
 });
 
@@ -186,28 +205,114 @@ test("every canonical show receives a Feldman recap or an evidence-safe held sta
 
   assert.equal(recaps.length, 510);
   assert.ok(recaps.every((recap) => recap.schema === "wwam-feldman-recap/v1"));
-  assert.equal(ready.length, 209);
-  assert.equal(held.length, 301);
+  assert.equal(ready.length, 259);
+  assert.equal(held.length, 251);
   assert.deepEqual(countBy(recaps, "tier"), {
-    "receipt-recap": 155,
-    "source-safe-held": 301,
+    "receipt-recap": 195,
+    "source-safe-held": 251,
     "topic-recap": 16,
-    "full-chronicle": 38,
+    "full-chronicle": 48,
   });
 
   assert.ok(ready.every((recap) => recap.label === "WWAM FELDMAN APPROVED RECAP"));
+  assert.ok(ready.every((recap) => Array.isArray(recap.topics) && recap.topics.length >= 1));
   assert.ok(ready.every((recap) => recap.sections.length >= 1));
   assert.ok(ready.every((recap) => recap.sections.every((section) =>
     section.receiptKeys.length > 0 || section.guideCutId
   )));
+  assert.ok(ready.every((recap) => recap.story.length >= 1));
+  assert.ok(ready.every((recap) =>
+    recap.caseFile.storyCoveragePercent === 100 &&
+    recap.caseFile.storyReceiptCount === recap.caseFile.receiptCount
+  ));
+  assert.ok(ready.every((recap) => {
+    const keys = new Set(recap.story.flatMap((segment) => segment.receiptKeys));
+    return keys.size === recap.caseFile.receiptCount;
+  }));
+  assert.ok(result.sources
+    .filter((source) => source.episodeRecap.state === "ready")
+    .every((source) => {
+      const receiptByKey = new Map(
+        source.receipts.map((receipt) => [receipt.key, receipt]),
+      );
+      return source.episodeRecap.story.every((segment) => {
+        const anchor = receiptByKey.get(segment.anchorReceiptKey);
+        return anchor &&
+          segment.receiptKeys.includes(segment.anchorReceiptKey) &&
+          segment.anchorAt === anchor.at &&
+          (!segment.excerpt || anchor.publicExcerptAllowed);
+      });
+    }));
   assert.ok(ready.every((recap) => recap.approval.actualApproval === false));
 
   assert.ok(held.every((recap) => recap.label === "EPISODE RECAP"));
   assert.ok(held.every((recap) => recap.badge === "RECAP WAITING ON THE TAPE"));
   assert.ok(held.every((recap) => recap.sections.length === 0));
+  assert.ok(held.every((recap) => Array.isArray(recap.topics) && recap.topics.length === 0));
+  assert.ok(held.every((recap) => recap.story.length === 0));
   assert.ok(held.every((recap) => recap.bestMoments.length === 0));
   assert.ok(held.every((recap) => recap.approval.actualApproval === false));
   assert.ok(held.every((recap) => !/feldman approved/i.test(recap.label)));
+});
+
+test("story anchors stay inside their reel and own the displayed evidence", () => {
+  const { window, result } = buildFixture();
+  const source = result.sources.find((candidate) =>
+    candidate.showWiki.episodeRecap.state === "ready" &&
+    candidate.showWiki.episodeRecap.story.some((segment) =>
+      segment.excerpt &&
+      segment.anchorAt !== segment.at &&
+      candidate.receipts.some((receipt) =>
+        !segment.receiptKeys.includes(receipt.key)
+      )
+    )
+  );
+  assert.ok(source);
+  const segment = source.showWiki.episodeRecap.story.find((candidate) =>
+    candidate.excerpt &&
+    candidate.anchorAt !== candidate.at &&
+    source.receipts.some((receipt) =>
+      !candidate.receiptKeys.includes(receipt.key)
+    )
+  );
+  assert.ok(segment);
+  const anchor = source.receipts.find(
+    (receipt) => receipt.key === segment.anchorReceiptKey,
+  );
+  assert.ok(anchor);
+  assert.ok(segment.receiptKeys.includes(anchor.key));
+  assert.equal(segment.anchorAt, anchor.at);
+  assert.equal(anchor.publicExcerptAllowed, true);
+  assert.doesNotThrow(() => window.ShokkerSourceDossier.create(result));
+
+  const expectCode = (code) => (error) =>
+    error?.name === "SourceDossierError" && error?.code === code;
+  const originalKey = segment.anchorReceiptKey;
+  const outside = source.receipts.find(
+    (receipt) => !segment.receiptKeys.includes(receipt.key),
+  );
+  segment.anchorReceiptKey = outside.key;
+  assert.throws(
+    () => window.ShokkerSourceDossier.create(result),
+    expectCode("EPISODE_RECAP_STORY_ANCHOR_SCOPE"),
+  );
+  segment.anchorReceiptKey = originalKey;
+
+  const originalAt = segment.anchorAt;
+  segment.anchorAt += 1;
+  assert.throws(
+    () => window.ShokkerSourceDossier.create(result),
+    expectCode("EPISODE_RECAP_STORY_ANCHOR_TIME"),
+  );
+  segment.anchorAt = originalAt;
+
+  const originalExcerpt = segment.excerpt;
+  segment.excerpt = "This sentence is not present in the registered anchor receipt.";
+  assert.throws(
+    () => window.ShokkerSourceDossier.create(result),
+    expectCode("EPISODE_RECAP_STORY_ANCHOR_EXCERPT"),
+  );
+  segment.excerpt = originalExcerpt;
 });
 
 test("topic receipts preserve bounded source-local strength with explicit provenance", () => {
@@ -304,6 +409,10 @@ test("Ask This Tape stays on the exact canonical WWAM upload across title collis
   const { window, result } = buildFixture();
   const dossierEngine = window.ShokkerSourceDossier.create(result);
   const queryEngine = window.ShokkerSourceQuery.create({ dossierEngine });
+  const heldSource = result.sources.find(
+    (source) => source.coverage === "metadata-only",
+  );
+  assert.ok(heldSource);
   const request = (sourceId, query) => ({
     schema: "shokker-source-query/v1",
     sourceId,
@@ -345,11 +454,11 @@ test("Ask This Tape stays on the exact canonical WWAM upload across title collis
     ],
   );
 
-  const metadataOnly = queryEngine.answer(
+  const visualResultHeld = queryEngine.answer(
     request("RzSxi8rVQGI", "Who won the Marvel versus DC bracket?"),
   );
-  assert.equal(metadataOnly.status, "metadata-only");
-  assert.equal(metadataOnly.resultCount, 0);
+  assert.equal(visualResultHeld.status, "insufficient-evidence");
+  assert.equal(visualResultHeld.resultCount, 0);
 
   const captionLimited = queryEngine.answer(
     request("x6tvsGRHgU0", "What topics are indexed in this tape?"),
@@ -360,12 +469,12 @@ test("Ask This Tape stays on the exact canonical WWAM upload across title collis
   const wrongSource = queryEngine.answer(
     request("RzSxi8rVQGI", "Show me Superman receipts."),
   );
-  assert.equal(wrongSource.status, "metadata-only");
+  assert.equal(wrongSource.status, "insufficient-evidence");
   assert.equal(wrongSource.resultCount, 0);
   assert.equal(wrongSource.boundary.crossSourceSubstitution, false);
 
   const brief = queryEngine.answer(
-    request("RzSxi8rVQGI", "What can you prove about this show?"),
+    request(heldSource.id, "What can you prove about this show?"),
   );
   assert.equal(brief.status, "supported");
   assert.equal(brief.intent, "episode-brief");
@@ -375,13 +484,13 @@ test("Ask This Tape stays on the exact canonical WWAM upload across title collis
   assert.equal(brief.results[0].value.scope, "canonical-source-metadata-only");
 
   const briefInventory = queryEngine.answer(
-    request("RzSxi8rVQGI", "What is actually indexed in this tape?"),
+    request(heldSource.id, "What is actually indexed in this tape?"),
   );
   assert.equal(briefInventory.status, "inventory");
   assert.equal(briefInventory.results[0].value.sourceBriefAvailable, true);
 
   const refusedSummary = queryEngine.answer(
-    request("RzSxi8rVQGI", "Summarize this show."),
+    request(heldSource.id, "Summarize this show."),
   );
   assert.equal(refusedSummary.status, "metadata-only");
   assert.equal(refusedSummary.resultCount, 0);
@@ -552,7 +661,7 @@ test("all dossiers retain canonical metadata and fail honest outside caption evi
       assert.ok(entityBases.has(entity.basis), entity.basis);
     });
   });
-  assert.equal(receiptKeys.size, 3315);
+  assert.equal(receiptKeys.size, 4206);
 });
 
 test("every source gets an honest Show Wiki shell with rigorously gated lanes", () => {
@@ -998,17 +1107,17 @@ test("every source gets an honest Show Wiki shell with rigorously gated lanes", 
     }
   });
 
-  assert.equal(distilledRecapCount, 193);
+  assert.equal(distilledRecapCount, 243);
   assert.equal(topicNavOnlyRecapCount, 16);
-  assert.equal(sourceBriefShowWikiCount, 301);
-  assert.equal(readyMomentRouteCount, 193);
+  assert.equal(sourceBriefShowWikiCount, 251);
+  assert.equal(readyMomentRouteCount, 243);
   assert.equal(readyTopicRouteCount, 16);
-  assert.equal(emptyRouteCount, 301);
+  assert.equal(emptyRouteCount, 251);
   assert.ok(upInYaCount > 0, "expected exact UP IN YA receipts");
-  assert.equal(stevesSourceCount, 29);
-  assert.equal(stevesCount, 30);
-  assert.equal(characterSourceCount, 126);
-  assert.equal(characterCount, 264);
+  assert.equal(stevesSourceCount, 33);
+  assert.equal(stevesCount, 34);
+  assert.equal(characterSourceCount, 170);
+  assert.equal(characterCount, 355);
   assert.ok(rejectedNegativeCandidates > 0, "expected strict gate rejections");
 
   for (const [sourceId, at] of [
@@ -1228,17 +1337,17 @@ test("every Show Wiki query-alias bundle is present, bounded, and normalized-uni
 });
 
 
-test("the 3,315 receipts retain the exact evidence taxonomy", () => {
+test("the 4,206 receipts retain the exact evidence taxonomy", () => {
   const { result } = buildFixture();
   const receipts = result.sources.flatMap((source) => source.receipts);
 
-  assert.equal(receipts.length, 3315);
+  assert.equal(receipts.length, 4206);
   assert.deepEqual(countBy(receipts, "evidenceType"), {
-    "caption-excerpt": 1359,
-    "caption-topic-receipt": 1532,
+    "caption-excerpt": 1659,
+    "caption-topic-receipt": 2032,
     "curated-character-performance": 30,
-    "caption-character-context": 210,
-    "caption-character-signal": 24,
+    "caption-character-context": 261,
+    "caption-character-signal": 64,
     "caption-topic-navigation": 160,
   });
 });
@@ -1412,7 +1521,7 @@ test("Archive Deep remains quarantined and all 16 source-audio firewalls are top
     (source) => source.rightsPolicy.restrictedToTopicNavigation,
   );
 
-  assert.equal(archive.length, 138);
+  assert.equal(archive.length, 188);
   assert.equal(restricted.length, 16);
   assert.equal(
     archiveReceipts.filter(
@@ -1420,10 +1529,10 @@ test("Archive Deep remains quarantined and all 16 source-audio firewalls are top
     ).length,
     0,
   );
-  assert.equal(characterEvidence.length, 234);
+  assert.equal(characterEvidence.length, 325);
   assert.deepEqual(countBy(characterEvidence, "evidenceType"), {
-    "caption-character-context": 210,
-    "caption-character-signal": 24,
+    "caption-character-context": 261,
+    "caption-character-signal": 64,
   });
   assert.ok(characterEvidence.every(
     (receipt) =>
@@ -1524,23 +1633,23 @@ test("the exact 510-source adapter payload compiles through the generic engine",
 
   assert.equal(stats.sources, 510);
   assert.deepEqual(stats.coverage, {
-    "caption-backed": 209,
+    "caption-backed": 259,
     "caption-limited": 9,
-    "metadata-only": 292,
+    "metadata-only": 242,
   });
   assert.deepEqual(stats.authority, {
     "promoted-lane": 74,
-    "quarantined-lane": 138,
-    "source-only": 298,
+    "quarantined-lane": 188,
+    "source-only": 248,
   });
-  assert.equal(stats.receipts, 3315);
+  assert.equal(stats.receipts, 4206);
   assert.equal(stats.artifacts, 944);
 
   const live = engine.build("LV2rmwEA0w4");
   assert.equal(live.source.receipts.length, 21);
   assert.equal(live.source.artifacts.length, 27);
-  assert.equal(live.wake.total, 236);
-  assert.equal(live.wake.matchingTotal, 236);
+  assert.equal(live.wake.total, 268);
+  assert.equal(live.wake.matchingTotal, 268);
   assert.equal(live.wake.displayed, 16);
   assert.equal(live.wake.truncated, true);
   assert.equal(live.wake.later.length, 0);
@@ -1725,6 +1834,23 @@ test("adapter fails closed if the feed/catalog reconciliation drifts", () => {
       error.name === "WWAMSourceDossierAdapterError" &&
       error.code === "SOURCE_COUNT_INVALID",
   );
+});
+
+test("reviewed guide releases may extend the original Deep Distill guide floor", () => {
+  const fixture = buildFixture();
+  const reviewedGuide = plain(fixture.input.episodeGuides.guides[0]);
+  reviewedGuide.id = "ooLNfFkpH6M";
+
+  const result = fixture.window.WWAMSourceDossierAdapter.build({
+    ...fixture.input,
+    episodeGuides: {
+      ...plain(fixture.input.episodeGuides),
+      guides: fixture.input.episodeGuides.guides.concat(reviewedGuide),
+    },
+  });
+
+  assert.equal(result.sources.length, 510);
+  assert.ok(byId(result, "ooLNfFkpH6M").episodeGuide);
 });
 
 test("adapter fails closed when canonical Archive Deep or Showcase proof is missing", () => {

@@ -204,7 +204,7 @@ test("Cold Open Factory is a working fourth Clip Lab mode with source-ledgered e
 test("trust-sensitive public copy keeps archive boundaries visible", () => {
   assert.match(search, /EARLIEST MACHINE-INDEXED CHARACTER SIGNAL|machine-indexed character signal/i);
   assert.match(app, /EARLIEST PLAYABLE CHARACTER CLIP ON THIS SHELF/);
-  assert.match(app, /MACHINE-SURFACED ARGUMENT BOARD/);
+  assert.match(app, /TAPE-INDEXED ARGUMENT BOARD/);
   assert.match(app, /not speaker-diarized/i);
   assert.match(index, /shows uncertainty when the tape cannot prove something/i);
 });

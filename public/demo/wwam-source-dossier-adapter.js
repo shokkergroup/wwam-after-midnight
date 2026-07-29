@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.9.1";
+  var VERSION = "1.10.0";
   var SCHEMA = "shokker-source-dossier-input/v1";
   var PUBLIC_EXCERPT_WORDS = 16;
   var OFFICIAL_WWAM_CHANNEL_ID = "UC6ieEOZW4iXV8TcILJI8k5g";
@@ -428,6 +428,7 @@
           at == null ? index : Math.floor(at),
         ].join(":"),
         t: at,
+        end: topic.end,
         type: "topic-navigation",
         label: label,
         excerpt: topic.receipt || topic.excerpt || "",
@@ -507,6 +508,7 @@
           index,
         ].join(":"),
         t: character.t,
+        end: character.end,
         type: kind,
         label: label,
         excerpt: character.receipt || character.excerpt || "",
@@ -1707,7 +1709,7 @@
     var episodeGuideRecords = array(episodeGuides.guides);
     var episodeGuideById = mapById(episodeGuideRecords, "WWAM Episode Guide V2");
     var expectedEpisodeGuides = number(deep.meta && deep.meta.episodeGuides);
-    if (expectedEpisodeGuides && episodeGuideById.size !== expectedEpisodeGuides) {
+    if (expectedEpisodeGuides && episodeGuideById.size < expectedEpisodeGuides) {
       fail(
         "EPISODE_GUIDE_COUNT_INVALID",
         "The demand-loaded Episode Guide V2 registry is incomplete."
@@ -1743,7 +1745,7 @@
       "WWAM commentary Deep Distill"
     );    assertSubset(
       episodeGuideRecords,
-      new Set(catalogById.keys()),
+      new Set(Array.from(catalogById.keys()).concat(Array.from(atlasById.keys()))),
       "WWAM Episode Guide V2"
     );
     var overlap = Array.from(catalogById.keys()).filter(function (id) {

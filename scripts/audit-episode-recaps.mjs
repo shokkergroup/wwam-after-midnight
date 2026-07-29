@@ -10,6 +10,8 @@ const runtimeFiles = [
   "catalog.js",
   "deep-distill.js",
   "episode-guides.js",
+  "episode-guide-v2-reviewed-release.js",
+  "episode-guide-v2-reviewed-merge.js",
   "livestream-distill.js",
   "popular-live-distill.js",
   "character-lore.js",
@@ -24,6 +26,8 @@ const runtimeFiles = [
   "archive-deep-engine.js",
   "archive-deep-portfolio.js",
   "year-canon-2025-2026.js",
+  "archive-recovery-batch1.js",
+  "archive-recovery-batch2.js",
   "episode-recap-engine.js",
   "wwam-episode-recap-adapter.js",
   "wwam-source-dossier-adapter.js",
@@ -39,6 +43,11 @@ function compile() {
     });
   });
   const runtime = sandbox.window;
+  runtime.WWAM_EPISODE_GUIDES =
+    runtime.WWAM_EPISODE_GUIDE_V2_REVIEWED_MERGE.merge(
+      runtime.WWAM_EPISODE_GUIDES,
+      runtime.WWAM_EPISODE_GUIDE_V2_REVIEWED_RELEASE,
+    );
   const showcase = runtime.WWAMShowcaseEngine.create({
     catalog: runtime.WWAM_CATALOG,
     deep: runtime.WWAM_DEEP_DISTILL,
@@ -59,9 +68,21 @@ function compile() {
   );
   const base = portfolio.getSearchPayload();
   const archiveSearch = Object.assign({}, base, {
-    streams: base.streams.concat(runtime.WWAM_YEAR_CANON_2025_2026.streams),
-    topicIndex: base.topicIndex.concat(runtime.WWAM_YEAR_CANON_2025_2026.topicIndex),
-    characterIndex: base.characterIndex.concat(runtime.WWAM_YEAR_CANON_2025_2026.characterIndex),
+    streams: base.streams.concat(
+      runtime.WWAM_YEAR_CANON_2025_2026.streams,
+      runtime.WWAM_ARCHIVE_RECOVERY_BATCH1.streams,
+      runtime.WWAM_ARCHIVE_RECOVERY_BATCH2.streams,
+    ),
+    topicIndex: base.topicIndex.concat(
+      runtime.WWAM_YEAR_CANON_2025_2026.topicIndex,
+      runtime.WWAM_ARCHIVE_RECOVERY_BATCH1.topicIndex,
+      runtime.WWAM_ARCHIVE_RECOVERY_BATCH2.topicIndex,
+    ),
+    characterIndex: base.characterIndex.concat(
+      runtime.WWAM_YEAR_CANON_2025_2026.characterIndex,
+      runtime.WWAM_ARCHIVE_RECOVERY_BATCH1.characterIndex,
+      runtime.WWAM_ARCHIVE_RECOVERY_BATCH2.characterIndex,
+    ),
   });
   return runtime.WWAMSourceDossierAdapter.build({
     atlas: runtime.WWAM_ARCHIVE_ATLAS,
@@ -143,11 +164,28 @@ function usesExcerpt(section) {
   return false;
 }
 
+function receiptKind(receipt) {
+  const kind = String(receipt?.kind || "").toLowerCase();
+  const evidenceType = String(receipt?.evidenceType || "").toLowerCase();
+  if (kind.includes("topic") || evidenceType.includes("topic")) return "topic";
+  if (kind.includes("character") || evidenceType.includes("character")) return "character";
+  return "moment";
+}
+
+function comparableExcerpt(value) {
+  return String(value || "")
+    .replace(/^[\s.\u2026\u00e2\u20ac\u00a6]+|[\s.\u2026\u00e2\u20ac\u00a6]+$/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
 function recapText(file) {
   return [
     file.recap.headline,
     file.recap.deck,
     file.recap.overview,
+    ...file.recap.story.flatMap((segment) => [segment.label, segment.body]),
     ...file.recap.sections.flatMap((section) => [section.label, section.body]),
     ...Object.values(file.recap.fanRead || {}).flatMap((item) => [
       item.label,
@@ -171,6 +209,93 @@ const held = files.filter((file) => file.recap.state === "held");
 const sections = ready.flatMap((file) =>
   file.recap.sections.map((section) => ({ sourceId: file.id, ...section })),
 );
+const storySegments = ready.flatMap((file) =>
+  file.recap.story.map((segment) => ({ sourceId: file.id, ...segment })),
+);
+const actEvidence = ready.map((file) => {
+  const registered = file.source.receipts || [];
+  const usedKeys = new Set(file.recap.sections.flatMap((section) => section.receiptKeys));
+  const registeredByKind = {
+    topic: registered.filter((receipt) => receiptKind(receipt) === "topic"),
+    moment: registered.filter((receipt) => receiptKind(receipt) === "moment"),
+    character: registered.filter((receipt) => receiptKind(receipt) === "character"),
+  };
+  const usedByKind = Object.fromEntries(
+    Object.entries(registeredByKind).map(([kind, values]) => [
+      kind,
+      values.filter((receipt) => usedKeys.has(receipt.key)),
+    ]),
+  );
+  return {
+    sourceId: file.id,
+    registered: registered.length,
+    used: registered.filter((receipt) => usedKeys.has(receipt.key)).length,
+    registeredByKind,
+    usedByKind,
+    openingCategory: file.recap.sections[0]?.category || "",
+  };
+});
+const actEvidenceTotals = actEvidence.reduce((totals, item) => {
+  totals.registered += item.registered;
+  totals.used += item.used;
+  for (const kind of ["topic", "moment", "character"]) {
+    totals.registeredByKind[kind] += item.registeredByKind[kind].length;
+    totals.usedByKind[kind] += item.usedByKind[kind].length;
+  }
+  totals.openings[item.openingCategory] =
+    (totals.openings[item.openingCategory] || 0) + 1;
+  return totals;
+}, {
+  registered: 0,
+  used: 0,
+  registeredByKind: { topic: 0, moment: 0, character: 0 },
+  usedByKind: { topic: 0, moment: 0, character: 0 },
+  openings: {},
+});
+const storyCoverageFailures = ready.flatMap((file) => {
+  const registered = new Set(file.source.receipts.map((receipt) => receipt.key));
+  const narrated = new Set(file.recap.story.flatMap((segment) => segment.receiptKeys));
+  const missing = Array.from(registered).filter((key) => !narrated.has(key));
+  const foreign = Array.from(narrated).filter((key) => !registered.has(key));
+  return missing.length || foreign.length ||
+      file.recap.caseFile.storyReceiptCount !== registered.size ||
+      file.recap.caseFile.storyCoveragePercent !== 100
+    ? [{
+      sourceId: file.id,
+      registered: registered.size,
+      narrated: narrated.size,
+      missing,
+      foreign,
+      reportedCoverage: file.recap.caseFile.storyCoveragePercent,
+    }]
+    : [];
+});
+const storyAnchorFailures = ready.flatMap((file) => {
+  const receiptByKey = new Map(
+    file.source.receipts.map((receipt) => [receipt.key, receipt]),
+  );
+  return file.recap.story.flatMap((segment) => {
+    const anchor = receiptByKey.get(segment.anchorReceiptKey);
+    const excerpt = comparableExcerpt(segment.excerpt);
+    const ownedExcerpt = !excerpt || (
+      anchor?.publicExcerptAllowed &&
+      comparableExcerpt(anchor.excerpt).startsWith(excerpt)
+    );
+    return anchor &&
+        segment.receiptKeys.includes(segment.anchorReceiptKey) &&
+        Number(anchor.at) === Number(segment.anchorAt) &&
+        ownedExcerpt
+      ? []
+      : [{
+        sourceId: file.id,
+        segmentId: segment.id,
+        anchorReceiptKey: segment.anchorReceiptKey,
+        anchorAt: segment.anchorAt,
+        receiptAt: anchor?.at ?? null,
+        ownedExcerpt,
+      }];
+  });
+});
 const comparison = ready
   .filter((file) => file.legacyRecap && file.legacyRecap.overview)
   .map((file) => ({
@@ -246,6 +371,39 @@ const report = {
       minimum: Math.min(...ready.map((file) => file.recap.sections.length)),
       maximum: Math.max(...ready.map((file) => file.recap.sections.length)),
     },
+    story: {
+      segments: storySegments.length,
+      averageSegmentsPerReadyRecap: average(ready.map((file) => file.recap.story.length)),
+      receiptsAccountedFor: ready.reduce(
+        (total, file) => total + file.recap.caseFile.storyReceiptCount,
+        0,
+      ),
+      registeredReceipts: ready.reduce(
+        (total, file) => total + file.recap.caseFile.receiptCount,
+        0,
+      ),
+    },
+    actEvidence: {
+      registeredReceipts: actEvidenceTotals.registered,
+      usedReceipts: actEvidenceTotals.used,
+      usedPercent: actEvidenceTotals.registered
+        ? Math.round(actEvidenceTotals.used / actEvidenceTotals.registered * 1000) / 10
+        : 100,
+      registeredByKind: actEvidenceTotals.registeredByKind,
+      usedByKind: actEvidenceTotals.usedByKind,
+      usedPercentByKind: Object.fromEntries(
+        Object.keys(actEvidenceTotals.registeredByKind).map((kind) => [
+          kind,
+          actEvidenceTotals.registeredByKind[kind]
+            ? Math.round(
+              actEvidenceTotals.usedByKind[kind] /
+                actEvidenceTotals.registeredByKind[kind] * 1000,
+            ) / 10
+            : 100,
+        ]),
+      ),
+      openingCategory: actEvidenceTotals.openings,
+    },
     topics: {
       averagePerReadyRecap: average(ready.map((file) =>
         new Set(file.recap.sections.flatMap((section) => section.receiptKeys)).size,
@@ -264,6 +422,7 @@ const report = {
     uniqueHeadlines: new Set(ready.map((file) => file.recap.headline)).size,
     uniqueDecks: new Set(ready.map((file) => file.recap.deck)).size,
     sectionLabelPrefixes: countBy(sections, (section) => prefix(section.label)),
+    storyReelOpenings: countBy(storySegments, (segment) => prefix(segment.label)),
     repeatedOverviewColor: countBy(ready, (file) => {
       const match = file.recap.overview.match(
         /(In plain English[^.]*\.|This is the one where[^.]*\.|The tape moves like[^.]*\.|It starts as a show[^.]*\.)/,
@@ -290,6 +449,8 @@ const report = {
     earlyClosingLabels,
     missingCaseFiles: missingCaseFiles.map((file) => file.id),
     titleGoldenFailures,
+    storyCoverageFailures,
+    storyAnchorFailures,
   },
   unusedRegisteredOverviewSignal: {
     compared: comparison.length,
@@ -325,6 +486,10 @@ if (sourceFlag >= 0) {
       `Sources: ${report.corpus.sources} // ready ${report.corpus.ready} // held ${report.corpus.held}`,
       `Tiers: ${JSON.stringify(report.corpus.tiers)}`,
       `Sections: ${report.depth.sections.total} total // ${report.depth.sections.averagePerReadyRecap} average`,
+      `Written story: ${report.depth.story.segments} reels // ${report.depth.story.receiptsAccountedFor}/${report.depth.story.registeredReceipts} receipts accounted for`,
+      `Playable acts: ${report.depth.actEvidence.usedReceipts}/${report.depth.actEvidence.registeredReceipts} receipts // ${report.depth.actEvidence.usedPercent}%`,
+      `Act topic carry-through: ${report.depth.actEvidence.usedByKind.topic}/${report.depth.actEvidence.registeredByKind.topic} // ${report.depth.actEvidence.usedPercentByKind.topic}%`,
+      `Act openings by evidence: ${JSON.stringify(report.depth.actEvidence.openingCategory)}`,
       `Unique headlines: ${report.voice.uniqueHeadlines}/${report.corpus.ready}`,
       `Unique decks: ${report.voice.uniqueDecks}/${report.corpus.ready}`,
       `Registered-overview overlap: ${report.unusedRegisteredOverviewSignal.averageWordOverlapPercent}% average`,
@@ -337,6 +502,8 @@ if (sourceFlag >= 0) {
       `Early LAST WORD labels: ${report.quality.earlyClosingLabels.length}`,
       `Missing case files: ${report.quality.missingCaseFiles.length}`,
       `Title-subject golden failures: ${report.quality.titleGoldenFailures.length}`,
+      `Written-story coverage failures: ${report.quality.storyCoverageFailures.length}`,
+      `Written-story anchor failures: ${report.quality.storyAnchorFailures.length}`,
       "",
       "Most repeated section labels:",
       ...Object.entries(report.voice.sectionLabelPrefixes)

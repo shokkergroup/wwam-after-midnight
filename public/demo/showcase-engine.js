@@ -1867,7 +1867,7 @@
       evidenceLevels: [
         {
           id: "machine",
-          label: "MACHINE SURFACED",
+          label: "TAPE-INDEXED CANDIDATE",
           meaning: "Candidate found by deterministic transcript rules"
         },
         {

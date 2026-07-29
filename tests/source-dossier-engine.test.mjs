@@ -313,7 +313,7 @@ test("builds a deterministic channel-neutral dossier with typed dual-ended conne
   const dossier = clone(engine.build("RACEFILE01A"));
   const again = clone(engine.build("RACEFILE01A"));
 
-  assert.equal(engine.version, "1.8.0");
+  assert.equal(engine.version, "1.9.0");
   assert.equal(engine.getStats().sources, 3);
   assert.equal(dossier.source.receipts.length, 2);
   assert.equal(dossier.source.receipts[0].signalScore, 88);

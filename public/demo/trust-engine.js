@@ -57,7 +57,7 @@
     }),
     Object.freeze({
       id: "machine",
-      label: "MACHINE SURFACED",
+      label: "TAPE-INDEXED CANDIDATE",
       confidenceRange: "40–77",
       meaning:
         "A deterministic process found the caption event, category, topic, or relationship.",
@@ -1005,7 +1005,7 @@
             safeLabel:
               semanticSupport && humanVerified
                 ? "VERIFIED POSITION CHANGE"
-                : "MACHINE-SURFACED POLARITY CHANGE"
+                : "TAPE-INDEXED POSITION CHANGE CANDIDATE"
           };
         });
         var directRatio = receipts.length ? direct.length / receipts.length : 0;
@@ -1183,7 +1183,7 @@
           verdict: "OPEN",
           safePublicLabel: canonEligible
             ? "EDITOR-VERIFIED WWAM COURT"
-            : "MACHINE-SURFACED ARGUMENT BOARD",
+            : "TAPE-INDEXED ARGUMENT BOARD",
           prohibition:
             "No synthesized verdict or host opinion becomes canon without a human decision.",
           confidence: makeConfidence(

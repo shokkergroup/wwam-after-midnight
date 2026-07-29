@@ -255,7 +255,7 @@ test("opinion timelines and courts remain inference until target and human revie
   trust.courtAudits.forEach((court) => {
     assert.equal(court.canonEligible, false);
     assert.equal(court.verdict, "OPEN");
-    assert.equal(court.safePublicLabel, "MACHINE-SURFACED ARGUMENT BOARD");
+    assert.equal(court.safePublicLabel, "TAPE-INDEXED ARGUMENT BOARD");
   });
 
   const friday = trust.timelineAudits.find(

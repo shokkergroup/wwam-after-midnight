@@ -46,7 +46,7 @@
   function evidenceLabel(state) {
     var labels = {};
     labels[EVIDENCE.curated] = "TIMESTAMP-CURATED CANDIDATE";
-    labels[EVIDENCE.machine] = "MACHINE-SURFACED";
+    labels[EVIDENCE.machine] = "TAPE-INDEXED CANDIDATE";
     labels[EVIDENCE.quarantined] = "REVIEW QUEUE";
     labels[EVIDENCE.navigation] = "NAVIGATION ONLY";
     labels[EVIDENCE.held] = "SOURCE HELD";
