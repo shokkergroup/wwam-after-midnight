@@ -14,6 +14,10 @@ export async function generateMetadata(): Promise<Metadata> {
     title: "WWAM After Midnight — The Living Archive",
     description:
       "Watch, search and explore We Watched A Movie history through playable show wikis, source-linked moments, recurring characters and a living 2025–2026 canon.",
+    icons: {
+      icon: [{ url: "/favicon.png", type: "image/png", sizes: "64x64" }],
+      shortcut: "/favicon.png",
+    },
     openGraph: {
       type: "website",
       title: "WWAM After Midnight — The Living Archive",

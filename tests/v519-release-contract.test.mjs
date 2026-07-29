@@ -48,6 +48,8 @@ test("V5.19 package, cache keys, and public documentation move together", () => 
   );
   assert.match(html, /youtube-playback\.js\?v=2\.4\.2-host-local/);
   assert.match(html, /app\.js\?v=0\.5\.47-release-polish/);
+  assert.match(html, /<link rel="icon" href="\/favicon\.png" sizes="64x64" type="image\/png">/);
+  assert.equal(fs.existsSync(path.join(root, "public", "favicon.png")), true);
 
   assert.match(readme, /Current documented release: \*\*V5\.21 \/ 0\.5\.21\*\*/);
   assert.match(readme, /docs\/THE_MIDNIGHT_CUT\.md/);
