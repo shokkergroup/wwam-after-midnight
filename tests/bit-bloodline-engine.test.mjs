@@ -49,6 +49,7 @@ function buildRealFixture() {
     "archive-deep-batch4.js",
     "archive-deep-engine.js",
     "archive-deep-portfolio.js",
+    "episode-guides.js",
     "wwam-source-dossier-adapter.js",
     "source-dossier-engine.js",
     "memory-cut-engine.js",
@@ -79,6 +80,7 @@ function buildRealFixture() {
     live: window.WWAM_LIVESTREAMS,
     popular: window.WWAM_POPULAR_LIVE,
     archiveDeepPortfolio: archiveDeep,
+    episodeGuides: window.WWAM_EPISODE_GUIDES,
     showcase,
     clipLab,
     characters: window.WWAM_CHARACTER_LORE,
@@ -102,8 +104,8 @@ function buildRealFixture() {
 const expected = {
   "ancestry:bit-challis-hotline": {
     label: "THE CHALLIS HOTLINE",
-    appearances: 7,
-    sources: 6,
+    appearances: 8,
+    sources: 7,
     first: "2022-07-20",
     last: "2026-07-23",
     elapsed: 1464,
@@ -114,6 +116,7 @@ const expected = {
       "character-receipt:challis-dj",
       "character-receipt:challis-alphabet",
       "character-receipt:challis-heman",
+      "character-receipt:challis-courtney-answer",
       "character-receipt:challis-miguel",
       "character-receipt:challis-doctor",
       "character-receipt:challis-birthday",
@@ -121,8 +124,8 @@ const expected = {
   },
   "ancestry:bit-slenderman-dispatch": {
     label: "SLENDERMAN DISPATCH",
-    appearances: 6,
-    sources: 6,
+    appearances: 8,
+    sources: 8,
     first: "2021-04-24",
     last: "2026-07-23",
     elapsed: 1916,
@@ -131,6 +134,8 @@ const expected = {
     keys: [
       "character-receipt:slender-stomach",
       "character-receipt:slender-decade",
+      "character-receipt:slender-jerry-shoutout",
+      "character-receipt:slender-halloween-trailer",
       "character-receipt:slender-motivation",
       "character-receipt:slender-creed",
       "character-receipt:slender-last-resort",
@@ -139,8 +144,8 @@ const expected = {
   },
   "ancestry:bit-loomis-alert": {
     label: "THE LOOMIS ALERT SYSTEM",
-    appearances: 7,
-    sources: 5,
+    appearances: 9,
+    sources: 7,
     first: "2022-08-20",
     last: "2026-07-23",
     elapsed: 1433,
@@ -151,6 +156,8 @@ const expected = {
       "character-receipt:loomis-biscuit-job",
       "character-receipt:loomis-wolverine",
       "character-receipt:loomis-interview",
+      "character-receipt:loomis-mortal-kombat",
+      "character-receipt:loomis-zero-option",
       "character-receipt:loomis-sam",
       "character-receipt:loomis-funding",
       "character-receipt:loomis-pepto",
@@ -175,7 +182,14 @@ const expected = {
   },
 };
 
-test("exposes all four source-locked lineages and the exact 25 curated windows", () => {
+const expectedOrder = [
+  "ancestry:bit-slenderman-dispatch",
+  "ancestry:bit-loomis-alert",
+  "ancestry:bit-challis-hotline",
+  "ancestry:bit-feldman-frequency",
+];
+
+test("exposes all four source-locked lineages and the exact 30 curated windows", () => {
   const { engine } = buildRealFixture();
   const lineages = plain(engine.list());
 
@@ -183,7 +197,7 @@ test("exposes all four source-locked lineages and the exact 25 curated windows",
   assert.equal(lineages.length, 4);
   assert.deepEqual(
     lineages.map((lineage) => lineage.id),
-    Object.keys(expected),
+    expectedOrder,
   );
 
   for (const lineage of lineages) {
@@ -264,9 +278,9 @@ test("exposes all four source-locked lineages and the exact 25 curated windows",
 
   assert.deepEqual(plain(engine.getStats()), {
     lineages: 4,
-    performances: 25,
-    laterAppearances: 21,
-    sources: 12,
+    performances: 30,
+    laterAppearances: 26,
+    sources: 14,
     firstDate: "2021-04-24",
     lastDate: "2026-07-23",
     elapsedDays: 1916,
@@ -279,7 +293,7 @@ test("exposes all four source-locked lineages and the exact 25 curated windows",
     cutEligibleEchoes: 0,
     profileMappings: 4,
     registrySources: 510,
-    registryReceipts: 1490,
+    registryReceipts: 1495,
     registryFingerprint: engine.registryFingerprint,
   });
   assert.doesNotMatch(
@@ -309,20 +323,35 @@ test("compiles a bloodline directly into an exact Memory Cut request", () => {
   const { window, dossierEngine, engine } = buildRealFixture();
 
   for (const id of Object.keys(expected)) {
-    const packet = plain(engine.compileCutPacket(id));
     const lineage = plain(engine.get(id));
+    const limit = Math.min(lineage.appearanceCount, 8);
+    const packet = plain(engine.compileCutPacket(id, { limit }));
+    const selectedPerformances = lineage.performances.length > limit
+      ? lineage.performances.slice(0, limit - 1).concat(lineage.performances.at(-1))
+      : lineage.performances;
+    const selectedKeys = selectedPerformances.map(
+      (performance) => performance.receiptKey,
+    );
     assert.equal(packet.schema, "shokker-memory-cut-request/v1");
     assert.equal(packet.ok, true);
     assert.deepEqual(packet.rejected, []);
-    assert.equal(packet.selectionPolicy, "complete-chronology");
+    assert.equal(
+      packet.selectionPolicy,
+      lineage.appearanceCount > limit
+        ? "chronological-bookends"
+        : "complete-chronology",
+    );
     assert.doesNotMatch(
       JSON.stringify(packet),
       /first[\s-]*spark|later-echo|latest-indexed/i,
     );
-    assert.deepEqual(packet.omittedReceiptKeys, []);
+    assert.deepEqual(
+      packet.omittedReceiptKeys,
+      lineage.receiptKeys.filter((key) => !selectedKeys.includes(key)),
+    );
     assert.deepEqual(
       packet.selections.map((selection) => selection.receiptKey),
-      lineage.receiptKeys,
+      selectedKeys,
     );
     assert.equal(packet.overlapCount, lineage.overlapCount);
     assert.deepEqual(packet.overlaps, lineage.overlaps);
@@ -335,11 +364,11 @@ test("compiles a bloodline directly into an exact Memory Cut request", () => {
     );
     assert.ok(
       packet.selections.every((selection, index) => (
-        selection.sourceId === lineage.performances[index].sourceId
-        && selection.sourceFingerprint === lineage.performances[index].sourceFingerprint
-        && selection.dossierFingerprint === lineage.performances[index].dossierFingerprint
-        && selection.at === lineage.performances[index].at
-        && selection.end === lineage.performances[index].end
+        selection.sourceId === selectedPerformances[index].sourceId
+        && selection.sourceFingerprint === selectedPerformances[index].sourceFingerprint
+        && selection.dossierFingerprint === selectedPerformances[index].dossierFingerprint
+        && selection.at === selectedPerformances[index].at
+        && selection.end === selectedPerformances[index].end
       )),
     );
     assert.ok(Object.values(packet.authority).every((value) => value === false));
@@ -347,10 +376,10 @@ test("compiles a bloodline directly into an exact Memory Cut request", () => {
     const cut = plain(
       window.ShokkerMemoryCut.create({ dossierEngine }).compile(packet),
     );
-    assert.equal(cut.stats.stopCount, lineage.appearanceCount);
+    assert.equal(cut.stats.stopCount, selectedPerformances.length);
     assert.deepEqual(
       cut.stops.map((stop) => stop.key),
-      lineage.receiptKeys,
+      selectedKeys,
     );
   }
 });

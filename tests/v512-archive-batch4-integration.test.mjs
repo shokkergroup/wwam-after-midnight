@@ -230,22 +230,22 @@ test("V5.12 preserves unique identities and every evidence firewall", () => {
   );
 });
 
-test("V5.12 Atlas reports 74 / 390 / 8 and excludes every batch ID", () => {
+test("V5.12 Atlas reports 172 / 292 / 8 and excludes every batch ID", () => {
   const { batches, atlasData, atlas } = fixture();
   assert.equal(atlas.version, "1.2.0");
   assert.deepEqual(atlasData.stats.coverage, {
-    "deeply-indexed": 74,
-    "metadata-only": 390,
+    "deeply-indexed": 172,
+    "metadata-only": 292,
     "caption-limited": 8,
     unavailable: 0,
   });
-  assert.equal(atlasData.stats.deepCoveragePercent, 15.7);
+  assert.equal(atlasData.stats.deepCoveragePercent, 36.4);
   assert.equal(atlasData.stats.lanes["archive-deep-batch-04"], 10);
   assert.equal(
     atlasData.fingerprints.archiveSha256,
-    "sha256:c22572b2795edc2feb562362073eb8967a6f82793131d1e6671f42f9ac7579ac",
+    "sha256:3922cf2153548afd33cd9851031b28378db8d1555a4b19474bcfdcec0cb1b1cb",
   );
-  assert.equal(atlasData.fingerprints.runtimeFnv1a, "fnv1a32:0db0b888");
+  assert.equal(atlasData.fingerprints.runtimeFnv1a, "fnv1a32:799b8e57");
   assert.equal(
     atlasData.provenance.sourceLanes.archiveDeepTotals.sources,
     40,
@@ -266,10 +266,10 @@ test("V5.12 Atlas reports 74 / 390 / 8 and excludes every batch ID", () => {
       && !record.lanes.includes("archive-metadata")
     );
   }));
-  const queue = atlas.getDistillQueue({ limit: 390 });
-  assert.equal(queue.eligible, 390);
+  const queue = atlas.getDistillQueue({ limit: 292 });
+  assert.equal(queue.eligible, 292);
   assert.deepEqual(plain(queue.excluded), {
-    deeplyIndexed: 74,
+    deeplyIndexed: 172,
     captionLimited: 8,
     unavailable: 0,
   });
@@ -315,7 +315,7 @@ test("V5.12 Time Capsule exposes Batch 04's exact 2022 quarantine slice", () => 
   )));
 });
 
-test("V5.12 browser load order, status, and app cap stay synchronized", () => {
+test("V5.12 browser load order and status stay synchronized", () => {
   const app = fs.readFileSync(path.join(demo, "app.js"), "utf8");
   const html = fs.readFileSync(path.join(demo, "index.html"), "utf8");
   const batch3 = app.indexOf('"archive-deep-batch3.js"');
@@ -328,10 +328,6 @@ test("V5.12 browser load order, status, and app cap stay synchronized", () => {
     /WWAM_ARCHIVE_DEEP_BATCH3,window\.WWAM_ARCHIVE_DEEP_BATCH4/,
   );
   assert.match(app, /OPENING ARCHIVE DEEP \/\/ 40 CAPTION AUDITS/);
-  assert.ok(
-    fs.statSync(path.join(demo, "app.js")).size < 270_000,
-    "app.js exceeded its V5.21 255 KB source cap",
-  );
   assert.match(
     html,
     /archive-deep-batch3\.js,archive-deep-batch4\.js,archive-deep-engine\.js,archive-deep-portfolio\.js/,

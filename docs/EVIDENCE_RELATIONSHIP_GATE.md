@@ -206,7 +206,7 @@ The relationship gate is an accuracy moat, not a feature-count claim:
 5. the enforcement contract travels to another channel, while its registered
    entities and referent classifier remain channel-owned work.
 
-The buyer-facing demonstration is short:
+The verification sequence is short:
 
 1. ask the Halloween question;
 2. show that the two memorable but unrelated V5.15 soundbytes are gone;

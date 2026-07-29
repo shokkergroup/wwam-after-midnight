@@ -55,7 +55,7 @@ ledger remains historical release proof; it is not a synonym for the current
 
 ## The newest-upload proof
 
-The July 23, 2026 livestream `LV2rmwEA0w4` is the buyer-facing launch proof.
+The July 23, 2026 livestream `LV2rmwEA0w4` is the newest-upload launch proof.
 Its dossier joins inventory already present in the system:
 
 - 43,645 audited caption words;
@@ -96,7 +96,7 @@ or a content refusal; a stale fingerprint refuses before query
 interpretation.
 
 See [Ask This Tape](ASK_THIS_TAPE.md) for the request/response contract and
-the three-source buyer proof.
+the three-source verification proof.
 
 ## Per-Show Wiki V1.4
 

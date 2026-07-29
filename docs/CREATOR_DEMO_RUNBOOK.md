@@ -1,7 +1,7 @@
 # Creator Demo Runbook
 
 This runbook is for showing WWAM After Midnight to a creator, collaborator, or
-potential buyer. The goal is not to tour every feature. The goal is to prove
+project reviewer. The goal is not to tour every feature. The goal is to prove
 three things quickly:
 
 1. fans get a reason to explore and return;
@@ -71,7 +71,7 @@ Use this evidence vocabulary consistently:
 
 ## The 60-second version
 
-For a source-first buyer demonstration, open the July 23 livestream dossier
+For a source-first demonstration, open the July 23 livestream dossier
 first: “This one new upload became a fan page, exact-source search room, and a
 creator workbench.” Show its 21 registered receipts, four bit lineages, and
 draft clip inventory. Ask for Dr. Loomis, switch to duplicate-title source
@@ -79,7 +79,7 @@ draft clip inventory. Ask for Dr. Loomis, switch to duplicate-title source
 The contrast between bounded answers, title isolation, and an honest refusal
 explains the product faster than a feature tour.
 
-Press **Mike Mode** and use one sentence per slide:
+Press **Showcase Mode** and use one sentence per slide:
 
 1. **Problem:** “YouTube stores the catalog, but it does not remember the
    relationships inside it.”
@@ -91,16 +91,15 @@ Press **Mike Mode** and use one sentence per slide:
    That is 15.7% deep coverage; current availability was not rechecked.”
 4. **Moat:** “The value compounds when takes, bits, characters, topics, and new
    uploads connect without pretending machine inference is canon.”
-5. **Money:** “Tonight's 12 turns the same archive proof into a labeled first
+5. **Usefulness:** “Tonight's 12 turns the same archive proof into a labeled first
    editorial pass, not a publish queue or virality promise.”
-6. **Pilot:** “The close converts proof into one measurable Creator Pilot,
-   while every unmeasured business outcome stays marked `MEASURE DURING
-   PILOT`.”
+6. **Workflow:** “The final step turns proof into one measurable evaluation
+   workflow while every unobserved outcome remains explicitly unobserved.”
 
-Use the proof button on at least two slides. A pitch that exits into working
+Use the proof button on at least two slides. A demonstration that exits into working
 evidence is stronger than a complete slideshow.
 
-## V5.21 Mike path - prove the count in two minutes
+## V5.21 two-minute count proof
 
 Use this path to show that Ask can answer an archive-wide question with a
 reviewable ledger instead of a confident estimate.
@@ -142,11 +141,11 @@ Which source has the most character performances?
 ```
 
 The top three must be `LV2rmwEA0w4` with six, `ag3axSC9BpU` with five, and
-`N-UahfG8-gM` with three. Export the bounded JSON if Mike wants to see the
+`N-UahfG8-gM` with three. Export the bounded JSON if the reviewer wants to see the
 handoff. It contains evidence/navigation records, not copied media, rights, or
 creator approval.
 
-## V5.20 Mike path - run the bloodline in two minutes
+## V5.20 two-minute bloodline proof
 
 Use this path to show that the archive remembers a recurring bit across years,
 plays every eligible window precisely, and keeps weaker machine evidence out.
@@ -227,7 +226,7 @@ The other current totals are:
 Across all four: 25 exact 14-second windows, 12 official uploads, and 350
 bounded seconds.
 
-## V5.19 Mike path — cut the tape in two minutes
+## V5.19 two-minute cut-the-tape proof
 
 Use this path to demonstrate the loop from archive proof to fan delight to
 creator utility without adding a new homepage destination.
@@ -292,7 +291,7 @@ pretends to clear rights, approve a clip, prove origin, or publish.”
 If a source will not embed, use the in-page recovery action and official link.
 Do not describe third-party player availability as guaranteed.
 
-## V5.18 Mike path — exact-source proof in two minutes
+## V5.18 two-minute exact-source proof
 
 Use this path before a long feature tour. It demonstrates delight, accuracy,
 and refusal with three canonical source IDs.
@@ -385,7 +384,7 @@ bound to the same auditable source file.”
 ## The under-five-minute version
 
 The core route is designed for 4:20, leaving 40 seconds for load time or one
-question. Do not add optional features until the close.
+question. Do not add optional features until the core proof is complete.
 
 | Elapsed | Surface | One proof to show |
 | --- | --- | --- |
@@ -394,7 +393,7 @@ question. Do not add optional features until the close.
 | 1:05–2:05 | Ask + Play the Answer + The Tape Keeps Score | A written answer becomes an ordered official-source watch path; prediction/outcome questions retain their separate review handoff |
 | 2:05–3:20 | Clip Lab | Evidence becomes a reviewable Short and an exact campaign ledger |
 | 3:20–4:00 | Trust Desk | Character mapping is separated from clip-level speaker proof |
-| 4:00–4:20 | Close | Ask which workflow deserves a production pilot |
+| 4:00–4:20 | Next step | Ask which workflow deserves a follow-up evaluation |
 
 ### 1. Fan Experience — 30 seconds
 
@@ -558,8 +557,8 @@ Say:
 > that remains uniquely yours is the lore, voice, approvals, and history it
 > learns with you.
 
-Open **Creator Pilot Builder** in the private screening room and choose one
-goal. Mike Mode preselects **Archive Discovery**; keep it or choose a different
+Open **Creator Pilot Builder** from Showcase Mode and choose one
+goal. Showcase Mode preselects **Archive Discovery**; keep it or choose a different
 narrow workflow. Point to the current snapshot proof, acceptance checks,
 decisions still requiring authenticated human approval, and `MEASURE DURING
 PILOT` boundary. Copy the draft brief.
@@ -569,12 +568,12 @@ Then ask:
 > Which narrow pilot should we judge first: archive discovery, compilation
 > workflow, a fan/member experience, or recurring lore?
 
-That question tests product fit without claiming a price, saved hours, or
-outcome the prototype has not measured.
+That question tests product fit without claiming saved hours or an outcome the
+prototype has not measured.
 
 ## V5.5 two-minute proof branch
 
-Use this after the close when the buyer asks what is difficult to reproduce.
+Use this when a reviewer asks what is difficult to reproduce.
 
 ### Watch With Memory — 45 seconds
 
@@ -627,7 +626,7 @@ What it proves:
 
 ## V5.12 Archive Deep Portfolio proof — 90 seconds
 
-Use this branch when the buyer asks how the archive grows without turning
+Use this branch when a reviewer asks how the archive grows without turning
 automatic captions into fake certainty.
 
 - Open Archive Atlas and point to **74 deeply indexed / 390 metadata-only / 8
@@ -661,7 +660,7 @@ audio, visual context, or promotion boundary.”
 What it proves:
 
 - independent batches can compose behind one defensive read-only API;
-- source coverage can grow while the V5.4 sales proof remains frozen;
+- source coverage can grow while the V5.4 historical proof remains frozen;
 - each batch retains independent selection and caption fingerprints;
 - 24 source-level character signals plus 28 character contexts do not become
   52 claimed performances;
@@ -669,7 +668,7 @@ What it proves:
 
 ## V5.13 The Tape Keeps Score proof — 90 seconds
 
-Use this branch when the buyer asks whether the product can remember what the
+Use this branch when a reviewer asks whether the product can remember what the
 channel said before a release and compare it with what appeared later.
 
 1. Open Ask WWAM and ask **Which predictions came true?** Then ask **What did
@@ -709,7 +708,7 @@ What it proves:
 
 ## V5.14 The Verdict Room proof — 2 minutes
 
-Use this branch when the buyer asks what happens after machine retrieval finds
+Use this branch when a reviewer asks what happens after machine retrieval finds
 a plausible before/after pair.
 
 1. Enter **Verdict Room** from The Tape Keeps Score. Start on a clean docket
@@ -748,7 +747,7 @@ What it proves:
 
 ## V5.16 Evidence Relationship Gate proof — 60 seconds
 
-Use this branch when the buyer says any chatbot can search a relevant video.
+Use this branch when a reviewer says any chatbot can search a relevant video.
 
 1. Ask **What do they say about Halloween?**
 2. Explain the reproduced V5.15 result honestly: the system previously ranked
@@ -780,7 +779,7 @@ What it proves:
 
 ## V5.15 Play the Answer proof — 60 seconds
 
-Use this branch when the buyer says a chatbot can also return links.
+Use this branch when a reviewer says a chatbot can also return links.
 
 1. Ask **How did their opinion on Halloween change?**
 2. Read the visible boundary first: these franchise-wide receipts cannot prove
@@ -1007,11 +1006,11 @@ The prototype demonstrates product leverage, not financial results:
 - a local preference artifact can reorder eligible review inventory while the
   baseline and every protected evidence field remain recoverable;
 - fan features can route attention back to old official uploads;
-- the same schema can support premium vaults, member programs, sponsors, merch
-  callbacks, or annual packages after the creator chooses a business model.
+- the same schema can support creator-chosen private extensions without
+  exposing those terms inside the fan archive.
 
-Pricing, conversion, retention lift, sponsor demand, rights clearance, and
-revenue require a production pilot and real analytics.
+Private collaboration terms and unverified business outcomes remain outside
+this public demonstration.
 
 ## If something is wrong
 

@@ -44,30 +44,30 @@ Ask This Tape is available from every one of the 510 canonical dossiers:
 
 | Coverage | Sources | Source-local behavior |
 | --- | ---: | --- |
-| `caption-backed` | 111 | May answer from registered local receipts, entities, artifacts, metadata, and summaries |
-| `metadata-only` | 390 | May expose source proof; content questions refuse |
+| `caption-backed` | 209 | May answer from registered local receipts, entities, artifacts, metadata, and summaries |
+| `metadata-only` | 292 | May expose source proof; content questions refuse |
 | `caption-limited` | 9 | May expose only the defensible source boundary; missing content is not reconstructed |
 | `unavailable` | 0 | Would expose only the registered source boundary |
 
-The full dossier registry contains **1,490 receipts** and **928 source-bound
+The full dossier registry contains **3,315 receipts** and **944 source-bound
 artifact records**. Those current totals must not be conflated with the
 immutable V5.4 proof of **84 source inputs and 872 promoted receipts**. The
 84/872 proof is a frozen historical ledger.
 
-The 1,490-receipt taxonomy is:
+The 3,315-receipt taxonomy is:
 
 | Evidence type | Count |
 | --- | ---: |
-| `caption-excerpt` | 701 |
-| `caption-topic-receipt` | 592 |
-| `caption-topic-navigation` | 120 |
-| `curated-character-performance` | 25 |
+| `caption-excerpt` | 1,359 |
+| `caption-topic-receipt` | 1,532 |
+| `caption-topic-navigation` | 160 |
+| `curated-character-performance` | 30 |
 | `caption-character-signal` | 24 |
-| `caption-character-context` | 28 |
+| `caption-character-context` | 210 |
 
-Archive Deep's 24 character signals and 28 character contexts are
-machine-surfaced, speaker-undiarized, and quarantined. None of those 52 records
-is a curated performance.
+The 24 character signals and 210 character contexts are machine-surfaced,
+speaker-undiarized, and quarantined. None of those 234 records is a curated
+performance.
 
 ## Supported question shapes
 
@@ -161,13 +161,21 @@ also contains `funniest` or a lane term, automatic captions cannot be converted
 into a host identity. Any returned receipt is navigation only and keeps
 `speaker: null` / `speakerStatus: not-diarized`.
 
-The integrated V1.4 audit covers all 510 registered shows: 99 `distilled`, 12
-`topic-nav-only`, and 399 `queued`, with 111 distinct receipt-bound recaps and
-1,490 unique registered receipts. Its editorial checks certify 15 strict Steve
-receipts, 37 named character recap blocks with 0 generic blocks, 7 restored
+The current integrated audit covers all 510 registered shows: 193 moment-backed
+`distilled`, 16 `topic-nav-only`, and 301 source-safe held `source-brief`
+records, with 209 distinct receipt-bound recaps and 3,315 unique registered
+receipts. Its editorial checks certify 30 strict Steve receipts, 126 named
+character recap blocks with 0 generic blocks, 7 restored
 moments across BIT ENERGY and CHAT DID THIS, and 53/53 title-relevant topic
-selections wherever topic evidence exists. The integrated release gate passes
-178/178 relevant tests with build, lint, and diff checks green.
+selections wherever topic evidence exists. The 178/178 integrated V1.4 gate
+remains a historical baseline rather than the current corpus count.
+
+`FELDMAN APPROVED RECAP` may route only when this exact dossier already owns a
+receipt-bound recap. The result remains generated WWAM fan-archive editorial
+with `actualApproval: false`; it is not Corey Feldman approval, a Mike or J
+quote, or creator certification. For the 301 held Source Briefs, the same
+question must return the source-safe evidence gap instead of decorating title
+metadata as a recap.
 
 ## Exact playback bounds
 
@@ -236,7 +244,7 @@ Supported sections are:
 Unknown section values are discarded. A section route focuses the rendered
 dossier; it does not initialize playback.
 
-## Mike demonstration path
+## Two-minute demonstration path
 
 ### 1. July 23 Loomis proof
 

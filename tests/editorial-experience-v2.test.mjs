@@ -5,6 +5,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
+const project = path.join(here, "..");
 const demo = path.join(here, "..", "public", "demo");
 const read = (name) => fs.readFileSync(path.join(demo, name), "utf8");
 
@@ -136,13 +137,14 @@ test("Show Wikis keep five primary fan actions and disclose the deep lanes", () 
   const dossier = read("wwam-dossier-editorial.js");
   const css = read("wwam-editorial-v2.css");
 
-  assert.match(html, /wwam-dossier-editorial\.js\?v=1\.1\.2-fan-visible/);
+  assert.match(html, /wwam-dossier-editorial\.js\?v=1\.2\.0-feldman-visible/);
   assert.match(dossier, /PLAY THE SHOW/);
   assert.match(dossier, /sourceDossierEpisodeGuide/);
   assert.match(dossier, /DEEP DIVE/);
   assert.match(dossier, /ASK THIS SHOW/);
-  assert.match(dossier, /QUICK RECAP/);
-  assert.match(dossier, /hasDeepDive/);
+  assert.match(dossier, /href === "#sourceDossierShowWikiSummary"/);
+  assert.doesNotMatch(dossier, /QUICK RECAP/);
+  assert.doesNotMatch(dossier, /!hasDeepDive/);
   assert.match(dossier, /EXPLORE ALL/);
   assert.match(dossier, /#sourceDossierFanRead/);
   assert.match(dossier, /link.textContent = "FAN READ"/);
@@ -152,12 +154,24 @@ test("Show Wikis keep five primary fan actions and disclose the deep lanes", () 
   assert.match(css, /\.source-dossier-explore \{ top: 0 !important;/);
 });
 
-test("public fan copy contains no pricing or private Mike-ready language", () => {
+test("public repository copy contains no pricing, sales, or personalized demo language", () => {
   const visible = ["index.html", "guided-shell.js", "wwam-editorial-v2.css", "wwam-night-guide.js", "wwam-night-guide.css"]
     .map(read)
     .join("\n");
+  const publicRepositoryCopy = [
+    fs.readFileSync(path.join(project, "PUBLISHING.md"), "utf8"),
+    fs.readFileSync(path.join(project, "README.md"), "utf8"),
+    ...fs.readdirSync(path.join(project, "docs"))
+      .filter((name) => name.endsWith(".md"))
+      .map((name) => fs.readFileSync(path.join(project, "docs", name), "utf8")),
+  ].join("\n");
+  const visiblePrivateLanguage =
+    /\$\s*\d|\bpricing\b|\bprice list\b|\bbuy now\b|\bpaid pilot\b|\bbuyers?\b|\bsales(?:\s+proof|\/demo|\s+close)?\b|\bprivate screening room\b|\bMike[- ]facing\b|\bMike(?:'s)? public demo\b|\bMike demonstration path\b|\bV5\.\d+\s+Mike path\b|\bMike's V5\.\d+[^.\n]*proof\b|\bMike-ready\b|\bMike Mode\b/i;
+  const repositoryPrivateLanguage =
+    /\$\s*\d|\bpricing\b|\bprice list\b|\bbuy now\b|\bpaid pilot\b|\bbuyers?\b|\bsales(?:\s+proof|\/demo|\s+close)?\b|\bpitch(?:es|ed|ing)?\b|\bprivate screening room\b|\bMike[- ]facing\b|\bMike(?:'s)? public demo\b|\bMike demonstration path\b|\bV5\.\d+\s+Mike path\b|\bMike's V5\.\d+[^.\n]*proof\b|\bMike-ready\b|\bMike Mode\b/i;
 
-  assert.doesNotMatch(visible, /\$\s*\d|pricing|price list|buy now|paid pilot|Mike-ready/i);
+  assert.doesNotMatch(visible, visiblePrivateLanguage);
+  assert.doesNotMatch(publicRepositoryCopy, repositoryPrivateLanguage);
 });
 
 test("internal studio surfaces remain available to engines but outside public navigation", () => {

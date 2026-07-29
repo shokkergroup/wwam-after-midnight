@@ -100,7 +100,7 @@ test("restricts trailer, watch, and script sources to topic navigation", () => {
     stream.moments.length === 0
     && stream.characters.length === 0
     && stream.heatmap.length === 0
-    && stream.rightsPolicy.mode === "topic-navigation-only"
+    && stream.rightsPolicy.mode === "source-audio-boundary-unverified"
   )));
   assert.equal(canon.showIndex.filter((show) => show.restricted).length, 11);
 });
@@ -126,11 +126,13 @@ test("binds the canon to Archive Atlas and a reproducible public fingerprint", (
 test("loads the canon into the product, Ask layer, and Mike-facing proof", () => {
   const app = fs.readFileSync(path.join(demo, "app.js"), "utf8");
   const html = fs.readFileSync(path.join(demo, "index.html"), "utf8");
-  const adapter = fs.readFileSync(path.join(demo, "wwam-source-dossier-adapter.js"), "utf8");
   assert.match(app, /year-canon-2025-2026\.js/);
   assert.match(app, /topicIndex:.*WWAM_YEAR_CANON_2025_2026\.topicIndex/);
   assert.match(app, /characterIndex:.*WWAM_YEAR_CANON_2025_2026\.characterIndex/);
   assert.match(html, /TWO YEARS\.\s*<br><em>ONE SHELF\./);
   assert.match(html, /ONE WATCH-ONLY SHOW/);
-  assert.match(adapter, /year-canon-2025-2026/);
+  assert.match(
+    app,
+    /archiveDeepPayload = Object\.assign\(\{\}, archiveDeepPayload,[\s\S]{0,500}yearCanon:/,
+  );
 });

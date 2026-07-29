@@ -1,12 +1,12 @@
 (function () {
   "use strict";
 
-  function isPrimary(link, hasDeepDive) {
+  function isPrimary(link) {
     var href = link.getAttribute("href") || "";
     return href === "#sourceDossierPlayerSection" ||
       href === "#sourceDossierFanRead" ||
       href === "#sourceDossierEpisodeGuide" ||
-      (!hasDeepDive && href === "#sourceDossierShowWikiSummary") ||
+      href === "#sourceDossierShowWikiSummary" ||
       href.indexOf("sourceDossierShowWikiLane-best-moments") >= 0 ||
       href === "#sourceDossierAsk";
   }
@@ -16,7 +16,6 @@
     if (href === "#sourceDossierPlayerSection") link.textContent = "PLAY THE SHOW";
     if (href === "#sourceDossierFanRead") link.textContent = "FAN READ";
     if (href === "#sourceDossierEpisodeGuide") link.textContent = "DEEP DIVE";
-    if (href === "#sourceDossierShowWikiSummary") link.textContent = "QUICK RECAP";
     if (href === "#sourceDossierAsk") link.textContent = "ASK THIS SHOW";
   }
 
@@ -42,18 +41,15 @@
     nav.dataset.editorialNav = "true";
     nav.setAttribute("aria-label", "Show Wiki shortcuts");
 
-    var hasDeepDive = links.some(function (link) {
-      return (link.getAttribute("href") || "") === "#sourceDossierEpisodeGuide";
-    });
     links.forEach(function (link) {
       link.classList.remove("wwam-dossier-primary-link");
     });
-    links.filter(function (link) { return isPrimary(link, hasDeepDive); }).forEach(function (link) {
+    links.filter(isPrimary).forEach(function (link) {
       relabel(link);
       link.classList.add("wwam-dossier-primary-link");
     });
 
-    var secondary = links.filter(function (link) { return !isPrimary(link, hasDeepDive); });
+    var secondary = links.filter(function (link) { return !isPrimary(link); });
     if (!secondary.length) return;
     var details = document.createElement("details");
     details.className = "wwam-dossier-more";

@@ -191,8 +191,8 @@ test("builds exact 2025 feed and quarantine ledgers without inventing promoted m
   assert.equal(capsule.feed.hours, 222.4);
   assert.equal(capsule.feed.cachedViews, 637_619);
   assert.deepEqual(plain(capsule.feed.coverage), {
-    deeplyIndexed: 19,
-    metadataOnly: 75,
+    deeplyIndexed: 94,
+    metadataOnly: 0,
     captionLimited: 0,
     unavailable: 0,
   });
@@ -268,13 +268,13 @@ test("reconciles the newest year across all three ledgers and builds a playable 
   assert.equal(capsule.feed.hours, 120.9);
   assert.equal(capsule.feed.cachedViews, 291_240);
   assert.deepEqual(plain(capsule.feed.coverage), {
-    deeplyIndexed: 13,
-    metadataOnly: 23,
+    deeplyIndexed: 36,
+    metadataOnly: 0,
     captionLimited: 1,
     unavailable: 0,
   });
   assert.equal(capsule.memory.sourceCount, 10);
-  assert.equal(capsule.memory.receiptCount, 153);
+  assert.equal(capsule.memory.receiptCount, 156);
   assert.equal(capsule.quarantine.sourceCount, 4);
   assert.equal(capsule.quarantine.candidateCount, 17);
   assert.equal(capsule.quarantine.topicLaneCount, 40);

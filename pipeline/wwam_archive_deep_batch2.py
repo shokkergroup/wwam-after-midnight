@@ -216,6 +216,12 @@ def canonical_atlas_record(record: dict[str, Any]) -> dict[str, Any]:
 def integrated_at_or_after_batch2(record: dict[str, Any]) -> bool:
     """Return whether an Atlas record was promoted in Batch 02 or later."""
     for lane in record.get("lanes", []):
+        # The year canon was integrated after all four frozen Archive Deep
+        # selections. Its newly distilled records were metadata-only at every
+        # Archive Deep selection snapshot and must be rolled back with later
+        # Archive Deep lanes when reproducing those historical queues.
+        if lane == "year-canon-2025-2026":
+            return True
         match = ARCHIVE_DEEP_BATCH_LANE.fullmatch(str(lane))
         if match and int(match.group(1)) >= 2:
             return True
@@ -251,6 +257,11 @@ def validate_selection(
         ):
             restored["coverage"] = "metadata-only"
             restored["lanes"] = ["archive-metadata"]
+        # Availability/live state was refreshed after all four Archive Deep
+        # selections. Neither field existed as a checked claim anywhere in the
+        # frozen selection source.
+        restored["availability"] = "not-captured"
+        restored["liveStatus"] = "not-captured"
         source_records.append(restored)
     reconstructed_sha256 = batch1.sha256_label(
         [canonical_atlas_record(record) for record in source_records]

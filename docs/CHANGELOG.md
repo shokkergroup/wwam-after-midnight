@@ -67,9 +67,9 @@ itself indicate that a build has been deployed.
 - The fingerprinted JSON and Markdown editor handoffs separate kept, held,
   risk-quarantined, rejected, and unreviewed work. Saved reviews fail closed on
   source, pack, Clip Lab, decision, or fingerprint drift.
-- Mike Mode can present a proposed **$500 / 3-show / 14-day** pilot: three
-  exact-source desks, three local review ledgers, bounded editor handoffs, and
-  a pilot-close gap review.
+- Showcase Mode can present three exact-source desks, three local review
+  ledgers, bounded editor handoffs, and a gap review without putting private
+  collaboration terms in the public archive.
 
 ### Proof and boundaries
 
@@ -82,7 +82,7 @@ itself indicate that a build has been deployed.
 - No review action or export claims speaker identity, creator approval, rights
   clearance, publication authority, media delivery, revenue, retention,
   conversion, views, virality, or any other performance outcome. The proposed
-  pilot is not an invoice or completed agreement.
+  public workflow is not an invoice or completed agreement.
 - The Aftermath contract is channel-neutral: the reusable layer owns source
   locks, joins, review semantics, fingerprint checks, handoff structure, and
   authority boundaries; a ChannelPack supplies the channel-specific editorial
@@ -327,7 +327,7 @@ See [The Midnight Cut](THE_MIDNIGHT_CUT.md).
   `matchingTotal`, `displayed`, and `truncated` state. `LV2rmwEA0w4` reports
   138 matching sources, 16 displayed, and `truncated: true`.
 
-### Buyer demonstration
+### Exact-source demonstration
 
 - In `LV2rmwEA0w4`, **Show me Dr. Loomis moments** returns only the two Loomis
   receipts registered to that source, including the exact funding window.
@@ -341,7 +341,7 @@ See [The Midnight Cut](THE_MIDNIGHT_CUT.md).
 
 ### Preserved boundaries
 
-- The immutable V5.4 sales proof remains exactly **84 source inputs and 872
+- The immutable V5.4 historical proof remains exactly **84 source inputs and 872
   promoted receipts**. It is a frozen historical ledger, not the current
   510-source / 1,490-receipt Source Dossier inventory.
 - Exact-source answers do not establish speaker identity, intent, origin,
@@ -1071,7 +1071,7 @@ separate numeric release assertions.
   caption-coherence gate removes thin filler fragments from the Top 25 without
   penalizing wild or profane vocabulary. The raw machine score remains
   distinct from post-diversity rank.
-- Mike Mode now closes on a measurable Creator Pilot. Clip Lab's
+- Showcase Mode now opens a measurable Creator Pilot workflow. Clip Lab's
   **Tonight's 12** is explicitly a first editorial pass, not an automated
   publish queue, and the final proof action opens the Archive Discovery pilot
   with outcomes still marked `MEASURE DURING PILOT`.
@@ -1157,7 +1157,7 @@ separate numeric release assertions.
 - Exact Ask WWAM retrieval for a Red Band rank, bounded rank range, or top-ten
   cut, plus a downloadable JSON ranking snapshot with score components,
   provenance, uncertainty, and methodology.
-- A sixth Mike Mode proof beat that exits the pitch directly into the
+- A sixth Showcase Mode proof beat that opens the
   472-record Archive Atlas and its visible coverage gaps.
 - A zero-default editorial-vote hook, an off-by-default recency adjustment,
   unique content-derived rank keys, collision diagnostics, and transparent
@@ -1298,7 +1298,7 @@ separate numeric release assertions.
 - Creator Clip Lab and Cold Open public exports hard-cap archival fragments at
   16 words with explicit truncation metadata while leaving longer raw captions
   available only as internal audit warnings.
-- Mike Mode's commercial proof now exits directly into a working 30-second
+- Showcase Mode now opens directly into a working 30-second
   Loomis cold-open storyboard and exact source ledger.
 - Source health copy now states exactly what the structural audit proves:
   source URL/ID agreement and in-range indexed timestamps, not continuous
@@ -1324,7 +1324,7 @@ separate numeric release assertions.
   community contribution packets.
 - Evidence Bag actions across Ask WWAM, Character, Memory, Lore, Trivia, and
   Creator surfaces.
-- Live proof actions in every Mike Mode slide.
+- Live proof actions in every Showcase Mode slide.
 
 ### Improved
 

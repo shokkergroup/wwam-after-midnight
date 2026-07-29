@@ -41,7 +41,8 @@ test("registered Archive Deep summaries are gated without title inference", () =
   assert.match(summaryFunction, /item\.coverage !== "deeply-indexed"/);
   assert.match(summaryFunction, /archiveDeepEngine\.getStream\(item\.id\)/);
   assert.match(summaryFunction, /input\.getSourceSummary\(item\.id\)/);
-  assert.doesNotMatch(summaryFunction, /record\.title|editorial|whyItMatters/);
+  assert.doesNotMatch(summaryFunction, /record\.title|whyItMatters/);
+  assert.match(summaryFunction, /hit\.editorial && hit\.editorial\.showShape/);
   assert.match(ui, /class="archive-card-summary"/);
   assert.match(ui, /class="archive-batch-door">OPEN SHOW WIKI &rarr;/);
 });

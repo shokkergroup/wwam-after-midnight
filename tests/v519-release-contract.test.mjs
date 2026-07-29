@@ -42,7 +42,12 @@ test("V5.19 package, cache keys, and public documentation move together", () => 
     (match) => match[1],
   );
   assert.ok(cacheVersions.length >= 2, "expected versioned runtime cache keys");
-  assert.deepEqual(new Set(cacheVersions), new Set(["0.5.21"]));
+  assert.ok(
+    new Set(cacheVersions).size >= 5,
+    "independently versioned runtime lanes unexpectedly collapsed",
+  );
+  assert.match(html, /youtube-playback\.js\?v=2\.4\.2-host-local/);
+  assert.match(html, /app\.js\?v=0\.5\.42-feldman/);
 
   assert.match(readme, /Current documented release: \*\*V5\.21 \/ 0\.5\.21\*\*/);
   assert.match(readme, /docs\/THE_MIDNIGHT_CUT\.md/);

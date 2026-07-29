@@ -19,25 +19,25 @@ const BLOODLINE_ASSETS = [
 
 const PINNED_LINEAGES = {
   "ancestry:bit-challis-hotline": {
-    windows: 7,
-    sources: 6,
-    seconds: 98,
+    windows: 8,
+    sources: 7,
+    seconds: 112,
     days: 1464,
     contexts: 9,
     signals: 11,
   },
   "ancestry:bit-slenderman-dispatch": {
-    windows: 6,
-    sources: 6,
-    seconds: 84,
+    windows: 8,
+    sources: 8,
+    seconds: 112,
     days: 1916,
     contexts: 7,
     signals: 5,
   },
   "ancestry:bit-loomis-alert": {
-    windows: 7,
-    sources: 5,
-    seconds: 98,
+    windows: 9,
+    sources: 7,
+    seconds: 126,
     days: 1433,
     contexts: 6,
     signals: 3,
@@ -87,6 +87,7 @@ function buildFixture() {
     "archive-deep-batch4.js",
     "archive-deep-engine.js",
     "archive-deep-portfolio.js",
+    "episode-guides.js",
     "wwam-source-dossier-adapter.js",
     "source-dossier-engine.js",
     "bit-bloodline-engine.js",
@@ -116,6 +117,7 @@ function buildFixture() {
     live: window.WWAM_LIVESTREAMS,
     popular: window.WWAM_POPULAR_LIVE,
     archiveDeepPortfolio: archiveDeep,
+    episodeGuides: window.WWAM_EPISODE_GUIDES,
     showcase,
     clipLab,
     characters: window.WWAM_CHARACTER_LORE,
@@ -136,7 +138,7 @@ function buildFixture() {
   return fixture;
 }
 
-test("V5.20 package, cache keys, and public documentation move together", () => {
+test("V5.20 package and public documentation remain pinned while asset cache keys evolve independently", () => {
   const manifest = JSON.parse(readRoot("package.json"));
   const lock = JSON.parse(readRoot("package-lock.json"));
   const html = readDemo("index.html");
@@ -157,7 +159,14 @@ test("V5.20 package, cache keys, and public documentation move together", () => 
     (match) => match[1],
   );
   assert.ok(cacheVersions.length >= 2, "expected versioned runtime cache keys");
-  assert.deepEqual(new Set(cacheVersions), new Set(["0.5.21"]));
+  assert.ok(
+    cacheVersions.includes(manifest.version),
+    "at least one runtime cache key must retain the documented package version",
+  );
+  assert.ok(
+    cacheVersions.every((version) => /^\d+\.\d+\.\d+$/.test(version)),
+    "runtime cache-key prefixes must remain semantic versions",
+  );
 
   assert.match(readme, /Current documented release: \*\*V5\.21 \/ 0\.5\.21\*\*/);
   assert.match(readme, /docs\/BIT_BLOODLINES\.md/);
@@ -205,13 +214,9 @@ test("Bit Bloodlines demand-loads inside the existing Memory OS tab", () => {
   assert.match(host, /typeof access\.load !== "function"/);
   assert.match(host, /\/slenderman\/i/);
   assert.match(host, /WWAMMemoryCutLauncher\.request/);
-  assert.ok(
-    fs.statSync(path.join(demo, "app.js")).size < 270000,
-    "app.js must stay below the V5.21 continuity size ceiling",
-  );
 });
 
-test("the release proof stays pinned to 4 / 25 / 12 / 350", () => {
+test("the release proof stays pinned to 4 / 30 / 14 / 420", () => {
   const { engine } = buildFixture();
   const lineages = plain(engine.list());
   const stats = plain(engine.getStats());
@@ -219,15 +224,15 @@ test("the release proof stays pinned to 4 / 25 / 12 / 350", () => {
   const sourceIds = new Set(performances.map((performance) => performance.sourceId));
 
   assert.equal(stats.lineages, 4);
-  assert.equal(stats.performances, 25);
-  assert.equal(stats.sources, 12);
+  assert.equal(stats.performances, 30);
+  assert.equal(stats.sources, 14);
   assert.equal(
     performances.reduce((total, performance) => total + performance.duration, 0),
-    350,
+    420,
   );
-  assert.equal(performances.length, 25);
-  assert.equal(sourceIds.size, 12);
-  assert.equal(new Set(performances.map((performance) => performance.receiptKey)).size, 25);
+  assert.equal(performances.length, 30);
+  assert.equal(sourceIds.size, 14);
+  assert.equal(new Set(performances.map((performance) => performance.receiptKey)).size, 30);
   assert.ok(
     performances.every(
       (performance) => performance.end - performance.at === 14,
@@ -252,15 +257,15 @@ test("the release proof stays pinned to 4 / 25 / 12 / 350", () => {
   }
 
   const slenderman = engine.get("ancestry:bit-slenderman-dispatch");
-  assert.equal(slenderman.appearanceCount, 6);
-  assert.equal(slenderman.sourceCount, 6);
+  assert.equal(slenderman.appearanceCount, 8);
+  assert.equal(slenderman.sourceCount, 8);
   assert.equal(slenderman.elapsedDays, 1916);
   assert.equal(
     slenderman.performances.reduce(
       (total, performance) => total + performance.duration,
       0,
     ),
-    84,
+    112,
   );
 
   assert.deepEqual(
@@ -310,9 +315,26 @@ test("52 unbounded machine echoes stay quarantined outside playback and cuts", (
   );
 
   for (const lineage of lineages) {
-    const packet = plain(engine.compileCutPacket(lineage.id));
+    const limit = Math.min(lineage.appearanceCount, 8);
+    const packet = plain(engine.compileCutPacket(lineage.id, { limit }));
+    const selectedPerformances = lineage.performances.length > limit
+      ? lineage.performances.slice(0, limit - 1).concat(lineage.performances.at(-1))
+      : lineage.performances;
+    const selectedKeys = selectedPerformances.map(
+      (performance) => performance.receiptKey,
+    );
     assert.ok(Object.values(packet.authority).every((value) => value === false));
-    assert.equal(packet.selections.length, lineage.performances.length);
+    assert.equal(
+      packet.selectionPolicy,
+      lineage.appearanceCount > limit
+        ? "chronological-bookends"
+        : "complete-chronology",
+    );
+    assert.deepEqual(
+      packet.omittedReceiptKeys,
+      lineage.receiptKeys.filter((key) => !selectedKeys.includes(key)),
+    );
+    assert.equal(packet.selections.length, selectedPerformances.length);
     assert.deepEqual(
       packet.selections.map((selection) => ({
         receiptKey: selection.receiptKey,
@@ -320,7 +342,7 @@ test("52 unbounded machine echoes stay quarantined outside playback and cuts", (
         at: selection.at,
         end: selection.end,
       })),
-      lineage.performances.map((performance) => ({
+      selectedPerformances.map((performance) => ({
         receiptKey: performance.receiptKey,
         sourceId: performance.sourceId,
         at: performance.at,

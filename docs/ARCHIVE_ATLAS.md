@@ -257,7 +257,7 @@ record.priority = {
 ```
 
 Filters do not silently rerank the archive. `priority.rank` remains the global
-queue rank so a filtered sales/demo view and the full editorial queue stay
+queue rank so a filtered showcase view and the full editorial queue stay
 comparable.
 
 ## Regeneration

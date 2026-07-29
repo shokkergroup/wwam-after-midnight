@@ -110,18 +110,14 @@ action, or performance promise. A human still must watch surrounding context,
 set final picture and audio bounds, verify meaning and any speaker credit, and
 apply language, platform, rights, title, thumbnail, and final-publish review.
 
-## Proposed creator pilot
+## Creator collaboration boundary
 
-Mike Mode can close on one bounded offer:
-
-**$500 / 3 shows / 14 days**
-
-The proposed scope is three exact-source Aftermath review desks, three local
-Keep/Hold/Reject ledgers, bounded JSON and Markdown editor handoffs, and one
-pilot-close review of gaps, holds, and next-corpus priorities. It is a proposed
-fixed-scope pilot that requires mutual agreement. It is not an invoice,
-completed agreement, rights package, media-editing service, approval claim, or
-guarantee of views, revenue, conversion, retention, or virality.
+The public archive intentionally contains no private collaboration terms or
+calls to action. Showcase Mode demonstrates exact-source Aftermath review
+desks, local Keep/Hold/Reject ledgers, bounded JSON and Markdown editor
+handoffs, and a review of gaps, holds, and next-corpus priorities. Any future
+collaboration is discussed separately and never appears as an invoice,
+agreement, rights package, approval claim, or performance guarantee here.
 
 ## Portable contract
 

@@ -289,7 +289,7 @@ and registered summaries remain typed. Connection answers can navigate to a
 related target, but they are labeled relationship-only and cannot become
 content, origin, or causality claims about either source.
 
-The compact dossier is designed for a buyer and a fan, not only an auditor. It
+The compact dossier is designed for a creator, fan, or reviewer, not only an auditor. It
 opens in a Director's Cut with the strongest local proof visible, supports
 independent section expansion, and can reveal the full registered file on
 demand. Stable section routes retain `proof`, `player`, `ask`, `inside`,
@@ -381,7 +381,7 @@ the bounded evidence actually connects it to car 33. The V5.16 neutral fixture
 proves relationship transport and fail-closed playback, not that WWAM's
 film-specific search classifier classifies racing unchanged.
 
-The sales proof is accuracy, not feature count: show the memorable wrong
+The accuracy proof is not feature count: show the memorable wrong
 Halloween answer disappear, show the direct Halloween 5 mask receipt survive,
 then show the Scream 3 ending refusal. The system demonstrates why a played
 second supports the question instead of searching a relevant title and
@@ -823,9 +823,9 @@ No feature downloads media, publishes a clip, clears rights, or guarantees
 performance. It shortens discovery and editorial preparation; a creator or
 editor still watches the surrounding tape and makes the decision.
 
-## Mike Mode
+## Showcase Mode
 
-Mike Mode is the shortest route through the commercial argument:
+Showcase Mode is the shortest route through the evidence story:
 
 1. **The problem:** a large catalog has no native memory layer. Live proof:
    run tonight's deterministic source-grounded Night Shift.
@@ -837,13 +837,13 @@ Mike Mode is the shortest route through the commercial argument:
    batches, and show the current 74 / 390 / 8 coverage split.
 4. **The moat:** years of connected lore compound. Live proof: open the Dr.
    Loomis constellation.
-5. **The money:** archive memory creates editorial inventory. Live proof: open
+5. **The usefulness:** archive memory creates editorial inventory. Live proof: open
    Clip Lab's **Tonight's 12** first editorial pass.
-6. **The pilot:** turn the proof into a measurable next step. Live proof: open
+6. **The next step:** turn the proof into a measurable workflow. Live proof: open
    the preselected Archive Discovery Creator Pilot, inspect its acceptance
    checks, and keep every business outcome at `MEASURE DURING PILOT`.
 
-### Mike's V5.21 matrix proof
+### V5.21 matrix proof
 
 Open **Ask WWAM** and enter:
 
@@ -869,7 +869,7 @@ The ranking begins 6 / 5 / 3 for `LV2rmwEA0w4`, `ag3axSC9BpU`, and
 `N-UahfG8-gM`. Say: ?This is not a chatbot estimating from mentions. It is a
 deduplicated source ledger that can show every coordinate behind its count.?
 
-### Mike's V5.20 bloodline proof
+### V5.20 bloodline proof
 
 Open **Memory OS -> Bit Bloodlines**. Slenderman Dispatch should be selected
 first. Read the proof strip: six exact performance candidates, six official
@@ -894,7 +894,7 @@ Say: “This is not a montage guessed from names. It is four complete,
 source-locked recurrence trails, and the machine evidence that cannot support
 playback is kept out on purpose.”
 
-### Mike's V5.19 cut-the-tape proof
+### V5.19 cut-the-tape proof
 
 Open the Evidence Bag and launch **The Character Ward // 2021–2026**. The room
 should show five source-locked stops in this order: Slenderman stomach,
@@ -913,7 +913,7 @@ Say: “The archive did not merely find five moments. It turned exact proof into
 a fan journey and an editor-ready plan without pretending the fan authored
 new facts.”
 
-### Mike's V5.18 source-lock proof
+### V5.18 source-lock proof
 
 After the six beats, use three dossiers:
 
@@ -935,8 +935,8 @@ This sequence proves exact playback, duplicate-title isolation, and honest
 absence in under two minutes. It is a stronger accuracy demonstration than a
 general chatbot answer because the failure behavior is part of the product.
 
-The pitch is credible because every slide can leave the slideshow and open a
-working surface. For a longer buyer session, Tape Companion proves fan utility
+The demonstration is credible because every slide can leave the slideshow and
+open a working surface. For a longer review session, Tape Companion proves fan utility
 on the official upload and The Cut Test proves that channel-specific local
 choices can alter only a bounded editorial ordering, not the underlying truth.
 
@@ -1053,7 +1053,7 @@ consistently shortened at render time.
 | Caller-attested, device-local Verdict Room decisions with append-only revoke history | Verified reviewer identity, shared/server publication, creator certification, Canon mutation, or rights clearance |
 | Candidate edit plans | Human final cuts, rights, and platform review |
 | Current source snapshot | Scheduled ingest and monitoring |
-| Commercial surface concepts | Pricing, conversion, sponsor, and revenue data |
+| Public workflow concepts | Private business terms or unverified business outcomes |
 
 ## Universal formula
 
@@ -1089,7 +1089,7 @@ The reusable patterns now include:
   content, authenticity, ownership, speaker identity, authority, or canon.
 - **Composable quarantine:** independently fingerprinted archive batches can
   accumulate behind one defensive portfolio API without rewriting a frozen
-  sales proof, merging candidates into promoted ledgers, or weakening the
+  historical proof, merging candidates into promoted ledgers, or weakening the
   source-audio, speaker, performance, and visual-context boundaries.
 - **Append-only answer review:** a rendered answer can become a bounded,
   device-local proposal with optional replacement coordinates and expected

@@ -140,8 +140,8 @@ test("V5.16 release identity and documentation publish one relationship contract
   assert.match(overview, /^# WWAM After Midnight V5\.21/m);
   assert.match(changelog, /^## 0\.5\.16 .*Evidence Relationship Gate/m);
   assert.match(runbook, /current V5\.21 build/i);
-  assert.match(html, /youtube-playback\.js\?v=0\.5\.21/);
-  assert.match(html, /app\.js\?v=0\.5\.21/);
+  assert.match(html, /youtube-playback\.js\?v=[^"]+/);
+  assert.match(html, /app\.js\?v=[^"]+/);
 
   for (const relation of [
     ...ALLOWED_RELATIONS,
@@ -238,7 +238,10 @@ test("direct, absent, neutral-opinion, and change controls keep separate evidenc
   assert.ok(elm.results.every((result) => (
     result.claimRelation === "screen-referent-in-exact-commentary"
   )));
-  assert.match(elm.answer, /not one settled host opinion/i);
+  assert.match(
+    elm.answer,
+    /one real moment from the show, not a claim about every take they have ever had/i,
+  );
   assertRelationshipSafe(elm, elm.query);
 
   assert.equal(change.status, "archive-boundary");
@@ -249,7 +252,7 @@ test("direct, absent, neutral-opinion, and change controls keep separate evidenc
   assert.ok(change.evidenceChain.every((stop) => (
     stop.result.claimRelation === "screen-referent-in-exact-commentary"
   )));
-  assert.match(change.answer, /cannot prove a host changed their mind/i);
+  assert.match(change.answer, /not proof that either host changed his mind/i);
   assertRelationshipSafe(change, change.query);
 });
 

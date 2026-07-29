@@ -135,7 +135,10 @@ test("visual-ranking questions refuse outcomes while caption topic and comedy ro
     assert.equal(answer.selectionPlan.source.rightsMode, "visual-context-unverified", query);
     assert.equal(answer.selectionPlan.source.visualContextVerified, false, query);
     assert.deepEqual(answer.results, [], query);
-    assert.match(answer.answer, /cannot determine which on-screen kill or death won the ranking/i);
+    assert.match(
+      answer.answer,
+      /cannot (?:determine|verify) which on-screen kill or death won the ranking/i,
+    );
   }
 
   const comedy = plain(expanded.ask(

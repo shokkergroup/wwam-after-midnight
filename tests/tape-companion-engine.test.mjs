@@ -283,20 +283,20 @@ test("publishes the complete pure API and full promoted-corpus readiness boundar
   assert.equal(companion.metrics.sources, 74);
   assert.equal(companion.metrics.companionReady, 71);
   assert.equal(companion.metrics.limited, 3);
-  assert.equal(companion.metrics.exactReceiptMembers, 872);
-  assert.equal(companion.metrics.exactIncidents, 869);
+  assert.equal(companion.metrics.exactReceiptMembers, 877);
+  assert.equal(companion.metrics.exactIncidents, 874);
   assert.equal(companion.metrics.heatWindows, 1294);
-  assert.equal(companion.metrics.recurringCharacterAnnotations, 25);
+  assert.equal(companion.metrics.recurringCharacterAnnotations, 30);
   assert.equal(companion.metrics.editorialSelectionAnnotations, 25);
-  assert.equal(companion.metrics.rankedCandidateAnnotations, 96);
-  assert.equal(companion.metrics.loreConnections, 2967);
-  assert.equal(companion.metrics.lorePerformanceConnections, 25);
+  assert.equal(companion.metrics.rankedCandidateAnnotations, 69);
+  assert.equal(companion.metrics.loreConnections, 2987);
+  assert.equal(companion.metrics.lorePerformanceConnections, 30);
   assert.equal(companion.metrics.loreContextConnections, 0);
   assert.equal(companion.metrics.loreMixedConnections, 0);
-  assert.equal(companion.metrics.loreArchiveConnections, 2942);
-  assert.equal(companion.metrics.lorePerformanceReceiptLinks, 25);
+  assert.equal(companion.metrics.loreArchiveConnections, 2957);
+  assert.equal(companion.metrics.lorePerformanceReceiptLinks, 30);
   assert.equal(companion.metrics.loreContextReceiptLinks, 0);
-  assert.equal(companion.metrics.loreArchiveReceiptLinks, 2950);
+  assert.equal(companion.metrics.loreArchiveReceiptLinks, 2965);
   assert.equal(
     companion.metrics.lorePerformanceConnections +
       companion.metrics.loreContextConnections +
@@ -490,7 +490,7 @@ test("the July 23 Loomis and Full Send receipts fuse without losing either exact
   const ranked = incident.annotations.find(
     (annotation) => annotation.type === "ranked-candidate"
   );
-  assert.equal(ranked.rank, 44);
+  assert.equal(ranked.rank, 38);
   assert.equal(ranked.selectionStatus, "machine-ranked");
   assert.match(ranked.semantics, /not an authenticated creator or editor verdict/);
 
@@ -509,10 +509,10 @@ test("the July 23 Loomis and Full Send receipts fuse without losing either exact
     (candidate) => candidate.entryId === "character:loomis"
   );
   assert.ok(connection);
-  assert.equal(connection.evidenceCount, 8);
-  assert.equal(connection.sourceCount, 6);
-  assert.equal(connection.performanceEvidenceCount, 7);
-  assert.equal(connection.performanceSourceCount, 5);
+  assert.equal(connection.evidenceCount, 16);
+  assert.equal(connection.sourceCount, 14);
+  assert.equal(connection.performanceEvidenceCount, 15);
+  assert.equal(connection.performanceSourceCount, 13);
   assert.equal(connection.contextEvidenceCount, 1);
   assert.equal(connection.contextSourceCount, 1);
   assert.equal(connection.archiveEvidenceCount, 0);
@@ -591,7 +591,7 @@ test("snapshotAt hides every future member, label, excerpt, and annotation", () 
     active.annotations.find(
       (annotation) => annotation.type === "ranked-candidate"
     ).rank,
-    44
+    38
   );
 
   assert.deepEqual(serial(beforeFullSend.future.next), {
@@ -628,7 +628,7 @@ test("snapshotAt hides every future member, label, excerpt, and annotation", () 
     revealed.annotations.find(
       (annotation) => annotation.type === "ranked-candidate"
     ).rank,
-    44
+    38
   );
   assert.equal(
     revealed.annotations.find(
@@ -811,7 +811,7 @@ test("every recurring-character annotation keeps owner mapping separate from cli
     }
   }
 
-  assert.equal(count, 25);
+  assert.equal(count, 30);
 });
 
 test("every Lore connection is backed by a matched Lore receipt ID", () => {

@@ -217,7 +217,7 @@ function mountedController(initialYear = 2025) {
 }
 
 test("Time Capsules hydrate as one ordered lazy feature and stay off the eager path", () => {
-  assert.match(html, /href="#time-capsules"[^>]*><b>Time Capsules<\/b>/);
+  assert.match(html, /href="#time-capsules"[^>]*><b>BY YEAR<\/b>/);
   assert.match(
     html,
     /<section class="era-capsule" id="time-capsules"[\s\S]{0,180}data-feature-styles="era-capsule\.css"[\s\S]{0,500}data-feature-scripts="[^"]*archive-deep-distill\.js[^"]*archive-atlas-data\.js[^"]*era-capsule-engine\.js,era-capsule-ui\.js\?v=1\.1\.0-human"/,

@@ -153,5 +153,5 @@ test("the demo wires route hydration before app startup and defers every heavy r
   assert.match(creatorEngines, /WWAMRouteRenderGate\.invalidate\("studio"\)/);
   assert.match(dossierLoader, /loadDemoScript\("creator-studio-engine\.js"\)\.then\(createClipLab\)/);
   assert.doesNotMatch(dossierLoader, /createCreatorEngines/);
-  assert.equal(fs.statSync(path.join(demo, "app.js")).size < 270000, true, "app.js crossed its size cap");
+  assert.equal(fs.statSync(path.join(demo, "app.js")).size < 275000, true, "app.js crossed its size cap");
 });

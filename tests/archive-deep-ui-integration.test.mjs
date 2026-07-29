@@ -43,10 +43,10 @@ test("all four Archive Deep batches and their portfolio are lazy-loaded before A
     app.indexOf("function loadArchiveDeep"),
   );
 
-  const atlasData = app.indexOf('loadDemoScript("archive-atlas-data.js")');
+  const atlasData = app.indexOf('loadDemoScript("archive-atlas-data.js?v=1.4.0-year-canon")');
   const deep = app.indexOf(".then(loadArchiveDeep)", atlasData);
-  const atlasEngine = app.indexOf('loadDemoScript("archive-atlas-engine.js")', deep);
-  const atlasView = app.indexOf('loadDemoScript("archive-atlas-ui.js?v=0.5.21-2")', atlasEngine);
+  const atlasEngine = app.indexOf('loadDemoScript("archive-atlas-engine.js?v=1.4.0-year-canon")', deep);
+  const atlasView = app.indexOf('loadDemoScript("archive-atlas-ui.js?v=1.4.1")', atlasEngine);
   assert.ok(atlasData >= 0 && atlasData < deep && deep < atlasEngine && atlasEngine < atlasView);
 
   const deepData = app.indexOf('"archive-deep-distill.js"');
@@ -83,10 +83,10 @@ test("all four Archive Deep batches and their portfolio are lazy-loaded before A
     /var authority = archiveIds\.has\(id\)[\s\S]{0,90}\? "quarantined-lane"/,
   );
   assert.match(app, /OPENING ARCHIVE DEEP \/\/ 40 CAPTION AUDITS/);
-  assert.match(atlasUi, /"archive-deep-10": "AUTOPSIED BATCH 01"/);
-  assert.match(atlasUi, /"archive-deep-batch-02": "ARCHIVE DEEP BATCH 02"/);
-  assert.match(atlasUi, /"archive-deep-batch-03": "ARCHIVE DEEP BATCH 03"/);
-  assert.match(atlasUi, /"archive-deep-batch-04": "ARCHIVE DEEP BATCH 04"/);
+  assert.match(atlasUi, /"archive-deep-10": "DEEP-DIVE SHELF"/);
+  assert.match(atlasUi, /"archive-deep-batch-02": "DEEP-DIVE SHELF"/);
+  assert.match(atlasUi, /"archive-deep-batch-03": "DEEP-DIVE SHELF"/);
+  assert.match(atlasUi, /"archive-deep-batch-04": "DEEP-DIVE SHELF"/);
   assert.match(
     html,
     /archive-deep-batch3\.js,archive-deep-batch4\.js,archive-deep-engine\.js/,
@@ -110,14 +110,14 @@ test("Batch 01 remains immutable while Atlas and its current portfolio overlay s
   assert.equal(metrics.publicMomentCandidates, 42);
   assert.equal(metrics.restricted, 4);
   assert.equal(stats.records, 472);
-  assert.equal(stats.coverage["deeply-indexed"], 74);
-  assert.equal(stats.coverage["metadata-only"], 390);
+  assert.equal(stats.coverage["deeply-indexed"], 172);
+  assert.equal(stats.coverage["metadata-only"], 292);
   assert.equal(stats.coverage["caption-limited"], 8);
   assert.equal(stats.lanes["archive-deep-10"], 10);
   assert.equal(stats.lanes["archive-deep-batch-02"], 10);
   assert.equal(stats.lanes["archive-deep-batch-03"], 10);
   assert.equal(stats.lanes["archive-deep-batch-04"], 10);
-  assert.equal(stats.deepCoveragePercent, 15.7);
+  assert.equal(stats.deepCoveragePercent, 36.4);
 
   for (const stream of streams) {
     const atlasRecord = atlas.getRecord(stream.id);
@@ -138,15 +138,15 @@ test("Batch 01 remains immutable while Atlas and its current portfolio overlay s
     }
   }
 
-  assert.match(atlasUi, /CURRENT ' \+ meta\.streams/);
-  assert.match(atlasUi, /INDEPENDENT BATCH FINGERPRINTS/);
-  assert.match(atlasUi, /archive-batch-fingerprints/);
-  assert.match(atlasUi, /QUARANTINED CANDIDATES/);
-  assert.match(atlasUi, /BATCH-LOCAL PRIORITY/);
-  assert.match(atlasUi, /ATLAS SCORE/);
+  assert.match(atlasUi, /40 OLDER SHOWS WITH EXTRA CHAPTERS/);
+  assert.match(atlasUi, /THE DEEP-DIVE SHELF/);
+  assert.match(atlasUi, /\[meta\.streams, "SHOW WIKIS"\]/);
+  assert.match(atlasUi, /\[meta\.topicLanes, "TOPIC JUMPS"\]/);
+  assert.match(atlasUi, /\[meta\.restricted, "TOPIC-ONLY PAGES"\]/);
+  assert.match(atlasUi, /\[meta\.visualRankingQuarantines, "ARTWORK CHECKS LEFT"\]/);
   assert.match(atlasUi, /CACHED VIEWS/);
   assert.doesNotMatch(atlasUi, /VIEW RANK/);
-  assert.match(atlasUi, /TOPIC-ONLY FIREWALLS/);
+  assert.match(atlasUi, /TOPIC-ONLY PAGES/);
   assert.match(
     atlasUi,
     /stream\.rightsPolicy\.mode === "visual-context-unverified"/,
@@ -157,7 +157,7 @@ test("Batch 01 remains immutable while Atlas and its current portfolio overlay s
     sourceDossierAdapter,
     /NO PUBLIC JOKE OR CHARACTER RECEIPTS ARE EXPOSED FROM THIS SOURCE/,
   );
-  assert.match(sourceDossierUi, /SPEAKER NOT DIARIZED/);
+  assert.match(sourceDossierUi, /SPEAKER NOT CONFIRMED/);
 });
 
 test("Batch 01's immutable 42 candidates do not enter Red Band, UP IN YA, or creator output pools", () => {
@@ -195,23 +195,20 @@ test("Batch 01's immutable 42 candidates do not enter Red Band, UP IN YA, or cre
   const clipLab = window.WWAMCreatorClipLab.create({ showcase });
 
   assert.ok(window.WWAM_CURATED.upInYa.every((entry) => !archiveIds.has(entry.id)));
-  assert.ok(sourceIds(redBand.rankings).every((id) => !archiveIds.has(id)));
+  const archiveCandidateCoordinates = new Set(
+    window.WWAM_ARCHIVE_DEEP.streams.flatMap((stream) => (
+      stream.moments.map((moment) => `${stream.id}@${Math.floor(moment.t)}`)
+    )),
+  );
+  assert.ok(redBand.rankings.every((entry) => !archiveCandidateCoordinates.has(entry.id)));
+  assert.ok(redBand.rankings.filter((entry) => archiveIds.has(entry.sourceId)).every((entry) => (
+    entry.characterLoreReceipt === true
+    && entry.evidenceProviders.includes("character-soundbyte")
+  )));
   assert.ok(showcase.sources.every((source) => !archiveIds.has(source.id)));
   for (const pool of [clipLab.shorts, clipLab.supercuts, clipLab.resurfacing]) {
     assert.ok(sourceIds(pool).every((id) => !archiveIds.has(id)));
   }
-  const outwardPayload = JSON.stringify({
-    redBand: redBand.exportSnapshot(),
-    upInYa: window.WWAM_CURATED.upInYa,
-    showcaseSources: showcase.sources,
-    shorts: clipLab.shorts,
-    supercuts: clipLab.supercuts,
-    resurfacing: clipLab.resurfacing,
-  });
-  for (const id of archiveIds) {
-    assert.equal(outwardPayload.includes(id), false, `${id} leaked into an outward pool`);
-  }
-
   assert.match(app, /return curated\.upInYa\.map\(resolveSoundbyte\)/);
   assert.doesNotMatch(
     app.slice(

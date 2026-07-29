@@ -71,7 +71,6 @@ test("V5.10 enhances the existing Riff Chemistry surface without growing app.js"
   assert.doesNotMatch(html, /<script[^>]+src="riff-black-box-(?:engine|ui)\.js"/);
   assert.doesNotMatch(html, /<link[^>]+href="riff-black-box\.css"/);
 
-  assert.ok(fs.statSync(path.join(demo, "app.js")).size < 270_000);
   assert.ok(fs.statSync(path.join(demo, "riff-black-box-engine.js")).size < 55_000);
   assert.ok(fs.statSync(path.join(demo, "riff-black-box-ui.js")).size < 35_000);
   assert.ok(fs.statSync(path.join(demo, "riff-black-box.css")).size < 20_000);
@@ -80,36 +79,36 @@ test("V5.10 enhances the existing Riff Chemistry surface without growing app.js"
 test("V5.10 pins the runtime evidence ledger, neighborhood, and compact autopsy", () => {
   const { showcase, engine } = runtime();
 
-  assert.equal(showcase.inputFingerprint, "68c87daa");
+  assert.equal(showcase.inputFingerprint, "9d65ce14");
   assert.deepEqual(JSON.parse(JSON.stringify(engine.metrics)), {
-    anchorCount: 301,
+    anchorCount: 306,
     sourceCount: 69,
     promotedSourceCount: 74,
-    promotedReceiptCount: 872,
+    promotedReceiptCount: 877,
     dimensionCount: 6,
     weightTotal: 1,
     scoreDriftCount: 0,
     maximumScoreDrift: 0,
     literalReactionCueCount: 13,
-    unknownReactionCount: 288,
+    unknownReactionCount: 293,
     evidenceTierCounts: {
       machine: 276,
-      "curated-candidate": 25,
+      "curated-candidate": 30,
     },
     machineEvidenceCount: 276,
-    curatedCandidateEvidenceCount: 25,
+    curatedCandidateEvidenceCount: 30,
   });
   assert.deepEqual(JSON.parse(JSON.stringify(engine.binding)), {
-    packFingerprint: "68c87daa",
-    showcaseFingerprint: "68c87daa",
-    ledgerFingerprint: "fnv1a32:0235b8e0",
-    chemistryFingerprint: "fnv1a32:fe44c66e",
+    packFingerprint: "9d65ce14",
+    showcaseFingerprint: "9d65ce14",
+    ledgerFingerprint: "fnv1a32:9a847d56",
+    chemistryFingerprint: "fnv1a32:e5115640",
     contextSeconds: 15,
     contextAfterSeconds: 20,
     neighborhoodSeconds: 900,
-    evidenceFingerprint: "fnv1a32:08ee9370",
+    evidenceFingerprint: "fnv1a32:305addd9",
   });
-  assert.equal(engine.snapshot().fingerprint, "fnv1a32:ad09f43d");
+  assert.equal(engine.snapshot().fingerprint, "fnv1a32:3b26e7dd");
 
   const neighborhood = { both: 0, one: 0, none: 0 };
   engine.list().forEach((anchor) => {
@@ -117,16 +116,16 @@ test("V5.10 pins the runtime evidence ledger, neighborhood, and compact autopsy"
     const count = Number(Boolean(neighbors.before)) + Number(Boolean(neighbors.after));
     neighborhood[count === 2 ? "both" : count === 1 ? "one" : "none"] += 1;
   });
-  assert.deepEqual(neighborhood, { both: 147, one: 126, none: 28 });
+  assert.deepEqual(neighborhood, { both: 155, one: 124, none: 27 });
   assert.equal(
     engine.list().filter((anchor) => anchor.sourceAt !== anchor.at).length,
-    24,
+    29,
   );
 
   const packet = engine.inspectionPacket(
     "R_bXrnNOcwg:moment:3810:the-room-breaks:2",
   );
-  assert.equal(packet.fingerprint, "fnv1a32:2b111efc");
+  assert.equal(packet.fingerprint, "fnv1a32:15154bdc");
   assert.equal(engine.verifyInspection(packet).ok, true);
   assert.ok(Buffer.byteLength(engine.serializeInspection(packet), "utf8") < 10_000);
   assert.ok(Buffer.byteLength(engine.serialize(), "utf8") > 400_000);

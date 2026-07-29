@@ -37,7 +37,7 @@ function frozenObject(source, name) {
 
 function sourceDossierLoaderAssets(app) {
   const match = app.match(
-    /loadStyle\(["']source-dossier\.css\?v=1\.7\.0["']\)[\s\S]*?return\s*\[([\s\S]*?)\]\.reduce/,
+    /loadStyle\(["']source-dossier\.css\?v=[^"']+["']\)[\s\S]*?return\s*\[([\s\S]*?)\]\.reduce/,
   );
   assert.ok(match, "Source Dossier lazy-loader list is missing");
   return Array.from(
@@ -156,15 +156,15 @@ test("V5.18 package, lane-specific cache keys, and Ask This Tape docs move toget
     (match) => match[1],
   );
   assert.ok(cacheVersions.length >= 2, "expected versioned runtime cache keys");
-  assert.deepEqual(
-    new Set(cacheVersions),
-    new Set(["0.5.21", "0.5.27", "0.5.28", "1.0.0"]),
+  assert.ok(
+    new Set(cacheVersions).size >= 5,
+    "independently versioned runtime lanes unexpectedly collapsed",
   );
-  assert.match(html, /styles\.css\?v=0\.5\.27-year-canon/);
-  assert.match(html, /search-engine\.js\?v=0\.5\.28-year-canon-ask/);
-  assert.match(html, /youtube-playback\.js\?v=0\.5\.28-year-canon-player2/);
-  assert.match(html, /app\.js\?v=0\.5\.28-year-canon/);
-  assert.match(html, /guided-shell\.js\?v=1\.0\.0/);
+  assert.match(html, /styles\.css\?v=0\.5\.34-livewire-mobile/);
+  assert.match(html, /search-engine\.js\?v=0\.5\.39-verify/);
+  assert.match(html, /youtube-playback\.js\?v=2\.4\.2-host-local/);
+  assert.match(html, /app\.js\?v=0\.5\.42-feldman/);
+  assert.match(html, /guided-shell\.js\?v=1\.2\.2-dossier/);
 
   const guidePath = path.join(root, "docs", "ASK_THIS_TAPE.md");
   assert.equal(fs.existsSync(guidePath), true, "Ask This Tape guide is missing");
@@ -191,12 +191,16 @@ test("the exact-source engine loads in order and replaces title-to-global Ask", 
   const app = readDemo("app.js");
   const ui = readDemo("source-dossier-ui.js");
   const assets = sourceDossierLoaderAssets(app);
+  const recapEngineIndex = assets.indexOf("episode-recap-engine.js");
+  const recapAdapterIndex = assets.indexOf("wwam-episode-recap-adapter.js");
   const engineIndex = assets.indexOf("source-dossier-engine.js");
   const adapterIndex = assets.indexOf("wwam-source-dossier-adapter.js");
   const queryIndex = assets.indexOf("source-query-engine.js");
   const uiIndex = assets.indexOf("source-dossier-ui.js");
 
   for (const [asset, index] of [
+    ["episode-recap-engine.js", recapEngineIndex],
+    ["wwam-episode-recap-adapter.js", recapAdapterIndex],
     ["source-dossier-engine.js", engineIndex],
     ["wwam-source-dossier-adapter.js", adapterIndex],
     ["source-query-engine.js", queryIndex],
@@ -205,6 +209,8 @@ test("the exact-source engine loads in order and replaces title-to-global Ask", 
     assert.ok(index >= 0, `${asset} is missing from the lazy-loader`);
     assert.equal(fs.existsSync(path.join(demo, asset)), true, `${asset} is missing`);
   }
+  assert.ok(recapEngineIndex < recapAdapterIndex, "recap adapter must follow its engine");
+  assert.ok(recapAdapterIndex < engineIndex, "dossier engine must follow the recap lane");
   assert.ok(engineIndex < adapterIndex, "adapter must follow the dossier engine");
   assert.ok(adapterIndex < queryIndex, "query engine must follow the exact-source adapter");
   assert.ok(queryIndex < uiIndex, "UI must load after the query engine");

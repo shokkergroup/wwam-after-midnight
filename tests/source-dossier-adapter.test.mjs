@@ -34,6 +34,8 @@ function load() {
     "archive-deep-engine.js",
     "archive-deep-portfolio.js",
     "year-canon-2025-2026.js",
+    "episode-recap-engine.js",
+    "wwam-episode-recap-adapter.js",
     "wwam-source-dossier-adapter.js",
     "source-dossier-engine.js",
     "source-query-engine.js",
@@ -165,6 +167,38 @@ test("adapter exposes the universal schema and exact 510-source WWAM union", () 
     "quarantined-lane": 138,
     "source-only": 298,
   });
+});
+
+test("every canonical show receives a Feldman recap or an evidence-safe held state", () => {
+  const { result } = buildFixture();
+  const recaps = result.sources.map((source) => source.showWiki.episodeRecap);
+  const ready = recaps.filter((recap) => recap.state === "ready");
+  const held = recaps.filter((recap) => recap.state === "held");
+
+  assert.equal(recaps.length, 510);
+  assert.ok(recaps.every((recap) => recap.schema === "wwam-feldman-recap/v1"));
+  assert.equal(ready.length, 209);
+  assert.equal(held.length, 301);
+  assert.deepEqual(countBy(recaps, "tier"), {
+    "receipt-recap": 155,
+    "source-safe-held": 301,
+    "topic-recap": 16,
+    "full-chronicle": 38,
+  });
+
+  assert.ok(ready.every((recap) => recap.label === "WWAM FELDMAN APPROVED RECAP"));
+  assert.ok(ready.every((recap) => recap.sections.length >= 1));
+  assert.ok(ready.every((recap) => recap.sections.every((section) =>
+    section.receiptKeys.length > 0 || section.guideCutId
+  )));
+  assert.ok(ready.every((recap) => recap.approval.actualApproval === false));
+
+  assert.ok(held.every((recap) => recap.label === "EPISODE RECAP"));
+  assert.ok(held.every((recap) => recap.badge === "RECAP WAITING ON THE TAPE"));
+  assert.ok(held.every((recap) => recap.sections.length === 0));
+  assert.ok(held.every((recap) => recap.bestMoments.length === 0));
+  assert.ok(held.every((recap) => recap.approval.actualApproval === false));
+  assert.ok(held.every((recap) => !/feldman approved/i.test(recap.label)));
 });
 
 test("Ask This Tape stays on the exact canonical WWAM upload across title collisions and evidence gaps", () => {

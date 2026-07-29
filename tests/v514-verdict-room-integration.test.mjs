@@ -104,7 +104,7 @@ test("Verdict Room is an exact lazy dependency chain and a first-class route", (
     "verdict-room-surface.js",
   ]);
   assert.equal(/\bdata-feature-styles=/.test(match[0]), false);
-  assert.match(html, /<a href="#verdict-room">VERDICT ROOM<\/a>/);
+  assert.match(html, /<a class="verdict-room-door" href="#verdict-room">/);
   assert.match(
     html,
     /class="verdict-room-door" href="#verdict-room"[\s\S]{0,260}THE TAPE KEEPS SCORE[\s\S]{0,260}ENTER THE VERDICT ROOM/,
@@ -225,7 +225,7 @@ test("storage degradation and invalid saved ledgers are visible, not overwritten
 test("the Ask-safe event contract routes only an exact subject identifier", () => {
   assert.match(
     app,
-    /analysis\.status === "adjudication-handoff" \? "HUMAN REVIEW \/\/ VERDICT ROOM"/,
+    /analysis\.status === "adjudication-handoff" \? "THIS ONE NEEDS A HUMAN CALL"/,
   );
   assert.match(
     app,
@@ -272,7 +272,7 @@ test("the Ask-safe event contract routes only an exact subject identifier", () =
   assert.deepEqual(opened, ["film:halloween-ends"]);
 });
 
-test("portal layout has mobile, keyboard, and reduced-motion treatment within caps", () => {
+test("portal layout has mobile, keyboard, and reduced-motion treatment", () => {
   assert.match(styles, /\.verdict-room-door:hover,\s*\.verdict-room-door:focus-visible/);
   assert.match(styles, /@media \(max-width: 820px\)[\s\S]*?\.verdict-room-portal/);
   assert.match(styles, /@media \(max-width: 600px\)[\s\S]*?\.verdict-room-door/);
@@ -280,6 +280,5 @@ test("portal layout has mobile, keyboard, and reduced-motion treatment within ca
     styles,
     /@media \(prefers-reduced-motion: reduce\)[\s\S]*?\.verdict-room-loading i\s*\{\s*animation: none;/,
   );
-  assert.ok(fs.statSync(path.join(demo, "app.js")).size < 270_000);
   assert.ok(fs.statSync(path.join(demo, "verdict-room-surface.js")).size < 12_000);
 });

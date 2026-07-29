@@ -681,13 +681,13 @@ test("the full WWAM ledger exposes the exact machine and curated-candidate evide
 
   assert.deepEqual(counted, {
     machine: 276,
-    curatedCandidate: 25,
+    curatedCandidate: 30,
     unknown: 0,
   });
   assert.equal(engine.metrics.machineEvidenceCount, 276);
-  assert.equal(engine.metrics.curatedCandidateEvidenceCount, 25);
+  assert.equal(engine.metrics.curatedCandidateEvidenceCount, 30);
   assert.equal(engine.metrics.evidenceTierCounts.machine, 276);
-  assert.equal(engine.metrics.evidenceTierCounts["curated-candidate"], 25);
+  assert.equal(engine.metrics.evidenceTierCounts["curated-candidate"], 30);
 });
 
 test("foreign pack and foreign promoted ledger failures stay diagnostically distinct", () => {

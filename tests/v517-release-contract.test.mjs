@@ -30,8 +30,8 @@ test("V5.17 package, cache keys, and Source Dossier documentation move together"
   assert.match(dossier, /Release contract for \*\*V5\.18 \/ 0\.5\.18\*\*/);
   assert.match(changelog, /^## 0\.5\.17 .*The Source Dossier/m);
   assert.match(runbook, /current V5\.21 build/i);
-  assert.match(html, /youtube-playback\.js\?v=0\.5\.21/);
-  assert.match(html, /app\.js\?v=0\.5\.21/);
+  assert.match(html, /youtube-playback\.js\?v=[^"]+/);
+  assert.match(html, /app\.js\?v=[^"]+/);
 
   for (const proof of [
     /510 unique canonical uploads/i,

@@ -13,8 +13,9 @@ test("Home gives Night Shift one compact nightly return invitation", () => {
   const shell = read("guided-shell.js");
   const css = read("wwam-editorial-v2.css");
 
-  assert.match(html, /guided-shell\.js\?v=1\.2\.0-tonights-cut/);
-  assert.match(html, /wwam-editorial-v2\.css\?v=1\.2\.0-tonights-cut/);  assert.match(html, /BATMAN\. HELLRAISER\.[\s\S]*LOOMIS NEEDS FUNDING\./);
+  assert.match(html, /guided-shell\.js\?v=1\.2\.2-dossier/);
+  assert.match(html, /wwam-editorial-v2\.css\?v=1\.2\.2-touch/);
+  assert.match(html, /BATMAN\. HELLRAISER\.[\s\S]*LOOMIS NEEDS FUNDING\./);
   assert.match(html, /<li>Batman<\/li><li>Marvel<\/li><li>Hellraiser<\/li><li>Halloween<\/li>/);
   assert.match(html, /OPEN THE JULY 23 SHOW WIKI/);
   assert.match(shell, /function tonightStamp/);

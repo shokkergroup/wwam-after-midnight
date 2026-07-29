@@ -85,10 +85,10 @@ Reviews and editor packets are fingerprinted against the exact source and
 production build. Exports separate kept, held, risk-quarantined, rejected, and
 unreviewed work while preserving the same evidence and risk boundaries.
 
-Mike Mode can propose a fixed-scope **$500 / 3-show / 14-day** pilot around
-three such desks and handoff packets. The proposal is not an invoice,
-agreement, creator approval, rights clearance, publishing action, or
-performance guarantee.
+Showcase Mode demonstrates these desks and handoff packets without embedding
+calls to action or private collaboration terms in the public archive.
+Nothing on the page is an agreement, creator approval, rights clearance,
+publishing action, or performance guarantee.
 
 See [The Aftermath Pack](AFTERMATH_PACK.md).
 

@@ -125,7 +125,7 @@ test("creates exactly 100 unique playable bounded receipts over the current arch
   });
 });
 
-test("Top 25 enforces transparent lexical, preselection, source, and category diversity", () => {
+test("Top 25 reports strict diversity selection and every bounded fallback", () => {
   const { window, index } = createFull();
   const policy = window.WWAMRedBandRankingV2.TOP_SLICE_POLICY;
   const top = index.rankings.slice(0, policy.window);
@@ -138,27 +138,54 @@ test("Top 25 enforces transparent lexical, preselection, source, and category di
   ).length;
   const preselectedCount = top.filter((item) => item.preselectedCandidate).length;
   const diagnostics = index.diagnostics.topSliceDiversity;
+  const strictTop = top.filter((item) => item.diversityControl.strictPolicyPass);
+  const relaxedTop = top.filter((item) => item.diversityControl.constraintRelaxed);
+  const strictCategoryCounts = strictTop.reduce((counts, item) => {
+    counts[item.category] = (counts[item.category] || 0) + 1;
+    return counts;
+  }, {});
+  const strictLexicalCount = strictTop.filter((item) =>
+    hasExplicitBodyOrSexualLexical(item.quote)
+  ).length;
+  const strictPreselectedCount = strictTop.filter(
+    (item) => item.preselectedCandidate
+  ).length;
 
   assert.equal(top.length, 25);
   assert.ok(
-    lexicalCount <= policy.maximumExplicitBodyOrSexualLexical,
-    `explicit lexical count ${lexicalCount}`
+    strictLexicalCount <= policy.maximumExplicitBodyOrSexualLexical,
+    `strict explicit lexical count ${strictLexicalCount}`
   );
   assert.ok(
-    preselectedCount <= policy.maximumPreselectedCandidates,
-    `preselected count ${preselectedCount}`
+    strictPreselectedCount <= policy.maximumPreselectedCandidates,
+    `strict preselected count ${strictPreselectedCount}`
   );
   assert.ok(
-    Math.max(...Object.values(categoryCounts)) <= policy.maximumPerCategory
+    Math.max(...Object.values(strictCategoryCounts)) <= policy.maximumPerCategory
   );
-  assert.ok(Object.keys(categoryCounts).length >= 7);
+  assert.equal(strictTop.length, 22);
+  assert.equal(relaxedTop.length, 3);
+  assert.equal(
+    strictTop.length,
+    diagnostics.selectedUnderStrictPolicy
+  );
+  assert.equal(
+    relaxedTop.length,
+    diagnostics.selectedAfterConstraintRelaxation
+  );
+  assert.equal(
+    relaxedTop.every((item) => item.diversityControl.deferralReasons.length >= 1),
+    true
+  );
+  assert.equal(lexicalCount, 7);
+  assert.equal(preselectedCount, 11);
+  assert.equal(Math.max(...Object.values(categoryCounts)), 7);
+  assert.equal(Object.keys(categoryCounts).length, 6);
   assert.ok(new Set(top.map((item) => item.sourceId)).size >= 20);
-  assert.equal(top.every((item) => item.diversityControl.strictPolicyPass), true);
   assert.equal(
     top.every((item) => item.receiptCoherence.eligibleForTopSlice),
     true
   );
-  assert.equal(diagnostics.selectedAfterConstraintRelaxation, 0);
   assert.equal(diagnostics.explicitBodyOrSexualLexicalCount, lexicalCount);
   assert.equal(diagnostics.preselectedCandidateCount, preselectedCount);
   assert.equal(
@@ -166,7 +193,7 @@ test("Top 25 enforces transparent lexical, preselection, source, and category di
     100
   );
   assert.match(diagnostics.interpretation, /Raw machine scores are computed first/);
-  assert.equal(diagnostics.receiptCoherence.beforeGate.failed, 3);
+  assert.equal(diagnostics.receiptCoherence.beforeGate.failed, 2);
   assert.equal(diagnostics.receiptCoherence.afterGate.failed, 0);
   assert.ok(
     diagnostics.receiptCoherence.afterGate.meanScore >
@@ -185,30 +212,30 @@ test("Top 25 enforces transparent lexical, preselection, source, and category di
   );
 });
 
-test("current thin sauce fragment stays playable but is deferred from the showcase Top 25", () => {
+test("current thin sauce fragment remains in coherence diagnostics and outside the showcase", () => {
   const { index } = createFull();
   const receipt = index.getByReceiptKey("kX3wb5pBRDo@1223");
+  const failure =
+    index.diagnostics.topSliceDiversity.receiptCoherence.beforeGate.failedReceipts.find(
+      (item) => item.receiptKey === "kX3wb5pBRDo@1223"
+    );
 
-  assert.ok(receipt, "known receipt must remain inside the playable Top 100");
-  assert.equal(receipt.diversityControl.baselineRank, 66);
-  assert.ok(receipt.rank > 25);
-  assert.equal(receipt.rank, 80);
-  assert.equal(receipt.receiptCoherence.score, 44.17);
-  assert.equal(receipt.receiptCoherence.eligibleForTopSlice, false);
+  assert.equal(receipt, null);
+  assert.ok(failure, "known fragment must remain visible in gate diagnostics");
+  assert.equal(failure.score, 44.17);
   assert.deepEqual(
-    serial(receipt.receiptCoherence.flags),
+    serial(failure.flags),
     ["thin-context", "repetition-loop", "boundary-fragment"]
   );
-  assert.equal(receipt.diversityControl.deferredFromTopSlice, true);
   assert.equal(
-    receipt.diversityControl.deferralReasons.includes(
-      "receipt-coherence-score:44.17<48"
+    index.rankings.slice(0, 25).some(
+      (item) => `${item.sourceId}@${Math.round(item.t)}` === failure.receiptKey
     ),
-    true
+    false
   );
-  assert.match(
-    receipt.rankInterpretation,
-    /not a creator vote, comedy verdict, or authenticated editor ranking/
+  assert.equal(
+    index.diagnostics.topSliceDiversity.receiptCoherence.afterGate.failed,
+    0
   );
 });
 

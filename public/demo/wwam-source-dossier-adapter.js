@@ -983,7 +983,13 @@
     };
   }
 
-  function showWikiFor(source, receipts, characterNames, comedyCategories) {
+  function showWikiFor(
+    source,
+    receipts,
+    characterNames,
+    comedyCategories,
+    episodeRecap
+  ) {
     var topics = receipts.filter(function (receipt) {
       return normalized(receipt.kind).indexOf("topic") >= 0;
     });
@@ -1121,6 +1127,7 @@
       experience: showWikiExperienceFor(source, moments, topics),
       brief: brief,
       recap: recap,
+      episodeRecap: episodeRecap || null,
       episodeGuide: source.coverage === "caption-backed" ? source.episodeGuide || null : null,
       lanes: laneOrder.map(function (id) { return laneById[id]; }),
     };
@@ -1955,8 +1962,25 @@
         }
       }
       receipts = stableReceipts(receipts);
+      var episodeRecap = null;
+      if (root.ShokkerEpisodeRecap && root.WWAMEpisodeRecapAdapter) {
+        episodeRecap = root.WWAMEpisodeRecapAdapter.build({
+          map: root.ShokkerEpisodeRecap.build({
+            source: source,
+            receipts: receipts,
+            episodeGuide: source.episodeGuide,
+            format: showWikiFormat(source),
+          }),
+          source: source,
+        });
+      }
+      source.episodeRecap = episodeRecap;
       source.showWiki = showWikiFor(
-        source, receipts, showWikiCharacterNameMap, showWikiComedyCategories
+        source,
+        receipts,
+        showWikiCharacterNameMap,
+        showWikiComedyCategories,
+        episodeRecap
       );
       if (source.showWiki.recap) {
         source.summary = {

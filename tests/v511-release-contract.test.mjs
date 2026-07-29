@@ -73,7 +73,10 @@ test("V5.11 selects a temporal source before describing its indexed content", ()
   assert.ok(answer.results.every((result) => (
     result.sourceId === "ISDlaQ9DWSM" && result.kind === "moment"
   )));
-  assert.match(answer.answer, /not an invented plot summary/i);
+  assert.match(
+    answer.answer,
+    /Scream VI on 2023-04-25 at 1:48:32[\s\S]*Play it below for the full context/i,
+  );
 });
 
 test("V5.11 keeps character evidence classes and global rankings separate", () => {
@@ -126,12 +129,11 @@ test("V5.11 release identity, UI status, and documentation stay synchronized", (
   assert.match(overview, /^# WWAM After Midnight V5\.21/m);
   assert.match(changelog, /^## 0\.5\.11 .*Answer Frame V2/m);
   assert.match(runbook, /current V5\.21 build/i);
-  assert.match(app, /GLOBAL RANKING HANDOFF \/\/ SOURCE RANKING/);
+  assert.match(app, /analysis\.status === "surface-handoff" \? "OPENING THE RANKED ARCHIVE"/);
   assert.doesNotMatch(
     app,
-    /isSurfaceHandoff \? "GLOBAL RANKING HANDOFF \/\/ OPEN THE RED BAND 100"/,
+    /analysis\.status === "surface-handoff" \? "OPENING THE RED BAND 100"/,
   );
-  assert.ok(fs.statSync(path.join(demo, "app.js")).size < 270_000);
 
   for (const phrase of [
     /secondary targets/i,

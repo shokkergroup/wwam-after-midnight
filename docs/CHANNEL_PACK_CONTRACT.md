@@ -2,7 +2,7 @@
 
 ChannelPack is the tested adapter boundary between the reusable Shokker
 YouTube Wiki Memory OS and one channel's irreplaceable identity. It is code,
-not a pitch-deck promise: one compiler accepts WWAM's existing Channel DNA and
+not a presentation-only promise: one compiler accepts WWAM's existing Channel DNA and
 a synthetic racing fixture, produces canonical artifacts and fingerprints,
 and rejects incomplete or unsafe packs.
 
@@ -33,7 +33,7 @@ title, transcript fragment, or machine candidate into evidence.
   portability fixture. It is not VRL data and is never loaded by the WWAM
   public demo.
 
-The compiler is intentionally not part of the first-load bundle. Buyers can
+The compiler is intentionally not part of the first-load bundle. Reviewers can
 inspect or download the contract without making the fan experience heavier.
 
 ## The eleven conformance domains

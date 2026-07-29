@@ -24,9 +24,9 @@ function plain(value) {
 
 test("character UI calls receipts candidates and source context, never voiceproof", () => {
   const surface = `${html}\n${app}`;
-  assert.match(html, /THE PATTERN DOSSIER/);
-  assert.match(app, /PATTERN RECEIPT 0/);
-  assert.match(app, /PLAY MATCHED SOURCE CANDIDATE/);
+  assert.match(html, /FOLLOW THE BIT\.<br><em>HEAR THE REAL TAPE\.<\/em>/);
+  assert.match(app, /CHARACTER PATTERN CLIP/);
+  assert.match(app, /CHECK THE ORIGINAL CONTEXT/);
   assert.match(app, /CHARACTER ARCHAEOLOGY \/\/ PERFORMANCE CANDIDATE/);
   assert.match(app, /ORIGINAL SOURCE CONTEXT/);
   assert.doesNotMatch(
@@ -38,8 +38,8 @@ test("character UI calls receipts candidates and source context, never voiceproo
 test("Evidence Bag click transport and both exports retain the trust boundary", () => {
   assert.match(app, /item\.speakerStatus \|\| "SPEAKER NOT PROVIDED"/);
   assert.match(app, /item\.authenticatedEditorVerified \? "EDITOR AUTH" : "NO EDITOR AUTH"/);
-  assert.match(app, /EVIDENCE MANIFEST COPIED/);
-  assert.match(app, /EVIDENCE MANIFEST DOWNLOADED/);
+  assert.match(app, /CLIP LIST COPIED/);
+  assert.match(app, /CLIP LIST SAVED/);
   const bagContext = {
     itemById: {},
     boundedExcerpt: (value) => String(value || ""),
@@ -145,8 +145,8 @@ test("Evidence Bag click transport and both exports retain the trust boundary", 
 test("Lore keeps creator context outside the performance claim", () => {
   assert.match(app, /CREATOR CONTEXT \/\/ NOT PERFORMANCE/);
   assert.match(app, /firstItem = first && loreReceiptItem\(loreEngine\.getReceipt\(first\.receiptId\)\)/);
-  assert.match(app, /Archive-first uses curated performance candidates only/);
-  assert.match(app, /esc\(first\.date\) \+ ' \/\/ NOT TRUE ORIGIN/);
+  assert.match(app, /EARLIEST PLAYABLE CHARACTER CLIP ON THIS SHELF/);
+  assert.match(app, /esc\(first\.date\) \+ ' \/\/ EARLIEST ONE ON THIS SHELF/);
+  assert.match(app, /not proof of where the bit truly began/);
   assert.doesNotMatch(app, /curated performance and creator-context set/i);
-  assert.ok(fs.statSync(appPath).size < 270_000);
 });

@@ -186,6 +186,8 @@ def selection_records(
 
 def integrated_at_or_after_batch4(record: dict[str, Any]) -> bool:
     for lane in record.get("lanes", []):
+        if lane == "year-canon-2025-2026":
+            return True
         match = batch2.ARCHIVE_DEEP_BATCH_LANE.fullmatch(str(lane))
         if match and int(match.group(1)) >= 4:
             return True
@@ -218,6 +220,8 @@ def validate_selection(
         if record["id"] in selected_ids or integrated_at_or_after_batch4(record):
             restored["coverage"] = "metadata-only"
             restored["lanes"] = ["archive-metadata"]
+        restored["availability"] = "not-captured"
+        restored["liveStatus"] = "not-captured"
         source_records.append(restored)
     reconstructed_sha256 = batch1.sha256_label(
         [batch2.canonical_atlas_record(record) for record in source_records]

@@ -11,13 +11,14 @@ Current documented release: **V5.21 / 0.5.21**.
 
 ## Per-Show Wikis
 
-Every registered upload opens as a video-first Show Wiki. **Show Wiki V1.5**
-organizes one exact upload into an evidence-bound episode experience:
+Every registered upload opens as a video-first Show Wiki. The current recap
+pass organizes one exact upload into an evidence-bound episode experience:
 
 - a canonical, metadata-only **Source Brief** when transcript-derived content
   has not been distilled;
-- a title- and format-aware Episode Recap whose blocks point to registered
-  receipts from that upload;
+- a channel-neutral Episode Evidence Map plus a WWAM-native **FELDMAN APPROVED
+  RECAP** whose chronological acts point to registered receipts from that
+  upload; the label is a parody segment title, never a real endorsement;
 - a playable **THE MIDNIGHT CUT** or source-audio-safe **THE TOPIC HOP**;
 - Topics, Best Moments, Funny Moments, WWAM UP IN YA, Straight to Steve's
   Asshole, and Character Bits lanes with explicit empty states;
@@ -52,16 +53,13 @@ format grammar, recap voice, lane gates, aliases, lane order, and Midnight Cut /
 Topic Hop ritual. A different channel reuses the engine without inheriting
 WWAM's horror-comedy vocabulary.
 
-The integrated V1.5 audit certifies **510 Show Wikis: 99 distilled, 12
-topic-nav-only, and 399 safe canonical Source Briefs; 111 distinct
-receipt-bound recaps; and 1,490 unique registered receipts.** Quality checks
-also certify **15 strict Steve receipts, 37 named character recap blocks with 0
-generic blocks, 7 restored moments across BIT ENERGY and CHAT DID THIS, and
-53/53 title-relevant topic selections wherever topic evidence exists.** The
-prior V1.4 release gate was **178/178 tests**, with build, lint, and diff checks
-green. These are bounded inventory and verification counts, not creator
-approval, semantic claims about undistilled uploads, or objective rankings.
-See [Per-Show Wiki Contract](docs/SHOW_WIKI_CONTRACT.md).
+The integrated audit certifies **510 Show Wikis: 193 moment-backed/distilled,
+16 topic-navigation-only, and 301 safe canonical Source Briefs.** All 510 carry
+one recap module: **38 Full Chronicles, 155 Receipt Recaps, 16 Topic Recaps,
+and 301 source-safe waiting states.** The current registry contains **3,315
+unique registered receipts**. These are bounded inventory and verification
+counts, not creator approval, semantic claims about undistilled uploads, or
+objective rankings. See [Per-Show Wiki Contract](docs/SHOW_WIKI_CONTRACT.md).
 
 ## The Aftermath Pack
 
@@ -82,9 +80,10 @@ risk-quarantined, rejected, and unreviewed work. Keep means only keep for
 creator review; none of the actions or exports grants creator approval, rights
 clearance, publishing authority, media delivery, or a performance promise.
 
-Mike Mode can close on a proposed **$500 / 3-show / 14-day** pilot. That is a
-bounded offer requiring mutual agreement, not an invoice, completed agreement,
-or guarantee. See [The Aftermath Pack](docs/AFTERMATH_PACK.md).
+Showcase Mode can open the same exact-source proof for a creator without
+embedding private collaboration terms or unsupported business claims in the
+fan experience.
+See [The Aftermath Pack](docs/AFTERMATH_PACK.md).
 
 ## V5.21 Receipt Matrix
 
@@ -617,12 +616,11 @@ The hero offers three deliberate entry points:
   Intake, a 457-finding Human Review Session, and four evidence-backed Creator
   Pilot briefs.
 
-Mike Mode is a six-beat private-screening walkthrough. Each beat exits the
-pitch and opens working proof: Night Shift, Ask WWAM, the whole-feed Archive
-Atlas, a Loomis constellation, the **Tonight's 12** first editorial pass, or a
-measurable Archive Discovery Creator Pilot. The close asks for a narrow pilot
-decision instead of treating a prototype feature tour as proof of canon or
-business results.
+Showcase Mode is a six-beat guided walkthrough. Each beat opens working proof:
+Night Shift, Ask WWAM, the whole-feed Archive Atlas, a Loomis constellation,
+the **Tonight's 12** first editorial pass, or an Archive Discovery workflow.
+It demonstrates the system without placing private collaboration terms in the
+public archive.
 
 Night Shift produces a deterministic three- to five-beat daily journey whose
 five required roles are the newest indexed source, an older archive callback,

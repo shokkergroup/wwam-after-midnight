@@ -151,7 +151,7 @@ test("fingerprints and ten-source operational cohorts are deterministic", () => 
 
   assert.equal(first.fingerprint, second.fingerprint);
   assert.deepEqual(first.records, second.records);
-  assert.deepEqual(worklist.verifyFingerprint(), {
+  assert.deepEqual(plain(worklist.verifyFingerprint()), {
     ok: true,
     expected: first.fingerprint,
     actual: first.fingerprint,

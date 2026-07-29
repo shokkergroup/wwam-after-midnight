@@ -80,6 +80,10 @@
     return Object.prototype.hasOwnProperty.call(record, key);
   }
 
+  function array(value) {
+    return Array.isArray(value) ? value : [];
+  }
+
   function isRecord(value) {
     if (!value || typeof value !== "object" || Array.isArray(value)) return false;
     var prototype = Object.getPrototypeOf(value);
@@ -709,6 +713,271 @@
       }
     };
   }
+  function normalizeEpisodeRecap(raw, source, receiptMap, episodeGuide, path) {
+    if (raw == null) return null;
+    if (!isRecord(raw)) {
+      fail("INVALID_EPISODE_RECAP", path + " must be an object or null.", path);
+    }
+    var schema = requiredText(raw.schema, path + ".schema", 80);
+    if (schema !== "wwam-feldman-recap/v1") {
+      fail("INVALID_EPISODE_RECAP_SCHEMA", path + ".schema is unsupported.", path + ".schema");
+    }
+    var state = requiredText(raw.state, path + ".state", 40);
+    if (state !== "ready" && state !== "held") {
+      fail("INVALID_EPISODE_RECAP_STATE", path + ".state must be ready or held.", path + ".state");
+    }
+    if (requiredText(raw.sourceId, path + ".sourceId", 64) !== source.id) {
+      fail("EPISODE_RECAP_SOURCE_MISMATCH", path + ".sourceId must match the owning source.", path + ".sourceId");
+    }
+    if (!isRecord(raw.approval) || raw.approval.actualApproval !== false) {
+      fail(
+        "EPISODE_RECAP_APPROVAL_OVERREACH",
+        path + ".approval must explicitly state actualApproval: false.",
+        path + ".approval"
+      );
+    }
+    if (state === "ready" && source.coverage !== "caption-backed") {
+      fail(
+        "COVERAGE_EPISODE_RECAP_OVERREACH",
+        path + " cannot expose a semantic recap under " + source.coverage + " coverage.",
+        path
+      );
+    }
+    var guideCutIds = new Set(array(episodeGuide && episodeGuide.cuts).map(function (cut) {
+      return clean(cut.id);
+    }));
+
+    function boundedWindow(item, itemPath) {
+      var at = finiteNumber(item.at, itemPath + ".at", 0);
+      var end = finiteNumber(item.end, itemPath + ".end", 0);
+      if (end > source.duration && end - source.duration <= 60) end = source.duration;
+      if (at > source.duration + 1 || end <= at || end > source.duration + 1) {
+        fail(
+          "EPISODE_RECAP_WINDOW_INVALID",
+          itemPath + " must remain inside the owning source runtime.",
+          itemPath
+        );
+      }
+      return { at: at, end: end };
+    }
+
+    function localReceiptKeys(value, itemPath, maximum) {
+      var keys = stringList(value || [], itemPath, { max: 240 });
+      if (keys.length > maximum) {
+        fail(
+          "EPISODE_RECAP_RECEIPT_LIMIT",
+          itemPath + " cannot contain more than " + maximum + " receipt keys.",
+          itemPath
+        );
+      }
+      keys.forEach(function (key, index) {
+        if (!receiptMap.has(key)) {
+          fail(
+            "UNKNOWN_EPISODE_RECAP_RECEIPT",
+            itemPath + "[" + index + "] is not local to this source.",
+            itemPath + "[" + index + "]"
+          );
+        }
+      });
+      return keys;
+    }
+
+    function guideCutId(value, itemPath) {
+      var id = clean(value, 80);
+      if (id && !guideCutIds.has(id)) {
+        fail(
+          "UNKNOWN_EPISODE_RECAP_GUIDE_CUT",
+          itemPath + " is not in this source's Episode Guide.",
+          itemPath
+        );
+      }
+      return id;
+    }
+
+    if (!Array.isArray(raw.sections)) {
+      fail("INVALID_EPISODE_RECAP_SECTIONS", path + ".sections must be an array.", path + ".sections");
+    }
+    if (state === "held" && raw.sections.length) {
+      fail(
+        "HELD_EPISODE_RECAP_SEMANTIC_OVERREACH",
+        path + ".sections must remain empty while the recap is held.",
+        path + ".sections"
+      );
+    }
+    if (state === "ready" && (!raw.sections.length || raw.sections.length > 8)) {
+      fail(
+        "EPISODE_RECAP_SECTION_COUNT",
+        path + ".sections must contain between one and eight evidence-bound sections.",
+        path + ".sections"
+      );
+    }
+    var sectionIds = new Set();
+    var sections = raw.sections.map(function (section, index) {
+      var sectionPath = path + ".sections[" + index + "]";
+      if (!isRecord(section)) {
+        fail("INVALID_EPISODE_RECAP_SECTION", sectionPath + " must be an object.", sectionPath);
+      }
+      var id = requiredText(section.id, sectionPath + ".id", 80);
+      if (!KEBAB_ID.test(id) || sectionIds.has(id)) {
+        fail("INVALID_EPISODE_RECAP_SECTION_ID", sectionPath + ".id must be unique kebab-case.", sectionPath + ".id");
+      }
+      sectionIds.add(id);
+      var window = boundedWindow(section, sectionPath);
+      var receiptKeys = localReceiptKeys(
+        section.receiptKeys,
+        sectionPath + ".receiptKeys",
+        8
+      );
+      var cutId = guideCutId(section.guideCutId, sectionPath + ".guideCutId");
+      if (!receiptKeys.length && !cutId) {
+        fail(
+          "EPISODE_RECAP_SECTION_EVIDENCE_REQUIRED",
+          sectionPath + " must resolve to a local receipt or guide cut.",
+          sectionPath
+        );
+      }
+      var excerpt = clean(section.excerpt, 600);
+      if (excerpt && wordCount(excerpt) > 25) {
+        fail(
+          "EPISODE_RECAP_EXCERPT_TOO_LONG",
+          sectionPath + ".excerpt exceeds 25 words.",
+          sectionPath + ".excerpt"
+        );
+      }
+      return {
+        id: id,
+        ordinal: finiteNumber(section.ordinal || index + 1, sectionPath + ".ordinal", 1),
+        label: requiredText(section.label, sectionPath + ".label", 240),
+        body: requiredText(section.body, sectionPath + ".body", 1000),
+        at: window.at,
+        end: window.end,
+        anchor: clean(section.anchor, 180),
+        category: clean(section.category, 100),
+        excerpt: excerpt,
+        receiptKeys: receiptKeys,
+        guideCutId: cutId,
+        evidenceBasis: requiredText(
+          section.evidenceBasis,
+          sectionPath + ".evidenceBasis",
+          240
+        ),
+      };
+    });
+    for (var sectionIndex = 1; sectionIndex < sections.length; sectionIndex += 1) {
+      if (sections[sectionIndex].at < sections[sectionIndex - 1].at) {
+        fail(
+          "EPISODE_RECAP_SECTION_ORDER",
+          path + ".sections must remain chronological.",
+          path + ".sections[" + sectionIndex + "]"
+        );
+      }
+    }
+
+    var fanRead = {};
+    ["loved", "hated", "wildestDetour", "lastWord"].forEach(function (key) {
+      var item = raw.fanRead && raw.fanRead[key];
+      if (item == null) return;
+      var itemPath = path + ".fanRead." + key;
+      if (!isRecord(item)) {
+        fail("INVALID_EPISODE_RECAP_FAN_READ", itemPath + " must be an object.", itemPath);
+      }
+      var window = boundedWindow(item, itemPath);
+      var receiptKey = clean(item.receiptKey, 240);
+      if (receiptKey && !receiptMap.has(receiptKey)) {
+        fail(
+          "UNKNOWN_EPISODE_RECAP_FAN_RECEIPT",
+          itemPath + ".receiptKey is not local to this source.",
+          itemPath + ".receiptKey"
+        );
+      }
+      var cutId = guideCutId(item.guideCutId, itemPath + ".guideCutId");
+      if (!receiptKey && !cutId) {
+        fail(
+          "EPISODE_RECAP_FAN_EVIDENCE_REQUIRED",
+          itemPath + " must resolve to a local receipt or guide cut.",
+          itemPath
+        );
+      }
+      var excerpt = clean(item.excerpt, 600);
+      if (excerpt && wordCount(excerpt) > 25) {
+        fail(
+          "EPISODE_RECAP_FAN_EXCERPT_TOO_LONG",
+          itemPath + ".excerpt exceeds 25 words.",
+          itemPath + ".excerpt"
+        );
+      }
+      fanRead[key] = {
+        label: requiredText(item.label, itemPath + ".label", 180),
+        topic: clean(item.topic, 180),
+        body: requiredText(item.body, itemPath + ".body", 700),
+        at: window.at,
+        end: window.end,
+        receiptKey: receiptKey,
+        guideCutId: cutId,
+        excerpt: excerpt,
+        evidenceBasis: requiredText(item.evidenceBasis, itemPath + ".evidenceBasis", 240),
+      };
+    });
+
+    var bestMoments = array(raw.bestMoments).slice(0, 8).map(function (item, index) {
+      var itemPath = path + ".bestMoments[" + index + "]";
+      if (!isRecord(item)) {
+        fail("INVALID_EPISODE_RECAP_MOMENT", itemPath + " must be an object.", itemPath);
+      }
+      var receiptKey = requiredText(item.receiptKey, itemPath + ".receiptKey", 240);
+      if (!receiptMap.has(receiptKey)) {
+        fail(
+          "UNKNOWN_EPISODE_RECAP_MOMENT",
+          itemPath + ".receiptKey is not local to this source.",
+          itemPath + ".receiptKey"
+        );
+      }
+      var window = boundedWindow(item, itemPath);
+      return {
+        receiptKey: receiptKey,
+        at: window.at,
+        end: window.end,
+        label: requiredText(item.label, itemPath + ".label", 180),
+        excerpt: clean(item.excerpt, 600),
+        evidenceBasis: requiredText(item.evidenceBasis, itemPath + ".evidenceBasis", 240),
+      };
+    });
+    if (state === "held" && bestMoments.length) {
+      fail(
+        "HELD_EPISODE_RECAP_MOMENT_OVERREACH",
+        path + ".bestMoments must remain empty while the recap is held.",
+        path + ".bestMoments"
+      );
+    }
+
+    return {
+      schema: schema,
+      generatorVersion: requiredText(raw.generatorVersion, path + ".generatorVersion", 40),
+      coreSchema: requiredText(raw.coreSchema, path + ".coreSchema", 80),
+      sourceId: source.id,
+      sourceFingerprint: requiredText(raw.sourceFingerprint, path + ".sourceFingerprint", 80),
+      semanticFingerprint: requiredText(raw.semanticFingerprint, path + ".semanticFingerprint", 80),
+      state: state,
+      tier: requiredText(raw.tier, path + ".tier", 80),
+      label: requiredText(raw.label, path + ".label", 180),
+      badge: requiredText(raw.badge, path + ".badge", 180),
+      headline: requiredText(raw.headline, path + ".headline", 320),
+      deck: requiredText(raw.deck, path + ".deck", 700),
+      overview: requiredText(raw.overview, path + ".overview", 1800),
+      sections: sections,
+      bestMoments: bestMoments,
+      fanRead: fanRead,
+      coverage: isRecord(raw.coverage) ? serial(raw.coverage) : {},
+      format: isRecord(raw.format) ? serial(raw.format) : {},
+      limitations: stringList(raw.limitations || [], path + ".limitations", { max: 360 }),
+      approval: {
+        meaning: requiredText(raw.approval.meaning, path + ".approval.meaning", 120),
+        actualApproval: false,
+        disclosure: requiredText(raw.approval.disclosure, path + ".approval.disclosure", 400),
+      },
+    };
+  }
+
   function normalizeShowWiki(raw, source, receiptMap) {
     if (raw == null) return null;
     var path = "sources[" + source._index + "].showWiki";
@@ -717,6 +986,13 @@
       raw.episodeGuide,
       source,
       path + ".episodeGuide"
+    );
+    var episodeRecap = normalizeEpisodeRecap(
+      raw.episodeRecap,
+      source,
+      receiptMap,
+      episodeGuide,
+      path + ".episodeRecap"
     );
     if (!Array.isArray(raw.lanes) || !raw.lanes.length) {
       fail("SHOW_WIKI_LANES_REQUIRED", path + ".lanes must contain at least one lane.", path + ".lanes");
@@ -1008,6 +1284,7 @@
       experience: experience,
       brief: brief,
       recap: recap,
+      episodeRecap: episodeRecap,
       episodeGuide: episodeGuide,
       lanes: lanes
     };

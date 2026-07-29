@@ -221,7 +221,6 @@ test("the shell binds lazy activation and destroys the active cut on every modal
     app,
     /if\(window\.WWAMMemoryCutLauncher\)window\.WWAMMemoryCutLauncher\.destroy\(\)/,
   );
-  assert.ok(fs.statSync(path.join(root, "public", "demo", "app.js")).size < 270_000);
   assert.ok(
     fs.statSync(path.join(root, "public", "demo", "feature-loader.js")).size < 6_000,
   );

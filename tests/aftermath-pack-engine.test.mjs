@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 const here = path.dirname(fileURLToPath(import.meta.url));
 const demo = path.join(here, "..", "public", "demo");
 const SOURCE_ID = "LV2rmwEA0w4";
+const SOURCE_BRIEF_ID = "PiE4V15_j6I";
 const aftermathSource = fs.readFileSync(path.join(demo, "aftermath-pack-engine.js"), "utf8");
 
 function internalFunction(name, nextName) {
@@ -42,6 +43,7 @@ function load() {
     "archive-deep-batch4.js",
     "archive-deep-engine.js",
     "archive-deep-portfolio.js",
+    "episode-guides.js",
     "wwam-source-dossier-adapter.js",
     "source-dossier-engine.js",
     "aftermath-pack-engine.js",
@@ -81,6 +83,7 @@ function fixture() {
     live: window.WWAM_LIVESTREAMS,
     popular: window.WWAM_POPULAR_LIVE,
     archiveDeepPortfolio: archiveDeep,
+    episodeGuides: window.WWAM_EPISODE_GUIDES,
     showcase,
     clipLab,
     characters: window.WWAM_CHARACTER_LORE,
@@ -326,7 +329,7 @@ test("opportunity joins reject production-kind drift and ignore untrusted segmen
 });
 
 test("metadata-only pages refuse creator opportunity invention", () => {
-  const pack = built.engine.build("FVuwRHM0kcc");
+  const pack = built.engine.build(SOURCE_BRIEF_ID);
   assert.equal(pack.source.coverage, "metadata-only");
   assert.equal(pack.metrics.opportunities, 0);
   assert.equal(pack.opportunities.length, 0);
@@ -337,8 +340,8 @@ test("metadata-only pages refuse creator opportunity invention", () => {
     "NO RECEIPT-BACKED CREATOR OPPORTUNITIES YET",
   );
 
-  const review = built.engine.createReview("FVuwRHM0kcc", []);
-  const packet = built.engine.exportPacket("FVuwRHM0kcc", review);
+  const review = built.engine.createReview(SOURCE_BRIEF_ID, []);
+  const packet = built.engine.exportPacket(SOURCE_BRIEF_ID, review);
   assert.equal(review.status, "NO ELIGIBLE OPPORTUNITIES / NOTHING TO ROUTE");
   assert.equal(packet.status, "NO ELIGIBLE OPPORTUNITIES / NOTHING TO ROUTE");
   assert.deepEqual(plain(packet.bucketSummary), {

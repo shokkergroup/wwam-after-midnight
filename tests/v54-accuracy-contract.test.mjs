@@ -59,7 +59,7 @@ test("the proof wall does not silently morph when deferred engines finish", () =
     /\["EDITORIAL RECEIPTS", stable\.receipts \|\| moments, "872 PROMOTED \+ 42 QUARANTINED CANDIDATES"\]/,
   );
   assert.match(app, /"74 PROMOTED \+ 10 ARCHIVE DEEP QUARANTINE"/);
-  assert.match(pitchTour, /510 SOURCE FILES \/\/ 99 FULLY DISTILLED \/\/ 12 TOPIC-NAVIGATION ONLY \/\/ 399 HONESTLY QUEUED \/\/ 1,490 SOURCE RECEIPTS/);
+  assert.match(pitchTour, /510 SOURCE FILES \/\/ 194 FULL SHOW WIKIS \/\/ 16 TOPIC-NAVIGATION ONLY \/\/ 300 HONEST SOURCE BRIEFS \/\/ 3,310 SOURCE RECEIPTS/);
   assert.match(app, /HEALTHY · PROMOTED CORPUS/);
   assert.match(html, /This desk audits the 74-source promoted corpus/);
   assert.match(
@@ -72,15 +72,15 @@ test("the proof wall does not silently morph when deferred engines finish", () =
 test("the sales tour ends in a measurable pilot instead of another feature tour", () => {
   assert.match(
     pitchTour,
-    /eyebrow: "THE PILOT"/,
+    /eyebrow: "THE SHOWCASE"/,
   );
   assert.match(
     pitchTour,
-    /kind: "pilot"[\s\S]{0,180}label: "OPEN THE THREE-SHOW PILOT"[\s\S]{0,180}goal: "compilation-workflow"/,
+    /kind: "pilot"[\s\S]{0,180}label: "OPEN THE THREE-SHOW WORKFLOW"[\s\S]{0,180}goal: "compilation-workflow"/,
   );
   assert.match(app, /action\.kind === "pilot" \? "pitch"/);
   assert.match(app, /document\.getElementById\("pilotBuilder"\)\.scrollIntoView/);
-  assert.match(html, /TURN THIS MAP INTO A PILOT/);
+  assert.match(html, /class="pilot-builder" id="pilotBuilder"/);
 });
 
 test("a cold exact-rank question waits for the deferred Red Band query engine", () => {
@@ -117,20 +117,20 @@ test("the frozen V5.4 proof stays dated while the current four-batch overlay sta
   assert.match(app, /"archive-deep-engine\.js"/);
   assert.match(app, /"archive-deep-portfolio\.js"/);
   assert.match(app, /stream\._lane = "archive"/);
-  assert.match(atlasUi, /"archive-deep-10": "AUTOPSIED BATCH 01"/);
-  assert.match(atlasUi, /"archive-deep-batch-04": "ARCHIVE DEEP BATCH 04"/);
-  assert.match(sourceDossierUi, /QUARANTINE ACTIVE/);
+  assert.match(atlasUi, /"archive-deep-10": "DEEP-DIVE SHELF"/);
+  assert.match(atlasUi, /"archive-deep-batch-04": "DEEP-DIVE SHELF"/);
+  assert.match(sourceDossierUi, /"quarantined-lane": "HELD FOR REVIEW"/);
   assert.match(sourceDossierAdapter, /restrictedToTopicNavigation/);
   assert.match(html, /id="archiveBatch" hidden/);
-  assert.match(atlasUi, /CURRENT ' \+ meta\.streams/);
-  assert.match(atlasUi, /batchCount \+ " INDEPENDENT BATCH FINGERPRINTS/);
+  assert.match(atlasUi, /\[meta\.streams, "SHOW WIKIS"\]/);
+  assert.match(atlasUi, /40 OLDER SHOWS WITH EXTRA CHAPTERS/);
   assert.doesNotMatch(atlasUi, /CURRENT 20-SOURCE OVERLAY/);
   assert.doesNotMatch(atlasUi, /TWO INDEPENDENTLY FINGERPRINTED BATCHES/);
-  assert.match(atlasUi, /BATCH-LOCAL PRIORITY/);
-  assert.match(atlasUi, /PORTFOLIO #/);
-  assert.match(atlasUi, /ATLAS SCORE/);
+  assert.match(atlasUi, /\[meta\.topicLanes, "TOPIC JUMPS"\]/);
+  assert.match(atlasUi, /DEEP DIVE #/);
+  assert.match(atlasUi, /OPEN SHOW WIKI/);
   assert.match(atlasUi, /CACHED VIEWS/);
-  assert.match(atlasUi, /VISUAL RESULT UNVERIFIED/);
+  assert.match(atlasUi, /\[meta\.visualRankingQuarantines, "ARTWORK CHECKS LEFT"\]/);
   assert.doesNotMatch(atlasUi, /VIEW RANK/);
 });
 

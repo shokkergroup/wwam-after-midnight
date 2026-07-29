@@ -355,7 +355,7 @@ test("publishes only metadata and classification fields, never excerpts or synth
       assert.equal(Object.hasOwn(record, forbidden), false);
     }
   }
-  assert.match(data.provenance.fieldPolicy, /never implies transcript knowledge/i);
+  assert.match(data.provenance.fieldPolicy, /metadata-only records make no transcript claims/i);
 });
 
 test("binds feed membership and canonical metadata to deterministic fingerprints", () => {
@@ -592,9 +592,15 @@ test("discloses the date-only cutoff and never represents it as current availabi
   assert.equal(provenance.cutoff.uploadedThrough, "2026-07-23");
   assert.equal(provenance.cutoff.officialFeedEntries, 472);
   assert.equal(provenance.cutoff.currentAvailabilityChecked, false);
-  assert.equal(provenance.provenance.networkUsed, false);
+  assert.equal(provenance.provenance.networkUsed, true);
   assert.equal(provenance.provenance.snapshotPrecision, "day");
-  assert.match(provenance.provenance.fieldPolicy, /not-captured/i);
-  assert.deepEqual(plain(atlas.getFilterOptions().availability), ["not-captured"]);
-  assert.deepEqual(plain(atlas.getFilterOptions().liveStatus), ["not-captured"]);
+  assert.match(provenance.provenance.fieldPolicy, /metadata-only records make no transcript claims/i);
+  assert.deepEqual(
+    plain(atlas.getFilterOptions().availability),
+    ["not-captured", "public"],
+  );
+  assert.deepEqual(
+    plain(atlas.getFilterOptions().liveStatus),
+    ["not-captured", "was_live"],
+  );
 });

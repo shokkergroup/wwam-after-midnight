@@ -58,6 +58,10 @@ The fingerprint is a deterministic consistency checksum, not a cryptographic
 signature, owner authorization, or proof of authorship. Production workflows
 that need authenticity require an owner-controlled signing or approval system.
 
-## Commercial use
+## Evaluation boundary
 
-The output is a discussion artifact: it helps a creator choose what to test, what proof exists now, what humans still need to decide, and how a successful pilot would be observed. Scope, price, hosting, support, analytics, ownership, and rights remain part of a separate human agreement.
+The output is a discussion artifact: it helps a creator choose what to test,
+what proof exists now, what humans still need to decide, and how a successful
+pilot would be observed. Deployment-specific scope, hosting, support,
+analytics, ownership, and rights decisions remain outside this public
+artifact.

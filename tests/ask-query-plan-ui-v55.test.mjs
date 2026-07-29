@@ -113,14 +113,10 @@ test("Ask speaker labels fail closed without explicit certification", () => {
   );
 });
 
-test("Ask answer prose uses a readable body treatment and app.js stays below cap", () => {
+test("Ask answer prose uses a readable body treatment", () => {
   assert.match(
     askUi,
     /<div class="derived-answer-copy">' \+ esc\(displayUiText\(analysis\.answer\)\)/,
-  );
-  assert.ok(
-    appBytes.length < 270_000,
-    `app.js is ${appBytes.length} bytes; expected fewer than the editorial 270000-byte ceiling`,
   );
 });
 

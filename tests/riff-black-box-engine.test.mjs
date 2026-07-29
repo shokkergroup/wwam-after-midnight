@@ -262,21 +262,21 @@ test("Riff Black Box exposes a generic deterministic engine contract", () => {
   assert.equal(Object.isFrozen(engine), true);
 });
 
-test("the full promoted portfolio reconciles 301 anchors across 69 sources with zero score drift", () => {
+test("the full promoted portfolio reconciles 306 anchors across 69 sources with zero score drift", () => {
   const window = load();
   const { showcase, engine } = build(window);
   const chemistry = showcase.getRiffChemistry();
   const anchors = engine.list();
   const promotedReceiptIds = new Set(showcase.receipts.map((receipt) => receipt.id));
 
-  assert.equal(chemistry.moments.length, 301);
-  assert.equal(engine.metrics.anchorCount, 301);
+  assert.equal(chemistry.moments.length, 306);
+  assert.equal(engine.metrics.anchorCount, 306);
   assert.equal(engine.metrics.sourceCount, 69);
   assert.equal(engine.metrics.dimensionCount, 6);
   assert.equal(engine.metrics.scoreDriftCount, 0);
   assert.equal(engine.metrics.maximumScoreDrift, 0);
   assert.equal(engine.metrics.weightTotal, 1);
-  assert.equal(anchors.length, 301);
+  assert.equal(anchors.length, 306);
   assert.equal(new Set(anchors.map((anchor) => anchor.sourceId)).size, 69);
   assert.deepEqual(plain(engine.weights), {
     heat: 0.28,
@@ -367,7 +367,7 @@ test("reaction evidence is literal-only even when a category sounds like a room 
   const anchors = engine.list();
 
   assert.equal(engine.metrics.literalReactionCueCount, 13);
-  assert.equal(engine.metrics.unknownReactionCount, 288);
+  assert.equal(engine.metrics.unknownReactionCount, 293);
   anchors.forEach((anchor) => {
     const literal = receiptById.get(anchor.receiptId).excerpt;
     const allowed = literal.match(/\b(?:laughter|laughing)\b|can['\u2019]t breathe/i);

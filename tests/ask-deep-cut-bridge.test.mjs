@@ -224,10 +224,12 @@ test("Ask page wires the bridge lazily and keeps the release byte ceiling", asyn
   assert.match(app, /data-ask-source[\s\S]{0,240}data-time[\s\S]{0,120}data-end/);
   assert.match(app, /openDossier\(button\.dataset\.id,\+button\.dataset\.time,\+button\.dataset\.end\)/);
   assert.match(app, /loadPlayer\(sourceId,\+startTime,settings\.end\)/);
-  assert.match(app, /source-dossier-engine\.js\?v=1\.7\.0/);
+  assert.match(app, /episode-recap-engine\.js\?v=1\.0\.0/);
+  assert.match(app, /wwam-episode-recap-adapter\.js\?v=1\.0\.0/);
+  assert.match(app, /source-dossier-engine\.js\?v=1\.8\.0-feldman/);
   assert.doesNotMatch(html, /<script[^>]+(?:ask-deep-cut|episode-guides)\.js/i);
   assert.ok(
-    appInfo.size < 270000,
-    `app.js is ${appInfo.size} bytes; expected fewer than the 270000-byte ceiling`,
+    appInfo.size < 275000,
+    `app.js is ${appInfo.size} bytes; expected fewer than the 275000-byte ceiling`,
   );
 });

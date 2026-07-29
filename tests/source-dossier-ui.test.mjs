@@ -1093,7 +1093,7 @@ test("compact Show Wiki shortcuts expand and scroll the newly rendered target af
   assert.equal(modal.scrollCalls.length, 1);
   assert.equal(modal.scrollCalls[0].top, 1032);
   assert.equal(modal.scrollCalls[0].left, 0);
-  assert.equal(modal.scrollCalls[0].behavior, "smooth");
+  assert.equal(modal.scrollCalls[0].behavior, "auto");
   assert.equal(target.scrollCalls.length, 0, "modal-relative scrolling owns the viewport");
   assert.equal(target.heading.focusCount, 1);
 });
@@ -1217,6 +1217,107 @@ test("rich sources become navigable per-show Wikis with recap, Topic Hop, and ex
     ],
   );
   assert.ok(bags.every((payload) => payload.section === "wiki"));
+});
+
+test("ready episode recaps render the Feldman label, playable evidence, and Damage Report", () => {
+  const dossier = makeDossier();
+  dossier.source.showWiki.episodeRecap = {
+    schema: "wwam-feldman-recap/v1",
+    state: "ready",
+    tier: "receipt-recap",
+    label: "WWAM FELDMAN APPROVED RECAP",
+    badge: "RECEIPT RECAP",
+    headline: "THE TAPE PUTS ON THE PURPLE JACKET.",
+    deck: "The source-linked cuts provide the damage.",
+    overview: "A chronological episode story assembled from this exact upload.",
+    sections: [
+      {
+        id: "cold-open",
+        label: "COLD OPEN // THE FIRST TURN",
+        body: "The opening argument is attached to the source receipt.",
+        at: dossier.source.receipts[0].at,
+        end: dossier.source.receipts[0].end,
+        excerpt: dossier.source.receipts[0].excerpt,
+        receiptKeys: [dossier.source.receipts[0].key],
+      },
+    ],
+    fanRead: {
+      hated: {
+        label: "STRAIGHT TO STEVE'S ASSHOLE",
+        topic: "THE COMPLAINT DESK",
+        body: "The negative turn stays attached to the exact show.",
+        at: dossier.source.receipts[5].at,
+        end: dossier.source.receipts[5].end,
+        receiptKey: dossier.source.receipts[5].key,
+        excerpt: dossier.source.receipts[5].excerpt,
+      },
+    },
+    approval: {
+      actualApproval: false,
+      disclosure: "A running-bit label, not a creator endorsement.",
+    },
+    semanticFingerprint: "feldman-ready-ui-fixture",
+  };
+  const plays = [];
+  const { ui, mount } = setup(dossier, {
+    onPlay: (payload) => plays.push(payload),
+  });
+
+  ui.render(dossier.source.id);
+  const html = mount.innerHTML;
+
+  assert.match(html, /data-feldman-recap="ready"/);
+  assert.match(html, /WWAM FELDMAN APPROVED RECAP/);
+  assert.match(html, /START WITH THE TAPE/);
+  assert.match(html, /Play the first saved turn at 01:00/);
+  assert.match(
+    html,
+    /data-source-dossier-action="play-receipt" data-receipt-key="SOURCE00001:receipt-0"/,
+  );
+  assert.match(html, /DAMAGE REPORT/);
+  assert.match(html, /STRAIGHT TO STEVE&#39;S ASSHOLE/);
+
+  mount.click("play-receipt", {
+    "data-receipt-key": dossier.source.receipts[0].key,
+    "data-owner-section": "wiki",
+  });
+  assert.equal(plays.length, 1);
+  assert.equal(plays[0].receipt, dossier.source.receipts[0]);
+  assert.equal(plays[0].section, "wiki");
+});
+
+test("held episode recaps wait on the tape without claiming Feldman approval", () => {
+  const dossier = makeDossier({ metadataOnly: true, receiptCount: 0 });
+  dossier.source.showWiki.episodeRecap = {
+    schema: "wwam-feldman-recap/v1",
+    state: "held",
+    tier: "source-safe-held",
+    label: "EPISODE RECAP",
+    badge: "RECAP WAITING ON THE TAPE",
+    headline: "THE UPLOAD IS REAL. THE RECAP ISN'T READY TO LIE FOR IT.",
+    deck: "The official upload is registered and waiting for source-local captions.",
+    overview: "Verified source details remain available without invented episode events.",
+    sections: [],
+    fanRead: {},
+    format: {
+      label: "MOVIE COMMENTARY",
+    },
+    approval: {
+      actualApproval: false,
+      disclosure: "No creator approval is claimed.",
+    },
+    semanticFingerprint: "feldman-held-ui-fixture",
+  };
+  const { ui, mount } = setup(dossier);
+
+  ui.render(dossier.source.id);
+  const html = mount.innerHTML;
+
+  assert.match(html, /data-feldman-recap="held"/);
+  assert.match(html, /RECAP WAITING ON THE TAPE/);
+  assert.match(html, /NO MADE-UP EPISODE EVENTS/);
+  assert.doesNotMatch(html, /WWAM FELDMAN APPROVED RECAP/);
+  assert.doesNotMatch(html, /FELDMAN APPROVED/i);
 });
 
 test("Episode Guide V2 exposes the episode spine and plays bounded source-local cuts", () => {
@@ -1346,7 +1447,7 @@ test("Episode Guide V2 exposes the episode spine and plays bounded source-local 
   const guideTarget = mount.registerJumpTarget("sourceDossierEpisodeGuide");
   assert.equal(mount.clickLink("#sourceDossierEpisodeGuide"), true);
   assert.equal(guideTarget.scrollCalls.length, 1);
-  assert.equal(guideTarget.scrollCalls[0].behavior, "smooth");
+  assert.equal(guideTarget.scrollCalls[0].behavior, "auto");
   assert.equal(guideTarget.scrollCalls[0].block, "start");
   assert.equal(guideTarget.heading.focusCount, 1);
   assert.equal(guideTarget.heading.getAttribute("tabindex"), "-1");
@@ -1370,7 +1471,7 @@ test("Episode Guide V2 exposes the episode spine and plays bounded source-local 
   assert.equal(mount.clickLink("#sourceDossierFanRead"), true);
   assert.match(mount.innerHTML, /data-source-dossier-view="full"/);
   assert.equal(fanTarget.scrollCalls.length, 1);
-  assert.equal(fanTarget.scrollCalls[0].behavior, "smooth");
+  assert.equal(fanTarget.scrollCalls[0].behavior, "auto");
   assert.equal(fanTarget.heading.focusCount, 1);
   assert.match(mount.innerHTML, /THE EPISODE ACTUALLY HAS A SHAPE/);
   assert.match(mount.innerHTML, /WHAT KEEPS COMING BACK/);

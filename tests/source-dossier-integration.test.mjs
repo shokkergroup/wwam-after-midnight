@@ -425,12 +425,14 @@ test("dossier CSS and scripts load lazily through the feature loader, never eage
   const dossierScripts = [
     "channel-pack-contract.js",
     "wwam-channel-pack-adapter.js",
-      "episode-guides.js",
-      "source-dossier-engine.js",
-      "wwam-source-dossier-adapter.js",
-      "source-query-engine.js",
-      "aftermath-pack-engine.js",
-      "source-dossier-ui.js",
+    "episode-guides.js",
+    "episode-recap-engine.js",
+    "wwam-episode-recap-adapter.js",
+    "source-dossier-engine.js",
+    "wwam-source-dossier-adapter.js",
+    "source-query-engine.js",
+    "aftermath-pack-engine.js",
+    "source-dossier-ui.js",
   ];
   assert.equal(eagerStyles.includes("source-dossier.css"), false);
   for (const asset of dossierScripts) {
@@ -443,7 +445,9 @@ test("dossier CSS and scripts load lazily through the feature loader, never eage
   );
 
   const loader = namedFunction(app, "loadSourceDossier");
-  assert.match(loader, /loader\.loadStyle\("source-dossier\.css\?v=1\.9\.2-fan-read"\)/);
+  assert.match(loader, /loader\.loadStyle\("source-dossier\.css\?v=2\.0\.0-feldman"\)/);
+  assert.match(loader, /"episode-recap-engine\.js\?v=1\.0\.0"/);
+  assert.match(loader, /"wwam-episode-recap-adapter\.js\?v=1\.0\.0"/);
   assert.match(loader, /loadDemoScript\("creator-studio-engine\.js"\)\.then\(createClipLab\)/);
   assert.doesNotMatch(loader, /createCreatorEngines/);
   const scriptList = loader

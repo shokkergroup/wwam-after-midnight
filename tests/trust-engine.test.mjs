@@ -73,14 +73,14 @@ test("Trust Desk is deterministic and reports the complete v4 evidence surface",
   );
 
   assert.equal(first.metrics.sources, 74);
-  assert.equal(first.metrics.receipts, 872);
+  assert.equal(first.metrics.receipts, 877);
   assert.equal(first.metrics.healthySources, 71);
   assert.equal(first.metrics.limitedSources, 3);
   assert.equal(first.metrics.blockedSources, 0);
   assert.equal(first.metrics.brokenSourceLinks, 0);
   assert.equal(first.metrics.invalidTimestamps, 0);
   assert.equal(first.metrics.machineReceipts, 847);
-  assert.equal(first.metrics.curatedCandidateReceipts, 25);
+  assert.equal(first.metrics.curatedCandidateReceipts, 30);
   assert.equal(first.metrics.editorReceipts, 0);
   assert.equal(first.metrics.creatorReceipts, 0);
   assert.equal(first.metrics.publicExcerptViolations, 362);
@@ -89,17 +89,17 @@ test("Trust Desk is deterministic and reports the complete v4 evidence surface",
   assert.equal(first.metrics.rippleReadyPackets, 90);
   assert.equal(first.metrics.rippleBlockedPackets, 5);
   assert.equal(first.metrics.rippleExactReceiptRecords, 921);
-  assert.equal(first.metrics.rippleSourceOnlyRecords, 2480);
+  assert.equal(first.metrics.rippleSourceOnlyRecords, 2508);
   assert.equal(first.metrics.contributionPackets, 4);
   assert.equal(first.policy.noSpeakerGuessing, true);
   assert.equal(first.policy.generatedCharacterAudioAllowed, false);
-  assert.equal(first.correctionRipple.registeredRecords, 1381);
+  assert.equal(first.correctionRipple.registeredRecords, 1396);
   assert.equal(first.correctionRipple.registeredSurfaces.length, 9);
   assert.deepEqual(
     plain(first.correctionRipple.registryHealth),
     {
       sources: 74,
-      receipts: 872,
+      receipts: 877,
       duplicateSourceIds: [],
       duplicateReceiptIds: [],
     },
@@ -167,7 +167,7 @@ test("the character firewall counts only curated performances and never guesses 
   const characters = trust.characterAudits.grounded;
 
   assert.equal(characters.length, 4);
-  assert.equal(trust.metrics.timestampValidatedCuratedPerformances, 25);
+  assert.equal(trust.metrics.timestampValidatedCuratedPerformances, 30);
   assert.equal(trust.metrics.authenticatedEditorVerifiedPerformances, 0);
   assert.equal(trust.metrics.ordinaryCharacterMentionsQuarantined, 12);
   assert.equal(trust.metrics.aliasCollisions, 2);
@@ -184,13 +184,24 @@ test("the character firewall counts only curated performances and never guesses 
   );
 
   characters.forEach((character) => {
+    const validatedPerformanceIds = new Set(
+      character.timestampValidatedPerformanceIds
+    );
     assert.equal(character.canGenerateLabeledTextParody, true);
     assert.equal(character.canGenerateCharacterAudio, false);
     assert.equal(character.canClaimSpecificHostSpokeInEachClip, false);
     assert.ok(character.timestampValidatedPerformanceIds.length >= 3);
     assert.deepEqual(plain(character.authenticatedEditorVerifiedPerformanceIds), []);
     character.soundbytes.forEach((soundbyte) => {
-      assert.equal(soundbyte.timestampValidatedCuratedCandidate, true);
+      const isValidatedPerformance = validatedPerformanceIds.has(
+        soundbyte.receiptId
+      );
+      assert.equal(
+        soundbyte.timestampValidatedCuratedCandidate,
+        isValidatedPerformance
+      );
+      assert.equal(soundbyte.sourceResolved, isValidatedPerformance);
+      assert.equal(soundbyte.timestampValid, isValidatedPerformance);
       assert.equal(soundbyte.authenticatedEditorVerified, false);
       assert.equal(soundbyte.specificSpeakerVerified, false);
       assert.match(

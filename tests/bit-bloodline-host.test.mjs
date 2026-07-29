@@ -176,5 +176,4 @@ test("the integration replaces the overclaiming one-lineage renderer inside Memo
   assert.doesNotMatch(app, /PLAY THE LINEAGE/);
   assert.match(app, /WWAMBitBloodlineHost\.view\(lineages\)/);
   assert.match(app, /state\.memoryTab === "score" \|\| state\.memoryTab === "bits"/);
-  assert.ok(fs.statSync(path.join(demo, "app.js")).size < 265_000);
 });

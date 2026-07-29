@@ -59,15 +59,15 @@ function serial(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
-test("indexes every playable showcase receipt without synthetic source summaries", () => {
+test("indexes the expanded playable Lore corpus without synthetic source summaries", () => {
   const { trivia, showcase } = createEngines();
 
   assert.equal(trivia.version, "1.0.0");
-  assert.equal(trivia.metrics.playableReceipts, showcase.metrics.receipts);
-  assert.equal(trivia.metrics.playableReceipts, 872);
-  assert.equal(trivia.metrics.indexedSources, 74);
-  assert.equal(trivia.metrics.eligibleSources, 71);
-  assert.equal(trivia.metrics.exactTimestampReceipts, 872);
+  assert.ok(trivia.metrics.playableReceipts > showcase.metrics.receipts);
+  assert.equal(trivia.metrics.playableReceipts, 907);
+  assert.equal(trivia.metrics.indexedSources, 97);
+  assert.equal(trivia.metrics.eligibleSources, 94);
+  assert.equal(trivia.metrics.exactTimestampReceipts, 907);
   assert.equal(trivia.metrics.speakerQuestions, 0);
   assert.equal(trivia.metrics.syntheticQuotes, 0);
   assert.deepEqual(

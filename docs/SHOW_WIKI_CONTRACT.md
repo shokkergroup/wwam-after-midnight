@@ -119,11 +119,11 @@ The integrated V1.5 audit projects the complete registered corpus:
 | Audit measure | Certified result |
 | --- | --- |
 | Canonical Show Wikis | 510 |
-| Truth-state split | 99 `distilled` / 12 `topic-nav-only` / 399 `source-brief` |
-| Distinct receipt-bound recaps | 111 |
-| Unique registered receipts | 1,490 |
-| Strict Steve receipts | 15 |
-| Character recap blocks | 37 named / 0 generic |
+| Truth-state split | 193 moment-backed `distilled` / 16 `topic-nav-only` / 301 source-safe held `source-brief` |
+| Distinct receipt-bound recaps | 209 |
+| Unique registered receipts | 3,315 |
+| Strict Steve receipts | 30 |
+| Character recap blocks | 126 named / 0 generic |
 | Restored legacy comedy moments | 7 restored across BIT ENERGY and CHAT DID THIS |
 | Title-relevant topic selection | 53/53 where topic evidence exists |
 | Prior V1.4 integrated baseline | 178/178 relevant tests; build, lint, and diff green |
@@ -131,6 +131,13 @@ The integrated V1.5 audit projects the complete registered corpus:
 These are bounded inventory and verification counts, not creator approval,
 speaker identification, objective rankings, or claims about unregistered
 content.
+
+`FELDMAN APPROVED RECAP` is a WWAM presentation label over an existing
+receipt-bound recap, never evidence that Corey Feldman, Mike, J, or another
+person approved the prose. A ready recap must retain `actualApproval: false`
+and its exact local receipt bindings. The 301 source-safe held records remain
+Source Briefs until this exact upload has defensible caption evidence; the
+label cannot turn metadata into an episode recap.
 
 ## Episode Recap Compiler
 

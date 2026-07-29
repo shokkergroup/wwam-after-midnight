@@ -767,16 +767,33 @@
       }));
     }
 
+    function episodeRecapFor(dossier) {
+      return record(record(dossier && dossier.source && dossier.source.showWiki).episodeRecap);
+    }
+
+    function hasEpisodeRecap(dossier) {
+      return clean(episodeRecapFor(dossier).schema) === "wwam-feldman-recap/v1";
+    }
+
+    function hasReadyEpisodeRecap(dossier) {
+      var recap = episodeRecapFor(dossier);
+      return clean(recap.schema) === "wwam-feldman-recap/v1" &&
+        clean(recap.state) === "ready";
+    }
+
     function showWikiLocalNavMarkup(dossier) {
       var wiki = record(dossier.source.showWiki);
       var lanes = array(wiki.lanes).map(record);
       var experience = record(wiki.experience);
       var links = [];
       var sourceBrief = isSourceBrief(dossier);
-      if (sourceBrief || clean(record(wiki.recap).overview) || dossier.source.summary) {
+      if (hasEpisodeRecap(dossier) || sourceBrief ||
+          clean(record(wiki.recap).overview) || dossier.source.summary) {
         links.push({
           id: "sourceDossierShowWikiSummary",
-          label: sourceBrief ? "SOURCE BRIEF" : "RECAP"
+          label: hasReadyEpisodeRecap(dossier) ? "FELDMAN RECAP" :
+            hasEpisodeRecap(dossier) ? "RECAP STATUS" :
+              sourceBrief ? "SOURCE BRIEF" : "RECAP"
         });
       }
       if (!sourceBrief && showWikiHasFanRead(dossier)) {
@@ -823,7 +840,9 @@
       }
       links.push({
         id: "sourceDossierShowWikiSummary",
-        label: sourceBrief ? "SOURCE BRIEF" : "SHOW SUMMARY"
+        label: hasReadyEpisodeRecap(dossier) ? "FELDMAN RECAP" :
+          hasEpisodeRecap(dossier) ? "RECAP STATUS" :
+            sourceBrief ? "SOURCE BRIEF" : "SHOW SUMMARY"
       });
       if (!compact && !sourceBrief &&
           showWikiExperienceReceipts(dossier, experience.routeReceiptKeys).length) {
@@ -975,6 +994,121 @@
         'data-source-dossier-action="stage-intake">QUEUE THE DEEP DIVE &#8594;</button><a href="' +
         esc(source.url) + '" target="_blank" rel="noopener">WATCH ON YOUTUBE &#8599;</a>' +
         '</footer></article>';
+    }
+
+    function showWikiEpisodeRecapMarkup(dossier, compact) {
+      var source = dossier.source;
+      var recap = episodeRecapFor(dossier);
+      if (clean(recap.schema) !== "wwam-feldman-recap/v1") return "";
+      var ready = clean(recap.state) === "ready";
+      var sections = array(recap.sections).map(record);
+      var visibleSections = compact ? sections.slice(0, 3) : sections;
+      var fanRead = record(recap.fanRead);
+
+      function recapPlayButton(item, label) {
+        var receiptKey = clean(array(item.receiptKeys)[0] || item.receiptKey);
+        var at = number(item.at);
+        var end = number(item.end) > at ? number(item.end) :
+          Math.min(number(source.duration), at + 30);
+        if (receiptKey && sourceReceiptByKey(dossier, receiptKey)) {
+          return '<button type="button" data-source-dossier-action="play-receipt" ' +
+            'data-receipt-key="' + esc(receiptKey) + '" aria-label="' +
+            esc(label + " at " + formatTime(at)) + '">&#9654; ' +
+            esc(formatTime(at)) + '</button>';
+        }
+        if (clean(item.guideCutId)) {
+          return '<button type="button" data-source-dossier-action="play-guide-cut" ' +
+            'data-guide-at="' + esc(at) + '" data-guide-end="' + esc(end) +
+            '" aria-label="' + esc(label + " at " + formatTime(at)) +
+            '">&#9654; ' + esc(formatTime(at)) + '</button>';
+        }
+        return "";
+      }
+
+      if (!ready) {
+        var facts = [
+          ["UPLOAD", formatDate(source.date)],
+          ["RUNTIME", formatDuration(source.duration)],
+          ["VIEWS WHEN INDEXED", formatNumber(source.views)],
+          ["FORMAT", clean(record(recap.format).label) || titleCase(source.sourceType)],
+          ["CAPTION STATE", coverageLabel(source.coverage)],
+        ];
+        return '<section class="source-dossier-feldman-recap is-held" ' +
+          'id="sourceDossierShowWikiSummary" data-feldman-recap="held">' +
+          '<header><div><span>' + esc(recap.label) + '</span><h4>' +
+          esc(recap.headline) + '</h4></div><b>' + esc(recap.badge) +
+          '</b></header><p class="source-dossier-feldman-deck">' +
+          esc(recap.deck) + '</p><p class="source-dossier-feldman-overview">' +
+          esc(recap.overview) + '</p><div class="source-dossier-feldman-facts">' +
+          facts.map(function (fact) {
+            return '<span><small>' + esc(fact[0]) + '</small><b>' +
+              esc(fact[1] || "NOT REGISTERED") + '</b></span>';
+          }).join("") + '</div><footer><small>NO MADE-UP EPISODE EVENTS // SOURCE DETAILS ONLY</small>' +
+          '<button type="button" data-source-dossier-action="stage-intake">' +
+          'QUEUE THE TAPE &#8594;</button><a href="' + esc(source.url) +
+          '" target="_blank" rel="noopener">WATCH ON YOUTUBE &#8599;</a></footer></section>';
+      }
+
+      var sectionMarkup = visibleSections.map(function (section, index) {
+        var excerpt = cleanCaptionExcerpt(section.excerpt);
+        return '<article class="source-dossier-feldman-act" data-feldman-act="' +
+          esc(section.id) + '"><header><span>ACT ' +
+          esc(String(index + 1).padStart(2, "0")) + '</span><time>' +
+          esc(formatTime(section.at)) + '</time></header><h5>' +
+          esc(section.label) + '</h5><p>' + esc(section.body) + '</p>' +
+          (excerpt ? '<blockquote>&ldquo;' + esc(excerpt) + '&rdquo;</blockquote>' : '') +
+          '<footer>' + recapPlayButton(section, "Play recap act " + (index + 1)) +
+          '<small>EXACT-SHOW EVIDENCE</small></footer></article>';
+      }).join("");
+      var openingSection = record(sections[0]);
+      var openingJump = compact && clean(openingSection.id) ?
+        '<div class="source-dossier-feldman-start"><span>START WITH THE TAPE</span><b>' +
+        esc(openingSection.label) + '</b>' +
+        recapPlayButton(openingSection, "Play the first saved turn") + '</div>' : '';
+
+      var damageSpecs = [
+        ["loved", "WHAT THE TAPE DEFENDED"],
+        ["hated", "STRAIGHT TO STEVE'S ASSHOLE"],
+        ["wildestDetour", "WWAM UP IN YA"],
+        ["lastWord", "THE LAST WORD"],
+      ];
+      var damageMarkup = damageSpecs.map(function (spec) {
+        var item = record(fanRead[spec[0]]);
+        if (!clean(item.body)) return "";
+        var excerpt = cleanCaptionExcerpt(item.excerpt);
+        return '<article data-feldman-damage="' + esc(spec[0]) + '"><span>' +
+          esc(clean(item.label) || spec[1]) + '</span><h5>' +
+          esc(clean(item.topic) || spec[1]) + '</h5><p>' + esc(item.body) +
+          '</p>' + (excerpt ? '<blockquote>&ldquo;' + esc(excerpt) +
+            '&rdquo;</blockquote>' : '') + recapPlayButton(item, "Play " + spec[1]) +
+          '</article>';
+      }).filter(Boolean).join("");
+
+      return '<section class="source-dossier-feldman-recap is-ready" ' +
+        'id="sourceDossierShowWikiSummary" data-feldman-recap="ready" ' +
+        'data-feldman-tier="' + esc(recap.tier) + '" data-feldman-view="' +
+        (compact ? 'highlights' : 'full') + '"><header><div><span>' +
+        esc(recap.label) + '</span><h4>' + esc(recap.headline) +
+        '</h4></div><b>' + esc(recap.badge) + '</b></header>' +
+        openingJump +
+        '<p class="source-dossier-feldman-deck">' + esc(recap.deck) +
+        '</p><p class="source-dossier-feldman-overview">' +
+        esc(recap.overview) + '</p><div class="source-dossier-feldman-acts">' +
+        sectionMarkup + '</div>' +
+        (compact && sections.length > visibleSections.length ?
+          '<button type="button" class="source-dossier-feldman-expand" ' +
+          'data-source-dossier-action="open-full-file">OPEN ALL ' +
+          esc(sections.length) + ' RECAP ACTS &#8594;</button>' : '') +
+        (damageMarkup ? '<section class="source-dossier-feldman-damage"><header><span>' +
+          'DAMAGE REPORT</span><b>ONLY WHAT THIS TAPE CAN PROVE</b></header><div>' +
+          damageMarkup + '</div></section>' : '') +
+        '<details class="source-dossier-feldman-receipts"><summary>SHOW YOUR RECEIPTS</summary><p>' +
+        esc(clean(record(recap.approval).disclosure)) +
+        ' Every paragraph above resolves to a timestamp from this exact upload. ' +
+        'Automatic captions do not establish the speaker, delivery, or audio origin.</p><small>' +
+        esc(clean(recap.semanticFingerprint).toUpperCase()) +
+        ' // ' + esc(array(recap.sections).length) + ' CHRONOLOGICAL ACTS</small></details>' +
+        '</section>';
     }
 
     function showWikiRecapMarkup(dossier, compact) {
@@ -1255,6 +1389,8 @@
       var lanes = array(wiki.lanes).map(record);
       var receiptCount = array(source.receipts).length;
       var sourceBrief = isSourceBrief(dossier);
+      var episodeRecap = episodeRecapFor(dossier);
+      var readyEpisodeRecap = clean(episodeRecap.state) === "ready";
       var status = clean(wiki.status) ||
         (receiptCount ? "SOURCE DISTILLED" : "QUEUED // NOT DISTILLED");
       var label = clean(wiki.label) || "SHOW WIKI";
@@ -1264,7 +1400,8 @@
       var guide = record(wiki.episodeGuide);
       var hasEpisodeGuide = clean(guide.schema) === "wwam-episode-guide/v2";
       var guideCutCount = hasEpisodeGuide ? array(guide.cuts).length : 0;
-      var hasMappedContent = Boolean(record(wiki.recap).overview || source.summary ||
+      var hasMappedContent = Boolean(readyEpisodeRecap ||
+        record(wiki.recap).overview || source.summary ||
         array(experience.routeReceiptKeys).length || lanes.some(function (lane) {
           return showWikiLaneReceipts(dossier, lane).length;
         }));
@@ -1288,30 +1425,44 @@
         visibleEntries.reduce(function (total, entry) {
           return total + showWikiLaneReceipts(dossier, entry.lane).length;
         }, 0);
-      var headerTitle = sourceBrief ? "THE SHOW IS HERE. THE DEEP DIVE IS NOT READY YET." :
+      var headerTitle = sourceBrief && hasEpisodeRecap(dossier) ?
+        "THE SHOW IS HERE. THE RECAP IS WAITING ON THE TAPE." :
+        sourceBrief ? "THE SHOW IS HERE. THE DEEP DIVE IS NOT READY YET." :
         status === "topic-nav-only" ? "WHAT THEY COVERED, WITH A WAY BACK TO EACH PART." :
           hasMappedContent ? "THE WHOLE NIGHT, CUT TO THE PARTS WORTH REVISITING." :
             "THE SHOW IS HERE. THE MOMENT MAP IS COMING.";
-      var headerDescription = sourceBrief ?
+      var headerDescription = sourceBrief && hasEpisodeRecap(dossier) ?
+        "The official upload is verified. No episode events are invented while its caption map is missing." :
+        sourceBrief ?
         "The official upload is linked and verified. A recap will appear only after this exact show has usable captions." :
         queued ? "The upload is ready to watch. Its recap and moments wait for captions from this exact show." :
           "A recap, watch path, and timestamped moments from this exact upload.";
-      var statusLabel = sourceBrief ?
-        "DEEP DIVE NOT READY" : queued ? "WAITING FOR CAPTIONS" :
+      var statusLabel = sourceBrief && hasEpisodeRecap(dossier) ?
+        "RECAP WAITING ON THE TAPE" :
+        readyEpisodeRecap && clean(episodeRecap.tier) === "topic-recap" ?
+          "FELDMAN TOPIC RECAP" :
+          readyEpisodeRecap ? "FELDMAN RECAP" :
+            sourceBrief ? "DEEP DIVE NOT READY" : queued ? "WAITING FOR CAPTIONS" :
           status === "topic-nav-only" ? "TOPICS READY" :
             receiptCount ? (compact ? "SHOW HIGHLIGHTS" : "FULL SHOW FILE") :
               "SHOW PAGE STARTED";
       var body = showWikiLocalNavMarkup(dossier);
       if (sourceBrief) {
-        body += showWikiBriefMarkup(dossier) +
+        body += (hasEpisodeRecap(dossier) ?
+          showWikiEpisodeRecapMarkup(dossier, compact) :
+          showWikiBriefMarkup(dossier)) +
           '<aside class="source-dossier-wiki-brief-seal" role="note"><b>' +
           'NO FAKE RECAP.</b><span>This page will not turn a title and thumbnail into made-up topics, ' +
           'quotes, character bits, or comedy verdicts.</span></aside>';
       } else {
-        body += showWikiRecapMarkup(dossier, compact) +
-          showWikiFanReadMarkup(dossier, compact) +
-          showWikiEpisodeGuideMarkup(dossier, compact) +
-          ((!compact || !hasEpisodeGuide) ? showWikiExperienceMarkup(dossier, compact) : "") +
+        body += (hasEpisodeRecap(dossier) ?
+          showWikiEpisodeRecapMarkup(dossier, compact) :
+          showWikiRecapMarkup(dossier, compact)) +
+          (!hasEpisodeRecap(dossier) ? showWikiFanReadMarkup(dossier, compact) : "") +
+          ((!compact || !hasEpisodeRecap(dossier)) ?
+            showWikiEpisodeGuideMarkup(dossier, compact) : "") +
+          ((!compact || !hasEpisodeRecap(dossier) && !hasEpisodeGuide) ?
+            showWikiExperienceMarkup(dossier, compact) : "") +
           (visibleEntries.length ? '<div class="source-dossier-wiki-lanes">' +
             visibleEntries.map(function (entry) {
               return showWikiLaneMarkup(
@@ -2387,7 +2538,7 @@
           var target = typeof mount.querySelector === "function" ?
             mount.querySelector("#" + targetId) : null;
           if (!target) return;
-          scrollJumpTarget(target);
+          scrollJumpTarget(target, { behavior: "auto", clearance: 88 });
         });
       });
     }
