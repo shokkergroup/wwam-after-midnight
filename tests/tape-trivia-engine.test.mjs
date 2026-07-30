@@ -64,10 +64,10 @@ test("indexes the expanded playable Lore corpus without synthetic source summari
 
   assert.equal(trivia.version, "1.0.0");
   assert.ok(trivia.metrics.playableReceipts > showcase.metrics.receipts);
-  assert.equal(trivia.metrics.playableReceipts, 907);
-  assert.equal(trivia.metrics.indexedSources, 97);
-  assert.equal(trivia.metrics.eligibleSources, 94);
-  assert.equal(trivia.metrics.exactTimestampReceipts, 907);
+  assert.equal(trivia.metrics.playableReceipts, 955);
+  assert.equal(trivia.metrics.indexedSources, 129);
+  assert.equal(trivia.metrics.eligibleSources, 126);
+  assert.equal(trivia.metrics.exactTimestampReceipts, 955);
   assert.equal(trivia.metrics.speakerQuestions, 0);
   assert.equal(trivia.metrics.syntheticQuotes, 0);
   assert.deepEqual(

@@ -383,7 +383,7 @@
         "collectionTotal": 9,
         "collectionUnit": "curated performance candidates",
         "allResultsKind": "character-performance",
-        "answerIncludes": "human-picked timestamps from official WWAM uploads"
+        "answerIncludes": "legacy human-curated or editorially screened direct-address timestamps from official WWAM uploads"
       }
     },
     {
@@ -410,10 +410,10 @@
         "resultCount": 7,
         "kind": "character",
         "queryPlanOutputShape": "character-mention-count",
-        "collectionTotal": 2031,
+        "collectionTotal": 4183,
         "collectionUnit": "caption mention matches",
         "allResultsKind": "character",
-        "answerIncludes": "times in captions across 193 shows"
+        "answerIncludes": "times in captions across 461 shows"
       }
     },
     {

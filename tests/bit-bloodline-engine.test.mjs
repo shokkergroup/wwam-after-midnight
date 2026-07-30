@@ -104,7 +104,7 @@ function buildRealFixture() {
 const expected = {
   "ancestry:bit-challis-hotline": {
     label: "THE CHALLIS HOTLINE",
-    appearances: 8,
+    appearances: 9,
     sources: 7,
     first: "2022-07-20",
     last: "2026-07-23",
@@ -116,6 +116,7 @@ const expected = {
       "character-receipt:challis-dj",
       "character-receipt:challis-alphabet",
       "character-receipt:challis-heman",
+      "character-receipt:challis-game-impostor",
       "character-receipt:challis-courtney-answer",
       "character-receipt:challis-miguel",
       "character-receipt:challis-doctor",
@@ -124,14 +125,15 @@ const expected = {
   },
   "ancestry:bit-slenderman-dispatch": {
     label: "SLENDERMAN DISPATCH",
-    appearances: 8,
-    sources: 8,
-    first: "2021-04-24",
+    appearances: 9,
+    sources: 9,
+    first: "2021-01-16",
     last: "2026-07-23",
-    elapsed: 1916,
+    elapsed: 2014,
     echoes: [7, 5, 12],
     overlaps: 0,
     keys: [
+      "character-receipt:slender-killer-knight",
       "character-receipt:slender-stomach",
       "character-receipt:slender-decade",
       "character-receipt:slender-jerry-shoutout",
@@ -184,12 +186,12 @@ const expected = {
 
 const expectedOrder = [
   "ancestry:bit-slenderman-dispatch",
-  "ancestry:bit-loomis-alert",
   "ancestry:bit-challis-hotline",
+  "ancestry:bit-loomis-alert",
   "ancestry:bit-feldman-frequency",
 ];
 
-test("exposes all four source-locked lineages and the exact 30 curated windows", () => {
+test("exposes all four source-locked lineages and the exact 32 curated windows", () => {
   const { engine } = buildRealFixture();
   const lineages = plain(engine.list());
 
@@ -278,12 +280,12 @@ test("exposes all four source-locked lineages and the exact 30 curated windows",
 
   assert.deepEqual(plain(engine.getStats()), {
     lineages: 4,
-    performances: 30,
-    laterAppearances: 26,
-    sources: 14,
-    firstDate: "2021-04-24",
+    performances: 32,
+    laterAppearances: 28,
+    sources: 15,
+    firstDate: "2021-01-16",
     lastDate: "2026-07-23",
-    elapsedDays: 1916,
+    elapsedDays: 2014,
     overlaps: 1,
     echoes: 52,
     echoContext: 28,
@@ -293,7 +295,7 @@ test("exposes all four source-locked lineages and the exact 30 curated windows",
     cutEligibleEchoes: 0,
     profileMappings: 4,
     registrySources: 510,
-    registryReceipts: 1495,
+    registryReceipts: 2047,
     registryFingerprint: engine.registryFingerprint,
   });
   assert.doesNotMatch(

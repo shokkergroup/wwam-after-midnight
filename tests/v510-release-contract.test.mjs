@@ -79,36 +79,36 @@ test("V5.10 enhances the existing Riff Chemistry surface without growing app.js"
 test("V5.10 pins the runtime evidence ledger, neighborhood, and compact autopsy", () => {
   const { showcase, engine } = runtime();
 
-  assert.equal(showcase.inputFingerprint, "9d65ce14");
+  assert.equal(showcase.inputFingerprint, "437f868c");
   assert.deepEqual(JSON.parse(JSON.stringify(engine.metrics)), {
-    anchorCount: 306,
+    anchorCount: 308,
     sourceCount: 69,
     promotedSourceCount: 74,
-    promotedReceiptCount: 877,
+    promotedReceiptCount: 879,
     dimensionCount: 6,
     weightTotal: 1,
     scoreDriftCount: 0,
     maximumScoreDrift: 0,
     literalReactionCueCount: 13,
-    unknownReactionCount: 293,
+    unknownReactionCount: 295,
     evidenceTierCounts: {
       machine: 276,
-      "curated-candidate": 30,
+      "curated-candidate": 32,
     },
     machineEvidenceCount: 276,
-    curatedCandidateEvidenceCount: 30,
+    curatedCandidateEvidenceCount: 32,
   });
   assert.deepEqual(JSON.parse(JSON.stringify(engine.binding)), {
-    packFingerprint: "9d65ce14",
-    showcaseFingerprint: "9d65ce14",
-    ledgerFingerprint: "fnv1a32:9a847d56",
-    chemistryFingerprint: "fnv1a32:e5115640",
+    packFingerprint: "437f868c",
+    showcaseFingerprint: "437f868c",
+    ledgerFingerprint: "fnv1a32:eca1f468",
+    chemistryFingerprint: "fnv1a32:9b4c4521",
     contextSeconds: 15,
     contextAfterSeconds: 20,
     neighborhoodSeconds: 900,
-    evidenceFingerprint: "fnv1a32:305addd9",
+    evidenceFingerprint: "fnv1a32:a92bae0e",
   });
-  assert.equal(engine.snapshot().fingerprint, "fnv1a32:3b26e7dd");
+  assert.equal(engine.snapshot().fingerprint, "fnv1a32:474a3f08");
 
   const neighborhood = { both: 0, one: 0, none: 0 };
   engine.list().forEach((anchor) => {
@@ -116,16 +116,16 @@ test("V5.10 pins the runtime evidence ledger, neighborhood, and compact autopsy"
     const count = Number(Boolean(neighbors.before)) + Number(Boolean(neighbors.after));
     neighborhood[count === 2 ? "both" : count === 1 ? "one" : "none"] += 1;
   });
-  assert.deepEqual(neighborhood, { both: 155, one: 124, none: 27 });
+  assert.deepEqual(neighborhood, { both: 157, one: 124, none: 27 });
   assert.equal(
     engine.list().filter((anchor) => anchor.sourceAt !== anchor.at).length,
-    29,
+    31,
   );
 
   const packet = engine.inspectionPacket(
     "R_bXrnNOcwg:moment:3810:the-room-breaks:2",
   );
-  assert.equal(packet.fingerprint, "fnv1a32:15154bdc");
+  assert.equal(packet.fingerprint, "fnv1a32:0d166660");
   assert.equal(engine.verifyInspection(packet).ok, true);
   assert.ok(Buffer.byteLength(engine.serializeInspection(packet), "utf8") < 10_000);
   assert.ok(Buffer.byteLength(engine.serialize(), "utf8") > 400_000);

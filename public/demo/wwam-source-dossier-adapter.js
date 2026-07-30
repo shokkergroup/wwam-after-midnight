@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.15.2";
+  var VERSION = "1.15.3";
   var SCHEMA = "shokker-source-dossier-input/v1";
   var PUBLIC_EXCERPT_WORDS = 16;
   var OFFICIAL_WWAM_CHANNEL_ID = "UC6ieEOZW4iXV8TcILJI8k5g";
@@ -1202,15 +1202,15 @@
     var focus = hasTopics ? topicPhrase : "the night’s loose movie talk";
     var opening;
     if (format.id === "movie-commentary") {
-      opening = title + " is a " + runtime + " commentary that keeps circling " + focus + ".";
+      opening = title + " runs " + runtime + " as a commentary that keeps circling " + focus + ".";
     } else if (format.id === "ranking-show") {
-      opening = title + " is a " + runtime + " ranking night built around " + focus + ".";
+      opening = title + " runs " + runtime + " as a ranking night built around " + focus + ".";
     } else if (format.id === "trailer-reaction") {
-      opening = title + " is a " + runtime + " reaction stream moving through " + focus + ".";
+      opening = title + " runs " + runtime + " as a reaction stream moving through " + focus + ".";
     } else if (format.id === "spoiler-review") {
-      opening = title + " is a " + runtime + " spoiler-room conversation centered on " + focus + ".";
+      opening = title + " runs " + runtime + " as a spoiler-room conversation centered on " + focus + ".";
     } else {
-      opening = title + " is a " + runtime + " hangout with " + focus + " on the table.";
+      opening = title + " runs " + runtime + " with " + focus + " on the table.";
     }
     if (moments.length) {
       return opening + " Jump in at " + showWikiClock(moments[0].at) + " for the first " +

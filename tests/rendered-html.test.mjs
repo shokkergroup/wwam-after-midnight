@@ -104,6 +104,7 @@ test("ships the complete independent WWAM memory-system surface", async () => {
     channelDna,
     searchEngine,
     showcaseEngine,
+    sourceDossierAssets,
   ] = await Promise.all([
     readFile(new URL("index.html", root), "utf8"),
     readFile(new URL("app.js", root), "utf8"),
@@ -116,6 +117,7 @@ test("ships the complete independent WWAM memory-system surface", async () => {
     readFile(new URL("wwam-channel-dna.js", root), "utf8"),
     readFile(new URL("search-engine.js", root), "utf8"),
     readFile(new URL("showcase-engine.js", root), "utf8"),
+    readFile(new URL("source-dossier-assets.js", root), "utf8"),
   ]);
 
   for (const copy of [
@@ -175,10 +177,12 @@ test("ships the complete independent WWAM memory-system surface", async () => {
   );
   assert.match(app, /titleTopicOverrides:\s*window\.WWAM_TITLE_TOPIC_OVERRIDES/);
   assert.ok(
-    app.indexOf('"title-topic-overrides.js') <
-      app.indexOf('"wwam-episode-recap-adapter.js'),
+    sourceDossierAssets.indexOf('"title-topic-overrides.js') <
+      sourceDossierAssets.indexOf('"wwam-episode-recap-adapter.js'),
     "title-topic overrides must load before the recap and dossier adapters",
   );
+  assert.match(app, /loader\.load\("source-dossier-assets\.js\?v=[^"]+"\)/);
+  assert.match(sourceDossierAssets, /WWAM_SOURCE_DOSSIER_ASSETS\s*=\s*Object\.freeze\(\[/);
 
   const combined = [
     index,
@@ -192,6 +196,7 @@ test("ships the complete independent WWAM memory-system surface", async () => {
     channelDna,
     searchEngine,
     showcaseEngine,
+    sourceDossierAssets,
   ].join("\n");
   assert.doesNotMatch(combined, /Vigilante|VRL|racing site|SHOKKER LORE/i);
   assert.doesNotMatch(index, /\.\.\/\.\.\//);
@@ -206,6 +211,7 @@ test("ships the complete independent WWAM memory-system surface", async () => {
     "wwam-channel-dna.js",
     "search-engine.js",
     "showcase-engine.js",
+    "source-dossier-assets.js",
     "app.js",
     "styles.css",
   ].map((file) => access(new URL(file, root))));

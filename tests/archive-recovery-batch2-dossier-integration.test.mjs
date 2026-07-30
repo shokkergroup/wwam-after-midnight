@@ -122,14 +122,16 @@ test("adds Batch 02 to Ask/Show Wiki evidence without changing the 510-source ca
     "quarantined-lane": 188,
     "source-only": 248,
   });
-  assert.equal(receipts.length, 4_206);
+  assert.equal(receipts.length, 5_980);
   assert.deepEqual(countBy(receipts, "evidenceType"), {
+    "caption-topic-timeline-navigation": 1_754,
     "caption-excerpt": 1_659,
     "caption-topic-receipt": 2_032,
-    "curated-character-performance": 30,
+    "curated-character-performance": 32,
     "caption-character-context": 261,
     "caption-character-signal": 64,
     "caption-topic-navigation": 160,
+    "reviewed-guide-negative-take": 18,
   });
   assert.deepEqual(countBy(recaps, "state"), {
     ready: 259,
@@ -149,7 +151,7 @@ test("adds Batch 02 to Ask/Show Wiki evidence without changing the 510-source ca
   assert.ok(recovered.every((source) => source.episodeRecap.state === "ready"));
   assert.equal(
     recovered.reduce((total, source) => total + source.receipts.length, 0),
-    451,
+    659,
   );
   for (const source of recovered) {
     assert.ok(source.receipts.every((receipt) => (

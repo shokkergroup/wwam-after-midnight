@@ -157,9 +157,9 @@ test("publishes a small stable API over the full source-grounded inventory", () 
     ["lore", "chaos", "franchise"]
   );
   assert.equal(night.metrics.indexedSources, 74);
-  assert.equal(night.metrics.playableReceipts, 877);
+  assert.equal(night.metrics.playableReceipts, 879);
   assert.equal(night.metrics.datedPlayableSources, 71);
-  assert.equal(night.metrics.loreEntries, 200);
+  assert.equal(night.metrics.loreEntries, 232);
   assert.equal(night.metrics.triviaAvailable, true);
   assert.match(night.metrics.archiveFingerprint, /^[0-9a-f]{8}$/);
   assert.equal(night.metrics.snapshotDate, "2026-07-23");

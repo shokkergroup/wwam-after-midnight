@@ -168,7 +168,7 @@ test("July 23 Aftermath Pack joins the exact 23 production opportunities without
     quarantined: 7,
     referenceThreads: 4,
     coldOpenStoryboards: 9,
-    sourceReceipts: 21,
+    sourceReceipts: 31,
     registeredArtifactMemberships: 27,
   });
   assert.equal(first.opportunities.length, 23);

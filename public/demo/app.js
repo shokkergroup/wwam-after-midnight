@@ -546,7 +546,7 @@
       })
       .then(function () { return loader.loadStyle("source-dossier.css?v=5.31-exact-source-stops"); })
       .then(function () {
-        return loader.load("source-dossier-assets.js?v=1.0.2-final-rights-firewall");
+        return loader.load("source-dossier-assets.js?v=1.0.3-archive-copy-grammar");
       })
       .then(function () {
         var assets = window.WWAM_SOURCE_DOSSIER_ASSETS || [];

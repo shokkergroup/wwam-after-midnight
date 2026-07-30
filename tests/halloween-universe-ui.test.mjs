@@ -74,9 +74,9 @@ test("held tapes render the original source but no fake highlight card", () => {
 test("doctor and Steve lanes state their evidence boundaries visibly", () => {
   const doctors = ui.renderMarkup(model({ activeTab: "doctors" }));
   assert.match(doctors, /THE DOCTORS ARE IN/);
-  assert.match(doctors, /DR\. LOOMIS \/\/ 15/);
-  assert.match(doctors, /DR\. CHALLIS \/\/ 15/);
-  assert.match(doctors, /Thirty playable Loomis and Challis bits/i);
+  assert.match(doctors, /DR\. LOOMIS \/\/ 27/);
+  assert.match(doctors, /DR\. CHALLIS \/\/ 27/);
+  assert.match(doctors, /54 playable Loomis and Challis bits/i);
   const steve = ui.renderMarkup(model({ activeTab: "steve" }));
   assert.match(steve, /THE MAYBE-PILE/);
   assert.match(steve, /PLAY THE SURROUNDING MINUTE FIRST/);

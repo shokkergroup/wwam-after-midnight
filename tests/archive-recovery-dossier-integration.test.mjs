@@ -126,7 +126,7 @@ test("promotes all 25 recovered tapes into playable quarantined show wikis", () 
   assert.ok(recovered.every((source) => source.episodeRecap.state === "ready"));
   assert.equal(
     recovered.reduce((total, source) => total + source.receipts.length, 0),
-    440,
+    658,
   );
   for (const source of recovered) {
     assert.ok(source.receipts.every((receipt) => (

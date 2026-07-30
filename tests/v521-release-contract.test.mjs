@@ -369,7 +369,7 @@ test("Receipt Matrix demand-loads only inside the existing Ask surface in exact 
   assert.equal((html.match(/\bid=["']ask["']/g) || []).length, 1);
 });
 
-test("the real 510-source build pins Loomis 9/7 and Loomis plus Challis 15/6", () => {
+test("the real 510-source build pins Loomis 9/7 and Loomis plus Challis 16/6", () => {
   const { engine } = buildRealFixture();
   const loomis = plain(engine.query({
     entityIds: ["character:loomis"],
@@ -383,7 +383,7 @@ test("the real 510-source build pins Loomis 9/7 and Loomis plus Challis 15/6", (
   }));
 
   assert.equal(engine.getStats().registrySources, 510);
-  assert.equal(engine.getStats().registryReceipts, 1495);
+  assert.equal(engine.getStats().registryReceipts, 2047);
   assert.equal(loomis.uniqueSourceCount, 7);
   assert.equal(loomis.eligibleReceiptCount, 9);
   assert.deepEqual(
@@ -399,13 +399,13 @@ test("the real 510-source build pins Loomis 9/7 and Loomis plus Challis 15/6", (
     ],
   );
   assert.equal(intersection.uniqueSourceCount, 6);
-  assert.equal(intersection.eligibleReceiptCount, 15);
+  assert.equal(intersection.eligibleReceiptCount, 16);
   assert.deepEqual(
     intersection.groups.map((group) => [group.sourceId, group.receiptCount]),
     [
       ["WyT--HIrL8U", 2],
       ["N-UahfG8-gM", 3],
-      ["tL9zmuyrtl4", 2],
+      ["tL9zmuyrtl4", 3],
       ["7PzSj-oIRjA", 2],
       ["ag3axSC9BpU", 3],
       ["LV2rmwEA0w4", 3],
@@ -413,7 +413,7 @@ test("the real 510-source build pins Loomis 9/7 and Loomis plus Challis 15/6", (
   );
 });
 
-test("the four-character group ranks the true 6/5/3 source leaders across 30 receipts", () => {
+test("the four-character group ranks the true 6/5/3 source leaders across 32 receipts", () => {
   const { engine } = buildRealFixture();
   const result = plain(engine.query({
     entityIds: [
@@ -426,8 +426,8 @@ test("the four-character group ranks the true 6/5/3 source leaders across 30 rec
     order: "receipt-count-desc",
   }));
 
-  assert.equal(result.uniqueSourceCount, 14);
-  assert.equal(result.eligibleReceiptCount, 30);
+  assert.equal(result.uniqueSourceCount, 15);
+  assert.equal(result.eligibleReceiptCount, 32);
   assert.deepEqual(
     result.groups.slice(0, 3).map((group) => [
       group.sourceId,
@@ -436,7 +436,7 @@ test("the four-character group ranks the true 6/5/3 source leaders across 30 rec
     [
       ["LV2rmwEA0w4", 6],
       ["ag3axSC9BpU", 5],
-      ["N-UahfG8-gM", 3],
+      ["tL9zmuyrtl4", 3],
     ],
   );
   assert.equal(
@@ -445,7 +445,7 @@ test("the four-character group ranks the true 6/5/3 source leaders across 30 rec
         group.receipts.map((receipt) => receipt.receiptKey)
       )),
     ).size,
-    30,
+    32,
   );
 });
 

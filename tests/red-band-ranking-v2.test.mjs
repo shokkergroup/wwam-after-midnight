@@ -163,8 +163,8 @@ test("Top 25 reports strict diversity selection and every bounded fallback", () 
   assert.ok(
     Math.max(...Object.values(strictCategoryCounts)) <= policy.maximumPerCategory
   );
-  assert.equal(strictTop.length, 22);
-  assert.equal(relaxedTop.length, 3);
+  assert.equal(strictTop.length, 14);
+  assert.equal(relaxedTop.length, 11);
   assert.equal(
     strictTop.length,
     diagnostics.selectedUnderStrictPolicy
@@ -177,10 +177,10 @@ test("Top 25 reports strict diversity selection and every bounded fallback", () 
     relaxedTop.every((item) => item.diversityControl.deferralReasons.length >= 1),
     true
   );
-  assert.equal(lexicalCount, 7);
-  assert.equal(preselectedCount, 11);
-  assert.equal(Math.max(...Object.values(categoryCounts)), 7);
-  assert.equal(Object.keys(categoryCounts).length, 6);
+  assert.equal(lexicalCount, 11);
+  assert.equal(preselectedCount, 19);
+  assert.equal(Math.max(...Object.values(categoryCounts)), 10);
+  assert.equal(Object.keys(categoryCounts).length, 4);
   assert.ok(new Set(top.map((item) => item.sourceId)).size >= 20);
   assert.equal(
     top.every((item) => item.receiptCoherence.eligibleForTopSlice),
@@ -193,7 +193,7 @@ test("Top 25 reports strict diversity selection and every bounded fallback", () 
     100
   );
   assert.match(diagnostics.interpretation, /Raw machine scores are computed first/);
-  assert.equal(diagnostics.receiptCoherence.beforeGate.failed, 2);
+  assert.equal(diagnostics.receiptCoherence.beforeGate.failed, 1);
   assert.equal(diagnostics.receiptCoherence.afterGate.failed, 0);
   assert.ok(
     diagnostics.receiptCoherence.afterGate.meanScore >

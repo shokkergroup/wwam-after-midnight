@@ -374,6 +374,126 @@ function recapText(file) {
   ].join(" ");
 }
 
+function generatedRecapCopyEntries(file) {
+  const entry = (location, text, characterLabels = []) => ({
+    sourceId: file.id,
+    location,
+    text: String(text || ""),
+    characterLabels: Array.from(
+      new Set((characterLabels || []).map(displaySubject).filter(Boolean)),
+    ),
+  });
+  return [
+    entry("headline", file.recap.headline),
+    entry("deck", file.recap.deck),
+    entry("overview", file.recap.overview),
+    ...file.recap.story.flatMap((segment, index) => {
+      const location = `story:${segment.id || index + 1}`;
+      return [
+        entry(`${location}:label`, segment.label, segment.characterLabels),
+        entry(`${location}:body`, segment.body, segment.characterLabels),
+      ];
+    }),
+    ...file.recap.sections.flatMap((section, index) => {
+      const location = `section:${section.id || index + 1}`;
+      return [
+        entry(`${location}:label`, section.label, section.characterLabels),
+        entry(`${location}:body`, section.body, section.characterLabels),
+      ];
+    }),
+  ].filter((item) => item.text.trim());
+}
+
+function numericArticleFailures(text) {
+  const failures = [];
+  const pattern = /\b(a|an)\s+(\d+)(?=\b|-)/gi;
+  for (const match of String(text || "").matchAll(pattern)) {
+    const article = match[1].toLowerCase();
+    const number = match[2];
+    const takesAn = /^(?:8\d*|11$|18$)/.test(number);
+    if (takesAn && article === "a") {
+      failures.push(`numeric article should be "an" before ${number}`);
+    } else if (!takesAn && article === "an") {
+      failures.push(`numeric article should be "a" before ${number}`);
+    }
+  }
+  return failures;
+}
+
+function hasDuplicatePairedTimestamp(text) {
+  const value = String(text || "");
+  const timestamps = Array.from(
+    value.matchAll(/\b(?:\d{1,2}:)?\d{1,2}:\d{2}\b/g),
+  );
+  return timestamps.some((timestamp, index) => {
+    const next = timestamps[index + 1];
+    if (!next || timestamp[0] !== next[0]) return false;
+    const between = value.slice(
+      Number(timestamp.index) + timestamp[0].length,
+      Number(next.index),
+    );
+    return between.length <= 32 &&
+      /^\s*(?:(?:and|or|to|through)\b|[,&/+|:;•·–—-])+\s*$/i.test(between);
+  });
+}
+
+function generatedCopyGrammarFailures(file) {
+  return generatedRecapCopyEntries(file).flatMap((item) => {
+    const failures = [];
+    if (/\bthe\s+the\b/i.test(item.text)) {
+      failures.push("doubled definite article");
+    }
+    failures.push(...numericArticleFailures(item.text));
+    if (hasDuplicatePairedTimestamp(item.text)) {
+      failures.push("duplicate paired timestamp");
+    }
+    if (
+      item.characterLabels.length === 1 &&
+      /\b(?:turn up|enter the mix)\b/i.test(item.text)
+    ) {
+      failures.push("single-character plural verb");
+    }
+    if (/\bsaved reaction\b/i.test(item.text)) {
+      failures.push("fallback subject leaked into fan copy");
+    }
+    if (
+      item.location === "headline" &&
+      /^\s*THE\s+(?:A|AN)\b/i.test(item.text)
+    ) {
+      failures.push("stacked headline article");
+    }
+    return failures.map((failure) => ({
+      sourceId: item.sourceId,
+      location: item.location,
+      failure,
+      text: item.text,
+    }));
+  });
+}
+
+if (process.argv.includes("--copy-grammar-negative-fixture")) {
+  const failures = generatedCopyGrammarFailures({
+    id: "__copy-grammar-negative-fixture__",
+    recap: {
+      headline: "THE AN ARCHIVE PROBLEM",
+      deck: "A 11 min route through the tape.",
+      overview: "The show reaches the The final chapter.",
+      story: [{
+        id: "fixture-story",
+        label: "SAVED REACTION",
+        body: "Dr. Loomis turn up at 1:23 and 1:23.",
+        characterLabels: ["Dr. Loomis"],
+      }],
+      sections: [],
+    },
+  });
+  process.stdout.write(`${JSON.stringify({
+    pass: failures.length === 0,
+    failures,
+  }, null, 2)}\n`);
+  process.exit(process.argv.includes("--check") && failures.length ? 1 : 0);
+}
+
 const result = compile();
 const files = result.sources.map((source) => ({
   id: source.id,
@@ -942,6 +1062,7 @@ const storyLabelAgreementErrors = storySegments.flatMap((segment) => {
 });
 const agreementErrors = headlineAgreementErrors
   .concat(storyAgreementErrors, storyLabelAgreementErrors);
+const recapCopyGrammarFailures = ready.flatMap(generatedCopyGrammarFailures);
 const duplicateLabels = ready.filter((file) => {
   const labels = file.recap.sections.map((section) => section.label.toLowerCase());
   return new Set(labels).size !== labels.length;
@@ -1334,6 +1455,7 @@ const report = {
   quality: {
     machineLabelLeaks: machineLeaks.map((file) => file.id),
     pluralAgreementErrors: agreementErrors,
+    generatedCopyGrammarFailures: recapCopyGrammarFailures,
     duplicateActLabels: duplicateLabels.map((file) => file.id),
     storyWordRangeFailures,
     duplicateVisibleTopologyTopics,
@@ -1389,7 +1511,8 @@ report.gates = {
   noMachineLabels:
     report.quality.machineLabelLeaks.length === 0,
   noGrammarFailures:
-    report.quality.pluralAgreementErrors.length === 0,
+    report.quality.pluralAgreementErrors.length === 0 &&
+    report.quality.generatedCopyGrammarFailures.length === 0,
   noDuplicateActLabels:
     report.quality.duplicateActLabels.length === 0,
   noEarlyClosingLabels:
@@ -1491,6 +1614,7 @@ if (sourceFlag >= 0) {
       `Readability failures: caption ${report.readability.flags.rawCaptionMarkers.occurrences} // metaphors ${report.readability.flags.forbiddenMetaphors.occurrences} // excerpt reuse ${report.readability.flags.rawExcerptReuse.occurrences} // quote salad ${report.readability.flags.quoteSalad.occurrences} // // AGAIN ${report.readability.flags.againSuffixes.occurrences} // speaker ${report.readability.flags.speakerOverclaims.occurrences} // firewall ${report.readability.flags.firewallCopy.occurrences}`,
       `Machine-label leaks: ${report.quality.machineLabelLeaks.length}`,
       `Plural-agreement failures: ${report.quality.pluralAgreementErrors.length}`,
+      `Generated-copy grammar failures: ${report.quality.generatedCopyGrammarFailures.length}`,
       `Duplicate act labels: ${report.quality.duplicateActLabels.length}`,
       `Steve lanes carried into recap: ${report.quality.steveLaneCarriedIntoRecap}/${report.quality.steveLaneSources}`,
       `Early LAST WORD labels: ${report.quality.earlyClosingLabels.length}`,

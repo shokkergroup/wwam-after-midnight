@@ -2,7 +2,7 @@
   "use strict";
 
   var SCHEMA = "wwam-feldman-recap/v1";
-  var VERSION = "2.2.2";
+  var VERSION = "2.2.3";
 
   function clean(value) {
     return String(value == null ? "" : value).trim();
@@ -86,6 +86,21 @@
 
   function agrees(values, singular, plural) {
     return unique(values).length === 1 ? singular : plural;
+  }
+
+  function definite(value) {
+    var text = clean(value);
+    if (!text) return "the subject";
+    return /^the\s+/i.test(text) ?
+      "the " + text.replace(/^the\s+/i, "") :
+      "the " + text;
+  }
+
+  function sentenceIndefinite(value) {
+    var text = clean(value);
+    if (!text) return "A";
+    var takesAn = /^(?:8\d*|11\b|18\b|[aeiou])/i.test(text);
+    return (takesAn ? "An " : "A ") + text;
   }
 
   function displayLabel(value) {
@@ -399,7 +414,7 @@
     var seed = map.sourceId + "|feldman-headline|" + topics.join("|") + "|" + wild;
     var tapeTitle = naturalLabel(clean(metadata.title));
     var shortTapeTitle = displayTapeTitle(tapeTitle, 78);
-    var tapeWithArticle = /^the\s/i.test(shortTapeTitle) ?
+    var tapeWithArticle = /^(?:the|an?)\s/i.test(shortTapeTitle) ?
       shortTapeTitle : "THE " + shortTapeTitle;
     var tapeLength = Math.max(
       1,
@@ -1388,6 +1403,7 @@
     var strongestLabel = strongestMoment ?
       naturalLabel(strongestMoment.label) : moments[0];
     var sentences = [];
+    var usedStoryClocks = {};
     var seed = clean(sourceId) + "|plain-story-v2";
     var windowStart = Number.isFinite(Number(segment.displayAt)) ?
       number(segment.displayAt) : number(segment.at);
@@ -1403,6 +1419,14 @@
     function firstLocalTime(values) {
       var match = array(values).find(insideWindow);
       return match == null ? null : number(match);
+    }
+
+    function storyClockSeen(value) {
+      return Boolean(usedStoryClocks[clock(value)]);
+    }
+
+    function rememberStoryClock(value) {
+      usedStoryClocks[clock(value)] = true;
     }
 
     function matchingLocalEvidence(values, label) {
@@ -1432,6 +1456,7 @@
       ]);
       if (firstAt == null) firstAt = windowStart;
       var peakAt = firstLocalTime([primaryTopic.peakAt, primaryTopic.at]);
+      if (peakAt != null && clock(peakAt) === clock(firstAt)) peakAt = null;
       var mentionCount = number(primaryTopic.mentions);
       var matchWord = mentionCount === 1 ? "match" : "matches";
       var timeWord = mentionCount === 1 ? "time" : "times";
@@ -1526,9 +1551,7 @@
       return insideWindow(item.at);
     }).filter(function (item, itemIndex, values) {
       return values.findIndex(function (candidate) {
-        return number(candidate.at) === number(item.at) &&
-          naturalLabel(candidate.label).toLowerCase() ===
-            naturalLabel(item.label).toLowerCase();
+        return clock(candidate.at) === clock(item.at);
       }) === itemIndex;
     });
     var hasSubject = topics.some(function (topic) {
@@ -1542,7 +1565,7 @@
           primary + " inside the full show.",
         "This reel picks up " + primary + " at " + clock(windowStart) +
           " and carries the conversation forward.",
-        "Jump to " + clock(windowStart) + " for the " + primary +
+        "Jump to " + clock(windowStart) + " for " + definite(primary) +
           " chapter and its surrounding exchange.",
         primary + " takes the chapter at " + clock(windowStart) +
           " with nearby subjects still in reach.",
@@ -1551,7 +1574,8 @@
         "Play from " + clock(windowStart) + " when the show reaches " +
           primary + " and keep following the discussion.",
       ]));
-      if (subjectAt != null) {
+      rememberStoryClock(windowStart);
+      if (subjectAt != null && !storyClockSeen(subjectAt)) {
         sentences.push(choice(seed + "|subject-time", [
           "A direct jump in this chapter lands at " + clock(subjectAt) + ".",
           "The local subject stop is " + clock(subjectAt) + ".",
@@ -1560,6 +1584,7 @@
           "This stretch reaches it at " + clock(subjectAt) + ".",
           "The matching stop inside this chapter is " + clock(subjectAt) + ".",
         ]));
+        rememberStoryClock(subjectAt);
       }
     } else {
       sentences.push(choice(seed + "|reaction-lead", [
@@ -1575,6 +1600,7 @@
         "This reaction lands at " + clock(windowStart) + " under " +
           (strongestLabel || primary) + ".",
       ]));
+      rememberStoryClock(windowStart);
     }
     if (topicOthers.length) {
       sentences.push(choice(seed + "|nearby-subjects", [
@@ -1593,62 +1619,92 @@
         strongestLabel === naturalLabel(segment.anchor) && insideWindow(anchorAt) ?
           anchorAt : null;
       if (strongestAt != null) {
-        sentences.push(choice(seed + "|strongest", [
-          strongestLabel + " is the fastest replay at " + clock(strongestAt) + ".",
-          "The sharpest jump here is " + strongestLabel + " at " +
-            clock(strongestAt) + ".",
-          "For the standout beat, jump to " + strongestLabel + " at " +
-            clock(strongestAt) + ".",
-          "The chapter's best quick hit is " + strongestLabel + " at " +
-            clock(strongestAt) + ".",
-          "A second jump worth taking is " + strongestLabel + " at " +
-            clock(strongestAt) + ".",
-          "The replay path peaks with " + strongestLabel + " at " +
-            clock(strongestAt) + ".",
-        ]));
+        if (storyClockSeen(strongestAt)) {
+          sentences.push(choice(seed + "|strongest-untimed", [
+            strongestLabel + " is the standout beat in this stretch.",
+            "The chapter's sharpest quick hit is " + strongestLabel + ".",
+            "The replay label to watch for here is " + strongestLabel + ".",
+            "This stretch peaks with " + strongestLabel + ".",
+          ]));
+        } else {
+          sentences.push(choice(seed + "|strongest", [
+            strongestLabel + " is the fastest replay at " + clock(strongestAt) + ".",
+            "The sharpest jump here is " + strongestLabel + " at " +
+              clock(strongestAt) + ".",
+            "For the standout beat, jump to " + strongestLabel + " at " +
+              clock(strongestAt) + ".",
+            "The chapter's best quick hit is " + strongestLabel + " at " +
+              clock(strongestAt) + ".",
+            "A second jump worth taking is " + strongestLabel + " at " +
+              clock(strongestAt) + ".",
+            "The replay path peaks with " + strongestLabel + " at " +
+              clock(strongestAt) + ".",
+          ]));
+          rememberStoryClock(strongestAt);
+        }
       }
-    } else if (localEvidenceTrail.length >= 2) {
-      sentences.push(choice(seed + "|extra-jumps", [
-        "Two more useful jumps land at " + clock(localEvidenceTrail[0].at) +
-          " and " + clock(localEvidenceTrail[1].at) + ".",
-        "The chapter also has replay points at " +
-          clock(localEvidenceTrail[0].at) + " and " +
-          clock(localEvidenceTrail[1].at) + ".",
-        "Keep the player close to " + clock(localEvidenceTrail[0].at) + " and " +
-          clock(localEvidenceTrail[1].at) + ".",
-        "Other timed turns arrive at " + clock(localEvidenceTrail[0].at) +
-          " and " + clock(localEvidenceTrail[1].at) + ".",
-        "The next two jumps are " + clock(localEvidenceTrail[0].at) + " and " +
-          clock(localEvidenceTrail[1].at) + ".",
-        "You can follow this stretch through " +
-          clock(localEvidenceTrail[0].at) + " and " +
-          clock(localEvidenceTrail[1].at) + ".",
-      ]));
+    } else {
+      var freshEvidenceTrail = localEvidenceTrail.filter(function (item) {
+        return !storyClockSeen(item.at);
+      });
+      if (freshEvidenceTrail.length >= 2) {
+        sentences.push(choice(seed + "|extra-jumps", [
+          "Two more useful jumps land at " + clock(freshEvidenceTrail[0].at) +
+            " and " + clock(freshEvidenceTrail[1].at) + ".",
+          "The chapter also has replay points at " +
+            clock(freshEvidenceTrail[0].at) + " and " +
+            clock(freshEvidenceTrail[1].at) + ".",
+          "Keep the player close to " + clock(freshEvidenceTrail[0].at) + " and " +
+            clock(freshEvidenceTrail[1].at) + ".",
+          "Other timed turns arrive at " + clock(freshEvidenceTrail[0].at) +
+            " and " + clock(freshEvidenceTrail[1].at) + ".",
+          "The next two jumps are " + clock(freshEvidenceTrail[0].at) + " and " +
+            clock(freshEvidenceTrail[1].at) + ".",
+          "You can follow this stretch through " +
+            clock(freshEvidenceTrail[0].at) + " and " +
+            clock(freshEvidenceTrail[1].at) + ".",
+        ]));
+        rememberStoryClock(freshEvidenceTrail[0].at);
+        rememberStoryClock(freshEvidenceTrail[1].at);
+      }
     }
     if (characters.length) {
+      var storyCharacters = characters.slice(0, 2);
+      var storyCharacterNames = list(storyCharacters, "");
       sentences.push(choice(seed + "|characters", [
         "Character appearances in this stretch include " +
-          list(characters.slice(0, 2), "") + ".",
-        list(characters.slice(0, 2), "") +
-          " also turn up during this chapter.",
+          storyCharacterNames + ".",
+        storyCharacterNames + " also " +
+          agrees(storyCharacters, "turns", "turn") +
+          " up during this chapter.",
         "The character side of the bit brings in " +
-          list(characters.slice(0, 2), "") + ".",
-        "Listen for " + list(characters.slice(0, 2), "") +
+          storyCharacterNames + ".",
+        "Listen for " + storyCharacterNames +
           " in this part of the show.",
-        "This is also where " + list(characters.slice(0, 2), "") +
-          " enter the mix.",
+        "This is also where " + storyCharacterNames + " " +
+          agrees(storyCharacters, "enters", "enter") + " the mix.",
         "The chapter includes a character turn from " +
-          list(characters.slice(0, 2), "") + ".",
+          storyCharacterNames + ".",
       ]));
     }
     if (sentences.length === 1 && insideWindow(anchorAt)) {
-      sentences.push(choice(seed + "|single", [
-        "The chapter's playable checkpoint is " + clock(anchorAt) + ".",
-        "Press play from " + clock(anchorAt) + " for the surrounding exchange.",
-        "The original show carries the full context from " +
-          clock(anchorAt) + ".",
-        "The player enters this stretch at " + clock(anchorAt) + ".",
-      ]));
+      if (storyClockSeen(anchorAt)) {
+        sentences.push(choice(seed + "|single-untimed", [
+          "The surrounding exchange continues from there.",
+          "The rest of the conversation stays attached.",
+          "That checkpoint opens the complete conversation.",
+          "The saved beat stays connected to what follows.",
+        ]));
+      } else {
+        sentences.push(choice(seed + "|single", [
+          "The chapter's playable checkpoint is " + clock(anchorAt) + ".",
+          "Press play from " + clock(anchorAt) + " for the surrounding exchange.",
+          "The original show carries the full context from " +
+            clock(anchorAt) + ".",
+          "The player enters this stretch at " + clock(anchorAt) + ".",
+        ]));
+        rememberStoryClock(anchorAt);
+      }
     }
     var finalEvidenceAt = localEvidenceTrail.concat(momentEvidence).filter(
       function (item) { return insideWindow(item && item.at); }
@@ -1689,7 +1745,8 @@
     var matchWord = mentionCount === 1 ? "match" : "matches";
     var timeWord = mentionCount === 1 ? "time" : "times";
     var localPeak = subjectPeakAt >= number(section.at) &&
-      subjectPeakAt <= Math.max(number(section.end), number(section.at));
+      subjectPeakAt <= Math.max(number(section.end), number(section.at)) &&
+      clock(subjectPeakAt) !== time;
     var sentences = [];
     if (reviewed) {
       sentences.push(choice(seed + "|reviewed-lead", [
@@ -1763,7 +1820,7 @@
         chapter + " follows " + subject + ". Play from " + time + ".",
         "The quick jump in " + chapter.toLowerCase() + " is " +
           subject + ". Start at " + time + ".",
-        chapter + " reaches the " + subject + " beat. Its stop is " + time + ".",
+        chapter + " reaches " + definite(subject) + " beat. Its stop is " + time + ".",
         chapter + " lands on " + subject + ". Playback starts at " + time + ".",
       ]));
     }
@@ -1788,13 +1845,15 @@
       ]));
     }
     if (characters.length) {
+      var sectionCharacterNames = list(characters, "");
       sentences.push(choice(seed + "|character-tags", [
-        "Character appearances include " + list(characters, "") + ".",
-        list(characters, "") + " also turn up here.",
-        "The character side of the chapter includes " + list(characters, "") + ".",
-        "This is also a stop for " + list(characters, "") + ".",
-        "Listen for a character turn from " + list(characters, "") + ".",
-        "The bit brings " + list(characters, "") + " into the room.",
+        "Character appearances include " + sectionCharacterNames + ".",
+        sectionCharacterNames + " also " +
+          agrees(characters, "turns", "turn") + " up here.",
+        "The character side of the chapter includes " + sectionCharacterNames + ".",
+        "This is also a stop for " + sectionCharacterNames + ".",
+        "Listen for a character turn from " + sectionCharacterNames + ".",
+        "The bit brings " + sectionCharacterNames + " into the room.",
       ]));
     }
     return sentences.join(" ");
@@ -1823,7 +1882,7 @@
     var seed = clean(map.sourceId) + "|plain-deck-v2";
     var storyCount = Math.max(1, story.length);
     var output = topicMapOnly ? choice(seed + "|topic-base", [
-      "A " + runtime(metadata.duration) + " " + format + " with " +
+      sentenceIndefinite(runtime(metadata.duration)) + " " + format + " with " +
         storyCount + " clickable subject " +
         (storyCount === 1 ? "jump" : "jumps") +
         "; the player carries the actual opinions.",
@@ -1837,7 +1896,7 @@
         storyCount + " playable subject " +
         (storyCount === 1 ? "doorway" : "doorways") +
         "; press play for what was actually said.",
-      "A " + runtime(metadata.duration) + " route through " + storyCount +
+      sentenceIndefinite(runtime(metadata.duration)) + " route through " + storyCount +
         " named " + (storyCount === 1 ? "subject" : "subjects") +
         " in this " + format + ", with the original delivery kept in the player.",
       "This " + format + " runs " + runtime(metadata.duration) +
@@ -1845,13 +1904,13 @@
         (storyCount === 1 ? "jump" : "jumps") +
         " instead of guessing at reactions.",
     ]) : choice(seed + "|ready-base", [
-      "A " + runtime(metadata.duration) + " " + format + " shaped into " +
+      sentenceIndefinite(runtime(metadata.duration)) + " " + format + " shaped into " +
         storyCount + " playable " + (storyCount === 1 ? "chapter" : "chapters") + ".",
       "This " + runtime(metadata.duration) + " " + format + " moves through " +
         storyCount + " clickable " + (storyCount === 1 ? "turn" : "turns") + ".",
       "The " + runtime(metadata.duration) + " " + format + " is broken into " +
         storyCount + " useful " + (storyCount === 1 ? "stop" : "stops") + ".",
-      "A " + runtime(metadata.duration) + " trip through " + storyCount +
+      sentenceIndefinite(runtime(metadata.duration)) + " trip through " + storyCount +
         " replay-ready " + (storyCount === 1 ? "chapter" : "chapters") + ".",
       "This " + format + " runs " + runtime(metadata.duration) + " and carries " +
         storyCount + " direct " + (storyCount === 1 ? "jump" : "jumps") + ".",
@@ -2053,7 +2112,7 @@
       var strongestLabel = naturalLabel(strongest.label);
       var strongestContext = strongestSubjectLabel &&
         strongestSubjectLabel.toLowerCase() !== strongestLabel.toLowerCase() ?
-        " inside the " + strongestSubjectLabel + " chapter" : "";
+        " inside " + definite(strongestSubjectLabel) + " chapter" : "";
       output += " " + choice(seed + "|strongest", [
         "The fastest highlight jump is " + strongestLabel +
           strongestContext + " at " + clock(strongest.at) + ".",

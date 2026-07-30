@@ -443,7 +443,7 @@ test("WWAM golden: Loomis resolves to nine exact receipts across seven sources",
   })), true);
 });
 
-test("WWAM golden: all Loomis and Challis returns six sources and fifteen receipts", () => {
+test("WWAM golden: all Loomis and Challis returns six sources and sixteen receipts", () => {
   const { engine } = buildRealFixture();
   const spec = {
     entityIds: ["character:loomis", "character:challis"],
@@ -462,13 +462,13 @@ test("WWAM golden: all Loomis and Challis returns six sources and fifteen receip
     "character:loomis",
   ]);
   assert.equal(result.uniqueSourceCount, 6);
-  assert.equal(result.eligibleReceiptCount, 15);
+  assert.equal(result.eligibleReceiptCount, 16);
   assert.deepEqual(
     result.groups.map((group) => [group.sourceId, group.receiptCount]),
     [
       ["WyT--HIrL8U", 2],
       ["N-UahfG8-gM", 3],
-      ["tL9zmuyrtl4", 2],
+      ["tL9zmuyrtl4", 3],
       ["7PzSj-oIRjA", 2],
       ["ag3axSC9BpU", 3],
       ["LV2rmwEA0w4", 3],
@@ -481,7 +481,7 @@ test("WWAM golden: all Loomis and Challis returns six sources and fifteen receip
       entity.uniqueSourceCount,
     ]),
     [
-      ["character:challis", 7, 6],
+      ["character:challis", 8, 6],
       ["character:loomis", 8, 6],
     ],
   );
@@ -516,8 +516,8 @@ test("WWAM golden: any recurring character ranks the true source leaders", () =>
     order: "receipt-count-desc",
   }));
 
-  assert.equal(result.uniqueSourceCount, 14);
-  assert.equal(result.eligibleReceiptCount, 30);
+  assert.equal(result.uniqueSourceCount, 15);
+  assert.equal(result.eligibleReceiptCount, 32);
   assert.deepEqual(
     result.groups.slice(0, 3).map((group) => [
       group.sourceId,
@@ -526,18 +526,18 @@ test("WWAM golden: any recurring character ranks the true source leaders", () =>
     [
       ["LV2rmwEA0w4", 6],
       ["ag3axSC9BpU", 5],
-      ["N-UahfG8-gM", 3],
+      ["tL9zmuyrtl4", 3],
     ],
   );
   assert.deepEqual(
     result.groups.map((group) => group.rank),
-    Array.from({ length: 14 }, (_, index) => index + 1),
+    Array.from({ length: 15 }, (_, index) => index + 1),
   );
   assert.equal(new Set(
     result.groups.flatMap((group) => (
       group.receipts.map((receipt) => receipt.receiptKey)
     )),
-  ).size, 30);
+  ).size, 32);
 });
 
 test("WWAM registry stats, entity coverage, bindings, and fingerprints are pinned", () => {
@@ -547,9 +547,9 @@ test("WWAM registry stats, entity coverage, bindings, and fingerprints are pinne
   const loomis = entities.find((entity) => entity.id === "character:loomis");
 
   assert.equal(stats.registrySources, 510);
-  assert.equal(stats.registryReceipts, 1495);
-  assert.equal(stats.eligibleSources, 14);
-  assert.equal(stats.eligibleReceipts, 30);
+  assert.equal(stats.registryReceipts, 2047);
+  assert.equal(stats.eligibleSources, 15);
+  assert.equal(stats.eligibleReceipts, 32);
   assert.equal(stats.eligibleEntities, 10);
   assert.equal(stats.closedPolicy, false);
   assert.deepEqual(

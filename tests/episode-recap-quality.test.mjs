@@ -38,6 +38,26 @@ function baselineReport() {
   return cachedBaselineReport;
 }
 
+test("copy grammar guard rejects every known generated-prose regression", () => {
+  const fixture = runReport(["--copy-grammar-negative-fixture"]);
+  const failures = new Set(fixture.failures.map((item) => item.failure));
+
+  assert.equal(fixture.pass, false);
+  assert.deepEqual(failures, new Set([
+    "doubled definite article",
+    'numeric article should be "an" before 11',
+    "duplicate paired timestamp",
+    "single-character plural verb",
+    "fallback subject leaked into fan copy",
+    "stacked headline article",
+  ]));
+  assert.ok(fixture.failures.every((item) =>
+    item.sourceId === "__copy-grammar-negative-fixture__" &&
+    item.location &&
+    item.text
+  ));
+});
+
 function completionPayload() {
   if (!fs.existsSync(completionArtifact)) return null;
   const context = { window: {} };
@@ -122,7 +142,9 @@ test("recap prose stays readable without pasting caption fragments into its body
   assert.equal(result.readability.pass, true);
   assert.deepEqual(result.quality.machineLabelLeaks, []);
   assert.deepEqual(result.quality.pluralAgreementErrors, []);
+  assert.deepEqual(result.quality.generatedCopyGrammarFailures, []);
   assert.deepEqual(result.quality.duplicateActLabels, []);
+  assert.equal(result.gates.noGrammarFailures, true);
 });
 
 test("title subjects, Steve lanes, and chronology survive the authored voice pack", () => {

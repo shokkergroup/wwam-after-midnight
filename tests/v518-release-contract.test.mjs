@@ -36,10 +36,35 @@ function frozenObject(source, name) {
 }
 
 function sourceDossierLoaderAssets(app) {
-  const match = app.match(
-    /loadStyle\(["']source-dossier\.css\?v=[^"']+["']\)[\s\S]*?return\s*\[([\s\S]*?)\]\.reduce/,
+  const manifestLoad = app.search(
+    /loader\.load\(["']source-dossier-assets\.js\?v=[^"']+["']\)/,
   );
-  assert.ok(match, "Source Dossier lazy-loader list is missing");
+  const manifestRead = app.indexOf("window.WWAM_SOURCE_DOSSIER_ASSETS");
+  assert.match(
+    app,
+    /loader\.load\(["']source-dossier-assets\.js\?v=[^"']+["']\)/,
+    "Source Dossier manifest loader is missing",
+  );
+  assert.match(
+    app,
+    /window\.WWAM_SOURCE_DOSSIER_ASSETS\s*\|\|\s*\[\]/,
+    "Source Dossier manifest binding is missing",
+  );
+  assert.ok(manifestLoad >= 0);
+  assert.ok(
+    manifestRead > manifestLoad,
+    "Source Dossier manifest must load before its global is read",
+  );
+  assert.match(
+    app,
+    /return\s+assets\.reduce\(function\s*\(promise,\s*source\)\s*\{[\s\S]{0,180}loader\.load\(source\)[\s\S]{0,120}Promise\.resolve\(\)/,
+    "Source Dossier manifest entries are not consumed by the ordered loader",
+  );
+  const manifest = readDemo("source-dossier-assets.js");
+  const match = manifest.match(
+    /WWAM_SOURCE_DOSSIER_ASSETS\s*=\s*Object\.freeze\(\[([\s\S]*?)\]\)/,
+  );
+  assert.ok(match, "Source Dossier asset manifest is missing");
   return Array.from(
     match[1].matchAll(/["']([^"']+\.js(?:\?[^"']+)?)["']/g),
     (entry) => entry[1].split("?")[0],
@@ -161,7 +186,7 @@ test("V5.18 package, lane-specific cache keys, and Ask This Tape docs move toget
     "independently versioned runtime lanes unexpectedly collapsed",
   );
   assert.match(html, /styles\.css\?v=0\.5\.34-livewire-mobile/);
-  assert.match(html, /search-engine\.js\?v=0\.5\.39-verify/);
+  assert.match(html, /search-engine\.js\?v=0\.5\.41-expanded-character-canon/);
   assert.match(html, /youtube-playback\.js\?v=2\.4\.3-hosted-force/);
   assert.match(html, /app\.js\?v=0\.5\.\d+-[a-z0-9-]+/);
   assert.match(html, /guided-shell\.js\?v=1\.2\.3-recovered/);

@@ -2,7 +2,7 @@
   "use strict";
 
   var SCHEMA = "shokker-episode-recap/v1";
-  var VERSION = "1.9.1";
+  var VERSION = "1.9.2";
 
   function clean(value) {
     return String(value == null ? "" : value).trim();
@@ -11,6 +11,15 @@
   function number(value) {
     var parsed = Number(value);
     return Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  function clock(seconds) {
+    var total = Math.max(0, Math.round(number(seconds)));
+    var hours = Math.floor(total / 3600);
+    var minutes = Math.floor((total % 3600) / 60);
+    var remainder = total % 60;
+    return (hours ? hours + ":" + String(minutes).padStart(2, "0") :
+      String(minutes)) + ":" + String(remainder).padStart(2, "0");
   }
 
   function optionalNumber(value) {
@@ -49,6 +58,20 @@
   function structuralGuideSubject(value) {
     return /^(?:SOURCE TIMELINE|TAPE OPEN|TAPE CLOSE|OPENING SOURCE WINDOW|FINAL SOURCE WINDOW|CLOSING SOURCE WINDOW)$/i
       .test(displayLabel(value));
+  }
+
+  function fallbackNarrativeSubject(values, at) {
+    var label = array(values).map(displayLabel).find(function (candidate) {
+      return candidate &&
+        !structuralGuideSubject(candidate) &&
+        !/^(?:SAVED MOMENT|SAVED REACTION|REPLAY|STINGER|SOUNDBYTE|TAPE OPEN|TAPE CLOSE)$/i
+          .test(candidate);
+    });
+    if (label) {
+      return /\b(?:moment|beat|reaction)\b/i.test(label) ?
+        label : label + " moment";
+    }
+    return "Replay at " + clock(at);
   }
 
   function topicMetricQuality(receipt) {
@@ -1222,7 +1245,10 @@
     ).map(displayLabel).filter(function (label) {
       return label && !structuralGuideSubject(label) && !highlightTaxonomy(label);
     });
-    return candidates[0] || "Saved reaction";
+    return candidates[0] || fallbackNarrativeSubject(
+      array(segment.momentLabels).concat([segment.anchor]),
+      segment.anchorAt || segment.at
+    );
   }
 
   function attachNarrativeBeats(segments) {
@@ -1449,9 +1475,15 @@
       ).map(displayLabel).filter(function (label) {
         return label && !structuralGuideSubject(label) && !highlightTaxonomy(label);
       });
+      var chunkStart = chunk.reduce(function (earliest, receipt) {
+        return Math.min(earliest, storyTime(receipt));
+      }, storyTime(chunk[0]));
       var primarySubject = subjectCandidates.find(function (label) {
         return !usedStorySubjects[label.toLowerCase()];
-      }) || subjectCandidates[0] || "Saved reaction";
+      }) || subjectCandidates[0] || fallbackNarrativeSubject(
+        [receiptDisplayLabel(strongestAnchor)].concat(momentLabels),
+        chunkStart
+      );
       usedStorySubjects[primarySubject.toLowerCase()] = true;
       var directReceiptAnchor = guideAnchor ? null :
         preferredSubjectAnchor(chunk, primarySubject);
@@ -1462,9 +1494,6 @@
         primaryEvidence
       );
       var anchorSubject = evidenceSubject(primaryEvidence);
-      var chunkStart = chunk.reduce(function (earliest, receipt) {
-        return Math.min(earliest, storyTime(receipt));
-      }, storyTime(chunk[0]));
       var chunkEnd = chunk.reduce(function (latest, receipt) {
         return Math.max(latest, receiptEnd(receipt, duration));
       }, receiptEnd(chunk[0], duration));

@@ -178,12 +178,15 @@ test("character roster, profiles, curated candidates, and broad mentions remain 
     assert.equal(answer.collection.total, 9);
     assert.equal(answer.collection.unit, "curated performance candidates");
     assert.equal(answer.collection.authenticatedEditorVerified, 0);
-    assert.match(answer.answer, /human-picked timestamps.*does not guess which host is speaking/i);
+    assert.match(
+      answer.answer,
+      /legacy human-curated or editorially screened direct-address timestamps.*does not guess which host is speaking/i,
+    );
     assert.ok(answer.results.every((result) => result.kind === "character-performance"));
   }
 
-  assert.equal(mentions.collection.total, 2031);
-  assert.equal(mentions.collection.sourceTotal, 193);
+  assert.equal(mentions.collection.total, 4183);
+  assert.equal(mentions.collection.sourceTotal, 461);
   assert.match(mentions.answer, /mixes casual discussion, jokes and possible impressions/i);
 });
 

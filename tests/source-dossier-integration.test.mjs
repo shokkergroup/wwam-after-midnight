@@ -427,7 +427,7 @@ test("all 472 Atlas records pass through one card-to-dossier route", () => {
 test("dossier CSS and scripts load lazily through the feature loader, never eager index tags", () => {
   assert.match(
     html,
-    /<script src="app\.js\?v=0\.5\.70-final-rights-firewall"><\/script>/,
+    /<script src="app\.js\?v=0\.5\.71-archive-copy-grammar"><\/script>/,
   );
   const eagerScripts = Array.from(
     html.matchAll(/<script\b[^>]*\bsrc="([^"]+)"/g),

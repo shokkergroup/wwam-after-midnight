@@ -274,7 +274,7 @@ test("reconciles the newest year across all three ledgers and builds a playable 
     unavailable: 0,
   });
   assert.equal(capsule.memory.sourceCount, 10);
-  assert.equal(capsule.memory.receiptCount, 156);
+  assert.equal(capsule.memory.receiptCount, 157);
   assert.equal(capsule.quarantine.sourceCount, 4);
   assert.equal(capsule.quarantine.candidateCount, 17);
   assert.equal(capsule.quarantine.topicLaneCount, 40);

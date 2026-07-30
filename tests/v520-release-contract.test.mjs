@@ -19,18 +19,18 @@ const BLOODLINE_ASSETS = [
 
 const PINNED_LINEAGES = {
   "ancestry:bit-challis-hotline": {
-    windows: 8,
+    windows: 9,
     sources: 7,
-    seconds: 112,
+    seconds: 126,
     days: 1464,
     contexts: 9,
     signals: 11,
   },
   "ancestry:bit-slenderman-dispatch": {
-    windows: 8,
-    sources: 8,
-    seconds: 112,
-    days: 1916,
+    windows: 9,
+    sources: 9,
+    seconds: 126,
+    days: 2014,
     contexts: 7,
     signals: 5,
   },
@@ -216,7 +216,7 @@ test("Bit Bloodlines demand-loads inside the existing Memory OS tab", () => {
   assert.match(host, /WWAMMemoryCutLauncher\.request/);
 });
 
-test("the release proof stays pinned to 4 / 30 / 14 / 420", () => {
+test("the release proof stays pinned to 4 / 32 / 15 / 448", () => {
   const { engine } = buildFixture();
   const lineages = plain(engine.list());
   const stats = plain(engine.getStats());
@@ -224,15 +224,15 @@ test("the release proof stays pinned to 4 / 30 / 14 / 420", () => {
   const sourceIds = new Set(performances.map((performance) => performance.sourceId));
 
   assert.equal(stats.lineages, 4);
-  assert.equal(stats.performances, 30);
-  assert.equal(stats.sources, 14);
+  assert.equal(stats.performances, 32);
+  assert.equal(stats.sources, 15);
   assert.equal(
     performances.reduce((total, performance) => total + performance.duration, 0),
-    420,
+    448,
   );
-  assert.equal(performances.length, 30);
-  assert.equal(sourceIds.size, 14);
-  assert.equal(new Set(performances.map((performance) => performance.receiptKey)).size, 30);
+  assert.equal(performances.length, 32);
+  assert.equal(sourceIds.size, 15);
+  assert.equal(new Set(performances.map((performance) => performance.receiptKey)).size, 32);
   assert.ok(
     performances.every(
       (performance) => performance.end - performance.at === 14,
@@ -257,15 +257,15 @@ test("the release proof stays pinned to 4 / 30 / 14 / 420", () => {
   }
 
   const slenderman = engine.get("ancestry:bit-slenderman-dispatch");
-  assert.equal(slenderman.appearanceCount, 8);
-  assert.equal(slenderman.sourceCount, 8);
-  assert.equal(slenderman.elapsedDays, 1916);
+  assert.equal(slenderman.appearanceCount, 9);
+  assert.equal(slenderman.sourceCount, 9);
+  assert.equal(slenderman.elapsedDays, 2014);
   assert.equal(
     slenderman.performances.reduce(
       (total, performance) => total + performance.duration,
       0,
     ),
-    112,
+    126,
   );
 
   assert.deepEqual(

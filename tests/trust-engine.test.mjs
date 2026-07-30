@@ -73,14 +73,14 @@ test("Trust Desk is deterministic and reports the complete v4 evidence surface",
   );
 
   assert.equal(first.metrics.sources, 74);
-  assert.equal(first.metrics.receipts, 877);
+  assert.equal(first.metrics.receipts, 879);
   assert.equal(first.metrics.healthySources, 71);
   assert.equal(first.metrics.limitedSources, 3);
   assert.equal(first.metrics.blockedSources, 0);
   assert.equal(first.metrics.brokenSourceLinks, 0);
   assert.equal(first.metrics.invalidTimestamps, 0);
   assert.equal(first.metrics.machineReceipts, 847);
-  assert.equal(first.metrics.curatedCandidateReceipts, 30);
+  assert.equal(first.metrics.curatedCandidateReceipts, 32);
   assert.equal(first.metrics.editorReceipts, 0);
   assert.equal(first.metrics.creatorReceipts, 0);
   assert.equal(first.metrics.publicExcerptViolations, 362);
@@ -89,17 +89,17 @@ test("Trust Desk is deterministic and reports the complete v4 evidence surface",
   assert.equal(first.metrics.rippleReadyPackets, 90);
   assert.equal(first.metrics.rippleBlockedPackets, 5);
   assert.equal(first.metrics.rippleExactReceiptRecords, 921);
-  assert.equal(first.metrics.rippleSourceOnlyRecords, 2508);
+  assert.equal(first.metrics.rippleSourceOnlyRecords, 2519);
   assert.equal(first.metrics.contributionPackets, 4);
   assert.equal(first.policy.noSpeakerGuessing, true);
   assert.equal(first.policy.generatedCharacterAudioAllowed, false);
-  assert.equal(first.correctionRipple.registeredRecords, 1396);
+  assert.equal(first.correctionRipple.registeredRecords, 1400);
   assert.equal(first.correctionRipple.registeredSurfaces.length, 9);
   assert.deepEqual(
     plain(first.correctionRipple.registryHealth),
     {
       sources: 74,
-      receipts: 877,
+      receipts: 879,
       duplicateSourceIds: [],
       duplicateReceiptIds: [],
     },
@@ -183,6 +183,7 @@ test("the character firewall counts only curated performances and never guesses 
     false
   );
 
+  const resolvedButNotHumanCurated = [];
   characters.forEach((character) => {
     const validatedPerformanceIds = new Set(
       character.timestampValidatedPerformanceIds
@@ -200,8 +201,12 @@ test("the character firewall counts only curated performances and never guesses 
         soundbyte.timestampValidatedCuratedCandidate,
         isValidatedPerformance
       );
-      assert.equal(soundbyte.sourceResolved, isValidatedPerformance);
-      assert.equal(soundbyte.timestampValid, isValidatedPerformance);
+      assert.equal(soundbyte.timestampValid, soundbyte.sourceResolved);
+      if (soundbyte.sourceResolved && !isValidatedPerformance) {
+        resolvedButNotHumanCurated.push(`${character.id}/${soundbyte.id}`);
+        assert.equal(soundbyte.exactCaptionEvent, true);
+        assert.equal(soundbyte.humanCurated, false);
+      }
       assert.equal(soundbyte.authenticatedEditorVerified, false);
       assert.equal(soundbyte.specificSpeakerVerified, false);
       assert.match(
@@ -210,6 +215,10 @@ test("the character firewall counts only curated performances and never guesses 
       );
     });
   });
+  assert.deepEqual(resolvedButNotHumanCurated.sort(), [
+    "character:challis/challis-game-impostor",
+    "character:slenderman/slender-killer-knight",
+  ]);
 
   const loomis = characters.find(
     (character) => character.id === "character:loomis"

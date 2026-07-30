@@ -37,9 +37,9 @@ test("builds the complete evidence-bounded Halloween Universe", () => {
   assert.equal(summary.heldFilms, 1);
   assert.equal(summary.auditedWords, 185175);
   assert.equal(summary.topicDoors, 119);
-  assert.equal(summary.characterCallbacks, 30);
-  assert.equal(summary.loomisCallbacks, 15);
-  assert.equal(summary.challisCallbacks, 15);
+  assert.equal(summary.characterCallbacks, 54);
+  assert.equal(summary.loomisCallbacks, 27);
+  assert.equal(summary.challisCallbacks, 27);
   assert.equal(summary.upInYa, 7);
   assert.equal(summary.strictSteveCandidates, 8);
   assert.equal(summary.coreStrictSteveCandidates, 4);
@@ -81,7 +81,7 @@ test("holds the unavailable commentary open without manufacturing receipts", () 
 
 test("separates character performances from ordinary character references", () => {
   const callbacks = engine.listCallbacks();
-  assert.equal(callbacks.length, 30);
+  assert.equal(callbacks.length, 54);
   for (const callback of callbacks) {
     assert.equal(callback.kind, "character-performance");
     assert.equal(callback.evidenceState, "timestamp-validated-human-curated-candidate");
