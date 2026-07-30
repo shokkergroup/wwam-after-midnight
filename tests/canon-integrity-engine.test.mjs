@@ -290,7 +290,7 @@ test("current corpus passes canon integrity with deterministic internal-only war
   const first = window.WWAMCanonIntegrity.audit(input);
   const second = window.WWAMCanonIntegrity.audit(input);
 
-  assert.equal(window.WWAMCanonIntegrity.VERSION, "1.2.0");
+  assert.equal(window.WWAMCanonIntegrity.VERSION, "1.2.1");
   assert.equal(first.engine, "SHOKKER CANON INTEGRITY AUDIT");
   assert.equal(first.snapshotDate, "2026-07-23");
   assert.equal(first.ok, true);

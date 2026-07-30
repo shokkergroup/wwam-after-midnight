@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.14.2";
+  var VERSION = "1.14.3";
   var SCHEMA = "shokker-source-dossier-input/v1";
   var PUBLIC_EXCERPT_WORDS = 16;
   var OFFICIAL_WWAM_CHANNEL_ID = "UC6ieEOZW4iXV8TcILJI8k5g";

@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.2.0";
+  var VERSION = "1.2.1";
   var DEFAULT_PUBLIC_EXCERPT_WORDS = 16;
   var OFFICIAL_WWAM_CHANNEL_ID = "UC6ieEOZW4iXV8TcILJI8k5g";
   var ALLOWED_EVIDENCE_LEVELS = new Set([

@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.1.0";
+  var VERSION = "1.1.2";
   var POSITIVE_WORDS = [
     "love",
     "loved",

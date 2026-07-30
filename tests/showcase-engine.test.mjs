@@ -44,7 +44,7 @@ test("showcase engine exposes the integration contract and tolerates optional in
   const first = createBase(window);
   const second = createBase(window);
 
-  assert.equal(window.WWAMShowcaseEngine.VERSION, "1.1.0");
+  assert.equal(window.WWAMShowcaseEngine.VERSION, "1.1.2");
   assert.equal(first.metrics.sources, 49);
   assert.equal(first.metrics.commentaries, 39);
   assert.equal(first.metrics.livestreams, 10);

@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.1.0";
+  var VERSION = "1.1.1";
   var ORIGIN_DISCLAIMER =
     "Earliest in the currently indexed WWAM archive is not a claim about the bit's true channel or real-world origin.";
 

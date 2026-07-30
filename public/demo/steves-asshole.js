@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.3.1";
+  var VERSION = "1.3.2";
   var PLAY_EVENT = "wwam:halloween-play";
   var LANE_ID = "straight-to-steves-asshole";
   var GUIDE_ERROR_CODE = "EPISODE_GUIDE_COUNT_INVALID";

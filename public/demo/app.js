@@ -552,10 +552,10 @@
           "episode-guide-v2-newest-five-release.js?v=f5f3ca58",
           "episode-guide-v2-reviewed-merge.js?v=1.1.0-ordered-release",
           "title-topic-overrides.js?v=1.0.1-dossier-runtime",
-          "episode-recap-engine.js?v=1.6.1-title-topic-overrides",
-          "wwam-episode-recap-adapter.js?v=1.6.1-title-topic-overrides",
+          "episode-recap-engine.js?v=1.6.2-readable-release",
+          "wwam-episode-recap-adapter.js?v=1.6.2-readable-release",
           "source-dossier-engine.js?v=1.14.2-screened-negative-takes",
-          "wwam-source-dossier-adapter.js?v=1.14.2-title-topic-overrides",
+          "wwam-source-dossier-adapter.js?v=1.14.3-readable-release",
           "source-query-engine.js?v=1.6.1-lanes",
           "aftermath-pack-engine.js?v=1.0.0",
           "source-dossier-ui.js?v=1.18.4-readable-release"].reduce(function (promise, source) {
@@ -829,7 +829,7 @@
 
   function createFanEngines() {
     if(state.fanEnginesSettled)return;
-    if (!window.WWAMLoreEngine) return loadDemoScript("lore-engine.js").then(createFanEngines);
+    if (!window.WWAMLoreEngine) return loadDemoScript("lore-engine.js?v=1.1.1-expanded-canon").then(createFanEngines);
     if (!window.WWAMTapeTriviaEngine) return loadDemoScript("tape-trivia-engine.js").then(createFanEngines);
     if (!window.WWAMNightShiftEngine) return loadDemoScript("night-shift-engine.js").then(createFanEngines);
     loreEngine = window.WWAMLoreEngine && window.WWAMLoreEngine.create ?
@@ -1011,7 +1011,7 @@
     if (!window.WWAMColdOpenFactory)
       return loadDemoScript("cold-open-engine.js").then(createCreatorEngines);
     if (!window.WWAMCanonIntegrity)
-      return loadDemoScript("canon-integrity-engine.js").then(createCreatorEngines);
+      return loadDemoScript("canon-integrity-engine.js?v=1.2.1-expanded-canon").then(createCreatorEngines);
     if (!window.WWAMHumanReviewSession)
       return loadDemoScript("human-review-session-engine.js").then(createCreatorEngines);
     if (!window.WWAMTrustEngine) return loadDemoScript("correction-ripple-engine.js")
