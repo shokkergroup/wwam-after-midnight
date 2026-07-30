@@ -448,7 +448,7 @@ test("the overview names the title subject without pasting either caption fragme
   assert.equal(map.bestMoments[0].receiptKey, "moment:unrelated");
   assert.match(recap.overview, /Halloween Kills Michael Myers/i);
   assert.match(recap.overview, /20:00|Michael Myers/i);
-  assert.match(recap.overview, /Full Send at 6:40/i);
+  assert.match(recap.overview, /Full Send inside the Halloween chapter.+6:40/i);
   assert.doesNotMatch(
     recap.overview,
     /Michael Myers changes the entire Halloween ending/i,
@@ -810,6 +810,72 @@ test("highlight runway assigns native categories and remains chronological throu
   ));
 });
 
+test("reviewed guide lanes survive even when receipt highlights already meet the runtime floor", () => {
+  const window = load();
+  const receipts = Array.from({ length: 8 }, (_, index) =>
+    receipt(
+      `moment:receipt-${index + 1}`,
+      120 + index * 360,
+      "moment",
+      `MEMORABLE TURN ${index + 1}`,
+      90 - index,
+    )
+  );
+  const episodeGuide = {
+    cuts: [
+      {
+        id: "cut-steve",
+        at: 3_150,
+        end: 3_174,
+        topic: "The movie's lowest point",
+        category: "FRANCHISE FELONY",
+        excerpt: "A bounded negative reaction from the reviewed guide.",
+        score: 94,
+      },
+      {
+        id: "cut-loomis",
+        at: 3_330,
+        end: 3_354,
+        topic: "Dr. Loomis",
+        category: "CHARACTER PERFORMANCE",
+        excerpt: "A bounded character-performance cue from the reviewed guide.",
+        score: 92,
+      },
+    ],
+    fanRead: {
+      hated: { cutId: "cut-steve" },
+    },
+    threads: [
+      { kind: "character", name: "Dr. Loomis" },
+    ],
+  };
+  const map = window.ShokkerEpisodeRecap.build({
+    source: source({ duration: 3_600 }),
+    receipts,
+    episodeGuide,
+    format: { id: "movie-commentary", label: "MOVIE COMMENTARY", basis: "title" },
+  });
+  const guideHighlights = Array.from(map.highlightRunway).filter(
+    (highlight) => highlight.guideCutId,
+  );
+
+  assert.equal(map.highlightRunway.length, 10);
+  assert.deepEqual(
+    guideHighlights.map((highlight) => highlight.guideCutId).sort(),
+    ["cut-loomis", "cut-steve"],
+  );
+  assert.deepEqual(
+    guideHighlights.map((highlight) => highlight.category).sort(),
+    ["CHARACTER APPEARANCE", "STRAIGHT TO STEVE'S ASSHOLE"],
+  );
+  assert.deepEqual(
+    Array.from(map.highlightRunway, (highlight) => highlight.at),
+    Array.from(map.highlightRunway, (highlight) => highlight.at)
+      .slice()
+      .sort((left, right) => left - right),
+  );
+});
+
 test("story narration uses one clear deterministic contract across formats", () => {
   const window = load();
   const receipts = [
@@ -833,14 +899,66 @@ test("story narration uses one clear deterministic contract across formats", () 
   ];
   assert.equal(new Set(bodies).size, 1);
   assert.ok(bodies.every((body) =>
-    /episode opens|conversation centers/i.test(body) &&
+    /Halloween/i.test(body) &&
+    /\b(?:\d{1,2}:)?\d{1,2}:\d{2}\b/.test(body) &&
     body.trim().split(/\s+/).length >= 8 &&
     body.trim().split(/\s+/).length <= 60
   ));
   assert.ok(bodies.every((body) =>
-    !/after-hours ledger|named flashlight|replay board|source clock|evidence board/i
+    !/after-hours ledger|named flashlight|replay board|source clock|evidence board|conversation centers|runs from .+ to/i
       .test(body)
   ));
+});
+
+test("topic-only maps expose every exact topic door without promoting them to highlights", () => {
+  const window = load();
+  const topicReceipts = [
+    {
+      ...receipt("topic:chucky", 194, "topic", "Chucky", 92),
+      topicFirstAt: 43,
+      topicPeakAt: 194,
+      topicMentions: 18,
+    },
+    {
+      ...receipt("topic:casting", 4_604, "topic", "Casting", 70),
+      topicFirstAt: 364,
+      topicPeakAt: 4_604,
+      topicMentions: 9,
+    },
+    {
+      ...receipt("topic:halloween", 2_994, "topic", "Halloween", 60),
+      topicFirstAt: 1_286,
+      topicPeakAt: 2_994,
+      topicMentions: 6,
+    },
+  ];
+  const map = window.ShokkerEpisodeRecap.build({
+    source: source({ duration: 5_604 }),
+    receipts: topicReceipts,
+    format: { id: "livestream", label: "WWAM LIVESTREAM", basis: "title" },
+  });
+  const recap = window.WWAMEpisodeRecapAdapter.build({ map });
+
+  assert.equal(map.mode, "topic-recap");
+  assert.equal(map.highlightRunway.length, topicReceipts.length);
+  assert.deepEqual(
+    Array.from(map.highlightRunway, (item) => item.category),
+    ["TOPIC DOOR", "TOPIC DOOR", "TOPIC DOOR"],
+  );
+  assert.ok(recap.story.every((reel) =>
+    reel.body.toLowerCase().includes(reel.primarySubject.toLowerCase()) &&
+    /\b(?:\d{1,2}:)?\d{1,2}:\d{2}\b/.test(reel.body) &&
+    !/conversation centers|episode opens|runs from .+ to/i.test(reel.body)
+  ));
+  assert.ok(recap.story.every((reel, index, values) =>
+    !values[index + 1] || reel.displayEnd <= values[index + 1].displayAt
+  ));
+  assert.doesNotMatch(recap.overview, /strongest saved highlight|title subject/i);
+  assert.match(
+    recap.deck,
+    /timed subject entr|playable subject doorway|direct subject jump|named subjects?/i,
+  );
+  assert.match(recap.deck, /indexed subject trail currently reaches 82%/i);
 });
 
 test("metadata-only sources get a visible held module with zero semantic claims", () => {

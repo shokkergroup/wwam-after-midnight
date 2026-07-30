@@ -10,6 +10,50 @@ const uiSource = fs.readFileSync(
   path.join(root, "public", "demo", "source-dossier-ui.js"),
   "utf8",
 );
+const episodeFactsSource = fs.readFileSync(
+  path.join(root, "public", "demo", "episode-facts-pilot.js"),
+  "utf8",
+);
+const episodeFactsBatch2Source = fs.readFileSync(
+  path.join(root, "public", "demo", "episode-facts-batch2.js"),
+  "utf8",
+);
+const episodeFactsBatch3Source = fs.readFileSync(
+  path.join(root, "public", "demo", "episode-facts-batch3.js"),
+  "utf8",
+);
+const episodeFormatExperienceSource = fs.readFileSync(
+  path.join(root, "public", "demo", "episode-format-experience.js"),
+  "utf8",
+);
+const episodeFormatFallbackExperienceSource = fs.readFileSync(
+  path.join(root, "public", "demo", "episode-format-fallback-experience.js"),
+  "utf8",
+);
+const episodeTopicRebuildBatch1Source = fs.readFileSync(
+  path.join(root, "public", "demo", "episode-guide-v2-topic-rebuild-batch1.js"),
+  "utf8",
+);
+const episodeTopicRebuildBatch2Source = fs.readFileSync(
+  path.join(root, "public", "demo", "episode-guide-v2-topic-rebuild-batch2.js"),
+  "utf8",
+);
+const episodeTopicRebuildBatch3Source = fs.readFileSync(
+  path.join(root, "public", "demo", "episode-guide-v2-topic-rebuild-batch3.js"),
+  "utf8",
+);
+const episodeTopicRebuildBatch4Source = fs.readFileSync(
+  path.join(root, "public", "demo", "episode-guide-v2-topic-rebuild-batch4.js"),
+  "utf8",
+);
+const episodeTopicRebuildBatch5Source = fs.readFileSync(
+  path.join(root, "public", "demo", "episode-guide-v2-topic-rebuild-batch5.js"),
+  "utf8",
+);
+const episodeTopicRebuildExperienceSource = fs.readFileSync(
+  path.join(root, "public", "demo", "episode-topic-rebuild-experience.js"),
+  "utf8",
+);
 const cssSource = fs.readFileSync(
   path.join(root, "public", "demo", "source-dossier.css"),
   "utf8",
@@ -19,11 +63,54 @@ const editorialCssSource = fs.readFileSync(
   "utf8",
 );
 
-function runtime() {
+function runtime({
+  withEpisodeFormat = false,
+  withEpisodeFallback = false,
+  withTopicRebuild = false,
+} = {}) {
   const window = {};
   const sandbox = { window, globalThis: window };
   window.window = window;
   vm.createContext(sandbox);
+  if (withEpisodeFormat) {
+    vm.runInContext(episodeFactsSource, sandbox, {
+      filename: "episode-facts-pilot.js",
+    });
+    vm.runInContext(episodeFactsBatch2Source, sandbox, {
+      filename: "episode-facts-batch2.js",
+    });
+    vm.runInContext(episodeFactsBatch3Source, sandbox, {
+      filename: "episode-facts-batch3.js",
+    });
+    vm.runInContext(episodeFormatExperienceSource, sandbox, {
+      filename: "episode-format-experience.js",
+    });
+  }
+  if (withEpisodeFallback) {
+    vm.runInContext(episodeFormatFallbackExperienceSource, sandbox, {
+      filename: "episode-format-fallback-experience.js",
+    });
+  }
+  if (withTopicRebuild) {
+    vm.runInContext(episodeTopicRebuildBatch1Source, sandbox, {
+      filename: "episode-guide-v2-topic-rebuild-batch1.js",
+    });
+    vm.runInContext(episodeTopicRebuildBatch2Source, sandbox, {
+      filename: "episode-guide-v2-topic-rebuild-batch2.js",
+    });
+    vm.runInContext(episodeTopicRebuildBatch3Source, sandbox, {
+      filename: "episode-guide-v2-topic-rebuild-batch3.js",
+    });
+    vm.runInContext(episodeTopicRebuildBatch4Source, sandbox, {
+      filename: "episode-guide-v2-topic-rebuild-batch4.js",
+    });
+    vm.runInContext(episodeTopicRebuildBatch5Source, sandbox, {
+      filename: "episode-guide-v2-topic-rebuild-batch5.js",
+    });
+    vm.runInContext(episodeTopicRebuildExperienceSource, sandbox, {
+      filename: "episode-topic-rebuild-experience.js",
+    });
+  }
   vm.runInContext(uiSource, sandbox, {
     filename: "source-dossier-ui.js",
   });
@@ -672,20 +759,30 @@ function setup(dossier = makeDossier(), overrides = {}) {
       return makeQueryAnswer(dossier, { query: request.query });
     },
   };
-  const api = runtime();
+  const {
+    withEpisodeFormat = false,
+    withEpisodeFallback = false,
+    withTopicRebuild = false,
+    ...uiOverrides
+  } = overrides;
+  const api = runtime({
+    withEpisodeFormat,
+    withEpisodeFallback,
+    withTopicRebuild,
+  });
   const ui = api.create({
     engine,
     queryEngine,
     document: {},
     mount,
-    ...overrides,
+    ...uiOverrides,
   });
   return {
     api,
     ui,
     mount,
     engine,
-    queryEngine: overrides.queryEngine ?? queryEngine,
+    queryEngine: uiOverrides.queryEngine ?? queryEngine,
     dossier,
   };
 }
@@ -1010,7 +1107,7 @@ test("zero-opportunity Aftermath pages stay source-specific and never invent a w
   const { ui, mount } = setup(dossier, { aftermathEngine: harness.engine });
   ui.render(dossier.source.id, { section: "aftermath" });
 
-  assert.match(mount.innerHTML, /NONE REGISTERED FOR THIS SOURCE/);
+  assert.match(mount.innerHTML, /NONE FOUND FOR THIS SOURCE/);
   assert.match(mount.innerHTML, /NO RECEIPT-BACKED HANDOFF YET/);
   assert.match(mount.innerHTML, /DOWNLOAD ELIGIBILITY RECEIPT/);
   assert.doesNotMatch(mount.innerHTML, /13 SHORTS/);
@@ -1422,7 +1519,7 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
   assert.match(html, /data-feldman-stat="moments"><b>10<\/b><small>SAVED SPIKES/);
   assert.match(html, /data-feldman-stat="characters"><b>4<\/b><small>CHARACTER LEADS/);
   assert.match(html, /data-feldman-stat="coverage"><b>100%<\/b><small>INDEXED RECEIPTS ACCOUNTED FOR/);
-  assert.match(html, /data-feldman-stat="span"><b>84%<\/b><small>REGISTERED EVIDENCE SPAN/);
+  assert.match(html, /data-feldman-stat="span"><b>84%<\/b><small>EVIDENCE SPAN/);
   assert.match(html, /JUMP THE TOPIC BOARD/);
   assert.match(html, /2 EXACT DOORS/);
   assert.match(html, />Halloween<\/b><time>/);
@@ -1618,16 +1715,20 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
 
   dossier.source.showWiki.episodeRecap.tier = "topic-recap";
   ui.render(dossier.source.id);
-  assert.match(mount.innerHTML, /THE FELDMAN CUT \/\/ TOPIC-BY-TOPIC RECAP/);
+  assert.match(mount.innerHTML, /THE FELDMAN CUT \/\/ SOURCE SUBJECT MAP/);
   assert.match(
     mount.innerHTML,
-    /THE SUBJECT-BY-SUBJECT CUT, WITHOUT HUNTING THE TIMELINE/,
+    /THE INDEXED SUBJECT STOPS, IN TAPE ORDER/,
   );
-  assert.match(mount.innerHTML, /FULL SOURCE MAP/);
+  assert.match(mount.innerHTML, /SOURCE SUBJECT MAP/);
   assert.match(mount.innerHTML, /TOPIC NAVIGATION ONLY/);
   assert.match(mount.innerHTML, /TOPIC DOORS? SHOWN/);
-  assert.match(mount.innerHTML, /REGISTERED TOPIC DOORS?/);
+  assert.match(mount.innerHTML, /TOPIC DOORS? ON FILE/);
   assert.doesNotMatch(mount.innerHTML, /HIGHLIGHTS? SHOWN/);
+  assert.match(mount.innerHTML, /THE TOPIC RUNWAY \/\/ EXACT SUBJECT DOORS/);
+  assert.match(mount.innerHTML, /EVERY CONFIRMED TOPIC TURN ON THIS TAPE/);
+  assert.match(mount.innerHTML, /TOPIC TURNS, NOT OPINIONS/);
+  assert.doesNotMatch(mount.innerHTML, /THE HIGHLIGHT RUNWAY \/\/ FULL-SHOW CUT/);
 
   mount.click("play-receipt", {
     "data-receipt-key": dossier.source.receipts[0].key,
@@ -1636,6 +1737,488 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
   assert.equal(plays.length, 1);
   assert.equal(plays[0].receipt, dossier.source.receipts[0]);
   assert.equal(plays[0].section, "wiki");
+});
+
+test("typed format facts turn the Christmas show into a playable ranking board", () => {
+  const dossier = makeDossier();
+  dossier.source.id = "QMYgsEfPMg0";
+  dossier.source.title = "Christmas Movies Tier List 2025";
+  dossier.source.displayTitle = "CHRISTMAS MOVIES TIER LIST 2025";
+  dossier.source.duration = 12255;
+  dossier.source.url = "https://www.youtube.com/watch?v=QMYgsEfPMg0";
+  dossier.source.thumbnail =
+    "https://i.ytimg.com/vi/QMYgsEfPMg0/maxresdefault.jpg";
+  dossier.source.runtimeFormat = {
+    id: "ranking",
+    label: "CURATED PICKS",
+    family: "ranking",
+  };
+  const receipt = dossier.source.receipts[0];
+  dossier.source.showWiki.episodeRecap = {
+    schema: "wwam-feldman-recap/v1",
+    state: "ready",
+    tier: "receipt-recap",
+    label: "WWAM FELDMAN APPROVED RECAP",
+    badge: "PLAYABLE EPISODE RECAP",
+    headline: "THE CHRISTMAS BOARD OPENS.",
+    deck: "The episode file keeps its list events attached to the tape.",
+    overview: "The show moves from news into a Christmas movie tier list.",
+    topics: ["Christmas movies"],
+    sections: [{
+      id: "christmas-board",
+      label: "THE BOARD OPENS",
+      body: "The registered source receipt opens this episode file.",
+      at: receipt.at,
+      end: receipt.end,
+      excerpt: receipt.excerpt,
+      receiptKeys: [receipt.key],
+    }],
+    story: [{
+      id: "reel-01",
+      label: "OPENING // CHRISTMAS MOVIES",
+      body: "The source-linked recap opens the Christmas movie board.",
+      at: receipt.at,
+      end: receipt.end,
+      displayAt: receipt.at,
+      displayEnd: receipt.end,
+      anchorReceiptKey: receipt.key,
+      anchorAt: receipt.at,
+      anchor: receipt.label,
+      primarySubject: "Christmas movies",
+      excerpt: receipt.excerpt,
+      receiptKeys: [receipt.key],
+      narrative: { primarySubject: "Christmas movies" },
+    }],
+    highlightRunway: [],
+    fanRead: {},
+    caseFile: { receiptCount: 1, actCount: 1 },
+    approval: {
+      actualApproval: false,
+      disclosure: "A running-bit label, not a creator endorsement.",
+    },
+    semanticFingerprint: "format-experience-ui-fixture",
+  };
+  const plays = [];
+  const { ui, mount } = setup(dossier, {
+    withEpisodeFormat: true,
+    onPlay: (payload) => plays.push(payload),
+  });
+
+  ui.render(dossier.source.id);
+  const html = mount.innerHTML;
+  assert.match(html, /data-format-experience="ranking-board"/);
+  assert.match(html, /THE RANKING BOARD/);
+  assert.match(html, /NEWS BEFORE THE LIST/);
+  assert.match(html, /CHRISTMAS LIST START/);
+  assert.match(html, /HOME ALONE/);
+  assert.match(html, /GRINCH/);
+  assert.match(html, /data-guide-at="1032"/);
+  assert.match(html, /captioned ranking statements/);
+  assert.doesNotMatch(
+    html,
+    /sha256:|machine-surfaced|needs-editor-review|evidenceHash/i,
+  );
+
+  mount.click("play-guide-cut", {
+    "data-guide-at": "1032",
+    "data-guide-end": "1040",
+    "data-guide-label": "NEWS BEFORE THE LIST",
+    "data-guide-return": "sourceDossierFormatExperience",
+    "data-guide-return-label": "RANKING BOARD",
+    "data-owner-section": "wiki",
+  });
+  assert.equal(plays.length, 1);
+  assert.equal(plays[0].mode, "episode-guide");
+  assert.equal(plays[0].at, 1032);
+  assert.equal(plays[0].end, 1040);
+});
+
+test("typed Batch 2 facts turn an episode recap into an accurate playable recap desk", () => {
+  const dossier = makeDossier();
+  Object.assign(dossier.source, {
+    id: "rtWl8c57SYk",
+    title: "IT: Welcome To Derry - Episode 1 Recap! LIVE!",
+    displayTitle: "IT: WELCOME TO DERRY — EPISODE 1 RECAP",
+    duration: 2060,
+    url: "https://www.youtube.com/watch?v=rtWl8c57SYk",
+  });
+  const receipt = dossier.source.receipts[0];
+  dossier.source.showWiki.episodeRecap = {
+    schema: "wwam-feldman-recap/v1",
+    sourceId: dossier.source.id,
+    state: "ready",
+    tier: "receipt-recap",
+    label: "WWAM FELDMAN APPROVED RECAP",
+    badge: "PLAYABLE EPISODE RECAP",
+    headline: "THE DERRY RECAP GETS AN EXACT-SOURCE MAP.",
+    deck: "The episode file stays attached to this upload.",
+    overview: "An exact-source episode recap with bounded playback.",
+    topics: ["Welcome to Derry"],
+    topicMap: [],
+    highlightRunway: [],
+    sections: [{
+      id: "derry-open",
+      label: "THE RECAP OPENS",
+      body: "The registered recap opens this exact show.",
+      at: receipt.at,
+      end: receipt.end,
+      excerpt: receipt.excerpt,
+      receiptKeys: [receipt.key],
+    }],
+    story: [],
+    fanRead: {},
+    caseFile: { receiptCount: 1, actCount: 1 },
+    approval: {
+      actualApproval: false,
+      disclosure: "A running-bit label, not a creator endorsement.",
+    },
+    semanticFingerprint: "typed-batch2-recap-ui-fixture",
+  };
+  const plays = [];
+  const { ui, mount } = setup(dossier, {
+    withEpisodeFormat: true,
+    withTopicRebuild: true,
+    onPlay: (payload) => plays.push(payload),
+  });
+
+  ui.render(dossier.source.id, { fullFile: true });
+  const html = mount.innerHTML;
+  assert.match(html, /data-format-experience="recap-desk"/);
+  assert.match(html, /THE EPISODE RECAP/);
+  assert.match(html, /11 TAPE-LOCKED STOPS/);
+  assert.match(html, /11 FORMAT-SPECIFIC STOPS/);
+  assert.match(html, /15 DEEP-SOURCE STOPS/);
+  assert.match(html, /OPENING CAR SCENE/);
+  assert.match(html, /CGI COMPLAINT/);
+  assert.match(html, /FINAL EPISODE VERDICT/);
+  assert.match(
+    html,
+    /The closing verdict calls the episode really good and better than Alien: Earth\./,
+  );
+  assert.match(html, /speakers and depicted scenes unverified/i);
+  assert.doesNotMatch(
+    html,
+    /sha256:|machine-surfaced|needs-editor-review|evidenceHash|promotionAllowed/i,
+  );
+
+  mount.click("play-guide-cut", {
+    "data-guide-at": "1803",
+    "data-guide-end": "1815",
+    "data-guide-label": "Play FINAL EPISODE VERDICT",
+    "data-guide-return": "sourceDossierFormatExperience",
+    "data-guide-return-label": "EPISODE RECAP",
+    "data-owner-section": "wiki",
+  });
+  assert.equal(plays.length, 1);
+  assert.equal(plays[0].mode, "episode-guide");
+  assert.equal(plays[0].at, 1803);
+  assert.equal(plays[0].end, 1815);
+});
+
+test("final source rights block typed-fact excerpts before the restricted script page renders", () => {
+  const dossier = makeDossier({ receiptCount: 1 });
+  const leakedExcerpt = "taken excerpts from the Halloween Rob";
+  Object.assign(dossier.source, {
+    id: "R_bXrnNOcwg",
+    title: "Reading the HALLOWEEN Script Live!",
+    displayTitle: "READING THE HALLOWEEN SCRIPT LIVE!",
+    duration: 7395,
+    url: "https://www.youtube.com/watch?v=R_bXrnNOcwg",
+    runtimeFormat: {
+      id: "script",
+      label: "SCRIPT READING",
+      family: "script",
+    },
+    formatContract: { id: "script" },
+    rightsPolicy: {
+      restrictedToTopicNavigation: true,
+      publicExcerptWordLimit: 0,
+      promotionAllowed: false,
+      speakerClaimsAllowed: false,
+    },
+  });
+  const receipt = dossier.source.receipts[0];
+  Object.assign(receipt, {
+    kind: "topic-navigation",
+    evidenceType: "caption-topic-navigation",
+    excerpt: null,
+    publicExcerptAllowed: false,
+    label: "Live script reading",
+  });
+  dossier.source.showWiki.episodeRecap = {
+    schema: "wwam-feldman-recap/v1",
+    sourceId: dossier.source.id,
+    state: "ready",
+    tier: "topic-recap",
+    headline: "THE SCRIPT SHOW GETS A TOPIC-ONLY MAP.",
+    deck: "Only source-local subject doors are public.",
+    overview: "The public page navigates the show without publishing script excerpts.",
+    topics: ["Live script reading"],
+    topicMap: [{
+      receiptKey: receipt.key,
+      label: "Live script reading",
+      at: 225,
+      end: 249,
+      excerpt: leakedExcerpt,
+    }],
+    highlightRunway: [],
+    sections: [],
+    story: [],
+    bestMoments: [],
+    fanRead: {},
+    caseFile: { receiptCount: 1, actCount: 0 },
+    approval: {
+      actualApproval: false,
+      disclosure: "Topic navigation only.",
+    },
+    semanticFingerprint: "restricted-script-ui-fixture",
+  };
+  const { ui, mount } = setup(dossier, {
+    withEpisodeFormat: true,
+    withEpisodeFallback: true,
+    withTopicRebuild: true,
+  });
+
+  ui.render(dossier.source.id, { fullFile: true });
+  const html = mount.innerHTML;
+  const formatDesk = html.match(
+    /<section class="source-dossier-format-experience"[\s\S]*?<\/section>/,
+  )?.[0] ?? "";
+  assert.match(formatDesk, /THE SCRIPT SHOW MAP/);
+  assert.match(formatDesk, /SCRIPT SUBJECT DOOR/);
+  assert.doesNotMatch(formatDesk, /<blockquote/);
+  assert.doesNotMatch(html, /THE SCRIPT SPINE/);
+  assert.doesNotMatch(html, new RegExp(leakedExcerpt, "i"));
+  assert.doesNotMatch(html, /11 FORMAT-SPECIFIC STOPS/);
+});
+
+test("final source rights suppress raw topic-rebuild packs on restricted shows", () => {
+  const dossier = makeDossier({ receiptCount: 1 });
+  Object.assign(dossier.source, {
+    id: "vjyNEQmgxC8",
+    title: "Let's Watch Scary Videos Together! Live!",
+    displayTitle: "LET'S WATCH SCARY VIDEOS TOGETHER! LIVE!",
+    duration: 10806,
+    url: "https://www.youtube.com/watch?v=vjyNEQmgxC8",
+    rightsPolicy: {
+      restrictedToTopicNavigation: true,
+      publicExcerptWordLimit: 0,
+      promotionAllowed: false,
+      speakerClaimsAllowed: false,
+    },
+  });
+  const { ui, mount } = setup(dossier, { withTopicRebuild: true });
+
+  ui.render(dossier.source.id, { fullFile: true });
+  assert.doesNotMatch(mount.innerHTML, /data-topic-rebuild-experience="ready"/);
+  assert.doesNotMatch(mount.innerHTML, /15 DEEP-SOURCE STOPS/);
+});
+
+test("every ready source can fall back to an honest format-native tape desk", () => {
+  const dossier = makeDossier();
+  const receipt = dossier.source.receipts[0];
+  dossier.source.runtimeFormat = {
+    id: "movie-news",
+    label: "MOVIE NEWS",
+    family: "news",
+  };
+  dossier.source.subtype = {
+    id: "general-movie-news",
+    label: "GENERAL MOVIE NEWS",
+  };
+  dossier.source.formatContract = { id: "movie-news" };
+  dossier.source.showWiki.episodeRecap = {
+    schema: "wwam-feldman-recap/v1",
+    sourceId: dossier.source.id,
+    state: "ready",
+    tier: "receipt-recap",
+    label: "WWAM FELDMAN APPROVED RECAP",
+    badge: "PLAYABLE EPISODE RECAP",
+    headline: "THE NEWS TAPE GETS A SOURCE-LOCKED MAP.",
+    deck: "The episode file keeps every registered coordinate on this show.",
+    overview: "A news-format episode recap with navigation-only format context.",
+    topics: ["Halloween"],
+    topicMap: [{
+      receiptKey: receipt.key,
+      label: "Halloween",
+      at: 420,
+      end: 444,
+    }],
+    highlightRunway: [{
+      receiptKey: receipt.key,
+      label: "Up In Ya",
+      category: "UP IN YA / STINGER",
+      at: 920,
+      end: 944,
+      excerpt: receipt.excerpt,
+    }, {
+      receiptKey: receipt.key,
+      label: "Halloween",
+      category: "MAJOR TOPIC TURN",
+      at: 420,
+      end: 444,
+      excerpt: receipt.excerpt,
+    }],
+    sections: [{
+      id: "news-open",
+      label: "THE NEWS OPENS",
+      body: "The registered news recap opens this source-local episode file.",
+      at: 120,
+      end: 144,
+      anchor: "Halloween",
+      excerpt: receipt.excerpt,
+      receiptKeys: [receipt.key],
+    }, {
+      id: "news-halloween-duplicate",
+      label: "HALLOWEEN CHECKPOINT",
+      body: "A second registered structure points to the same visitor stop.",
+      at: 420,
+      end: 444,
+      anchor: "Halloween",
+      excerpt: receipt.excerpt,
+      receiptKeys: [receipt.key],
+    }],
+    story: [],
+    fanRead: {},
+    caseFile: { receiptCount: 1, actCount: 1 },
+    approval: {
+      actualApproval: false,
+      disclosure: "A running-bit label, not a creator endorsement.",
+    },
+    semanticFingerprint: "format-fallback-ui-fixture",
+  };
+  const plays = [];
+  const { ui, mount } = setup(dossier, {
+    withEpisodeFallback: true,
+    onPlay: (payload) => plays.push(payload),
+  });
+
+  ui.render(dossier.source.id, { fullFile: true });
+  const html = mount.innerHTML;
+  const deskHtml = html.match(
+    /<section class="source-dossier-format-experience"[\s\S]*?<\/section>/,
+  )?.[0] ?? "";
+  assert.match(deskHtml, /data-format-experience="news-wire"/);
+  assert.match(deskHtml, /THE MOVIE NEWS WIRE/);
+  assert.match(deskHtml, /NEWS SUBJECT DOOR/);
+  assert.match(deskHtml, /NEWS TAPE MARKER/);
+  assert.match(deskHtml, /NEWS RECAP STOP/);
+  assert.match(deskHtml, /TOPIC NAVIGATION IS NOT FACT CHECKING/);
+  assert.match(
+    deskHtml,
+    /These stops do not decide whether a statement is reporting/,
+  );
+  assert.equal(
+    (deskHtml.match(/data-guide-at="420"/g) || []).length,
+    1,
+    "same-time same-subject evidence should become one visitor stop",
+  );
+  assert.doesNotMatch(
+    deskHtml,
+    /speakerName|verdict|winner|ballot|questionEvidence/,
+  );
+
+  mount.click("play-guide-cut", {
+    "data-guide-at": "420",
+    "data-guide-end": "444",
+    "data-guide-label": "Halloween",
+    "data-guide-return": "sourceDossierFormatExperience",
+    "data-guide-return-label": "NEWS WIRE",
+    "data-owner-section": "wiki",
+  });
+  assert.equal(plays.length, 1);
+  assert.equal(plays[0].mode, "episode-guide");
+  assert.equal(plays[0].at, 420);
+  assert.equal(plays[0].end, 444);
+});
+
+test("caption-derived rebuilds render all exact-source stops without leaking review machinery", () => {
+  const dossier = makeDossier();
+  const receipt = dossier.source.receipts[0];
+  dossier.source.id = "vjyNEQmgxC8";
+  dossier.source.title = "Let's Watch Scary Videos Together! Live!";
+  dossier.source.displayTitle = "LET'S WATCH SCARY VIDEOS TOGETHER! LIVE!";
+  dossier.source.duration = 10806;
+  dossier.source.url = "https://www.youtube.com/watch?v=vjyNEQmgxC8";
+  dossier.source.showWiki.episodeRecap = {
+    schema: "wwam-feldman-recap/v1",
+    state: "ready",
+    tier: "receipt-recap",
+    label: "WWAM FELDMAN APPROVED RECAP",
+    badge: "PLAYABLE EPISODE RECAP",
+    headline: "THE SCARY-VIDEO TAPE GETS A SOURCE-LOCKED ROUTE.",
+    deck: "Every surfaced stop stays attached to the exact upload.",
+    overview: "The page follows the registered show evidence without assigning a speaker.",
+    topics: ["Scary videos"],
+    sections: [{
+      id: "scary-video-open",
+      label: "THE TAPE OPENS",
+      body: "The first registered source receipt opens this episode file.",
+      at: receipt.at,
+      end: receipt.end,
+      excerpt: receipt.excerpt,
+      receiptKeys: [receipt.key],
+    }],
+    story: [{
+      id: "reel-01",
+      label: "OPENING // SCARY VIDEOS",
+      body: "The source-linked recap opens the scary-video route.",
+      at: receipt.at,
+      end: receipt.end,
+      displayAt: receipt.at,
+      displayEnd: receipt.end,
+      anchorReceiptKey: receipt.key,
+      anchorAt: receipt.at,
+      anchor: receipt.label,
+      primarySubject: "Scary videos",
+      excerpt: receipt.excerpt,
+      receiptKeys: [receipt.key],
+      narrative: { primarySubject: "Scary videos" },
+    }],
+    highlightRunway: [],
+    fanRead: {},
+    caseFile: { receiptCount: 1, actCount: 1 },
+    approval: {
+      actualApproval: false,
+      disclosure: "A running-bit label, not a creator endorsement.",
+    },
+    semanticFingerprint: "topic-rebuild-ui-fixture",
+  };
+  const plays = [];
+  const { ui, mount } = setup(dossier, {
+    withTopicRebuild: true,
+    onPlay: (payload) => plays.push(payload),
+  });
+
+  ui.render(dossier.source.id, { fullFile: true });
+  const html = mount.innerHTML;
+  assert.match(html, /data-topic-rebuild-experience="ready"/);
+  assert.match(html, /15 EXACT-SOURCE STOPS/);
+  assert.match(html, /TOPIC \/ FORMAT DOOR/);
+  assert.match(html, /ON-TAPE TAKE/);
+  assert.match(html, /COMEDY BEAT/);
+  assert.match(html, /COLD OPEN \/\/ THE TAPE ROLLS/);
+  assert.match(html, /CREATOR SALUTE \/\/ SHORTS OVER HOLLYWOOD/);
+  assert.match(html, /data-guide-at="1"/);
+  assert.match(html, /data-guide-at="10300"/);
+  assert.match(html, /Play the clip to confirm who is speaking/i);
+  assert.doesNotMatch(
+    html,
+    /sha256:|promotionAllowed|machine-surfaced|reviewState|rightsPolicy/i,
+  );
+
+  mount.click("play-guide-cut", {
+    "data-guide-at": "1",
+    "data-guide-end": "25",
+    "data-guide-label": "COLD OPEN // THE TAPE ROLLS",
+    "data-guide-return": "sourceDossierDeepStops",
+    "data-guide-return-label": "EXACT-SOURCE STOPS",
+    "data-owner-section": "wiki",
+  });
+  assert.equal(plays.length, 1);
+  assert.equal(plays[0].mode, "episode-guide");
+  assert.equal(plays[0].at, 1);
+  assert.equal(plays[0].end, 25);
 });
 
 test("combined Feldman recap and Episode Guide links reveal their full-file targets", () => {
@@ -2154,7 +2737,7 @@ test("Episode Guide V2 exposes the episode spine and plays bounded source-local 
   assert.match(mount.innerHTML, /data-episode-guide-view="start-here"/);
   assert.doesNotMatch(mount.innerHTML, /href="#sourceDossierFanRead">FAN READ<\/a>/);
   assert.doesNotMatch(mount.innerHTML, /id="sourceDossierFanRead"/);
-  assert.match(mount.innerHTML, /21 REGISTERED MOMENTS \/\/ 8 DEEP-DIVE CUTS/);
+  assert.match(mount.innerHTML, /21 TIMESTAMPED MOMENTS \/\/ 8 DEEP-DIVE CUTS/);
   assert.doesNotMatch(mount.innerHTML, /21 PLAYABLE MOMENTS/);
   assert.match(mount.innerHTML, /THE FASTEST WAY INTO THIS EPISODE/);
   assert.equal((mount.innerHTML.match(/MOVE \d\d \/\//g) ?? []).length, 4);
@@ -2818,7 +3401,7 @@ test("episode-aware answers validate registered recap, experience, and lane rece
     mount.innerHTML,
     /data-source-query-episode-kind="recap"/,
   );
-  assert.match(mount.innerHTML, /5 REGISTERED \/\/ 5 MATCHED \/\/ 3 SHOWN/);
+  assert.match(mount.innerHTML, /5 ON FILE \/\/ 5 MATCHED \/\/ 3 SHOWN/);
   assert.ok(
     mount.innerHTML.includes(
       'href="#sourceDossierShowWikiSummary">OPEN THE FULL RECAP',
@@ -2830,7 +3413,7 @@ test("episode-aware answers validate registered recap, experience, and lane rece
     mount.innerHTML,
     /data-source-query-episode-kind="experience"/,
   );
-  assert.match(mount.innerHTML, /5 REGISTERED \/\/ 5 MATCHED \/\/ 3 SHOWN/);
+  assert.match(mount.innerHTML, /5 ON FILE \/\/ 5 MATCHED \/\/ 3 SHOWN/);
   assert.ok(
     mount.innerHTML.includes(
       'href="#sourceDossierShowWikiExperience">OPEN THE FULL WATCH PATH',
@@ -2842,7 +3425,7 @@ test("episode-aware answers validate registered recap, experience, and lane rece
     mount.innerHTML,
     /data-source-query-episode-kind="lane"/,
   );
-  assert.match(mount.innerHTML, /2 REGISTERED \/\/ 2 MATCHED \/\/ 2 SHOWN/);
+  assert.match(mount.innerHTML, /2 ON FILE \/\/ 2 MATCHED \/\/ 2 SHOWN/);
   assert.ok(
     mount.innerHTML.includes(
       'href="#sourceDossierShowWikiLane-best-moments-1">OPEN FULL BEST MOMENTS',
@@ -2937,7 +3520,7 @@ test("exact-show Ask renders validated deep-dive cuts separately and plays their
     (mount.innerHTML.match(/data-source-query-result-type="guide-cut"/g) ?? []).length,
     2,
   );
-  assert.match(mount.innerHTML, /DEEP-DIVE CUT \/\/ REGISTERED MOMENT MATCH/);
+  assert.match(mount.innerHTML, /DEEP-DIVE CUT \/\/ SOURCE MOMENT MATCH/);
   assert.match(mount.innerHTML, /DEEP-DIVE CUT/);
   assert.match(mount.innerHTML, /Panavision/);
   assert.match(mount.innerHTML, /data-guide-cut-basis="episode-guide"/);
@@ -3158,7 +3741,7 @@ test("distilled shows expose episode prompts while Source Briefs expose canonica
   const sourceBrief = setup(makeDossier({ metadataOnly: true, receiptCount: 0 }));
   sourceBrief.ui.render("SOURCE00001");
   const briefPrompts = [
-    "Show me the registered source brief.",
+    "Show me the source brief.",
     "When was this uploaded?",
     "How long is this tape?",
     "How many views?",
@@ -3841,7 +4424,7 @@ test("Show Wiki keeps the archive truth but removes machine-room language and du
 
   assert.match(wiki, /THE WHOLE NIGHT, CUT TO THE PARTS WORTH REVISITING/);
   assert.match(wiki, /THE SHOW IN PLAIN ENGLISH/);
-  assert.match(wiki, /REGISTERED MOMENTS/);
+  assert.match(wiki, /TIMESTAMPED MOMENTS/);
   assert.doesNotMatch(wiki, /HOW THESE TIMESTAMPS WORK/);
   assert.match(html, /data-source-dossier-view="compact"/);
   assert.match(html, /id="sourceDossierDeepResearch" hidden/);

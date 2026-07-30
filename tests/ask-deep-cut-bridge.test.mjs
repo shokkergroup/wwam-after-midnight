@@ -234,8 +234,12 @@ test("Ask page wires the bridge lazily and keeps the release byte ceiling", asyn
     assert.ok(version, `${asset} is missing its semantic runtime VERSION`);
     const escapedAsset = asset.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const escapedVersion = version.replace(/\./g, "\\.");
+    const sourceDossierAssets = await readFile(
+      new URL("source-dossier-assets.js", demoRoot),
+      "utf8",
+    );
     assert.match(
-      app,
+      `${app}\n${sourceDossierAssets}`,
       new RegExp(`${escapedAsset}\\?v=${escapedVersion}-[a-z0-9-]+`),
       `${asset} cache key must match its exported runtime VERSION`,
     );

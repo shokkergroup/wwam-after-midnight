@@ -2,7 +2,7 @@
   "use strict";
 
   var SCHEMA = "shokker-episode-recap/v1";
-  var VERSION = "1.6.2";
+  var VERSION = "1.9.1";
 
   function clean(value) {
     return String(value == null ? "" : value).trim();
@@ -39,6 +39,22 @@
       .replace(/^(?:TOPIC|CHARACTER PERFORMANCE|CHARACTER|MOMENT)\s*:\s*/i, "")
       .replace(/\s+/g, " ")
       .trim();
+  }
+
+  function highlightTaxonomy(value) {
+    return /^(?:UP IN YA|OUT OF POCKET|THE ROOM BREAKS|FULL SEND|TAKE GETS NUCLEAR|SOUNDBYTE|REPLAY|STINGER|SAVED MOMENT|HORROR BRAIN|KILL ROOM|FRANCHISE FELONY|CHAT DID THIS|TAPE OPEN|TAPE CLOSE|STRAIGHT TO STEVE'?S ASSHOLE)$/i
+      .test(displayLabel(value));
+  }
+
+  function structuralGuideSubject(value) {
+    return /^(?:SOURCE TIMELINE|TAPE OPEN|TAPE CLOSE|OPENING SOURCE WINDOW|FINAL SOURCE WINDOW|CLOSING SOURCE WINDOW)$/i
+      .test(displayLabel(value));
+  }
+
+  function topicMetricQuality(receipt) {
+    return (clean(receipt && receipt.topicMetricBasis) ? 1000 : 0) +
+      (/title-topic/i.test(clean(receipt && receipt.evidenceBasis)) ? 500 : 0) +
+      Math.max(0, number(receipt && receipt.topicMentions));
   }
 
   function words(value) {
@@ -399,12 +415,36 @@
     });
     var reviewedGuideCuts = array(record(guide).cuts).filter(function (cut) {
       return clean(cut && cut.id) &&
-        number(cut && cut.end) > guideCutTime(cut);
+        number(cut && cut.end) > guideCutTime(cut) &&
+        !structuralGuideSubject(cut && cut.topic);
     });
-    var hasPromotableHighlight = receipts.some(function (receipt) {
-      return receiptKind(receipt) !== "topic";
-    }) || reviewedGuideCuts.length > 0;
-    if (!hasPromotableHighlight) return [];
+    var topicMapOnly = receipts.length > 0 &&
+      receipts.every(function (receipt) {
+        return receiptKind(receipt) === "topic";
+      }) &&
+      reviewedGuideCuts.length === 0;
+    if (topicMapOnly) {
+      /*
+       * A topic-only source does not have enough evidence to manufacture
+       * reactions, jokes, or verdicts. It still has useful exact subject
+       * doors, however. Preserve every registered door in chronological
+       * order and let the WWAM UI label this lane as navigation—not as a
+       * "best moments" reel.
+       */
+      return receipts.map(function (receipt) {
+        return Object.assign({}, feature(receipt, duration), {
+          kind: "topic",
+          category: "TOPIC DOOR",
+        });
+      }).sort(function (left, right) {
+        return number(left.at) - number(right.at) ||
+          clean(left.receiptKey).localeCompare(clean(right.receiptKey));
+      }).map(function (item, index) {
+        return Object.assign({}, item, {
+          ordinal: index + 1,
+        });
+      });
+    }
     var minimum = Math.min(
       minimumHighlightCount(duration),
       receipts.length + reviewedGuideCuts.length
@@ -490,8 +530,9 @@
       });
     });
     var selectedGuideIds = {};
-    while (selectedFeatures.length < minimum) {
-      var guideCandidates = reviewedGuideCuts.filter(function (cut) {
+
+    function distinctGuideCandidates() {
+      return reviewedGuideCuts.filter(function (cut) {
         if (selectedGuideIds[clean(cut.id)]) return false;
         return !selectedFeatures.some(function (item) {
           var sameWindow = Math.abs(number(item.at) - guideCutTime(cut)) <= 6;
@@ -503,28 +544,61 @@
           return sameWindow && (sameLabel || sameExcerpt);
         });
       });
-      if (!guideCandidates.length) break;
-      guideCandidates.sort(function (left, right) {
+    }
+
+    function guideFeatureValue(feature) {
+      var categoryNovelty = selectedFeatures.some(function (item) {
+        return item.category === feature.category;
+      }) ? 0 : 34;
+      var separation = selectedFeatures.length ? Math.min.apply(
+        null,
+        selectedFeatures.map(function (item) {
+          return Math.abs(number(item.at) - number(feature.at)) /
+            Math.max(1, number(duration));
+        })
+      ) * 85 : 0;
+      return Math.min(160, number(feature.signalScore)) +
+        categoryNovelty + separation;
+    }
+
+    function rankedGuideCandidates(category) {
+      return distinctGuideCandidates().filter(function (cut) {
+        return !category ||
+          guideHighlightCategory(cut, guide) === category;
+      }).sort(function (left, right) {
         var leftFeature = guideHighlightFeature(left, guide, duration);
         var rightFeature = guideHighlightFeature(right, guide, duration);
-        function guideValue(feature) {
-          var categoryNovelty = selectedFeatures.some(function (item) {
-            return item.category === feature.category;
-          }) ? 0 : 34;
-          var separation = selectedFeatures.length ? Math.min.apply(
-            null,
-            selectedFeatures.map(function (item) {
-              return Math.abs(number(item.at) - number(feature.at)) /
-                Math.max(1, number(duration));
-            })
-          ) * 85 : 0;
-          return Math.min(160, number(feature.signalScore)) +
-            categoryNovelty + separation;
-        }
-        return guideValue(rightFeature) - guideValue(leftFeature) ||
+        return guideFeatureValue(rightFeature) -
+            guideFeatureValue(leftFeature) ||
           guideCutTime(left) - guideCutTime(right) ||
           clean(left.id).localeCompare(clean(right.id));
       });
+    }
+
+    /*
+     * A reviewed guide can carry a real hate lane, character beat, or wild
+     * detour that does not exist in the older receipt inventory. Keep one
+     * distinct reviewed cut for each otherwise-missing native lane even when
+     * the runtime floor is already met. The floor is never a cap.
+     */
+    [
+      "STRAIGHT TO STEVE'S ASSHOLE",
+      "UP IN YA / STINGER",
+      "CHARACTER APPEARANCE",
+      "SOUNDBYTE / REPLAY",
+    ].forEach(function (category) {
+      if (selectedFeatures.some(function (item) {
+        return item.category === category;
+      })) return;
+      var candidate = rankedGuideCandidates(category)[0];
+      if (!candidate) return;
+      selectedGuideIds[clean(candidate.id)] = true;
+      selectedFeatures.push(guideHighlightFeature(candidate, guide, duration));
+    });
+
+    while (selectedFeatures.length < minimum) {
+      var guideCandidates = rankedGuideCandidates();
+      if (!guideCandidates.length) break;
       var guideCut = guideCandidates[0];
       selectedGuideIds[clean(guideCut.id)] = true;
       selectedFeatures.push(guideHighlightFeature(guideCut, guide, duration));
@@ -771,10 +845,14 @@
         to: to,
         at: at,
         end: end,
-        anchor: clean(chapter.topic) || clean(chapter.label) || "Saved chapter",
+        anchor: structuralGuideSubject(chapter.topic) ?
+          "Closing source window" :
+          clean(chapter.topic) || clean(chapter.label) || "Saved chapter",
         category: clean(chapter.category),
         beat: clean(chapter.category),
-        subject: clean(chapter.topic) || clean(chapter.label),
+        subject: structuralGuideSubject(chapter.topic) ?
+          "Closing source window" :
+          clean(chapter.topic) || clean(chapter.label),
         excerpt: clean(chapter.excerpt),
         sourceBody: clean(chapter.body),
         topicLabels: orderedStrings(topics.map(receiptDisplayLabel)),
@@ -928,6 +1006,21 @@
           spotlightCharacters[0] || receiptDisplayLabel(spotlight) :
           nearestTopic ? receiptDisplayLabel(nearestTopic) :
             receiptDisplayLabel(spotlight);
+      var subjectTopic = receipts.filter(function (receipt) {
+        return receiptKind(receipt) === "topic" &&
+          receiptDisplayLabel(receipt).toLowerCase() === subject.toLowerCase() &&
+          optionalNumber(receipt.topicFirstAt) != null;
+      }).sort(function (left, right) {
+        return topicMetricQuality(right) - topicMetricQuality(left) ||
+          receiptTime(left) - receiptTime(right) ||
+          clean(left.key).localeCompare(clean(right.key));
+      })[0] || (receiptKind(spotlight) === "topic" ? spotlight : nearestTopic);
+      var subjectFirstAt = subjectTopic ?
+        optionalNumber(subjectTopic.topicFirstAt) : null;
+      var subjectPeakAt = subjectTopic ?
+        optionalNumber(subjectTopic.topicPeakAt) : null;
+      var subjectMentions = subjectTopic ?
+        optionalNumber(subjectTopic.topicMentions) : null;
       var subjects = orderedStrings(
         [subject].concat(
           topics.map(receiptDisplayLabel),
@@ -948,6 +1041,14 @@
         to: to,
         at: receiptTime(spotlight),
         end: receiptEnd(spotlight, duration),
+        displayAt: subjectFirstAt == null ? receiptTime(spotlight) :
+          Math.max(0, subjectFirstAt),
+        subjectFirstAt: subjectFirstAt == null ? receiptTime(spotlight) :
+          Math.max(0, subjectFirstAt),
+        subjectPeakAt: subjectPeakAt == null ? receiptTime(spotlight) :
+          Math.max(0, subjectPeakAt),
+        subjectMentions: subjectMentions == null ? 0 :
+          Math.max(0, Math.round(subjectMentions)),
         anchor: receiptDisplayLabel(spotlight),
         category: receiptKind(spotlight),
         beat: receiptDisplayLabel(spotlight),
@@ -1101,7 +1202,7 @@
         score: number(thread && thread.score),
       };
     }).filter(function (thread) {
-      return Boolean(thread.name);
+      return Boolean(thread.name) && !structuralGuideSubject(thread.name);
     }).sort(function (left, right) {
       return right.score - left.score ||
         right.mentions - left.mentions ||
@@ -1110,16 +1211,18 @@
   }
 
   function narrativeSubject(segment) {
-    return displayLabel(
-      segment.primarySubject ||
-      record(segment.guideAnchor).topic ||
-      record(segment.guideAnchor).category ||
-      array(segment.topicLabels)[0] ||
-      array(segment.characterLabels)[0] ||
-      segment.anchor ||
-      array(segment.momentLabels)[0] ||
-      "Saved checkpoint"
-    );
+    var candidates = [
+      segment.primarySubject,
+      record(segment.guideAnchor).topic,
+    ].concat(
+      array(segment.topicLabels),
+      array(segment.characterLabels),
+      [segment.anchor],
+      array(segment.momentLabels)
+    ).map(displayLabel).filter(function (label) {
+      return label && !structuralGuideSubject(label) && !highlightTaxonomy(label);
+    });
+    return candidates[0] || "Saved reaction";
   }
 
   function attachNarrativeBeats(segments) {
@@ -1220,6 +1323,19 @@
     }
     var guidePoints = guideEvidence(guide, duration);
     var guideThreadList = guideThreads(guide);
+    var canonicalTopicByLabel = {};
+    receipts.filter(function (receipt) {
+      return receiptKind(receipt) === "topic";
+    }).forEach(function (receipt) {
+      var key = receiptDisplayLabel(receipt).toLowerCase();
+      var current = canonicalTopicByLabel[key];
+      if (!current ||
+          topicMetricQuality(receipt) > topicMetricQuality(current) ||
+          topicMetricQuality(receipt) === topicMetricQuality(current) &&
+            receiptTime(receipt) < receiptTime(current)) {
+        canonicalTopicByLabel[key] = receipt;
+      }
+    });
     var evidenceCount = receipts.length + guidePoints.length;
     var segmentCount = number(duration) >= 10800 && evidenceCount >= 18 ? 10 :
       number(duration) >= 10800 && evidenceCount >= 12 ? 8 :
@@ -1234,6 +1350,7 @@
     }
     segmentCount = Math.max(1, Math.min(segmentCount, receipts.length));
     var segments = [];
+    var usedStorySubjects = {};
 
     for (var segmentIndex = 0; segmentIndex < segmentCount; segmentIndex += 1) {
       var startIndex = Math.floor(segmentIndex * receipts.length / segmentCount);
@@ -1320,16 +1437,22 @@
         return displayLabel(receiptDisplayLabel(receipt)).toLowerCase() ===
           displayLabel(titleCandidate).toLowerCase();
       }) ? titleCandidate : "";
-      var primarySubject = displayLabel(
-        titleSubject ||
-        guideAnchor && (guideAnchor.topic || guideAnchor.category) ||
-        titlePreferredTopic && receiptDisplayLabel(titlePreferredTopic) ||
-        topicLabels[0] ||
-        characterLabelList[0] ||
-        receiptDisplayLabel(strongestAnchor) ||
-        momentLabels[0] ||
-        "Saved checkpoint"
-      );
+      var subjectCandidates = [
+        titleSubject,
+        guideAnchor && guideAnchor.topic,
+        titlePreferredTopic && receiptDisplayLabel(titlePreferredTopic),
+      ].concat(
+        topicLabels,
+        characterLabelList,
+        [receiptDisplayLabel(strongestAnchor)],
+        momentLabels
+      ).map(displayLabel).filter(function (label) {
+        return label && !structuralGuideSubject(label) && !highlightTaxonomy(label);
+      });
+      var primarySubject = subjectCandidates.find(function (label) {
+        return !usedStorySubjects[label.toLowerCase()];
+      }) || subjectCandidates[0] || "Saved reaction";
+      usedStorySubjects[primarySubject.toLowerCase()] = true;
       var directReceiptAnchor = guideAnchor ? null :
         preferredSubjectAnchor(chunk, primarySubject);
       var anchor = directReceiptAnchor || strongestAnchor;
@@ -1409,9 +1532,12 @@
         anchorSubject: anchorSubject,
         topicLabels: topicLabels,
         topicEvidence: topics.map(function (receipt) {
-          var mentions = optionalNumber(receipt.topicMentions);
-          var firstAt = optionalNumber(receipt.topicFirstAt);
-          var peakAt = optionalNumber(receipt.topicPeakAt);
+          var metricReceipt =
+            canonicalTopicByLabel[receiptDisplayLabel(receipt).toLowerCase()] ||
+            receipt;
+          var mentions = optionalNumber(metricReceipt.topicMentions);
+          var firstAt = optionalNumber(metricReceipt.topicFirstAt);
+          var peakAt = optionalNumber(metricReceipt.topicPeakAt);
           return {
             receiptKey: clean(receipt.key),
             label: receiptDisplayLabel(receipt),
@@ -1420,7 +1546,7 @@
             mentions: mentions == null ? 0 : Math.max(0, Math.round(mentions)),
             firstAt: firstAt == null ? receiptTime(receipt) : Math.max(0, firstAt),
             peakAt: peakAt == null ? receiptTime(receipt) : Math.max(0, peakAt),
-            metricBasis: clean(receipt.topicMetricBasis),
+            metricBasis: clean(metricReceipt.topicMetricBasis),
           };
         }).sort(function (left, right) {
           return right.mentions - left.mentions ||
@@ -1468,6 +1594,34 @@
           "all-source-local-receipts-grouped-chronologically",
       });
     }
+    /*
+     * Receipt clips and reviewed cuts can extend across the next reel's
+     * opening timestamp. Keep those evidence windows untouched, but publish
+     * a separate non-overlapping display window for the written chronology.
+     */
+    segments.sort(function (left, right) {
+      return number(left.at) - number(right.at) ||
+        clean(left.id).localeCompare(clean(right.id));
+    }).forEach(function (segment, index, values) {
+      var next = values[index + 1];
+      var maximumEnd = next ? number(next.at) : number(duration);
+      var primaryKey = displayLabel(segment.primarySubject).toLowerCase();
+      var primaryTopic = array(segment.topicEvidence).find(function (topic) {
+        return displayLabel(topic.label).toLowerCase() === primaryKey;
+      });
+      var subjectStart = primaryTopic ?
+        optionalNumber(primaryTopic.firstAt) : null;
+      segment.displayAt =
+        subjectStart != null &&
+        subjectStart >= number(segment.at) &&
+        (!next || subjectStart < maximumEnd) ?
+          subjectStart : number(segment.at);
+      segment.displayEnd = Math.max(
+        number(segment.displayAt),
+        maximumEnd > 0 ? Math.min(number(segment.end), maximumEnd) :
+          number(segment.end)
+      );
+    });
     return attachNarrativeBeats(segments);
   }
 
@@ -1482,12 +1636,22 @@
       signalScore: receiptSignal(receipt),
       evidenceBasis: clean(receipt.evidenceBasis) || clean(receipt.evidenceType) ||
         "source-local-receipt",
+      evidenceType: clean(receipt.evidenceType),
+      evidenceLevel: clean(receipt.evidenceLevel),
+      reviewState: clean(receipt.reviewState),
+      reviewStatus: clean(receipt.reviewStatus),
+      promotionAllowed: receipt.promotionAllowed,
+      humanEditorialReviewPerformed: receipt.humanEditorialReviewPerformed,
     };
   }
 
   function guideFeature(guide, key) {
     var item = record(record(guide).fanRead)[key];
     if (!item || !clean(item.cutId)) return null;
+    var cut = record(array(record(guide).cuts).find(function (candidate) {
+      return clean(candidate && candidate.id) === clean(item.cutId);
+    }));
+    var cutEvidence = record(cut.evidence);
     return {
       guideCutId: clean(item.cutId),
       at: number(item.at),
@@ -1497,7 +1661,22 @@
       category: clean(item.category),
       body: clean(item.body),
       excerpt: clean(item.excerpt),
-      evidenceBasis: clean(item.evidenceBasis) || "episode-guide-fan-read",
+      evidenceBasis: clean(item.evidenceBasis) ||
+        clean(cut.evidenceBasis) || "episode-guide-fan-read",
+      evidenceType: clean(item.evidenceType) ||
+        clean(cut.evidenceType) || clean(cutEvidence.type),
+      evidenceLevel: clean(item.evidenceLevel) || clean(cut.evidenceLevel),
+      reviewState: clean(item.reviewState) || clean(cut.reviewState),
+      reviewStatus: clean(item.reviewStatus) ||
+        clean(cut.reviewStatus) || clean(cutEvidence.reviewStatus),
+      promotionAllowed: item.promotionAllowed == null ?
+        (cut.promotionAllowed == null ?
+          cutEvidence.promotionAllowed : cut.promotionAllowed) :
+        item.promotionAllowed,
+      humanEditorialReviewPerformed:
+        item.humanEditorialReviewPerformed == null ?
+          cut.humanEditorialReviewPerformed :
+          item.humanEditorialReviewPerformed,
     };
   }
 
@@ -1768,7 +1947,7 @@
         laneCounts: {},
       },
       limitations: [
-        "No source-local caption receipt is registered.",
+        "No source-local timestamp is available.",
         "No episode events, reactions, speakers, jokes, or verdicts are synthesized from metadata.",
       ],
     };

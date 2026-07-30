@@ -42,6 +42,7 @@ function load() {
     "title-topic-overrides.js",
     "episode-recap-engine.js",
     "wwam-episode-recap-adapter.js",
+    "episode-format-contracts.js",
     "wwam-source-dossier-adapter.js",
     "source-dossier-engine.js",
     "source-query-engine.js",
@@ -203,6 +204,76 @@ test("adapter exposes the universal schema and exact 510-source WWAM union", () 
   });
 });
 
+test("canonical format contracts classify all 510 sources without relaxing rights", () => {
+  const { window, result } = buildFixture();
+  const registry = window.WWAMEpisodeFormatContracts;
+  const report = registry.driftReport(result.sources);
+
+  assert.equal(report.total, 510);
+  assert.equal(report.classified, 510);
+  assert.equal(report.uniqueSourceIds, 510);
+  assert.deepEqual(plain(report.duplicateSourceIds), []);
+  assert.deepEqual(plain(report.formatConflicts), []);
+  assert.deepEqual(plain(report.rightsRegressions), []);
+  assert.equal(report.restrictiveRightsPreserved, true);
+  assert.ok(result.sources.every((source) =>
+    source.runtimeFormat && source.runtimeFormat.id &&
+    source.subtype && source.subtype.id &&
+    source.formatContract && source.formatContract.id
+  ));
+
+  const trailer = byId(result, "fpNtQMexZiw");
+  assert.equal(trailer.rawContentMode, "trailer-reaction");
+  assert.equal(trailer.runtimeFormat.id, "trailer-coverage");
+  assert.equal(trailer.subtype.id, "reaction");
+  assert.equal(trailer.formatContract.id, "trailer-reaction");
+
+  const commentary = byId(result, "6VXSBDZ-3WE");
+  assert.equal(commentary.rawContentMode, null);
+  assert.equal(commentary.runtimeFormat.id, "movie-companion");
+  assert.equal(commentary.subtype.id, "commentary");
+  assert.equal(commentary.formatContract.id, "movie-commentary");
+
+  const overlayStreams = [
+    window.WWAM_ARCHIVE_DEEP,
+    window.WWAM_ARCHIVE_DEEP_BATCH2,
+    window.WWAM_ARCHIVE_DEEP_BATCH3,
+    window.WWAM_ARCHIVE_DEEP_BATCH4,
+    window.WWAM_YEAR_CANON_2025_2026,
+    window.WWAM_ARCHIVE_RECOVERY_BATCH1,
+    window.WWAM_ARCHIVE_RECOVERY_BATCH2,
+  ].flatMap((payload) => payload.streams || []);
+  const dossierById = new Map(
+    result.sources.map((source) => [source.id, source]),
+  );
+  overlayStreams.forEach((raw) => {
+    const source = dossierById.get(raw.id);
+    assert.ok(source, raw.id);
+    assert.equal(source.rawContentMode, raw.contentMode, raw.id);
+    const input = raw.rightsPolicy || {};
+    const output = source.rightsPolicy;
+    [
+      "speakerClaimsAllowed",
+      "performerClaimsAllowed",
+      "originClaimsAllowed",
+      "visualClaimsAllowed",
+      "visualResultClaimsAllowed",
+      "promotionAllowed",
+    ].forEach((field) => {
+      if (input[field] === false) assert.equal(output[field], false, `${raw.id}:${field}`);
+    });
+    if (input.restrictedToTopicNavigation === true) {
+      assert.equal(output.restrictedToTopicNavigation, true, raw.id);
+    }
+    if (Number.isFinite(Number(input.publicExcerptWordLimit))) {
+      assert.ok(
+        output.publicExcerptWordLimit <= Number(input.publicExcerptWordLimit),
+        raw.id,
+      );
+    }
+  });
+});
+
 test("title-native subject leads the QMY Christmas Movies dossier", () => {
   const { result } = buildFixture();
   const source = byId(result, "QMYgsEfPMg0");
@@ -229,9 +300,9 @@ test("every canonical show receives a Feldman recap or an evidence-safe held sta
   assert.equal(ready.length, 259);
   assert.equal(held.length, 251);
   assert.deepEqual(countBy(recaps, "tier"), {
-    "receipt-recap": 191,
+    "receipt-recap": 190,
     "source-safe-held": 251,
-    "topic-recap": 16,
+    "topic-recap": 17,
     "full-chronicle": 52,
   });
 
@@ -701,14 +772,14 @@ test("Ask This Tape stays on the exact canonical WWAM upload across title collis
     "ThPjds8iI9U",
     "Can I see the best moments?",
     "best-moments",
-    [845, 997, 1419, 3804, 3004, 3740, 4167, 3199],
+    [3733, 845, 997, 1419, 3804, 3004, 3740, 4167],
   );
   const topicOnly = queryEngine.answer(
     request("M3P4mMDpXUc", "Can you show me the topics?"),
   );
   assert.equal(topicOnly.status, "supported");
   assert.equal(topicOnly.episode.id, "topics");
-  assert.equal(topicOnly.episode.totalReceipts, 10);
+  assert.equal(topicOnly.episode.totalReceipts, 11);
   assert.equal(topicOnly.episode.shownReceipts, 8);
 
   const falseBestSubject = queryEngine.answer(
@@ -735,10 +806,13 @@ test("all dossiers retain canonical metadata and fail honest outside caption evi
   const evidenceTypes = new Set([
     "caption-excerpt",
     "caption-topic-receipt",
+    "caption-topic-timeline-navigation",
+    "caption-title-topic-receipt",
     "caption-topic-navigation",
     "caption-character-signal",
     "caption-character-context",
     "curated-character-performance",
+    "reviewed-guide-negative-take",
   ]);
   const entityBases = new Set(window.ShokkerSourceDossier.ENTITY_BASIS);
 
@@ -801,7 +875,7 @@ test("all dossiers retain canonical metadata and fail honest outside caption evi
       assert.ok(entityBases.has(entity.basis), entity.basis);
     });
   });
-  assert.equal(receiptKeys.size, 6112);
+  assert.equal(receiptKeys.size, 6105);
 });
 
 test("every source gets an honest Show Wiki shell with rigorously gated lanes", () => {
@@ -931,8 +1005,26 @@ test("every source gets an honest Show Wiki shell with rigorously gated lanes", 
         ? left.start - right.end - 1
         : 0
   );
-  const negativeGate = (receipt) => {
-    if (!["FRANCHISE FELONY", "TAKE GETS NUCLEAR"].includes(receipt.label)) return false;
+  const reviewedRejectedSteveCuts = new Set([
+    "5svmLdmNud0@8642",
+    "Q-ia3Nb9KvM@9804",
+    "w8309SyyriA@7547",
+  ]);
+  const reviewedAcceptedSteveCuts = new Set([
+    "ReVyxwuuoAM@5500",
+    "7hPJ_zey7hc@10159",
+    "nNglwg-IU5g@3915",
+    "2lAONSSscQk@248",
+    "r7NqiQ_YLcY@6003",
+    "7hPJ_zey7hc@5895",
+  ]);
+  const negativeGate = (receipt, sourceId = "") => {
+    const identity = `${sourceId}@${Math.floor(receipt.at)}`;
+    if (reviewedRejectedSteveCuts.has(identity)) return false;
+    if (
+      reviewedAcceptedSteveCuts.has(identity) ||
+      receipt.evidenceType === "reviewed-guide-negative-take"
+    ) return true;
     const tokens = tokensFor(receipt.excerpt);
     const deniesHate = tokens.some((token, index) => {
       if (token !== "hate" && token !== "hated") return false;
@@ -1062,7 +1154,9 @@ test("every source gets an honest Show Wiki shell with rigorously gated lanes", 
       (receipt) => receipt.kind.toLowerCase().includes("moment"),
     ).sort(signalOrder);
     const topics = source.receipts.filter(
-      (receipt) => receipt.kind.toLowerCase().includes("topic"),
+      (receipt) =>
+        !receipt.showWikiHidden &&
+        receipt.kind.toLowerCase().includes("topic"),
     );
     const experience = source.showWiki.experience;
     const expectedExperienceId = moments.length
@@ -1213,7 +1307,7 @@ test("every source gets an honest Show Wiki shell with rigorously gated lanes", 
       (receipt) => receipt.label === "UP IN YA" ||
         receipt.label === "OUT OF POCKET",
     );
-    const steves = moments.filter(negativeGate);
+    const steves = moments.filter((receipt) => negativeGate(receipt, source.id));
     const characters = source.receipts.filter((receipt) => (
       receipt.evidenceType === "caption-character-signal" ||
       receipt.evidenceType === "caption-character-context" ||
@@ -1239,7 +1333,7 @@ test("every source gets an honest Show Wiki shell with rigorously gated lanes", 
     characterSourceCount += Number(characters.length > 0);
     rejectedNegativeCandidates += moments.filter((receipt) => (
       ["FRANCHISE FELONY", "TAKE GETS NUCLEAR"].includes(receipt.label) &&
-      !negativeGate(receipt) &&
+      !negativeGate(receipt, source.id) &&
       !lane("straight-to-steves-asshole").receiptKeys.includes(receipt.key)
     )).length;
 
@@ -1252,17 +1346,17 @@ test("every source gets an honest Show Wiki shell with rigorously gated lanes", 
     }
   });
 
-  assert.equal(distilledRecapCount, 243);
-  assert.equal(topicNavOnlyRecapCount, 16);
+  assert.equal(distilledRecapCount, 242);
+  assert.equal(topicNavOnlyRecapCount, 17);
   assert.equal(sourceBriefShowWikiCount, 251);
-  assert.equal(readyMomentRouteCount, 243);
-  assert.equal(readyTopicRouteCount, 16);
+  assert.equal(readyMomentRouteCount, 242);
+  assert.equal(readyTopicRouteCount, 17);
   assert.equal(emptyRouteCount, 251);
   assert.ok(upInYaCount > 0, "expected exact UP IN YA receipts");
-  assert.equal(stevesSourceCount, 33);
-  assert.equal(stevesCount, 34);
-  assert.equal(characterSourceCount, 170);
-  assert.equal(characterCount, 355);
+  assert.equal(stevesSourceCount, 54);
+  assert.equal(stevesCount, 59);
+  assert.equal(characterSourceCount, 171);
+  assert.equal(characterCount, 357);
   assert.ok(maxBestMomentLane > 6, "expected at least one uncapped Best Moments lane");
   assert.ok(rejectedNegativeCandidates > 0, "expected strict gate rejections");
 
@@ -1276,7 +1370,7 @@ test("every source gets an honest Show Wiki shell with rigorously gated lanes", 
       receipt.kind === "moment" && Math.floor(receipt.at) === at
     ));
     assert.ok(candidate, sourceId + "@" + at);
-    assert.equal(negativeGate(candidate), false, candidate.excerpt);
+    assert.equal(negativeGate(candidate, sourceId), false, candidate.excerpt);
     assert.ok(!source.showWiki.lanes.find(
       (lane) => lane.id === "straight-to-steves-asshole",
     ).receiptKeys.includes(candidate.key), candidate.key);
@@ -1431,9 +1525,9 @@ test("title metadata drives specific formats and title-first recap topics", () =
   assert.match(latest, /closing source window at 3:29:37/);
   assert.doesNotMatch(latest, /live-room map|comedy alarm|machine-surfaced|automatic-caption/i);
   for (const [sourceId, expectedFirstTopic] of [
-    ["WKs1uPGMQvw", "Scream"],
+    ["WKs1uPGMQvw", "Scream 7"],
     ["QxJyVaAgZ_Y", "Friday the 13th"],
-    ["jG93HvyP420", "TOPIC: HALLOWEEN"],
+    ["jG93HvyP420", "Halloween Ends"],
     ["Oi-s0ZuWDbM", "TOPIC: HORROR"],
   ]) {
     const source = byId(result, sourceId);
@@ -1484,25 +1578,25 @@ test("every Show Wiki query-alias bundle is present, bounded, and normalized-uni
 });
 
 
-test("the 6,112 receipts retain the exact evidence taxonomy", () => {
+test("the 6,105 receipts retain the exact evidence taxonomy", () => {
   const { result } = buildFixture();
   const receipts = result.sources.flatMap((source) => source.receipts);
 
-  assert.equal(receipts.length, 6112);
+  assert.equal(receipts.length, 6105);
   assert.deepEqual(countBy(receipts, "evidenceType"), {
-    "caption-topic-timeline-navigation": 1754,
-    "caption-excerpt": 1659,
-    "caption-topic-receipt": 2026,
+    "caption-topic-timeline-navigation": 1748,
+    "caption-excerpt": 1652,
+    "caption-topic-receipt": 2016,
     "curated-character-performance": 32,
     "caption-title-topic-receipt": 141,
     "caption-character-context": 261,
     "caption-character-signal": 64,
-    "caption-topic-navigation": 157,
+    "caption-topic-navigation": 173,
     "reviewed-guide-negative-take": 18,
   });
 });
 
-test("all 30 promoted human-curated character clips retain exact 14-second bounds", () => {
+test("all 32 promoted human-curated character clips retain exact 14-second bounds", () => {
   const { result, window, showcase } = buildFixture();
   const allSoundbytes = window.WWAM_CHARACTER_LORE.characters.flatMap(
     (character) => character.soundbytes,
@@ -1512,8 +1606,8 @@ test("all 30 promoted human-curated character clips retain exact 14-second bound
     (soundbyte) => showcaseSourceIds.has(soundbyte.sourceId),
   );
 
-  assert.equal(allSoundbytes.length, 60);
-  assert.equal(soundbytes.length, 30);
+  assert.equal(allSoundbytes.length, 108);
+  assert.equal(soundbytes.length, 32);
   soundbytes.forEach((soundbyte) => {
     const receipt = byId(result, soundbyte.sourceId).receipts.find(
       (candidate) => candidate.key === `character-receipt:${soundbyte.id}`,
@@ -1550,20 +1644,31 @@ test("promoted sources use exact Showcase receipts and exact creator memberships
   assert.equal(live.coverage, "caption-backed");
   assert.equal(live.authority, "promoted-lane");
   assert.equal(live.sourceType, "livestream");
-  assert.equal(live.receipts.length, 21);
+  assert.equal(live.receipts.length, 31);
+  const exactShowcaseReceipts = live.receipts.filter(
+    (receipt) => exactReceiptKeys.includes(receipt.key),
+  );
   assert.deepEqual(
-    live.receipts.map((receipt) => receipt.key).sort(),
+    exactShowcaseReceipts.map((receipt) => receipt.key).sort(),
     exactReceiptKeys,
   );
-  assert.ok(live.receipts.every(
+  assert.ok(exactShowcaseReceipts.every(
     (receipt) => receipt.evidenceBasis === "exact-showcase-receipt",
+  ));
+  const hiddenTimelineReceipts = live.receipts.filter(
+    (receipt) =>
+      receipt.evidenceType === "caption-topic-timeline-navigation",
+  );
+  assert.equal(hiddenTimelineReceipts.length, 10);
+  assert.ok(hiddenTimelineReceipts.every(
+    (receipt) => receipt.showWikiHidden && !receipt.publicExcerptAllowed,
   ));
   const scoredLiveMoments = live.receipts.filter((receipt) => receipt.kind === "moment");
   assert.equal(scoredLiveMoments.length, 7);
   assert.ok(scoredLiveMoments.every((receipt) => Number.isFinite(receipt.signalScore)));
   assert.ok(scoredLiveMoments.every((receipt) => receipt.signalBasis === "showcase-receipt-score"));
   assert.equal(live.metrics.momentReceipts, 7);
-  assert.equal(live.metrics.topicReceipts, 8);
+  assert.equal(live.metrics.topicReceipts, 18);
   assert.equal(live.metrics.characterReceipts, 6);
   assert.equal(live.metrics.heatSegments, 30);
 
@@ -1604,7 +1709,7 @@ test("promoted sources use exact Showcase receipts and exact creator memberships
   const commentary = byId(result, "6VXSBDZ-3WE");
   assert.equal(commentary.sourceType, "commentary");
   assert.equal(commentary.displayTitle, "Halloween (1978)");
-  assert.equal(commentary.receipts.length, 8);
+  assert.equal(commentary.receipts.length, 9);
   assert.equal(commentary.metrics.captionMinutes, 93);
   assert.equal(commentary.metrics.unhinged, 70);
   assert.ok(commentary.entities.some(
@@ -1616,8 +1721,28 @@ test("promoted sources use exact Showcase receipts and exact creator memberships
   const popular = byId(result, "jG93HvyP420");
   assert.equal(popular.authority, "promoted-lane");
   assert.ok(popular.receipts.length > 10);
-  assert.ok(popular.receipts.every(
-    (receipt) => receipt.evidenceBasis === "exact-showcase-receipt",
+  const popularShowcaseKeys = new Set(showcase.receipts
+    .filter((receipt) => receipt.sourceId === popular.id)
+    .map((receipt) => receipt.id));
+  assert.ok(popular.receipts
+    .filter((receipt) => popularShowcaseKeys.has(receipt.key))
+    .every(
+      (receipt) => receipt.evidenceBasis === "exact-showcase-receipt",
+    ));
+  assert.ok(popular.receipts
+    .filter((receipt) => !popularShowcaseKeys.has(receipt.key))
+    .every(
+      (receipt) => (
+        receipt.evidenceType === "caption-topic-timeline-navigation" &&
+        receipt.showWikiHidden &&
+        !receipt.publicExcerptAllowed
+      ) || (
+        receipt.evidenceType === "caption-title-topic-receipt" &&
+        receipt.key ===
+          "jG93HvyP420:title-topic:halloween-ends:1164:0" &&
+        !receipt.showWikiHidden &&
+        receipt.publicExcerptAllowed
+      ),
   ));
 });
 
@@ -1670,9 +1795,16 @@ test("Archive Deep remains quarantined and all 16 source-audio firewalls are top
   const restricted = archive.filter(
     (source) => source.rightsPolicy.restrictedToTopicNavigation,
   );
+  const allRestricted = result.sources.filter(
+    (source) => source.rightsPolicy.restrictedToTopicNavigation,
+  );
 
   assert.equal(archive.length, 188);
   assert.equal(restricted.length, 16);
+  assert.ok(
+    allRestricted.some((source) => source.id === "R_bXrnNOcwg"),
+    "the promoted script-reading source must enter the final rights firewall",
+  );
   assert.equal(
     archiveReceipts.filter(
       (receipt) => receipt.evidenceType === "curated-character-performance",
@@ -1696,29 +1828,56 @@ test("Archive Deep remains quarantined and all 16 source-audio firewalls are top
       source.rightsPolicy.promotionAllowed === false,
   ));
   restricted.forEach((source) => {
-    assert.equal(source.receipts.length, 10, source.id);
+    assert.ok(source.receipts.length >= 10, source.id);
     assert.ok(source.receipts.every(
       (receipt) =>
         receipt.kind === "topic-navigation" &&
-        receipt.evidenceType === "caption-topic-navigation" &&
+        [
+          "caption-topic-navigation",
+          "caption-title-topic-receipt",
+        ].includes(receipt.evidenceType) &&
         receipt.excerpt === "" &&
         receipt.publicExcerptAllowed === false &&
         receipt.reviewState === "quarantined-topic-navigation",
     ));
-    assert.equal(source.metrics.topicReceipts, 10);
+    assert.equal(source.metrics.topicReceipts, source.receipts.length);
     assert.equal(source.metrics.momentReceipts, 0);
     assert.equal(source.metrics.characterReceipts, 0);
     assert.equal(source.metrics.heatSegments, 0);
     assert.equal(source.metrics.publicExcerptReceipts, 0);
   });
+  allRestricted.forEach((source) => {
+    assert.ok(source.receipts.every(
+      (receipt) =>
+        receipt.kind === "topic-navigation" &&
+        [
+          "caption-topic-navigation",
+          "caption-title-topic-receipt",
+        ].includes(receipt.evidenceType) &&
+        receipt.excerpt === "" &&
+        receipt.publicExcerptAllowed === false &&
+        receipt.promotionAllowed === false &&
+        receipt.reviewState === "quarantined-topic-navigation",
+    ), source.id);
+    assert.equal(source.metrics.momentReceipts, 0, source.id);
+    assert.equal(source.metrics.characterReceipts, 0, source.id);
+    assert.equal(source.metrics.publicExcerptReceipts, 0, source.id);
+    assert.equal(source.artifacts.length, 0, source.id);
+    assert.ok(
+      source.showWiki.lanes
+        .filter((lane) => lane.id !== "topics")
+        .every((lane) => lane.receiptKeys.length === 0),
+      source.id,
+    );
+  });
 
   const firewall = byId(result, "fpNtQMexZiw");
-  assert.equal(firewall.receipts.length, 10);
+  assert.ok(firewall.receipts.length >= 10);
   assert.ok(firewall.warnings.some((warning) => /TOPIC NAVIGATION ONLY/.test(warning)));
 
   const candidate = byId(result, "CFUHyfcJDTg");
   assert.equal(candidate.rightsPolicy.restrictedToTopicNavigation, false);
-  assert.equal(candidate.metrics.topicReceipts, 10);
+  assert.equal(candidate.metrics.topicReceipts, 20);
   assert.equal(candidate.metrics.momentReceipts, 7);
   assert.equal(candidate.metrics.characterReceipts, 1);
   assert.equal(candidate.metrics.heatSegments, 30);
@@ -1792,8 +1951,14 @@ test("the exact 510-source adapter payload compiles through the generic engine",
     "quarantined-lane": 188,
     "source-only": 248,
   });
-  assert.equal(stats.receipts, 6112);
-  assert.equal(stats.artifacts, 947);
+  assert.equal(stats.receipts, 6105);
+  assert.equal(stats.artifacts, 924);
+
+  const classifiedTrailer = engine.build("fpNtQMexZiw").source;
+  assert.equal(classifiedTrailer.rawContentMode, "trailer-reaction");
+  assert.equal(classifiedTrailer.runtimeFormat.id, "trailer-coverage");
+  assert.equal(classifiedTrailer.subtype.id, "reaction");
+  assert.equal(classifiedTrailer.formatContract.id, "trailer-reaction");
 
   const live = engine.build("LV2rmwEA0w4");
   assert.equal(live.source.receipts.length, 31);
@@ -1979,7 +2144,7 @@ test("additive character growth is accepted only when Lore and Showcase agree", 
   assert.equal(
     receipts.filter((receipt) =>
       receipt.evidenceType === "curated-character-performance").length,
-    31,
+    33,
   );
   assert.ok(growth);
   assert.equal(growth.at, start);

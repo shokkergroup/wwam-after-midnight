@@ -66,6 +66,10 @@ function source({
   entities = [],
   artifacts = [],
   showWiki = null,
+  rawContentMode = null,
+  runtimeFormat = {},
+  subtype = {},
+  formatContract = {},
 }) {
   return {
     id,
@@ -82,6 +86,10 @@ function source({
     authority,
     lanes: ["race-broadcast"],
     sourceType: "race",
+    rawContentMode,
+    runtimeFormat,
+    subtype,
+    formatContract,
     wordsAudited: receipts.length ? 14000 : 0,
     summary: receipts.length
       ? {
@@ -141,6 +149,22 @@ function fixture() {
         title: "Round One Race Broadcast",
         date: "2026-06-01",
         receipts: [firstReceipt, pulseReceipt],
+        rawContentMode: "livestream",
+        runtimeFormat: {
+          id: "race-broadcast",
+          label: "RACE BROADCAST",
+          family: "race-broadcast",
+        },
+        subtype: {
+          id: "points-race",
+          label: "POINTS RACE",
+          qualifiers: [],
+        },
+        formatContract: {
+          id: "race-broadcast",
+          schema: "example/format-contract/v1",
+          registryVersion: "1.0.0",
+        },
         entities: [
           {
             id: "driver:car-33",
@@ -319,6 +343,10 @@ test("builds a deterministic channel-neutral dossier with typed dual-ended conne
   assert.equal(dossier.source.receipts.length, 2);
   assert.equal(dossier.source.receipts[0].signalScore, 88);
   assert.equal(dossier.source.receipts[0].signalBasis, "caption-derived-heat");
+  assert.equal(dossier.source.rawContentMode, "livestream");
+  assert.equal(dossier.source.runtimeFormat.id, "race-broadcast");
+  assert.equal(dossier.source.subtype.id, "points-race");
+  assert.equal(dossier.source.formatContract.id, "race-broadcast");
   assert.deepEqual(dossier.source.showWiki.experience.routeReceiptKeys, [
     "RACEFILE01A:car33",
     "RACEFILE01A:three-wide",

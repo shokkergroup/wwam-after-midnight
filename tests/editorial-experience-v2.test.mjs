@@ -135,9 +135,14 @@ test("Ask and Character put the action first and avoid nested result scrollers",
 test("Show Wikis keep primary fan actions and leave every populated lane visible", () => {
   const html = read("index.html");
   const dossier = read("wwam-dossier-editorial.js");
+  const dossierAssets = read("source-dossier-assets.js");
   const css = read("wwam-editorial-v2.css");
 
-  assert.match(html, /wwam-dossier-editorial\.js\?v=1\.3\.2-damage-priority/);
+  assert.doesNotMatch(html, /wwam-dossier-editorial\.js/);
+  assert.match(
+    dossierAssets,
+    /wwam-dossier-editorial\.js\?v=1\.3\.2-damage-priority/,
+  );
   assert.match(dossier, /PLAY THE SHOW/);
   assert.match(dossier, /sourceDossierEpisodeGuide/);
   assert.match(dossier, /DEEP DIVE/);

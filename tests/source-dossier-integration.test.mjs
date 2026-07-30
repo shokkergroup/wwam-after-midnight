@@ -12,6 +12,7 @@ const app = read("app.js");
 const html = read("index.html");
 const featureLoader = read("feature-loader.js");
 const atlasUi = read("archive-atlas-ui.js");
+const sourceDossierAssets = read("source-dossier-assets.js");
 
 function runtimeVersion(file) {
   const version = read(file).match(/\bvar VERSION = "(\d+\.\d+\.\d+)"/)?.[1];
@@ -424,6 +425,10 @@ test("all 472 Atlas records pass through one card-to-dossier route", () => {
 });
 
 test("dossier CSS and scripts load lazily through the feature loader, never eager index tags", () => {
+  assert.match(
+    html,
+    /<script src="app\.js\?v=0\.5\.70-final-rights-firewall"><\/script>/,
+  );
   const eagerScripts = Array.from(
     html.matchAll(/<script\b[^>]*\bsrc="([^"]+)"/g),
     (match) => match[1].split("?")[0],
@@ -433,12 +438,26 @@ test("dossier CSS and scripts load lazily through the feature loader, never eage
     (match) => match[1].split("?")[0],
   );
   const dossierScripts = [
+    "source-dossier-assets.js",
     "channel-pack-contract.js",
     "wwam-channel-pack-adapter.js",
+    "episode-format-contracts.js",
+    "episode-format-fallback-experience.js",
+    "episode-facts-pilot.js",
+    "episode-facts-batch2.js",
+    "episode-facts-batch3.js",
+    "episode-format-experience.js",
+    "episode-guide-v2-topic-rebuild-batch1.js",
+    "episode-guide-v2-topic-rebuild-batch2.js",
+    "episode-guide-v2-topic-rebuild-batch3.js",
+    "episode-guide-v2-topic-rebuild-batch4.js",
+    "episode-guide-v2-topic-rebuild-batch5.js",
+    "episode-topic-rebuild-experience.js",
     "episode-guides.js",
     "episode-guide-v2-reviewed-release.js",
     "episode-guide-v2-newest-five-release.js",
     "episode-guide-v2-reviewed-merge.js",
+    "title-topic-overrides.js",
     "episode-recap-engine.js",
     "wwam-episode-recap-adapter.js",
     "source-dossier-engine.js",
@@ -446,6 +465,7 @@ test("dossier CSS and scripts load lazily through the feature loader, never eage
     "source-query-engine.js",
     "aftermath-pack-engine.js",
     "source-dossier-ui.js",
+    "wwam-dossier-editorial.js",
   ];
   assert.equal(eagerStyles.includes("source-dossier.css"), false);
   for (const asset of dossierScripts) {
@@ -458,6 +478,7 @@ test("dossier CSS and scripts load lazily through the feature loader, never eage
   );
 
   const loader = namedFunction(app, "loadSourceDossier");
+  const loaderContract = `${loader}\n${sourceDossierAssets}`;
   const cssVersion = read("source-dossier.css").match(
     /^\/\* V(\d+\.\d+) \/\//,
   )?.[1];
@@ -469,6 +490,10 @@ test("dossier CSS and scripts load lazily through the feature loader, never eage
     ),
   );
   for (const asset of [
+    "episode-format-contracts.js",
+    "episode-format-fallback-experience.js",
+    "episode-format-experience.js",
+    "episode-topic-rebuild-experience.js",
     "episode-recap-engine.js",
     "wwam-episode-recap-adapter.js",
     "source-dossier-engine.js",
@@ -477,7 +502,7 @@ test("dossier CSS and scripts load lazily through the feature loader, never eage
     "source-dossier-ui.js",
   ]) {
     assert.match(
-      loader,
+      loaderContract,
       new RegExp(
         `"${escapeRegex(asset)}\\?v=${escapeRegex(runtimeVersion(asset))}-[a-z0-9-]+"`,
       ),
@@ -486,11 +511,11 @@ test("dossier CSS and scripts load lazily through the feature loader, never eage
   }
   assert.match(loader, /loadDemoScript\("creator-studio-engine\.js"\)\.then\(createClipLab\)/);
   assert.doesNotMatch(loader, /createCreatorEngines/);
-  const scriptList = loader
-    .match(/return \[([\s\S]*?)\]\.reduce/)?.[1]
+  const scriptList = sourceDossierAssets
+    .match(/Object\.freeze\(\[([\s\S]*?)\]\)/)?.[1]
     .match(/"[^"]+\.js(?:\?[^"]*)?"/g)
     ?.map((asset) => asset.slice(1, -1).split("?")[0]);
-  assert.deepEqual(scriptList, dossierScripts);
+  assert.deepEqual(["source-dossier-assets.js"].concat(scriptList), dossierScripts);
   assert.match(loader, /return promise\.then\(function \(\) \{ return loader\.load\(source\); \}\)/);
   assert.match(featureLoader, /function loadStyle\(/);
   assert.match(

@@ -544,21 +544,16 @@
         }
         return clipLabEngine?null:loadDemoScript("creator-studio-engine.js").then(createClipLab);
       })
-      .then(function () { return loader.loadStyle("source-dossier.css?v=5.29-readable-release"); })
+      .then(function () { return loader.loadStyle("source-dossier.css?v=5.31-exact-source-stops"); })
       .then(function () {
-        return ["channel-pack-contract.js", "wwam-channel-pack-adapter.js",
-          "episode-guides.js?v=2.1.5-referent",
-          "episode-guide-v2-reviewed-release.js?v=1.0.1-runtime-eligible",
-          "episode-guide-v2-newest-five-release.js?v=f5f3ca58",
-          "episode-guide-v2-reviewed-merge.js?v=1.1.0-ordered-release",
-          "title-topic-overrides.js?v=1.0.1-dossier-runtime",
-          "episode-recap-engine.js?v=1.6.2-readable-release",
-          "wwam-episode-recap-adapter.js?v=1.6.2-readable-release",
-          "source-dossier-engine.js?v=1.14.2-screened-negative-takes",
-          "wwam-source-dossier-adapter.js?v=1.14.3-readable-release",
-          "source-query-engine.js?v=1.6.1-lanes",
-          "aftermath-pack-engine.js?v=1.0.0",
-          "source-dossier-ui.js?v=1.18.4-readable-release"].reduce(function (promise, source) {
+        return loader.load("source-dossier-assets.js?v=1.0.2-final-rights-firewall");
+      })
+      .then(function () {
+        var assets = window.WWAM_SOURCE_DOSSIER_ASSETS || [];
+        if (!assets.length) {
+          throw new Error("The Show Wiki asset manifest is unavailable.");
+        }
+        return assets.reduce(function (promise, source) {
           return promise.then(function () { return loader.load(source); });
         }, Promise.resolve());
       })

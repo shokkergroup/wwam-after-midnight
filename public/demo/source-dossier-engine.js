@@ -10,7 +10,7 @@
    * captions, promote evidence, clear rights, or publish anything.
    */
 
-  var VERSION = "1.14.2";
+  var VERSION = "1.15.0";
   var INPUT_SCHEMA = "shokker-source-dossier-input/v1";
   var DOSSIER_SCHEMA = "shokker-source-dossier/v1";
   var EXPORT_SCHEMA = "shokker-source-dossier-export/v1";
@@ -3805,6 +3805,12 @@
       authority: authority,
       lanes: stringList(raw.lanes || [], path + ".lanes", { max: 100, minimum: 1 }),
       sourceType: requiredText(raw.sourceType, path + ".sourceType", 80),
+      rawContentMode: raw.rawContentMode == null
+        ? null
+        : requiredText(raw.rawContentMode, path + ".rawContentMode", 120),
+      runtimeFormat: isRecord(raw.runtimeFormat) ? serial(raw.runtimeFormat) : {},
+      subtype: isRecord(raw.subtype) ? serial(raw.subtype) : {},
+      formatContract: isRecord(raw.formatContract) ? serial(raw.formatContract) : {},
       wordsAudited: finiteNumber(raw.wordsAudited || 0, path + ".wordsAudited", 0),
       exactSourceHold: normalizeExactSourceHold(
         raw.exactSourceHold,
@@ -3897,6 +3903,10 @@
       coverage: source.coverage,
       authority: source.authority,
       lanes: source.lanes,
+      rawContentMode: source.rawContentMode,
+      runtimeFormat: source.runtimeFormat,
+      subtype: source.subtype,
+      formatContract: source.formatContract,
       exactSourceHold: source.exactSourceHold,
       officialAlternate: source.officialAlternate,
       receiptKeys: source.receipts.map(function (receipt) {

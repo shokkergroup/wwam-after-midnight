@@ -35,7 +35,6 @@ test("the complete browser script chain exists in dependency order", () => {
     "context-atlas.js",
     "context-companion.js",
     "guided-shell.js",
-    "wwam-dossier-editorial.js",
     "wwam-night-guide.js",
   ];
   assert.deepEqual(scripts, required);
@@ -52,8 +51,18 @@ test("the complete browser script chain exists in dependency order", () => {
   deferred.forEach((file) => {
     assert.doesNotMatch(index, new RegExp(`<script[^>]+${file.replace(".", "\\.")}`, "i"));
     assert.equal(fs.existsSync(path.join(demo, file)), true, `${file} is missing`);
-    assert.match(app, new RegExp(`loadDemoScript\\("${file.replace(".", "\\.")}\\"\\)`));
+    assert.match(
+      app,
+      new RegExp(
+        `loadDemoScript\\("${file.replace(".", "\\.")}(?:\\?[^"]*)?"\\)`,
+      ),
+    );
   });
+  assert.doesNotMatch(index, /<script[^>]+wwam-dossier-editorial\.js/i);
+  assert.match(
+    fs.readFileSync(path.join(demo, "source-dossier-assets.js"), "utf8"),
+    /wwam-dossier-editorial\.js\?v=1\.3\.2-damage-priority/,
+  );
   ["correction-ripple-engine.js", "trust-engine.js"].forEach((file) => {
     assert.doesNotMatch(index, new RegExp(`<script[^>]+${file.replace(".", "\\.")}`, "i"));
     assert.equal(fs.existsSync(path.join(demo, file)), true);

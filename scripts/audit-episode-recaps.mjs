@@ -946,11 +946,42 @@ const duplicateLabels = ready.filter((file) => {
   const labels = file.recap.sections.map((section) => section.label.toLowerCase());
   return new Set(labels).size !== labels.length;
 });
-const steveFiles = ready.filter((file) => {
+function safePublicLaneReceipt(receipt) {
+  if (!receipt) return false;
+  const evidence = receipt.evidence && typeof receipt.evidence === "object"
+    ? receipt.evidence
+    : {};
+  const status = [
+    receipt.evidenceBasis,
+    receipt.evidenceType,
+    receipt.evidenceLevel,
+    receipt.reviewState,
+    receipt.reviewStatus,
+    evidence.reviewStatus,
+  ].map((value) => String(value || "")).join(" ");
+  return !/(?:quarantin|machine[- ](?:candidate|surfaced)|review[- ]required|unreviewed)/i
+    .test(status) &&
+    receipt.promotionAllowed !== false &&
+    evidence.promotionAllowed !== false &&
+    receipt.humanEditorialReviewPerformed !== false;
+}
+
+const steveCandidateFiles = ready.filter((file) => {
   const lane = file.source.showWiki.lanes.find(
     (candidate) => candidate.id === "straight-to-steves-asshole",
   );
   return lane && lane.receiptKeys.length;
+});
+const steveFiles = steveCandidateFiles.filter((file) => {
+  const lane = file.source.showWiki.lanes.find(
+    (candidate) => candidate.id === "straight-to-steves-asshole",
+  );
+  const receipts = new Map(
+    file.source.receipts.map((receipt) => [receipt.key, receipt]),
+  );
+  return lane.receiptKeys.some((key) =>
+    safePublicLaneReceipt(receipts.get(key))
+  );
 });
 const missingSteve = steveFiles.filter((file) => !file.recap.fanRead?.hated);
 const earlyClosingLabels = ready.flatMap((file) =>
@@ -1307,7 +1338,10 @@ const report = {
     storyWordRangeFailures,
     duplicateVisibleTopologyTopics,
     qmyGoldenFailures,
+    steveLaneCandidates: steveCandidateFiles.length,
     steveLaneSources: steveFiles.length,
+    unsafeSteveLaneCandidatesWithheld:
+      steveCandidateFiles.length - steveFiles.length,
     steveLaneCarriedIntoRecap: steveFiles.length - missingSteve.length,
     missingSteve: missingSteve.map((file) => file.id),
     earlyClosingLabels,

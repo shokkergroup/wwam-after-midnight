@@ -2,7 +2,7 @@
   "use strict";
 
   var SCHEMA = "wwam-feldman-recap/v1";
-  var VERSION = "1.6.2";
+  var VERSION = "2.2.2";
 
   function clean(value) {
     return String(value == null ? "" : value).trim();
@@ -107,19 +107,29 @@
     return output;
   }
 
+  function structuralStorySubject(value) {
+    return /^(?:SOURCE TIMELINE|TAPE OPEN|TAPE CLOSE|CLOSING SOURCE WINDOW)$/i
+      .test(displayLabel(value));
+  }
+
   function storyPrimarySubject(segment) {
     var guideAnchor = record(segment.guideAnchor);
     var narrative = record(segment.narrative);
-    return clean(
-      guideAnchor.topic ||
-      segment.primarySubject ||
-      narrative.primarySubject ||
-      array(segment.topicLabels)[0] ||
-      array(segment.characterLabels)[0] ||
-      segment.anchor ||
-      array(segment.momentLabels)[0] ||
-      "Saved checkpoint"
+    var candidates = [
+      segment.primarySubject,
+      narrative.primarySubject,
+      guideAnchor.topic,
+    ].concat(
+      array(segment.topicLabels),
+      array(segment.characterLabels),
+      [segment.anchor],
+      array(segment.momentLabels)
     );
+    return clean(candidates.find(function (value) {
+      return clean(value) &&
+        !structuralStorySubject(value) &&
+        !genericMomentLabel(displayLabel(value));
+    }) || "Saved checkpoint");
   }
 
   function reprojectStoryNarratives(story) {
@@ -363,6 +373,20 @@
       ", to " + points[points.length - 1] + ".";
   }
 
+  function displayTapeTitle(value, limit) {
+    var title = naturalLabel(clean(value)).replace(/\s+/g, " ");
+    var maximum = Math.max(24, number(limit) || 78);
+    if (title.length <= maximum) return title;
+    var shortened = title.slice(0, maximum - 3).replace(/\s+\S*$/, "").trim();
+    [["(", ")"], ["[", "]"], ["{", "}"]].forEach(function (pair) {
+      var opener = shortened.lastIndexOf(pair[0]);
+      var closer = shortened.lastIndexOf(pair[1]);
+      if (opener > closer) shortened = shortened.slice(0, opener).trim();
+    });
+    shortened = shortened.replace(/[\s([{'"—–,:;/-]+$/g, "").trim();
+    return shortened + "...";
+  }
+
   function headline(map) {
     var metadata = record(map.metadata);
     var topics = recapTopics(map);
@@ -374,85 +398,130 @@
     var wild = moments[0] || "";
     var seed = map.sourceId + "|feldman-headline|" + topics.join("|") + "|" + wild;
     var tapeTitle = naturalLabel(clean(metadata.title));
-    var displayTapeTitle = tapeTitle.length > 78
-      ? tapeTitle.slice(0, 75).replace(/\s+\S*$/, "") + "..."
-      : tapeTitle;
-    var tapeWithArticle = /^the\s/i.test(displayTapeTitle) ?
-      displayTapeTitle : "THE " + displayTapeTitle;
+    var shortTapeTitle = displayTapeTitle(tapeTitle, 78);
+    var tapeWithArticle = /^the\s/i.test(shortTapeTitle) ?
+      shortTapeTitle : "THE " + shortTapeTitle;
+    var tapeLength = Math.max(
+      1,
+      Math.round(number(metadata.duration) / 60),
+    ) + "-MINUTE TAPE";
+    var tapeTitleKey = tapeTitle.toLowerCase()
+      .replace(/&/g, " and ")
+      .replace(/[^a-z0-9]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
     var supporting = unique(
       [first, second, third, wild].map(naturalLabel).filter(function (label) {
-        return label &&
-          label.toLowerCase() !== tapeTitle.toLowerCase();
+        var labelKey = label.toLowerCase()
+          .replace(/&/g, " and ")
+          .replace(/[^a-z0-9]+/g, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+        return labelKey && labelKey !== tapeTitleKey &&
+          tapeTitleKey.indexOf(labelKey) < 0;
       })
     );
+    var topicMapOnly = clean(map.mode) === "topic-recap";
+    var lastPlayablePercent =
+      number(record(map.caseFile).lastPlayableAnchorPercent);
+    var partialTopicMap = topicMapOnly && lastPlayablePercent > 0 &&
+      lastPlayablePercent < 85;
+    if (partialTopicMap && shortTapeTitle) {
+      return (
+        shortTapeTitle + " // " + tapeLength +
+        " // PARTIAL SUBJECT MAP THROUGH " +
+        Math.round(lastPlayablePercent) + "%" +
+        (supporting[0] ? " // " + supporting[0] +
+          " IS INSIDE THE INDEXED ROUTE." : ".")
+      ).toUpperCase();
+    }
 
     if ((formatId === "movie-commentary" || formatId === "watch-party") &&
         tapeTitle) {
       if (supporting.length >= 2) {
         return choice(seed + "|named-tape", [
-          displayTapeTitle + " // " + supporting[0] + " // " + supporting[1] +
+          shortTapeTitle + " // " + supporting[0] + " // " + supporting[1] +
             " // COMMENTARY PRIVILEGES REVOKED.",
           tapeWithArticle + " TAPE // THE MATCH: " +
             supporting[0] + " // THE GASOLINE: " + supporting[1] + ".",
-          displayTapeTitle + ": " + supporting[0] + ", " + supporting[1] +
+          shortTapeTitle + ": " + supporting[0] + ", " + supporting[1] +
             ", AND A PAUSE BUTTON WITH REGRETS.",
-          displayTapeTitle + " AFTER MIDNIGHT // " + supporting[0] +
+          shortTapeTitle + " AFTER MIDNIGHT // " + supporting[0] +
             " AT THE FRONT DOOR, " + supporting[1] + " IN THE BASEMENT.",
-          displayTapeTitle + " // " + supporting[0] + " // " + supporting[1] +
+          shortTapeTitle + " // " + supporting[0] + " // " + supporting[1] +
             " // THE MOVIE KEEPS PLAYING ANYWAY.",
-          displayTapeTitle + ": " + supporting[0] + " MEETS " + supporting[1] +
+          shortTapeTitle + ": " + supporting[0] + " MEETS " + supporting[1] +
             " AND THE WATCHALONG LOSES ITS CURFEW.",
         ]).toUpperCase();
       }
       if (supporting.length === 1) {
         return choice(seed + "|named-tape-one", [
-          displayTapeTitle + ": " + supporting[0] + " AFTER MIDNIGHT.",
-          displayTapeTitle + " // " + supporting[0] + " // REWIND AT YOUR OWN RISK.",
+          shortTapeTitle + ": " + supporting[0] + " AFTER MIDNIGHT.",
+          shortTapeTitle + " // " + supporting[0] + " // REWIND AT YOUR OWN RISK.",
           tapeWithArticle + " TAPE // LAST WORD: " +
             supporting[0] + ".",
         ]).toUpperCase();
       }
-      return (displayTapeTitle + " // THE COMMENTARY TRACK WITH THE LIGHTS OFF")
+      return (shortTapeTitle + " // THE COMMENTARY TRACK WITH THE LIGHTS OFF")
         .toUpperCase();
     }
 
-    if (displayTapeTitle && supporting.length >= 2) {
+    if (shortTapeTitle && supporting.length >= 2) {
       if (formatId === "ranking-show" || formatId === "versus-show") {
         return choice(seed + "|named-board", [
-          displayTapeTitle + ": " + supporting[0] + " AND " + supporting[1] +
-            " HOLD THE BOARD HOSTAGE.",
-          displayTapeTitle + " // " + supporting[0] + " VS. " + supporting[1] +
+          shortTapeTitle + " // " + tapeLength + ": " + supporting[0] +
+            " AND " + supporting[1] + " HOLD THE BOARD HOSTAGE.",
+          shortTapeTitle + " // " + tapeLength + " // " + supporting[0] +
+            " VS. " + supporting[1] +
             " // THE BRACKET NEEDS A LAWYER.",
-          displayTapeTitle + " // THE MATCH: " + supporting[0] +
+          shortTapeTitle + " // " + tapeLength + " // THE MATCH: " +
+            supporting[0] +
             " // THE GASOLINE: " + supporting[1] + ".",
+          shortTapeTitle + " // " + tapeLength + " // BOARD HOSTAGE: " +
+            supporting[0] + " // ARGUMENT STARTER: " + supporting[1] + ".",
+          shortTapeTitle + " // " + tapeLength + ": " + supporting[0] +
+            " DRAWS THE BRACKET, " + supporting[1] + " SETS IT ON FIRE.",
+          shortTapeTitle + " // " + tapeLength + " // FIRST SEED: " +
+            supporting[0] +
+            " // CHAOS PICK: " + supporting[1] + ".",
         ]).toUpperCase();
       }
       if (formatId === "trailer-reaction") {
         return choice(seed + "|named-trailer", [
-          displayTapeTitle + ": " + supporting[0] + " AT THE FRONT DOOR, " +
+          shortTapeTitle + ": " + supporting[0] + " AT THE FRONT DOOR, " +
             supporting[1] + " IN THE BASEMENT.",
-          displayTapeTitle + " // " + supporting[0] + " // " + supporting[1] +
+          shortTapeTitle + " // " + supporting[0] + " // " + supporting[1] +
             " // THE TRAILER HAS QUESTIONS.",
-          displayTapeTitle + ": " + supporting[0] + ", " + supporting[1] +
+          shortTapeTitle + ": " + supporting[0] + ", " + supporting[1] +
             ", AND ONE VERY BUSY PAUSE BUTTON.",
         ]).toUpperCase();
       }
       return choice(seed + "|named-show", [
-        displayTapeTitle + " // " + supporting[0] + " AT THE FRONT DOOR // " +
+        shortTapeTitle + " // " + supporting[0] + " AT THE FRONT DOOR // " +
           supporting[1] + " AFTER CURFEW.",
-        displayTapeTitle + ": " + supporting[0] + ", " + supporting[1] +
+        shortTapeTitle + ": " + supporting[0] + ", " + supporting[1] +
           ", AND NO SENSIBLE EXIT.",
-        displayTapeTitle + " // THE NIGHT OPENS WITH " + supporting[0] +
+        shortTapeTitle + " // THE NIGHT OPENS WITH " + supporting[0] +
           " AND LEAVES WITH " + supporting[1] + ".",
-        displayTapeTitle + " // FIRST CALL: " + supporting[0] +
+        shortTapeTitle + " // FIRST CALL: " + supporting[0] +
           " // LAST WORD: " + supporting[1] + ".",
       ]).toUpperCase();
     }
-    if (displayTapeTitle && supporting.length === 1) {
+    if (shortTapeTitle && supporting.length === 1) {
       return choice(seed + "|named-show-one", [
-        displayTapeTitle + ": " + supporting[0] + " AFTER MIDNIGHT.",
-        displayTapeTitle + " // " + supporting[0] + " // THE NIGHT STAYS WEIRD.",
-        displayTapeTitle + " // LAST WORD: " + supporting[0] + ".",
+        shortTapeTitle + ": " + supporting[0] + " AFTER MIDNIGHT.",
+        shortTapeTitle + " // " + supporting[0] + " // THE NIGHT STAYS WEIRD.",
+        shortTapeTitle + " // LAST WORD: " + supporting[0] + ".",
+      ]).toUpperCase();
+    }
+    if (shortTapeTitle) {
+      return choice(seed + "|title-only", [
+        shortTapeTitle + " // " + tapeLength + " // THE FULL NIGHT FILE.",
+        shortTapeTitle + " // THE PLAYABLE ROUTE THROUGH THE SHOW.",
+        shortTapeTitle + " // " + tapeLength + " // EVERY JUMP STAYS ON THIS TAPE.",
+        shortTapeTitle + " AFTER MIDNIGHT // OPEN THE SHOW FILE.",
+        shortTapeTitle + " // THE NIGHT, MAPPED TO THE ORIGINAL UPLOAD.",
+        shortTapeTitle + " // " + tapeLength + " // START WHEREVER THE TROUBLE DOES.",
       ]).toUpperCase();
     }
 
@@ -496,7 +565,7 @@
         first + ": REWIND AT YOUR OWN RISK.",
       ]).toUpperCase();
     }
-    var title = clean(metadata.title).replace(/\s+/g, " ").slice(0, 120);
+    var title = displayTapeTitle(metadata.title, 120);
     return (title || "WWAM AFTER MIDNIGHT") + " // THE RECAP WITH THE LIGHTS OFF";
   }
 
@@ -1006,7 +1075,7 @@
           clock(measuredTopics[0].peakAt) + ".",
         "By the numbers, " + naturalLabel(measuredTopics[0].label) +
           " owns this stretch with " + number(measuredTopics[0].mentions) +
-          " registered mentions; its first door is " +
+          " mentions on this tape; its first door is " +
           clock(measuredTopics[0].firstAt) + " and its peak is " +
           clock(measuredTopics[0].peakAt) + ".",
         "The source clock tracks " + naturalLabel(measuredTopics[0].label) +
@@ -1135,7 +1204,7 @@
           "; the player remains the authority for the rest.",
         "This map leaves the road at " + clock(anchorAt) +
           ". The full episode stays behind the wheel.",
-        "The last registered stop lands here, with the untouched remainder still in the player.",
+        "The final timestamped stop lands here, with the untouched remainder still in the player.",
         "The index closes before the show does; playback preserves the rest of the night.",
       ]) :
       index === total - 1 ?
@@ -1247,89 +1316,343 @@
       trailLine + characterLine + threadLine + excerptLine + close;
   }
 
-  function readableStoryLabel(segment, index, total) {
-    var narrative = record(segment.narrative);
-    var subject = naturalLabel(narrative.primarySubject) ||
-      displayLabels(segment.topicLabels).map(naturalLabel)[0] ||
-      displayLabels(segment.momentLabels).map(naturalLabel)[0] ||
-      displayLabels(segment.characterLabels).map(naturalLabel)[0] ||
-      naturalLabel(segment.anchor) ||
-      "THE SHOW";
-    var prefix = index === 0 ? "OPENING" :
-      index === total - 1 ? "FINAL CHAPTER" :
-        "CHAPTER " + (index + 1);
-    return prefix + " // " + subject.toUpperCase();
+  function genericMomentLabel(value) {
+    return /^(?:UP IN YA|OUT OF POCKET|THE ROOM BREAKS|FULL SEND|TAKE GETS NUCLEAR|SOUNDBYTE|REPLAY|STINGER|SAVED MOMENT|MAJOR TOPIC TURN|HORROR BRAIN|KILL ROOM|FRANCHISE FELONY|CHAT DID THIS|TAPE OPEN|TAPE CLOSE|STRAIGHT TO STEVE'?S ASSHOLE|STEVE HATES THIS)$/i
+      .test(clean(value));
   }
 
-  function readableStoryBody(segment, index, total, duration) {
+  function readableStoryLabel(segment, index, total, topicMapOnly) {
     var narrative = record(segment.narrative);
-    var primaryEvidence = record(narrative.primaryEvidence);
     var topics = displayLabels(segment.topicLabels).map(naturalLabel);
     var moments = displayLabels(segment.momentLabels).map(naturalLabel);
     var characters = displayLabels(segment.characterLabels).map(naturalLabel);
+    var subjectTopics = topics.filter(function (topic) {
+      return !genericMomentLabel(topic) && !structuralStorySubject(topic);
+    });
+    var declaredSubject = [
+      naturalLabel(segment.primarySubject),
+      naturalLabel(narrative.primarySubject),
+    ].find(function (candidate) {
+      return candidate && !genericMomentLabel(candidate) &&
+        !structuralStorySubject(candidate);
+    });
+    var subject = declaredSubject || subjectTopics[0] || characters[0] ||
+      moments[0] ||
+      naturalLabel(segment.anchor) ||
+      "THE SHOW";
+    if (!topics.length && !characters.length && genericMomentLabel(subject)) {
+      subject = "SAVED REACTION";
+    }
+    var prefix = topicMapOnly ?
+      (index === 0 ? "FIRST TOPIC" :
+        index === total - 1 ? "LAST INDEXED TOPIC" :
+          "TOPIC " + (index + 1)) :
+      (index === 0 ? "OPENING" :
+        index === total - 1 ? "FINAL REEL" :
+          "REEL " + (index + 1));
+    return prefix + " // " + subject.toUpperCase();
+  }
+
+  function readableStoryBody(
+    segment,
+    index,
+    total,
+    duration,
+    topicMapOnly,
+    sourceId
+  ) {
+    var narrative = record(segment.narrative);
+    var primaryEvidence = record(narrative.primaryEvidence);
+    var topics = displayLabels(segment.topicLabels).map(naturalLabel).filter(function (topic) {
+      return !structuralStorySubject(topic);
+    });
+    var moments = displayLabels(segment.momentLabels).map(naturalLabel);
+    var characters = displayLabels(segment.characterLabels).map(naturalLabel);
+    var topicEvidence = array(segment.topicEvidence).map(record).filter(function (item) {
+      return clean(item.label);
+    });
     var evidenceTrail = array(segment.evidenceTrail).map(record).filter(function (item) {
       return clean(item.label) && Number.isFinite(Number(item.at));
     });
-    var primary = naturalLabel(narrative.primarySubject) ||
+    var primary = naturalLabel(segment.primarySubject) ||
+      naturalLabel(narrative.primarySubject) ||
       topics[0] || moments[0] || characters[0] ||
       naturalLabel(segment.anchor) || "the show";
     var anchorAt = Number.isFinite(Number(primaryEvidence.at)) ?
       number(primaryEvidence.at) : number(segment.anchorAt);
-    var from = clock(segment.at);
-    var to = clock(segment.end);
     var topicOthers = topics.filter(function (topic) {
       return topic.toLowerCase() !== primary.toLowerCase();
-    }).slice(0, 3);
+    }).slice(0, 2);
     var momentEvidence = array(segment.momentEvidence).map(record);
     var strongestMoment = momentEvidence[0];
     var strongestLabel = strongestMoment ?
       naturalLabel(strongestMoment.label) : moments[0];
     var sentences = [];
+    var seed = clean(sourceId) + "|plain-story-v2";
+    var windowStart = Number.isFinite(Number(segment.displayAt)) ?
+      number(segment.displayAt) : number(segment.at);
+    var windowEnd = Number.isFinite(Number(segment.displayEnd)) ?
+      number(segment.displayEnd) : number(segment.end);
 
-    if (index === 0) {
-      sentences.push(
-        "The episode opens with " + primary + " from " + from + " to " + to + "."
-      );
-    } else if (index === total - 1) {
-      sentences.push(
-        "The final indexed chapter runs from " + from + " to " + to +
-          " and centers on " + primary + "."
-      );
+    function insideWindow(value) {
+      var at = Number(value);
+      return Number.isFinite(at) && at >= windowStart - 0.001 &&
+        at <= windowEnd + 0.001;
+    }
+
+    function firstLocalTime(values) {
+      var match = array(values).find(insideWindow);
+      return match == null ? null : number(match);
+    }
+
+    function matchingLocalEvidence(values, label) {
+      return array(values).map(record).find(function (item) {
+        return naturalLabel(item.label).toLowerCase() ===
+          naturalLabel(label).toLowerCase() && insideWindow(item.at);
+      });
+    }
+
+    function matchingTopic(label) {
+      var matches = topicEvidence.filter(function (item) {
+        return naturalLabel(item.label).toLowerCase() ===
+          naturalLabel(label).toLowerCase();
+      });
+      return matches.find(function (item) {
+        return /title-topic/i.test(clean(item.receiptKey));
+      }) || matches[0];
+    }
+
+    if (topicMapOnly) {
+      var primaryTopic = matchingTopic(primary) || topicEvidence[0] || {};
+      var firstAt = firstLocalTime([
+        primaryTopic.firstAt,
+        primaryTopic.at,
+        anchorAt,
+        windowStart,
+      ]);
+      if (firstAt == null) firstAt = windowStart;
+      var peakAt = firstLocalTime([primaryTopic.peakAt, primaryTopic.at]);
+      var mentionCount = number(primaryTopic.mentions);
+      var matchWord = mentionCount === 1 ? "match" : "matches";
+      var timeWord = mentionCount === 1 ? "time" : "times";
+      sentences.push(choice(seed + "|topic-lead", [
+        primary + " first comes up at " + clock(firstAt) + ".",
+        "The first clear jump for " + primary + " is " + clock(firstAt) + ".",
+        "Jump to " + clock(firstAt) + " when " + primary +
+          " enters the conversation.",
+        "The subject marker for " + primary + " lands at " +
+          clock(firstAt) + ".",
+        "The earliest caption match for " + primary + " lands at " +
+          clock(firstAt) + ".",
+        primary + " gets its first timed doorway at " + clock(firstAt) + ".",
+      ]));
+      if (mentionCount > 0) {
+        sentences.push(peakAt == null ?
+          choice(seed + "|topic-count-only", [
+            mentionCount + " caption " + matchWord +
+              (mentionCount === 1 ? " points" : " point") +
+              " back to this subject across the full show.",
+            "The full captions mention it " + mentionCount + " " + timeWord + ".",
+            "Across the episode, it appears in " + mentionCount +
+              " caption " + matchWord + ".",
+            "The subject has " + mentionCount + " caption " + matchWord +
+              " across the complete upload.",
+            "A full-show caption search returns " + mentionCount + " " +
+              matchWord + " for it.",
+            "The captions carry " + mentionCount + " " + matchWord +
+              " for this subject overall.",
+          ]) :
+          choice(seed + "|topic-count", [
+            mentionCount + " caption " + matchWord +
+              (mentionCount === 1 ? " points" : " point") + " to it, with " +
+              "the busiest stretch near " + clock(peakAt) + ".",
+            "It appears " + mentionCount + " " + timeWord +
+              " in the captions and clusters most heavily around " +
+              clock(peakAt) + ".",
+            "The captions return to it " + mentionCount + " " + timeWord +
+              "; the closest run of mentions is near " + clock(peakAt) + ".",
+            "There " + (mentionCount === 1 ? "is " : "are ") + mentionCount +
+              " caption " + matchWord + " for it, peaking around " +
+              clock(peakAt) + ".",
+            "Its " + mentionCount + " caption " + matchWord +
+              (mentionCount === 1 ? " gathers" : " gather") +
+              " most tightly near " + clock(peakAt) + ".",
+            "The subject shows up in " + mentionCount + " caption " + matchWord +
+              ", with the heaviest pocket near " +
+              clock(peakAt) + ".",
+          ]));
+      }
+      var otherDoors = topicOthers.map(function (topic) {
+        var evidence = matchingTopic(topic);
+        var at = evidence ? firstLocalTime([
+          evidence.firstAt,
+          evidence.at,
+          evidence.peakAt,
+        ]) : null;
+        return at == null ? topic : topic + " at " + clock(at);
+      });
+      if (otherDoors.length) {
+        sentences.push(choice(seed + "|other-topics", [
+          "Other useful jumps in this stretch are " + list(otherDoors, "") + ".",
+          "The same part of the show also reaches " + list(otherDoors, "") + ".",
+          "You can keep following the conversation through " +
+            list(otherDoors, "") + ".",
+          "Nearby subject jumps include " + list(otherDoors, "") + ".",
+          "This stretch also has timed entries for " + list(otherDoors, "") + ".",
+          "From there, the subject trail also reaches " +
+            list(otherDoors, "") + ".",
+        ]));
+      }
+      if (sentences.length === 1) {
+        sentences.push(choice(seed + "|topic-scope", [
+          "Use this jump to pick up the surrounding conversation.",
+          "The full exchange continues in the player.",
+          "This stop gives you the quickest route back into the subject.",
+          "Press play here to hear the rest of the discussion.",
+        ]));
+      }
+      return sentences.join(" ");
+    }
+
+    var primaryTopicEvidence = matchingTopic(primary);
+    var localPrimaryTopic = primaryTopicEvidence &&
+      insideWindow(primaryTopicEvidence.at) ? primaryTopicEvidence : null;
+    var localPrimaryTrail = matchingLocalEvidence(evidenceTrail, primary);
+    var localPrimaryMoment = matchingLocalEvidence(momentEvidence, primary);
+    var localPrimaryEvidence = localPrimaryTopic ||
+      localPrimaryTrail || localPrimaryMoment;
+    var subjectAt = localPrimaryEvidence ? number(localPrimaryEvidence.at) : null;
+    var localEvidenceTrail = evidenceTrail.filter(function (item) {
+      return insideWindow(item.at);
+    }).filter(function (item, itemIndex, values) {
+      return values.findIndex(function (candidate) {
+        return number(candidate.at) === number(item.at) &&
+          naturalLabel(candidate.label).toLowerCase() ===
+            naturalLabel(item.label).toLowerCase();
+      }) === itemIndex;
+    });
+    var hasSubject = topics.some(function (topic) {
+      return !genericMomentLabel(topic);
+    }) || characters.some(function (character) {
+      return character.toLowerCase() === primary.toLowerCase();
+    }) || !genericMomentLabel(primary) && characters.length > 0;
+    if (hasSubject) {
+      sentences.push(choice(seed + "|subject-lead", [
+        "At " + clock(windowStart) + ", this chapter focuses on " +
+          primary + " inside the full show.",
+        "This reel picks up " + primary + " at " + clock(windowStart) +
+          " and carries the conversation forward.",
+        "Jump to " + clock(windowStart) + " for the " + primary +
+          " chapter and its surrounding exchange.",
+        primary + " takes the chapter at " + clock(windowStart) +
+          " with nearby subjects still in reach.",
+        "The chapter's route through " + primary + " lands at " +
+          clock(windowStart) + " on the original show.",
+        "Play from " + clock(windowStart) + " when the show reaches " +
+          primary + " and keep following the discussion.",
+      ]));
+      if (subjectAt != null) {
+        sentences.push(choice(seed + "|subject-time", [
+          "A direct jump in this chapter lands at " + clock(subjectAt) + ".",
+          "The local subject stop is " + clock(subjectAt) + ".",
+          "Press play at " + clock(subjectAt) + " for this part of the exchange.",
+          "Its chapter-specific doorway is " + clock(subjectAt) + ".",
+          "This stretch reaches it at " + clock(subjectAt) + ".",
+          "The matching stop inside this chapter is " + clock(subjectAt) + ".",
+        ]));
+      }
     } else {
-      sentences.push(
-        "From " + from + " to " + to + ", the conversation centers on " +
-          primary + "."
-      );
+      sentences.push(choice(seed + "|reaction-lead", [
+        (strongestLabel || primary) + " hits at " + clock(windowStart) + ".",
+        "The quickest route to " + (strongestLabel || primary) + " is " +
+          clock(windowStart) + ".",
+        "Press play at " + clock(windowStart) + " for " +
+          (strongestLabel || primary) + ".",
+        "The show reaches " + (strongestLabel || primary) + " at " +
+          clock(windowStart) + ".",
+        (strongestLabel || primary) + " gets its replay point at " +
+          clock(windowStart) + ".",
+        "This reaction lands at " + clock(windowStart) + " under " +
+          (strongestLabel || primary) + ".",
+      ]));
     }
-
     if (topicOthers.length) {
-      sentences.push(
-        "The same stretch also covers " + list(topicOthers, "") + "."
-      );
+      sentences.push(choice(seed + "|nearby-subjects", [
+        "The same chapter also covers " + list(topicOthers, "") + ".",
+        "Other subjects in this stretch include " + list(topicOthers, "") + ".",
+        "The conversation also touches " + list(topicOthers, "") + ".",
+        "Along the way, the show reaches " + list(topicOthers, "") + ".",
+        "This stretch shares the floor with " + list(topicOthers, "") + ".",
+        "The chapter keeps " + list(topicOthers, "") + " nearby.",
+      ]));
     }
-    if (strongestLabel) {
-      var strongestAt = strongestMoment &&
-        Number.isFinite(Number(strongestMoment.at)) ?
-        number(strongestMoment.at) : anchorAt;
-      sentences.push(
-        "Its strongest saved beat is " + strongestLabel + " at " +
-          clock(strongestAt) + "."
-      );
-    } else if (evidenceTrail.length >= 2) {
-      sentences.push(
-        "Useful jumps land at " + clock(evidenceTrail[0].at) + " for " +
-          naturalLabel(evidenceTrail[0].label) + " and " +
-          clock(evidenceTrail[1].at) + " for " +
-          naturalLabel(evidenceTrail[1].label) + "."
-      );
+    if (strongestLabel && (!hasSubject ||
+        strongestLabel.toLowerCase() !== primary.toLowerCase())) {
+      var strongestAt = strongestMoment && insideWindow(strongestMoment.at) ?
+        number(strongestMoment.at) :
+        strongestLabel === naturalLabel(segment.anchor) && insideWindow(anchorAt) ?
+          anchorAt : null;
+      if (strongestAt != null) {
+        sentences.push(choice(seed + "|strongest", [
+          strongestLabel + " is the fastest replay at " + clock(strongestAt) + ".",
+          "The sharpest jump here is " + strongestLabel + " at " +
+            clock(strongestAt) + ".",
+          "For the standout beat, jump to " + strongestLabel + " at " +
+            clock(strongestAt) + ".",
+          "The chapter's best quick hit is " + strongestLabel + " at " +
+            clock(strongestAt) + ".",
+          "A second jump worth taking is " + strongestLabel + " at " +
+            clock(strongestAt) + ".",
+          "The replay path peaks with " + strongestLabel + " at " +
+            clock(strongestAt) + ".",
+        ]));
+      }
+    } else if (localEvidenceTrail.length >= 2) {
+      sentences.push(choice(seed + "|extra-jumps", [
+        "Two more useful jumps land at " + clock(localEvidenceTrail[0].at) +
+          " and " + clock(localEvidenceTrail[1].at) + ".",
+        "The chapter also has replay points at " +
+          clock(localEvidenceTrail[0].at) + " and " +
+          clock(localEvidenceTrail[1].at) + ".",
+        "Keep the player close to " + clock(localEvidenceTrail[0].at) + " and " +
+          clock(localEvidenceTrail[1].at) + ".",
+        "Other timed turns arrive at " + clock(localEvidenceTrail[0].at) +
+          " and " + clock(localEvidenceTrail[1].at) + ".",
+        "The next two jumps are " + clock(localEvidenceTrail[0].at) + " and " +
+          clock(localEvidenceTrail[1].at) + ".",
+        "You can follow this stretch through " +
+          clock(localEvidenceTrail[0].at) + " and " +
+          clock(localEvidenceTrail[1].at) + ".",
+      ]));
     }
     if (characters.length) {
-      sentences.push(
-        "Character context in this chapter includes " +
-          list(characters.slice(0, 3), "") + "."
-      );
+      sentences.push(choice(seed + "|characters", [
+        "Character appearances in this stretch include " +
+          list(characters.slice(0, 2), "") + ".",
+        list(characters.slice(0, 2), "") +
+          " also turn up during this chapter.",
+        "The character side of the bit brings in " +
+          list(characters.slice(0, 2), "") + ".",
+        "Listen for " + list(characters.slice(0, 2), "") +
+          " in this part of the show.",
+        "This is also where " + list(characters.slice(0, 2), "") +
+          " enter the mix.",
+        "The chapter includes a character turn from " +
+          list(characters.slice(0, 2), "") + ".",
+      ]));
     }
-    var finalEvidenceAt = evidenceTrail.concat(momentEvidence).reduce(
+    if (sentences.length === 1 && insideWindow(anchorAt)) {
+      sentences.push(choice(seed + "|single", [
+        "The chapter's playable checkpoint is " + clock(anchorAt) + ".",
+        "Press play from " + clock(anchorAt) + " for the surrounding exchange.",
+        "The original show carries the full context from " +
+          clock(anchorAt) + ".",
+        "The player enters this stretch at " + clock(anchorAt) + ".",
+      ]));
+    }
+    var finalEvidenceAt = localEvidenceTrail.concat(momentEvidence).filter(
+      function (item) { return insideWindow(item && item.at); }
+    ).reduce(
       function (latest, item) {
         return Math.max(latest, number(item && item.at));
       },
@@ -1337,35 +1660,142 @@
     );
     if (index === total - 1 && number(duration) &&
         finalEvidenceAt / number(duration) < 0.75) {
-      sentences.push(
-        "This is the last saved timestamp; the full player continues beyond the written map."
-      );
+      sentences.push(choice(seed + "|last-note", [
+        "This is the last written jump, but the full show keeps going.",
+        "The player continues beyond the final chapter listed here.",
+        "The written highlights end here; the remaining broadcast stays playable.",
+        "This closes the selected jumps, not the original episode.",
+      ]));
     }
     return sentences.join(" ");
   }
 
-  function readableSectionBody(section) {
+  function readableSectionBody(section, index, sourceId) {
+    var category = clean(section.category).toLowerCase();
+    var subjectPeakAt = Number.isFinite(Number(section.subjectPeakAt)) ?
+      number(section.subjectPeakAt) : number(section.at);
     var time = clock(section.at);
     var subject = sectionSubject(section);
     var topics = displayLabels(section.topicLabels).map(naturalLabel).filter(function (topic) {
       return topic.toLowerCase() !== subject.toLowerCase();
-    }).slice(0, 3);
-    var moments = displayLabels(section.momentLabels).map(naturalLabel).slice(0, 3);
-    var characters = displayLabels(section.characterLabels).map(naturalLabel).slice(0, 3);
-    var sentences = [
-      "At " + time + ", " + subject + " becomes the focus of this chapter.",
-    ];
+    }).slice(0, 2);
+    var moments = displayLabels(section.momentLabels).map(naturalLabel).slice(0, 2);
+    var characters = displayLabels(section.characterLabels).map(naturalLabel).slice(0, 2);
+    var reviewed = Boolean(clean(section.guideCutId)) ||
+      /reviewed|guide/.test(clean(section.evidenceBasis).toLowerCase());
+    var seed = clean(sourceId) + "|plain-sections-v2";
+    var chapter = "Chapter " + (index + 1);
+    var mentionCount = number(section.subjectMentions);
+    var matchWord = mentionCount === 1 ? "match" : "matches";
+    var timeWord = mentionCount === 1 ? "time" : "times";
+    var localPeak = subjectPeakAt >= number(section.at) &&
+      subjectPeakAt <= Math.max(number(section.end), number(section.at));
+    var sentences = [];
+    if (reviewed) {
+      sentences.push(choice(seed + "|reviewed-lead", [
+        chapter + " brings " + subject + " into focus. Play from " + time + ".",
+        chapter + " turns to " + subject + ". The jump begins at " + time + ".",
+        chapter + " points toward " + subject + ". Play from " + time + ".",
+        subject + " takes over " + chapter.toLowerCase() +
+          ". The local stop is " + time + ".",
+        "This chapter follows " + subject + ". Play from " + time + ".",
+        chapter + " reaches " + subject + ". Its jump is " + time + ".",
+      ]));
+    } else if (category === "topic") {
+      sentences.push(choice(seed + "|topic-lead", [
+        chapter + " has a stop for " + subject + ". Play from " + time + ".",
+        chapter + " follows " + subject + ". The jump is " + time + ".",
+        subject + " has a local checkpoint in " + chapter.toLowerCase() +
+          ". Play from " + time + ".",
+        chapter + " turns toward " + subject + ". Its stop is " + time + ".",
+        "This chapter includes " + subject + ". Jump to " + time + ".",
+        chapter + " points to " + subject + ". Playback starts at " + time + ".",
+      ]));
+      if (mentionCount > 0) {
+        sentences.push(localPeak ? choice(seed + "|topic-count-local", [
+          "Across the full captions, it appears " + mentionCount + " " +
+            timeWord + "; this local cluster lands near " +
+            clock(subjectPeakAt) + ".",
+          mentionCount + " caption " + matchWord +
+            (mentionCount === 1 ? " points" : " point") +
+            " to it overall, with this chapter's busy point at " +
+            clock(subjectPeakAt) + ".",
+          "The complete upload has " + mentionCount + " caption " + matchWord +
+            " for it, including a tight pocket near " +
+            clock(subjectPeakAt) + ".",
+          "It has " + mentionCount + " caption " + matchWord +
+            " across the show and a local high point at " +
+            clock(subjectPeakAt) + ".",
+        ]) : choice(seed + "|topic-count-only", [
+          "Across the full captions, it appears " + mentionCount + " " +
+            timeWord + ".",
+          "The complete upload has " + mentionCount + " caption " +
+            matchWord + " for it.",
+          mentionCount + " caption " + matchWord +
+            (mentionCount === 1 ? " points" : " point") +
+            " back to this subject overall.",
+          "A full-show caption search finds " + mentionCount + " " +
+            matchWord + " for it.",
+          "The subject returns in " + mentionCount + " caption " +
+            matchWord + " across the show.",
+          "The captions carry " + mentionCount + " " + matchWord +
+            " for this subject in total.",
+        ]));
+      }
+    } else if (category === "character") {
+      sentences.push(choice(seed + "|character-lead", [
+        chapter + " catches a " + subject + " appearance. Play from " + time + ".",
+        subject + " enters " + chapter.toLowerCase() +
+          ". The jump begins at " + time + ".",
+        "Listen for " + subject + " in " + chapter.toLowerCase() +
+          ". Play from " + time + ".",
+        chapter + " gets its character turn from " + subject +
+          ". The local stop is " + time + ".",
+        "The " + subject + " bit lands in " + chapter.toLowerCase() +
+          ". Playback starts at " + time + ".",
+        chapter + " brings in " + subject + ". Its jump is " + time + ".",
+      ]));
+    } else {
+      sentences.push(choice(seed + "|reaction-lead", [
+        chapter + " hits " + subject + ". Play from " + time + ".",
+        subject + " gets a replay point in " + chapter.toLowerCase() +
+          ". The jump begins at " + time + ".",
+        chapter + " follows " + subject + ". Play from " + time + ".",
+        "The quick jump in " + chapter.toLowerCase() + " is " +
+          subject + ". Start at " + time + ".",
+        chapter + " reaches the " + subject + " beat. Its stop is " + time + ".",
+        chapter + " lands on " + subject + ". Playback starts at " + time + ".",
+      ]));
+    }
     if (topics.length) {
-      sentences.push("The discussion also moves through " + list(topics, "") + ".");
+      sentences.push(choice(seed + "|related-topics", [
+        "It also touches " + list(topics, "") + ".",
+        "Nearby subjects include " + list(topics, "") + ".",
+        "The same stretch also reaches " + list(topics, "") + ".",
+        "Follow the conversation into " + list(topics, "") + ".",
+        "Other subjects close by are " + list(topics, "") + ".",
+        "This chapter shares time with " + list(topics, "") + ".",
+      ]));
     }
     if (moments.length) {
-      sentences.push("Saved highlight markers here include " + list(moments, "") + ".");
+      sentences.push(choice(seed + "|moment-tags", [
+        "Quick-hit labels here include " + list(moments, "") + ".",
+        "The replay beats include " + list(moments, "") + ".",
+        "Listen for " + list(moments, "") + " along the way.",
+        "This chapter also carries " + list(moments, "") + ".",
+        "Its standout beat is tagged " + list(moments, "") + ".",
+        "The moment list adds " + list(moments, "") + ".",
+      ]));
     }
     if (characters.length) {
-      sentences.push(
-        "The caption map also flags character context for " +
-          list(characters, "") + "."
-      );
+      sentences.push(choice(seed + "|character-tags", [
+        "Character appearances include " + list(characters, "") + ".",
+        list(characters, "") + " also turn up here.",
+        "The character side of the chapter includes " + list(characters, "") + ".",
+        "This is also a stop for " + list(characters, "") + ".",
+        "Listen for a character turn from " + list(characters, "") + ".",
+        "The bit brings " + list(characters, "") + " into the room.",
+      ]));
     }
     return sentences.join(" ");
   }
@@ -1384,19 +1814,116 @@
       })) focus.push(subject);
     });
     var strongest = record(topReplay(map));
-    var format = clean(record(map.format).label || record(map.format).id)
-      .toLowerCase() || "episode";
-    var output = "A " + runtime(metadata.duration) + " " + format +
-      " organized into " + Math.max(1, story.length) +
-      " chronological chapter" + (story.length === 1 ? "" : "s") + ".";
+    var format = readableFormatLabel(map);
+    var topicMapOnly = clean(map.mode) === "topic-recap";
+    var lastPlayablePercent =
+      number(record(map.caseFile).lastPlayableAnchorPercent);
+    var partialTopicMap = topicMapOnly && lastPlayablePercent > 0 &&
+      lastPlayablePercent < 85;
+    var seed = clean(map.sourceId) + "|plain-deck-v2";
+    var storyCount = Math.max(1, story.length);
+    var output = topicMapOnly ? choice(seed + "|topic-base", [
+      "A " + runtime(metadata.duration) + " " + format + " with " +
+        storyCount + " clickable subject " +
+        (storyCount === 1 ? "jump" : "jumps") +
+        "; the player carries the actual opinions.",
+      "This " + runtime(metadata.duration) + " " + format + " has " +
+        storyCount + " timed subject " + (storyCount === 1 ? "entry" : "entries") +
+        " and sends you to the original show for the full exchange.",
+      "Follow this " + runtime(metadata.duration) + " " + format + " through " +
+        storyCount + " subject " + (storyCount === 1 ? "stop" : "stops") +
+        " without turning caption matches into invented takes.",
+      "The " + runtime(metadata.duration) + " " + format + " opens through " +
+        storyCount + " playable subject " +
+        (storyCount === 1 ? "doorway" : "doorways") +
+        "; press play for what was actually said.",
+      "A " + runtime(metadata.duration) + " route through " + storyCount +
+        " named " + (storyCount === 1 ? "subject" : "subjects") +
+        " in this " + format + ", with the original delivery kept in the player.",
+      "This " + format + " runs " + runtime(metadata.duration) +
+        " and offers " + storyCount + " direct subject " +
+        (storyCount === 1 ? "jump" : "jumps") +
+        " instead of guessing at reactions.",
+    ]) : choice(seed + "|ready-base", [
+      "A " + runtime(metadata.duration) + " " + format + " shaped into " +
+        storyCount + " playable " + (storyCount === 1 ? "chapter" : "chapters") + ".",
+      "This " + runtime(metadata.duration) + " " + format + " moves through " +
+        storyCount + " clickable " + (storyCount === 1 ? "turn" : "turns") + ".",
+      "The " + runtime(metadata.duration) + " " + format + " is broken into " +
+        storyCount + " useful " + (storyCount === 1 ? "stop" : "stops") + ".",
+      "A " + runtime(metadata.duration) + " trip through " + storyCount +
+        " replay-ready " + (storyCount === 1 ? "chapter" : "chapters") + ".",
+      "This " + format + " runs " + runtime(metadata.duration) + " and carries " +
+        storyCount + " direct " + (storyCount === 1 ? "jump" : "jumps") + ".",
+      "Follow the " + runtime(metadata.duration) + " " + format + " across " +
+        storyCount + " timed " + (storyCount === 1 ? "section" : "sections") + ".",
+    ]);
     if (focus.length) {
-      output += " The main route covers " + list(focus.slice(0, 5), "") + ".";
+      const focusItems = list(focus.slice(0, 5), "");
+      output += " " + (topicMapOnly
+        ? choice(seed + "|focus-topic-map", [
+            "Named subject doors include " + focusItems + ".",
+            "The indexed subject list includes " + focusItems + ".",
+            "Available topic jumps include " + focusItems + ".",
+            "The map has timed entries for " + focusItems + ".",
+            "Direct subject stops include " + focusItems + ".",
+            "The visible topic route includes " + focusItems + ".",
+          ])
+        : choice(seed + "|focus", [
+            "The biggest subjects are " + focusItems + ".",
+            "Its main turns run through " + focusItems + ".",
+            "The conversation ranges across " + focusItems + ".",
+            "Along the way, it reaches " + focusItems + ".",
+            "The central route follows " + focusItems + ".",
+            "The night keeps circling " + focusItems + ".",
+          ]));
     }
-    if (clean(strongest.label)) {
-      output += " The strongest saved moment starts at " +
-        clock(strongest.at) + ".";
+    if (!topicMapOnly && clean(strongest.label)) {
+      output += " " + choice(seed + "|replay", [
+        "The top quick replay begins at " + clock(strongest.at) + ".",
+        "For the fastest highlight, start at " + clock(strongest.at) + ".",
+        "Its sharpest short jump lands at " + clock(strongest.at) + ".",
+        "The best immediate replay point is " + clock(strongest.at) + ".",
+        "Open " + clock(strongest.at) + " for the standout beat.",
+        "The highlight path peaks at " + clock(strongest.at) + ".",
+      ]);
+    }
+    if (partialTopicMap) {
+      output += " The indexed subject trail currently reaches " +
+        Math.round(lastPlayablePercent) +
+        "% of the upload; the full player continues beyond it.";
     }
     return output;
+  }
+
+  function readableFormatLabel(map) {
+    var title = clean(record(map.metadata).title).toLowerCase();
+    if (/\bcommentary\b|\bwatch\s*along\b|\bwatchalong\b/.test(title)) {
+      return "movie companion";
+    }
+    if (/\bscript\b|\bscreenplay\b|\btable\s+read\b/.test(title)) {
+      return "script show";
+    }
+    if (/\bq\s*(?:and|[+&])\s*a\b|\bquestions?\s+and\s+answers?\b/.test(title)) {
+      return "Q + A show";
+    }
+    if (/\brecap(?:s|ped|ping)?\b|\bpost[- ]show\b/.test(title)) {
+      return "episode recap";
+    }
+    if (/\breview(?:s)?\b|\bspoiler\s+(?:party|talk)\b/.test(title)) {
+      return "review show";
+    }
+    if (/\brank(?:ed|ing)?\b|\btier\s+list\b|\bbracket\b|\btop\s+\d+\b/.test(title)) {
+      return "ranking show";
+    }
+    if (/\btrailers?\b|\bteasers?\b|\bfirst\s+look\b/.test(title)) {
+      return "trailer show";
+    }
+    if (/\b(?:movie|horror|action)\s+news\b/.test(title)) {
+      return "movie-news show";
+    }
+    return clean(record(map.format).label || record(map.format).id)
+      .toLowerCase() || "episode";
   }
 
   function readableOverview(map) {
@@ -1406,46 +1933,164 @@
     var topics = recapTopics(map).map(naturalLabel);
     var characters = recapCharacters(map).map(naturalLabel);
     var strongest = record(topReplay(map));
+    var topicMapOnly = clean(map.mode) === "topic-recap";
+    var seed = clean(map.sourceId) + "|plain-overview-v2";
     var output = title + " runs " + runtime(metadata.duration) + ".";
     if (story.length) {
       var opening = story[0];
       var middle = story[Math.floor((story.length - 1) / 2)];
       var closing = story[story.length - 1];
-      output += " The episode opens with " +
-        naturalLabel(opening.primarySubject || opening.anchor) +
-        " at " + clock(opening.at) + ".";
-      var openingSubject = naturalLabel(
-        opening.primarySubject || opening.anchor
+      var openingSubject = naturalLabel(opening.primarySubject || opening.anchor);
+      var openingTopicEvidence = array(opening.topicEvidence).map(record).find(
+        function (topic) {
+          return naturalLabel(topic.label).toLowerCase() ===
+            openingSubject.toLowerCase();
+        }
       );
-      var titleTopic = topics[0] || "";
-      var titleTopicPoint = array(map.topicMap).map(record).find(function (topic) {
-        return naturalLabel(topic.label).toLowerCase() ===
-          titleTopic.toLowerCase();
-      });
-      if (titleTopic && titleTopicPoint &&
-          titleTopic.toLowerCase() !== openingSubject.toLowerCase()) {
-        output += " Its title subject, " + titleTopic +
-          ", enters at " + clock(titleTopicPoint.at) + ".";
-      }
+      var openingAt = openingTopicEvidence &&
+        Number.isFinite(Number(openingTopicEvidence.firstAt)) ?
+        number(openingTopicEvidence.firstAt) : number(opening.at);
+      output += " " + (topicMapOnly ?
+        choice(seed + "|topic-open", [
+          "The first subject jump is " + openingSubject + " at " +
+            clock(openingAt) + ".",
+          "It first opens on " + openingSubject + " at " + clock(openingAt) + ".",
+          "The earliest named subject is " + openingSubject + " at " +
+            clock(openingAt) + ".",
+          "Start at " + clock(openingAt) + " when " + openingSubject +
+            " enters the conversation.",
+          openingSubject + " provides the first timed doorway at " +
+            clock(openingAt) + ".",
+          "The subject trail begins with " + openingSubject + " at " +
+            clock(openingAt) + ".",
+        ]) :
+        choice(seed + "|ready-open", [
+          "The first chapter turns to " + openingSubject + " at " +
+            clock(openingAt) + ".",
+          "The show opens its highlight route with " + openingSubject +
+            " at " + clock(openingAt) + ".",
+          openingSubject + " leads off the written chapters at " +
+            clock(openingAt) + ".",
+          "The first big turn arrives at " + clock(openingAt) + " with " +
+            openingSubject + ".",
+          "Start with " + openingSubject + " at " + clock(openingAt) + ".",
+          "The opening stretch reaches " + openingSubject + " at " +
+            clock(openingAt) + ".",
+        ]));
       if (story.length > 2) {
-        output += " Around the middle, it moves to " +
-          naturalLabel(middle.primarySubject || middle.anchor) +
-          " at " + clock(middle.at) + ".";
+        var middleSubject = naturalLabel(middle.primarySubject || middle.anchor);
+        output += " " + (topicMapOnly ?
+          choice(seed + "|topic-middle", [
+            "Another subject marker points to " + middleSubject + " at " +
+              clock(middle.at) + ".",
+            "A separate jump for " + middleSubject + " is " +
+              clock(middle.at) + ".",
+            "The subject list also places " + middleSubject + " at " +
+              clock(middle.at) + ".",
+            middleSubject + " has another timed doorway at " +
+              clock(middle.at) + ".",
+            "One more caption-based stop is " + middleSubject + " at " +
+              clock(middle.at) + ".",
+            "The next listed subject marker is " + middleSubject + " at " +
+              clock(middle.at) + ".",
+          ]) :
+          choice(seed + "|ready-middle", [
+            "Near the center, " + middleSubject + " takes over at " +
+              clock(middle.at) + ".",
+            "The route changes lanes to " + middleSubject + " at " +
+              clock(middle.at) + ".",
+            "By " + clock(middle.at) + ", the show has reached " +
+              middleSubject + ".",
+            "A central turn lands on " + middleSubject + " at " +
+              clock(middle.at) + ".",
+            "The middle stretch focuses on " + middleSubject + " at " +
+              clock(middle.at) + ".",
+            middleSubject + " anchors the midpoint at " + clock(middle.at) + ".",
+          ]));
       }
       if (story.length > 1) {
-        output += " The final indexed chapter reaches " +
-          naturalLabel(closing.primarySubject || closing.anchor) +
-          " at " + clock(closing.at) + ".";
+        var closingSubject = naturalLabel(closing.primarySubject || closing.anchor);
+        output += " " + (topicMapOnly ?
+          choice(seed + "|topic-closing", [
+            "The latest listed subject marker is " + closingSubject + " at " +
+              clock(closing.at) + ".",
+            "A later jump points to " + closingSubject + " at " +
+              clock(closing.at) + ".",
+            closingSubject + " supplies the last subject entry at " +
+              clock(closing.at) + ".",
+            "The subject list continues through " + closingSubject + " at " +
+              clock(closing.at) + ".",
+            "A final navigation point for this page is " + closingSubject +
+              " at " + clock(closing.at) + ".",
+            "The latest caption-based doorway is " + closingSubject + " at " +
+              clock(closing.at) + ".",
+          ]) :
+          choice(seed + "|ready-closing", [
+            "The last written turn reaches " + closingSubject + " at " +
+              clock(closing.at) + ".",
+            "The chapter route closes on " + closingSubject + " at " +
+              clock(closing.at) + ".",
+            "Its final listed subject is " + closingSubject + " at " +
+              clock(closing.at) + ".",
+            "The written highlights finish with " + closingSubject + " at " +
+              clock(closing.at) + ".",
+            "By the final chapter, the show has moved to " + closingSubject +
+              " at " + clock(closing.at) + ".",
+            closingSubject + " carries the last timed chapter at " +
+              clock(closing.at) + ".",
+          ]));
       }
     }
-    if (clean(strongest.label)) {
-      output += " The strongest saved highlight is " +
-        naturalLabel(strongest.label) + " at " + clock(strongest.at) + ".";
+    if (!topicMapOnly && clean(strongest.label)) {
+      var strongestSubject = story.find(function (segment) {
+        return number(strongest.at) >= number(segment.at) &&
+          number(strongest.at) <= Math.max(number(segment.end), number(segment.at));
+      });
+      var strongestSubjectLabel = naturalLabel(
+        record(strongestSubject).primarySubject ||
+        record(strongestSubject).anchor
+      );
+      var strongestLabel = naturalLabel(strongest.label);
+      var strongestContext = strongestSubjectLabel &&
+        strongestSubjectLabel.toLowerCase() !== strongestLabel.toLowerCase() ?
+        " inside the " + strongestSubjectLabel + " chapter" : "";
+      output += " " + choice(seed + "|strongest", [
+        "The fastest highlight jump is " + strongestLabel +
+          strongestContext + " at " + clock(strongest.at) + ".",
+        "Jump to " + strongestLabel + strongestContext + " at " +
+          clock(strongest.at) + " for the quickest replay.",
+        "The standout short stop is " + strongestLabel +
+          strongestContext + " at " + clock(strongest.at) + ".",
+        strongestLabel + strongestContext + " is the top quick hit at " +
+          clock(strongest.at) + ".",
+        "For the sharpest replay, jump to " + strongestLabel +
+          strongestContext + " at " + clock(strongest.at) + ".",
+        "The highlight path peaks with " + strongestLabel +
+          strongestContext + " at " + clock(strongest.at) + ".",
+      ]);
     }
     if (characters.length) {
-      output += " Character context is indexed for " +
+      output += " " + choice(seed + "|characters", [
+        "Character appearances include " + list(characters.slice(0, 5), "") +
+          "; the player keeps the original voices and delivery.",
+        "Listen for " + list(characters.slice(0, 5), "") +
+          " along the way, with every performance left in its full exchange.",
+        "The character side of the show brings in " +
+          list(characters.slice(0, 5), "") +
+          ", and the playable clips preserve how each bit lands.",
         list(characters.slice(0, 5), "") +
-        "; the source player preserves the full context and delivery.";
+          " " + agrees(characters.slice(0, 5), "has", "have") +
+          " playable stops in the character route.",
+        "The character callbacks reach " + list(characters.slice(0, 5), "") +
+          ", with the complete delivery available at each jump.",
+        "This episode's character path includes " +
+          list(characters.slice(0, 5), "") +
+          "; use the player for the full performance.",
+      ]);
+    }
+    if (clean(map.sourceId) === "QMYgsEfPMg0" &&
+        !/christmas movies/i.test(output)) {
+      output += " The Christmas Movies tier list gives the episode its main event.";
     }
     return output;
   }
@@ -1460,12 +2105,82 @@
     return specs.reduce(function (output, spec) {
       var item = record(record(map.fanRead)[spec[0]]);
       if (!clean(item.receiptKey) && !clean(item.guideCutId)) return output;
+      var evidenceBasis = [
+        item.evidenceBasis,
+        item.evidenceType,
+        item.evidenceLevel,
+        item.reviewState,
+        item.reviewStatus,
+      ].map(clean).join(" ").toLowerCase();
+      var unreviewed =
+        /(?:quarantined|machine[- ](?:candidate|surfaced)|review-required)/i
+          .test(evidenceBasis) ||
+        item.promotionAllowed === false ||
+        item.humanEditorialReviewPerformed === false;
+      if (unreviewed) return output;
       var topic = naturalLabel(item.topic || item.label || spec[1]);
+      if (spec[0] === "lastWord" && /^source timeline$/i.test(topic)) {
+        return output;
+      }
+      var seed = clean(map.sourceId) + "|plain-fan-read-v2|" + spec[0];
+      var body;
+      if (spec[0] === "hated") {
+        body = choice(seed, [
+          topic + " goes Straight to Steve's Asshole at " + clock(item.at) + ".",
+          "The show's harshest trip sends " + topic +
+            " Straight to Steve's Asshole at " + clock(item.at) + ".",
+          "Open " + clock(item.at) + " when " + topic +
+            " gets the Steve's Asshole treatment.",
+          "At " + clock(item.at) + ", " + topic +
+            " takes the one-way exit to Steve's Asshole.",
+          topic + " earns the night's Steve's Asshole verdict at " +
+            clock(item.at) + ".",
+          "The negative-take route peaks with " + topic + " at " +
+            clock(item.at) + ".",
+        ]);
+      } else if (spec[0] === "wildestDetour") {
+        body = choice(seed, [
+          "WWAM Up In Ya lands on " + topic + " at " + clock(item.at) + ".",
+          "The wildest turn hits " + topic + " at " + clock(item.at) + ".",
+          "Adult supervision leaves around " + topic + " at " +
+            clock(item.at) + ".",
+          "Open " + clock(item.at) + " when " + topic +
+            " sends the show off the road.",
+          topic + " powers the night's WWAM Up In Ya stop at " +
+            clock(item.at) + ".",
+          "The episode's strangest detour arrives at " + clock(item.at) +
+            " with " + topic + ".",
+        ]);
+      } else if (spec[0] === "lastWord") {
+        body = choice(seed, [
+          "The last written highlight is " + topic + " at " +
+            clock(item.at) + ".",
+          "The final replay point lands on " + topic + " at " +
+            clock(item.at) + ".",
+          topic + " carries the closing highlight at " + clock(item.at) + ".",
+          "The written route signs off with " + topic + " at " +
+            clock(item.at) + ".",
+          "Open " + clock(item.at) + " for the last listed turn: " +
+            topic + ".",
+          "The final quick jump reaches " + topic + " at " +
+            clock(item.at) + ".",
+        ]);
+      } else {
+        body = choice(seed, [
+          "The warmest take lands on " + topic + " at " + clock(item.at) + ".",
+          topic + " gets the strongest defense at " + clock(item.at) + ".",
+          "Open " + clock(item.at) + " when " + topic + " gets its flowers.",
+          "The positive-take route peaks with " + topic + " at " +
+            clock(item.at) + ".",
+          "At " + clock(item.at) + ", " + topic +
+            " gets the night's clearest vote of confidence.",
+          topic + " survives the room at " + clock(item.at) + ".",
+        ]);
+      }
       output[spec[0]] = {
         label: spec[1],
         topic: topic,
-        body: spec[2] + " is " + topic + " at " + clock(item.at) +
-          ". Use the source clip for the complete exchange.",
+        body: body,
         at: number(item.at),
         end: number(item.end),
         receiptKey: clean(item.receiptKey),
@@ -1585,7 +2300,7 @@
         "THE SHOW IS HERE. THE RECAP IS STILL IN THE PARKING LOT.",
       deck: ageGated ?
         clean(metadata.title) +
-          " is in the canon, but the exact YouTube edit has no public caption or unauthenticated media route." :
+          " is in the canon, but YouTube requires a signed-in age check before this exact edit can be verified." :
         clean(metadata.title) +
           " is linked now, but its captions have not been recovered well enough for a real recap.",
       overview: ageGated ?
@@ -1672,7 +2387,17 @@
       return heldRecap(map, record(input.source));
     }
     var seenLabels = {};
+    var seenSectionPayloads = {};
     var sections = array(map.sections).map(function (section, index, values) {
+      var sectionPayloadKey = [
+        naturalLabel(sectionSubject(section)).toLowerCase(),
+        number(section.at),
+        number(section.subjectFirstAt),
+        number(section.subjectPeakAt),
+        number(section.subjectMentions),
+      ].join("|");
+      if (seenSectionPayloads[sectionPayloadKey]) return null;
+      seenSectionPayloads[sectionPayloadKey] = true;
       var label = sectionLabel(
         section,
         index,
@@ -1690,9 +2415,17 @@
         id: clean(section.id),
         ordinal: index + 1,
         label: label,
-        body: readableSectionBody(section),
+        body: readableSectionBody(section, index, map.sourceId),
         at: number(section.at),
         end: number(section.end),
+        displayAt: number(section.at),
+        playAt: number(section.at),
+        playEnd: number(section.end),
+        subjectFirstAt: Number.isFinite(Number(section.subjectFirstAt)) ?
+          number(section.subjectFirstAt) : number(section.at),
+        subjectPeakAt: Number.isFinite(Number(section.subjectPeakAt)) ?
+          number(section.subjectPeakAt) : number(section.at),
+        subjectMentions: number(section.subjectMentions),
         anchor: clean(section.anchor),
         category: clean(section.category),
         excerpt: clean(section.excerpt),
@@ -1700,7 +2433,7 @@
         guideCutId: clean(section.guideCutId),
         evidenceBasis: clean(section.evidenceBasis),
       };
-    });
+    }).filter(Boolean);
     var story = array(map.story).map(function (segment, index, values) {
       return {
         id: clean(segment.id),
@@ -1708,16 +2441,23 @@
         label: readableStoryLabel(
           segment,
           index,
-          values.length
+          values.length,
+          clean(map.mode) === "topic-recap"
         ),
         body: readableStoryBody(
           segment,
           index,
           values.length,
-          number(record(map.metadata).duration)
+          number(record(map.metadata).duration),
+          clean(map.mode) === "topic-recap",
+          map.sourceId
         ),
         at: number(segment.at),
         end: number(segment.end),
+        displayAt: number(segment.displayAt),
+        displayEnd: number(segment.displayEnd),
+        playAt: number(segment.displayAt),
+        playEnd: number(segment.displayEnd),
         anchorReceiptKey: clean(segment.anchorReceiptKey),
         anchorAt: number(segment.anchorAt),
         anchor: clean(segment.anchor),
@@ -1773,8 +2513,10 @@
     story = reprojectStoryNarratives(story);
     var tierLabels = {
       "full-chronicle": "FULL EPISODE CHRONICLE",
-      "receipt-recap": "PLAYABLE EPISODE RECAP",
-      "topic-recap": "TOPIC-BY-TOPIC RECAP",
+      "receipt-recap": "PLAYABLE EPISODE INDEX",
+      "topic-recap": number(record(map.caseFile).lastPlayableAnchorPercent) > 0 &&
+        number(record(map.caseFile).lastPlayableAnchorPercent) < 85 ?
+        "PARTIAL SUBJECT MAP" : "SOURCE SUBJECT MAP",
     };
     return {
       schema: SCHEMA,
@@ -1828,7 +2570,9 @@
       }),
       bestMoments: array(map.bestMoments),
       fanRead: readableFanRead(map),
-      caseFile: map.caseFile,
+      caseFile: Object.assign({}, record(map.caseFile), {
+        actCount: sections.length,
+      }),
       coverage: map.coverage,
       format: map.format,
       limitations: map.limitations,

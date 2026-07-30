@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.14.3";
+  var VERSION = "1.15.2";
   var SCHEMA = "shokker-source-dossier-input/v1";
   var PUBLIC_EXCERPT_WORDS = 16;
   var OFFICIAL_WWAM_CHANNEL_ID = "UC6ieEOZW4iXV8TcILJI8k5g";
@@ -67,6 +67,25 @@
 
   function clone(value) {
     return value == null ? value : JSON.parse(JSON.stringify(value));
+  }
+
+  function registeredRawContentMode(values) {
+    var output = null;
+    array(values).some(function (value) {
+      if (!value || typeof value !== "object") return false;
+      if (Object.prototype.hasOwnProperty.call(value, "rawContentMode")) {
+        output = value.rawContentMode == null
+          ? null
+          : String(value.rawContentMode);
+        return true;
+      }
+      if (Object.prototype.hasOwnProperty.call(value, "contentMode")) {
+        output = value.contentMode == null ? null : String(value.contentMode);
+        return true;
+      }
+      return false;
+    });
+    return output;
   }
 
   function words(value) {
@@ -622,7 +641,7 @@
     });
   }
 
-  function titleTopicReceipt(source, topic, index) {
+  function titleTopicReceipt(source, topic, index, restricted) {
     var firstAt = numberOrNull(topic && topic.firstAt);
     var peakAt = numberOrNull(topic && topic.peakAt);
     var at = peakAt == null ? firstAt : peakAt;
@@ -639,7 +658,7 @@
           index,
         ].join(":"),
         t: at,
-        excerpt: topic.excerpt,
+        excerpt: restricted ? "" : topic.excerpt,
       },
       source,
       {
@@ -647,10 +666,14 @@
         label: label,
         evidenceLevel: "machine",
         evidenceType: "caption-title-topic-receipt",
-        evidenceBasis: clean(topic.evidenceBasis) ||
-          "official-title-subject-confirmed-in-source-local-captions",
-        reviewState: "source-bounded-title-topic",
-        publicExcerptAllowed: true,
+        evidenceBasis: restricted
+          ? "restricted-title-subject-caption-navigation"
+          : clean(topic.evidenceBasis) ||
+            "official-title-subject-confirmed-in-source-local-captions",
+        reviewState: restricted
+          ? "quarantined-topic-navigation"
+          : "source-bounded-title-topic",
+        publicExcerptAllowed: !restricted,
         signalScore: boundedSignal(topic.mentions),
         signalBasis: "exact-title-subject-caption-mention-count-bounded",
         topicMentions: topic.mentions,
@@ -664,9 +687,9 @@
     );
   }
 
-  function mergeTitleTopicReceipts(source, receipts, topics) {
+  function mergeTitleTopicReceipts(source, receipts, topics, restricted) {
     var additions = array(topics).map(function (topic, index) {
-      return titleTopicReceipt(source, topic, index);
+      return titleTopicReceipt(source, topic, index, restricted);
     }).filter(Boolean);
     if (!additions.length) return receipts;
     var labels = new Set(additions.map(function (receipt) {
@@ -676,6 +699,32 @@
       var isTopic = normalized(receipt.kind).indexOf("topic") >= 0;
       return !isTopic || !labels.has(normalized(receipt.label));
     }).concat(additions);
+  }
+
+  function restrictedTopicNavigationReceipts(receipts) {
+    return array(receipts).filter(function (receipt) {
+      return normalized(receipt.kind).indexOf("topic") >= 0 ||
+        normalized(receipt.evidenceType).indexOf("topic") >= 0;
+    }).map(function (receipt) {
+      var titleTopic =
+        receipt.evidenceType === "caption-title-topic-receipt";
+      return Object.assign({}, receipt, {
+        kind: "topic-navigation",
+        excerpt: "",
+        evidenceType: titleTopic
+          ? "caption-title-topic-receipt"
+          : "caption-topic-navigation",
+        evidenceBasis: titleTopic
+          ? clean(receipt.evidenceBasis) ||
+            "restricted-title-subject-caption-navigation"
+          : "restricted-topic-navigation",
+        reviewState: "quarantined-topic-navigation",
+        speaker: null,
+        speakerStatus: "not-diarized",
+        promotionAllowed: false,
+        publicExcerptAllowed: false,
+      });
+    });
   }
 
   function stableReceipts(receipts) {
@@ -1649,6 +1698,41 @@
     });
   }
 
+  function enforceRestrictedArtifactFirewall(sources) {
+    var restrictedSourceIds = new Set(array(sources).filter(function (source) {
+      return source &&
+        source.rightsPolicy &&
+        source.rightsPolicy.restrictedToTopicNavigation;
+    }).map(function (source) {
+      return source.id;
+    }));
+    if (!restrictedSourceIds.size) return;
+
+    array(sources).forEach(function (source) {
+      source.artifacts = array(source.artifacts).filter(function (artifact) {
+        return !array(artifact.sourceIds).some(function (sourceId) {
+          return restrictedSourceIds.has(sourceId);
+        });
+      });
+      if (!source.metrics) return;
+      source.metrics.takeTimeMachines = source.artifacts.filter(function (artifact) {
+        return artifact.kind === "take-time-machine";
+      }).length;
+      source.metrics.bitLineages = source.artifacts.filter(function (artifact) {
+        return artifact.kind === "bit-lineage";
+      }).length;
+      source.metrics.shorts = source.artifacts.filter(function (artifact) {
+        return artifact.kind === "creator-short";
+      }).length;
+      source.metrics.supercuts = source.artifacts.filter(function (artifact) {
+        return artifact.kind === "creator-supercut";
+      }).length;
+      source.metrics.resurfacing = source.artifacts.filter(function (artifact) {
+        return artifact.kind === "creator-resurfacing";
+      }).length;
+    });
+  }
+
   function buildEntityDefinitions(dna, showcase) {
     var definitions = [];
     var byId = new Map();
@@ -1825,6 +1909,58 @@
       visualClaimsAllowed: false,
       promotionAllowed: false,
     };
+  }
+
+  function canonicalFormatClassification(source, policy) {
+    var registry = root.WWAMEpisodeFormatContracts;
+    if (!registry || typeof registry.classify !== "function") return null;
+    var classification = registry.classify({
+      id: source.id,
+      title: source.title,
+      displayTitle: source.displayTitle,
+      sourceType: source.sourceType,
+      rawContentMode: source.rawContentMode,
+      rightsPolicy: policy,
+    });
+    var regressions = typeof registry.rightsRegressions === "function"
+      ? registry.rightsRegressions(policy, classification.rightsPolicy)
+      : [];
+    if (regressions.length) {
+      fail(
+        "FORMAT_RIGHTS_REGRESSION",
+        "Episode format classification relaxed canonical rights for " +
+          source.id + ": " + regressions.join(", ") + "."
+      );
+    }
+    return classification;
+  }
+
+  function assertCanonicalFormatCoverage(sources) {
+    var registry = root.WWAMEpisodeFormatContracts;
+    if (!registry || typeof registry.driftReport !== "function") return;
+    var missing = array(sources).filter(function (source) {
+      return !source.runtimeFormat || !source.runtimeFormat.id ||
+        !source.subtype || !source.subtype.id ||
+        !source.formatContract || !source.formatContract.id;
+    });
+    if (missing.length) {
+      fail(
+        "FORMAT_CLASSIFICATION_INCOMPLETE",
+        "The canonical format registry did not classify " +
+          missing.length + " source(s)."
+      );
+    }
+    var report = registry.driftReport(sources);
+    if (report.classified !== sources.length ||
+        report.rightsRegressions.length) {
+      fail(
+        "FORMAT_CLASSIFICATION_DRIFT",
+        "The canonical format drift gate failed: " +
+          report.classified + "/" + sources.length +
+          " classified, " + report.rightsRegressions.length +
+          " rights regression(s)."
+      );
+    }
   }
 
   function warningsFor(source, archiveStream, receipts) {
@@ -2235,6 +2371,13 @@
         authority: authority,
         lanes: base.lanes,
         sourceType: catalogItem ? "commentary" : "livestream",
+        rawContentMode: registeredRawContentMode([
+          archiveStream,
+          commentaryTape,
+          liveStream,
+          popularStream,
+          showcaseSource,
+        ]),
         wordsAudited: number(
           archiveStream && archiveStream.wordsAudited ||
           commentaryTape && commentaryTape.wordsAudited ||
@@ -2253,6 +2396,21 @@
           commentaryTape && commentaryTape.episodeGuide ||
           null
       );
+      var policy = rightsPolicy(source, archiveStream);
+      var formatClassification = canonicalFormatClassification(source, policy);
+      if (formatClassification) {
+        policy = clone(formatClassification.rightsPolicy);
+        source.runtimeFormat = clone(formatClassification.runtimeFormat);
+        source.subtype = clone(formatClassification.subtype);
+        source.formatContract = {
+          id: formatClassification.contractId,
+          schema: formatClassification.schema,
+          registryVersion: formatClassification.registryVersion,
+          classificationBasis: clone(
+            formatClassification.classificationBasis
+          ),
+        };
+      }
 
       var summaryText = "";
       var summaryBasis = "";
@@ -2281,10 +2439,7 @@
 
       var receipts = [];
       if (archiveStream && source.coverage === "caption-backed") {
-        var restricted = Boolean(
-          archiveStream.rightsPolicy &&
-          archiveStream.rightsPolicy.restrictedToTopicNavigation
-        );
+        var restricted = Boolean(policy.restrictedToTopicNavigation);
         array(archiveStream.topics).forEach(function (topic, index) {
           receipts.push(rawTopicReceipt(
             source,
@@ -2357,7 +2512,8 @@
         receipts = mergeTitleTopicReceipts(
           source,
           receipts,
-          titleTopicBySource.get(source.id) || []
+          titleTopicBySource.get(source.id) || [],
+          Boolean(policy.restrictedToTopicNavigation)
         );
         receipts = receipts.concat(timelineReceipts(source, overlay));
         var reviewedSteveReceipt = reviewedGuideSteveReceipt(
@@ -2365,6 +2521,9 @@
           source.episodeGuide
         );
         if (reviewedSteveReceipt) receipts.push(reviewedSteveReceipt);
+      }
+      if (policy.restrictedToTopicNavigation) {
+        receipts = restrictedTopicNavigationReceipts(receipts);
       }
       receipts = stableReceipts(receipts);
       var showWiki = showWikiFor(
@@ -2442,11 +2601,10 @@
         catalogItem,
         entityRegistry
       );
-      var artifactCollections = clone(
-        artifactBySource.get(id) || emptyArtifacts()
-      );
+      var artifactCollections = policy.restrictedToTopicNavigation
+        ? emptyArtifacts()
+        : clone(artifactBySource.get(id) || emptyArtifacts());
       var artifacts = flattenArtifacts(artifactCollections);
-      var policy = rightsPolicy(source, archiveStream);
       var warnings = warningsFor(source, archiveStream, receipts);
       var metrics = metricsFor(
         source,
@@ -2466,6 +2624,9 @@
     }).sort(function (left, right) {
       return right.date.localeCompare(left.date) || left.id.localeCompare(right.id);
     });
+
+    enforceRestrictedArtifactFirewall(sources);
+    assertCanonicalFormatCoverage(sources);
 
     var receiptTotal = sources.reduce(function (total, source) {
       return total + source.receipts.length;
