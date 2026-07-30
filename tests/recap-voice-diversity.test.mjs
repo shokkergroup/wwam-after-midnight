@@ -61,7 +61,7 @@ test("all ready recaps are covered by the reusable voice audit", () => {
   const result = report();
   const expectedReady = expectedReadyCount();
 
-  assert.equal(result.schema, "wwam-recap-voice-diversity-audit/v1");
+  assert.equal(result.schema, "wwam-recap-readability-audit/v2");
   assert.equal(result.corpus.ready, expectedReady);
   assert.equal(result.cohorts.storyOpening.eligibleRecaps, expectedReady);
   assert.equal(result.cohorts.storyFinal.eligibleRecaps, expectedReady);
@@ -72,20 +72,50 @@ test("all ready recaps are covered by the reusable voice audit", () => {
   );
 });
 
-test("no story opening, bridge, or final mold owns more than ten percent", () => {
+test("clear deterministic prose replaces randomized template diversity", () => {
   const result = report();
 
-  assert.equal(result.gates.storyOpening.pass, true);
-  assert.equal(result.gates.storyBridge.pass, true);
-  assert.equal(result.gates.storyFinal.pass, true);
-  assert.equal(
-    result.cohorts.sectionOpening.dominantSentencePercent <=
-      result.thresholds.maxDominantMoldPercent,
-    true,
-  );
+  assert.ok(result.cohorts.storyOpening.dominantRecapPercent > 10);
+  assert.ok(result.cohorts.storyBridge.dominantRecapPercent > 10);
+  assert.equal(result.gates.noRawCaptionMarkers, true);
+  assert.equal(result.gates.noForbiddenMetaphors, true);
+  assert.equal(result.gates.noRawExcerptReuse, true);
+  assert.equal(result.gates.noQuoteSalad, true);
+  assert.equal(result.gates.noAgainSuffixes, true);
+  assert.equal(result.gates.noSpeakerOverclaims, true);
+  assert.equal(result.gates.noFirewallCopy, true);
   assert.equal(result.flags.dryInventory.occurrences, 0);
   assert.deepEqual(result.flags.repeatedDisclaimers.moldsOverLimit, []);
   assert.equal(result.flags.machineRoomJargon.occurrences, 0);
   assert.equal(result.flags.formatInappropriate.occurrences, 0);
   assert.equal(result.pass, true);
+});
+
+test("readability gate catches caption debris, quote salad, and attribution firewalls", () => {
+  const [compiled] = compileReadyRecaps();
+  const file = structuredClone(compiled);
+  const receipt = file.source.receipts[0];
+  receipt.excerpt =
+    "this raw caption fragment should never be pasted into editorial prose";
+  file.recap.story[0].body =
+    "The board opens its after-hours ledger. [Music] This raw caption fragment should never be pasted into editorial prose. " +
+    "\"one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen twenty.\"";
+  file.recap.story[0].label += " // AGAIN";
+  file.registeredRecap = {
+    overview: "Mike says the movie is finished.",
+    blocks: [{
+      body: "Playback decides who said what.",
+    }],
+  };
+
+  const result = auditRecapVoiceDiversity([file]);
+
+  assert.ok(result.flags.rawCaptionMarkers.occurrences >= 1);
+  assert.ok(result.flags.forbiddenMetaphors.occurrences >= 1);
+  assert.ok(result.flags.rawExcerptReuse.occurrences >= 1);
+  assert.ok(result.flags.quoteSalad.occurrences >= 1);
+  assert.ok(result.flags.againSuffixes.occurrences >= 1);
+  assert.ok(result.flags.speakerOverclaims.occurrences >= 1);
+  assert.ok(result.flags.firewallCopy.occurrences >= 1);
+  assert.equal(result.pass, false);
 });

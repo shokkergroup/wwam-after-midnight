@@ -2,7 +2,7 @@
   "use strict";
 
   var SCHEMA = "wwam-feldman-recap/v1";
-  var VERSION = "1.6.0";
+  var VERSION = "1.6.1";
 
   function clean(value) {
     return String(value == null ? "" : value).trim();
@@ -56,6 +56,20 @@
     var seen = {};
     return array(values).map(clean).filter(Boolean).filter(function (value) {
       var key = value.toLowerCase();
+      if (seen[key]) return false;
+      seen[key] = true;
+      return true;
+    });
+  }
+
+  function uniqueTopics(values) {
+    var seen = {};
+    return array(values).map(clean).filter(Boolean).filter(function (value) {
+      var key = value.toLowerCase()
+        .replace(/&/g, " and ")
+        .replace(/[^a-z0-9]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
       if (seen[key]) return false;
       seen[key] = true;
       return true;
@@ -147,6 +161,7 @@
               counts.moments > counts.topics ? "chaos-spike" :
                 counts.topics >= 3 ? "topic-sweep" :
                   "hard-left";
+      segment.primarySubject = primarySubject;
       segment.narrative = Object.assign({}, current, {
         kind: kind,
         primarySubject: primarySubject,
@@ -226,7 +241,7 @@
     var sectionTopics = chronologicalSections(map).reduce(function (output, section) {
       return output.concat(displayLabels(section.topicLabels));
     }, []);
-    return unique(displayLabels(map.topics).concat(sectionTopics)).map(naturalLabel);
+    return uniqueTopics(displayLabels(map.topics).concat(sectionTopics)).map(naturalLabel);
   }
 
   function recapCharacters(map) {
@@ -276,7 +291,8 @@
       }, 0);
       return {
         moment: moment,
-        score: phraseScore + wordScore + Math.max(0, candidates.length - index),
+        score: number(moment.signalScore) * 3 +
+          phraseScore + wordScore + Math.max(0, candidates.length - index),
         index: index,
       };
     }).sort(function (left, right) {
@@ -1231,6 +1247,236 @@
       trailLine + characterLine + threadLine + excerptLine + close;
   }
 
+  function readableStoryLabel(segment, index, total) {
+    var narrative = record(segment.narrative);
+    var subject = naturalLabel(narrative.primarySubject) ||
+      displayLabels(segment.topicLabels).map(naturalLabel)[0] ||
+      displayLabels(segment.momentLabels).map(naturalLabel)[0] ||
+      displayLabels(segment.characterLabels).map(naturalLabel)[0] ||
+      naturalLabel(segment.anchor) ||
+      "THE SHOW";
+    var prefix = index === 0 ? "OPENING" :
+      index === total - 1 ? "FINAL CHAPTER" :
+        "CHAPTER " + (index + 1);
+    return prefix + " // " + subject.toUpperCase();
+  }
+
+  function readableStoryBody(segment, index, total, duration) {
+    var narrative = record(segment.narrative);
+    var primaryEvidence = record(narrative.primaryEvidence);
+    var topics = displayLabels(segment.topicLabels).map(naturalLabel);
+    var moments = displayLabels(segment.momentLabels).map(naturalLabel);
+    var characters = displayLabels(segment.characterLabels).map(naturalLabel);
+    var evidenceTrail = array(segment.evidenceTrail).map(record).filter(function (item) {
+      return clean(item.label) && Number.isFinite(Number(item.at));
+    });
+    var primary = naturalLabel(narrative.primarySubject) ||
+      topics[0] || moments[0] || characters[0] ||
+      naturalLabel(segment.anchor) || "the show";
+    var anchorAt = Number.isFinite(Number(primaryEvidence.at)) ?
+      number(primaryEvidence.at) : number(segment.anchorAt);
+    var from = clock(segment.at);
+    var to = clock(segment.end);
+    var topicOthers = topics.filter(function (topic) {
+      return topic.toLowerCase() !== primary.toLowerCase();
+    }).slice(0, 3);
+    var momentEvidence = array(segment.momentEvidence).map(record);
+    var strongestMoment = momentEvidence[0];
+    var strongestLabel = strongestMoment ?
+      naturalLabel(strongestMoment.label) : moments[0];
+    var sentences = [];
+
+    if (index === 0) {
+      sentences.push(
+        "The episode opens with " + primary + " from " + from + " to " + to + "."
+      );
+    } else if (index === total - 1) {
+      sentences.push(
+        "The final indexed chapter runs from " + from + " to " + to +
+          " and centers on " + primary + "."
+      );
+    } else {
+      sentences.push(
+        "From " + from + " to " + to + ", the conversation centers on " +
+          primary + "."
+      );
+    }
+
+    if (topicOthers.length) {
+      sentences.push(
+        "The same stretch also covers " + list(topicOthers, "") + "."
+      );
+    }
+    if (strongestLabel) {
+      var strongestAt = strongestMoment &&
+        Number.isFinite(Number(strongestMoment.at)) ?
+        number(strongestMoment.at) : anchorAt;
+      sentences.push(
+        "Its strongest saved beat is " + strongestLabel + " at " +
+          clock(strongestAt) + "."
+      );
+    } else if (evidenceTrail.length >= 2) {
+      sentences.push(
+        "Useful jumps land at " + clock(evidenceTrail[0].at) + " for " +
+          naturalLabel(evidenceTrail[0].label) + " and " +
+          clock(evidenceTrail[1].at) + " for " +
+          naturalLabel(evidenceTrail[1].label) + "."
+      );
+    }
+    if (characters.length) {
+      sentences.push(
+        "Character context in this chapter includes " +
+          list(characters.slice(0, 3), "") + "."
+      );
+    }
+    var finalEvidenceAt = evidenceTrail.concat(momentEvidence).reduce(
+      function (latest, item) {
+        return Math.max(latest, number(item && item.at));
+      },
+      anchorAt
+    );
+    if (index === total - 1 && number(duration) &&
+        finalEvidenceAt / number(duration) < 0.75) {
+      sentences.push(
+        "This is the last saved timestamp; the full player continues beyond the written map."
+      );
+    }
+    return sentences.join(" ");
+  }
+
+  function readableSectionBody(section) {
+    var time = clock(section.at);
+    var subject = sectionSubject(section);
+    var topics = displayLabels(section.topicLabels).map(naturalLabel).filter(function (topic) {
+      return topic.toLowerCase() !== subject.toLowerCase();
+    }).slice(0, 3);
+    var moments = displayLabels(section.momentLabels).map(naturalLabel).slice(0, 3);
+    var characters = displayLabels(section.characterLabels).map(naturalLabel).slice(0, 3);
+    var sentences = [
+      "At " + time + ", " + subject + " becomes the focus of this chapter.",
+    ];
+    if (topics.length) {
+      sentences.push("The discussion also moves through " + list(topics, "") + ".");
+    }
+    if (moments.length) {
+      sentences.push("Saved highlight markers here include " + list(moments, "") + ".");
+    }
+    if (characters.length) {
+      sentences.push(
+        "The caption map also flags character context for " +
+          list(characters, "") + "."
+      );
+    }
+    return sentences.join(" ");
+  }
+
+  function readableDeck(map) {
+    var metadata = record(map.metadata);
+    var story = array(map.story).map(record);
+    var topics = recapTopics(map).map(naturalLabel);
+    var subjects = story.map(function (segment) {
+      return naturalLabel(segment.primarySubject);
+    }).filter(Boolean);
+    var focus = [];
+    subjects.concat(topics).forEach(function (subject) {
+      if (!focus.some(function (existing) {
+        return existing.toLowerCase() === subject.toLowerCase();
+      })) focus.push(subject);
+    });
+    var strongest = record(topReplay(map));
+    var format = clean(record(map.format).label || record(map.format).id)
+      .toLowerCase() || "episode";
+    var output = "A " + runtime(metadata.duration) + " " + format +
+      " organized into " + Math.max(1, story.length) +
+      " chronological chapter" + (story.length === 1 ? "" : "s") + ".";
+    if (focus.length) {
+      output += " The main route covers " + list(focus.slice(0, 5), "") + ".";
+    }
+    if (clean(strongest.label)) {
+      output += " The strongest saved moment starts at " +
+        clock(strongest.at) + ".";
+    }
+    return output;
+  }
+
+  function readableOverview(map) {
+    var metadata = record(map.metadata);
+    var title = clean(metadata.title) || "This WWAM episode";
+    var story = array(map.story).map(record);
+    var topics = recapTopics(map).map(naturalLabel);
+    var characters = recapCharacters(map).map(naturalLabel);
+    var strongest = record(topReplay(map));
+    var output = title + " runs " + runtime(metadata.duration) + ".";
+    if (story.length) {
+      var opening = story[0];
+      var middle = story[Math.floor((story.length - 1) / 2)];
+      var closing = story[story.length - 1];
+      output += " The episode opens with " +
+        naturalLabel(opening.primarySubject || opening.anchor) +
+        " at " + clock(opening.at) + ".";
+      var openingSubject = naturalLabel(
+        opening.primarySubject || opening.anchor
+      );
+      var titleTopic = topics[0] || "";
+      var titleTopicPoint = array(map.topicMap).map(record).find(function (topic) {
+        return naturalLabel(topic.label).toLowerCase() ===
+          titleTopic.toLowerCase();
+      });
+      if (titleTopic && titleTopicPoint &&
+          titleTopic.toLowerCase() !== openingSubject.toLowerCase()) {
+        output += " Its title subject, " + titleTopic +
+          ", enters at " + clock(titleTopicPoint.at) + ".";
+      }
+      if (story.length > 2) {
+        output += " Around the middle, it moves to " +
+          naturalLabel(middle.primarySubject || middle.anchor) +
+          " at " + clock(middle.at) + ".";
+      }
+      if (story.length > 1) {
+        output += " The final indexed chapter reaches " +
+          naturalLabel(closing.primarySubject || closing.anchor) +
+          " at " + clock(closing.at) + ".";
+      }
+    }
+    if (clean(strongest.label)) {
+      output += " The strongest saved highlight is " +
+        naturalLabel(strongest.label) + " at " + clock(strongest.at) + ".";
+    }
+    if (characters.length) {
+      output += " Character context is indexed for " +
+        list(characters.slice(0, 5), "") +
+        "; the source player preserves the full context and delivery.";
+    }
+    return output;
+  }
+
+  function readableFanRead(map) {
+    var specs = [
+      ["loved", "WHAT THE SHOW DEFENDED", "The strongest saved positive take"],
+      ["hated", "STRAIGHT TO STEVE'S ASSHOLE", "The strongest saved negative take"],
+      ["wildestDetour", "WWAM UP IN YA", "The wildest saved detour"],
+      ["lastWord", "THE LAST WORD", "The final saved highlight"],
+    ];
+    return specs.reduce(function (output, spec) {
+      var item = record(record(map.fanRead)[spec[0]]);
+      if (!clean(item.receiptKey) && !clean(item.guideCutId)) return output;
+      var topic = naturalLabel(item.topic || item.label || spec[1]);
+      output[spec[0]] = {
+        label: spec[1],
+        topic: topic,
+        body: spec[2] + " is " + topic + " at " + clock(item.at) +
+          ". Use the source clip for the complete exchange.",
+        at: number(item.at),
+        end: number(item.end),
+        receiptKey: clean(item.receiptKey),
+        guideCutId: clean(item.guideCutId),
+        excerpt: clean(item.excerpt),
+        evidenceBasis: clean(item.evidenceBasis),
+      };
+      return output;
+    }, {});
+  }
+
   function overviewColor(map) {
     var formatId = clean(record(map.format).id);
     var options = {
@@ -1438,19 +1684,13 @@
       var labelKey = label.toLowerCase();
       seenLabels[labelKey] = (seenLabels[labelKey] || 0) + 1;
       if (seenLabels[labelKey] > 1) {
-        label += " // AGAIN " + seenLabels[labelKey];
+        label += " // " + clock(section.at);
       }
       return {
         id: clean(section.id),
         ordinal: index + 1,
         label: label,
-        body: sectionBody(
-          section,
-          map.sourceId,
-          number(record(map.metadata).duration),
-          clean(record(map.format).id),
-          map
-        ),
+        body: readableSectionBody(section),
         at: number(section.at),
         end: number(section.end),
         anchor: clean(section.anchor),
@@ -1465,19 +1705,15 @@
       return {
         id: clean(segment.id),
         ordinal: index + 1,
-        label: storyLabel(
+        label: readableStoryLabel(
           segment,
           index,
-          values.length,
-          map.sourceId,
-          number(record(map.metadata).duration)
+          values.length
         ),
-        body: storyBody(
+        body: readableStoryBody(
           segment,
           index,
           values.length,
-          map.sourceId,
-          clean(record(map.format).id),
           number(record(map.metadata).duration)
         ),
         at: number(segment.at),
@@ -1552,8 +1788,8 @@
       label: "WWAM FELDMAN APPROVED RECAP",
       badge: tierLabels[map.mode] || "PLAYABLE EPISODE RECAP",
       headline: headline(map),
-      deck: deck(map),
-      overview: readyOverview(map),
+      deck: readableDeck(map),
+      overview: readableOverview(map),
       topics: recapTopics(map),
       topicMap: array(map.topicMap).map(function (topic) {
         return {
@@ -1591,7 +1827,7 @@
         };
       }),
       bestMoments: array(map.bestMoments),
-      fanRead: fanRead(map),
+      fanRead: readableFanRead(map),
       caseFile: map.caseFile,
       coverage: map.coverage,
       format: map.format,

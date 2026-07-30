@@ -16,10 +16,10 @@ for (const file of ["character-lore.js", "character-receipt-audit.js"]) {
 const lore = sandbox.window.WWAM_CHARACTER_LORE;
 const audit = sandbox.window.WWAM_CHARACTER_RECEIPT_AUDIT;
 const expectedPerCharacter = {
-  loomis: 15,
-  challis: 15,
-  slenderman: 15,
-  "corey-feldman": 15,
+  loomis: 27,
+  challis: 27,
+  slenderman: 27,
+  "corey-feldman": 27,
 };
 const blockedAvailability = new Set([
   "private",
@@ -42,8 +42,8 @@ function cachedMetadata(sourceId) {
   );
 }
 
-test("publishes fifteen source-grounded playable performances per enabled character", () => {
-  assert.equal(lore.version, "1.2.0");
+test("publishes twenty-seven source-grounded playable performances per enabled character", () => {
+  assert.equal(lore.version, "1.3.0");
   assert.equal(lore.scope.corpusMode, "all-locally-cached-official-caption-sources");
   assert.ok(lore.scope.officialCaptionSourcesScanned >= 209);
   assert.ok(lore.scope.captionEventsScanned >= 900_000);
@@ -57,7 +57,13 @@ test("publishes fifteen source-grounded playable performances per enabled charac
       assert.equal(sourceIdFromWatchUrl(receipt.url), receipt.sourceId, receipt.id);
       assert.match(receipt.playback.embedUrl, new RegExp(`/embed/${receipt.sourceId}\\?`), receipt.id);
       assert.equal(receipt.provenance.timestampStatus, "exact-caption-event", receipt.id);
-      assert.match(receipt.provenance.selection, /human-curated/i, receipt.id);
+      assert.ok(
+        [
+          "human-curated seed with deterministic caption validation",
+          "editorially screened direct-address seed",
+        ].includes(receipt.provenance.selection),
+        receipt.id,
+      );
       assert.ok(receipt.excerpt.split(/\s+/).length <= 16, receipt.id);
       assert.ok(receipt.playback.end > receipt.playback.start, receipt.id);
 
@@ -77,15 +83,21 @@ test("publishes fifteen source-grounded playable performances per enabled charac
   }
   assert.equal(
     lore.characters.reduce((sum, character) => sum + character.soundbytes.length, 0),
-    60,
+    108,
   );
+  assert.equal(lore.scope.legacyHumanCuratedPerformanceCandidates, 60);
+  assert.equal(lore.scope.screenedDirectAddressPerformanceCandidates, 48);
+  assert.equal(lore.scope.playablePerformanceCandidates, 108);
 });
 
 test("keeps the additive promotion audit distinct from ordinary alias mentions", () => {
-  assert.equal(audit.version, "1.0.0");
-  assert.equal(audit.counts.promotedPerformanceReceipts, 35);
+  assert.equal(audit.version, "1.1.0");
+  assert.equal(audit.counts.promotedPerformanceReceipts, 83);
+  assert.equal(audit.counts.legacyPromotedPerformanceReceipts, 35);
+  assert.equal(audit.counts.legacyHumanCuratedPerformanceReceipts, 60);
+  assert.equal(audit.counts.screenedDirectAddressPerformanceReceipts, 48);
   assert.equal(audit.counts.rejectedMentionExamples, 4);
-  assert.equal(audit.counts.libraryPerformanceReceipts, 60);
+  assert.equal(audit.counts.libraryPerformanceReceipts, 108);
   assert.deepEqual(
     JSON.parse(JSON.stringify(audit.counts.perCharacter)),
     expectedPerCharacter,

@@ -354,6 +354,12 @@
     return match ? match[1] : "";
   }
 
+  function approvedPerformanceSelection(value) {
+    var selection = normalize(value);
+    return selection === "human curated seed with deterministic caption validation" ||
+      selection === "editorially screened direct address seed";
+  }
+
   function validReceipt(receipt) {
     var provenance = receipt && receipt.provenance || {};
     var playability = receipt && receipt.playability || {};
@@ -369,7 +375,7 @@
       Number.isFinite(start) && Number.isFinite(end) &&
       start <= at && end > at &&
       provenance.timestampStatus === "exact-caption-event" &&
-      normalize(provenance.selection).indexOf("human curated") >= 0);
+      approvedPerformanceSelection(provenance.selection));
   }
 
   function meaningfulQuestionTerms(question) {
@@ -567,7 +573,7 @@
             status: "insufficient-grounding",
             error:
               "This character needs at least " + minimum +
-              " timestamp-validated human-curated performance candidates before a grounded riff can be generated.",
+              " timestamp-validated approved performance candidates before a grounded riff can be generated.",
           };
         }
         var analysis = analyzeIntent(cleaned);
@@ -612,11 +618,17 @@
           } : null,
           readiness: {
             timestampValidatedReceipts: receipts.length,
+            legacyHumanCuratedReceipts: Number(
+              profile.metrics && profile.metrics.legacyHumanCuratedPerformanceCandidates || 0
+            ),
+            screenedDirectAddressReceipts: Number(
+              profile.metrics && profile.metrics.screenedDirectAddressPerformanceCandidates || 0
+            ),
             minimumCuratedCandidates: minimum,
             authenticatedEditorVerifiedDecisions: 0,
             clipSpeakersDiarized: false,
             confidence: Math.min(98, 68 + receipts.length * 4),
-            basis: "Owner-supplied recurring-character mapping plus timestamp-validated curated receipts; clip speakers are not diarized.",
+            basis: "Owner-supplied recurring-character mapping plus timestamp-validated legacy or screened receipts; clip speakers are not diarized.",
           },
           guardrailLabel: lore.guardrails && lore.guardrails.requiredLabel || null,
           disclaimer: "FAN-MADE GENERATED RIFF — NOT AN ARCHIVAL QUOTE OR THE HOST SPEAKING",
@@ -638,13 +650,16 @@
           characterId: characterId,
           character: profile.name,
           total: receipts.length,
-          evidenceState: "timestamp-validated human-curated candidates",
+          evidenceState: "timestamp-validated approved candidates",
           speakerStatus: "not-diarized",
           receipts: receipts.map(function (receipt, index) {
+            var selection = normalize(receipt.provenance && receipt.provenance.selection);
             return Object.assign({}, receipt, {
               libraryIndex: index + 1,
               libraryTotal: receipts.length,
-              evidenceState: "timestamp-validated-human-curated-candidate",
+              evidenceState: selection === "editorially screened direct address seed" ?
+                "timestamp-validated-editorially-screened-direct-address-seed" :
+                "timestamp-validated-human-curated-candidate",
               speakerStatus: "not-diarized",
             });
           }),

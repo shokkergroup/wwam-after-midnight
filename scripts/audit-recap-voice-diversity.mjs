@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
 const ROOT = path.resolve(path.dirname(SCRIPT_PATH), "..");
 const DEMO = path.join(ROOT, "public", "demo");
-const SCHEMA = "wwam-recap-voice-diversity-audit/v1";
+const SCHEMA = "wwam-recap-readability-audit/v2";
 const DEFAULT_LIMIT_PERCENT = 10;
 const WITHOUT_ARCHIVE_COMPLETION =
   process.argv.includes("--without-archive-completion");
@@ -35,6 +35,7 @@ const RUNTIME_FILES = [
   "archive-recovery-batch1.js",
   "archive-recovery-batch2.js",
   "archive-completion.js",
+  "title-topic-overrides.js",
   "episode-recap-engine.js",
   "wwam-episode-recap-adapter.js",
   "wwam-source-dossier-adapter.js",
@@ -83,8 +84,69 @@ const MACHINE_ROOM_PATTERNS = [
   ["synthetic-bridge", /\bsynthetic bridge\b/i],
 ];
 
-const DISCLAIMER_PATTERN =
-  /\b(?:not (?:a |the )?(?:performer|verdict|substitute)|without (?:assigning|inventing)|playback (?:decides|supplies)|tape decides|performer identity|no public excerpt|source does not establish)\b/i;
+export const RAW_CAPTION_PATTERNS = [
+  ["double-chevron", /(?:^|\s)(?:>>|>>>|&gt;&gt;)(?:\s|$)/i],
+  ["caption-arrow", /-->/],
+  ["caption-cue-tag", /<\/?(?:c|v|lang)(?:\.[^>\s]+)?[^>]*>/i],
+  ["caption-stage-direction", /\[(?:music|applause|laughter|inaudible|crosstalk|__+|_+)\]/i],
+  ["music-note", /[♪♫]/],
+];
+
+export const FORBIDDEN_METAPHOR_PATTERNS = [
+  ["after-hours-ledger", /\bafter-hours ledger\b/i],
+  ["named-flashlight", /\bnamed flashlight\b/i],
+  ["sequel-luggage", /\bsuspicious sequel luggage\b/i],
+  ["unsafe-evidence-board", /\bunsafe evidence board\b/i],
+  ["plants-the-flag", /\bplants? this reel'?s flag\b/i],
+  ["source-clock", /\bsource clock\b/i],
+  ["replay-board", /\breplay board\b/i],
+  ["source-bound-beat", /\bsource-bound beat\b/i],
+  ["starting-cold", /\bstarting cold\b/i],
+  ["same-hallway", /\bthe same hallway\b/i],
+  ["opens-its-ledger", /\bopens? its (?:after-hours )?ledger\b/i],
+  ["evidence-board", /\bevidence board\b/i],
+  ["receipt-baton", /\breceipt passes the baton\b/i],
+  ["named-suspect", /\bnamed suspect\b/i],
+  ["character-cellar", /\bcharacter cellar\b/i],
+];
+
+export const SPEAKER_OVERCLAIM_PATTERNS = [
+  [
+    "named-host-attribution",
+    /\b(?:mike|j|jay)\s+(?:said|says|called|calls|argued|argues|thought|thinks|hated|hates|loved|loves|declared|declares)\b/i,
+  ],
+  [
+    "generic-host-attribution",
+    /\b(?:the host|a host|one of (?:the hosts|them)|they)\s+(?:said|says|argued|argues|thought|thinks|hated|hates|loved|loves)\b/i,
+  ],
+  ["speaker-identity-claim", /\b(?:speaker|performer) (?:is|was|says|said)\b/i],
+];
+
+export const FIREWALL_COPY_PATTERNS = [
+  ["not-proof", /\bnot (?:proof|evidence)\b/i],
+  ["kept-separate", /\b(?:kept|keeps?|keeping) (?:the two )?separate\b/i],
+  ["separate-saved-spike", /\bseparate (?:saved )?(?:checkpoint|spike)\b/i],
+  ["timestamp-not-assigned", /\btimestamp is not assigned\b/i],
+  ["playback-decides", /\bplayback (?:decides|supplies|handles|owns)\b/i],
+  ["tape-decides", /\btape decides\b/i],
+  ["source-does-not-establish", /\bsource does not establish\b/i],
+  ["performer-identity", /\bperformer identity\b/i],
+  [
+    "caption-speaker-firewall",
+    /\bcaptions? (?:do|does) not (?:reliably )?(?:identify|establish|assign) (?:the )?(?:host|speaker|performer|voice)\b/i,
+  ],
+  [
+    "transcript-speaker-firewall",
+    /\btranscript timing does not (?:identify|establish|assign) (?:the )?(?:host|speaker|performer|voice)\b/i,
+  ],
+  ["cannot-mime", /\bcannot mime\b/i],
+  ["who-said-what", /\bwho said what\b/i],
+];
+
+const DISCLAIMER_PATTERN = new RegExp(
+  FIREWALL_COPY_PATTERNS.map(([, pattern]) => pattern.source).join("|"),
+  "i",
+);
 
 function readRuntime() {
   const sandbox = { window: {} };
@@ -184,6 +246,7 @@ export function compileReadyRecaps() {
       title: source.displayTitle || source.title || source.id,
       source,
       recap: source.showWiki.episodeRecap,
+      registeredRecap: source.showWiki.recap || null,
       tier: source.showWiki.episodeRecap.tier || "unknown",
       format: source.showWiki.episodeRecap.format?.id || "unknown",
     }));
@@ -342,6 +405,7 @@ function sentenceEntry(file, text, field) {
 
 function proseFields(file) {
   const recap = file.recap;
+  const registered = file.registeredRecap || file.source.showWiki?.recap || {};
   return [
     { field: "deck", text: recap.deck },
     { field: "overview", text: recap.overview },
@@ -357,7 +421,98 @@ function proseFields(file) {
       field: `fanRead.${lane}.body`,
       text: item?.body,
     })),
+    { field: "registeredRecap.overview", text: registered.overview },
+    ...(registered.blocks || []).map((block, index) => ({
+      field: `registeredRecap.blocks[${index}].body`,
+      text: block?.body,
+    })),
   ].filter((item) => String(item.text || "").trim());
+}
+
+function visibleTextFields(file) {
+  const recap = file.recap;
+  return [
+    ...proseFields(file),
+    { field: "headline", text: recap.headline },
+    ...(recap.sections || []).map((section, index) => ({
+      field: `section[${index}].label`,
+      text: section.label,
+    })),
+    ...(recap.story || []).map((segment, index) => ({
+      field: `story[${index}].label`,
+      text: segment.label,
+    })),
+  ].filter((item) => String(item.text || "").trim());
+}
+
+function normalizedWords(value) {
+  return cleanMojibake(value)
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function removeEntities(value, entities) {
+  let output = cleanMojibake(value);
+  entities.forEach((entity) => {
+    output = output.replace(
+      new RegExp(escapeRegExp(entity), entity.length <= 3 ? "g" : "gi"),
+      " ",
+    );
+  });
+  return normalizedWords(output);
+}
+
+function rawExcerptReuse(file, field, text) {
+  if (!/\.body$/.test(field)) return [];
+  const entities = normalizationEntities(file);
+  const body = ` ${removeEntities(text, entities)} `;
+  if (!body.trim()) return [];
+  const failures = [];
+  (file.source.receipts || []).forEach((receipt) => {
+    const excerpt = removeEntities(receipt?.excerpt, entities);
+    const tokens = excerpt.split(/\s+/).filter(Boolean);
+    if (tokens.length < 5) return;
+    for (let index = 0; index <= tokens.length - 5; index += 1) {
+      const phrase = tokens.slice(index, index + 5).join(" ");
+      if (` ${body} `.includes(` ${phrase} `)) {
+        failures.push({
+          receiptKey: String(receipt?.key || ""),
+          phrase,
+        });
+        break;
+      }
+    }
+  });
+  return failures;
+}
+
+function quoteSalad(value) {
+  const text = cleanMojibake(value);
+  const spans = [];
+  function collect(open, close) {
+    let cursor = 0;
+    while (cursor < text.length) {
+      const start = text.indexOf(open, cursor);
+      if (start < 0) return;
+      const end = text.indexOf(close, start + open.length);
+      if (end < 0) return;
+      spans.push(text.slice(start, end + close.length));
+      cursor = end + close.length;
+    }
+  }
+  collect('"', '"');
+  collect("“", "”");
+  const substantial = spans.filter((span) =>
+    normalizedWords(span).split(/\s+/).filter(Boolean).length >= 4
+  );
+  if (substantial.length > 1) return substantial;
+  return substantial.filter((span) =>
+    normalizedWords(span).split(/\s+/).filter(Boolean).length > 18 ||
+    RAW_CAPTION_PATTERNS.some(([, pattern]) => pattern.test(span))
+  );
 }
 
 function compactFlag(file, field, text, kind, token) {
@@ -396,11 +551,92 @@ function lexiconFlags(files) {
   const machineRoomJargon = [];
   const formatInappropriate = [];
   const disclaimerSentences = [];
+  const rawCaptionMarkers = [];
+  const forbiddenMetaphors = [];
+  const rawExcerptReuseFlags = [];
+  const quoteSaladFlags = [];
+  const againSuffixes = [];
+  const speakerOverclaims = [];
+  const firewallCopy = [];
 
   files.forEach((file) => {
     const entities = normalizationEntities(file);
-    proseFields(file).forEach(({ field, text }) => {
+    visibleTextFields(file).forEach(({ field, text }) => {
       const unquoted = replaceQuotedText(cleanMojibake(text));
+      RAW_CAPTION_PATTERNS.forEach(([kind, pattern]) => {
+        if (pattern.test(text)) {
+          rawCaptionMarkers.push(compactFlag(
+            file,
+            field,
+            text,
+            kind,
+            pattern.source,
+          ));
+        }
+      });
+      FORBIDDEN_METAPHOR_PATTERNS.forEach(([kind, pattern]) => {
+        if (pattern.test(unquoted)) {
+          forbiddenMetaphors.push(compactFlag(
+            file,
+            field,
+            text,
+            kind,
+            pattern.source,
+          ));
+        }
+      });
+      if (/\/\/\s*AGAIN\b/i.test(text)) {
+        againSuffixes.push(compactFlag(
+          file,
+          field,
+          text,
+          "again-suffix",
+          String.raw`//\s*AGAIN`,
+        ));
+      }
+      SPEAKER_OVERCLAIM_PATTERNS.forEach(([kind, pattern]) => {
+        if (pattern.test(unquoted)) {
+          speakerOverclaims.push(compactFlag(
+            file,
+            field,
+            text,
+            kind,
+            pattern.source,
+          ));
+        }
+      });
+      FIREWALL_COPY_PATTERNS.forEach(([kind, pattern]) => {
+        if (pattern.test(unquoted)) {
+          firewallCopy.push(compactFlag(
+            file,
+            field,
+            text,
+            kind,
+            pattern.source,
+          ));
+        }
+      });
+      rawExcerptReuse(file, field, text).forEach((reuse) => {
+        rawExcerptReuseFlags.push({
+          ...compactFlag(
+            file,
+            field,
+            text,
+            "raw-excerpt-reuse",
+            reuse.phrase,
+          ),
+          receiptKey: reuse.receiptKey,
+        });
+      });
+      quoteSalad(text).forEach((span) => {
+        quoteSaladFlags.push(compactFlag(
+          file,
+          field,
+          text,
+          "multiword-inline-quote",
+          span,
+        ));
+      });
       DRY_INVENTORY_PATTERNS.forEach(([kind, pattern]) => {
         if (pattern.test(unquoted)) {
           dryInventory.push(compactFlag(file, field, text, kind, pattern.source));
@@ -433,6 +669,7 @@ function lexiconFlags(files) {
       }
       if (
         file.tier === "topic-recap" &&
+        !["ranking-show", "versus-show"].includes(file.format) &&
         /\b(?:defense|prosecution|verdict|loved|hated)\b/.test(normalized)
       ) {
         incompatible.push("assertive-language-in-topic-map");
@@ -450,6 +687,13 @@ function lexiconFlags(files) {
   ).top.filter((item) => item.recapPercent > DEFAULT_LIMIT_PERCENT);
 
   return {
+    rawCaptionMarkers: flagSummary(rawCaptionMarkers),
+    forbiddenMetaphors: flagSummary(forbiddenMetaphors),
+    rawExcerptReuse: flagSummary(rawExcerptReuseFlags),
+    quoteSalad: flagSummary(quoteSaladFlags),
+    againSuffixes: flagSummary(againSuffixes),
+    speakerOverclaims: flagSummary(speakerOverclaims),
+    firewallCopy: flagSummary(firewallCopy),
     dryInventory: flagSummary(dryInventory),
     repeatedDisclaimers: {
       dominantRecapPercent: repeatedDisclaimers[0]?.recapPercent || 0,
@@ -530,21 +774,16 @@ export function auditRecapVoiceDiversity(files, options = {}) {
   };
   const flags = lexiconFlags(files);
   const gates = {
-    storyOpening: {
-      actualPercent: cohorts.storyOpening.dominantRecapPercent,
-      limitPercent: limit,
-      pass: cohorts.storyOpening.dominantRecapPercent <= limit,
-    },
-    storyBridge: {
-      actualPercent: cohorts.storyBridge.dominantRecapPercent,
-      limitPercent: limit,
-      pass: cohorts.storyBridge.dominantRecapPercent <= limit,
-    },
-    storyFinal: {
-      actualPercent: cohorts.storyFinal.dominantRecapPercent,
-      limitPercent: limit,
-      pass: cohorts.storyFinal.dominantRecapPercent <= limit,
-    },
+    noRawCaptionMarkers: flags.rawCaptionMarkers.occurrences === 0,
+    noForbiddenMetaphors: flags.forbiddenMetaphors.occurrences === 0,
+    noRawExcerptReuse: flags.rawExcerptReuse.occurrences === 0,
+    noQuoteSalad: flags.quoteSalad.occurrences === 0,
+    noAgainSuffixes: flags.againSuffixes.occurrences === 0,
+    noSpeakerOverclaims: flags.speakerOverclaims.occurrences === 0,
+    noFirewallCopy: flags.firewallCopy.occurrences === 0,
+    noDryInventory: flags.dryInventory.occurrences === 0,
+    noMachineRoomJargon: flags.machineRoomJargon.occurrences === 0,
+    noFormatInappropriateLanguage: flags.formatInappropriate.occurrences === 0,
   };
 
   return {
@@ -561,9 +800,9 @@ export function auditRecapVoiceDiversity(files, options = {}) {
       maxDominantMoldPercent: limit,
       denominator: "unique ready recaps eligible for each sentence role",
       rationale:
-        "Ten percent prevents one normalized authored sentence from appearing in roughly one out of every ten eligible show recaps while leaving deterministic voice-pack reuse possible.",
+        "Sentence molds are diagnostic only. Readability now fails on caption debris, quote reuse, canned metaphors, attribution overclaims, and defensive evidence-firewall prose.",
       sectionOpeningMeasure:
-        "Section openings repeat within a recap, so their diagnostic share uses total section openings; they are reported but are not part of the one-opening/bridge/final story gate.",
+        "Sentence-mold shares remain visible for editorial review but are not release gates; clear deterministic prose is preferable to randomized template noise.",
     },
     corpus: {
       ready: files.length,
@@ -583,15 +822,15 @@ export function auditRecapVoiceDiversity(files, options = {}) {
     cohorts,
     flags,
     gates,
-    pass: Object.values(gates).every((gate) => gate.pass),
+    pass: Object.values(gates).every(Boolean),
   };
 }
 
 function summary(report) {
   const lines = [
-    "WWAM RECAP VOICE-DIVERSITY AUDIT",
+    "WWAM RECAP READABILITY AUDIT",
     `Ready recaps: ${report.corpus.ready}`,
-    `Gate: no story opening / bridge / final mold above ${report.thresholds.maxDominantMoldPercent}% of eligible ready recaps`,
+    "Gate: concise editorial prose must stay free of raw caption debris, quote salad, canned metaphors, and unsupported attribution.",
     "",
   ];
   ["storyOpening", "storyBridge", "storyFinal", "sectionOpening"].forEach((name) => {
@@ -611,12 +850,19 @@ function summary(report) {
   });
   lines.push(
     "",
+    `Raw caption markers: ${report.flags.rawCaptionMarkers.occurrences}`,
+    `Forbidden metaphors: ${report.flags.forbiddenMetaphors.occurrences}`,
+    `Raw excerpt reuse: ${report.flags.rawExcerptReuse.occurrences}`,
+    `Inline quote salad: ${report.flags.quoteSalad.occurrences}`,
+    `// AGAIN suffixes: ${report.flags.againSuffixes.occurrences}`,
+    `Speaker overclaims: ${report.flags.speakerOverclaims.occurrences}`,
+    `Evidence-firewall copy: ${report.flags.firewallCopy.occurrences}`,
     `Dry inventory flags: ${report.flags.dryInventory.occurrences} across ${report.flags.dryInventory.affectedRecaps} recaps`,
     `Repeated disclaimer molds over limit: ${report.flags.repeatedDisclaimers.moldsOverLimit.length}`,
     `Machine-room jargon: ${report.flags.machineRoomJargon.occurrences} across ${report.flags.machineRoomJargon.affectedRecaps} recaps`,
     `Format-inappropriate vocabulary: ${report.flags.formatInappropriate.occurrences} across ${report.flags.formatInappropriate.affectedRecaps} recaps`,
     "",
-    `VOICE GATE: ${report.pass ? "PASS" : "FAIL"}`,
+    `READABILITY GATE: ${report.pass ? "PASS" : "FAIL"}`,
   );
   return `${lines.join("\n")}\n`;
 }

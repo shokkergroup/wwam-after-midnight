@@ -60,15 +60,21 @@ test("Character Lore scans the complete cached official corpus and never aliases
   const pipeline = read(path.join("pipeline", "wwam_character_distill.py"));
 
   assert.equal(lore.scope.corpusMode, "all-locally-cached-official-caption-sources");
-  assert.equal(lore.scope.officialCaptionSourcesScanned, 209);
-  assert.equal(lore.scope.captionFilesScanned, 209);
-  assert.equal(lore.scope.curatedPerformanceCandidates, 60);
+  assert.equal(lore.scope.officialCaptionSourcesScanned, 509);
+  assert.equal(lore.scope.captionFilesScanned, 509);
+  assert.equal(lore.scope.curatedPerformanceCandidates, 108);
+  assert.equal(lore.scope.playablePerformanceCandidates, 108);
+  assert.equal(lore.scope.legacyHumanCuratedPerformanceCandidates, 60);
+  assert.equal(lore.scope.screenedDirectAddressPerformanceCandidates, 48);
   assert.equal(lore.scope.lockedPerformanceCandidates, 3);
   assert.equal(lore.scope.authenticatedEditorVerifiedDecisions, 0);
   assert.equal("verifiedSoundbytes" in lore.scope, false);
   lore.characters.forEach((character) => {
     assert.equal("verifiedSoundbytes" in character.metrics, false);
-    assert.equal(character.metrics.curatedPerformanceCandidates, 15);
+    assert.equal(character.metrics.curatedPerformanceCandidates, 27);
+    assert.equal(character.metrics.playablePerformanceCandidates, 27);
+    assert.equal(character.metrics.legacyHumanCuratedPerformanceCandidates, 15);
+    assert.equal(character.metrics.screenedDirectAddressPerformanceCandidates, 12);
     character.soundbytes.forEach((soundbyte) => {
       assert.match(
         soundbyte.provenance.speakerBasis,

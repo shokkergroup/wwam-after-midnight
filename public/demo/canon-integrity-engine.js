@@ -485,10 +485,13 @@
     var exactSourceUrl =
       youtubeIdFromUrl(item.url) === sourceId &&
       youtubeIdFromUrl(playback.embedUrl) === sourceId;
+    var selection = lower(provenance.selection)
+      .replace(/[-_]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
     var deterministicSelection =
-      /human-curated seed with deterministic caption validation/i.test(
-        clean(provenance.selection)
-      );
+      selection === "human curated seed with deterministic caption validation" ||
+      selection === "editorially screened direct address seed";
 
     if (
       !/^[A-Za-z0-9_-]{11}$/.test(sourceId) ||

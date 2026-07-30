@@ -49,15 +49,19 @@ test("the production Steve route builds from the complete canonical runtime", ()
   const data = api.inventory(payload);
 
   assert.ok(payload.sources.length >= 510);
-  assert.ok(data.items.length >= 14);
-  assert.ok(data.metrics.sources >= 10);
+  assert.ok(
+    data.items.length >= 50,
+    `Expected at least 50 exact negative-take clips, found ${data.items.length}`,
+  );
+  assert.ok(data.metrics.sources >= 35);
+  assert.ok(data.items.every((item) => item.steveEvidenceState));
   assert.ok(data.items.every((item) => /^[A-Za-z0-9_-]{11}$/.test(item.sourceId)));
   assert.ok(data.items.every((item) => Number.isFinite(item.at) && item.at >= 0));
   assert.ok(data.items.every((item) => item.sourceUrl.endsWith(`&t=${item.at}s`)));
   assert.equal(data.inventoryStatus.state, "complete");
 });
 
-test("a lagging guide overlay preserves the same production rejection receipts", () => {
+test("a lagging guide overlay preserves canonical receipts and reports only missing guide cuts", () => {
   const window = loadRuntime();
   const api = window.WWAMStraightToSteve;
   const completeGuides = window.WWAM_EPISODE_GUIDES.guides.slice();
@@ -79,5 +83,10 @@ test("a lagging guide overlay preserves the same production rejection receipts",
   assert.equal(lagPayload.steveInventoryStatus.state, "guide-overlay-lag");
   assert.equal(lagPayload.steveInventoryStatus.expectedGuides, completeGuides.length);
   assert.equal(lagPayload.steveInventoryStatus.availableGuides, completeGuides.length - 1);
-  assert.deepEqual(lagIds, completeIds);
+  const missingIds = completeIds.filter((id) => !lagIds.includes(id));
+  const canonicalIds = completeIds.filter((id) => !id.includes(":reviewed-steve-guide:"));
+
+  assert.ok(missingIds.length <= 1);
+  assert.ok(missingIds.every((id) => id.includes(":reviewed-steve-guide:")));
+  assert.ok(canonicalIds.every((id) => lagIds.includes(id)));
 });

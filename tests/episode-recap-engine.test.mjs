@@ -106,17 +106,23 @@ test("universal map and WWAM voice pack produce deterministic chronological reca
       segment.anchorAt === anchor.at &&
       (!segment.excerpt || segment.excerpt === anchor.excerpt);
   }));
-  assert.ok(first.story.every((segment) =>
-    /source|tape|ledger|security footage|evidence|show|broadcast|conversation/i
-      .test(segment.body)
-  ));
+  assert.ok(first.story.every((segment) => {
+    const words = segment.body.trim().split(/\s+/).length;
+    return words >= 8 && words <= 60 &&
+      !/after-hours ledger|named flashlight|evidence board|replay board|source clock/i
+        .test(segment.body);
+  }));
   assert.ok(first.story.every((segment, index, values) => {
     const beat = segment.narrative;
     const evidence = beat.primaryEvidence;
     return beat.schema === "shokker-recap-narrative-beat/v1" &&
       beat.primarySubject &&
-      beat.anchorSupportsPrimary === true &&
-      beat.anchorRelation === "direct-subject-anchor" &&
+      typeof beat.anchorSupportsPrimary === "boolean" &&
+      beat.anchorRelation === (
+        beat.anchorSupportsPrimary
+          ? "direct-subject-anchor"
+          : "separate-saved-spike"
+      ) &&
       beat.anchorSubject &&
       evidence.kind === "receipt" &&
       segment.receiptKeys.includes(evidence.key) &&
@@ -139,13 +145,13 @@ test("universal map and WWAM voice pack produce deterministic chronological reca
   ));
   assert.equal(first.caseFile.storyNarrativeBeatCount, first.story.length);
   assert.equal(first.caseFile.storyNamedSegmentCount, first.story.length);
-  assert.match(first.overview, /opens at 1:30 with Halloween/i);
-  assert.ok(first.overview.startsWith(input.context.registeredOverview));
   assert.equal(firstMap.registeredOverview, input.context.registeredOverview);
-  assert.match(first.overview, /turns toward Scream around 31:40/i);
-  assert.match(first.overview, /top replay pick lands at 1:00:50 under Up In Ya/i);
+  assert.match(first.overview, /Horror News/i);
+  assert.match(first.overview, /1:30|31:40|1:00:50/i);
   assert.doesNotMatch(first.overview, /chapters are clickable/i);
-  assert.ok(first.sections.some((section) => /bounded source excerpt/i.test(section.body)));
+  assert.ok(first.sections.every((section) =>
+    !/bounded source excerpt/i.test(section.body)
+  ));
   assert.match(first.limitations.join(" "), /transcript timing does not establish the speaker/i);
 });
 
@@ -212,8 +218,8 @@ test("channel title topics outrank incidental signal without changing receipt ev
   });
   const recap = window.WWAMEpisodeRecapAdapter.build({ map });
 
-  assert.equal(map.topics[0], "A Nightmare on Elm Street");
-  assert.match(recap.headline, /A NIGHTMARE ON ELM STREET/);
+  assert.match(map.topics[0], /FREDDY KRUEGER/i);
+  assert.match(recap.headline, /FREDDY KRUEGER/i);
   assert.doesNotMatch(recap.headline, /TOPIC:/);
   assert.equal(recap.caseFile.topicCount, 3);
 });
@@ -368,16 +374,15 @@ test("reviewed guide structure deepens the full chronicle without leaking review
   ].join(" ");
 
   assert.equal(recap.generatorVersion, window.WWAMEpisodeRecapAdapter.VERSION);
-  assert.match(
+  assert.match(recap.overview, /Halloween Horror and Scream/i);
+  assert.doesNotMatch(
     recap.overview,
-    /deeper recap starts with Halloween at 1:00, checks in on Casting at 10:00 and Horror at 20:00, and closes with Scream at 50:00/i,
+    /machine draft|review desk|bounded source-local|evidence boundary/i,
   );
-  assert.match(
-    recap.overview,
-    /three-beat watch path runs from Halloween at 1:00, through Horror at 20:00, to Scream at 50:00/i,
-  );
-  assert.match(recap.sections[0].body, /episode arc opens at 1:00 with Halloween/i);
-  assert.match(recap.sections.at(-1).body, /closing read lands at 50:00 on Scream/i);
+  assert.ok(recap.sections.every((section) =>
+    !/Halloween gets the night moving|Casting becomes the next subject|Horror changes the temperature|Scream gets the closing turn/i
+      .test(section.body)
+  ));
   assert.equal(recap.caseFile.storyGuidePointExpected, 3);
   assert.equal(recap.caseFile.storyGuidePointCount, 3);
   assert.equal(recap.caseFile.storyGuidePointCoveragePercent, 100);
@@ -387,12 +392,19 @@ test("reviewed guide structure deepens the full chronicle without leaking review
   );
   assert.ok(recap.story.every((segment) => segment.topicLabels.length));
   assert.ok(recap.story.every((segment) =>
-    segment.narrative.primaryEvidence.kind === "guide-cut" &&
-    segment.narrative.anchorSupportsPrimary === true &&
-    segment.narrative.anchorRelation === "direct-subject-anchor" &&
-    segment.narrative.anchorSubject ===
-      segment.narrative.primarySubject &&
-    segment.guideCutIds.includes(segment.narrative.primaryEvidence.key)
+    typeof segment.narrative.anchorSupportsPrimary === "boolean" &&
+    segment.narrative.anchorRelation === (
+      segment.narrative.anchorSupportsPrimary
+        ? "direct-subject-anchor"
+        : "separate-saved-spike"
+    ) &&
+    segment.narrative.anchorSubject &&
+    (
+      segment.narrative.primaryEvidence.kind === "guide-cut"
+        ? segment.guideCutIds.includes(segment.narrative.primaryEvidence.key)
+        : segment.narrative.primaryEvidence.kind === "receipt" &&
+          segment.receiptKeys.includes(segment.narrative.primaryEvidence.key)
+    )
   ));
   assert.doesNotMatch(
     recap.story.map((segment) => segment.body).join(" "),
@@ -400,11 +412,11 @@ test("reviewed guide structure deepens the full chronicle without leaking review
   );
   assert.doesNotMatch(
     entertainmentCopy,
-    /\b(?:desk|file|receipt|registered|bounded|source-local|machine surfaced|evidence boundary|route|indexed)\b/i,
+    /\b(?:desk|file|receipt|registered|bounded|source-local|machine surfaced|evidence boundary)\b/i,
   );
 });
 
-test("the overview favors a title-relevant replay over a hotter but unrelated caption fragment", () => {
+test("the overview names the title subject without pasting either caption fragment", () => {
   const window = load();
   const receipts = [
     receipt("topic:halloween", 100, "topic", "Halloween", 80),
@@ -434,8 +446,13 @@ test("the overview favors a title-relevant replay over a hotter but unrelated ca
   const recap = window.WWAMEpisodeRecapAdapter.build({ map });
 
   assert.equal(map.bestMoments[0].receiptKey, "moment:unrelated");
-  assert.match(recap.overview, /top replay pick lands at 20:00 under Film Read/i);
-  assert.match(recap.overview, /Michael Myers changes the entire Halloween ending/i);
+  assert.match(recap.overview, /Halloween Kills Michael Myers/i);
+  assert.match(recap.overview, /20:00|Michael Myers/i);
+  assert.match(recap.overview, /Full Send at 6:40/i);
+  assert.doesNotMatch(
+    recap.overview,
+    /Michael Myers changes the entire Halloween ending/i,
+  );
   assert.doesNotMatch(recap.overview, /calendar discussion/i);
 });
 
@@ -512,7 +529,7 @@ test("receipt recap acts never borrow a distant topic for a different timestamp"
   );
 });
 
-test("written reels prefer a local receipt that directly supports the named subject", () => {
+test("written reels preserve a local anchor and require title subjects to own a receipt", () => {
   const window = load();
   const receipts = [
     receipt("topic:halloween", 100, "topic", "Halloween", 30),
@@ -539,19 +556,23 @@ test("written reels prefer a local receipt that directly supports the named subj
   const opening = recap.story[0];
 
   assert.equal(opening.narrative.primarySubject, "Halloween");
-  assert.equal(opening.anchorReceiptKey, "topic:halloween");
-  assert.equal(opening.narrative.primaryEvidence.key, "topic:halloween");
+  assert.ok(receipts.some((item) => item.key === opening.anchorReceiptKey));
+  assert.equal(
+    opening.narrative.primaryEvidence.key,
+    opening.anchorReceiptKey,
+  );
   assert.equal(opening.narrative.anchorSupportsPrimary, true);
   assert.equal(opening.narrative.anchorSubject, "Halloween");
   assert.equal(opening.narrative.anchorRelation, "direct-subject-anchor");
   assert.match(opening.body, /Halloween/i);
+  assert.match(opening.body, /Full Send/i);
   assert.doesNotMatch(
     opening.body,
-    /calendar rant.*(?:plants|unlocks|breadcrumb|flag).*Halloween/i,
+    /unrelated calendar rant/i,
   );
 });
 
-test("unmatched saved spikes are disclosed as separate from the broader reel subject", () => {
+test("unmatched saved spikes stay separate in metadata without defensive prose", () => {
   const window = load();
   const receipts = [
     receipt("topic:halloween", 100, "topic", "Halloween", 30),
@@ -598,10 +619,11 @@ test("unmatched saved spikes are disclosed as separate from the broader reel sub
   );
   assert.match(body, /Halloween/i);
   assert.match(body, /Full Send/i);
-  assert.match(
+  assert.doesNotMatch(
     body,
     /separate (?:saved )?(?:checkpoint|spike)|kept separate|not proof|timestamp is not assigned/i,
   );
+  assert.doesNotMatch(body, /unrelated calendar rant/i);
   assert.doesNotMatch(
     body,
     /plants this reel's flag on Halloween|unlocks Halloween|breadcrumb lands on Halloween|handed this reel to Halloween/i,
@@ -788,7 +810,7 @@ test("highlight runway assigns native categories and remains chronological throu
   ));
 });
 
-test("story narration uses deterministic language from the source format", () => {
+test("story narration uses one clear deterministic contract across formats", () => {
   const window = load();
   const receipts = [
     receipt("topic:halloween", 100, "topic", "Halloween", 80),
@@ -803,22 +825,22 @@ test("story narration uses deterministic language from the source format", () =>
     return window.WWAMEpisodeRecapAdapter.build({ map }).story[0].body;
   };
 
-  assert.match(
+  const bodies = [
     bodyFor("movie-commentary"),
-    /commentary|watchalong|screen-side conversation|scene-side/i,
-  );
-  assert.match(
     bodyFor("ranking-show"),
-    /board|bracket|scorecard/i,
-  );
-  assert.match(
     bodyFor("trailer-reaction"),
-    /breakdown|frame-by-frame|reaction|footage checkpoint/i,
-  );
-  assert.match(
     bodyFor("livestream"),
-    /\bshow\b|broadcast|conversation/i,
-  );
+  ];
+  assert.equal(new Set(bodies).size, 1);
+  assert.ok(bodies.every((body) =>
+    /episode opens|conversation centers/i.test(body) &&
+    body.trim().split(/\s+/).length >= 8 &&
+    body.trim().split(/\s+/).length <= 60
+  ));
+  assert.ok(bodies.every((body) =>
+    !/after-hours ledger|named flashlight|replay board|source clock|evidence board/i
+      .test(body)
+  ));
 });
 
 test("metadata-only sources get a visible held module with zero semantic claims", () => {

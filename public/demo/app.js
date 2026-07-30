@@ -392,6 +392,7 @@
       live: live,
       popular: popular,
       archiveDeep: archiveDeepStreams,
+      titleTopicOverrides: window.WWAM_TITLE_TOPIC_OVERRIDES || null,
       showcase: showcaseEngine,
       clipLab: clipLabEngine,
       curated: curated,
@@ -543,20 +544,21 @@
         }
         return clipLabEngine?null:loadDemoScript("creator-studio-engine.js").then(createClipLab);
       })
-      .then(function () { return loader.loadStyle("source-dossier.css?v=5.27-highlight-runway"); })
+      .then(function () { return loader.loadStyle("source-dossier.css?v=5.29-readable-release"); })
       .then(function () {
         return ["channel-pack-contract.js", "wwam-channel-pack-adapter.js",
           "episode-guides.js?v=2.1.5-referent",
           "episode-guide-v2-reviewed-release.js?v=1.0.1-runtime-eligible",
           "episode-guide-v2-newest-five-release.js?v=f5f3ca58",
           "episode-guide-v2-reviewed-merge.js?v=1.1.0-ordered-release",
-          "episode-recap-engine.js?v=1.6.0-highlight-runway",
-          "wwam-episode-recap-adapter.js?v=1.6.0-highlight-runway",
-          "source-dossier-engine.js?v=1.14.0-highlight-contract",
-          "wwam-source-dossier-adapter.js?v=1.14.1-uncapped-show-lanes",
+          "title-topic-overrides.js?v=1.0.1-dossier-runtime",
+          "episode-recap-engine.js?v=1.6.1-title-topic-overrides",
+          "wwam-episode-recap-adapter.js?v=1.6.1-title-topic-overrides",
+          "source-dossier-engine.js?v=1.14.2-screened-negative-takes",
+          "wwam-source-dossier-adapter.js?v=1.14.2-title-topic-overrides",
           "source-query-engine.js?v=1.6.1-lanes",
           "aftermath-pack-engine.js?v=1.0.0",
-          "source-dossier-ui.js?v=1.18.2-uncapped-lane-copy"].reduce(function (promise, source) {
+          "source-dossier-ui.js?v=1.18.4-readable-release"].reduce(function (promise, source) {
           return promise.then(function () { return loader.load(source); });
         }, Promise.resolve());
       })
@@ -3345,9 +3347,11 @@
       return;
     }
     var trace = loreEngine.trace(entry.id);
-    var receipts = (entry.receiptIds || []).map(function (id) {
+    var receiptCandidates = (entry.receiptIds || []).map(function (id) {
       return loreEngine.getReceipt(id);
-    }).filter(Boolean).slice(0, 5);
+    }).filter(Boolean);
+    var receipts = entry.kind === "character" ?
+      receiptCandidates : receiptCandidates.slice(0, 5);
     var metricEntries = Object.entries(entry.metrics || {}).slice(0, 5);
     var first = entry.archiveFirst;
     var firstItem = first && loreReceiptItem(loreEngine.getReceipt(first.receiptId));

@@ -169,6 +169,16 @@ test("ships the complete independent WWAM memory-system surface", async () => {
   assert.match(showcaseEngine, /buildDescent/);
   assert.match(showcaseEngine, /getControlRoom/);
   assert.match(styles, /--acid:\s*#d8ff38/);
+  assert.match(
+    app,
+    /entry\.kind === "character"\s*\?\s*receiptCandidates\s*:\s*receiptCandidates\.slice\(0, 5\)/,
+  );
+  assert.match(app, /titleTopicOverrides:\s*window\.WWAM_TITLE_TOPIC_OVERRIDES/);
+  assert.ok(
+    app.indexOf('"title-topic-overrides.js') <
+      app.indexOf('"wwam-episode-recap-adapter.js'),
+    "title-topic overrides must load before the recap and dossier adapters",
+  );
 
   const combined = [
     index,
@@ -362,14 +372,14 @@ test("Character Lore enables four grounded voices and locks unverifiable attribu
     "corey-feldman": "J",
   };
   const expectedByteCounts = {
-    loomis: 15,
-    challis: 15,
-    slenderman: 15,
-    "corey-feldman": 15,
+    loomis: 27,
+    challis: 27,
+    slenderman: 27,
+    "corey-feldman": 27,
   };
 
   assert.equal(lore.characters.length, 4);
-  assert.equal(lore.characters.reduce((sum, character) => sum + character.soundbytes.length, 0), 60);
+  assert.equal(lore.characters.reduce((sum, character) => sum + character.soundbytes.length, 0), 108);
   assert.equal(lore.guardrails.generatedRiffLabelRequired, true);
   assert.equal(
     lore.guardrails.requiredLabel,

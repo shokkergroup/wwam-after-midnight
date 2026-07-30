@@ -10,7 +10,7 @@
    * captions, promote evidence, clear rights, or publish anything.
    */
 
-  var VERSION = "1.14.0";
+  var VERSION = "1.14.2";
   var INPUT_SCHEMA = "shokker-source-dossier-input/v1";
   var DOSSIER_SCHEMA = "shokker-source-dossier/v1";
   var EXPORT_SCHEMA = "shokker-source-dossier-export/v1";
@@ -43,9 +43,17 @@
     "caption-excerpt": true,
     "caption-topic-receipt": true,
     "caption-topic-navigation": true,
+    "caption-title-topic-receipt": true,
+    "caption-topic-timeline-navigation": true,
     "caption-character-signal": true,
     "caption-character-context": true,
-    "curated-character-performance": true
+    "curated-character-performance": true,
+    "reviewed-guide-negative-take": true
+  });
+  var STEVE_EVIDENCE_STATES = Object.freeze({
+    "editorially-screened-source-cut": true,
+    "strict-candidate-playback-review-ready": true,
+    "strict-source-bounded-negative-take": true
   });
   var SHOW_WIKI_BRIEF_FORMAT_BASIS = Object.freeze({
     "source-title-metadata": true,
@@ -401,6 +409,22 @@
     if (!own(CONTENT_RECEIPT_TYPES, evidenceType)) {
       fail("UNKNOWN_EVIDENCE_TYPE", path + " has an unsupported evidence type.", path + ".evidenceType");
     }
+    var steveEvidenceState = clean(raw.steveEvidenceState, 100);
+    if (steveEvidenceState && !own(STEVE_EVIDENCE_STATES, steveEvidenceState)) {
+      fail(
+        "UNKNOWN_STEVE_EVIDENCE_STATE",
+        path + " has an unsupported Steve evidence state.",
+        path + ".steveEvidenceState"
+      );
+    }
+    var editorNote = clean(raw.editorNote, 400);
+    if (editorNote && !steveEvidenceState) {
+      fail(
+        "UNBOUND_RECEIPT_EDITOR_NOTE",
+        path + ".editorNote requires a screened Steve evidence state.",
+        path + ".editorNote"
+      );
+    }
     var publicExcerptAllowed = raw.publicExcerptAllowed === true;
     if (!publicExcerptAllowed && excerpt) {
       fail("WITHHELD_EXCERPT", path + " cannot expose a withheld excerpt.", path + ".excerpt");
@@ -467,6 +491,8 @@
       topicPeakAt: topicPeakAt,
       topicCluster: topicCluster,
       topicMetricBasis: topicMetricBasis,
+      steveEvidenceState: steveEvidenceState,
+      editorNote: editorNote,
       entityIds: entityIds,
       url: "https://www.youtube.com/watch?v=" + source.id + "&t=" + Math.round(at) + "s"
     };
@@ -1692,7 +1718,7 @@
       var receiptKeys = localReceiptKeys(
         section.receiptKeys,
         sectionPath + ".receiptKeys",
-        8
+        32
       );
       var cutId = guideCutId(section.guideCutId, sectionPath + ".guideCutId");
       if (!receiptKeys.length && !cutId) {
@@ -1754,10 +1780,10 @@
       );
     }
     if (state === "ready" && receiptMap.size &&
-        (!raw.story.length || raw.story.length > 8)) {
+        (!raw.story.length || raw.story.length > 12)) {
       fail(
         "EPISODE_RECAP_STORY_COUNT",
-        path + ".story must contain between one and eight evidence-bound reels.",
+        path + ".story must contain between one and twelve evidence-bound reels.",
         path + ".story"
       );
     }

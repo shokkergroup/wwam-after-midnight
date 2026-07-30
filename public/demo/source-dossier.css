@@ -1,4 +1,4 @@
-/* V5.27 // PER-SHOW WIKI - the Feldman Cut */
+/* V5.29 // PER-SHOW WIKI - readable release */
 
 .source-dossier {
   --dossier-ink: #f4efe6;
@@ -1559,12 +1559,26 @@
   position: absolute;
   top: 14px;
   left: 14px;
+  z-index: 3;
   color: #5d565f;
   font: 700 8px/1 var(--mono, monospace);
   letter-spacing: .15em;
 }
 
+.source-dossier-player-poster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: .2;
+  filter: saturate(.5) contrast(1.1);
+  transform: scale(1.015);
+}
+
 .source-dossier-player > div {
+  position: relative;
+  z-index: 2;
   display: grid;
   width: min(520px, calc(100% - 40px));
   gap: 16px;

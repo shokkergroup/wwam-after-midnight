@@ -156,10 +156,10 @@ test("ordinary watch recommendations stay grammatical in every enabled voice", (
 
 test("exposes the complete timestamp-validated tape shelf for every enabled character", () => {
   const expected = {
-    loomis: 15,
-    challis: 15,
-    slenderman: 15,
-    "corey-feldman": 15,
+    loomis: 27,
+    challis: 27,
+    slenderman: 27,
+    "corey-feldman": 27,
   };
   for (const [id, count] of Object.entries(expected)) {
     const library = engine.getReceiptLibrary(id);
@@ -170,9 +170,29 @@ test("exposes the complete timestamp-validated tape shelf for every enabled char
     assert.ok(library.receipts.every((receipt, index) =>
       receipt.libraryIndex === index + 1 &&
       receipt.libraryTotal === count &&
-      receipt.evidenceState === "timestamp-validated-human-curated-candidate" &&
+      [
+        "timestamp-validated-human-curated-candidate",
+        "timestamp-validated-editorially-screened-direct-address-seed",
+      ].includes(receipt.evidenceState) &&
       receipt.speakerStatus === "not-diarized"
     ), id);
+    assert.equal(
+      library.receipts.filter(
+        (receipt) =>
+          receipt.evidenceState === "timestamp-validated-human-curated-candidate",
+      ).length,
+      15,
+      id,
+    );
+    assert.equal(
+      library.receipts.filter(
+        (receipt) =>
+          receipt.evidenceState ===
+          "timestamp-validated-editorially-screened-direct-address-seed",
+      ).length,
+      12,
+      id,
+    );
   }
   const unknown = engine.getReceiptLibrary("not-a-character");
   assert.equal(unknown.ok, false);

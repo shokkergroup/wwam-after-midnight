@@ -1246,6 +1246,544 @@ EVIDENCE_SEEDS: list[dict[str, Any]] = [
 ]
 
 
+SCREENED_SELECTION = "editorially screened direct-address seed"
+SCREENED_AUDIT_WAVE = "2026-07-29-direct-address-expansion"
+
+SCREENED_EVIDENCE_SEEDS: list[dict[str, Any]] = [
+    {
+        "id": "loomis-pamela-voorhees",
+        "character": "loomis",
+        "sourceId": "-n2VP07ci-I",
+        "t": 3211.91,
+        "cue": "Well, she's dead",
+        "limit": 14,
+        "confidence": 0.98,
+        "trigger": "Michael containment",
+        "note": (
+            "A direct request for Loomis on Pamela Voorhees produces a sustained "
+            "in-character answer."
+        ),
+    },
+    {
+        "id": "loomis-psychic-face-advice",
+        "character": "loomis",
+        "sourceId": "-PoawT_AuRE",
+        "t": 2902.32,
+        "cue": "Are you psychic as well",
+        "limit": 13,
+        "confidence": 0.98,
+        "trigger": "Medical authority",
+        "note": "A face-improvement question addressed to Loomis gets immediate advice.",
+    },
+    {
+        "id": "loomis-giggle-bush-birthday",
+        "character": "loomis",
+        "sourceId": "1XzitdCZD2w",
+        "t": 554.04,
+        "cue": "Happy 29th birthday",
+        "limit": 14,
+        "confidence": 0.99,
+        "trigger": "Apocalyptic certainty",
+        "note": "An explicit Loomis request becomes a sharply phrased birthday message.",
+    },
+    {
+        "id": "loomis-ghost-shoutout",
+        "character": "loomis",
+        "sourceId": "2b8bUpDXi0Y",
+        "t": 5320.32,
+        "cue": "and i could say",
+        "limit": 14,
+        "confidence": 0.97,
+        "trigger": "Michael containment",
+        "note": "A direct Loomis shout-out turns into another Michael warning.",
+    },
+    {
+        "id": "loomis-dumb-and-dumber",
+        "character": "loomis",
+        "sourceId": "2sWWa9NDWio",
+        "t": 2503.92,
+        "cue": "you know what Lee",
+        "limit": 14,
+        "confidence": 0.98,
+        "trigger": "Apocalyptic certainty",
+        "note": "A question addressed to Loomis about Dumb and Dumber gets a direct retort.",
+    },
+    {
+        "id": "loomis-child-labor-economy",
+        "character": "loomis",
+        "sourceId": "4VGC0DogG80",
+        "t": 5012.88,
+        "cue": "have you seen",
+        "limit": 14,
+        "confidence": 0.99,
+        "trigger": "Bureaucratic combat",
+        "note": "A direct Loomis prompt turns child-rearing advice into an economic emergency.",
+    },
+    {
+        "id": "loomis-wiener-rebuttal",
+        "character": "loomis",
+        "sourceId": "60zSG002oN4",
+        "t": 1229.92,
+        "cue": "Lee, you're",
+        "limit": 14,
+        "confidence": 0.99,
+        "trigger": "Medical authority",
+        "note": "Loomis directly rebuts a viewer's question about the character's recurring fixation.",
+    },
+    {
+        "id": "loomis-freddy-plan",
+        "character": "loomis",
+        "sourceId": "60zSG002oN4",
+        "t": 6774.08,
+        "cue": "I would shave",
+        "limit": 14,
+        "confidence": 0.99,
+        "trigger": "Michael containment",
+        "note": "A direct how-would-Loomis-handle-Freddy question gets a concrete plan.",
+    },
+    {
+        "id": "loomis-baby-names",
+        "character": "loomis",
+        "sourceId": "6kxLBYFGiaY",
+        "t": 1187.12,
+        "cue": "okay so one thing",
+        "limit": 14,
+        "confidence": 0.99,
+        "trigger": "Medical authority",
+        "note": "A direct Loomis request produces in-character baby-name advice.",
+    },
+    {
+        "id": "loomis-bedtime-asylum",
+        "character": "loomis",
+        "sourceId": "Ioqyy-phuDk",
+        "t": 4373.82,
+        "cue": "I'm gonna tuck you",
+        "limit": 14,
+        "confidence": 0.99,
+        "trigger": "Apocalyptic certainty",
+        "note": "A bedtime request addressed to Loomis becomes an asylum threat.",
+    },
+    {
+        "id": "loomis-michael-fireworks",
+        "character": "loomis",
+        "sourceId": "pW7eDFkiuYc",
+        "t": 5072.88,
+        "cue": "thing he could pop",
+        "limit": 14,
+        "confidence": 0.99,
+        "trigger": "Michael containment",
+        "note": "A direct Loomis question about Michael and fireworks gets an immediate ruling.",
+    },
+    {
+        "id": "loomis-kelly-birthday",
+        "character": "loomis",
+        "sourceId": "znDBmxbZs7A",
+        "t": 4000.72,
+        "cue": "kelly i hope",
+        "limit": 14,
+        "confidence": 0.99,
+        "trigger": "Apocalyptic certainty",
+        "note": "A direct Dr. Loomis request becomes a full birthday wish for Kelly.",
+    },
+    {
+        "id": "challis-bust-a-move",
+        "character": "challis",
+        "sourceId": "1j3F9vAWBo4",
+        "t": 9054.0,
+        "cue": "This is a jam",
+        "limit": 14,
+        "confidence": 0.98,
+        "trigger": "Flirtation",
+        "note": "A direct request for Challis to sing launches the requested performance.",
+    },
+    {
+        "id": "challis-cardboard-cutout",
+        "character": "challis",
+        "sourceId": "2sWWa9NDWio",
+        "t": 3599.88,
+        "cue": "if by cardboard cutout",
+        "limit": 14,
+        "confidence": 0.99,
+        "trigger": "Flirtation",
+        "note": "A cardboard-cutout question addressed to Challis gets a sustained dirty riff.",
+    },
+    {
+        "id": "challis-life-advice",
+        "character": "challis",
+        "sourceId": "2sWWa9NDWio",
+        "t": 11591.08,
+        "cue": "listen uh my the best advice",
+        "limit": 14,
+        "confidence": 0.99,
+        "trigger": "Questionable medicine",
+        "note": "The response explicitly labels itself as advice from Dr. Challis.",
+    },
+    {
+        "id": "challis-nikki-shoutout",
+        "character": "challis",
+        "sourceId": "7mTZZJ28YBU",
+        "t": 2781.76,
+        "cue": "well let me tell you something",
+        "limit": 14,
+        "confidence": 0.99,
+        "trigger": "Flirtation",
+        "note": "A direct Dr. Challis shout-out request becomes an in-character invitation.",
+    },
+    {
+        "id": "challis-disney-screws-you",
+        "character": "challis",
+        "sourceId": "NAnLPtp4wUg",
+        "t": 3874.4,
+        "cue": "well let me tell you",
+        "limit": 14,
+        "confidence": 0.99,
+        "trigger": "Alcohol",
+        "note": "A direct Dr. Challis prompt about Disney becomes a barroom monologue.",
+    },
+    {
+        "id": "challis-nikki-alex-shoutout",
+        "character": "challis",
+        "sourceId": "VvQcHgpP1Y0",
+        "t": 6500.0,
+        "cue": "as a doctor sometimes",
+        "limit": 14,
+        "confidence": 0.98,
+        "trigger": "Flirtation",
+        "note": "A requested Challis shout-out moves into the character's doctor-and-bar persona.",
+    },
+    {
+        "id": "challis-job-encouragement",
+        "character": "challis",
+        "sourceId": "VvQcHgpP1Y0",
+        "t": 7452.32,
+        "cue": "well let me tell you something mark",
+        "limit": 14,
+        "confidence": 0.99,
+        "trigger": "Alcohol",
+        "note": "A request for encouragement from Challis gets a sustained direct answer.",
+    },
+    {
+        "id": "challis-ankle-encouragement",
+        "character": "challis",
+        "sourceId": "ajlAfarLVbM",
+        "t": 1576.72,
+        "cue": "well let me tell you something",
+        "limit": 14,
+        "confidence": 0.99,
+        "trigger": "Questionable medicine",
+        "note": "A hurt-ankle prompt addressed to Challis receives in-character encouragement.",
+    },
+    {
+        "id": "challis-dui-story",
+        "character": "challis",
+        "sourceId": "ReVyxwuuoAM",
+        "t": 6133.88,
+        "cue": "well that's an easy story",
+        "limit": 14,
+        "confidence": 0.99,
+        "trigger": "Alcohol",
+        "note": "A direct question asks Challis for his best DUI story.",
+    },
+    {
+        "id": "challis-relationship-details",
+        "character": "challis",
+        "sourceId": "MEtWrdeOi50",
+        "t": 7375.36,
+        "cue": "give you what chalice would say",
+        "limit": 14,
+        "confidence": 0.99,
+        "trigger": "Flirtation",
+        "note": "The host explicitly hands relationship advice to the Challis character.",
+    },
+    {
+        "id": "challis-limping-wife",
+        "character": "challis",
+        "sourceId": "fNOojlYn2oA",
+        "t": 8834.16,
+        "cue": "AJ, I was",
+        "limit": 14,
+        "confidence": 0.99,
+        "trigger": "Flirtation",
+        "note": "A direct question to Challis gets a sustained alibi about a viewer's wife.",
+    },
+    {
+        "id": "challis-game-impostor",
+        "character": "challis",
+        "sourceId": "tL9zmuyrtl4",
+        "t": 7923.28,
+        "cue": "So, I was",
+        "limit": 14,
+        "confidence": 0.98,
+        "trigger": "Alcohol",
+        "note": "A prompt addressed to Challis about an impostor voice gets a direct explanation.",
+    },
+    {
+        "id": "slender-lifehouse",
+        "character": "slenderman",
+        "sourceId": "GBOlv58BBXg",
+        "t": 2833.68,
+        "cue": "me letting go",
+        "limit": 14,
+        "confidence": 0.99,
+        "trigger": "Soft-rock request",
+        "note": "An explicit request for Lifehouse as Slenderman becomes a song fragment.",
+    },
+    {
+        "id": "slender-paula-cole",
+        "character": "slenderman",
+        "sourceId": "HLDAxs4_3U4",
+        "t": 6701.2,
+        "cue": "me don't want to wait",
+        "limit": 14,
+        "confidence": 0.99,
+        "trigger": "Soft-rock request",
+        "note": "A direct Slenderman song request becomes a Paula Cole fragment.",
+    },
+    {
+        "id": "slender-movie-recommendation",
+        "character": "slenderman",
+        "sourceId": "Ioqyy-phuDk",
+        "t": 8086.26,
+        "cue": "well I mean what",
+        "limit": 14,
+        "confidence": 0.98,
+        "trigger": "Awkward hospitality",
+        "note": "A direct Slenderman shout-out asks for a movie recommendation.",
+    },
+    {
+        "id": "slender-jeff-killer",
+        "character": "slenderman",
+        "sourceId": "O9ZVtA9SyqQ",
+        "t": 9738.96,
+        "cue": "you know me think",
+        "limit": 14,
+        "confidence": 0.99,
+        "trigger": "Impossible visitors",
+        "note": "A direct Slenderman question asks for thoughts on Jeff the Killer.",
+    },
+    {
+        "id": "slender-killer-knight",
+        "character": "slenderman",
+        "sourceId": "RIWVY41ny7w",
+        "t": 3146.88,
+        "cue": "hey how you doing",
+        "limit": 14,
+        "confidence": 0.98,
+        "trigger": "Awkward hospitality",
+        "note": "A direct Slenderman request becomes a shout-out for Killer Knight.",
+    },
+    {
+        "id": "slender-sweet-caroline",
+        "character": "slenderman",
+        "sourceId": "VvQcHgpP1Y0",
+        "t": 8920.08,
+        "cue": "hope you have a great",
+        "limit": 14,
+        "confidence": 0.98,
+        "trigger": "Soft-rock request",
+        "note": "An explicit as-Slenderman request becomes a Sweet Caroline birthday riff.",
+    },
+    {
+        "id": "slender-come-as-you-are",
+        "character": "slenderman",
+        "sourceId": "wdLggqRcisQ",
+        "t": 6997.08,
+        "cue": "Kim as you is",
+        "limit": 14,
+        "confidence": 0.99,
+        "trigger": "Soft-rock request",
+        "note": "A direct Slenderman request becomes a broken Nirvana fragment.",
+    },
+    {
+        "id": "slender-back-in-black",
+        "character": "slenderman",
+        "sourceId": "wdLggqRcisQ",
+        "t": 8994.28,
+        "cue": "Back in Back",
+        "limit": 14,
+        "confidence": 0.99,
+        "trigger": "Soft-rock request",
+        "note": "A direct Slenderman request becomes a broken AC/DC fragment.",
+    },
+    {
+        "id": "slender-belated-birthday",
+        "character": "slenderman",
+        "sourceId": "WE3_YeRy7Xk",
+        "t": 678.4,
+        "cue": "so it was your day",
+        "limit": 14,
+        "confidence": 0.99,
+        "trigger": "Awkward hospitality",
+        "note": "A birthday request addressed to Slenderman gets a complete response.",
+    },
+    {
+        "id": "slender-subway-subscription",
+        "character": "slenderman",
+        "sourceId": "XJDACajq_M0",
+        "t": 6747.0,
+        "cue": "Oh, Maggie",
+        "limit": 14,
+        "confidence": 0.99,
+        "trigger": "Awkward hospitality",
+        "note": "A direct Slenderman prompt asks about a Subway subscription.",
+    },
+    {
+        "id": "slender-sharna-birthday",
+        "character": "slenderman",
+        "sourceId": "zWKRDJ3zXIA",
+        "t": 3423.76,
+        "cue": "sean uh happy belated birthday",
+        "limit": 14,
+        "confidence": 0.98,
+        "trigger": "Awkward hospitality",
+        "note": "A direct Slenderman request becomes a belated-birthday message.",
+    },
+    {
+        "id": "slender-gillette-razors",
+        "character": "slenderman",
+        "sourceId": "JVRpguGjUDk",
+        "t": 2758.24,
+        "cue": "so you're looking",
+        "limit": 14,
+        "confidence": 0.99,
+        "trigger": "Calming ritual",
+        "note": "An explicit request to discuss Gillette razors as Slenderman launches a commercial.",
+    },
+    {
+        "id": "feldman-billie-jean",
+        "character": "corey-feldman",
+        "sourceId": "fGJyLjp-JP8",
+        "t": 10418.0,
+        "cue": "Yeah, I could totally sing it",
+        "limit": 14,
+        "confidence": 0.99,
+        "trigger": "Music takeover",
+        "note": "A direct can-Corey-sing question becomes an in-character music claim.",
+    },
+    {
+        "id": "feldman-film-fam-tweet",
+        "character": "corey-feldman",
+        "sourceId": "NAnLPtp4wUg",
+        "t": 802.16,
+        "cue": "check this out film fam",
+        "limit": 14,
+        "confidence": 0.99,
+        "trigger": "Comeback mythology",
+        "note": "The host explicitly says the tweet will be read as Corey Feldman.",
+    },
+    {
+        "id": "feldman-legal-response",
+        "character": "corey-feldman",
+        "sourceId": "QMYgsEfPMg0",
+        "t": 2319.76,
+        "cue": "these people are really trying",
+        "limit": 14,
+        "confidence": 0.99,
+        "trigger": "Comeback mythology",
+        "note": "An explicit Feldman voice handoff launches a mock legal response.",
+    },
+    {
+        "id": "feldman-new-years-party",
+        "character": "corey-feldman",
+        "sourceId": "ojsn75be_gI",
+        "t": 1830.76,
+        "cue": "This New Year's is going",
+        "limit": 14,
+        "confidence": 0.98,
+        "trigger": "Comeback mythology",
+        "note": "The surrounding exchange explicitly identifies the all-caps response as Feldman.",
+    },
+    {
+        "id": "feldman-number-one-fans",
+        "character": "corey-feldman",
+        "sourceId": "wk1j2rL49kA",
+        "t": 4997.52,
+        "cue": "exactly what I'm trying to say",
+        "limit": 14,
+        "confidence": 0.98,
+        "trigger": "Comeback mythology",
+        "note": "The response is immediately and explicitly identified as Corey Feldman voice.",
+    },
+    {
+        "id": "feldman-argues-challis",
+        "character": "corey-feldman",
+        "sourceId": "wk1j2rL49kA",
+        "t": 9343.24,
+        "cue": "I think",
+        "limit": 14,
+        "confidence": 0.99,
+        "trigger": "Fictional Wolf Pack",
+        "note": "A direct request asks Corey Feldman to argue with Challis.",
+    },
+    {
+        "id": "feldman-inside-wolfpack",
+        "character": "corey-feldman",
+        "sourceId": "fNOojlYn2oA",
+        "t": 2897.2,
+        "cue": "I'm only doing this",
+        "limit": 14,
+        "confidence": 0.98,
+        "trigger": "Fictional Wolf Pack",
+        "note": "An explicit Corey setup becomes a sustained fictional Wolf Pack exchange.",
+    },
+    {
+        "id": "feldman-convention-booth",
+        "character": "corey-feldman",
+        "sourceId": "BikumH8JKmw",
+        "t": 2583.28,
+        "cue": "Hey guys, if you want",
+        "limit": 14,
+        "confidence": 0.99,
+        "trigger": "Comeback mythology",
+        "note": "A direct request for the Corey voice becomes a convention-booth announcement.",
+    },
+    {
+        "id": "feldman-cult-advice",
+        "character": "corey-feldman",
+        "sourceId": "-31V7Dbyyqs",
+        "t": 11846.88,
+        "cue": "Yeah, so what you got",
+        "limit": 14,
+        "confidence": 0.99,
+        "trigger": "Fictional Wolf Pack",
+        "note": "A direct question asks Feldman for tips on starting a fictional cult.",
+    },
+    {
+        "id": "feldman-jason-return",
+        "character": "corey-feldman",
+        "sourceId": "k698GIJe8EA",
+        "t": 9695.84,
+        "cue": "Yeah, he's like the Wolfpack",
+        "limit": 14,
+        "confidence": 0.99,
+        "trigger": "Fictional Wolf Pack",
+        "note": "A question addressed to Corey Feldman asks about Jason returning.",
+    },
+    {
+        "id": "feldman-donatello-jason",
+        "character": "corey-feldman",
+        "sourceId": "3UCnMrLMXbI",
+        "t": 1445.48,
+        "cue": "Not only did I voice",
+        "limit": 14,
+        "confidence": 0.98,
+        "trigger": "Casting grievance",
+        "note": "An explicit Feldman setup becomes a boast about Donatello and Jason.",
+    },
+    {
+        "id": "feldman-harry-potter",
+        "character": "corey-feldman",
+        "sourceId": "zLTLgWjQva8",
+        "t": 6772.44,
+        "cue": "Yeah, everybody understand",
+        "limit": 14,
+        "confidence": 0.98,
+        "trigger": "Casting grievance",
+        "note": "An explicit Corey-Feldman-as-Harry-Potter setup launches the performance.",
+    },
+]
+
+
 CREATOR_CONTEXT_SEEDS: list[dict[str, Any]] = [
     {
         "id": "loomis-character-process",
@@ -1655,7 +2193,8 @@ def receipt(
             "channelId": OFFICIAL_CHANNEL_ID,
             "captionSource": "official YouTube automatic captions",
             "timestampStatus": "exact-caption-event",
-            "selection": "human-curated seed with deterministic caption validation",
+            "selection": seed.get("provenanceSelection")
+            or "human-curated seed with deterministic caption validation",
             "speakerBasis": seed.get("speakerBasis")
             or (
                 "Character addressed or explicitly announced in the immediate caption "
@@ -1711,11 +2250,29 @@ def build_character(
 ) -> dict[str, Any]:
     soundbytes = []
     contexts = []
-    for seed in EVIDENCE_SEEDS:
+    legacy_soundbytes = []
+    screened_soundbytes = []
+    for seed in [*EVIDENCE_SEEDS, *SCREENED_EVIDENCE_SEEDS]:
         if seed["character"] != character_id:
             continue
-        item, context = receipt(seed, captions, metadata)
+        screened = seed in SCREENED_EVIDENCE_SEEDS
+        item, context = receipt(
+            {
+                **seed,
+                **(
+                    {
+                        "provenanceSelection": SCREENED_SELECTION,
+                        "auditWave": SCREENED_AUDIT_WAVE,
+                    }
+                    if screened
+                    else {}
+                ),
+            },
+            captions,
+            metadata,
+        )
         soundbytes.append(item)
+        (screened_soundbytes if screened else legacy_soundbytes).append(item)
         contexts.append(context)
     creator_context = []
     for seed in CREATOR_CONTEXT_SEEDS:
@@ -1739,6 +2296,9 @@ def build_character(
     definition["metrics"] = {
         **mention_metrics(definition.pop("mentionPattern"), captions, metadata),
         "curatedPerformanceCandidates": len(soundbytes),
+        "playablePerformanceCandidates": len(soundbytes),
+        "legacyHumanCuratedPerformanceCandidates": len(legacy_soundbytes),
+        "screenedDirectAddressPerformanceCandidates": len(screened_soundbytes),
         "curatedCandidateSources": source_count,
         "livestreamReceipts": sum(
             item["sourceType"] == "livestream" for item in soundbytes
@@ -1820,11 +2380,13 @@ def build_receipt_audit(
     captions: dict[str, list[dict[str, Any]]],
     metadata: dict[str, dict[str, Any]],
 ) -> dict[str, Any]:
-    expansion_ids = {
+    legacy_expansion_ids = {
         seed["id"]
         for seed in EVIDENCE_SEEDS
         if seed.get("auditWave") == "2026-07-26-character-library-expansion"
     }
+    screened_expansion_ids = {seed["id"] for seed in SCREENED_EVIDENCE_SEEDS}
+    expansion_ids = legacy_expansion_ids | screened_expansion_ids
     promoted = []
     for character in payload["characters"]:
         for item in character["soundbytes"]:
@@ -1855,8 +2417,8 @@ def build_receipt_audit(
             }
         )
     return {
-        "version": "1.0.0",
-        "auditWave": "2026-07-26-character-library-expansion",
+        "version": "1.1.0",
+        "auditWave": SCREENED_AUDIT_WAVE,
         "corpus": {
             "captionFilesScanned": len(captions),
             "captionEventsScanned": sum(len(lines) for lines in captions.values()),
@@ -1883,6 +2445,18 @@ def build_receipt_audit(
         ],
         "counts": {
             "promotedPerformanceReceipts": len(promoted),
+            "legacyPromotedPerformanceReceipts": sum(
+                item["id"] in legacy_expansion_ids for item in promoted
+            ),
+            "legacyHumanCuratedPerformanceReceipts": sum(
+                item["provenance"]["selection"]
+                == "human-curated seed with deterministic caption validation"
+                for character in payload["characters"]
+                for item in character["soundbytes"]
+            ),
+            "screenedDirectAddressPerformanceReceipts": sum(
+                item["id"] in screened_expansion_ids for item in promoted
+            ),
             "rejectedMentionExamples": len(rejected),
             "libraryPerformanceReceipts": sum(
                 len(character["soundbytes"])
@@ -1927,8 +2501,19 @@ def build_artifacts() -> tuple[dict[str, Any], dict[str, Any]]:
     unique_receipt_sources = {
         item["sourceId"] for item in all_receipts + creator_context_receipts
     }
+    legacy_performance_receipts = [
+        item
+        for item in performance_receipts
+        if item["provenance"]["selection"]
+        == "human-curated seed with deterministic caption validation"
+    ]
+    screened_performance_receipts = [
+        item
+        for item in performance_receipts
+        if item["provenance"]["selection"] == SCREENED_SELECTION
+    ]
     payload = {
-        "version": "1.2.0",
+        "version": "1.3.0",
         "scope": {
             "corpusMode": "all-locally-cached-official-caption-sources",
             "captionFilesScanned": len(captions),
@@ -1939,6 +2524,13 @@ def build_artifacts() -> tuple[dict[str, Any], dict[str, Any]]:
             "groundedCharacters": len(characters),
             "lockedCandidates": len(bonus),
             "curatedPerformanceCandidates": len(performance_receipts),
+            "playablePerformanceCandidates": len(performance_receipts),
+            "legacyHumanCuratedPerformanceCandidates": len(
+                legacy_performance_receipts
+            ),
+            "screenedDirectAddressPerformanceCandidates": len(
+                screened_performance_receipts
+            ),
             "lockedPerformanceCandidates": len(locked_receipts),
             "timestampValidatedCandidates": len(all_receipts),
             "curatedContextReceipts": len(creator_context_receipts),
@@ -1955,9 +2547,10 @@ def build_artifacts() -> tuple[dict[str, Any], dict[str, Any]]:
                 "speaker diarization from auto-captions."
             ),
             (
-                "Human-select candidate performances, then deterministically validate "
-                "the caption event, cue text, source duration, playability flags, and "
-                "public excerpt limit."
+                "Keep the 60 legacy human-curated performance seeds and add only "
+                "editorially screened direct-address or explicit-performance seeds; "
+                "then deterministically validate caption event, cue text, source "
+                "duration, playability flags, and public excerpt limit."
             ),
             (
                 "Classify recurring-character performances, creator context, locked "
@@ -2033,7 +2626,9 @@ def main() -> int:
             f"{action} {OUTPUT} and {AUDIT_OUTPUT}: "
             f"{scope['groundedCharacters']} grounded characters, "
             f"{scope['lockedCandidates']} locked candidate, "
-            f"{scope['curatedPerformanceCandidates']} curated performance candidates, "
+            f"{scope['playablePerformanceCandidates']} playable performance candidates "
+            f"({scope['legacyHumanCuratedPerformanceCandidates']} legacy human-curated + "
+            f"{scope['screenedDirectAddressPerformanceCandidates']} screened direct-address), "
             f"{scope['lockedPerformanceCandidates']} locked candidates across "
             f"{scope['uniqueEvidenceSources']} sources.",
             flush=True,

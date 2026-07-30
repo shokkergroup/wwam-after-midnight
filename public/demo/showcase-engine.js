@@ -327,9 +327,15 @@
         function (receipt) {
           var rawCharacterId = clean(character.id || character.slug);
           var provenance = receipt.provenance || {};
+          var selection = normalized(provenance.selection);
+          var screenedDirectAddress =
+            selection === "editorially screened direct address seed";
           var timestampValidatedCandidate =
             clean(provenance.timestampStatus) === "exact-caption-event" &&
-            normalized(provenance.selection).indexOf("human curated") >= 0;
+            (
+              selection === "human curated seed with deterministic caption validation" ||
+              screenedDirectAddress
+            );
           results.push(
             Object.assign(
               {
@@ -344,7 +350,9 @@
                 curationStatus:
                   receipt.curationStatus ||
                   (timestampValidatedCandidate
-                    ? "timestamp-validated-human-curated-candidate"
+                    ? (screenedDirectAddress
+                      ? "timestamp-validated-editorially-screened-direct-address-seed"
+                      : "timestamp-validated-human-curated-candidate")
                     : "unreviewed-candidate")
               },
               receipt

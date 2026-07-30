@@ -1,11 +1,16 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.3.0";
+  var VERSION = "1.3.1";
   var PLAY_EVENT = "wwam:halloween-play";
   var LANE_ID = "straight-to-steves-asshole";
   var GUIDE_ERROR_CODE = "EPISODE_GUIDE_COUNT_INVALID";
   var cache = null;
+  var REJECTED_IDENTITIES = Object.freeze({
+    "p7pL7mWBI58@755": true,
+    "ZrXVjTAmLos@5364": true,
+    "zftrMw30SuQ@12005": true,
+  });
   var EDITOR_NOTES = Object.freeze({
     "rLXnU3Rsj-4@1145":
       "The junkyard talk turns into a blunt rejection of this Dream Master franchise turn.",
@@ -152,6 +157,9 @@
   }
 
   function editorNote(item) {
+    if (clean(item && item.reviewedEditorNote)) {
+      return clean(item.reviewedEditorNote);
+    }
     var noteKey = youtubeId(item && item.sourceId) + "@" +
       Math.max(0, Math.floor(Number(item && item.at) || 0));
     if (EDITOR_NOTES[noteKey]) return EDITOR_NOTES[noteKey];
@@ -201,11 +209,13 @@
         var at = numberOrNull(receipt && receipt.at);
         if (!receipt || at == null || at < 0) return;
         if (receipt.publicExcerptAllowed === false) return;
-        if (/quarantined/i.test(clean(receipt.reviewState))) return;
         var label = clean(receipt.label);
-        if (label !== "FRANCHISE FELONY" && label !== "TAKE GETS NUCLEAR") {
-          return;
-        }
+        var legacyQualified =
+          (label === "FRANCHISE FELONY" || label === "TAKE GETS NUCLEAR") &&
+          !/quarantined/i.test(clean(receipt.reviewState));
+        if (!clean(receipt.steveEvidenceState) && !legacyQualified) return;
+        var noteKey = sourceId + "@" + Math.floor(at);
+        if (REJECTED_IDENTITIES[noteKey]) return;
         var identity = sourceId + "@" + at + ":" + clean(receipt.key);
         if (seen[identity]) return;
         seen[identity] = true;
@@ -235,9 +245,11 @@
           excerpt: clean(receipt.excerpt),
           evidenceLevel: clean(receipt.evidenceLevel) || "machine",
           reviewState: clean(receipt.reviewState) || "machine-surfaced",
+          steveEvidenceState: clean(receipt.steveEvidenceState),
           speakerStatus: "not-diarized",
           score: score,
           signalBasis: clean(receipt.signalBasis),
+          reviewedEditorNote: clean(receipt.editorNote),
           thumbnail: thumbnailFor(source),
           sourceUrl: sourceUrl(sourceId, at),
           route: "",
@@ -519,7 +531,7 @@
       '<p>The playable rejections below still come from canonical WWAM show receipts with exact timestamps. ' +
       'Only the episode chapter overlay is temporarily behind.</p></div>' : "";
     return '<section class="steve-experience" aria-labelledby="steveExperienceTitle">' +
-      '<header class="steve-hero"><div><p>THE WWAM REJECTION CHUTE // THE STUFF THEY HATED</p>' +
+      '<header class="steve-hero"><div><p>THE WWAM REJECTION CHUTE // NEGATIVE TAKES CAUGHT ON TAPE</p>' +
       '<h2 id="steveExperienceTitle">' + esc(displayText("STRAIGHT TO", documentRef)) +
       '<br><em>' + esc(displayText("STEVE\'S ASSHOLE.", documentRef)) + '</em></h2></div>' +
       '<aside><b>WHAT THE HELL IS THIS?</b><p>A bad mask. A rotten twist. A franchise decision nobody can defend. ' +
@@ -528,7 +540,7 @@
       '<p>These clips come from official WWAM uploads. The rough transcript can mishear names and cannot identify the speaker, ' +
       'so the original tape always gets the last word.</p></div>' + syncNotice +
       '<div class="steve-metrics"><div><strong>' + esc(metrics.candidates) +
-      '</strong><span>CLIPS IN THE CHUTE</span></div><div><strong>' +
+      '</strong><span>PLAYABLE NEGATIVE-TAKE CLIPS</span></div><div><strong>' +
       esc(metrics.sources) + '</strong><span>SHOWS</span></div><div><strong>' +
       esc(metrics.commentaryCandidates) + '</strong><span>WATCHALONG CLIPS</span></div><div><strong>' +
       esc(metrics.livestreamCandidates) + '</strong><span>LIVESTREAM CLIPS</span></div></div>' +

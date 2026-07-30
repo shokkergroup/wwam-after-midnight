@@ -46,8 +46,8 @@ test("builds a broad field guide from all unique source lanes", () => {
   ]);
 
   assert.equal(engine.scope.uniqueSources, expectedSources.size);
-  assert.equal(engine.scope.uniqueSources, 97);
-  assert.equal(engine.metrics.kinds.source, 97);
+  assert.equal(engine.scope.uniqueSources, 129);
+  assert.equal(engine.metrics.kinds.source, 129);
   assert.equal(engine.metrics.kinds.character, 4);
   assert.equal(engine.metrics.kinds["candidate-character"], 1);
   assert.equal(engine.metrics.kinds.franchise, 4);
@@ -85,19 +85,19 @@ test("character and bit lineages resolve to timestamp-validated curated candidat
   const feldman = engine.getEntry("character:corey-feldman");
   const marky = engine.getEntry("candidate-character:marky-mark");
 
-  assert.equal(loomis.metrics.curatedPerformanceCandidates, 15);
-  assert.equal(challis.metrics.curatedPerformanceCandidates, 15);
-  assert.equal(slender.metrics.curatedPerformanceCandidates, 15);
-  assert.equal(feldman.metrics.curatedPerformanceCandidates, 15);
+  assert.equal(loomis.metrics.curatedPerformanceCandidates, 27);
+  assert.equal(challis.metrics.curatedPerformanceCandidates, 27);
+  assert.equal(slender.metrics.curatedPerformanceCandidates, 27);
+  assert.equal(feldman.metrics.curatedPerformanceCandidates, 27);
   assert.equal(marky.status, "locked-needs-human-verification");
   assert.equal(marky.confidence, 0);
   assert.match(marky.evidenceBasis, /performer identity/i);
 
   const expectedArchiveFirst = new Map([
-    [loomis.id, "2022-08-20"],
-    [challis.id, "2022-07-20"],
-    [slender.id, "2021-04-24"],
-    [feldman.id, "2025-05-25"]
+    [loomis.id, "2020-05-30"],
+    [challis.id, "2021-02-04"],
+    [slender.id, "2020-10-17"],
+    [feldman.id, "2020-12-31"]
   ]);
 
   for (const character of [loomis, challis, slender, feldman]) {
@@ -201,8 +201,8 @@ test("machine-only or non-exact soundbytes cannot become performance archive-fir
   });
   const conservativeLoomis = conservativeEngine.getEntry("character:loomis");
 
-  assert.equal(conservativeLoomis.performanceReceiptIds.length, 15);
-  assert.equal(conservativeLoomis.archiveFirst.date, "2022-08-20");
+  assert.equal(conservativeLoomis.performanceReceiptIds.length, 27);
+  assert.equal(conservativeLoomis.archiveFirst.date, "2020-05-30");
   assert.ok(
     !conservativeLoomis.performanceReceiptIds.some(
       (receiptId) =>

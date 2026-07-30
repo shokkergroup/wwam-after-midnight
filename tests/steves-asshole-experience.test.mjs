@@ -40,7 +40,7 @@ test("Steve is a visible first-class room with lazy, local assets", () => {
   assert.match(html, /id="steves-asshole"/);
   assert.ok(html.includes('data-feature-styles="steves-asshole.css?v=1.1.0"'));
   assert.match(html, /data-feature-scripts="steves-asshole\.js\?v=[^"]+"/);
-  assert.equal(api.VERSION, "1.3.0");
+  assert.equal(api.VERSION, "1.3.1");
   assert.ok((html.match(/href="#steves-asshole"/g) || []).length >= 1);
   assert.match(html, /href="#best-bits"[^>]*data-journey-link="highlights">BEST BITS<\/a>/);
   assert.match(source, /WWAMSourceDossierAccess/);
@@ -60,7 +60,8 @@ test("the rejection chute only admits playable, public, lane-bound clips", () =>
 test("Steve sounds like WWAM while provenance stays under the hood", () => {
   const data = api.inventory({ sources: [sourceRecord()] });
   const markup = api.render(data, { query: "", type: "all", sort: "newest" });
-  assert.match(markup, /THE STUFF THEY HATED/);
+  assert.match(markup, /NEGATIVE TAKES CAUGHT ON TAPE/);
+  assert.match(markup, /PLAYABLE NEGATIVE-TAKE CLIPS/);
   assert.match(markup, /PLAY IT BEFORE YOU QUOTE IT/);
   assert.match(markup, /WHY IT GOT FLUSHED/);
   assert.match(markup, /turns one specific complaint into a full rejection\./);
@@ -103,7 +104,7 @@ test("Steve writes a source-grounded note for franchise felonies", () => {
   assert.doesNotMatch(markup, />HEAT 99<|MOST HEATED FIRST/);
 });
 
-test("the fourteen known clips each receive a distinct editor note", () => {
+test("the fourteen legacy clips retain their distinct editor notes", () => {
   const known = [
     ["rLXnU3Rsj-4", 1145, "The Dream Master", "FRANCHISE FELONY", "junkyard where the dumbest franchise happened"],
     ["c15otfZ8HkU", 3918, "Dream Warriors", "FRANCHISE FELONY", "neil i hate this scene john saxon"],

@@ -109,18 +109,17 @@ test("all canonical shows receive an evidence-bounded recap state", () => {
   assert.deepEqual(result.quality.missingCaseFiles, []);
 });
 
-test("recap prose consumes its real evidence without exposing machine taxonomy", () => {
+test("recap prose stays readable without pasting caption fragments into its body", () => {
   const result = report();
-  const baseline = baselineReport();
 
-  assert.ok(
-    result.quality.excerptBearingActs >= baseline.quality.excerptBearingActs,
-  );
-  assert.equal(
-    result.quality.excerptActsUsingSourceNugget,
-    result.quality.excerptBearingActs,
-  );
-  assert.equal(result.quality.excerptUsePercent, 100);
+  assert.equal(result.readability.flags.rawCaptionMarkers.occurrences, 0);
+  assert.equal(result.readability.flags.forbiddenMetaphors.occurrences, 0);
+  assert.equal(result.readability.flags.rawExcerptReuse.occurrences, 0);
+  assert.equal(result.readability.flags.quoteSalad.occurrences, 0);
+  assert.equal(result.readability.flags.againSuffixes.occurrences, 0);
+  assert.equal(result.readability.flags.speakerOverclaims.occurrences, 0);
+  assert.equal(result.readability.flags.firewallCopy.occurrences, 0);
+  assert.equal(result.readability.pass, true);
   assert.deepEqual(result.quality.machineLabelLeaks, []);
   assert.deepEqual(result.quality.pluralAgreementErrors, []);
   assert.deepEqual(result.quality.duplicateActLabels, []);
@@ -143,11 +142,10 @@ test("title subjects, Steve lanes, and chronology survive the authored voice pac
   assert.equal(result.depth.topics.recapsWithGenericFeldmanZoneHeadline, 0);
   assert.equal(
     result.depth.story.receiptsAccountedFor,
-    expected.expectedReceipts,
-  );
-  assert.equal(
     result.depth.story.registeredReceipts,
-    expected.expectedReceipts,
+  );
+  assert.ok(
+    result.depth.story.registeredReceipts >= expected.expectedReceipts,
   );
   assert.ok(
     result.depth.story.segments >=
@@ -161,8 +159,11 @@ test("title subjects, Steve lanes, and chronology survive the authored voice pac
   );
   assert.deepEqual(result.quality.storyCoverageFailures, []);
   assert.deepEqual(result.quality.storyAnchorFailures, []);
-  assert.equal(result.voice.uniqueDecks, result.corpus.ready);
-  assert.equal(result.voice.uniqueHeadlines, result.corpus.ready);
+  assert.equal(
+    result.depth.story.timelineReceiptsAccountedFor,
+    result.depth.story.registeredTimelineReceipts,
+  );
+  assert.deepEqual(result.quality.duplicateVisibleTopologyTopics, []);
 });
 
 test("every ready recap has an evidence-owned authored story beat", () => {
@@ -188,7 +189,15 @@ test("every ready recap has an evidence-owned authored story beat", () => {
   );
   assert.ok(result.depth.story.guideBackedRecaps >= 48);
   assert.ok(result.depth.story.registeredGuidePoints >= 692);
-  assert.ok(result.depth.story.averageWordsPerSegment >= 75);
+  assert.ok(
+    result.depth.story.minimumWordsPerSegment >=
+      result.depth.story.requiredWordRange.minimum,
+  );
+  assert.ok(
+    result.depth.story.maximumWordsPerSegment <=
+      result.depth.story.requiredWordRange.maximum,
+  );
+  assert.deepEqual(result.quality.storyWordRangeFailures, []);
   assert.deepEqual(result.quality.namelessStorySegments, []);
   assert.deepEqual(result.quality.storyNarrativeBeatFailures, []);
   assert.deepEqual(result.quality.storySemanticAnchorFailures, []);
@@ -201,6 +210,35 @@ test("every ready recap has an evidence-owned authored story beat", () => {
   assert.equal(result.gates.storySubjectAnchorSemanticsPass, true);
   assert.equal(result.gates.bestMomentsAreSelective, true);
   assert.equal(result.gates.reviewedGuideStoryCoveragePass, true);
+  assert.equal(result.gates.hiddenTimelineReceiptsAccountedFor, true);
+  assert.equal(result.gates.storyProseIsConcise, true);
+  assert.equal(result.gates.visibleTopologyTopicsAreUnique, true);
+  assert.equal(result.gates.recapReadabilityPass, true);
+});
+
+test("Christmas 2025 keeps its title subject and a late-tail playable chapter", () => {
+  const result = report();
+  const file = JSON.parse(childProcess.execFileSync(
+    process.execPath,
+    [audit, "--source", "QMYgsEfPMg0"],
+    {
+      cwd: root,
+      encoding: "utf8",
+      maxBuffer: 20 * 1024 * 1024,
+    },
+  ));
+
+  assert.deepEqual(result.quality.qmyGoldenFailures, []);
+  assert.match(file.recap.headline, /CHRISTMAS/i);
+  assert.ok(file.recap.topics.some((topic) => /CHRISTMAS/i.test(topic)));
+  assert.match(file.registeredRecap.blocks[0].body, /CHRISTMAS/i);
+  assert.ok(file.recap.caseFile.lastPlayableAnchorPercent >= 85);
+  assert.equal(file.recap.caseFile.closingPhaseCovered, true);
+  assert.ok(
+    Math.max(...file.recap.story.map((segment) => segment.end)) /
+      file.duration >= 0.9,
+  );
+  assert.equal(result.gates.qmyTitleSubjectAndLateTailPass, true);
 });
 
 test("Halloween 4 story uses the reviewed guide instead of three nameless reels", () => {

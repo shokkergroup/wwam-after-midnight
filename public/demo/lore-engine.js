@@ -137,7 +137,10 @@
       .replace(/[-_]+/g, " ");
     return (
       clean(provenance.timestampStatus) === "exact-caption-event" &&
-      selection.indexOf("human curated") >= 0
+      (
+        selection === "human curated seed with deterministic caption validation" ||
+        selection === "editorially screened direct address seed"
+      )
     );
   }
 

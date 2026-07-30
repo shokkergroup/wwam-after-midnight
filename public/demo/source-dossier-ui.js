@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.18.2";
+  var VERSION = "1.18.4";
   var DOSSIER_SCHEMA = "shokker-source-dossier/v1";
   var QUERY_SCHEMA = "shokker-source-query/v1";
   var QUERY_RESULT_SCHEMA = "shokker-source-query-result/v1";
@@ -57,7 +57,15 @@
   }
 
   function cleanCaptionExcerpt(value) {
-    return clean(value).replace(/^(?:>>\s*)+/, "").trim();
+    return clean(value)
+      .replace(/^(?:\s*>>\s*)+/, "")
+      .replace(/>>/g, " ")
+      .replace(/\[(?:laughter|music|applause|cheering)\]/gi, " ")
+      .replace(/\[\s*__\s*\]/g, "[BLEEP]")
+      .replace(/\s+([,.;!?])/g, "$1")
+      .replace(/\s+/g, " ")
+      .replace(/^[\s\u2026]+|[\s\u2026]+$/g, "")
+      .trim();
   }
 
   function array(value) {
@@ -775,6 +783,8 @@
         '<header><div><span>WATCH THE SHOW</span><h3 id="sourceDossierPlayerTitle">THE WHOLE UPLOAD, RIGHT HERE.</h3></div>' +
         '<a href="' + esc(source.url) + '" target="_blank" rel="noopener">WATCH ON YOUTUBE &#8599;</a></header>' +
         '<div class="modal-player source-dossier-player" id="modalPlayer" data-source-dossier-player aria-live="polite">' +
+        '<img class="source-dossier-player-poster" src="' + esc(source.thumbnail) +
+        '" alt="" aria-hidden="true" loading="lazy">' +
         '<div><span>THE PLAYER LOADS WHEN YOU PRESS PLAY.</span>' +
         '<button type="button" data-source-dossier-action="play-source" aria-label="Play ' +
         esc(source.displayTitle || source.title) + ' inside this page">&#9654; WATCH THIS SHOW</button>' +
@@ -1456,13 +1466,11 @@
       }
 
       function recapSectionMarkup(section, index) {
-        var excerpt = cleanCaptionExcerpt(section.excerpt);
         return '<article class="source-dossier-feldman-act" data-feldman-act="' +
           esc(section.id) + '"><header><span>ACT ' +
           esc(String(index + 1).padStart(2, "0")) + '</span><time>' +
           esc(formatTime(section.at)) + '</time></header><h5>' +
           esc(section.label) + '</h5><p>' + esc(section.body) + '</p>' +
-          (excerpt ? '<blockquote>&ldquo;' + esc(excerpt) + '&rdquo;</blockquote>' : '') +
           '<footer>' + recapPlayButton(section, "Play recap act " + (index + 1)) +
           '<small>EXACT-SHOW EVIDENCE</small></footer></article>';
       }

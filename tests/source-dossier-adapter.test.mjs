@@ -39,6 +39,7 @@ function load() {
     "year-canon-2025-2026.js",
     "archive-recovery-batch1.js",
     "archive-recovery-batch2.js",
+    "title-topic-overrides.js",
     "episode-recap-engine.js",
     "wwam-episode-recap-adapter.js",
     "wwam-source-dossier-adapter.js",
@@ -68,6 +69,7 @@ function buildFixture(configure) {
     live: window.WWAM_LIVESTREAMS,
     popular: window.WWAM_POPULAR_LIVE,
     characters: window.WWAM_CHARACTER_LORE,
+    titleTopicOverrides: window.WWAM_TITLE_TOPIC_OVERRIDES,
     dna: window.WWAM_CHANNEL_DNA,
   });
   const clipLab = window.WWAMCreatorClipLab.create({ showcase });
@@ -199,6 +201,21 @@ test("adapter exposes the universal schema and exact 510-source WWAM union", () 
     "quarantined-lane": 188,
     "source-only": 248,
   });
+});
+
+test("title-native subject leads the QMY Christmas Movies dossier", () => {
+  const { result } = buildFixture();
+  const source = byId(result, "QMYgsEfPMg0");
+  const recap = source.showWiki.episodeRecap;
+
+  assert.equal(recap.state, "ready");
+  assert.equal(recap.topics[0], "Christmas Movies");
+  assert.match(recap.overview, /Christmas Movies/i);
+  const titleTopic = recap.topicMap.find(
+    (topic) => topic.label === "Christmas Movies",
+  );
+  assert.ok(titleTopic);
+  assert.equal(titleTopic.at, 2093);
 });
 
 test("every canonical show receives a Feldman recap or an evidence-safe held state", () => {
@@ -660,7 +677,7 @@ test("Ask This Tape stays on the exact canonical WWAM upload across title collis
   );
   assert.equal(topics.status, "supported");
   assert.equal(topics.episode.id, "topics");
-  assert.equal(topics.episode.totalReceipts, 10);
+  assert.equal(topics.episode.totalReceipts, 12);
   assert.equal(topics.episode.shownReceipts, 8);
   laneAnswer(
     richId,
@@ -784,7 +801,7 @@ test("all dossiers retain canonical metadata and fail honest outside caption evi
       assert.ok(entityBases.has(entity.basis), entity.basis);
     });
   });
-  assert.equal(receiptKeys.size, 4206);
+  assert.equal(receiptKeys.size, 6112);
 });
 
 test("every source gets an honest Show Wiki shell with rigorously gated lanes", () => {
@@ -1467,18 +1484,21 @@ test("every Show Wiki query-alias bundle is present, bounded, and normalized-uni
 });
 
 
-test("the 4,206 receipts retain the exact evidence taxonomy", () => {
+test("the 6,112 receipts retain the exact evidence taxonomy", () => {
   const { result } = buildFixture();
   const receipts = result.sources.flatMap((source) => source.receipts);
 
-  assert.equal(receipts.length, 4206);
+  assert.equal(receipts.length, 6112);
   assert.deepEqual(countBy(receipts, "evidenceType"), {
+    "caption-topic-timeline-navigation": 1754,
     "caption-excerpt": 1659,
-    "caption-topic-receipt": 2032,
-    "curated-character-performance": 30,
+    "caption-topic-receipt": 2026,
+    "curated-character-performance": 32,
+    "caption-title-topic-receipt": 141,
     "caption-character-context": 261,
     "caption-character-signal": 64,
-    "caption-topic-navigation": 160,
+    "caption-topic-navigation": 157,
+    "reviewed-guide-negative-take": 18,
   });
 });
 
@@ -1772,11 +1792,11 @@ test("the exact 510-source adapter payload compiles through the generic engine",
     "quarantined-lane": 188,
     "source-only": 248,
   });
-  assert.equal(stats.receipts, 4206);
-  assert.equal(stats.artifacts, 944);
+  assert.equal(stats.receipts, 6112);
+  assert.equal(stats.artifacts, 947);
 
   const live = engine.build("LV2rmwEA0w4");
-  assert.equal(live.source.receipts.length, 21);
+  assert.equal(live.source.receipts.length, 31);
   assert.equal(live.source.artifacts.length, 27);
   assert.equal(live.wake.total, 268);
   assert.equal(live.wake.matchingTotal, 268);

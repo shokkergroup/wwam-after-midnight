@@ -418,6 +418,44 @@ test("accepts honest character signal/context evidence without promoting it", ()
   assert.throws(() => api.create(unknown), expectCode("UNKNOWN_EVIDENCE_TYPE"));
 });
 
+test("accepts the title, timeline, and reviewed-negative receipt types used by live Show Wikis", () => {
+  const api = runtime();
+
+  for (const evidenceType of [
+    "caption-title-topic-receipt",
+    "reviewed-guide-negative-take",
+  ]) {
+    const input = fixture();
+    input.sources[0].receipts[0].evidenceType = evidenceType;
+    assert.doesNotThrow(() => api.create(input), evidenceType);
+  }
+
+  const timeline = fixture();
+  timeline.sources[0].receipts[0].evidenceType =
+    "caption-topic-timeline-navigation";
+  timeline.sources[0].receipts[0].excerpt = "";
+  timeline.sources[0].receipts[0].publicExcerptAllowed = false;
+  assert.doesNotThrow(
+    () => api.create(timeline),
+    "caption-topic-timeline-navigation",
+  );
+
+  const screened = fixture();
+  screened.sources[0].receipts[0].steveEvidenceState =
+    "strict-source-bounded-negative-take";
+  screened.sources[0].receipts[0].editorNote =
+    "The exact complaint was screened against this source cut.";
+  const built = clone(api.create(screened).build("RACEFILE01A"));
+  assert.equal(
+    built.source.receipts[0].steveEvidenceState,
+    "strict-source-bounded-negative-take",
+  );
+  assert.equal(
+    built.source.receipts[0].editorNote,
+    "The exact complaint was screened against this source cut.",
+  );
+});
+
 test("exports exact coordinates and bindings without excerpts, captions, media, or speakers", () => {
   const manifest = clone(runtime().create(fixture()).exportManifest("RACEFILE01A"));
   const serialized = JSON.stringify(manifest);

@@ -1907,6 +1907,17 @@
     return match ? match[1] : "";
   }
 
+  function approvedCharacterSelection(value) {
+    var selection = normalize(value);
+    if (selection === "human curated seed with deterministic caption validation") {
+      return "legacy-human-curated";
+    }
+    if (selection === "editorially screened direct address seed") {
+      return "screened-direct-address";
+    }
+    return "";
+  }
+
   function characterPerformanceCandidates(characterLore, sourceById) {
     var output = [];
     ((characterLore && characterLore.characters) || []).forEach(function (profile) {
@@ -1916,11 +1927,12 @@
         var end = receipt.playback && Number(receipt.playback.end);
         var at = Number(receipt.t);
         var provenance = receipt.provenance || {};
+        var selectionClass = approvedCharacterSelection(provenance.selection);
         var duration = Number(source && source.duration || 0);
         var valid = receipt.id && receipt.sourceId && receipt.url && source &&
           sourceIdFromYouTubeUrl(receipt.url) === receipt.sourceId &&
           provenance.timestampStatus === "exact-caption-event" &&
-          normalize(provenance.selection).indexOf("human curated") >= 0 &&
+          Boolean(selectionClass) &&
           Number(receipt.confidence || 0) >= 0.75 &&
           Number.isFinite(at) && at >= 0 &&
           (!duration || at <= duration + 1) &&
@@ -1945,7 +1957,10 @@
           captioned: true,
           character: profile.name,
           characterId: profile.id,
-          characterStatus: "human-curated performance candidate",
+          characterStatus: selectionClass === "screened-direct-address" ?
+            "editorially screened direct-address performance seed" :
+            "legacy human-curated performance candidate",
+          selectionClass: selectionClass,
           trigger: receipt.trigger || "",
           note: receipt.note || "",
           curationConfidence: Number(receipt.confidence || 0),
@@ -2508,10 +2523,13 @@
       var performancePoints = intent.performanceRequested || intent.mappingRequest ? 112 :
         intent.name === "comedy" ? 96 :
           intent.temporal !== "all" ? 84 : 58;
-      addScore(breakdown, performancePoints, "human-curated character performance", candidate.performanceReceiptId);
+      var performanceReason = candidate.selectionClass === "screened-direct-address" ?
+        "editorially screened direct-address character performance" :
+        "human-curated character performance";
+      addScore(breakdown, performancePoints, performanceReason, candidate.performanceReceiptId);
       addScore(breakdown, Math.round(Number(candidate.curationConfidence || 0) * 12),
         "curation confidence", String(candidate.curationConfidence || 0));
-      reasons.unshift("human-curated character performance");
+      reasons.unshift(performanceReason);
     }
     if ((intent.metric === "views" || intent.metric === "date") &&
       (candidate.kind === "tape" || candidate.kind === "livestream")) {
@@ -3117,7 +3135,7 @@
     if (intent.queryPlan && intent.queryPlan.outputShape === "character-soundbyte-count" &&
       intent.collection && intent.characterProfile) {
       return "There are " + intent.collection.total + " playable " +
-        intent.characterProfile.name + " clips in the current archive. These are human-picked timestamps from official WWAM uploads; the page does not guess which host is speaking. A separate caption search finds " +
+        intent.characterProfile.name + " clips in the current archive. These are legacy human-curated or editorially screened direct-address timestamps from official WWAM uploads; the page does not guess which host is speaking. A separate caption search finds " +
         Number(intent.characterProfile.metrics && intent.characterProfile.metrics.archiveMentions || 0) +
         " mentions across " +
         Number(intent.characterProfile.metrics && intent.characterProfile.metrics.sourcesWithMentions || 0) +
@@ -3762,7 +3780,7 @@
         id: "lore",
         href: "#lore",
         label: "Lore / Character Lab",
-        reason: "This surface has the bounded lineage and timestamped human-curated character-performance candidates.",
+        reason: "This surface has the bounded lineage and timestamped approved character-performance candidates.",
       };
     }
     return null;
@@ -4639,7 +4657,7 @@
           sourceTotal: recurringBitSourceIds.length,
           definitionTotal: recurringBits.definitionCount,
           ledgerAvailable: recurringBits.available,
-          countBasis: "Channel DNA bit definitions joined to timestamped human-curated Character Lore performance receipts; each source counts once per bit",
+          countBasis: "Channel DNA bit definitions joined to timestamped approved Character Lore performance receipts; each source counts once per bit",
         };
       } else if (queryPlan.outputShape === "curated-soundbytes") {
         collection = {
@@ -4662,7 +4680,7 @@
           shape: queryPlan.outputShape,
           total: validatedCharacterCandidates.length,
           unit: "curated performance candidates",
-          countBasis: "timestamped human-curated performance candidates; not authenticated editor verification, mentions, or unique sources",
+          countBasis: "timestamped legacy human-curated and editorially screened direct-address performance candidates; not authenticated editor verification, mentions, or unique sources",
           authenticatedEditorVerified: 0,
         };
       } else if (queryPlan.outputShape === "character-mention-count" && characterProfile) {
@@ -4712,7 +4730,7 @@
           results[0].label = "EARLIEST MACHINE-INDEXED CHARACTER SIGNAL";
           results[0].archiveBoundary = {
             index: "broad machine-indexed caption signals",
-            differsFrom: "Lore timestamped human-curated performance candidates in the current bounded set",
+            differsFrom: "Lore timestamped approved performance candidates in the current bounded set",
             trueOriginClaim: false,
           };
         }
