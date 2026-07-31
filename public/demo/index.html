@@ -74,7 +74,7 @@
             <button type="submit">SEARCH <span>&rarr;</span></button>
           </div>
         </form>
-        <p class="receipt-note">131 livestreams &bull; 39 watchalongs &bull; exact source jumps. <span>Every answer leads back to the tape.</span></p>
+        <p class="receipt-note">131 livestreams &bull; 50 public watchalong sources &bull; exact source jumps. <span>Every answer leads back to the tape.</span></p>
       </div>
       <article class="wwam-tonights-tape" id="wwamTonight">
         <a class="wwam-tonights-art" href="?source=LV2rmwEA0w4&amp;section=wiki#archive"
@@ -141,7 +141,7 @@
           <a href="#characters" data-journey-link="characters"><span>I KNOW THE BITS</span><b>FOLLOW THE LORE →</b></a>
           <a href="#ask" data-journey-link="ask"><span>I HAVE A QUESTION</span><b>ASK THE ARCHIVE →</b></a>
         </div>
-        <p class="receipt-note">131 current-canon livestreams. 39 franchise watchalongs. Exact timestamps. No wrong-tape substitutions. <span>THE CHANNEL REMEMBERS ITSELF.</span></p>
+        <p class="receipt-note">131 current-canon livestreams. 50 public watchalong sources. Exact timestamps. No wrong-tape substitutions. <span>THE CHANNEL REMEMBERS ITSELF.</span></p>
       </div>
       <div class="hero-console">
         <div class="console-top"><span>LIVE EVIDENCE FEED</span><b id="consoleStatus" data-words-audited="5539960">SCANNING 5,539,960 WORDS</b></div>
@@ -181,6 +181,7 @@
         <span>Choose a franchise or a one-off commentary. The movie context, WWAM versions, playable moments, and source record stay in one place.</span>
       </div>
       <nav class="wwam-route-local-nav" aria-label="The commentary shelf sections">
+        <a href="#watchalong-canon" data-journey-link="watchalongs"><b>PUBLIC WATCHALONG CANON</b><small>Every movie cut, repeat, and source dossier</small></a>
         <a href="#franchises" data-journey-link="watchalongs"><b>ALL COMMENTARIES</b><small>Halloween, Friday, Scream, Elm Street</small></a>
         <a href="#halloween-universe" data-journey-link="watchalongs"><b>HALLOWEEN UNIVERSE</b><small>WWAM's deepest franchise map</small></a>
         <a href="#comedy-vault" data-journey-link="watchalongs"><b>COMEDY SHELF</b><small>Scary Movie, Waiting, Harold &amp; Kumar</small></a>
@@ -264,6 +265,22 @@
           <i></i><span>OPENING THE COMEDY SHELF</span>
           <b>PULLING THE MOVIES, BITS, AND PLAYABLE MOMENTS TOGETHER...</b>
         </div>
+      </div>
+    </section>
+
+    <section class="section watchalong-canon" id="watchalong-canon"
+      aria-labelledby="watchalongCanonTitle" aria-busy="true"
+      data-feature-styles="watchalong-canon.css?v=1.2.0"
+      data-feature-scripts="wwam-watchalong-canon.js?v=1.2.0,watchalong-canon-ui.js?v=1.2.0">
+      <header class="section-head watchalong-canon-head">
+        <div>
+          <p class="kicker">PUBLIC WATCHALONG CANON // 50 SOURCES / 47 MOVIE FILES</p>
+          <h2 id="watchalongCanonTitle">THE MOVIES<br><em>REMEMBERED.</em></h2>
+        </div>
+        <p>The original 39-tape commentary core now sits beside every title-explicit public commentary and movie watch party in the cached WWAM source history. Repeats stay separate; movie worlds are grouped; every route returns to the official upload.</p>
+      </header>
+      <div class="watchalong-canon-entry" id="watchalongCanonMount">
+        <div class="wac-loading" role="status" aria-live="polite">OPENING THE PUBLIC WATCHALONG LEDGER…</div>
       </div>
     </section>
 

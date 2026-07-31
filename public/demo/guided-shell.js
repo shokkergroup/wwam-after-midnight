@@ -5,7 +5,7 @@
     top: "home",
     "shows-hub": "shows", livewire: "shows", companion: "shows", popular25: "shows", archive: "shows",
     yearCanonSpotlight: "shows", "archive-browser": "shows", "time-capsules": "shows",
-    "watchalongs-hub": "watchalongs", franchises: "watchalongs", autopsies: "watchalongs",
+    "watchalongs-hub": "watchalongs", "watchalong-canon": "watchalongs", franchises: "watchalongs", autopsies: "watchalongs",
     "halloween-universe": "watchalongs", "comedy-vault": "watchalongs",
     "characters-hub": "characters", characters: "characters", lore: "characters", loreDossier: "characters", memory: "characters",
     "tape-keeps-score": "characters",
@@ -20,7 +20,7 @@
   var groupSelectors = {
     home: [".wwam-editorial-hero", ".wwam-pick-your-poison", ".guided-home"],
     shows: ["#shows-hub", "#companion", "#livewire", "#popular25", "#archive", "#yearCanonSpotlight", ".archive-browser", "#time-capsules"],
-    watchalongs: ["#watchalongs-hub", "#halloween-universe", "#comedy-vault", "#franchises", "#autopsies"],
+    watchalongs: ["#watchalongs-hub", "#halloween-universe", "#comedy-vault", "#watchalong-canon", "#franchises", "#autopsies"],
     characters: ["#characters-hub", "#characters", "#lore", "#loreDossier", "#memory"],
     fam: ["#fam-hall"],
     ask: ["#ask"],
@@ -31,7 +31,7 @@
   var primaryViewSelectors = {
     home: [".wwam-editorial-hero", ".wwam-pick-your-poison", ".guided-home"],
     shows: ["#shows-hub", "#livewire", "#archive"],
-    watchalongs: ["#watchalongs-hub", "#franchises", "#autopsies"],
+    watchalongs: ["#watchalongs-hub", "#watchalong-canon", "#franchises", "#autopsies"],
     characters: ["#characters-hub", "#characters", "#lore"],
     fam: ["#fam-hall"],
     ask: ["#ask"],
@@ -115,6 +115,7 @@
         title: "PICK A MOVIE.<br><em>ENTER ITS WORLD.</em>",
         copy: "Choose a franchise or a one-off commentary. The movie context, WWAM versions, playable moments, and source record stay in one place.",
         links: [
+          ["#watchalong-canon", "watchalongs", "PUBLIC WATCHALONG CANON", "Every movie cut, repeat, and source dossier"],
           ["#franchises", "watchalongs", "ALL COMMENTARIES", "Halloween, Friday, Scream, Elm Street"],
           ["#halloween-universe", "watchalongs", "HALLOWEEN UNIVERSE", "WWAM's deepest franchise map"],
           ["#comedy-vault", "watchalongs", "COMEDY SHELF", "Scary Movie, Waiting, Harold & Kumar"],

@@ -10,7 +10,7 @@
     top: "home",
     "shows-hub": "shows", livewire: "shows", companion: "shows", popular25: "shows",
     archive: "shows", yearCanonSpotlight: "shows", "archive-browser": "shows", "time-capsules": "shows",
-    "watchalongs-hub": "watchalongs", franchises: "watchalongs", autopsies: "watchalongs",
+    "watchalongs-hub": "watchalongs", "watchalong-canon": "watchalongs", franchises: "watchalongs", autopsies: "watchalongs",
     "halloween-universe": "watchalongs", "comedy-vault": "watchalongs",
     "characters-hub": "characters", characters: "characters", lore: "characters",
     loreDossier: "characters", memory: "characters", "tape-keeps-score": "characters",
