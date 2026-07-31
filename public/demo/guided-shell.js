@@ -3,7 +3,7 @@
 
   var journeyByTarget = {
     top: "home",
-    "shows-hub": "shows", livewire: "shows", companion: "shows", popular25: "shows", archive: "shows",
+    "shows-hub": "shows", livewire: "shows", companion: "shows", popular25: "shows", archive: "shows", "livestream-canon": "shows",
     yearCanonSpotlight: "shows", "archive-browser": "shows", "time-capsules": "shows",
     "watchalongs-hub": "watchalongs", "watchalong-canon": "watchalongs", franchises: "watchalongs", autopsies: "watchalongs",
     "halloween-universe": "watchalongs", "comedy-vault": "watchalongs",
@@ -19,7 +19,7 @@
 
   var groupSelectors = {
     home: [".wwam-editorial-hero", ".wwam-pick-your-poison", ".guided-home"],
-    shows: ["#shows-hub", "#companion", "#livewire", "#popular25", "#archive", "#yearCanonSpotlight", ".archive-browser", "#time-capsules"],
+    shows: ["#shows-hub", "#companion", "#livewire", "#popular25", "#archive", "#livestream-canon", "#yearCanonSpotlight", ".archive-browser", "#time-capsules"],
     watchalongs: ["#watchalongs-hub", "#halloween-universe", "#comedy-vault", "#watchalong-canon", "#franchises", "#autopsies"],
     characters: ["#characters-hub", "#characters", "#lore", "#loreDossier", "#memory"],
     fam: ["#fam-hall"],
@@ -30,7 +30,7 @@
 
   var primaryViewSelectors = {
     home: [".wwam-editorial-hero", ".wwam-pick-your-poison", ".guided-home"],
-    shows: ["#shows-hub", "#livewire", "#archive"],
+    shows: ["#shows-hub", "#livewire", "#archive", "#livestream-canon"],
     watchalongs: ["#watchalongs-hub", "#watchalong-canon", "#franchises", "#autopsies"],
     characters: ["#characters-hub", "#characters", "#lore"],
     fam: ["#fam-hall"],
@@ -105,6 +105,7 @@
         links: [
           ["#livewire", "shows", "NEWEST SHOWS", "The latest mapped broadcasts"],
           ["#archive", "shows", "ALL SHOW WIKIS", "Search every indexed night"],
+          ["#livestream-canon", "shows", "COMPLETE LIVESTREAM CANON", "All 509 sources, latest first"],
           ["#popular25", "shows", "MOST WATCHED", "The foundational live canon"],
           ["#time-capsules", "shows", "BY YEAR", "Browse the channel by era"],
           ["#companion", "shows", "WATCH WITH A GUIDE", "Follow a long show live"]

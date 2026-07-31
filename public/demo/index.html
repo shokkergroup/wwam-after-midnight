@@ -167,12 +167,27 @@
       <nav class="wwam-route-local-nav" aria-label="The livestream archive sections">
         <a href="#livewire" data-journey-link="shows"><b>NEWEST SHOWS</b><small>The latest mapped broadcasts</small></a>
         <a href="#archive" data-journey-link="shows"><b>ALL SHOW WIKIS</b><small>Search every indexed night</small></a>
+        <a href="#livestream-canon" data-journey-link="shows"><b>COMPLETE LIVESTREAM CANON</b><small>All 509 sources, latest first</small></a>
         <a href="#popular25" data-journey-link="shows"><b>MOST WATCHED</b><small>The foundational live canon</small></a>
         <a href="#time-capsules" data-journey-link="shows"><b>BY YEAR</b><small>Browse the channel by era</small></a>
         <a href="#companion" data-journey-link="shows"><b>WATCH WITH A GUIDE</b><small>Follow a long show live</small></a>
       </nav>
     </section>
 
+    <section class="section livestream-canon" id="livestream-canon" aria-labelledby="livestreamCanonTitle" aria-busy="true"
+      data-feature-styles="livestream-canon.css?v=1.0.0"
+      data-feature-scripts="wwam-livestream-canon.js?v=1.0.0,livestream-canon-ui.js?v=1.0.0">
+      <header class="section-head livestream-canon-head">
+        <div>
+          <p class="kicker">THE COMPLETE LIVESTREAM CANON // 509 PUBLIC UPLOADS // 2016-2026</p>
+          <h2 id="livestreamCanonTitle">THE WHOLE<br><em>ROOM.</em></h2>
+        </div>
+        <span>Every official source in the snapshot, latest first. Open a show file, search its topics, and jump straight to the tape.</span>
+      </header>
+      <div class="livestream-canon-entry" id="livestreamCanonMount">
+        <div class="lvc-loading" role="status" aria-live="polite">OPENING THE COMPLETE LIVESTREAM CANON...</div>
+      </div>
+    </section>
     <section class="wwam-route-hub" id="watchalongs-hub" data-route-hub="watchalongs" data-guided-hidden="true">
       <a class="wwam-route-home" href="#top" data-journey-link="home">WWAM AFTER MIDNIGHT / HOME</a>
       <div class="wwam-route-hub-copy">

@@ -14,6 +14,7 @@
     "db:generate": "drizzle-kit generate",
     "build:pages": "node scripts/build-github-pages.mjs",
     "generate:watchalong-canon": "node scripts/generate-wwam-watchalong-canon.mjs",
+    "generate:livestream-canon": "node scripts/generate-wwam-livestream-canon.mjs",
     "audit:public-truth": "node scripts/audit-editorial-truth.mjs --check",
     "audit:editorial-completion": "node scripts/audit-editorial-truth.mjs --require-all-human --check"
   },
