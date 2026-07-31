@@ -1,0 +1,270 @@
+import fs from "node:fs";
+import path from "node:path";
+import vm from "node:vm";
+import { fileURLToPath } from "node:url";
+
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const DEMO = path.join(ROOT, "public", "demo");
+const METADATA_DIR = path.join(ROOT, "source-cache", "metadata");
+const CAPTIONS_DIR = path.join(ROOT, "source-cache", "captions");
+
+function readJson(file) { return JSON.parse(fs.readFileSync(file, "utf8")); }
+function loadScript(file) {
+  const context = { console };
+  context.window = context;
+  vm.createContext(context);
+  vm.runInContext(fs.readFileSync(path.join(DEMO, file), "utf8"), context, { filename: file });
+  return context;
+}
+function clean(value) { return String(value == null ? "" : value).replace(/\s+/g, " ").trim(); }
+function words(value) { return clean(value).split(/\s+/).filter(Boolean); }
+function excerpt(value, limit = 20) {
+  const tokens = words(String(value).replace(/\s*\n\s*/g, " "));
+  return tokens.length <= limit ? tokens.join(" ") : `${tokens.slice(0, limit).join(" ")}...`;
+}
+function slug(value) {
+  return clean(value).toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "unknown";
+}
+function dateFrom(value) {
+  const text = clean(value);
+  return /^\d{8}$/.test(text) ? `${text.slice(0, 4)}-${text.slice(4, 6)}-${text.slice(6, 8)}` : text || null;
+}
+function clock(seconds) {
+  const total = Math.max(0, Math.round(Number(seconds) || 0));
+  const h = Math.floor(total / 3600), m = Math.floor((total % 3600) / 60), s = total % 60;
+  return h ? `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}` : `${m}:${String(s).padStart(2, "0")}`;
+}
+function normalizeCaptionText(value) {
+  return clean(value).replace(/\[(?:\s*[_-]+\s*)+\]/g, " ")
+    .replace(/\[(?:music|applause|laughter|inaudible|bleep)\]/gi, " ")
+    .replace(/[_]+/g, " ").replace(/\s+([,.!?])/g, "$1").replace(/\s{2,}/g, " ").trim();
+}
+function captionEvents(id) {
+  const file = path.join(CAPTIONS_DIR, `${id}.json`);
+  if (!fs.existsSync(file)) return [];
+  const payload = readJson(file);
+  return (payload.events || []).filter((event) => Array.isArray(event.segs) && event.segs.length)
+    .map((event) => ({
+      t: Math.max(0, Number(event.tStartMs || 0) / 1000),
+      end: Math.max(0, Number(event.tStartMs || 0) / 1000 + Number(event.dDurationMs || 0) / 1000),
+      text: normalizeCaptionText(event.segs.map((segment) => segment && segment.utf8 || "").join("")),
+    })).filter((event) => event.text);
+}
+function captionWindow(events, index, before = 5, after = 12) {
+  const anchor = events[index];
+  if (!anchor) return "";
+  const lines = [];
+  for (let cursor = Math.max(0, index - 3); cursor <= Math.min(events.length - 1, index + 5); cursor += 1) {
+    const event = events[cursor];
+    if (event.t < anchor.t - before || event.t > anchor.t + after) continue;
+    if (lines.length && event.t - events[cursor - 1].t > 6) continue;
+    lines.push(event.text);
+  }
+  const deduped = [];
+  lines.join(" ").split(/\s+/).forEach((token) => {
+    if (token && (!deduped.length || deduped.at(-1).toLowerCase() !== token.toLowerCase())) deduped.push(token);
+  });
+  return deduped.join(" ");
+}
+function countHits(events, pattern) { return events.reduce((sum, event) => sum + (pattern.test(event.text) ? 1 : 0), 0); }
+function topicAnchor(events, term) {
+  const pattern = new RegExp(`\\b${term.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&").replace(/\\s+/g, "\\s+")}\\b`, "i");
+  const hits = events.map((event, index) => ({ event, index })).filter(({ event }) => pattern.test(event.text));
+  if (!hits.length) return null;
+  const peak = hits.slice().sort((a, b) => b.event.text.length - a.event.text.length || a.event.t - b.event.t)[0];
+  return { name: term, mentions: hits.length, first: hits[0].event.t, peak: peak.event.t, cluster: Math.min(24, hits.length), receipt: excerpt(captionWindow(events, peak.index), 20), at: Math.round(peak.event.t) };
+}
+
+const metadata = fs.readdirSync(METADATA_DIR).filter((file) => file.endsWith(".json")).map((file) => readJson(path.join(METADATA_DIR, file)));
+const metadataById = new Map(metadata.map((record) => [record.id, record]));
+const atlas = loadScript("archive-atlas-data.js").WWAM_ARCHIVE_ATLAS || { records: [] };
+const completion = loadScript("archive-completion.js").WWAM_ARCHIVE_COMPLETION || { streams: [] };
+const deep = loadScript("archive-deep-distill.js").WWAM_ARCHIVE_DEEP || { streams: [] };
+const fresh = loadScript("livestream-distill.js").WWAM_LIVESTREAMS || { streams: [] };
+const atlasById = new Map((atlas.records || []).map((record) => [record.id, record]));
+const completionById = new Map((completion.streams || []).map((record) => [record.id, record]));
+const deepById = new Map((deep.streams || []).map((record) => [record.id, record]));
+const freshById = new Map((fresh.streams || []).map((record) => [record.id, record]));
+
+const TOPIC_TERMS = [
+  "Halloween", "Scream", "Friday the 13th", "A Nightmare on Elm Street", "Chucky", "Child's Play", "Michael Myers", "Freddy", "Jason", "Batman", "Marvel", "DC", "Superman", "Alien", "Predator", "Evil Dead", "Hellraiser", "Texas Chainsaw", "The Conjuring", "Terrifier", "Saw", "Mortal Kombat", "Ghostbusters", "Star Wars", "Jurassic", "Trailers", "Streaming", "Box Office", "Retro Rewind", "Rankings & Lists", "Horror", "Comedy", "Video Games", "Halloween Ends", "Scream 7", "Feldman", "Loomis", "Challis", "Slenderman"
+];
+const LANE_DEFS = [
+  { key: "up-in-ya", label: "WWAM UP IN YA", pattern: /\b(fuck|fucking|dick|cock|balls?|cum|fart|shit|bitch|piss|boob|tits?|asshole|suck|boner|poop)\b/i },
+  { key: "steves-asshole", label: "STRAIGHT TO STEVE'S ASSHOLE", pattern: /\b(hate|hated|worst|terrible|awful|sucks?|stupid|dumb|bullshit|garbage|lazy|weak|ruined|don't like|didn't like|not good)\b/i },
+  { key: "room-breaks", label: "THE ROOM BREAKS", pattern: /\b(laugh|laughter|hilarious|funny|crying|dying|oh my god|what the fuck|no way)\b/i },
+  { key: "character", label: "CHARACTER SIGNAL", pattern: /\b(loomis|chall[ie]s|slenderman|corey feldman|feldman|michael myers|freddy|jason|chucky|tiffany)\b/i },
+  { key: "fan", label: "FAN SIGNAL", pattern: /super\s*chat|\bdonat(?:e|ed|ion)\b|lee(?:\s+the)?\s+machine|michael\s+part(?:on|in)|chat(?:'s| is) asking|question from (?:the )?chat|(?:thanks|welcome|appreciate|thank you).{0,45}(?:member|membership)|(?:new|another|our) member|(?:member|membership).{0,45}(?:joined|join|thanks|thank|gift)/i },
+  { key: "take", label: "TAKE GETS NUCLEAR", pattern: /\b(obviously|literally|never|always|worst|best|greatest|insane|ridiculous|unacceptable|wrong|right|point blank|period)\b/i },
+];
+const RESTRICTED_MODES = new Set(["trailer-reaction", "source-video-watch-party"]);
+
+function inferMode(title) {
+  const text = clean(title);
+  if (/commentary|watch\s*(party|along)|watchalong/i.test(text)) return /watch\s*(party|along)/i.test(text) ? "source-video-watch-party" : "movie-commentary";
+  if (/trailer|teaser|breakdown/i.test(text)) return "trailer-reaction";
+  if (/tier list|rank(?:ed|ing)?|bracket|versus|\bvs\.?\b|royal rumble|friday night fight/i.test(text)) return "ranking-show";
+  if (/q\s*&?\s*a|questions|50 million views/i.test(text)) return "q-and-a";
+  if (/interview|with (?:director|writer|actor|guest)|director .+\+|writer .+\+/i.test(text)) return "interview";
+  if (/spoiler|review party/i.test(text)) return "spoiler-review";
+  if (/review|movie reviews?/i.test(text)) return "review-show";
+  if (/game|gaming|play(?:ing)? scary|video store/i.test(text)) return "special-event";
+  if (/live|stream|movie news|we watched a movie/i.test(text)) return "livestream";
+  return "special-event";
+}
+function inferSeries(title, mode) {
+  const text = clean(title).toLowerCase();
+  if (/friday night fight/.test(text)) return { key: "friday-night-fights", label: "Friday Night Fights" };
+  if (/retro rewind|video store/.test(text)) return { key: "retro-rewind", label: "Retro Rewind" };
+  if (/commentary|watch\s*(party|along)|watchalong/.test(text)) return { key: "watchalongs", label: "Movie Watchalongs" };
+  if (/trailer|teaser|breakdown/.test(text)) return { key: "trailer-desk", label: "Trailer Desk" };
+  if (/tier list|rank|bracket|versus|\bvs\.?\b|royal rumble/.test(text)) return { key: "ranking-room", label: "Ranking Room" };
+  if (/q\s*&?\s*a|questions/.test(text)) return { key: "fan-mail", label: "Fan Mail / Q&A" };
+  if (/interview|with (?:director|writer|actor|guest)/.test(text)) return { key: "guest-room", label: "Guest Room" };
+  if (mode === "spoiler-review" || mode === "review-show") return { key: "review-desk", label: "Review Desk" };
+  return { key: "wwam-live", label: "WWAM Live" };
+}
+function derivedTopics(events, title) {
+  const titleTerms = TOPIC_TERMS.filter((term) => new RegExp(term.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&"), "i").test(title));
+  const found = TOPIC_TERMS.map((term) => topicAnchor(events, term)).filter(Boolean);
+  const merged = [...found, ...titleTerms.filter((term) => !found.some((item) => item.name === term)).map((term) => ({ name: term, mentions: 0, first: 0, peak: 0, cluster: 0, receipt: "Title signal only; open the source before treating the topic as spoken.", at: 0 }))];
+  return merged.sort((a, b) => b.mentions - a.mentions || a.name.localeCompare(b.name)).slice(0, 10);
+}
+function derivedMoments(events, duration, restricted = false) {
+  if (!events.length || restricted) return [];
+  const perLane = Math.max(3, Math.min(10, Math.round((duration || 1) / 1800)));
+  const output = [];
+  for (const lane of LANE_DEFS) {
+    const ranked = events.map((event, index) => ({ event, index, hits: lane.pattern.test(event.text) })).filter((item) => item.hits)
+      .sort((a, b) => b.event.text.length - a.event.text.length || a.event.t - b.event.t);
+    const picked = [];
+    for (const item of ranked) {
+      if (picked.length >= perLane) break;
+      if (picked.some((other) => Math.abs(other.event.t - item.event.t) < 50)) continue;
+      picked.push(item);
+    }
+    for (const item of picked) output.push({
+      id: `${lane.key}-${Math.round(item.event.t)}`, t: Math.round(item.event.t), end: Math.round(item.event.end || item.event.t + 36),
+      category: lane.label, label: lane.label, score: Math.min(99, 62 + Math.min(28, words(item.event.text).length)),
+      excerpt: excerpt(captionWindow(events, item.index), 24), evidenceBasis: "source-local automatic caption lane cluster", reviewStatus: "machine-candidate"
+    });
+  }
+  return output.sort((a, b) => a.t - b.t);
+}
+function fanSignals(events, duration) {
+  const lane = LANE_DEFS.find((item) => item.key === "fan");
+  const ranked = events.map((event, index) => ({ event, index })).filter((item) => lane.pattern.test(item.event.text));
+  const max = Math.max(3, Math.min(16, Math.round((duration || 1) / 1800) + 2));
+  const picked = [];
+  ranked.forEach((item) => {
+    if (picked.length >= max || picked.some((other) => Math.abs(other.event.t - item.event.t) < 55)) return;
+    picked.push(item);
+  });
+  return picked.map((item) => ({ id: `fan-${Math.round(item.event.t)}`, t: Math.round(item.event.t), end: Math.round(item.event.end || item.event.t + 36), category: "FAN SIGNAL", label: "FAN SIGNAL", score: 78, excerpt: excerpt(captionWindow(events, item.index), 24), evidenceBasis: "source-local automatic caption fan-callout cluster", reviewStatus: "machine-candidate" }));
+}
+function chapters(duration, moments, topics, restricted = false) {
+  const output = [];
+  for (let index = 0; index < 8; index += 1) {
+    const target = Math.round((duration || 1) * index / 8);
+    const route = moments.length ? moments.slice().sort((a, b) => Math.abs(a.t - target) - Math.abs(b.t - target))[0] : topics.slice().sort((a, b) => Math.abs((a.at || a.peak || 0) - target) - Math.abs((b.at || b.peak || 0) - target))[0];
+    if (!route) continue;
+    output.push({ id: `act-${String(index + 1).padStart(2, "0")}`, act: index + 1, at: Math.round(route.t ?? route.at ?? route.peak ?? target), end: Math.round(route.end ?? route.at ?? route.peak ?? target), label: route.label || route.category || route.name || "WATCH ROUTE", category: route.category || "TOPIC DOOR", excerpt: restricted ? "Topic-navigation checkpoint; excerpt withheld for this content mode." : excerpt(route.excerpt || route.receipt || "Open the source at this chapter checkpoint.", 24), body: restricted ? "The archive preserves this chapter as a source-local route without manufacturing a quote or visual claim." : `The tape's ${String(route.label || route.category || route.name || "route").toLowerCase()} lane surfaces here. Open the timestamp and hear the full exchange.`, evidenceBasis: restricted ? "restricted topic checkpoint" : "source-local caption route checkpoint" });
+  }
+  return output;
+}
+function heatmap(duration, events, moments, topics) {
+  const count = duration > 10000 ? 24 : duration > 5400 ? 18 : 12;
+  const step = Math.max(1, (duration || 1) / count);
+  return Array.from({ length: count }, (_, index) => {
+    const from = Math.round(index * step), to = Math.round(Math.min(duration || 1, (index + 1) * step));
+    const local = events.filter((event) => event.t >= from && event.t < to);
+    const signal = moments.filter((moment) => moment.t >= from && moment.t < to);
+    const topic = topics.slice().sort((a, b) => Math.abs((a.at || a.peak || 0) - (from + to) / 2) - Math.abs((b.at || b.peak || 0) - (from + to) / 2))[0];
+    return { from, to, heat: Math.min(100, Math.max(8, 10 + signal.length * 12 + Math.min(40, local.length / 8))), signal: signal[0]?.category || "OPEN MIC", topic: topic?.name || null };
+  });
+}
+function characters(events) {
+  return ["Dr. Loomis", "Dr. Challis", "Slenderman", "Corey Feldman", "Michael Myers", "Freddy", "Jason", "Chucky"].map((name) => {
+    const pattern = new RegExp(name.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&"), "i");
+    const hits = events.filter((event) => pattern.test(event.text));
+    return hits.length ? { name, mentions: hits.length, first: Math.round(hits[0].t), peak: Math.round(hits[0].t), receipt: excerpt(hits[0].text, 18), evidenceBasis: "source-local automatic caption character cue", reviewStatus: "machine-candidate" } : null;
+  }).filter(Boolean);
+}
+function normalizeTopics(items) { return (items || []).slice(0, 10).map((topic) => ({ name: clean(topic.name), mentions: Number(topic.mentions || 0), first: Math.round(Number(topic.first || 0)), peak: Math.round(Number(topic.peak || topic.at || 0)), cluster: Number(topic.cluster || 0), receipt: clean(topic.receipt || ""), at: Math.round(Number(topic.at || topic.peak || topic.first || 0)), evidence: topic.evidence || { type: "source-local caption", speakerStatus: "not-diarized", reviewStatus: "machine-candidate" } })).filter((topic) => topic.name); }
+function normalizeMoments(items, restricted = false) {
+  if (restricted) return [];
+  return (items || [])
+    .slice(0, 40)
+    .map((moment, index) => ({
+      id: moment.id || `moment-${index + 1}`,
+      t: Math.round(Number(moment.t || 0)),
+      end: Math.round(Number(moment.end || moment.t || 0)),
+      category: clean(moment.category || moment.label || "SOURCE RECEIPT"),
+      label: clean(moment.label || moment.category || "SOURCE RECEIPT"),
+      score: Number(moment.heat || moment.score || 0),
+      excerpt: clean(moment.excerpt || moment.quote || ""),
+      evidenceBasis: moment.evidenceBasis || "source-local caption candidate",
+      reviewStatus: moment.reviewStatus || "machine-candidate"
+    }))
+    .filter((moment) => moment.excerpt || moment.t >= 0);
+}
+const episodes = metadata.map((record) => {
+  const id = record.id;
+  const events = captionEvents(id);
+  const existing = completionById.get(id) || deepById.get(id) || freshById.get(id) || null;
+  const mode = existing?.contentMode || inferMode(record.title);
+  const restricted = RESTRICTED_MODES.has(mode) && existing && existing.moments && existing.moments.length === 0;
+  const topics = normalizeTopics(existing?.topics || derivedTopics(events, record.title));
+  const moments = normalizeMoments(existing?.moments, restricted).length ? normalizeMoments(existing?.moments, restricted) : derivedMoments(events, Number(record.duration || 0), restricted);
+  const fan = fanSignals(events, Number(record.duration || 0));
+  const chapterList = chapters(Number(record.duration || 0), moments, topics, restricted);
+  const shape = existing?.editorial?.showShape || (mode === "ranking-show" ? "RANKING NIGHT" : mode === "trailer-reaction" ? "TRAILER EMERGENCY" : mode === "movie-commentary" ? "MOVIE COMMENTARY" : mode === "q-and-a" ? "FAN MAIL" : "OPEN-LINE MOVIE NEWS");
+  const series = inferSeries(record.title, mode);
+  const tier = completionById.has(id) ? "completion-dossier" : deepById.has(id) || freshById.has(id) ? "distill-dossier" : events.length ? "caption-ledger" : "source-brief";
+  const summary = clean(existing?.summary || (events.length
+    ? `A ${shape.toLowerCase()} from ${dateFrom(record.upload_date)}. The caption ledger routes through ${topics.slice(0, 3).map((topic) => topic.name).join(", ") || "the night's open mic"}, with ${moments.length} bounded playable leads across ${clock(record.duration)}. Open the timestamp before treating any excerpt as a final quote.`
+    : `A source brief for ${clean(record.title)}. Metadata is preserved, but no local caption route survived for a responsible episode breakdown.`));
+  const evidence = existing?.captionEvidence || { type: events.length ? "youtube-automatic-caption" : "metadata-only", eventsAudited: events.length, speakerDiarized: false, originAttribution: false, reviewStatus: events.length ? "machine-candidate" : "held" };
+  return {
+    id, title: clean(record.title), date: dateFrom(record.upload_date), duration: Number(record.duration || 0), durationLabel: clock(record.duration), views: Number(record.view_count || 0),
+    thumbnail: record.thumbnail || `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`, url: `https://www.youtube.com/watch?v=${id}`, channel: record.channel || "WeWatchedAMovie", publicSource: true,
+    format: mode, seriesKey: series.key, seriesTitle: series.label, year: Number(String(record.upload_date || "").slice(0, 4) || 0),
+    sourceInAtlas: atlasById.has(id), latestOutsideAtlas: !atlasById.has(id), atlasCoverage: atlasById.get(id)?.coverage || null, archiveLanes: atlasById.get(id)?.lanes || [],
+    evidenceTier: tier, captioned: Boolean(events.length || existing?.captioned), wordsAudited: Number(existing?.wordsAudited || words(events.map((event) => event.text).join(" ")).length),
+    topics, moments, chapters: chapterList, heatmap: existing?.heatmap?.length ? existing.heatmap : heatmap(Number(record.duration || 0), events, moments, topics), fanSignals: fan,
+    characters: existing?.characters || characters(events), peak: existing?.peak || moments.slice().sort((a, b) => b.score - a.score)[0] || null,
+    dossier: { summary, shape, whyItMatters: clean(existing?.editorial?.whyItMatters || `This episode is part of the ${series.label} shelf. Its evidence tier is ${tier}; the official upload remains the authority for delivery, speaker, and intent.`), evidence, restricted, reviewStatus: tier === "source-brief" ? "held-source-brief" : tier === "completion-dossier" ? "distilled-machine-candidate" : "machine-surfaced" }
+  };
+}).sort((left, right) => right.date.localeCompare(left.date) || right.id.localeCompare(left.id));
+
+const seriesMap = new Map();
+episodes.forEach((episode) => {
+  if (!seriesMap.has(episode.seriesKey)) seriesMap.set(episode.seriesKey, { key: episode.seriesKey, title: episode.seriesTitle, episodeIds: [], totalDuration: 0, latestDate: episode.date, formats: new Set() });
+  const series = seriesMap.get(episode.seriesKey); series.episodeIds.push(episode.id); series.totalDuration += episode.duration; series.formats.add(episode.format);
+});
+const series = Array.from(seriesMap.values()).map((item) => ({ ...item, formats: Array.from(item.formats), episodeCount: item.episodeIds.length }));
+const years = {};
+episodes.forEach((episode) => { years[episode.year] = (years[episode.year] || 0) + 1; });
+const topicMap = new Map();
+episodes.forEach((episode) => episode.topics.forEach((topic) => {
+  if (!topicMap.has(topic.name)) topicMap.set(topic.name, { name: topic.name, mentions: 0, episodeIds: [], latest: topic.at });
+  const item = topicMap.get(topic.name); item.mentions += topic.mentions; item.episodeIds.push(episode.id); item.latest = Math.max(item.latest || 0, topic.at || 0);
+}));
+const topicIndex = Array.from(topicMap.values()).sort((a, b) => b.mentions - a.mentions).slice(0, 60);
+const stats = {
+  episodes: episodes.length, atlasRecords: atlas.records?.length || 0, latestOutsideAtlas: episodes.filter((episode) => episode.latestOutsideAtlas).length,
+  completionDossiers: episodes.filter((episode) => episode.evidenceTier === "completion-dossier").length, distillDossiers: episodes.filter((episode) => episode.evidenceTier === "distill-dossier").length,
+  captionLedgers: episodes.filter((episode) => episode.evidenceTier === "caption-ledger").length, sourceBriefs: episodes.filter((episode) => episode.evidenceTier === "source-brief").length,
+  captionBacked: episodes.filter((episode) => episode.captioned).length, totalDurationSeconds: episodes.reduce((sum, episode) => sum + episode.duration, 0), totalViewsSnapshot: episodes.reduce((sum, episode) => sum + episode.views, 0),
+  fanSignalReceipts: episodes.reduce((sum, episode) => sum + episode.fanSignals.length, 0), episodesWithFanSignals: episodes.filter((episode) => episode.fanSignals.length).length,
+  firstDate: episodes.at(-1)?.date || null, lastDate: episodes[0]?.date || null, years
+};
+const payload = {
+  schema: "shokker-wwam-livestream-canon/v1", generated: new Date().toISOString(), observedAt: "2026-07-31",
+  sourcePolicy: "Every public WWAM source represented in the local official metadata snapshot is retained. Completion and distill artifacts are reused when present; remaining episodes receive bounded caption-ledger routes or a held source brief. Speaker, intent, visual context, rights, and creator approval are never inferred.",
+  scope: { metadataSources: metadata.length, captionFiles: fs.readdirSync(CAPTIONS_DIR).filter((file) => file.endsWith(".json")).length, atlasRecords: atlas.records?.length || 0, completionSources: completion.streams?.length || 0, deepSources: deep.streams?.length || 0, freshSources: fresh.streams?.length || 0 },
+  stats, series, topicIndex, episodes
+};
+fs.writeFileSync(path.join(DEMO, "wwam-livestream-canon.js"), `/* Generated by scripts/generate-wwam-livestream-canon.mjs. */\nwindow.WWAM_LIVESTREAM_CANON = ${JSON.stringify(payload)};\n`);
+console.log(`Generated ${episodes.length} livestream episodes; ${stats.completionDossiers} completion dossiers, ${stats.distillDossiers} distill dossiers, ${stats.captionLedgers} caption ledgers, ${stats.sourceBriefs} source briefs.`);
