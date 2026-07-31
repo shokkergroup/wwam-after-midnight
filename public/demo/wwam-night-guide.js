@@ -11,14 +11,15 @@
 })(typeof window !== "undefined" ? window : globalThis, function (root) {
   "use strict";
 
-  var VERSION = "3.0.2";
+  var VERSION = "3.1.0";
   var DOCK_ID = "wwamNightGuideMobile";
   var MEDIA_QUERY = "(max-width: 760px)";
   var ROUTES = Object.freeze([
     Object.freeze({ id: "shows", label: "Shows", href: "#shows-hub" }),
-    Object.freeze({ id: "watchalongs", label: "Watchalongs", href: "#watchalongs-hub" }),
+    Object.freeze({ id: "watchalongs", label: "Watch", href: "#watchalongs-hub" }),
     Object.freeze({ id: "highlights", label: "Best Bits", href: "#best-bits" }),
     Object.freeze({ id: "characters", label: "Characters", href: "#characters-hub" }),
+    Object.freeze({ id: "fam", label: "The Fam", href: "#fam-hall" }),
     Object.freeze({ id: "ask", label: "Search", href: "#ask" })
   ]);
   var HASH_GROUPS = Object.freeze({
@@ -30,6 +31,7 @@
     "#red100": "highlights", "#night-shift": "highlights", "#trivia": "highlights",
     "#characters-hub": "characters", "#characters": "characters", "#lore": "characters",
     "#loreDossier": "characters", "#memory": "characters", "#tape-keeps-score": "characters",
+    "#fam-hall": "fam",
     "#ask": "ask"
   });
 

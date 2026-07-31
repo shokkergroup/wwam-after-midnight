@@ -22,9 +22,9 @@
   <link rel="stylesheet" href="styles.css?v=0.5.34-livewire-mobile">
   <link rel="stylesheet" href="year-canon.css?v=1.1.0">
   <link rel="stylesheet" href="guided-shell.css?v=1.0.2-coherent">
-  <link rel="stylesheet" href="wwam-editorial-v2.css?v=1.2.4-signature-wayfinder">
-  <link rel="stylesheet" href="wwam-night-guide.css?v=2.0.1">
-  <link rel="stylesheet" href="source-dossier.css?v=5.35-branded-failure">
+  <link rel="stylesheet" href="wwam-editorial-v2.css?v=1.2.5-fam-door">
+  <link rel="stylesheet" href="wwam-night-guide.css?v=2.1.0-fam">
+  <link rel="stylesheet" href="source-dossier.css?v=5.36-fam-roll-call">
 </head>
 <body>
   <div class="content-gate" id="contentGate" role="dialog" aria-modal="true" aria-labelledby="contentGateTitle">
@@ -53,6 +53,7 @@
         <a href="#watchalongs-hub" data-journey-link="watchalongs">WATCHALONGS</a>
         <a href="#best-bits" data-journey-link="highlights">BEST BITS</a>
         <a href="#characters-hub" data-journey-link="characters">CHARACTERS</a>
+        <a href="#fam-hall" data-journey-link="fam">THE FAM</a>
         <a href="#ask" data-journey-link="ask">SEARCH</a>
       </div>
     </nav>
@@ -116,6 +117,12 @@
           <p>Follow the bits, hear the performances, then ask the lunatic.</p><b>PICK A VOICE <span>&rarr;</span></b>
         </a>
       </div>
+      <a class="wwam-fam-door" href="#fam-hall" data-journey-link="fam">
+        <span>05 // THE ROOM MADE THE SHOW</span>
+        <b>ENTER THE WWAM FAM HALL OF FAME</b>
+        <p>Lee. Michael. The regulars, the Superchats, and the fan prompts that became part of the broadcast.</p>
+        <i>OPEN THE LIVE-ROOM LEDGER &rarr;</i>
+      </a>
     </section>
     <section class="hero legacy-machine-hero" hidden aria-hidden="true">
       <div class="hero-grain"></div>
@@ -209,6 +216,19 @@
         <a href="#memory" data-journey-link="characters"><b>MEMORY TRAILS</b><small>Follow callbacks across the archive</small></a>
       </nav>
     </section>
+
+    <section class="wwam-fam-hall" id="fam-hall" aria-labelledby="famHallLoadingTitle"
+      aria-busy="true" data-guided-hidden="true"
+      data-feature-styles="wwam-fam.css?v=1.0.0"
+      data-feature-scripts="wwam-fam-index.js?v=1.0.0-caption-ledger,wwam-fam-ui.js?v=1.0.0">
+      <div id="famHallMount">
+        <div class="feature-loading" role="status" aria-live="polite">
+          <i></i><span>OPENING THE LIVE-ROOM LEDGER</span>
+          <b id="famHallLoadingTitle">PUTTING THE FAM BACK INTO THE SHOW.</b>
+        </div>
+      </div>
+    </section>
+
     <section class="section halloween-universe" id="halloween-universe"
       aria-labelledby="halloweenUniverseTitle" aria-busy="true"
       data-feature-styles="halloween-universe.css?v=1.1.0"
@@ -1182,10 +1202,10 @@
   <script src="youtube-playback.js?v=2.4.3-hosted-force"></script>
   <script src="feature-loader.js"></script>
   <script src="route-render-gate.js?v=1.0.1-dossier"></script>
-  <script src="app.js?v=0.5.76-sixteen-full-reads"></script>
+  <script src="app.js?v=0.5.77-fam-ledger"></script>
   <script src="context-atlas.js?v=1.0.1-recovered"></script>
   <script src="context-companion.js?v=1.0.3-deferred"></script>
-  <script src="guided-shell.js?v=1.2.3-recovered"></script>
-  <script src="wwam-night-guide.js?v=3.0.2"></script>
+  <script src="guided-shell.js?v=1.3.0-fam-route"></script>
+  <script src="wwam-night-guide.js?v=3.1.0-fam"></script>
 </body>
 </html>

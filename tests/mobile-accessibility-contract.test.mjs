@@ -60,8 +60,8 @@ assert.match(
 
 assert.match(
   nightGuide,
-  /label: "Shows"[\s\S]*label: "Watchalongs"[\s\S]*label: "Best Bits"[\s\S]*label: "Characters"[\s\S]*label: "Search"/,
-  "The phone dock must mirror the five public destinations.",
+  /label: "Shows"[\s\S]*label: "Watch"[\s\S]*label: "Best Bits"[\s\S]*label: "Characters"[\s\S]*label: "The Fam"[\s\S]*label: "Search"/,
+  "The phone dock must mirror the six public destinations.",
 );
 assert.doesNotMatch(
   nightGuide,

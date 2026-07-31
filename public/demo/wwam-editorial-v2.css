@@ -886,6 +886,45 @@ html { scroll-padding-top: 92px; }
 }
 .guided-primary-links a[aria-current="page"]::after { bottom: 17px; }
 
+.wwam-fam-door {
+  display: grid;
+  grid-template-columns: auto minmax(240px, 1fr) minmax(260px, .8fr) auto;
+  gap: clamp(18px, 3vw, 44px);
+  align-items: center;
+  margin-top: 14px;
+  padding: 22px clamp(20px, 3vw, 38px);
+  border: 1px solid rgba(204, 255, 0, .42);
+  color: #fff8ee;
+  background:
+    linear-gradient(90deg, rgba(204, 255, 0, .07), transparent 45%),
+    #0b090b;
+  text-decoration: none;
+}
+.wwam-fam-door span,
+.wwam-fam-door i {
+  color: #ccff00;
+  font: 700 10px/1.35 "IBM Plex Mono", monospace;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.wwam-fam-door b {
+  font: 400 clamp(26px, 3vw, 42px)/.95 "Bebas Neue", sans-serif;
+}
+.wwam-fam-door p {
+  margin: 0;
+  color: rgba(255, 248, 238, .62);
+  font-size: 13px;
+  line-height: 1.55;
+}
+.wwam-fam-door i { font-style: normal; white-space: nowrap; }
+.wwam-fam-door:hover,
+.wwam-fam-door:focus-visible {
+  border-color: #ccff00;
+  background:
+    linear-gradient(90deg, rgba(204, 255, 0, .13), rgba(255, 44, 126, .08)),
+    #0b090b;
+}
+
 .wwam-editorial-hero {
   min-height: 620px;
   grid-template-columns: minmax(0, .92fr) minmax(500px, 1.08fr);
@@ -1199,6 +1238,11 @@ body[data-guided-journey="highlights"] #steves-asshole {
   .wwam-pick-your-poison h2 { font-size: 56px; }
   .wwam-poison-grid { grid-template-columns: 1fr; }
   .wwam-poison-card { min-height: 235px; }
+  .wwam-fam-door {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 24px 20px;
+  }
 
   .guided-home { padding-inline: 18px; }
   .guided-shelf-head { align-items: flex-start; }

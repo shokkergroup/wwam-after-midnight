@@ -23,16 +23,17 @@ vm.runInNewContext(source, context, { filename: scriptPath });
 const guide = context.WWAMNightGuide;
 
 assert.ok(guide, "Mobile navigation should publish a browser API.");
-assert.equal(guide.VERSION, "3.0.2");
+assert.equal(guide.VERSION, "3.1.0");
 assert.match(source, /data-wwam-night-guide-runtime/, "Browser runtime should leave a DOM-ready marker for release QA.");
 assert.equal(guide.MEDIA_QUERY, "(max-width: 760px)");
 assert.deepEqual(
   Array.from(guide.ROUTES, (route) => ({ label: route.label, href: route.href })),
   [
     { label: "Shows", href: "#shows-hub" },
-    { label: "Watchalongs", href: "#watchalongs-hub" },
+    { label: "Watch", href: "#watchalongs-hub" },
     { label: "Best Bits", href: "#best-bits" },
     { label: "Characters", href: "#characters-hub" },
+    { label: "The Fam", href: "#fam-hall" },
     { label: "Search", href: "#ask" }
   ]
 );
@@ -42,20 +43,22 @@ for (const route of guide.ROUTES) {
 }
 
 const markup = guide.renderMarkup();
-assert.equal((markup.match(/<a /g) || []).length, 5, "Dock should mirror the five public destinations.");
+assert.equal((markup.match(/<a /g) || []).length, 6, "Dock should mirror the six public destinations.");
 assert.equal((markup.match(/<button /g) || []).length, 0, "The mobile navigation must not add a competing menu.");
 assert.match(markup, /WWAM mobile navigation/);
 assert.match(markup, /href="#shows-hub"/);
 assert.match(markup, /href="#watchalongs-hub"/);
 assert.match(markup, /href="#best-bits"/);
 assert.match(markup, /href="#characters-hub"/);
+assert.match(markup, /href="#fam-hall"/);
 assert.match(markup, /href="#ask"/);
 assert.doesNotMatch(markup, /All Rooms|role="dialog"|directory-layer/i);
 
 assert.match(source, /HASH_GROUPS/, "Detail hashes should keep the correct destination active.");
 assert.match(source, /updateActive\(state\.activeHash, documentRef\.body\.dataset\.guidedJourney \|\| ""\)/, "Direct commentary links should inherit the desktop route classification on mount.");
-assert.match(index, /wwam-night-guide\.js\?v=3\.0\.2/, "The corrected mobile route state should not be served from an older cache key.");
+assert.match(index, /wwam-night-guide\.js\?v=3\.1\.0-fam/, "The corrected mobile route state should not be served from an older cache key.");
 assert.match(source, /"#tape-keeps-score": "characters"/, "Memory deep links should stay inside Characters.");
+assert.match(source, /"#fam-hall": "fam"/, "The FAM Hall should own an explicit mobile route state.");
 assert.match(source, /addEventListener\("wwam:journey-change", handleJourneyChange\)/, "Push-state routes should synchronize the dock.");
 assert.doesNotMatch(source, /delegateRoomsControl|syncRoomsState/, "Removed room compatibility should not linger.");
 assert.match(source, /matchMedia/, "Mounting should respond to the mobile breakpoint.");

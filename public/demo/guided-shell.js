@@ -9,6 +9,7 @@
     "halloween-universe": "watchalongs", "comedy-vault": "watchalongs",
     "characters-hub": "characters", characters: "characters", lore: "characters", loreDossier: "characters", memory: "characters",
     "tape-keeps-score": "characters",
+    "fam-hall": "fam",
     ask: "ask",
     "best-bits": "highlights", red100: "highlights", upinya: "highlights",
     "steves-asshole": "highlights", "night-shift": "highlights", trivia: "highlights",
@@ -21,6 +22,7 @@
     shows: ["#shows-hub", "#companion", "#livewire", "#popular25", "#archive", "#yearCanonSpotlight", ".archive-browser", "#time-capsules"],
     watchalongs: ["#watchalongs-hub", "#halloween-universe", "#comedy-vault", "#franchises", "#autopsies"],
     characters: ["#characters-hub", "#characters", "#lore", "#loreDossier", "#memory"],
+    fam: ["#fam-hall"],
     ask: ["#ask"],
     highlights: ["#best-bits", "#red100", "#upinya", "#steves-asshole", "#night-shift", "#trivia"],
     studio: ["#fresh-intake", ".intake-output", "#verdict-room", "#labs", "#control", "#clip-lab", "#cut-test", "#canon", ".method", "#pitch", "#proof", ".scope-strip", ".legacy-machine-hero"]
@@ -31,6 +33,7 @@
     shows: ["#shows-hub", "#livewire", "#archive"],
     watchalongs: ["#watchalongs-hub", "#franchises", "#autopsies"],
     characters: ["#characters-hub", "#characters", "#lore"],
+    fam: ["#fam-hall"],
     ask: ["#ask"],
     highlights: ["#best-bits", "#upinya", "#steves-asshole"]
   };
@@ -39,6 +42,7 @@
     shows: "shows-hub",
     watchalongs: "watchalongs-hub",
     characters: "characters-hub",
+    fam: "fam-hall",
     highlights: "best-bits"
   };
 

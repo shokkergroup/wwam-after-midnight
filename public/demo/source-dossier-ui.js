@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.30.3";
+  var VERSION = "1.31.0";
   var DOSSIER_SCHEMA = "shokker-source-dossier/v1";
   var QUERY_SCHEMA = "shokker-source-query/v1";
   var QUERY_RESULT_SCHEMA = "shokker-source-query-result/v1";
@@ -723,7 +723,8 @@
       var previousKey = position > 0 ? sequence[position - 1] : "";
       var nextKey = position >= 0 && position < sequence.length - 1 ?
         sequence[position + 1] : "";
-      var returnId = lane ? showWikiLaneId(lane, laneIndex) :
+      var returnId = lane && isShowWikiFamLane(lane) ?
+        "sourceDossierWwamFam" : lane ? showWikiLaneId(lane, laneIndex) :
         "sourceDossierShowWikiExperience";
       var excerptText = cleanCaptionExcerpt(receipt.excerpt);
       var excerpt = receipt.publicExcerptAllowed && excerptText
@@ -849,6 +850,12 @@
     function showWikiLaneId(lane, index) {
       return "sourceDossierShowWikiLane-" +
         token(clean(lane.id) || clean(lane.label) || "lane") + "-" + index;
+    }
+
+    function isShowWikiFamLane(lane) {
+      var identity = token(clean(lane && lane.id) + " " + clean(lane && lane.label));
+      return identity.indexOf("wwam-fam") >= 0 ||
+        identity.indexOf("fam-roll-call") >= 0;
     }
 
     function showWikiLaneReceipts(dossier, lane) {
@@ -1131,6 +1138,7 @@
               sourceBrief ? "SOURCE BRIEF" : "RECAP"
         });
       }
+      links.push({ id: "sourceDossierWwamFam", label: "FAM ROLL CALL" });
       if (!sourceBrief && showWikiHasFanRead(dossier)) {
         links.push({ id: "sourceDossierFanRead", label: "FAN READ" });
       }
@@ -1143,6 +1151,7 @@
       }
       if (!sourceBrief) {
         lanes.forEach(function (lane, index) {
+          if (isShowWikiFamLane(lane)) return;
           if (!showWikiLaneReceipts(dossier, lane).length) return;
           links.push({ id: showWikiLaneId(lane, index), label: clean(lane.label) });
         });
@@ -1211,6 +1220,7 @@
           hasEpisodeRecap(dossier) ? "RECAP STATUS" :
             sourceBrief ? "SOURCE BRIEF" : "SUMMARY"
       );
+      add("sourceDossierWwamFam", "FAM ROLL CALL");
       if (!sourceBrief && recapHasHighlights) {
         add("sourceDossierFeldmanBest", "HIGHLIGHTS");
       }
@@ -1243,6 +1253,7 @@
       }
       if (!canonicalRecap && !compact && !sourceBrief) {
         lanes.forEach(function (lane, index) {
+          if (isShowWikiFamLane(lane)) return;
           if (!showWikiLaneReceipts(dossier, lane).length) return;
           if (hasTopicRail &&
               (clean(lane.id).toLowerCase() === "topics" ||
@@ -2605,6 +2616,7 @@
       var populated = [];
       var empty = [];
       lanes.forEach(function (lane, index) {
+        if (isShowWikiFamLane(lane)) return;
         var entry = { lane: lane, index: index };
         if (showWikiLaneReceipts(dossier, lane).length) populated.push(entry);
         else empty.push(entry);
@@ -2666,7 +2678,8 @@
           showWikiBriefMarkup(dossier)) +
           '<aside class="source-dossier-wiki-brief-seal" role="note"><b>' +
           'NO FAKE RECAP.</b><span>This page will not turn a title and thumbnail into made-up topics, ' +
-          'quotes, character bits, or comedy verdicts.</span></aside>';
+          'quotes, character bits, or comedy verdicts.</span></aside>' +
+          showWikiFamMarkup(dossier);
       } else {
         if (canonicalEpisodeRecap) {
           /*
@@ -2674,11 +2687,13 @@
            * the same timestamps as a watch path, format desk, fan read,
            * episode guide, category lanes, and act chronicle.
            */
-          body += showWikiEpisodeRecapMarkup(dossier, compact);
+          body += showWikiEpisodeRecapMarkup(dossier, compact) +
+            showWikiFamMarkup(dossier);
         } else {
           body += (hasEpisodeRecap(dossier) ?
             showWikiEpisodeRecapMarkup(dossier, compact) :
             showWikiRecapMarkup(dossier, compact)) +
+            showWikiFamMarkup(dossier) +
             showWikiFanReadMarkup(dossier, compact) +
             ((!compact || !hasEpisodeRecap(dossier)) ?
               showWikiEpisodeGuideMarkup(dossier, compact) : "") +
@@ -3887,6 +3902,69 @@
       queueJumpAfterReflow(targetId);
       return true;
     }
+
+    function showWikiFamLane(dossier) {
+      return array(record(dossier && dossier.source &&
+        dossier.source.showWiki).lanes).map(record).find(function (lane) {
+        return isShowWikiFamLane(lane);
+      }) || null;
+    }
+
+    function showWikiFamCalloutMeta(dossier, receipt) {
+      var index = root.WWAM_FAM_INDEX;
+      var sourceId = clean(dossier && dossier.source && dossier.source.id);
+      var show = index && index.shows && index.shows[sourceId];
+      return array(show && show.callouts).map(record).find(function (callout) {
+        return clean(callout.id) === clean(receipt && receipt.key);
+      }) || {};
+    }
+
+    function showWikiFamMarkup(dossier) {
+      var lane = showWikiFamLane(dossier);
+      var receipts = lane ? showWikiLaneReceipts(dossier, lane) : [];
+      var sourceBrief = isSourceBrief(dossier);
+      var index = root.WWAM_FAM_INDEX;
+      var policy = record(index && index.evidencePolicy);
+      var count = receipts.length;
+      var cards = receipts.map(function (receipt) {
+        var meta = showWikiFamCalloutMeta(dossier, receipt);
+        var excerptText = cleanCaptionExcerpt(receipt.excerpt);
+        var type = clean(meta.interactionType) || "CHAT READOUT";
+        return '<article class="source-dossier-fam-card" data-fam-id="' +
+          esc(clean(meta.fanId) || token(receipt.label)) + '"><header><div><span>' +
+          esc(type) + '</span><h5>' + esc(receipt.label) +
+          '</h5></div><time>' + esc(formatTime(receipt.at)) + '</time></header>' +
+          (excerptText ? '<p>&ldquo;' + esc(excerptText) + '&rdquo;</p>' :
+            '<p class="is-withheld">The name readout is indexed at this timestamp; the caption fragment is not clean enough to print.</p>') +
+          '<div class="source-dossier-fam-proof"><span>AUTO-CAPTION NAME READOUT</span>' +
+          '<span>PUBLIC NAME / HANDLE</span><span>SPEAKER NOT CONFIRMED</span></div>' +
+          '<button type="button" data-source-dossier-action="play-receipt" ' +
+          'data-receipt-key="' + esc(receipt.key) + '" aria-label="Play the ' +
+          esc(receipt.label) + ' fan callout at ' + esc(formatTime(receipt.at)) +
+          '">&#9654; PLAY THE ROOM READ AT ' + esc(formatTime(receipt.at)) +
+          '</button></article>';
+      }).join("");
+      var emptyCopy = sourceBrief ?
+        "This upload does not have a usable source-caption map, so no fan name is being guessed from its title or thumbnail." :
+        "No conservative public-name interaction readout is published for this tape yet. That means the FAM pass is empty—not that the room was.";
+      return '<section class="source-dossier-fam" id="sourceDossierWwamFam" ' +
+        'data-source-dossier-fam-state="' + (count ? "ready" : "empty") +
+        '"><header><div><span>THE FAM WAS IN THE BUILDING</span><h4>' +
+        (count ? "THE LIVE ROOM LEFT FINGERPRINTS." :
+          "THE ROOM LEDGER IS HONESTLY EMPTY.") +
+        '</h4></div><p>' + (count ?
+          esc(count) + ' source-linked ' + (count === 1 ? "readout" : "readouts") +
+            ' from this show. Play the moment; do not confuse an observed caption name with an authenticated private identity.' :
+          esc(emptyCopy)) + '</p></header>' +
+        (cards ? '<div class="source-dossier-fam-grid">' + cards + '</div>' :
+          '<div class="source-dossier-fam-empty"><b>NO INVENTED FANS.</b><span>' +
+          esc(emptyCopy) + '</span></div>') +
+        '<footer><span>' + esc(clean(policy.rankingUnit) ||
+          "Distinct shows with a conservative exact-name interaction readout") +
+          '</span><a href="./#fam-hall">OPEN THE WWAM FAM HALL OF FAME &#8599;</a></footer>' +
+        '</section>';
+    }
+
 
     function handleClick(event) {
       if (jumpWithinDossier(event)) return;

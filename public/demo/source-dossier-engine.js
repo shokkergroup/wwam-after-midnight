@@ -10,7 +10,7 @@
    * captions, promote evidence, clear rights, or publish anything.
    */
 
-  var VERSION = "1.15.7";
+  var VERSION = "1.16.0";
   var INPUT_SCHEMA = "shokker-source-dossier-input/v1";
   var DOSSIER_SCHEMA = "shokker-source-dossier/v1";
   var EXPORT_SCHEMA = "shokker-source-dossier-export/v1";
@@ -50,7 +50,8 @@
     "curated-character-performance": true,
     "reviewed-guide-negative-take": true,
     "reviewed-episode-highlight": true,
-    "reviewed-up-in-ya-highlight": true
+    "reviewed-up-in-ya-highlight": true,
+    "caption-fan-name-navigation": true
   });
   var STEVE_EVIDENCE_STATES = Object.freeze({
     "editorially-screened-source-cut": true,

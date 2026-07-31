@@ -4420,9 +4420,10 @@ test("one Show Menu replaces the duplicate local nav and keeps Source Brief navi
   );
   assert.ok(showMenuMatch);
   const showMenu = showMenuMatch[0];
-  assert.equal((showMenu.match(/<a /g) ?? []).length, 6);
+  assert.equal((showMenu.match(/<a /g) ?? []).length, 7);
   assert.ok(showMenu.includes('href="#sourceDossierPlayerSection">WATCH</a>'));
   assert.ok(showMenu.includes('href="#sourceDossierShowWikiSummary">SUMMARY</a>'));
+  assert.ok(showMenu.includes('href="#sourceDossierWwamFam">FAM ROLL CALL</a>'));
   assert.ok(showMenu.includes('href="#sourceDossierShowWikiLane-up-in-ya-2">UP IN YA</a>'));
   assert.ok(
     showMenu.includes(
@@ -4443,8 +4444,9 @@ test("one Show Menu replaces the duplicate local nav and keeps Source Brief navi
   );
   assert.ok(briefNavMatch);
   const briefNav = briefNavMatch[0];
-  assert.equal((briefNav.match(/<a /g) ?? []).length, 3);
+  assert.equal((briefNav.match(/<a /g) ?? []).length, 4);
   assert.ok(briefNav.includes('href="#sourceDossierShowWikiSummary">SOURCE BRIEF</a>'));
+  assert.ok(briefNav.includes('href="#sourceDossierWwamFam">FAM ROLL CALL</a>'));
   assert.ok(briefNav.includes('href="#sourceDossierAsk">ASK SOURCE FACTS</a>'));
   assert.doesNotMatch(briefNav, /sourceDossierShowWikiExperience/);
   assert.doesNotMatch(briefNav, /sourceDossierShowWikiLane-/);

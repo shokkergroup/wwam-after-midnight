@@ -894,6 +894,7 @@ test("every source gets an honest Show Wiki shell with rigorously gated lanes", 
   const { result, archiveDeep, window } = buildFixture();
   const laneIds = [
     "topics",
+    "wwam-fam",
     "best-moments",
     "funny-moments",
     "up-in-ya",
@@ -963,14 +964,14 @@ test("every source gets an honest Show Wiki shell with rigorously gated lanes", 
     const formatId = formatFor(source).id;
     if (formatId === "movie-commentary") {
       return [
-        "best-moments", "funny-moments", "up-in-ya",
+        "best-moments", "wwam-fam", "funny-moments", "up-in-ya",
         "straight-to-steves-asshole", "character-bits",
         "character-references", "topics",
       ];
     }
     if (formatId === "ranking-show") {
       return [
-        "topics", "straight-to-steves-asshole", "best-moments",
+        "topics", "wwam-fam", "straight-to-steves-asshole", "best-moments",
         "funny-moments", "up-in-ya", "character-bits",
         "character-references",
       ];

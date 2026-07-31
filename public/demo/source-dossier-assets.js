@@ -35,13 +35,14 @@
     "episode-editorial-packs-wave11.js?v=1.0.0-full-tape",
     "episode-editorial-packs-wave12.js?v=1.0.0-full-tape",
     "episode-editorial-packs-wave13.js?v=1.0.0-full-tape",
+    "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.3-character-truth",
     "wwam-episode-recap-adapter.js?v=2.3.2-safe-topic-doors",
-    "source-dossier-engine.js?v=1.15.7-safe-summary-deck",
-    "wwam-source-dossier-adapter.js?v=1.16.0-human-editorial",
+    "source-dossier-engine.js?v=1.16.0-fam-receipts",
+    "wwam-source-dossier-adapter.js?v=1.17.0-fam-receipts",
     "source-query-engine.js?v=1.6.1-lanes",
     "aftermath-pack-engine.js?v=1.0.0",
-    "source-dossier-ui.js?v=1.30.3-safe-topic-doors",
+    "source-dossier-ui.js?v=1.31.0-fam-roll-call",
     "wwam-dossier-editorial.js?v=1.3.2-damage-priority",
   ]);
 })(window);

@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.16.0";
+  var VERSION = "1.17.0";
   var SCHEMA = "shokker-source-dossier-input/v1";
   var PUBLIC_EXCERPT_WORDS = 16;
   var OFFICIAL_WWAM_CHANNEL_ID = "UC6ieEOZW4iXV8TcILJI8k5g";
@@ -646,6 +646,49 @@
       });
     });
     return output;
+  }
+
+  function famCalloutReceipts(source) {
+    var index = root.WWAM_FAM_INDEX;
+    var show = index && index.shows && index.shows[source.id];
+    if (!show || source.coverage !== "caption-backed") return [];
+    return array(show.callouts).filter(function (callout) {
+      return number(callout && callout.at) >= 0 &&
+        number(callout && callout.at) < source.duration;
+    }).map(function (callout, index) {
+      var at = Math.max(0, number(callout.at));
+      var requestedEnd = Math.max(at + 8, number(callout.end));
+      var end = Math.min(source.duration, requestedEnd);
+      return normalizedReceipt(
+        {
+          id: clean(callout.id) || [
+            source.id,
+            "fam",
+            slug(callout.displayName),
+            Math.floor(at),
+            index,
+          ].join(":"),
+          t: at,
+          end: end,
+          type: "fan-callout",
+          label: clean(callout.displayName) || "WWAM FAM CALLOUT",
+          excerpt: clean(callout.excerpt),
+        },
+        source,
+        {
+          kind: "fan-callout",
+          label: clean(callout.displayName) || "WWAM FAM CALLOUT",
+          evidenceLevel: "machine",
+          evidenceType: "caption-fan-name-navigation",
+          evidenceBasis: "automatic-caption-name-interaction-readout",
+          reviewState: "machine-surfaced-name-readout",
+          publicExcerptAllowed: true,
+          entityIds: [],
+        }
+      );
+    }).filter(function (receipt) {
+      return receipt.at < receipt.end && receipt.end <= source.duration;
+    });
   }
 
   function timelineReceipts(source, overlay) {
@@ -1478,6 +1521,11 @@
       return receipt.evidenceType === "caption-character-signal" ||
         receipt.evidenceType === "caption-character-context";
     }).slice().sort(signalOrder);
+    var famCallouts = receipts.filter(function (receipt) {
+      return receipt.evidenceType === "caption-fan-name-navigation";
+    }).slice().sort(function (left, right) {
+      return number(left.at) - number(right.at);
+    });
     var distilled = source.coverage === "caption-backed" &&
       Boolean(source.summary || receipts.length);
     var topicNavigationOnly = distilled && !moments.length && topics.length > 0;
@@ -1587,13 +1635,26 @@
           "where do they mention Slenderman", "where do they mention Feldman"
         ]
       ),
+      "wwam-fam": lane(
+        "wwam-fam",
+        "WWAM FAM ROLL CALL",
+        "Public names and handles read from the live room, each attached to this exact upload and timestamp. Counts describe the caption index, not donation totals.",
+        "No conservative public-name interaction readout is indexed for this tape yet.",
+        famCallouts,
+        [
+          "who was in the chat", "fan callouts", "superchats",
+          "super chats", "wwam fam", "fam roll call", "community moments",
+          "which fans showed up", "who did they read from chat",
+          "fan questions", "supporter moments"
+        ]
+      ),
     };
     var format = showWikiFormat(source);
     var laneOrder = format.id === "movie-commentary"
-      ? ["best-moments", "funny-moments", "up-in-ya", "straight-to-steves-asshole", "character-bits", "character-references", "topics"]
+      ? ["best-moments", "wwam-fam", "funny-moments", "up-in-ya", "straight-to-steves-asshole", "character-bits", "character-references", "topics"]
       : format.id === "ranking-show"
-        ? ["topics", "straight-to-steves-asshole", "best-moments", "funny-moments", "up-in-ya", "character-bits", "character-references"]
-        : ["topics", "best-moments", "funny-moments", "up-in-ya", "straight-to-steves-asshole", "character-bits", "character-references"];
+        ? ["topics", "wwam-fam", "straight-to-steves-asshole", "best-moments", "funny-moments", "up-in-ya", "character-bits", "character-references"]
+        : ["topics", "wwam-fam", "best-moments", "funny-moments", "up-in-ya", "straight-to-steves-asshole", "character-bits", "character-references"];
     var recap = distilled
       ? showWikiRecapFor(
         source, receipts, moments, topics, characters, steves, funny, characterNames
@@ -2646,6 +2707,7 @@
           source,
           entityRegistry.forLabel
         ));
+        receipts = receipts.concat(famCalloutReceipts(source));
       }
       if (policy.restrictedToTopicNavigation) {
         receipts = restrictedTopicNavigationReceipts(receipts);

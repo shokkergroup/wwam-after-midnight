@@ -1,4 +1,4 @@
-/* V5.35 // PER-SHOW WIKI - human editorial pages + branded loading/failure */
+/* V5.36 // PER-SHOW WIKI - human editorial pages + WWAM FAM roll call */
 
 .source-dossier-loading:not(.source-dossier-error) {
   display: grid;
@@ -11,6 +11,181 @@
     radial-gradient(circle at 78% 18%, rgba(255, 57, 127, .16), transparent 36%),
     repeating-linear-gradient(-45deg, rgba(255, 255, 255, .018) 0 12px, transparent 12px 24px),
     #0d0a0d;
+}
+
+/* WWAM FAM // show-level live-room ledger */
+.source-dossier-fam {
+  margin: clamp(26px, 4vw, 56px) 0;
+  border: 1px solid rgba(204, 255, 0, .24);
+  background:
+    radial-gradient(circle at 100% 0, rgba(255, 44, 126, .14), transparent 34%),
+    linear-gradient(135deg, rgba(204, 255, 0, .055), rgba(10, 8, 11, .96) 42%);
+  box-shadow: 0 22px 60px rgba(0, 0, 0, .22);
+}
+
+.source-dossier-fam > header {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(260px, .85fr);
+  gap: 28px;
+  align-items: end;
+  padding: clamp(22px, 3vw, 38px);
+  border-bottom: 1px solid rgba(204, 255, 0, .18);
+}
+
+.source-dossier-fam > header span,
+.source-dossier-fam-card header span,
+.source-dossier-fam-proof span,
+.source-dossier-fam > footer {
+  font: 700 10px/1.35 "IBM Plex Mono", monospace;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.source-dossier-fam > header span {
+  color: #ccff00;
+}
+
+.source-dossier-fam > header h4 {
+  margin: 7px 0 0;
+  max-width: 760px;
+  color: #fff8ee;
+  font: 400 clamp(30px, 4.5vw, 64px)/.88 "Bebas Neue", sans-serif;
+  letter-spacing: .015em;
+}
+
+.source-dossier-fam > header p {
+  margin: 0;
+  color: rgba(255, 248, 238, .72);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.source-dossier-fam-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  background: rgba(204, 255, 0, .14);
+}
+
+.source-dossier-fam-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: clamp(20px, 2.4vw, 30px);
+  background: #0c090d;
+}
+
+.source-dossier-fam-card > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: start;
+}
+
+.source-dossier-fam-card header span {
+  color: #ff2c7e;
+}
+
+.source-dossier-fam-card h5 {
+  margin: 5px 0 0;
+  color: #fff8ee;
+  font: 400 clamp(26px, 3vw, 38px)/.95 "Bebas Neue", sans-serif;
+  letter-spacing: .02em;
+}
+
+.source-dossier-fam-card time {
+  flex: 0 0 auto;
+  color: #ccff00;
+  font: 700 12px/1.2 "IBM Plex Mono", monospace;
+}
+
+.source-dossier-fam-card > p {
+  flex: 1;
+  margin: 20px 0;
+  color: rgba(255, 248, 238, .84);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.source-dossier-fam-card > p.is-withheld {
+  color: rgba(255, 248, 238, .52);
+  font-style: italic;
+}
+
+.source-dossier-fam-proof {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 16px;
+}
+
+.source-dossier-fam-proof span {
+  padding: 6px 8px;
+  border: 1px solid rgba(255, 255, 255, .11);
+  color: rgba(255, 248, 238, .5);
+  letter-spacing: .06em;
+}
+
+.source-dossier-fam-card > button {
+  width: 100%;
+  min-height: 44px;
+  padding: 11px 14px;
+  border: 1px solid #ccff00;
+  background: #ccff00;
+  color: #090709;
+  cursor: pointer;
+  font: 700 10px/1.3 "IBM Plex Mono", monospace;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.source-dossier-fam-card > button:hover,
+.source-dossier-fam-card > button:focus-visible {
+  background: #fff8ee;
+  border-color: #fff8ee;
+}
+
+.source-dossier-fam-empty {
+  display: grid;
+  gap: 8px;
+  padding: clamp(24px, 3vw, 40px);
+  color: rgba(255, 248, 238, .64);
+}
+
+.source-dossier-fam-empty b {
+  color: #ccff00;
+  font: 400 28px/1 "Bebas Neue", sans-serif;
+}
+
+.source-dossier-fam > footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: center;
+  padding: 14px clamp(20px, 3vw, 36px);
+  border-top: 1px solid rgba(204, 255, 0, .16);
+  color: rgba(255, 248, 238, .42);
+  letter-spacing: .06em;
+}
+
+.source-dossier-fam > footer a {
+  color: #ccff00;
+  text-decoration: none;
+}
+
+@media (max-width: 760px) {
+  .source-dossier-fam > header {
+    grid-template-columns: 1fr;
+  }
+
+  .source-dossier-fam-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .source-dossier-fam > footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
 }
 
 .source-dossier-loading:not(.source-dossier-error) > span {

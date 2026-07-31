@@ -544,9 +544,9 @@
         }
         return clipLabEngine?null:loadDemoScript("creator-studio-engine.js").then(createClipLab);
       })
-      .then(function () { return loader.loadStyle("source-dossier.css?v=5.35-branded-failure"); })
+      .then(function () { return loader.loadStyle("source-dossier.css?v=5.36-fam-roll-call"); })
       .then(function () {
-        return loader.load("source-dossier-assets.js?v=1.0.24-sixteen-full-reads");
+        return loader.load("source-dossier-assets.js?v=1.0.25-fam-ledger");
       })
       .then(function () {
         var assets = window.WWAM_SOURCE_DOSSIER_ASSETS || [];
