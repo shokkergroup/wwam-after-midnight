@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="theme-color" content="#080608">
-  <title>WWAM After Midnight — The Living Archive</title>
-  <meta name="description" content="Watch, search and explore We Watched A Movie history through playable show wikis, source-linked moments, recurring characters and a living 2025–2026 canon.">
-  <meta property="og:title" content="WWAM After Midnight — The Living Archive">
+  <title>WWAM After Midnight â€” The Living Archive</title>
+  <meta name="description" content="Watch, search and explore We Watched A Movie history through playable show wikis, source-linked moments, recurring characters and a living 2025â€“2026 canon.">
+  <meta property="og:title" content="WWAM After Midnight â€” The Living Archive">
   <meta property="og:description" content="Every show becomes a playable wiki: summaries, best moments, topic jumps, movie context and source-linked WWAM lore.">
   <meta property="og:image" content="/og.png">
-  <meta property="og:image:alt" content="WWAM After Midnight — The Living Archive">
+  <meta property="og:image:alt" content="WWAM After Midnight â€” The Living Archive">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="WWAM After Midnight — The Living Archive">
+  <meta name="twitter:title" content="WWAM After Midnight â€” The Living Archive">
   <meta name="twitter:description" content="Every show becomes a playable wiki: summaries, best moments, topic jumps, movie context and source-linked WWAM lore.">
   <meta name="twitter:image" content="/og.png">
   <link rel="icon" href="favicon.png" sizes="64x64" type="image/png">
@@ -133,13 +133,13 @@
         <div class="hero-actions">
           <button class="primary" id="latestDossierButton" type="button">OPEN THE NEWEST SHOW WIKI <span>&rarr;</span></button>
           <a class="hero-halloween-universe" href="#halloween-universe" data-journey-link="watchalongs">ENTER THE HALLOWEEN UNIVERSE <span>&rarr;</span></a>
-          <a href="#archive" data-journey-link="shows">BROWSE EVERY SHOW <span>→</span></a>
-          <a href="#franchises" data-journey-link="watchalongs">PICK A WATCHALONG <span>→</span></a>
+          <a href="#archive" data-journey-link="shows">BROWSE EVERY SHOW <span>â†’</span></a>
+          <a href="#franchises" data-journey-link="watchalongs">PICK A WATCHALONG <span>â†’</span></a>
         </div>
         <div class="hero-doorways" aria-label="Choose a WWAM experience">
-          <a href="#livewire" data-journey-link="shows"><span>I MISSED A SHOW</span><b>CATCH UP FAST →</b></a>
-          <a href="#characters" data-journey-link="characters"><span>I KNOW THE BITS</span><b>FOLLOW THE LORE →</b></a>
-          <a href="#ask" data-journey-link="ask"><span>I HAVE A QUESTION</span><b>ASK THE ARCHIVE →</b></a>
+          <a href="#livewire" data-journey-link="shows"><span>I MISSED A SHOW</span><b>CATCH UP FAST â†’</b></a>
+          <a href="#characters" data-journey-link="characters"><span>I KNOW THE BITS</span><b>FOLLOW THE LORE â†’</b></a>
+          <a href="#ask" data-journey-link="ask"><span>I HAVE A QUESTION</span><b>ASK THE ARCHIVE â†’</b></a>
         </div>
         <p class="receipt-note">131 current-canon livestreams. 50 public watchalong sources. Exact timestamps. No wrong-tape substitutions. <span>THE CHANNEL REMEMBERS ITSELF.</span></p>
       </div>
@@ -167,12 +167,27 @@
       <nav class="wwam-route-local-nav" aria-label="The livestream archive sections">
         <a href="#livewire" data-journey-link="shows"><b>NEWEST SHOWS</b><small>The latest mapped broadcasts</small></a>
         <a href="#archive" data-journey-link="shows"><b>ALL SHOW WIKIS</b><small>Search every indexed night</small></a>
+        <a href="#livestream-canon" data-journey-link="shows"><b>COMPLETE LIVESTREAM CANON</b><small>All 509 sources, latest first</small></a>
         <a href="#popular25" data-journey-link="shows"><b>MOST WATCHED</b><small>The foundational live canon</small></a>
         <a href="#time-capsules" data-journey-link="shows"><b>BY YEAR</b><small>Browse the channel by era</small></a>
         <a href="#companion" data-journey-link="shows"><b>WATCH WITH A GUIDE</b><small>Follow a long show live</small></a>
       </nav>
     </section>
 
+    <section class="section livestream-canon" id="livestream-canon" aria-labelledby="livestreamCanonTitle" aria-busy="true"
+      data-feature-styles="livestream-canon.css?v=1.0.0"
+      data-feature-scripts="wwam-livestream-canon.js?v=1.0.0,livestream-canon-ui.js?v=1.0.0">
+      <header class="section-head livestream-canon-head">
+        <div>
+          <p class="kicker">THE COMPLETE LIVESTREAM CANON // 509 PUBLIC UPLOADS // 2016-2026</p>
+          <h2 id="livestreamCanonTitle">THE WHOLE<br><em>ROOM.</em></h2>
+        </div>
+        <span>Every official source in the snapshot, latest first. Open a show file, search its topics, and jump straight to the tape.</span>
+      </header>
+      <div class="livestream-canon-entry" id="livestreamCanonMount">
+        <div class="lvc-loading" role="status" aria-live="polite">OPENING THE COMPLETE LIVESTREAM CANON...</div>
+      </div>
+    </section>
     <section class="wwam-route-hub" id="watchalongs-hub" data-route-hub="watchalongs" data-guided-hidden="true">
       <a class="wwam-route-home" href="#top" data-journey-link="home">WWAM AFTER MIDNIGHT / HOME</a>
       <div class="wwam-route-hub-copy">
@@ -280,7 +295,7 @@
         <p>The original 39-tape commentary core now sits beside every title-explicit public commentary and movie watch party in the cached WWAM source history. Repeats stay separate; movie worlds are grouped; every route returns to the official upload.</p>
       </header>
       <div class="watchalong-canon-entry" id="watchalongCanonMount">
-        <div class="wac-loading" role="status" aria-live="polite">OPENING THE PUBLIC WATCHALONG LEDGER…</div>
+        <div class="wac-loading" role="status" aria-live="polite">OPENING THE PUBLIC WATCHALONG LEDGERâ€¦</div>
       </div>
     </section>
 
@@ -312,7 +327,7 @@
             <p class="kicker">HUMAN-CURATED // CONTEXT OPTIONAL // SOURCE MANDATORY</p>
             <h2>WWAM<br><em>UP IN YA.</em></h2>
           </div>
-          <p>The quick-hit wall for sentences that should not have survived the human mouth. These are editorially selected—not whatever a profanity counter happened to rank first.</p>
+          <p>The quick-hit wall for sentences that should not have survived the human mouth. These are editorially selectedâ€”not whatever a profanity counter happened to rank first.</p>
         </header>
         <div class="sound-controls">
           <div id="soundFilters">
@@ -320,7 +335,7 @@
             <button data-sound-source="livestream">FRESHLY UNWELL</button>
             <button data-sound-source="all">ALL BAD DECISIONS</button>
           </div>
-          <button id="soundRoulette">PUT IT IN MY EARS ↗</button>
+          <button id="soundRoulette">PUT IT IN MY EARS â†—</button>
         </div>
         <div class="sound-stage">
           <div class="sound-player" id="soundPlayer">
@@ -354,7 +369,7 @@
           <p class="kicker">WATCH WITH A SECOND SCREEN // THE ORIGINAL SHOW STAYS IN CONTROL</p>
           <h2>THE TAPE<br><em>KNOWS.</em></h2>
         </div>
-        <p>Pick any WWAM upload. As it plays, this companion brings up the topic, running bit, or callback tied to that second—then keeps the original show one click away.</p>
+        <p>Pick any WWAM upload. As it plays, this companion brings up the topic, running bit, or callback tied to that secondâ€”then keeps the original show one click away.</p>
       </header>
       <div class="companion-proof" id="companionProof">
         <article><span>YOUR SECOND SCREEN</span><b>GETTING THE SHOWS READY</b><p>Pick a tape and the useful moments will appear as the original plays.</p></article>
@@ -366,8 +381,8 @@
             <h3 id="companionPickerTitle">WHAT ARE WE WATCHING?</h3>
           </div>
           <label><span>SEARCH THE SHOWS</span><input id="companionSourceSearch"
-            type="search" autocomplete="off" placeholder="Latest live, Halloween, Scream…"></label>
-          <button id="companionLatest" type="button">LOAD THE JULY 23 LIVE →</button>
+            type="search" autocomplete="off" placeholder="Latest live, Halloween, Screamâ€¦"></label>
+          <button id="companionLatest" type="button">LOAD THE JULY 23 LIVE â†’</button>
           <button id="companionResume" type="button">RESUME LAST TAPE</button>
           <div class="companion-source-list" id="companionSourceList" role="listbox"
             aria-label="Companion sources"></div>
@@ -383,7 +398,7 @@
           </div>
           <div class="companion-links">
             <a id="companionOfficial" href="https://www.youtube.com/@WeWatchedAMovie"
-              target="_blank" rel="noopener">OPEN OFFICIAL SOURCE ↗</a>
+              target="_blank" rel="noopener">OPEN OFFICIAL SOURCE â†—</a>
             <button id="companionShare" type="button" disabled>COPY THIS SECOND</button>
           </div>
           <p class="companion-fallback" id="companionFallback">If embedded playback is unavailable, the nearest whole YouTube second opens on the official WWAM upload.</p>
@@ -394,7 +409,7 @@
             <h3 id="companionMemoryTitle">NOTHING CROSSED YET.</h3>
           </div>
           <div class="companion-heat" id="companionHeat">
-            <span>SHOW ENERGY</span><b>—</b><i style="--companion-heat:0%"></i>
+            <span>SHOW ENERGY</span><b>â€”</b><i style="--companion-heat:0%"></i>
           </div>
           <div class="companion-now" id="companionNow">
             <span>ON SCREEN NOW</span><p>Upcoming moments stay out of sight until the show reaches them.</p>
@@ -472,7 +487,7 @@
           <span>ON THIS SHELF</span>
           <b id="popularStatus" role="status" aria-live="polite" aria-atomic="true">25 SHOWS RANKED BY VIEWS</b>
         </div>
-        <label><span>FIND A SHOW</span><input id="popularSearch" placeholder="Halloween, Loomis, tier list, trailer…"></label>
+        <label><span>FIND A SHOW</span><input id="popularSearch" placeholder="Halloween, Loomis, tier list, trailerâ€¦"></label>
         <div id="popularTopics" aria-label="Filter popular livestreams by topic"></div>
       </div>
       <div class="popular-grid" id="popularGrid"></div>
@@ -537,7 +552,7 @@
       <details class="archive-back-catalog" id="archiveBackCatalog">
         <summary>
           <span>LOOKING FOR AN OLDER NIGHT?</span>
-          <b>OPEN THE FULL 2018–2026 BACK CATALOG.</b>
+          <b>OPEN THE FULL 2018â€“2026 BACK CATALOG.</b>
           <small>472 uploads, arranged by year, month, title, and Show Wiki status.</small>
           <i>OPEN OLDER SHOWS +</i>
         </summary>
@@ -854,7 +869,7 @@
       <div class="lore-proof" id="loreProof"></div>
       <div class="lore-workbench">
         <aside class="lore-index">
-          <label><span>SEARCH THE UNHOLY FIELD GUIDE</span><input id="loreSearch" placeholder="Loomis, Silver Shamrock, Haddonfield…"></label>
+          <label><span>SEARCH THE UNHOLY FIELD GUIDE</span><input id="loreSearch" placeholder="Loomis, Silver Shamrock, Haddonfieldâ€¦"></label>
           <div class="lore-kinds" id="loreKinds"></div>
           <div class="lore-results" id="loreResults"></div>
         </aside>
@@ -889,7 +904,7 @@
           <p class="kicker">NO SPEAKER GUESSES // NO SYNTHETIC QUOTES // EVERY REVEAL PLAYS</p>
           <h2>WHAT TAPE DID<br><em>THIS ESCAPE FROM?</em></h2>
         </div>
-        <p>A fan game made from the archive instead of pasted on top of it. Identify the source, movie, franchise, editorial classification, or which receipt came first—then open the exact timestamp that proves the answer.</p>
+        <p>A fan game made from the archive instead of pasted on top of it. Identify the source, movie, franchise, editorial classification, or which receipt came firstâ€”then open the exact timestamp that proves the answer.</p>
       </header>
       <div class="trivia-proof" id="triviaProof"></div>
       <div class="trivia-shell">
@@ -898,11 +913,11 @@
           <label><span>DIFFICULTY</span><select id="triviaDifficulty"><option value="mixed">MIXED BAG</option><option value="easy">CASUALTY</option><option value="medium">FINAL GIRL</option><option value="hard">ARCHIVE GOBLIN</option></select></label>
           <label><span>ROUNDS</span><select id="triviaLength"><option value="5">5 RECEIPTS</option><option value="10">10 RECEIPTS</option></select></label>
           <label><span>FRANCHISE FILTER</span><select id="triviaFranchise"><option value="">ANY BLOODLINE</option><option>Halloween</option><option>Friday the 13th</option><option>Scream</option><option>A Nightmare on Elm Street</option></select></label>
-          <button id="triviaStart">DEAL ME FIVE →</button>
+          <button id="triviaStart">DEAL ME FIVE â†’</button>
           <small>The game never asks who said an undiarized caption line. A correct answer identifies only indexed source metadata.</small>
         </aside>
         <div class="trivia-stage" id="triviaStage" aria-live="polite">
-          <div class="trivia-loading"><i></i><b>SHUFFLING 872 PLAYABLE RECEIPTS…</b></div>
+          <div class="trivia-loading"><i></i><b>SHUFFLING 872 PLAYABLE RECEIPTSâ€¦</b></div>
         </div>
       </div>
     </section>
@@ -927,7 +942,7 @@
         <p>Pick a movie to see the running jokes, wildest moments, topic jumps, and exact places to press play. One unavailable tape stays linked without fake timestamps.</p>
       </header>
       <div class="vault-tools">
-        <label><span>SEARCH THE MORGUE</span><input id="vaultSearch" placeholder="Scream 4, Freddy, worst, love, space…"></label>
+        <label><span>SEARCH THE MORGUE</span><input id="vaultSearch" placeholder="Scream 4, Freddy, worst, love, spaceâ€¦"></label>
         <div class="franchise-filters" id="franchiseFilters"></div>
         <b id="vaultCount"></b>
       </div>
@@ -954,7 +969,7 @@
         <div class="ask-readout">
           <div><i></i><span id="askStatus" role="status" aria-live="polite">READY WHEN YOU ARE</span><b>EVERY ANSWER LINKS BACK</b></div>
           <div id="askResults" class="ask-results">
-            <p class="empty-state">Try a specific movie, a live topic, “latest,” “who,” a strong opinion, or a request for the funniest thing. The machine will show its work—and refuse to fake what the captions cannot prove.</p>
+            <p class="empty-state">Try a specific movie, a live topic, â€œlatest,â€ â€œwho,â€ a strong opinion, or a request for the funniest thing. The machine will show its workâ€”and refuse to fake what the captions cannot prove.</p>
           </div>
         </div>
       </div>
@@ -963,7 +978,7 @@
     <section class="section labs" id="labs">
       <header class="section-head">
         <div>
-          <p class="kicker">THE SHOW'S ACTUAL DNA // NOW LIVE, NOT “COMING SOON”</p>
+          <p class="kicker">THE SHOW'S ACTUAL DNA // NOW LIVE, NOT â€œCOMING SOONâ€</p>
           <h2>THE LORE LABS</h2>
         </div>
         <p>Four franchise-specific chambers sit on top of a common evidence engine. That is the product formula: reusable machinery, creator-native personality.</p>
@@ -976,20 +991,20 @@
         <article>
           <span>THE BIT GRAVEYARD</span>
           <h3>CALLBACKS HAVE A FAMILY TREE.</h3>
-          <p>“Remember when,” “there it is,” and recurring-joke signals become a playable chain instead of dying in an old upload.</p>
-          <button data-category-jump="BIT ENERGY">FIND THE BITS →</button>
+          <p>â€œRemember when,â€ â€œthere it is,â€ and recurring-joke signals become a playable chain instead of dying in an old upload.</p>
+          <button data-category-jump="BIT ENERGY">FIND THE BITS â†’</button>
         </article>
         <article>
           <span>THE TAKE REVERSAL UNIT</span>
           <h3>LOVE. HATE. BARGAINING. CAPS LOCK.</h3>
-          <p>The eight-chapter arc shows where a commentary changes temperature—and where the final verdict contradicts the opening swagger.</p>
-          <button data-category-jump="LOVE LETTER">FIND THE LOVE LETTERS →</button>
+          <p>The eight-chapter arc shows where a commentary changes temperatureâ€”and where the final verdict contradicts the opening swagger.</p>
+          <button data-category-jump="LOVE LETTER">FIND THE LOVE LETTERS â†’</button>
         </article>
         <article>
           <span>THE NO-CONTEXT DRAWER</span>
           <h3>SAFE FOR ABSOLUTELY NO MEETING.</h3>
           <p>Out-of-pocket fragments preserved with the one thing a quote graphic usually loses: a button back to the source.</p>
-          <button data-category-jump="OUT OF POCKET">MAKE HR NERVOUS →</button>
+          <button data-category-jump="OUT OF POCKET">MAKE HR NERVOUS â†’</button>
         </article>
       </div>
     </section>
@@ -1022,7 +1037,7 @@
           <button data-clip-mode="resurfacing" aria-pressed="false">THEN / NOW</button>
           <button data-clip-mode="cold-open" aria-pressed="false">COLD OPEN IDEAS</button>
         </div>
-        <label><span>SEARCH THE EDIT QUEUE</span><input id="clipSearch" placeholder="Loomis, Halloween, rage, character…"></label>
+        <label><span>SEARCH THE EDIT QUEUE</span><input id="clipSearch" placeholder="Loomis, Halloween, rage, characterâ€¦"></label>
         <label><span>RISK GATE</span><select id="clipRisk"><option value="">ALL REVIEW STATES</option><option value="LOW">LOW</option><option value="MEDIUM">MEDIUM</option><option value="HIGH">HIGH</option><option value="HOLD">HOLD</option></select></label>
       </div>
       <div class="clip-lab-grid">
@@ -1058,7 +1073,7 @@
         <div>
           <span>PREDECLARE THE TEST</span>
           <h3>WOULD YOU ACTUALLY CLIP THIS?</h3>
-          <p>The operator label is always <b>UNAUTHENTICATED LOCAL OPERATOR</b>. This is taste calibration—not creator approval, truth, humor canon, or permission to publish.</p>
+          <p>The operator label is always <b>UNAUTHENTICATED LOCAL OPERATOR</b>. This is taste calibrationâ€”not creator approval, truth, humor canon, or permission to publish.</p>
           <p>The declared goal labels the session and binds its fingerprint. V1 does not silently filter the candidate inventory.</p>
           <p><b>DEVICE-ONLY STATE:</b> in-progress choices stay in this browser. Nothing is sent to WWAM, a creator account, or a remote approval system.</p>
         </div>
@@ -1072,7 +1087,7 @@
           <option value="LOW">LOW</option>
           <option value="HIGH">HIGH</option>
         </select></label>
-        <button id="cutTestStart" type="button">START THE 12-ROUND CUT TEST →</button>
+        <button id="cutTestStart" type="button">START THE 12-ROUND CUT TEST â†’</button>
       </div>
       <div class="cut-test-stage" id="cutTestStage"></div>
       <div class="cut-test-results" id="cutTestResults"></div>
@@ -1084,7 +1099,7 @@
           <p class="kicker">TRUST / CANON DESK // CONFIDENCE IS A FEATURE, NOT FINE PRINT</p>
           <h2>SHOW THE<br><em>UNCERTAINTY.</em></h2>
         </div>
-        <p>This desk audits the 74-source promoted corpus; the 40 Archive Deep sources across four independently fingerprinted batches stay in a separate quarantine. Healthy sources, caption gaps, character-attribution firewalls, opinion claims, excerpt limits, and community corrections become inspectable work—not invisible caveats.</p>
+        <p>This desk audits the 74-source promoted corpus; the 40 Archive Deep sources across four independently fingerprinted batches stay in a separate quarantine. Healthy sources, caption gaps, character-attribution firewalls, opinion claims, excerpt limits, and community corrections become inspectable workâ€”not invisible caveats.</p>
       </header>
       <div class="canon-proof" id="canonProof"></div>
       <div class="canon-tabs" id="canonTabs" role="tablist" aria-label="Canon Desk views">
@@ -1107,7 +1122,7 @@
         <li><b>01 // DEFINE EACH SOURCE LANE</b><span>Complete watchalong paths, the rolling Fresh 10, the foundational Popular 25, and the Archive Deep quarantine remain distinct while feeding one evidence graph.</span></li>
         <li><b>02 // AUDIT EVERY AVAILABLE WORD</b><span>Available caption tracks are processed end to end. Gated or uncaptioned sources stay visible without counterfeit analysis.</span></li>
         <li><b>03 // CONNECT MEMORY, NOT KEYWORDS</b><span>Films, topics, take signals, possible reversals, bits, characters, and livestreams become reviewable relationships whose source can always be reopened.</span></li>
-        <li><b>04 // KEEP HUMANS ABOVE THE MACHINE</b><span>Machines surface candidates. The current character tier is timestamp-validated and human-curated—not editor verified—and clip speakers are not diarized. A future authenticated editor can verify context; creators can certify canon.</span></li>
+        <li><b>04 // KEEP HUMANS ABOVE THE MACHINE</b><span>Machines surface candidates. The current character tier is timestamp-validated and human-curatedâ€”not editor verifiedâ€”and clip speakers are not diarized. A future authenticated editor can verify context; creators can certify canon.</span></li>
       </ol>
     </section>
 
@@ -1115,26 +1130,26 @@
       <div class="pitch-copy">
         <p class="kicker">THE GUIDED SHOWCASE</p>
         <h2>THIS ISN'T JUST<br>A FAN PAGE.<br><em>IT'S A LIVING MEMORY WORLD.</em></h2>
-        <p>The archive turns years of uploads—and the latest indexed show—into new paths to click, binge, laugh, argue, connect the callbacks, and come back. The weirdness is the connective tissue.</p>
+        <p>The archive turns years of uploadsâ€”and the latest indexed showâ€”into new paths to click, binge, laugh, argue, connect the callbacks, and come back. The weirdness is the connective tissue.</p>
         <div>
           <button class="primary" id="pitchTourButton">START THE 60-SECOND SHOWCASE</button>
           <button id="copyDemoButton">COPY THIS DEMO LINK</button>
         </div>
       </div>
       <div class="showcase-stack">
-        <article><b>01</b><span>DISCOVERY</span><h3>Good questions become receipts—or an honest unknown.</h3><p>Intent-aware answers route the fan to the strongest available source, exact second when the evidence supports one, and visible limitations when it does not.</p></article>
+        <article><b>01</b><span>DISCOVERY</span><h3>Good questions become receiptsâ€”or an honest unknown.</h3><p>Intent-aware answers route the fan to the strongest available source, exact second when the evidence supports one, and visible limitations when it does not.</p></article>
         <article><b>02</b><span>CONTINUITY</span><h3>Yesterday and tonight connect.</h3><p>Live topics feed franchise paths, soundbytes, rankings, and dossiers instead of disappearing down the upload feed.</p></article>
         <article><b>03</b><span>PARTICIPATION</span><h3>Fans can follow the memory, not just the feed.</h3><p>Playable trails, character constellations, saved clips, corrections, and source-linked callbacks make the archive something people can explore together.</p></article>
       </div>
       <div class="universal-proof">
         <header>
-          <span>SHOKKER YOUTUBE WIKIS // REPEATABLE CORE × IRREPLACEABLE CHANNEL DNA</span>
+          <span>SHOKKER YOUTUBE WIKIS // REPEATABLE CORE Ã— IRREPLACEABLE CHANNEL DNA</span>
           <h3>THE SYSTEM TRAVELS.<br>THE PERSONALITY DOESN'T GET GENERIC.</h3>
         </header>
         <div>
           <article><span>UNIVERSAL CORE</span><h4>THE PART EVERY CHANNEL NEEDS.</h4><ul><li>Versioned source ledger</li><li>Timestamped evidence receipts</li><li>Context-aware retrieval</li><li>Uncertainty and review gates</li><li>Portable editorial exports</li></ul><a class="truth-set-link" href="ask-truth-set.json" download>DOWNLOAD THE 37-CASE FROZEN ASK TRUTH SET &rarr;</a> <a class="truth-set-link" href="channel-pack-spec.json" download>DOWNLOAD THE CHANNELPACK V1 SPEC &rarr;</a> <a class="truth-set-link" href="channel-pack-contract.js" download>DOWNLOAD THE FAIL-CLOSED COMPILER &rarr;</a></article>
           <article><span>WWAM CHANNEL DNA</span><h4>THE PART NOBODY CAN COPY-PASTE.</h4><ul><li>Horror-franchise ontology</li><li>Recurring-character firewalls</li><li>UP IN YA and Red Band signals</li><li>Room-break and dark-comedy grammar</li><li>WWAM-native art direction and voice</li></ul></article>
-          <article><span>LIVING UPDATE CONTRACT</span><h4>DISCOVER → QUARANTINE → REVIEW → PROMOTE.</h4><ul><li>Diff the official feed</li><li>Recheck captions and availability</li><li>Distill into a candidate quarantine</li><li>Require an authenticated, authorized editor or creator decision for public canon</li></ul><p>This edition was manually refreshed through the July 23 feed snapshot and July 24 Batch 04, producing a 40-source Archive Deep portfolio. No unattended scheduler is claimed; future cadence remains a creator review decision.</p></article>
+          <article><span>LIVING UPDATE CONTRACT</span><h4>DISCOVER â†’ QUARANTINE â†’ REVIEW â†’ PROMOTE.</h4><ul><li>Diff the official feed</li><li>Recheck captions and availability</li><li>Distill into a candidate quarantine</li><li>Require an authenticated, authorized editor or creator decision for public canon</li></ul><p>This edition was manually refreshed through the July 23 feed snapshot and July 24 Batch 04, producing a 40-source Archive Deep portfolio. No unattended scheduler is claimed; future cadence remains a creator review decision.</p></article>
         </div>
       </div>
       <div class="pilot-builder" id="pilotBuilder" aria-live="polite">
@@ -1146,7 +1161,7 @@
   <footer>
     <div class="brand footer-brand"><i>W</i><span>WWAM<b>AFTER MIDNIGHT</b></span></div>
     <p>UNOFFICIAL INDEPENDENT FAN ARCHIVE // ALL PLAYBACK AND SOURCE TRAFFIC RETURN TO WE WATCHED A MOVIE ON YOUTUBE</p>
-    <div><a href="https://www.youtube.com/@WeWatchedAMovie" target="_blank" rel="noopener">ORIGINAL CHANNEL ↗</a><button id="footerPitch">SHOWCASE MODE</button></div>
+    <div><a href="https://www.youtube.com/@WeWatchedAMovie" target="_blank" rel="noopener">ORIGINAL CHANNEL â†—</a><button id="footerPitch">SHOWCASE MODE</button></div>
   </footer>
 
   <button class="evidence-bag-toggle" id="evidenceBagOpen" aria-controls="evidenceBag" aria-expanded="false" aria-label="Open saved clips; 0 clips">
@@ -1154,7 +1169,7 @@
   </button>
   <div class="evidence-bag-scrim" id="evidenceBagScrim"></div>
   <aside class="evidence-bag" id="evidenceBag" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="evidenceBagTitle" inert>
-    <header><div><span>KEEP THE GOOD PARTS</span><h2 id="evidenceBagTitle">SAVED CLIPS</h2></div><button id="evidenceBagClose" aria-label="Close saved clips">×</button></header>
+    <header><div><span>KEEP THE GOOD PARTS</span><h2 id="evidenceBagTitle">SAVED CLIPS</h2></div><button id="evidenceBagClose" aria-label="Close saved clips">Ã—</button></header>
     <p>Save the moments you want to replay. Open every clip at the right second, build a binge cut, or take the list with you. It stays on this device.</p>
     <div class="evidence-bag-list" id="evidenceBagList"></div>
     <footer>
@@ -1170,7 +1185,7 @@
 
   <div class="tape-modal" id="tapeModal" aria-hidden="true" role="dialog" aria-modal="true" aria-label="WWAM source dossier">
     <div class="modal-shell">
-      <button class="modal-close" id="modalClose" aria-label="Close">×</button>
+      <button class="modal-close" id="modalClose" aria-label="Close">Ã—</button>
       <div id="modalContent"></div>
     </div>
   </div>
@@ -1186,7 +1201,7 @@
           <small id="riffBlackBoxTruth">SCORE INPUTS, NOT A CLAIM ABOUT WHY COMEDY WORKED</small>
         </div>
         <button class="riff-black-box-close" id="riffBlackBoxClose" type="button"
-          aria-label="Close Comedy Black Box">×</button>
+          aria-label="Close Comedy Black Box">Ã—</button>
       </header>
       <div class="riff-black-box-stage" id="riffBlackBoxStage"></div>
       <p class="riff-black-box-status" id="riffBlackBoxStatus" role="status"
@@ -1196,10 +1211,10 @@
 
   <div class="tour" id="pitchTour" aria-hidden="true" role="dialog" aria-modal="true" aria-label="WWAM guided showcase">
     <div class="tour-shell">
-      <div class="tour-top"><span>GUIDED TOUR // SHOWCASE MODE</span><button id="tourClose">EXIT ×</button></div>
+      <div class="tour-top"><span>GUIDED TOUR // SHOWCASE MODE</span><button id="tourClose">EXIT Ã—</button></div>
       <div class="tour-progress"><i id="tourProgress"></i></div>
       <div class="tour-body" id="tourBody"></div>
-      <div class="tour-controls"><button id="tourBack">← BACK</button><span id="tourCounter"></span><button class="primary" id="tourNext">NEXT →</button></div>
+      <div class="tour-controls"><button id="tourBack">â† BACK</button><span id="tourCounter"></span><button class="primary" id="tourNext">NEXT â†’</button></div>
     </div>
   </div>
 
