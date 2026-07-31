@@ -21,7 +21,9 @@ test("watchalong canon has the complete public source registry", () => {
   assert.equal(canon.stats.movieGroups, 47);
   assert.equal(canon.stats.franchises, 6);
   assert.equal(canon.stats.deepDossiers, 38);
-  assert.equal(canon.stats.captionLedgers, 12);
+  assert.equal(canon.stats.captionLedgers, 11);
+  assert.equal(canon.stats.sourceBriefs, 1);
+  assert.equal(canon.stats.nonFullAdditions, 12);
   assert.equal(new Set(canon.episodes.map((episode) => episode.id)).size, canon.episodes.length);
 });
 

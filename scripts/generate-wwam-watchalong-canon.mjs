@@ -405,10 +405,10 @@ const payload = {
   schema: "shokker-wwam-watchalong-canon/v1",
   generated: new Date().toISOString(),
   observedAt: "2026-07-30",
-  sourcePolicy: "Official cached WWAM YouTube metadata and local caption files. Existing curated 39-tape dossiers are retained; title-explicit public commentaries and movie watch parties outside that set are added as caption-ledger dossiers. No speaker, intent, rights, or creator-approval claim is inferred.",
+  sourcePolicy: "Official cached WWAM YouTube metadata and local caption files. Existing curated 39-tape dossiers are retained; title-explicit public commentaries and movie watch parties outside that set are added as caption-ledger or held source-brief dossiers. No speaker, intent, rights, or creator-approval claim is inferred.",
   scope: { metadataSources: metadata.length, titleCandidates: titleCandidates.length, episodes: episodes.length, captionFiles: fs.readdirSync(CAPTIONS_DIR).filter((file) => file.endsWith(".json")).length },
   stats: {
-    episodes: episodes.length, deepDossiers: episodes.filter((episode) => episode.dossier.state === "full-editorial-dossier").length, captionLedgers: episodes.filter((episode) => episode.dossier.state !== "full-editorial-dossier").length,
+    episodes: episodes.length, deepDossiers: episodes.filter((episode) => episode.dossier.state === "full-editorial-dossier").length, captionLedgers: episodes.filter((episode) => episode.dossier.state === "caption-ledger-dossier").length, sourceBriefs: episodes.filter((episode) => episode.dossier.state === "source-brief-dossier").length, nonFullAdditions: episodes.filter((episode) => episode.dossier.state !== "full-editorial-dossier").length,
     franchises: franchises.length, movieGroups: groups.length, repeatedMovies: groups.filter((group) => group.repeatCount > 0).length,
     totalDurationSeconds: episodes.reduce((sum, episode) => sum + episode.duration, 0), totalViewsSnapshot: episodes.reduce((sum, episode) => sum + episode.views, 0),
     fanSignalReceipts: episodes.reduce((sum, episode) => sum + Number(episode.dossier?.fanSignals?.length || 0), 0),
