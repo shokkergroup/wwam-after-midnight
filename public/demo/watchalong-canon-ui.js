@@ -150,7 +150,7 @@
     }).join('') + '</div>';
   }
 
-  function fanSignalsMarkup(signals) {
+  function fanSignalsMarkup(episode, signals) {
     if (!Array.isArray(signals) || !signals.length) return '';
     return '<div class="wac-section-label" style="padding:0 1.5rem">FAN SIGNAL // SUPERCHATS, MEMBERS, AND THE PEOPLE WHO KEEP WALKING BACK IN</div><div class="wac-moment-grid">' + signals.map(function (signal) {
       return '<article class="wac-moment wac-fan-moment"><header><span>FAN SIGNAL</span><span>' + esc(timestamp(signal.t)) + '</span></header><p>' + esc(signal.excerpt || 'Fan callout receipt available at this timestamp.') + '</p><a target="_blank" rel="noopener" href="' + esc(sourceUrl(episode, signal.t)) + '">OPEN SOURCE AT ' + esc(timestamp(signal.t)) + ' ↗</a></article>';
@@ -180,7 +180,7 @@
     var moments = Array.isArray(dossier.cuts) ? dossier.cuts : [];
     return '<section class="wac-dossier" id="wacDossier" aria-labelledby="wacDossierTitle"><header class="wac-dossier-head"><div><span class="wac-dossier-kicker">' + esc(episode.franchiseTitle) + ' // ' + esc(stateLabel(episode)) + '</span><h3 id="wacDossierTitle">' + esc(episode.movieTitle) + '</h3><p>' + esc(dossier.summary) + '</p></div><div class="wac-dossier-facts"><span><small>DATE</small><b>' + esc(dateLabel(episode.date)) + '</b></span><span><small>RUNTIME</small><b>' + esc(durationLabel(episode.duration)) + '</b></span><span><small>CAPTION WORDS</small><b>' + number(dossier.caption && dossier.caption.words) + '</b></span><span><small>JUMP RECEIPTS</small><b>' + number(moments.length) + '</b></span></div></header>' +
       '<div class="wac-dossier-note"><strong>EVIDENCE STATUS // </strong>' + esc(dossier.evidenceSummary || 'The source is linked to the official tape. Speaker identity, intent, and current playback availability remain outside this fan archive unless a reviewed guide says otherwise.') + '</div>' +
-      '<div class="wac-route-grid">' + routeCard('OPENING READ', route.opening) + routeCard('STRONGEST RECEIPT', route.strongest) + routeCard('CLOSING READ', route.closing) + '</div>' + chapterMarkup(episode, dossier.chapters) + topicMarkup(episode, episode.topics) + fanReadMarkup(dossier.fanRead) + fanSignalsMarkup(dossier.fanSignals) +
+      '<div class="wac-route-grid">' + routeCard('OPENING READ', route.opening) + routeCard('STRONGEST RECEIPT', route.strongest) + routeCard('CLOSING READ', route.closing) + '</div>' + chapterMarkup(episode, dossier.chapters) + topicMarkup(episode, episode.topics) + fanReadMarkup(dossier.fanRead) + fanSignalsMarkup(episode, dossier.fanSignals) +
       '<div class="wac-section-label" style="padding:0 1.5rem">EVERY INDEXED RECEIPT // PRESS PLAY AT THE TAPE</div><div class="wac-moment-grid">' + moments.map(function (moment) {
         return '<article class="wac-moment"><header><span>' + esc(moment.category || moment.label || 'SOURCE RECEIPT') + '</span><span>' + esc(timestamp(moment.t)) + '</span></header><p>' + esc(moment.excerpt || moment.quote || 'Caption receipt available at this timestamp.') + '</p><a target="_blank" rel="noopener" href="' + esc(sourceUrl(episode, moment.t)) + '">OPEN SOURCE AT ' + esc(timestamp(moment.t)) + ' ↗</a></article>';
       }).join('') + '</div><footer class="wac-dossier-footer"><a href="' + esc(wikiUrl(episode)) + '">OPEN THIS SHOW&rsquo;S WIKI →</a><a target="_blank" rel="noopener" href="' + esc(episode.url) + '">OPEN OFFICIAL UPLOAD ↗</a><button class="wac-button" type="button" data-wac-close>CLOSE DOSSIER</button></footer></section>';
