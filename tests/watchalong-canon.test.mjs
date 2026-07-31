@@ -63,4 +63,6 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(html, /watchalong-canon\.css/);
   assert.match(ui, /MOVIE FILES \/\/ REPEATS STAY ATTACHED/);
   assert.match(ui, /data-wac-group/);
+  assert.match(ui, /function fanSignalsMarkup\(episode, signals\)/);
+  assert.match(ui, /fanSignalsMarkup\(episode, dossier\.fanSignals\)/);
 });
