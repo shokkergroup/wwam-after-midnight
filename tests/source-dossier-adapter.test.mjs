@@ -306,7 +306,14 @@ test("every canonical show receives a Feldman recap or an evidence-safe held sta
     "full-chronicle": 52,
   });
 
-  assert.ok(ready.every((recap) => recap.label === "WWAM FELDMAN APPROVED RECAP"));
+  assert.ok(ready.every((recap) =>
+    typeof recap.label === "string" &&
+    recap.label.trim() &&
+    !/\bAPPROVED\b/i.test(recap.label)
+  ));
+  assert.ok(ready
+    .filter((recap) => recap.editorialState === "structured-source-summary")
+    .every((recap) => recap.label === "SHOW WIKI // SOURCE-LINKED SUMMARY"));
   assert.ok(ready.every((recap) => Array.isArray(recap.topics) && recap.topics.length >= 1));
   assert.ok(ready.every((recap) => recap.sections.length >= 1));
   assert.ok(ready.every((recap) => recap.sections.every((section) =>
@@ -750,10 +757,15 @@ test("Ask This Tape stays on the exact canonical WWAM upload across title collis
   assert.equal(topics.episode.id, "topics");
   assert.equal(topics.episode.totalReceipts, 12);
   assert.equal(topics.episode.shownReceipts, 8);
+  const unverifiedImpressions = queryEngine.answer(
+    request(richId, "Were there any character impressions?"),
+  );
+  assert.equal(unverifiedImpressions.status, "insufficient-evidence");
+  assert.equal(unverifiedImpressions.resultCount, 0);
   laneAnswer(
     richId,
-    "Were there any character impressions?",
-    "character-bits",
+    "Were there any character references?",
+    "character-references",
     [836, 6598, 7128],
   );
   laneAnswer(
@@ -887,6 +899,7 @@ test("every source gets an honest Show Wiki shell with rigorously gated lanes", 
     "up-in-ya",
     "straight-to-steves-asshole",
     "character-bits",
+    "character-references",
   ];
   const formatFor = (source) => {
     const haystack = `${source.title || ""} ${source.displayTitle || ""}`
@@ -951,13 +964,15 @@ test("every source gets an honest Show Wiki shell with rigorously gated lanes", 
     if (formatId === "movie-commentary") {
       return [
         "best-moments", "funny-moments", "up-in-ya",
-        "straight-to-steves-asshole", "character-bits", "topics",
+        "straight-to-steves-asshole", "character-bits",
+        "character-references", "topics",
       ];
     }
     if (formatId === "ranking-show") {
       return [
         "topics", "straight-to-steves-asshole", "best-moments",
         "funny-moments", "up-in-ya", "character-bits",
+        "character-references",
       ];
     }
     return laneIds;
@@ -1107,8 +1122,10 @@ test("every source gets an honest Show Wiki shell with rigorously gated lanes", 
   let upInYaCount = 0;
   let stevesCount = 0;
   let stevesSourceCount = 0;
-  let characterCount = 0;
-  let characterSourceCount = 0;
+  let characterPerformanceCount = 0;
+  let characterPerformanceSourceCount = 0;
+  let characterReferenceCount = 0;
+  let characterReferenceSourceCount = 0;
   let rejectedNegativeCandidates = 0;
   let distilledRecapCount = 0;
   let topicNavOnlyRecapCount = 0;
@@ -1225,33 +1242,24 @@ test("every source gets an honest Show Wiki shell with rigorously gated lanes", 
       else topicNavOnlyRecapCount += 1;
       const recap = source.showWiki.recap;
       const expectedFormat = formatFor(source);
-      const exactTitle = source.displayTitle || source.title;
       assert.ok(recap, source.id);
       assert.equal(recap.format, expectedFormat.label, source.id);
       assert.equal(recap.formatBasis, expectedFormat.basis, source.id);
-      assert.ok(recap.overview.includes(exactTitle), source.id + ":title-specific");
-      assert.ok(recap.blocks.length >= 1 && recap.blocks.length <= 3, source.id);
-      assert.equal(
-        new Set(recap.blocks.map((block) => block.id)).size,
-        recap.blocks.length,
-        source.id + ":recap-block-ids",
+      assert.match(
+        recap.overview,
+        /The playable topic doors below show where those subjects come up;/,
+        source.id + ":topic-door-boundary",
       );
-      recap.blocks.forEach((block) => {
-        assert.ok(block.id, source.id + ":recap-block-id");
-        assert.ok(block.label, source.id + ":recap-block-label");
-        assert.ok(block.body, source.id + ":recap-block-body");
-        assert.ok(block.basis, source.id + ":recap-block-basis");
-        assert.ok(block.receiptKeys.length > 0, source.id + ":recap-bound");
-        assert.equal(
-          new Set(block.receiptKeys).size,
-          block.receiptKeys.length,
-          source.id + ":recap-receipts-unique",
-        );
-        assert.ok(
-          block.receiptKeys.every((key) => localKeys.has(key)),
-          source.id + ":recap-receipts-local",
-        );
-      });
+      assert.match(
+        recap.overview,
+        /the written story and best-of shelf appear only after somebody has actually read the whole tape\.$/,
+        source.id + ":editorial-boundary",
+      );
+      assert.deepEqual(
+        plain(recap.blocks),
+        [],
+        source.id + ":no-unreviewed-narrative-blocks",
+      );
       const recapText = [
         recap.format,
         recap.overview,
@@ -1261,8 +1269,7 @@ test("every source gets an honest Show Wiki shell with rigorously gated lanes", 
       assert.equal(source.summary.text, recap.overview, source.id);
       assert.equal(
         source.summary.basis,
-        source.showWiki.episodeGuide ?
-          "full-caption-episode-guide/v2" : "source-local-format-aware-recap/v1",
+        "structured-source-summary",
         source.id,
       );
       assert.equal(source.showWiki.brief, null, source.id);
@@ -1308,11 +1315,35 @@ test("every source gets an honest Show Wiki shell with rigorously gated lanes", 
         receipt.label === "OUT OF POCKET",
     );
     const steves = moments.filter((receipt) => negativeGate(receipt, source.id));
-    const characters = source.receipts.filter((receipt) => (
+    const characterReferences = source.receipts.filter((receipt) => (
       receipt.evidenceType === "caption-character-signal" ||
-      receipt.evidenceType === "caption-character-context" ||
-      receipt.evidenceType === "curated-character-performance"
+      receipt.evidenceType === "caption-character-context"
     )).sort(signalOrder);
+    const characters = source.receipts.filter(
+      (receipt) =>
+        receipt.evidenceType === "curated-character-performance",
+    ).sort(signalOrder);
+    const playableCharacters = [];
+    characters.forEach((receipt) => {
+      const identity = receipt.entityIds?.[0] ||
+        tokensFor(receipt.label).join("-");
+      const duplicateIndex = playableCharacters.findIndex((candidate) => {
+        const candidateIdentity = candidate.entityIds?.[0] ||
+          tokensFor(candidate.label).join("-");
+        return identity === candidateIdentity &&
+          Math.abs(candidate.at - receipt.at) <= 12;
+      });
+      if (duplicateIndex < 0) {
+        playableCharacters.push(receipt);
+      } else if (
+        receipt.evidenceBasis === "full-tape-human-editorial-read" &&
+        playableCharacters[duplicateIndex].evidenceBasis !==
+          "full-tape-human-editorial-read"
+      ) {
+        playableCharacters[duplicateIndex] = receipt;
+      }
+    });
+    playableCharacters.sort(signalOrder);
 
     const lane = (id) => source.showWiki.lanes.find((item) => item.id === id);
     assert.deepEqual(plain(lane("topics").receiptKeys), plain(topics.map((item) => item.key)), source.id);
@@ -1320,7 +1351,16 @@ test("every source gets an honest Show Wiki shell with rigorously gated lanes", 
     assert.deepEqual(plain(lane("funny-moments").receiptKeys), plain(funny.map((item) => item.key)), source.id);
     assert.deepEqual(plain(lane("up-in-ya").receiptKeys), plain(upInYa.map((item) => item.key)), source.id);
     assert.deepEqual(plain(lane("straight-to-steves-asshole").receiptKeys), plain(steves.map((item) => item.key)), source.id);
-    assert.deepEqual(plain(lane("character-bits").receiptKeys), plain(characters.map((item) => item.key)), source.id);
+    assert.deepEqual(
+      plain(lane("character-bits").receiptKeys),
+      plain(playableCharacters.map((item) => item.key)),
+      source.id,
+    );
+    assert.deepEqual(
+      plain(lane("character-references").receiptKeys),
+      plain(characterReferences.map((item) => item.key)),
+      source.id,
+    );
     maxBestMomentLane = Math.max(
       maxBestMomentLane,
       lane("best-moments").receiptKeys.length,
@@ -1329,8 +1369,10 @@ test("every source gets an honest Show Wiki shell with rigorously gated lanes", 
     upInYaCount += upInYa.length;
     stevesCount += steves.length;
     stevesSourceCount += Number(steves.length > 0);
-    characterCount += characters.length;
-    characterSourceCount += Number(characters.length > 0);
+    characterPerformanceCount += characters.length;
+    characterPerformanceSourceCount += Number(characters.length > 0);
+    characterReferenceCount += characterReferences.length;
+    characterReferenceSourceCount += Number(characterReferences.length > 0);
     rejectedNegativeCandidates += moments.filter((receipt) => (
       ["FRANCHISE FELONY", "TAKE GETS NUCLEAR"].includes(receipt.label) &&
       !negativeGate(receipt, source.id) &&
@@ -1355,8 +1397,19 @@ test("every source gets an honest Show Wiki shell with rigorously gated lanes", 
   assert.ok(upInYaCount > 0, "expected exact UP IN YA receipts");
   assert.equal(stevesSourceCount, 54);
   assert.equal(stevesCount, 59);
-  assert.equal(characterSourceCount, 171);
-  assert.equal(characterCount, 357);
+  assert.equal(characterPerformanceSourceCount, 15);
+  assert.equal(characterPerformanceCount, 32);
+  assert.equal(characterReferenceSourceCount, 156);
+  assert.equal(characterReferenceCount, 325);
+  assert.equal(
+    result.sources.filter((source) =>
+      source.showWiki.lanes.some((lane) =>
+        /character-(?:bits|references)/.test(lane.id) &&
+        lane.receiptKeys.length
+      )
+    ).length,
+    171,
+  );
   assert.ok(maxBestMomentLane > 6, "expected at least one uncapped Best Moments lane");
   assert.ok(rejectedNegativeCandidates > 0, "expected strict gate rejections");
 
@@ -1467,24 +1520,71 @@ test("the strict Steve lane rejects pronoun-only dislikes and retains explicit m
   }
 });
 
-test("character names and Channel DNA comedy signals survive into their Show Wiki lanes", () => {
+test("verified character performances stay separate from references and callbacks", () => {
   const { result } = buildFixture();
 
-  for (const [sourceId, expectedNames] of [
-    ["LV2rmwEA0w4", ["Corey Feldman", "Dr. Challis", "Dr. Loomis", "Slenderman"]],
-    ["N-UahfG8-gM", ["Dr. Loomis", "Dr. Challis"]],
+  for (const [sourceId, expectedEntityIds] of [
+    [
+      "LV2rmwEA0w4",
+      [
+        "character:corey-feldman",
+        "character:challis",
+        "character:loomis",
+        "character:slenderman",
+      ],
+    ],
+    ["N-UahfG8-gM", ["character:loomis", "character:challis"]],
   ]) {
     const source = byId(result, sourceId);
-    const block = source.showWiki.recap.blocks.find(
-      (item) => item.id === "characters-walk-in",
+    const performanceLane = source.showWiki.lanes.find(
+      (lane) => lane.id === "character-bits",
     );
-    assert.ok(block, sourceId + ":character-recap");
-    assert.doesNotMatch(block.body, /includes Character Performance\b/i);
-    expectedNames.forEach((name) => assert.ok(
-      block.body.includes(name),
-      sourceId + ":" + name,
-    ));
+    const referenceLane = source.showWiki.lanes.find(
+      (lane) => lane.id === "character-references",
+    );
+    const receiptByKey = new Map(
+      source.receipts.map((receipt) => [receipt.key, receipt]),
+    );
+    const performanceReceipts = performanceLane.receiptKeys.map(
+      (key) => receiptByKey.get(key),
+    );
+    assert.ok(performanceReceipts.length > 0, sourceId);
+    assert.ok(performanceReceipts.every(
+      (receipt) =>
+        receipt?.evidenceType === "curated-character-performance",
+    ), sourceId);
+    assert.deepEqual(
+      Array.from(new Set(performanceReceipts.flatMap(
+        (receipt) => receipt.entityIds.filter(
+          (entityId) => entityId.startsWith("character:"),
+        ),
+      ))).sort(),
+      expectedEntityIds.slice().sort(),
+      sourceId,
+    );
+    assert.deepEqual(plain(referenceLane.receiptKeys), [], sourceId);
   }
+
+  const referenceOnly = byId(result, "Z7ArdfA054w");
+  const performanceLane = referenceOnly.showWiki.lanes.find(
+    (lane) => lane.id === "character-bits",
+  );
+  const referenceLane = referenceOnly.showWiki.lanes.find(
+    (lane) => lane.id === "character-references",
+  );
+  const receiptByKey = new Map(
+    referenceOnly.receipts.map((receipt) => [receipt.key, receipt]),
+  );
+  assert.deepEqual(plain(performanceLane.receiptKeys), []);
+  assert.deepEqual(
+    plain(referenceLane.receiptKeys.map((key) => receiptByKey.get(key).label)),
+    ["Dr. Challis", "Corey Feldman", "Slenderman"],
+  );
+  assert.ok(referenceLane.receiptKeys.every((key) =>
+    /^caption-character-(?:signal|context)$/.test(
+      receiptByKey.get(key).evidenceType,
+    )
+  ));
 
   for (const [sourceId, at, label] of [
     ["N-UahfG8-gM", 11859, "CHAT DID THIS"],
@@ -1517,29 +1617,50 @@ test("title metadata drives specific formats and title-first recap topics", () =
   }
 
   const latest = byId(result, "LV2rmwEA0w4").showWiki.recap.overview;
-  assert.match(
+  assert.equal(
     latest,
-    /six-chapter, twelve-stop exact-source map\./,
+    "Over 3 hr 33 min, this movie-news show gets into Batman, Marvel, " +
+      "Hellraiser, Halloween, Evil Dead, and A Nightmare on Elm Street. " +
+      "The playable topic doors below show where those subjects come up; " +
+      "the written story and best-of shelf appear only after somebody has " +
+      "actually read the whole tape.",
   );
-  assert.match(latest, /Batman, Marvel, Hellraiser/);
-  assert.match(latest, /closing source window at 3:29:37/);
-  assert.doesNotMatch(latest, /live-room map|comedy alarm|machine-surfaced|automatic-caption/i);
+  assert.match(latest, /playable topic doors/i);
+  assert.match(latest, /only after somebody has actually read the whole tape/i);
+  assert.doesNotMatch(
+    latest,
+    /six-chapter|twelve-stop|exact-source map|machine-surfaced|automatic-caption/i,
+  );
   for (const [sourceId, expectedFirstTopic] of [
     ["WKs1uPGMQvw", "Scream 7"],
-    ["QxJyVaAgZ_Y", "Friday the 13th"],
+    ["QxJyVaAgZ_Y", "FRIDAY THE 13th Livestream! THE FINAL CHAPTER"],
     ["jG93HvyP420", "Halloween Ends"],
-    ["Oi-s0ZuWDbM", "TOPIC: HORROR"],
+    ["Oi-s0ZuWDbM", "Top 15 90's Horror Movies"],
   ]) {
     const source = byId(result, sourceId);
-    const topicBlock = source.showWiki.recap.blocks.find(
-      (block) => block.id === "on-the-slab",
+    const episodeRecap = source.showWiki.episodeRecap;
+    assert.ok(episodeRecap, sourceId + ":episode-recap");
+    assert.equal(
+      episodeRecap.topics[0],
+      expectedFirstTopic,
+      sourceId + ":title-first-topic",
     );
-    assert.ok(topicBlock, sourceId + ":topic-block");
-    assert.ok(topicBlock.receiptKeys.length <= 4, sourceId + ":selected-four");
-    const firstTopic = source.receipts.find(
-      (receipt) => receipt.key === topicBlock.receiptKeys[0],
+    assert.equal(
+      new Set(episodeRecap.topics).size,
+      episodeRecap.topics.length,
+      sourceId + ":unique-recap-topics",
     );
-    assert.equal(firstTopic.label, expectedFirstTopic, sourceId + ":title-first-topic");
+    assert.ok(
+      episodeRecap.topics.every((topic) => (
+        typeof topic === "string" && topic.trim().length > 0
+      )),
+      sourceId + ":nonempty-recap-topics",
+    );
+    assert.deepEqual(
+      plain(source.showWiki.recap.blocks),
+      [],
+      sourceId + ":no-unreviewed-narrative-blocks",
+    );
   }
 });
 

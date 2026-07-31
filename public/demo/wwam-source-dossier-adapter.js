@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.15.3";
+  var VERSION = "1.16.0";
   var SCHEMA = "shokker-source-dossier-input/v1";
   var PUBLIC_EXCERPT_WORDS = 16;
   var OFFICIAL_WWAM_CHANNEL_ID = "UC6ieEOZW4iXV8TcILJI8k5g";
@@ -578,6 +578,74 @@
         entityIds: [entityIdForLabel(label, "character")],
       }
     );
+  }
+
+  function editorialPackReceipts(source, entityIdForLabel) {
+    var registry = root.WWAM_EPISODE_EDITORIAL_PACKS;
+    var pack = registry && registry.sources &&
+      registry.sources[source.id];
+    if (!pack || clean(pack.reviewState) !==
+        "full-tape-human-editorial-read") {
+      return [];
+    }
+    if (number(pack.evidence && pack.evidence.duration) &&
+        Math.abs(number(pack.evidence.duration) - source.duration) > 2) {
+      return [];
+    }
+    var output = [];
+    array(pack.highlights).forEach(function (highlight, index) {
+      var category = clean(highlight.category).toUpperCase();
+      var people = array(highlight.characters);
+      var isCharacter = category === "CHARACTER PERFORMANCE" &&
+        people.length > 0;
+      var entries = isCharacter ?
+        [{ label: clean(highlight.label), performance: false }].concat(
+          people.map(function (person) {
+            return { label: person, performance: true };
+          })
+        ) :
+        [{ label: clean(highlight.label), performance: false }];
+      entries.forEach(function (entry, entryIndex) {
+        var characterReceipt = isCharacter && entry.performance === true;
+        var label = clean(entry.label || highlight.label || category);
+        var evidenceType = characterReceipt ?
+          "curated-character-performance" :
+          category === "STRAIGHT TO STEVE'S ASSHOLE" ?
+            "reviewed-guide-negative-take" :
+            category === "WWAM UP IN YA" ?
+              "reviewed-up-in-ya-highlight" :
+              "reviewed-episode-highlight";
+        output.push(normalizedReceipt(
+          {
+            id: [
+              source.id,
+              "editorial",
+              String(index + 1).padStart(2, "0"),
+              String(entryIndex + 1).padStart(2, "0"),
+            ].join(":"),
+            t: highlight.at,
+            end: highlight.end,
+            excerpt: highlight.excerpt,
+          },
+          source,
+          {
+            kind: characterReceipt ? "character-performance" : "moment",
+            label: label,
+            evidenceLevel: "human-editorial",
+            evidenceType: evidenceType,
+            evidenceBasis: "full-tape-human-editorial-read",
+            reviewState: "human-editor-reviewed",
+            publicExcerptAllowed: true,
+            signalScore: Math.max(1, 100 - index),
+            signalBasis: "human-editorial-selection-order",
+            editorNote: category,
+            entityIds: characterReceipt ?
+              [entityIdForLabel(label, "character")] : [],
+          }
+        ));
+      });
+    });
+    return output;
   }
 
   function timelineReceipts(source, overlay) {
@@ -1341,12 +1409,20 @@
     var moments = receipts.filter(function (receipt) {
       return normalized(receipt.kind).indexOf("moment") >= 0;
     }).slice().sort(signalOrder);
+    var editorialMoments = moments.filter(function (receipt) {
+      return receipt.evidenceBasis === "full-tape-human-editorial-read";
+    });
+    if (editorialMoments.length) moments = editorialMoments;
     var funny = moments.filter(function (receipt) {
-      return comedyCategories.has(receipt.label);
+      return comedyCategories.has(receipt.label) ||
+        receipt.evidenceBasis === "full-tape-human-editorial-read" &&
+        /UP IN YA|ROOM BREAK|RANKING COMEDY|HORROR COMEDY|RUNNING BIT/i
+          .test(clean(receipt.editorNote));
     });
     var upInYa = moments.filter(function (receipt) {
       return receipt.label === "UP IN YA" ||
-        receipt.label === "OUT OF POCKET";
+        receipt.label === "OUT OF POCKET" ||
+        receipt.evidenceType === "reviewed-up-in-ya-highlight";
     });
     var steves = moments.filter(function (receipt) {
       var identity = source.id + "@" + Math.floor(number(receipt.at));
@@ -1368,10 +1444,39 @@
             "strict-candidate-playback-review-ready" :
             "strict-source-bounded-negative-take";
     });
-    var characters = receipts.filter(function (receipt) {
+    var characterCandidates = receipts.filter(function (receipt) {
+      return receipt.evidenceType === "curated-character-performance" ||
+        receipt.evidenceType === "reviewed-character-performance";
+    }).slice().sort(signalOrder);
+    var characters = [];
+    characterCandidates.forEach(function (receipt) {
+      var identity = array(receipt.entityIds)[0] ||
+        normalized(receipt.label);
+      var duplicateIndex = characters.findIndex(function (candidate) {
+        var candidateIdentity = array(candidate.entityIds)[0] ||
+          normalized(candidate.label);
+        return identity === candidateIdentity &&
+          Math.abs(number(candidate.at) - number(receipt.at)) <= 12;
+      });
+      if (duplicateIndex < 0) {
+        characters.push(receipt);
+        return;
+      }
+      /*
+       * A full-tape editorial receipt replaces an older narrow curated cut
+       * at the same performance. This preserves the richer title and bounds
+       * without counting one Loomis rant twice.
+       */
+      if (receipt.evidenceBasis === "full-tape-human-editorial-read" &&
+          characters[duplicateIndex].evidenceBasis !==
+            "full-tape-human-editorial-read") {
+        characters[duplicateIndex] = receipt;
+      }
+    });
+    characters.sort(signalOrder);
+    var characterReferences = receipts.filter(function (receipt) {
       return receipt.evidenceType === "caption-character-signal" ||
-        receipt.evidenceType === "caption-character-context" ||
-        receipt.evidenceType === "curated-character-performance";
+        receipt.evidenceType === "caption-character-context";
     }).slice().sort(signalOrder);
     var distilled = source.coverage === "caption-backed" &&
       Boolean(source.summary || receipts.length);
@@ -1405,8 +1510,10 @@
       ),
       "best-moments": lane(
         "best-moments",
-        "BEST MOMENTS",
-        "Every source-local moment receipt, ranked by caption-derived signal score and then timestamp. The list is not automatically capped.",
+        editorialMoments.length ? "BEST MOMENTS" : "PLAYABLE CLIP CANDIDATES",
+        editorialMoments.length ?
+          "Human-reviewed highlights from the complete show; the list grows when the tape earns more." :
+          "Source-linked moments worth checking. They are candidates until somebody reviews the complete exchange.",
         "No source-local moment receipts are registered for this show yet.",
         moments,
         [
@@ -1417,8 +1524,10 @@
       ),
       "funny-moments": lane(
         "funny-moments",
-        "FUNNY MOMENTS",
-        "Every source-local moment receipt carrying a canonical WWAM comedy category; the lane grows when the show earns more.",
+        editorialMoments.length ? "FUNNY MOMENTS" : "POSSIBLE COMEDY CLIPS",
+        editorialMoments.length ?
+          "Human-reviewed comedy turns from this complete show." :
+          "Caption-flagged comedy candidates. Playback decides whether the room actually breaks.",
         "No source-local moment with a canonical comedy category is registered for this show yet.",
         funny,
         [
@@ -1456,9 +1565,9 @@
       ),
       "character-bits": lane(
         "character-bits",
-        "CHARACTER BITS",
-        "Source-local character-signal, character-context, and exact curated-performance receipts; machine receipts do not infer performers.",
-        "No character-signal, character-context, or curated-performance receipt is registered for this show yet.",
+        "CHARACTER PERFORMANCES",
+        "Editor-confirmed Loomis, Challis, Slenderman, Feldman, and other recurring-character performances from this exact show.",
+        "No character performance has been confirmed in this show yet.",
         characters,
         [
           "which characters", "recurring characters", "character bits",
@@ -1466,13 +1575,25 @@
           "character impressions", "character voices", "when do they do voices"
         ]
       ),
+      "character-references": lane(
+        "character-references",
+        "REFERENCES & CALLBACKS",
+        "Playable places where a recurring character is named or discussed. These are useful callbacks, not claimed performances.",
+        "No recurring-character reference is indexed for this show yet.",
+        characterReferences,
+        [
+          "character references", "character callbacks", "named characters",
+          "where do they mention Loomis", "where do they mention Challis",
+          "where do they mention Slenderman", "where do they mention Feldman"
+        ]
+      ),
     };
     var format = showWikiFormat(source);
     var laneOrder = format.id === "movie-commentary"
-      ? ["best-moments", "funny-moments", "up-in-ya", "straight-to-steves-asshole", "character-bits", "topics"]
+      ? ["best-moments", "funny-moments", "up-in-ya", "straight-to-steves-asshole", "character-bits", "character-references", "topics"]
       : format.id === "ranking-show"
-        ? ["topics", "straight-to-steves-asshole", "best-moments", "funny-moments", "up-in-ya", "character-bits"]
-        : ["topics", "best-moments", "funny-moments", "up-in-ya", "straight-to-steves-asshole", "character-bits"];
+        ? ["topics", "straight-to-steves-asshole", "best-moments", "funny-moments", "up-in-ya", "character-bits", "character-references"]
+        : ["topics", "best-moments", "funny-moments", "up-in-ya", "straight-to-steves-asshole", "character-bits", "character-references"];
     var recap = distilled
       ? showWikiRecapFor(
         source, receipts, moments, topics, characters, steves, funny, characterNames
@@ -2521,6 +2642,10 @@
           source.episodeGuide
         );
         if (reviewedSteveReceipt) receipts.push(reviewedSteveReceipt);
+        receipts = receipts.concat(editorialPackReceipts(
+          source,
+          entityRegistry.forLabel
+        ));
       }
       if (policy.restrictedToTopicNavigation) {
         receipts = restrictedTopicNavigationReceipts(receipts);
@@ -2586,12 +2711,32 @@
       }
       source.episodeRecap = episodeRecap;
       showWiki.episodeRecap = episodeRecap;
+      if (episodeRecap && clean(episodeRecap.state) === "ready" &&
+          clean(episodeRecap.overview)) {
+        showWiki.recap = {
+          format: clean(episodeRecap.format && episodeRecap.format.label) ||
+            clean(showWiki.recap && showWiki.recap.format),
+          formatBasis:
+            clean(episodeRecap.format && episodeRecap.format.basis) ||
+            clean(showWiki.recap && showWiki.recap.formatBasis),
+          overview: clean(episodeRecap.overview),
+          queryAliases: array(showWiki.recap && showWiki.recap.queryAliases),
+          /*
+           * The old blocks were a second machine-written episode story.
+           * The canonical recap now owns the prose and moment index.
+           */
+          blocks: [],
+        };
+      }
       source.showWiki = showWiki;
       if (source.showWiki.recap) {
         source.summary = {
           text: source.showWiki.recap.overview,
-          basis: source.showWiki.episodeGuide ?
-            "full-caption-episode-guide/v2" : "source-local-format-aware-recap/v1",
+          basis: clean(source.showWiki.episodeRecap &&
+            source.showWiki.episodeRecap.editorialState) ||
+            (source.showWiki.episodeGuide ?
+              "full-caption-episode-guide/v2" :
+              "source-local-format-aware-recap/v1"),
         };
       }
 

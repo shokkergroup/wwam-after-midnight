@@ -52,7 +52,7 @@ test("V5.17 package, cache keys, and Source Dossier documentation move together"
   }
 });
 
-test("all Source Dossier assets ship locally but remain outside the eager document", () => {
+test("Source Dossier scripts stay lazy while its cold-route shell ships eagerly", () => {
   const html = readDemo("index.html");
   const scripts = [
     "source-dossier-engine.js",
@@ -73,7 +73,7 @@ test("all Source Dossier assets ship locally but remain outside the eager docume
     (match) => match[1].split("?")[0],
   );
   for (const asset of scripts) assert.equal(eagerScripts.includes(asset), false);
-  for (const asset of styles) assert.equal(eagerStyles.includes(asset), false);
+  for (const asset of styles) assert.equal(eagerStyles.includes(asset), true);
 });
 
 test("the release keeps Source Dossier media dormant and YouTube identity explicit", () => {

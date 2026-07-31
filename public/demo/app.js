@@ -544,9 +544,9 @@
         }
         return clipLabEngine?null:loadDemoScript("creator-studio-engine.js").then(createClipLab);
       })
-      .then(function () { return loader.loadStyle("source-dossier.css?v=5.31-exact-source-stops"); })
+      .then(function () { return loader.loadStyle("source-dossier.css?v=5.35-branded-failure"); })
       .then(function () {
-        return loader.load("source-dossier-assets.js?v=1.0.3-archive-copy-grammar");
+        return loader.load("source-dossier-assets.js?v=1.0.24-sixteen-full-reads");
       })
       .then(function () {
         var assets = window.WWAM_SOURCE_DOSSIER_ASSETS || [];
@@ -559,11 +559,8 @@
       })
       .then(buildSourceDossierRuntime)
       .catch(function (error) {
-        runtimeDiagnostics.push({
-          at: new Date().toISOString(),
-          operation: "source dossier lazy load",
-          message: error && error.message ? error.message : String(error),
-        });
+        runtimeDiagnostics.push({at:new Date().toISOString(),operation:"source dossier lazy load",
+          message:error&&error.message?error.message:String(error)});
         sourceDossierLoadPromise = null;
         throw error;
       });
@@ -646,9 +643,9 @@
     modal.setAttribute("aria-describedby", "sourceDossierBoundary");
     document.getElementById("modalContent").innerHTML =
       '<div class="source-dossier-loading" role="status" aria-live="polite">' +
-      '<span>THE TAPE\'S WAKE // VERIFYING THE LIVING MEMORY FILE</span>' +
-      '<h2 id="sourceDossierTitle">OPENING THE SHOW WIKI.</h2>' +
-      '<p id="sourceDossierBoundary">The official source registry, evidence boundary, and cross-archive connections are being verified.</p></div>';
+      '<span>ONE SECOND // BIG FUCKING SHOW</span>' +
+      '<h2 id="sourceDossierTitle">BUILDING THE SHOW WIKI.</h2>' +
+      '<p id="sourceDossierBoundary">Loading the recap, best bits, Steve\'s Asshole, character appearances, and tape jumps.</p></div>';
     modal.classList.add("show");
     modal.setAttribute("aria-hidden", "false");
     document.body.classList.add("modal-open");
@@ -679,13 +676,15 @@
       if(startTime!=null&&settings.autoplay!==false)loadPlayer(sourceId,+startTime,settings.end);
       return true;
     }).catch(function (error) {
-      var message = error && error.message ? error.message : String(error);
+      runtimeDiagnostics.push({at:new Date().toISOString(),operation:"open source dossier",
+        sourceId:sourceId,message:error&&error.message?error.message:String(error)});
       document.getElementById("tapeModal").setAttribute("aria-busy", "false");
       document.getElementById("modalContent").innerHTML =
         '<div class="source-dossier-loading source-dossier-error" role="alert">' +
-        '<span>THE SOURCE FILE WAS HELD</span><h2 id="sourceDossierTitle">SHOW WIKI UNAVAILABLE.</h2>' +
-        '<p id="sourceDossierBoundary">' + esc(message) +
-        '</p><a href="https://www.youtube.com/watch?v=' + encodeURIComponent(sourceId) +
+        '<span>THE INTERACTIVE FILE HIT A SNAG</span><h2 id="sourceDossierTitle">THE WIKI DIDN\'T OPEN.</h2>' +
+        '<p id="sourceDossierBoundary">The upload is fine. This page failed a check. Retry it or open the tape.</p>' +
+        '<a href="' + esc(sourceRouteUrl(sourceId, startTime, section)) +
+        '">TRY THIS WIKI AGAIN &orarr;</a><a href="https://www.youtube.com/watch?v=' + encodeURIComponent(sourceId) +
         '" target="_blank" rel="noopener">OPEN THE OFFICIAL SOURCE ON YOUTUBE &nearr;</a></div>';
       return false;
     });

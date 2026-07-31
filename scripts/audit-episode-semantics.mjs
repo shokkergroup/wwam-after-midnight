@@ -33,6 +33,20 @@ const runtimeFiles = [
   "archive-recovery-batch2.js",
   "archive-completion.js",
   "title-topic-overrides.js",
+  "episode-editorial-packs.js",
+  "episode-editorial-packs-recent.js",
+  "episode-editorial-packs-wave2.js",
+  "episode-editorial-packs-wave3.js",
+  "episode-editorial-packs-wave4.js",
+  "episode-editorial-packs-wave5.js",
+  "episode-editorial-packs-wave6.js",
+  "episode-editorial-packs-wave7.js",
+  "episode-editorial-packs-wave8.js",
+  "episode-editorial-packs-wave9.js",
+  "episode-editorial-packs-wave10.js",
+  "episode-editorial-packs-wave11.js",
+  "episode-editorial-packs-wave12.js",
+  "episode-editorial-packs-wave13.js",
   "episode-recap-engine.js",
   "wwam-episode-recap-adapter.js",
   "wwam-source-dossier-adapter.js",
@@ -275,6 +289,52 @@ function isGenericHighlightSubject(value) {
     /^(?:chapter|reel|runtime|segment|part)\s+\d+$/.test(key);
 }
 
+function isHumanEditorialRecap(recap) {
+  return clean(recap?.editorialState) ===
+    "full-tape-human-editorial-read";
+}
+
+function humanEditorialWindowFailure(
+  item,
+  duration,
+  { requirePlayWindow = true } = {},
+) {
+  const at = optionalNumber(item?.at);
+  const end = optionalNumber(item?.end);
+  if (
+    at === null ||
+    end === null ||
+    at < 0 ||
+    end <= at ||
+    (duration > 0 && end > duration)
+  ) {
+    return {
+      kind: "invalid-editorial-window",
+      at,
+      end,
+      duration,
+    };
+  }
+  if (!requirePlayWindow) return null;
+  const playAt = optionalNumber(item?.playAt);
+  const playEnd = optionalNumber(item?.playEnd);
+  if (
+    playAt === null ||
+    playEnd === null ||
+    Math.abs(playAt - at) > 0.001 ||
+    Math.abs(playEnd - end) > 0.001
+  ) {
+    return {
+      kind: "editorial-play-window-drift",
+      at,
+      end,
+      playAt,
+      playEnd,
+    };
+  }
+  return null;
+}
+
 function publicSurfaces(file) {
   const recap = file.recap;
   return [
@@ -304,6 +364,39 @@ function publicSurfaces(file) {
       [`fanRead.${key}.label`, item.label],
       [`fanRead.${key}.topic`, item.topic],
       [`fanRead.${key}.body`, item.body],
+    ]),
+    ...array(recap.editorialPanels).flatMap((panel, panelIndex) => [
+      [`editorialPanels[${panelIndex}].title`, panel.title],
+      [`editorialPanels[${panelIndex}].intro`, panel.intro],
+      [`editorialPanels[${panelIndex}].note`, panel.note],
+      ...array(panel.groups).flatMap((group, groupIndex) => [
+        [
+          `editorialPanels[${panelIndex}].groups[${groupIndex}].label`,
+          group.label,
+        ],
+        ...array(group.items).map((item, itemIndex) => [
+          `editorialPanels[${panelIndex}].groups[${groupIndex}].items[${itemIndex}]`,
+          item,
+        ]),
+      ]),
+      ...array(panel.items).flatMap((item, itemIndex) => [
+        [
+          `editorialPanels[${panelIndex}].items[${itemIndex}].subject`,
+          item.subject,
+        ],
+        [
+          `editorialPanels[${panelIndex}].items[${itemIndex}].verdict`,
+          item.verdict,
+        ],
+        [
+          `editorialPanels[${panelIndex}].items[${itemIndex}].character`,
+          item.character,
+        ],
+        [
+          `editorialPanels[${panelIndex}].items[${itemIndex}].label`,
+          item.label,
+        ],
+      ]),
     ]),
   ].map(([surface, value]) => ({
     surface,
@@ -428,6 +521,227 @@ function timedTitleClaims(file, expected) {
   );
 }
 
+function auditHumanEditorialSurfaces(files) {
+  const storyFailures = [];
+  const highlightFailures = [];
+  const panelFailures = [];
+  const packsWithoutPanels = [];
+  const humanFiles = files.filter((file) =>
+    file.recap.state === "ready" &&
+    isHumanEditorialRecap(file.recap)
+  );
+
+  function addFailure(target, file, surface, detail) {
+    target.push({
+      sourceId: file.id,
+      title: file.title,
+      surface,
+      ...detail,
+    });
+  }
+
+  humanFiles.forEach((file) => {
+    const duration = number(file.source.duration);
+    const story = array(file.recap.story);
+    if (!story.length) {
+      addFailure(storyFailures, file, "story", {
+        kind: "missing-human-editorial-story",
+      });
+    }
+    story.forEach((segment, index) => {
+      const surface = `story[${index}]`;
+      if (!clean(segment.label) || !clean(segment.body)) {
+        addFailure(storyFailures, file, surface, {
+          kind: "incomplete-human-editorial-story",
+          label: clean(segment.label),
+        });
+      }
+      if (
+        clean(segment.evidenceBasis) !==
+          "full-tape-human-editorial-read" ||
+        clean(record(segment.narrative).kind) !== "human-editorial-story"
+      ) {
+        addFailure(storyFailures, file, surface, {
+          kind: "invalid-human-editorial-story-basis",
+          label: clean(segment.label),
+        });
+      }
+      const windowFailure = humanEditorialWindowFailure(segment, duration);
+      if (windowFailure) {
+        addFailure(storyFailures, file, surface, {
+          ...windowFailure,
+          label: clean(segment.label),
+        });
+      }
+    });
+
+    const highlights = array(file.recap.highlightRunway);
+    if (!highlights.length) {
+      addFailure(highlightFailures, file, "highlightRunway", {
+        kind: "missing-human-editorial-highlights",
+      });
+    }
+    const highlightIdentities = new Set();
+    highlights.forEach((highlight, index) => {
+      const surface = `highlightRunway[${index}]`;
+      if (
+        !clean(highlight.label) ||
+        !clean(highlight.category) ||
+        !clean(highlight.excerpt)
+      ) {
+        addFailure(highlightFailures, file, surface, {
+          kind: "incomplete-human-editorial-highlight",
+          label: clean(highlight.label),
+        });
+      }
+      if (
+        clean(highlight.evidenceBasis) !==
+          "full-tape-human-editorial-read" ||
+        clean(highlight.kind) !== "human-editorial-highlight"
+      ) {
+        addFailure(highlightFailures, file, surface, {
+          kind: "invalid-human-editorial-highlight-basis",
+          label: clean(highlight.label),
+        });
+      }
+      const windowFailure = humanEditorialWindowFailure(
+        highlight,
+        duration,
+      );
+      if (windowFailure) {
+        addFailure(highlightFailures, file, surface, {
+          ...windowFailure,
+          label: clean(highlight.label),
+        });
+      }
+      const identity = `${number(highlight.at)}|${normalize(highlight.label)}`;
+      if (highlightIdentities.has(identity)) {
+        addFailure(highlightFailures, file, surface, {
+          kind: "duplicate-human-editorial-highlight",
+          label: clean(highlight.label),
+        });
+      }
+      highlightIdentities.add(identity);
+      const previous = highlights[index - 1];
+      if (previous && number(highlight.at) < number(previous.at)) {
+        addFailure(highlightFailures, file, surface, {
+          kind: "out-of-order-human-editorial-highlight",
+          label: clean(highlight.label),
+          at: number(highlight.at),
+          previousAt: number(previous.at),
+        });
+      }
+    });
+
+    const panels = array(file.recap.editorialPanels);
+    if (!panels.length) {
+      packsWithoutPanels.push({
+        sourceId: file.id,
+        title: file.title,
+      });
+    }
+    panels.forEach((panel, panelIndex) => {
+      const panelSurface = `editorialPanels[${panelIndex}]`;
+      const panelType = clean(panel.type);
+      const groups = array(panel.groups);
+      const items = array(panel.items);
+      if (
+        !clean(panel.id) ||
+        !/^(?:ranking|verdict|character)-ledger$/.test(panelType)
+      ) {
+        addFailure(panelFailures, file, panelSurface, {
+          kind: "invalid-human-editorial-panel-identity",
+          label: clean(panel.title || panel.id || panelType),
+        });
+        return;
+      }
+      const hasExpectedContent =
+        panelType === "ranking-ledger"
+          ? groups.length > 0
+          : panelType === "verdict-ledger"
+            ? groups.length > 0 || items.length > 0
+            : items.length > 0;
+      if (!hasExpectedContent) {
+        addFailure(panelFailures, file, panelSurface, {
+          kind: "empty-human-editorial-panel",
+          label: clean(panel.title || panel.id),
+        });
+      }
+      groups.forEach((group, groupIndex) => {
+        const surface =
+          `${panelSurface}.groups[${groupIndex}]`;
+        const groupItems = array(group.items);
+        if (
+          typeof group.label !== "string" ||
+          !clean(group.label) ||
+          !groupItems.length ||
+          groupItems.some((item) =>
+            typeof item !== "string" || !clean(item)
+          )
+        ) {
+          addFailure(panelFailures, file, surface, {
+            kind: "invalid-human-editorial-panel-group",
+            label: clean(group.label),
+          });
+        }
+      });
+      items.forEach((item, itemIndex) => {
+        const surface = `${panelSurface}.items[${itemIndex}]`;
+        if (panelType === "verdict-ledger") {
+          if (
+            typeof item.subject !== "string" ||
+            typeof item.verdict !== "string" ||
+            !clean(item.subject) ||
+            !clean(item.verdict)
+          ) {
+            addFailure(panelFailures, file, surface, {
+              kind: "invalid-human-editorial-verdict",
+              label: clean(item.subject),
+            });
+          }
+        } else if (panelType === "character-ledger") {
+          if (
+            typeof item.character !== "string" ||
+            typeof item.label !== "string" ||
+            !clean(item.character) ||
+            !clean(item.label)
+          ) {
+            addFailure(panelFailures, file, surface, {
+              kind: "invalid-human-editorial-character",
+              label: clean(item.character || item.label),
+            });
+          }
+        }
+        if (
+          panelType === "character-ledger" ||
+          item.at != null ||
+          item.end != null
+        ) {
+          const windowFailure = humanEditorialWindowFailure(
+            item,
+            duration,
+            { requirePlayWindow: false },
+          );
+          if (windowFailure) {
+            addFailure(panelFailures, file, surface, {
+              ...windowFailure,
+              label: clean(item.subject || item.character || item.label),
+            });
+          }
+        }
+      });
+    });
+  });
+
+  return {
+    humanFiles,
+    storyFailures,
+    highlightFailures,
+    panelFailures,
+    packsWithoutPanels,
+  };
+}
+
 function titleTopicFailures(files, titleTopicOverrides) {
   const bySource = new Map();
   array(titleTopicOverrides.topics).forEach((topic) => {
@@ -438,10 +752,17 @@ function titleTopicFailures(files, titleTopicOverrides) {
   });
   const failures = [];
   let expectedCount = 0;
+  let ordinaryExpectedCount = 0;
+  let humanEditorialExpectedCount = 0;
   files.forEach((file) => {
     const expectedTopics = bySource.get(file.id) || [];
     if (file.recap.state !== "ready") return;
     expectedCount += expectedTopics.length;
+    if (isHumanEditorialRecap(file.recap)) {
+      humanEditorialExpectedCount += expectedTopics.length;
+      return;
+    }
+    ordinaryExpectedCount += expectedTopics.length;
     expectedTopics.forEach((expected) => {
       const expectedFirst = optionalNumber(expected.firstAt);
       const expectedPeak = optionalNumber(expected.peakAt);
@@ -515,7 +836,12 @@ function titleTopicFailures(files, titleTopicOverrides) {
       });
     });
   });
-  return { expectedCount, failures };
+  return {
+    expectedCount,
+    ordinaryExpectedCount,
+    humanEditorialExpectedCount,
+    failures,
+  };
 }
 
 function audit(files, canonicalCount, titleTopicOverrides, sourceId) {
@@ -662,6 +988,7 @@ function audit(files, canonicalCount, titleTopicOverrides, sourceId) {
     });
   });
 
+  const humanEditorialAudit = auditHumanEditorialSurfaces(ready);
   const titleAudit = titleTopicFailures(
     selected,
     titleTopicOverrides,
@@ -677,6 +1004,12 @@ function audit(files, canonicalCount, titleTopicOverrides, sourceId) {
     topicRecapFalseHighlightLanguage,
     titleTopicFirstOccurrenceFailures: titleAudit.failures,
     invalidDisplayedStoryWindows,
+    invalidHumanEditorialStory:
+      humanEditorialAudit.storyFailures,
+    invalidHumanEditorialHighlights:
+      humanEditorialAudit.highlightFailures,
+    invalidHumanEditorialPanels:
+      humanEditorialAudit.panelFailures,
   };
   const counts = Object.fromEntries(
     Object.entries(failures).map(([key, values]) => [key, values.length]),
@@ -694,10 +1027,16 @@ function audit(files, canonicalCount, titleTopicOverrides, sourceId) {
       counts.titleTopicFirstOccurrenceFailures === 0,
     validDisplayedStoryWindows:
       counts.invalidDisplayedStoryWindows === 0,
+    validHumanEditorialSurfaces:
+      counts.invalidHumanEditorialStory === 0 &&
+      counts.invalidHumanEditorialHighlights === 0 &&
+      counts.invalidHumanEditorialPanels === 0,
   };
   const advisories = {
     duplicateAdjacentStorySubjects: counts.duplicateAdjacentStorySubjects,
     duplicateRepeatedStorySubjects: counts.duplicateRepeatedStorySubjects,
+    humanEditorialPacksWithoutPanels:
+      humanEditorialAudit.packsWithoutPanels.length,
   };
   return {
     schema: "shokker-youtube-wiki/episode-semantics-audit/v1",
@@ -719,6 +1058,25 @@ function audit(files, canonicalCount, titleTopicOverrides, sourceId) {
       topicRecaps: ready.filter((file) => file.recap.tier === "topic-recap")
         .length,
       titleTopicsExpected: titleAudit.expectedCount,
+      titleTopicsMachineIdentityAudited:
+        titleAudit.ordinaryExpectedCount,
+      titleTopicsCoveredByHumanEditorialRead:
+        titleAudit.humanEditorialExpectedCount,
+      humanEditorialRecaps: humanEditorialAudit.humanFiles.length,
+      humanEditorialStorySegments: humanEditorialAudit.humanFiles.reduce(
+        (total, file) => total + array(file.recap.story).length,
+        0,
+      ),
+      humanEditorialHighlights: humanEditorialAudit.humanFiles.reduce(
+        (total, file) =>
+          total + array(file.recap.highlightRunway).length,
+        0,
+      ),
+      humanEditorialPanels: humanEditorialAudit.humanFiles.reduce(
+        (total, file) =>
+          total + array(file.recap.editorialPanels).length,
+        0,
+      ),
     },
     counts,
     gates,
@@ -769,6 +1127,8 @@ function human(report) {
     `Scope: ${report.scope.kind === "source" ? report.scope.sourceId : "all canonical sources"}`,
     `Compiled: ${report.corpus.canonicalSourcesCompiled} canonical // audited ${report.corpus.sourcesAudited} // ready ${report.corpus.ready} // held ${report.corpus.held}`,
     `Story reels: ${report.corpus.storySegments} // topic recaps ${report.corpus.topicRecaps} // title topics ${report.corpus.titleTopicsExpected}`,
+    `Human editorial: ${report.corpus.humanEditorialRecaps} recaps // ${report.corpus.humanEditorialStorySegments} story beats // ${report.corpus.humanEditorialHighlights} highlights // ${report.corpus.humanEditorialPanels} panels`,
+    `Title-topic identity: ${report.corpus.titleTopicsMachineIdentityAudited} machine-bound // ${report.corpus.titleTopicsCoveredByHumanEditorialRead} covered by full-tape editorial read`,
     "",
     `Overlapping story windows: ${c.overlappingStoryWindows}`,
     `Generic highlight taxonomy as primary subject: ${c.genericPrimarySubjects}`,
@@ -780,6 +1140,10 @@ function human(report) {
     `Topic-recap false highlight language: ${c.topicRecapFalseHighlightLanguage}`,
     `Title-topic first-occurrence failures: ${c.titleTopicFirstOccurrenceFailures}`,
     `Invalid displayed story windows: ${c.invalidDisplayedStoryWindows}`,
+    `Invalid human-editorial story beats: ${c.invalidHumanEditorialStory}`,
+    `Invalid human-editorial highlights: ${c.invalidHumanEditorialHighlights}`,
+    `Invalid human-editorial panels: ${c.invalidHumanEditorialPanels}`,
+    `Human-editorial packs without optional panels: ${report.advisories.humanEditorialPacksWithoutPanels}`,
     `SEMANTICS GATE: ${report.pass ? "PASS" : "FAIL"}`,
     "",
     "Overlapping story-window examples:",
@@ -801,6 +1165,11 @@ function human(report) {
     "",
     "Invalid story-window examples:",
     ...humanFailureLines(report, "invalidDisplayedStoryWindows"),
+    "",
+    "Human-editorial surface examples:",
+    ...humanFailureLines(report, "invalidHumanEditorialStory", 4),
+    ...humanFailureLines(report, "invalidHumanEditorialHighlights", 4),
+    ...humanFailureLines(report, "invalidHumanEditorialPanels", 4),
   ].join("\n") + "\n";
 }
 

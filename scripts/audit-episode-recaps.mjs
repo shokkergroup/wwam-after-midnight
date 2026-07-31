@@ -35,6 +35,20 @@ const runtimeFiles = [
   "archive-recovery-batch2.js",
   "archive-completion.js",
   "title-topic-overrides.js",
+  "episode-editorial-packs.js",
+  "episode-editorial-packs-recent.js",
+  "episode-editorial-packs-wave2.js",
+  "episode-editorial-packs-wave3.js",
+  "episode-editorial-packs-wave4.js",
+  "episode-editorial-packs-wave5.js",
+  "episode-editorial-packs-wave6.js",
+  "episode-editorial-packs-wave7.js",
+  "episode-editorial-packs-wave8.js",
+  "episode-editorial-packs-wave9.js",
+  "episode-editorial-packs-wave10.js",
+  "episode-editorial-packs-wave11.js",
+  "episode-editorial-packs-wave12.js",
+  "episode-editorial-packs-wave13.js",
   "episode-recap-engine.js",
   "wwam-episode-recap-adapter.js",
   "wwam-source-dossier-adapter.js",
@@ -231,6 +245,42 @@ function minimumHighlightCount(duration) {
   return 15;
 }
 
+function isHumanEditorialFile(file) {
+  const recap = file?.recap || {};
+  return /human-editorial/i.test(String(recap.editorialState || "")) ||
+    recap.editorialEvidence?.humanEditorialRead === true ||
+    recap.caseFile?.humanEditorialRead === true;
+}
+
+function isStructuredSummaryFile(file) {
+  return !isHumanEditorialFile(file) &&
+    String(file?.recap?.editorialState || "") ===
+      "structured-source-summary";
+}
+
+function publicModelFor(file) {
+  if (isHumanEditorialFile(file)) return "human-editorial";
+  if (isStructuredSummaryFile(file)) return "structured-source-summary";
+  return "legacy";
+}
+
+function textPresent(value) {
+  return Boolean(String(value || "").trim());
+}
+
+function validWindow(item, duration, requireEnd = true) {
+  const at = Number(item?.at);
+  const end = Number(item?.end);
+  return Number.isFinite(at) &&
+    at >= 0 &&
+    at <= duration &&
+    (!requireEnd || (
+      Number.isFinite(end) &&
+      end > at &&
+      end <= duration + 1
+    ));
+}
+
 function comparableExcerpt(value) {
   return String(value || "")
     .replace(/^[\s.\u2026\u00e2\u20ac\u00a6]+|[\s.\u2026\u00e2\u20ac\u00a6]+$/g, "")
@@ -360,18 +410,51 @@ function strongestReceipts(receipts, limit) {
 }
 
 function recapText(file) {
-  return [
+  const parts = [
     file.recap.headline,
     file.recap.deck,
     file.recap.overview,
-    ...file.recap.story.flatMap((segment) => [segment.label, segment.body]),
-    ...file.recap.sections.flatMap((section) => [section.label, section.body]),
+    ...(file.recap.highlightRunway || []).flatMap((moment) => [
+      moment.category,
+      moment.label,
+      moment.excerpt,
+    ]),
     ...Object.values(file.recap.fanRead || {}).flatMap((item) => [
       item.label,
       item.topic,
       item.body,
+      item.excerpt,
     ]),
-  ].join(" ");
+  ];
+  if (!isStructuredSummaryFile(file)) {
+    parts.push(...file.recap.story.flatMap(
+      (segment) => [segment.label, segment.body],
+    ));
+  }
+  if (publicModelFor(file) === "legacy") {
+    parts.push(...file.recap.sections.flatMap(
+      (section) => [section.label, section.body],
+    ));
+  }
+  if (isHumanEditorialFile(file)) {
+    parts.push(...(file.recap.editorialPanels || []).flatMap((panel) => [
+      panel.eyebrow,
+      panel.title,
+      panel.intro,
+      panel.note,
+      ...(panel.groups || []).flatMap((group) => [
+        group.label,
+        ...(group.items || []),
+      ]),
+      ...(panel.items || []).flatMap((item) => [
+        item.subject,
+        item.verdict,
+        item.character,
+        item.label,
+      ]),
+    ]));
+  }
+  return parts.join(" ");
 }
 
 function generatedRecapCopyEntries(file) {
@@ -383,25 +466,30 @@ function generatedRecapCopyEntries(file) {
       new Set((characterLabels || []).map(displaySubject).filter(Boolean)),
     ),
   });
-  return [
+  const entries = [
     entry("headline", file.recap.headline),
     entry("deck", file.recap.deck),
     entry("overview", file.recap.overview),
-    ...file.recap.story.flatMap((segment, index) => {
+  ];
+  if (!isStructuredSummaryFile(file)) {
+    entries.push(...file.recap.story.flatMap((segment, index) => {
       const location = `story:${segment.id || index + 1}`;
       return [
         entry(`${location}:label`, segment.label, segment.characterLabels),
         entry(`${location}:body`, segment.body, segment.characterLabels),
       ];
-    }),
-    ...file.recap.sections.flatMap((section, index) => {
+    }));
+  }
+  if (publicModelFor(file) === "legacy") {
+    entries.push(...file.recap.sections.flatMap((section, index) => {
       const location = `section:${section.id || index + 1}`;
       return [
         entry(`${location}:label`, section.label, section.characterLabels),
         entry(`${location}:body`, section.body, section.characterLabels),
       ];
-    }),
-  ].filter((item) => item.text.trim());
+    }));
+  }
+  return entries.filter((item) => item.text.trim());
 }
 
 function numericArticleFailures(text) {
@@ -471,6 +559,303 @@ function generatedCopyGrammarFailures(file) {
   });
 }
 
+function auditHumanEditorialFile(file) {
+  const failures = [];
+  const recap = file.recap || {};
+  const duration = Math.max(1, Number(file.source?.duration || 0));
+  const evidence = recap.editorialEvidence || {};
+  const story = Array.isArray(recap.story) ? recap.story : [];
+  const highlights = Array.isArray(recap.highlightRunway)
+    ? recap.highlightRunway
+    : [];
+  const panels = Array.isArray(recap.editorialPanels)
+    ? recap.editorialPanels
+    : [];
+  const fanRead = recap.fanRead || {};
+  const add = (location, failure) => failures.push({ location, failure });
+
+  if (recap.editorialState !== "full-tape-human-editorial-read") {
+    add("editorialState", "missing full-tape human editorial review state");
+  }
+  if (
+    !Number.isFinite(Number(evidence.duration)) ||
+    Math.abs(Number(evidence.duration) - duration) > 2
+  ) {
+    add("editorialEvidence.duration", "declared duration does not match source");
+  }
+  if (!(Number(evidence.captionWords) > 0)) {
+    add("editorialEvidence.captionWords", "caption word count is missing");
+  }
+  if (!/^sha256:[a-f0-9]{64}$/i.test(String(evidence.captionSha256 || ""))) {
+    add("editorialEvidence.captionSha256", "caption digest is missing or malformed");
+  }
+  if (evidence.speakerAttribution !== false) {
+    add(
+      "editorialEvidence.speakerAttribution",
+      "speaker attribution must remain explicitly disabled",
+    );
+  }
+  if (recap.caseFile?.humanEditorialRead !== true) {
+    add("caseFile.humanEditorialRead", "public recap lost its human-read marker");
+  }
+  if (recap.approval?.actualApproval !== false) {
+    add("approval.actualApproval", "independent archive must not imply approval");
+  }
+  if (
+    !textPresent(recap.headline) ||
+    !textPresent(recap.deck) ||
+    !textPresent(recap.overview)
+  ) {
+    add("publicSummary", "headline, deck, and overview must all be authored");
+  }
+
+  const minimumStoryCount = Math.max(3, Math.ceil(duration / 1800));
+  if (story.length < minimumStoryCount) {
+    add(
+      "story",
+      `full-tape story has ${story.length}; expected at least ${minimumStoryCount}`,
+    );
+  }
+  const storyIds = new Set();
+  story.forEach((item, index) => {
+    const location = `story[${index}]`;
+    if (!textPresent(item.id) || storyIds.has(String(item.id))) {
+      add(`${location}.id`, "story id is missing or duplicated");
+    }
+    storyIds.add(String(item.id || ""));
+    if (!textPresent(item.label) || !textPresent(item.body)) {
+      add(location, "story label and authored body are required");
+    }
+    const words = wordCount(item.body);
+    if (words < 12 || words > 90) {
+      add(`${location}.body`, `human story body is ${words} words; expected 12-90`);
+    }
+    if (!validWindow(item, duration)) {
+      add(location, "story window falls outside the exact source");
+    }
+    if (
+      index &&
+      (
+        Number(item.at) < Number(story[index - 1].at) ||
+        Number(item.at) < Number(story[index - 1].end)
+      )
+    ) {
+      add(location, "story must remain chronological and non-overlapping");
+    }
+  });
+  if (
+    story.length &&
+    (
+      Number(story[0].at) / duration > 0.05 ||
+      Number(story.at(-1).end) / duration < 0.95
+    )
+  ) {
+    add("story", "full-tape story must cover the opening and closing source windows");
+  }
+
+  const highlightFloor = minimumHighlightCount(duration);
+  if (highlights.length < highlightFloor) {
+    add(
+      "highlightRunway",
+      `human highlight runway has ${highlights.length}; expected at least ${highlightFloor}`,
+    );
+  }
+  const highlightIdentities = new Set();
+  highlights.forEach((item, index) => {
+    const location = `highlightRunway[${index}]`;
+    if (
+      !textPresent(item.category) ||
+      !textPresent(item.label) ||
+      !textPresent(item.excerpt)
+    ) {
+      add(location, "highlight category, label, and bounded excerpt are required");
+    }
+    if (!validWindow(item, duration)) {
+      add(location, "highlight window falls outside the exact source");
+    }
+    if (index && Number(item.at) < Number(highlights[index - 1].at)) {
+      add(location, "highlight runway is not chronological");
+    }
+    const identity = `${Number(item.at)}|${Number(item.end)}|${item.label}`;
+    if (highlightIdentities.has(identity)) {
+      add(location, "duplicate human highlight");
+    }
+    highlightIdentities.add(identity);
+  });
+
+  const expectedFanLanes = ["loved", "hated", "wildestDetour", "lastWord"];
+  expectedFanLanes.forEach((lane) => {
+    const item = fanRead[lane];
+    const location = `fanRead.${lane}`;
+    if (
+      !item ||
+      !textPresent(item.label) ||
+      !textPresent(item.topic) ||
+      !textPresent(item.body)
+    ) {
+      add(location, "human fan lane is missing public editorial copy");
+      return;
+    }
+    if (!validWindow(item, duration)) {
+      add(location, "human fan-lane window falls outside the exact source");
+    }
+  });
+
+  const panelIds = new Set();
+  panels.forEach((panel, panelIndex) => {
+    const location = `editorialPanels[${panelIndex}]`;
+    const type = String(panel?.type || "");
+    if (
+      !textPresent(panel?.id) ||
+      panelIds.has(String(panel.id)) ||
+      !/^(?:ranking|verdict|character)-ledger$/.test(type)
+    ) {
+      add(location, "panel id is missing/duplicated or panel type is unsupported");
+    }
+    panelIds.add(String(panel?.id || ""));
+    if (
+      !textPresent(panel?.title) ||
+      !textPresent(panel?.intro) && !textPresent(panel?.note)
+    ) {
+      add(
+        location,
+        "panel needs a title plus an editorial introduction or evidence note",
+      );
+    }
+    const groups = Array.isArray(panel?.groups) ? panel.groups : [];
+    const items = Array.isArray(panel?.items) ? panel.items : [];
+    groups.forEach((group, groupIndex) => {
+      if (
+        !textPresent(group?.label) ||
+        !Array.isArray(group?.items) ||
+        !group.items.length ||
+        group.items.some((item) => !textPresent(item))
+      ) {
+        add(
+          `${location}.groups[${groupIndex}]`,
+          "ranking group needs a label and non-empty public items",
+        );
+      }
+    });
+    items.forEach((item, itemIndex) => {
+      const itemLocation = `${location}.items[${itemIndex}]`;
+      if (type === "character-ledger") {
+        if (!textPresent(item?.character) || !textPresent(item?.label)) {
+          add(itemLocation, "character receipt needs a character and clip label");
+        }
+        if (!validWindow(item, duration)) {
+          add(itemLocation, "character receipt needs an exact playable window");
+        }
+      } else if (
+        !textPresent(item?.subject) ||
+        !textPresent(item?.verdict)
+      ) {
+        add(itemLocation, "verdict receipt needs a subject and authored verdict");
+      } else if (
+        (item.at != null || item.end != null) &&
+        !validWindow(item, duration)
+      ) {
+        add(itemLocation, "verdict receipt window falls outside the exact source");
+      }
+    });
+    if (
+      type === "ranking-ledger" && !groups.length ||
+      type === "verdict-ledger" && !groups.length && !items.length ||
+      type === "character-ledger" && !items.length
+    ) {
+      add(location, "editorial panel has no public ledger entries");
+    }
+  });
+
+  return failures.length ? [{
+    sourceId: file.id,
+    failures,
+    storyCount: story.length,
+    highlightCount: highlights.length,
+    panelCount: panels.length,
+  }] : [];
+}
+
+function auditStructuredSummaryFile(file) {
+  const failures = [];
+  const recap = file.recap || {};
+  const duration = Math.max(1, Number(file.source?.duration || 0));
+  const receipts = new Set(
+    (file.source?.receipts || []).map((item) => String(item?.key || ""))
+      .filter(Boolean),
+  );
+  const guideCuts = new Set(
+    (file.source?.showWiki?.episodeGuide?.cuts || [])
+      .map((item) => String(item?.id || "")).filter(Boolean),
+  );
+  const highlights = Array.isArray(recap.highlightRunway)
+    ? recap.highlightRunway
+    : [];
+  const add = (location, failure) => failures.push({ location, failure });
+
+  if (!textPresent(recap.headline) || !textPresent(recap.overview)) {
+    add("publicSummary", "public headline and overview are required");
+  }
+  if (!highlights.length) {
+    add("highlightRunway", "public structured summary needs a playable runway");
+  }
+  const identities = new Set();
+  highlights.forEach((item, index) => {
+    const location = `highlightRunway[${index}]`;
+    const receiptKey = String(item?.receiptKey || "");
+    const guideCutId = String(item?.guideCutId || "");
+    const sourceBound = receiptKey
+      ? receipts.has(receiptKey)
+      : guideCutId
+        ? guideCuts.has(guideCutId)
+        : false;
+    if (!sourceBound) {
+      add(location, "public highlight is not bound to this exact source");
+    }
+    if (!textPresent(item?.label) || !textPresent(item?.category)) {
+      add(location, "public highlight label and category are required");
+    }
+    if (!validWindow(item, duration)) {
+      add(location, "public highlight window falls outside the exact source");
+    }
+    if (index && Number(item.at) < Number(highlights[index - 1].at)) {
+      add(location, "public highlight runway is not chronological");
+    }
+    const identity = `${receiptKey}|${guideCutId}`;
+    if (identities.has(identity)) {
+      add(location, "duplicate public highlight identity");
+    }
+    identities.add(identity);
+  });
+
+  Object.entries(recap.fanRead || {}).forEach(([lane, item]) => {
+    if (!textPresent(item?.body)) return;
+    const location = `fanRead.${lane}`;
+    const sourceBound = item.receiptKey
+      ? receipts.has(String(item.receiptKey))
+      : item.guideCutId
+        ? guideCuts.has(String(item.guideCutId))
+        : false;
+    if (
+      !textPresent(item.label) ||
+      !textPresent(item.topic) ||
+      !sourceBound ||
+      !validWindow(item, duration)
+    ) {
+      add(
+        location,
+        "public fan lane must have copy, a source identity, and a valid window",
+      );
+    }
+  });
+
+  return failures.length ? [{
+    sourceId: file.id,
+    failures,
+    highlightCount: highlights.length,
+  }] : [];
+}
+
 if (process.argv.includes("--copy-grammar-negative-fixture")) {
   const failures = generatedCopyGrammarFailures({
     id: "__copy-grammar-negative-fixture__",
@@ -502,16 +887,39 @@ const files = result.sources.map((source) => ({
   source,
   recap: source.showWiki.episodeRecap,
   legacyRecap: source.showWiki.recap,
+})).map((file) => ({
+  ...file,
+  publicModel: publicModelFor(file),
 }));
 const ready = files.filter((file) => file.recap.state === "ready");
 const held = files.filter((file) => file.recap.state === "held");
-const sections = ready.flatMap((file) =>
+const humanEditorialReady = ready.filter(isHumanEditorialFile);
+const structuredSummaryReady = ready.filter(isStructuredSummaryFile);
+const legacyReady = ready.filter((file) => file.publicModel === "legacy");
+const publicStoryFiles = humanEditorialReady.concat(legacyReady);
+const sections = legacyReady.flatMap((file) =>
   file.recap.sections.map((section) => ({ sourceId: file.id, ...section })),
 );
-const storySegments = ready.flatMap((file) =>
-  file.recap.story.map((segment) => ({ sourceId: file.id, ...segment })),
+const storySegments = publicStoryFiles.flatMap((file) =>
+  file.recap.story.map((segment) => ({
+    sourceId: file.id,
+    publicModel: file.publicModel,
+    ...segment,
+  })),
 );
-const actEvidence = ready.map((file) => {
+const legacyStorySegments = storySegments.filter(
+  (segment) => segment.publicModel === "legacy",
+);
+const humanStorySegments = storySegments.filter(
+  (segment) => segment.publicModel === "human-editorial",
+);
+const humanEditorialTruthFailures = humanEditorialReady.flatMap(
+  auditHumanEditorialFile,
+);
+const structuredPublicSummaryFailures = structuredSummaryReady.flatMap(
+  auditStructuredSummaryFile,
+);
+const actEvidence = legacyReady.map((file) => {
   const registered = file.source.receipts || [];
   const usedKeys = new Set(file.recap.sections.flatMap((section) => section.receiptKeys));
   const registeredByKind = {
@@ -551,7 +959,7 @@ const actEvidenceTotals = actEvidence.reduce((totals, item) => {
   usedByKind: { topic: 0, moment: 0, character: 0 },
   openings: {},
 });
-const storyCoverageFailures = ready.flatMap((file) => {
+const storyCoverageFailures = legacyReady.flatMap((file) => {
   const registeredKeys = file.source.receipts.map((receipt) =>
     String(receipt.key || "")
   ).filter(Boolean);
@@ -600,7 +1008,7 @@ const storyCoverageFailures = ready.flatMap((file) => {
     }]
     : [];
 });
-const storyAnchorFailures = ready.flatMap((file) => {
+const storyAnchorFailures = legacyReady.flatMap((file) => {
   const receiptByKey = new Map(
     file.source.receipts.map((receipt) => [receipt.key, receipt]),
   );
@@ -640,7 +1048,7 @@ const storyAnchorFailures = ready.flatMap((file) => {
       }];
   });
 });
-const namelessStorySegments = ready.flatMap((file) =>
+const namelessStorySegments = legacyReady.flatMap((file) =>
   file.recap.story.flatMap((segment) => {
     const primary = String(segment.narrative?.primarySubject || "").trim();
     return !primary ||
@@ -654,7 +1062,7 @@ const namelessStorySegments = ready.flatMap((file) =>
       : [];
   }),
 );
-const inventoryStorySegments = ready.flatMap((file) =>
+const inventoryStorySegments = legacyReady.flatMap((file) =>
   file.recap.story.flatMap((segment) =>
     /\bmoves through\b|without a named subject attached/i.test(segment.body || "")
       ? [{
@@ -665,7 +1073,7 @@ const inventoryStorySegments = ready.flatMap((file) =>
       : []
   ),
 );
-const storyNarrativeBeatFailures = ready.flatMap((file) => {
+const storyNarrativeBeatFailures = legacyReady.flatMap((file) => {
   const receiptByKey = new Map(
     file.source.receipts.map((receipt) => [receipt.key, receipt]),
   );
@@ -723,7 +1131,7 @@ const storyNarrativeBeatFailures = ready.flatMap((file) => {
       }];
   });
 });
-const storySemanticAnchorFailures = ready.flatMap((file) => {
+const storySemanticAnchorFailures = legacyReady.flatMap((file) => {
   const receiptByKey = new Map(
     file.source.receipts.map((receipt) => [receipt.key, receipt]),
   );
@@ -801,7 +1209,7 @@ const storySemanticAnchorFailures = ready.flatMap((file) => {
       }];
   });
 });
-const bestMomentSelectionFailures = ready.flatMap((file) => {
+const bestMomentSelectionFailures = legacyReady.flatMap((file) => {
   const momentReceipts = file.source.receipts.filter(
     (receipt) => receiptKind(receipt) === "moment",
   );
@@ -837,7 +1245,7 @@ const bestMomentSelectionFailures = ready.flatMap((file) => {
       strongestLeads,
     }];
 });
-const highlightRunwayAudits = ready.map((file) => {
+const highlightRunwayAudits = legacyReady.map((file) => {
   const registered = Array.isArray(file.source.receipts)
     ? file.source.receipts
     : [];
@@ -939,7 +1347,7 @@ const highlightRunwayAudits = ready.map((file) => {
 const highlightRunwayFailures = highlightRunwayAudits.filter(
   (audit) => !audit.pass,
 );
-const guideStoryCoverage = ready
+const guideStoryCoverage = legacyReady
   .filter((file) => file.source.showWiki?.episodeGuide?.schema === "wwam-episode-guide/v2")
   .map((file) => {
     const expected = new Set(guidePoints(file).map((point) => point.id));
@@ -973,7 +1381,7 @@ const guideStoryCoverageFailures = guideStoryCoverage.filter((item) =>
   item.reportedUsed !== item.used ||
   item.reportedPercent !== 100
 );
-const comparison = ready
+const comparison = legacyReady
   .filter((file) => file.legacyRecap && file.legacyRecap.overview)
   .map((file) => ({
     sourceId: file.id,
@@ -985,7 +1393,7 @@ const comparison = ready
   }))
   .sort((left, right) => left.overlap - right.overlap || left.sourceId.localeCompare(right.sourceId));
 const machineLeaks = ready.filter((file) =>
-  /\bTOPIC\s*:|CHARACTER PERFORMANCE|A CHARACTER PERFORMANCE\b/i.test(recapText(file)),
+  /(?:^|\s)(?:TOPIC|CHARACTER PERFORMANCE)\s*:/i.test(recapText(file)),
 );
 const headlineAgreementErrors = ready.flatMap((file) =>
   /\b(?:RANKINGS? & LISTS?|REMAKES? & REBOOTS?|SEQUELS? & PREQUELS?|TRAILERS)\s+(?:GETS|WALKS|STARTS|OPENS|TAKES|LEAVES|HIDES|KICKS)\b/i
@@ -1063,7 +1471,7 @@ const storyLabelAgreementErrors = storySegments.flatMap((segment) => {
 const agreementErrors = headlineAgreementErrors
   .concat(storyAgreementErrors, storyLabelAgreementErrors);
 const recapCopyGrammarFailures = ready.flatMap(generatedCopyGrammarFailures);
-const duplicateLabels = ready.filter((file) => {
+const duplicateLabels = legacyReady.filter((file) => {
   const labels = file.recap.sections.map((section) => section.label.toLowerCase());
   return new Set(labels).size !== labels.length;
 });
@@ -1105,7 +1513,7 @@ const steveFiles = steveCandidateFiles.filter((file) => {
   );
 });
 const missingSteve = steveFiles.filter((file) => !file.recap.fanRead?.hated);
-const earlyClosingLabels = ready.flatMap((file) =>
+const earlyClosingLabels = legacyReady.flatMap((file) =>
   file.recap.sections
     .filter((section) => /^LAST (?:CALL|WORD)\b/.test(section.label))
     .filter((section) => section.at / Math.max(1, file.source.duration) < 0.85)
@@ -1118,15 +1526,15 @@ const earlyClosingLabels = ready.flatMap((file) =>
 );
 const missingCaseFiles = files.filter((file) => !file.recap.caseFile);
 const titleGoldens = {
-  M3P4mMDpXUc: /SCREAM/,
-  QxJyVaAgZ_Y: /FRIDAY THE 13TH/,
-  KrBhfGxsJNM: /HALLOWEEN/,
-  nv99WEtXGvE: /A NIGHTMARE ON ELM STREET/,
-  qfJFZaC9pTE: /IT|DERRY/,
-  tUJviU09fWM: /TEXAS CHAINSAW/,
-  MSVltTVeypc: /HALLOWEEN/,
-  "Oi-s0ZuWDbM": /HORROR/,
-  QMYgsEfPMg0: /CHRISTMAS/,
+  M3P4mMDpXUc: /SCREAM/i,
+  QxJyVaAgZ_Y: /FRIDAY THE 13TH/i,
+  KrBhfGxsJNM: /HALLOWEEN/i,
+  nv99WEtXGvE: /A NIGHTMARE ON ELM STREET|FREDDY KRUEGER/i,
+  qfJFZaC9pTE: /IT|DERRY/i,
+  tUJviU09fWM: /TEXAS CHAINSAW/i,
+  MSVltTVeypc: /HALLOWEEN/i,
+  "Oi-s0ZuWDbM": /HORROR/i,
+  QMYgsEfPMg0: /CHRISTMAS/i,
 };
 const titleGoldenFailures = Object.entries(titleGoldens).flatMap(([sourceId, pattern]) => {
   const file = ready.find((candidate) => candidate.id === sourceId);
@@ -1162,33 +1570,39 @@ const STORY_WORD_MIN = 8;
 const STORY_WORD_MAX = 60;
 const storyWordRangeFailures = storySegments.flatMap((segment) => {
   const count = wordCount(segment.body);
-  return count < STORY_WORD_MIN || count > STORY_WORD_MAX
+  const minimum = segment.publicModel === "human-editorial"
+    ? 12
+    : STORY_WORD_MIN;
+  const maximum = segment.publicModel === "human-editorial"
+    ? 90
+    : STORY_WORD_MAX;
+  return count < minimum || count > maximum
     ? [{
       sourceId: segment.sourceId,
       segmentId: segment.id,
       words: count,
-      minimum: STORY_WORD_MIN,
-      maximum: STORY_WORD_MAX,
+      minimum,
+      maximum,
       body: segment.body,
     }]
     : [];
 });
 const duplicateVisibleTopologyTopics = ready.flatMap((file) => {
-  const lanes = [
-    {
+  const lanes = file.publicModel === "human-editorial" ? [] : [
+    ...(file.publicModel === "legacy" ? [{
       lane: "topics",
       values: (file.recap.topics || []).map((label) => ({
         label: String(label || ""),
         receiptKey: "",
       })),
-    },
+    }] : []),
     {
       lane: "topicMap",
       values: (file.recap.topicMap || []).map((topic) => ({
         label: String(topic?.label || ""),
         receiptKey: String(topic?.receiptKey || ""),
       })),
-    },
+    }
   ];
   return lanes.flatMap(({ lane, values }) => {
     const labels = new Map();
@@ -1246,7 +1660,10 @@ const qmyGoldenFailures = (() => {
   if (!/\bCHRISTMAS\b/i.test(titleSubjectSurfaces)) {
     failures.push("christmas-missing-from-feldman-recap");
   }
-  if (!/\bCHRISTMAS\b/i.test(String(firstRegisteredBlock.body || ""))) {
+  if (
+    file.publicModel === "legacy" &&
+    !/\bCHRISTMAS\b/i.test(String(firstRegisteredBlock.body || ""))
+  ) {
     failures.push("christmas-missing-from-registered-topic-block");
   }
   if (lastEnd / duration < 0.9) {
@@ -1277,18 +1694,34 @@ const report = {
     sources: files.length,
     ready: ready.length,
     held: held.length,
+    publicModels: {
+      humanEditorial: humanEditorialReady.length,
+      structuredSourceSummary: structuredSummaryReady.length,
+      legacy: legacyReady.length,
+    },
     tiers: countBy(files, (file) => file.recap.tier),
   },
   depth: {
     sections: {
       total: sections.length,
-      averagePerReadyRecap: average(ready.map((file) => file.recap.sections.length)),
-      minimum: Math.min(...ready.map((file) => file.recap.sections.length)),
-      maximum: Math.max(...ready.map((file) => file.recap.sections.length)),
+      averagePerEligibleRecap: average(
+        legacyReady.map((file) => file.recap.sections.length),
+      ),
+      minimum: legacyReady.length
+        ? Math.min(...legacyReady.map((file) => file.recap.sections.length))
+        : 0,
+      maximum: Math.max(
+        0,
+        ...legacyReady.map((file) => file.recap.sections.length),
+      ),
     },
     story: {
       segments: storySegments.length,
-      averageSegmentsPerReadyRecap: average(ready.map((file) => file.recap.story.length)),
+      humanEditorialSegments: humanStorySegments.length,
+      legacySegments: legacyStorySegments.length,
+      averageSegmentsPerEligibleRecap: average(
+        publicStoryFiles.map((file) => file.recap.story.length),
+      ),
       averageWordsPerSegment: average(storySegments.map((segment) =>
         prose(segment.body).split(" ").filter(Boolean).length,
       )),
@@ -1300,16 +1733,22 @@ const report = {
         ...storySegments.map((segment) => wordCount(segment.body)),
       ),
       requiredWordRange: {
-        minimum: STORY_WORD_MIN,
-        maximum: STORY_WORD_MAX,
+        legacy: {
+          minimum: STORY_WORD_MIN,
+          maximum: STORY_WORD_MAX,
+        },
+        humanEditorial: {
+          minimum: 12,
+          maximum: 90,
+        },
       },
-      receiptsAccountedFor: ready.reduce(
+      receiptsAccountedFor: legacyReady.reduce(
         (total, file) => total + new Set(
           file.recap.story.flatMap(storyReceiptKeys),
         ).size,
         0,
       ),
-      visibleReceiptsAccountedFor: ready.reduce(
+      visibleReceiptsAccountedFor: legacyReady.reduce(
         (total, file) => total + new Set(
           file.recap.story.flatMap((segment) =>
             (segment.receiptKeys || []).map(String)
@@ -1317,13 +1756,13 @@ const report = {
         ).size,
         0,
       ),
-      hiddenReceiptsAccountedFor: ready.reduce(
+      hiddenReceiptsAccountedFor: legacyReady.reduce(
         (total, file) => total + new Set(
           file.recap.story.flatMap(hiddenStoryReceiptKeys),
         ).size,
         0,
       ),
-      timelineReceiptsAccountedFor: ready.reduce(
+      timelineReceiptsAccountedFor: legacyReady.reduce(
         (total, file) => total + new Set(
           file.recap.story
             .flatMap(storyReceiptKeys)
@@ -1331,7 +1770,7 @@ const report = {
         ).size,
         0,
       ),
-      registeredTimelineReceipts: ready.reduce(
+      registeredTimelineReceipts: legacyReady.reduce(
         (total, file) => total + new Set(
           file.source.receipts
             .map((receipt) => String(receipt.key || ""))
@@ -1339,20 +1778,20 @@ const report = {
         ).size,
         0,
       ),
-      registeredReceipts: ready.reduce(
+      registeredReceipts: legacyReady.reduce(
         (total, file) => total + file.recap.caseFile.receiptCount,
         0,
       ),
-      narrativeBeatSegments: storySegments.filter((segment) =>
+      narrativeBeatSegments: legacyStorySegments.filter((segment) =>
         segment.narrative?.schema === "shokker-recap-narrative-beat/v1"
       ).length,
-      namedSegments: storySegments.filter((segment) =>
+      namedSegments: legacyStorySegments.filter((segment) =>
         String(segment.narrative?.primarySubject || "").trim()
       ).length,
-      directAnchorSegments: storySegments.filter((segment) =>
+      directAnchorSegments: legacyStorySegments.filter((segment) =>
         segment.narrative?.anchorSupportsPrimary === true
       ).length,
-      separateSpikeSegments: storySegments.filter((segment) =>
+      separateSpikeSegments: legacyStorySegments.filter((segment) =>
         segment.narrative?.anchorSupportsPrimary === false
       ).length,
       inventoryOnlySegments: inventoryStorySegments.length,
@@ -1363,6 +1802,22 @@ const report = {
       ),
       registeredGuidePoints: guideStoryCoverage.reduce(
         (total, item) => total + item.expected,
+        0,
+      ),
+    },
+    humanEditorial: {
+      recaps: humanEditorialReady.length,
+      storyReels: humanStorySegments.length,
+      highlights: humanEditorialReady.reduce(
+        (total, file) => total + file.recap.highlightRunway.length,
+        0,
+      ),
+      panels: humanEditorialReady.reduce(
+        (total, file) => total + (file.recap.editorialPanels || []).length,
+        0,
+      ),
+      fanReadLanes: humanEditorialReady.reduce(
+        (total, file) => total + Object.keys(file.recap.fanRead || {}).length,
         0,
       ),
     },
@@ -1388,7 +1843,7 @@ const report = {
       openingCategory: actEvidenceTotals.openings,
     },
     topics: {
-      averagePerReadyRecap: average(ready.map((file) =>
+      averagePerLegacyRecap: average(legacyReady.map((file) =>
         new Set(file.recap.sections.flatMap((section) => section.receiptKeys)).size,
       )),
       recapsWithGenericFeldmanZoneHeadline: ready.filter((file) =>
@@ -1470,6 +1925,8 @@ const report = {
     missingCaseFiles: missingCaseFiles.map((file) => file.id),
     heldSemanticClaimFailures: heldSemanticClaimFailures.map((file) => file.id),
     titleGoldenFailures,
+    humanEditorialTruthFailures,
+    structuredPublicSummaryFailures,
     storyCoverageFailures,
     storyAnchorFailures,
     namelessStorySegments,
@@ -1521,16 +1978,20 @@ report.gates = {
     report.quality.missingCaseFiles.length === 0,
   titleSubjectGoldensPass:
     report.quality.titleGoldenFailures.length === 0,
+  humanEditorialTruthPass:
+    report.quality.humanEditorialTruthFailures.length === 0,
+  structuredPublicSummariesPass:
+    report.quality.structuredPublicSummaryFailures.length === 0,
   writtenStoryCoveragePass:
     report.quality.storyCoverageFailures.length === 0,
   writtenStoryAnchorsPass:
     report.quality.storyAnchorFailures.length === 0,
   everyStoryReelHasNarrativeBeat:
     report.depth.story.narrativeBeatSegments ===
-    report.depth.story.segments,
+    report.depth.story.legacySegments,
   everyStoryReelNamesItsEvidence:
     report.depth.story.namedSegments ===
-      report.depth.story.segments &&
+      report.depth.story.legacySegments &&
     report.quality.namelessStorySegments.length === 0,
   noInventoryOnlyStoryReels:
     report.depth.story.inventoryOnlySegments === 0,
@@ -1580,6 +2041,7 @@ if (sourceFlag >= 0) {
     coverage: file.coverage,
     state: file.recap.state,
     tier: file.recap.tier,
+    publicModel: file.publicModel,
     receiptCount: file.recap.caseFile?.receiptCount || 0,
     sectionCount: file.recap.sections.length,
     storyCount: file.recap.story.length,
@@ -1594,10 +2056,12 @@ if (sourceFlag >= 0) {
     [
       "WWAM EPISODE RECAP QUALITY AUDIT",
       `Sources: ${report.corpus.sources} // ready ${report.corpus.ready} // held ${report.corpus.held}`,
+      `Public recap models: ${JSON.stringify(report.corpus.publicModels)}`,
       `Tiers: ${JSON.stringify(report.corpus.tiers)}`,
-      `Sections: ${report.depth.sections.total} total // ${report.depth.sections.averagePerReadyRecap} average`,
+      `Legacy public sections: ${report.depth.sections.total} total // ${report.depth.sections.averagePerEligibleRecap} average`,
       `Written story: ${report.depth.story.segments} reels // ${report.depth.story.receiptsAccountedFor}/${report.depth.story.registeredReceipts} receipts accounted for // ${report.depth.story.timelineReceiptsAccountedFor}/${report.depth.story.registeredTimelineReceipts} hidden timeline receipts`,
-      `Authored story depth: ${report.depth.story.minimumWordsPerSegment}-${report.depth.story.maximumWordsPerSegment} words/reel (required ${report.depth.story.requiredWordRange.minimum}-${report.depth.story.requiredWordRange.maximum}) // ${report.depth.story.narrativeBeatSegments}/${report.depth.story.segments} evidence-shaped beats // ${report.depth.story.namedSegments}/${report.depth.story.segments} named`,
+      `Authored story depth: ${report.depth.story.minimumWordsPerSegment}-${report.depth.story.maximumWordsPerSegment} words/reel // human ${report.depth.story.humanEditorialSegments} // legacy ${report.depth.story.legacySegments}`,
+      `Human editorial surfaces: ${report.depth.humanEditorial.recaps} recaps // ${report.depth.humanEditorial.storyReels} story reels // ${report.depth.humanEditorial.highlights} highlights // ${report.depth.humanEditorial.panels} panels // ${report.depth.humanEditorial.fanReadLanes} fan lanes`,
       `Subject-safe story anchors: ${report.depth.story.directAnchorSegments} direct // ${report.depth.story.separateSpikeSegments} explicitly separate`,
       `Reviewed guide carry-through: ${report.depth.story.guidePointsAccountedFor}/${report.depth.story.registeredGuidePoints} timed points across ${report.depth.story.guideBackedRecaps} full chronicles`,
       `Inventory-only / nameless reels: ${report.depth.story.inventoryOnlySegments} / ${report.quality.namelessStorySegments.length}`,
@@ -1620,6 +2084,8 @@ if (sourceFlag >= 0) {
       `Early LAST WORD labels: ${report.quality.earlyClosingLabels.length}`,
       `Missing case files: ${report.quality.missingCaseFiles.length}`,
       `Title-subject golden failures: ${report.quality.titleGoldenFailures.length}`,
+      `Human editorial truth failures: ${report.quality.humanEditorialTruthFailures.length}`,
+      `Structured public-summary failures: ${report.quality.structuredPublicSummaryFailures.length}`,
       `Written-story coverage failures: ${report.quality.storyCoverageFailures.length}`,
       `Written-story anchor failures: ${report.quality.storyAnchorFailures.length}`,
       `Narrative-beat evidence failures: ${report.quality.storyNarrativeBeatFailures.length}`,

@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.28.2";
+  var VERSION = "1.30.3";
   var DOSSIER_SCHEMA = "shokker-source-dossier/v1";
   var QUERY_SCHEMA = "shokker-source-query/v1";
   var QUERY_RESULT_SCHEMA = "shokker-source-query-result/v1";
@@ -57,15 +57,34 @@
   }
 
   function cleanCaptionExcerpt(value) {
-    return clean(value)
+    var text = clean(value)
       .replace(/^(?:\s*>>\s*)+/, "")
       .replace(/>>/g, " ")
       .replace(/\[(?:laughter|music|applause|cheering)\]/gi, " ")
       .replace(/\[\s*__\s*\]/g, "[BLEEP]")
+      .replace(/\b([A-Za-z][A-Za-z'-]*)\s+\1\b/gi, "$1")
       .replace(/\s+([,.;!?])/g, "$1")
       .replace(/\s+/g, " ")
       .replace(/^[\s\u2026]+|[\s\u2026]+$/g, "")
       .trim();
+    if (!text) return "";
+    var words = text.match(/[A-Za-z0-9]+(?:['-][A-Za-z0-9]+)*/g) || [];
+    var hasPunctuation = /[,;:!?]|\.(?:\s|$)/.test(text);
+    var startsMidBreath = /^(?:uh+|um+|and|but|so|about|because|like|well)\b/i
+      .test(text);
+    var dangles = /\b(?:and|or|but|because|with|to|from|of|the|a|an|which|who|while|when|where|as|at|in|on|for|by|we're|i'm|it's)\s*$/i
+      .test(text);
+    /*
+     * Automatic captions are evidence, not finished copy. Short, obviously
+     * severed fragments disappear from the fan-facing cards; the timestamp
+     * and player remain available. A compact punchline with real punctuation
+     * ("Nice job, asshole") still survives.
+     */
+    if (dangles || !hasPunctuation && words.length < 8 ||
+        startsMidBreath && !hasPunctuation && words.length < 12) {
+      return "";
+    }
+    return text;
   }
 
   function array(value) {
@@ -869,7 +888,10 @@
         return "Every comedy turn found in this upload, with the original timestamp.";
       }
       if (id === "character-bits") {
-        return "Every recurring-character appearance and bit found in this upload.";
+        return "Editor-confirmed recurring-character performances from this upload.";
+      }
+      if (id === "character-references") {
+        return "Named callbacks from this upload. A reference is not presented as a performance.";
       }
       var description = clean(lane.description);
       return /(machine|operator|showcase[- ]receipt[- ]score|signal score)/i.test(description) ?
@@ -916,8 +938,56 @@
     function episodeRecapStory(dossier) {
       if (!hasReadyEpisodeRecap(dossier)) return [];
       return array(episodeRecapFor(dossier).story).map(record).filter(function (reel) {
-        return clean(reel.body);
+        return clean(reel.label) &&
+          Number.isFinite(Number(reel.playAt != null ? reel.playAt : reel.at));
       });
+    }
+
+    function humanEditorialEpisodeRecap(recap) {
+      recap = record(recap);
+      return /human-editorial/i.test(clean(recap.editorialState)) ||
+        record(recap.editorialEvidence).humanEditorialRead === true ||
+        record(recap.caseFile).humanEditorialRead === true;
+    }
+
+    function structuredSummaryEpisodeRecap(recap) {
+      recap = record(recap);
+      return !humanEditorialEpisodeRecap(recap) &&
+        clean(recap.editorialState) === "structured-source-summary";
+    }
+
+    function canonicalEditorialEpisodeRecap(recap) {
+      recap = record(recap);
+      return humanEditorialEpisodeRecap(recap) ||
+        structuredSummaryEpisodeRecap(recap);
+    }
+
+    function episodeRecapReplayMoments(dossier) {
+      if (!hasReadyEpisodeRecap(dossier)) return [];
+      var recap = episodeRecapFor(dossier);
+      /*
+       * A source-summary pack may retain candidate moments internally for
+       * search and later editorial work. They are not a public best-of shelf:
+       * automatic captions and generic labels do not become finished comedy.
+       */
+      if (structuredSummaryEpisodeRecap(recap)) return [];
+      var humanEditorial = humanEditorialEpisodeRecap(recap);
+      var bestMoments = array(recap.bestMoments).map(record).filter(function (moment) {
+        return (
+          clean(moment.receiptKey) &&
+          sourceReceiptByKey(dossier, moment.receiptKey)
+        ) || humanEditorial && Number.isFinite(Number(moment.playAt));
+      });
+      var highlightRunway = array(recap.highlightRunway).map(record).filter(function (moment) {
+        return (
+          clean(moment.receiptKey) &&
+          sourceReceiptByKey(dossier, moment.receiptKey)
+        ) || (
+          clean(moment.guideCutId) &&
+          sourceGuideCutById(dossier, moment.guideCutId)
+        ) || humanEditorial && Number.isFinite(Number(moment.playAt));
+      });
+      return highlightRunway.length ? highlightRunway : bestMoments;
     }
 
     function formatStoryFrame(source, tier) {
@@ -1011,7 +1081,9 @@
 
     function feldmanDamageShortcutSpecs(dossier) {
       if (!hasReadyEpisodeRecap(dossier)) return [];
-      var fanRead = record(episodeRecapFor(dossier).fanRead);
+      var recap = episodeRecapFor(dossier);
+      if (structuredSummaryEpisodeRecap(recap)) return [];
+      var fanRead = record(recap.fanRead);
       var lanes = array(record(dossier.source.showWiki).lanes).map(record);
       var specs = [
         {
@@ -1093,6 +1165,15 @@
       var experience = record(wiki.experience);
       var sourceBrief = isSourceBrief(dossier);
       var compact = !state.fullFile;
+      var canonicalRecap = hasReadyEpisodeRecap(dossier) &&
+        canonicalEditorialEpisodeRecap(episodeRecapFor(dossier));
+      var recap = episodeRecapFor(dossier);
+      var humanEditorialStory = hasReadyEpisodeRecap(dossier) &&
+        (humanEditorialEpisodeRecap(recap) ||
+          !clean(recap.editorialState)) &&
+        episodeRecapStory(dossier).length > 0;
+      var recapHasHighlights = hasReadyEpisodeRecap(dossier) &&
+        episodeRecapReplayMoments(dossier).length > 0;
       var hasTopicRail = !sourceBrief &&
         episodeRecapTopicEntries(dossier, 1).length > 0;
       var links = [];
@@ -1105,6 +1186,10 @@
         links.push({ id: id, label: label });
       }
       function signatureDestination(identity, fallbackLabel) {
+        var damage = feldmanDamageShortcutSpecs(dossier).find(function (candidate) {
+          return identity(token(candidate.label));
+        }) || null;
+        if (canonicalRecap) return damage;
         var lane = lanes.find(function (candidate) {
           var haystack = token(clean(candidate.id) + " " + clean(candidate.label));
           return identity(haystack) &&
@@ -1116,9 +1201,7 @@
             label: fallbackLabel
           };
         }
-        return feldmanDamageShortcutSpecs(dossier).find(function (candidate) {
-          return identity(token(candidate.label));
-        }) || null;
+        return damage;
       }
 
       add(SECTION_IDS.player, "WATCH");
@@ -1128,11 +1211,11 @@
           hasEpisodeRecap(dossier) ? "RECAP STATUS" :
             sourceBrief ? "SOURCE BRIEF" : "SUMMARY"
       );
-      if (!sourceBrief && (
-          array(episodeRecapFor(dossier).highlightRunway).length ||
-          array(episodeRecapFor(dossier).bestMoments).length
-        )) {
+      if (!sourceBrief && recapHasHighlights) {
         add("sourceDossierFeldmanBest", "HIGHLIGHTS");
+      }
+      if (humanEditorialStory) {
+        add("sourceDossierFeldmanStory", "EPISODE STORY");
       }
       if (!sourceBrief) {
         var upInYa = signatureDestination(function (identity) {
@@ -1146,18 +1229,19 @@
         if (steve) add(steve.id, steve.label);
       }
       if (hasTopicRail) add("sourceDossierFeldmanTopics", "TOPICS");
-      if (!sourceBrief && clean(record(wiki.episodeGuide).schema)) {
+      if (!canonicalRecap && !sourceBrief &&
+          clean(record(wiki.episodeGuide).schema)) {
         add("sourceDossierEpisodeGuide", "DEEP DIVE");
       }
       add(
         SECTION_IDS.ask,
         sourceBrief ? "ASK SOURCE FACTS" : "ASK THIS SHOW"
       );
-      if (!compact && !sourceBrief &&
+      if (!canonicalRecap && !compact && !sourceBrief &&
           showWikiExperienceReceipts(dossier, experience.routeReceiptKeys).length) {
         add("sourceDossierShowWikiExperience", clean(experience.title));
       }
-      if (!compact && !sourceBrief) {
+      if (!canonicalRecap && !compact && !sourceBrief) {
         lanes.forEach(function (lane, index) {
           if (!showWikiLaneReceipts(dossier, lane).length) return;
           if (hasTopicRail &&
@@ -1167,7 +1251,7 @@
         });
         add(SECTION_IDS.aftermath, "AFTERMATH PACK");
         add(SECTION_IDS.inside, "ALL TIMESTAMPS");
-      } else if (!sourceBrief) {
+      } else if (!sourceBrief && !canonicalRecap) {
         add(SECTION_IDS.inside, "MORE");
       }
       return '<nav class="source-dossier-explore" aria-label="Explore this show">' +
@@ -1530,27 +1614,19 @@
       if (clean(recap.schema) !== "wwam-feldman-recap/v1") return "";
       var ready = clean(recap.state) === "ready";
       var topicMapOnly = clean(recap.tier) === "topic-recap";
+      var humanEditorial = humanEditorialEpisodeRecap(recap);
+      var structuredSummary = structuredSummaryEpisodeRecap(recap);
+      var legacyAssembly = ready && !canonicalEditorialEpisodeRecap(recap);
       var sections = array(recap.sections).map(record);
-      var story = episodeRecapStory(dossier);
-      var bestMoments = array(recap.bestMoments).map(record).filter(function (moment) {
-        return clean(moment.receiptKey) && sourceReceiptByKey(dossier, moment.receiptKey);
-      });
-      var highlightRunway = array(recap.highlightRunway).map(record).filter(function (moment) {
-        return (
-          clean(moment.receiptKey) &&
-          sourceReceiptByKey(dossier, moment.receiptKey)
-        ) || (
-          clean(moment.guideCutId) &&
-          sourceGuideCutById(dossier, moment.guideCutId)
-        );
-      });
-      var replayMoments = highlightRunway.length ? highlightRunway : bestMoments;
+      var story = humanEditorial || legacyAssembly ?
+        episodeRecapStory(dossier) : [];
+      var replayMoments = episodeRecapReplayMoments(dossier);
       var recapExpanded = !compact || state.recapExpanded;
       var previewSections = compact ? sections.slice(0, 3) : sections;
       var omittedSections = compact ? sections.slice(3) : [];
       var previewStory = compact ? story.slice(0, 2) : story;
       var omittedStory = compact ? story.slice(2) : [];
-      var fanRead = record(recap.fanRead);
+      var fanRead = structuredSummary ? {} : record(recap.fanRead);
       var recapCase = record(recap.caseFile);
       var topicMap = array(recap.topicMap).map(record).filter(function (topic) {
         return clean(topic.label) &&
@@ -1806,8 +1882,9 @@
           '"><header><span>' +
           esc(String(index + 1).padStart(2, "0")) +
           '</span><time>' + esc(range) + '</time></header><div><h5>' +
-          esc(label) + '</h5><p>' + esc(reel.body) +
-          '</p></div><footer>' +
+          esc(label) + '</h5>' +
+          (clean(reel.body) ? '<p>' + esc(reel.body) + '</p>' : '') +
+          '</div><footer>' +
           recapPlayButton(reel, "Play episode story reel " + (index + 1)) +
           '</footer></article>';
       }
@@ -1856,17 +1933,21 @@
       }
       var visibleBestMoments = recapExpanded ? replayMoments : replayMoments.slice(0, 6);
       var runwayEyebrow = topicMapOnly ?
-        "THE TOPIC RUNWAY // EXACT SUBJECT DOORS" :
-        "THE HIGHLIGHT RUNWAY // FULL-SHOW CUT";
+        "WHERE THEY TALK ABOUT IT" :
+        humanEditorial ? "PLAY THE GOOD SHIT" : "PLAYABLE CLIPS TO CHECK OUT";
       var runwayTitle = topicMapOnly ?
-        "EVERY CONFIRMED TOPIC TURN ON THIS TAPE." :
-        "EVERY SAVED TURN THAT CLEARED THE TAPE.";
+        "THE USEFUL SUBJECT JUMPS." :
+        humanEditorial ? "THE MOMENTS WORTH YOUR TIME." :
+          "THE CLEANEST DOORS INTO THE SHOW.";
       var runwayFooterTitle = topicMapOnly ?
-        "TOPIC TURNS, NOT OPINIONS." :
-        "RUNTIME SETS THE FLOOR. THE TAPE SETS THE CEILING.";
+        "A MAP, NOT A MIND READER." :
+        humanEditorial ? "A LONG SHOW CAN HAVE A LONG HIGHLIGHT REEL." :
+          "PLAYBACK MAKES THE FINAL CALL.";
       var runwayFooterBody = topicMapOnly ?
-        "These source-bound timestamps prove subject presence and recurrence. They do not invent a joke, reaction, verdict, or speaker." :
-        "There is no automatic cap: every timestamped moment and character appearance stays when it clears the source-evidence rules, with strong topic turns filling genuinely quiet stretches.";
+        "These jumps show where the subjects come up. Press play for the opinion, joke, and full context." :
+        humanEditorial ?
+          "Some nights earn six great clips. Some earn twenty-five. This shelf follows the show instead of forcing every episode into the same little box." :
+          "These are useful source-linked candidates, not fake editorial awards. Play the moment, hear the delivery, and decide whether it belongs in the permanent best-of shelf.";
       var bestMomentMarkup = replayMoments.length ?
         '<section class="source-dossier-feldman-best" ' +
         'id="sourceDossierFeldmanBest" aria-labelledby="sourceDossierFeldmanBestTitle">' +
@@ -2087,6 +2168,104 @@
         '%. THE SHOW DOESN&#39;T.</b><p>The last playable recap anchor lands at ' +
         esc(formatTime(lastPlayableAt)) + '. The full upload remains above; this page ' +
         'does not invent an ending for the unindexed tail.</p></div></aside>' : '';
+      var editorialPanelsMarkup = array(recap.editorialPanels).map(function (
+        panel,
+        panelIndex
+      ) {
+        panel = record(panel);
+        var panelType = clean(panel.type);
+        if (!/^(?:ranking|verdict|character)-ledger$/.test(panelType)) return "";
+        var panelKey = clean(panel.id) || panelType;
+        var panelDomId = "sourceDossierEditorialPanel-" +
+          token(panelKey) + "-" + panelIndex;
+        var groups = array(panel.groups).map(record).filter(function (group) {
+          return clean(group.label) && array(group.items).length;
+        });
+        var groupsMarkup = groups.map(function (group) {
+          return '<article><h6>' + esc(group.label) + '</h6><ul>' +
+            array(group.items).map(function (item) {
+              return '<li>' + esc(item) + '</li>';
+            }).join("") + '</ul></article>';
+        }).join("");
+        var items = array(panel.items).map(record);
+        var itemsMarkup = "";
+
+        if (panelType === "verdict-ledger") {
+          itemsMarkup = items.filter(function (item) {
+            return clean(item.subject) && clean(item.verdict);
+          }).map(function (item) {
+            return '<article class="source-dossier-editorial-ledger-card ' +
+              'is-verdict" data-editorial-subject="' + esc(item.subject) +
+              '"><h6>' + esc(item.subject) + '</h6><p>' +
+              esc(item.verdict) + '</p></article>';
+          }).join("");
+        } else if (panelType === "character-ledger") {
+          itemsMarkup = items.filter(function (item) {
+            return clean(item.character) && clean(item.label);
+          }).map(function (item) {
+            var atPresent = item.at != null && clean(item.at) !== "";
+            var endPresent = item.end != null && clean(item.end) !== "";
+            var at = Number(item.at);
+            var end = Number(item.end);
+            var playable = atPresent && endPresent &&
+              Number.isFinite(at) && Number.isFinite(end) &&
+              at >= 0 && at < number(source.duration) &&
+              end > at && end <= number(source.duration);
+            var playMarkup = playable ?
+              '<footer><time>' + esc(formatTime(at)) + '&mdash;' +
+                esc(formatTime(end)) + '</time><button type="button" ' +
+                'data-source-dossier-action="play-guide-cut" data-guide-at="' +
+                esc(at) + '" data-guide-end="' + esc(end) +
+                '" data-guide-label="' + esc(
+                  clean(item.character) + " // " + clean(item.label)
+                ) + '" data-guide-return="' + esc(panelDomId) +
+                '" data-guide-return-label="' +
+                esc(clean(panel.title) || "CHARACTER LEDGER") +
+                '" aria-label="' + esc(
+                  "Play " + clean(item.character) + ": " + clean(item.label) +
+                  " at " + formatTime(at)
+                ) + '"><span aria-hidden="true">&#9654;</span> PLAY ' +
+                esc(formatTime(at)) + '</button></footer>' : "";
+            return '<article class="source-dossier-editorial-ledger-card ' +
+              'is-character" data-editorial-character="' +
+              esc(item.character) + '"><h6>' + esc(item.character) +
+              '</h6><p>' + esc(item.label) + '</p>' + playMarkup +
+              '</article>';
+          }).join("");
+        }
+
+        if (!groupsMarkup && !itemsMarkup) return "";
+        var defaultEyebrow = panelType === "character-ledger" ?
+          "THE CHARACTER ROLL CALL" : panelType === "verdict-ledger" ?
+            "THE VERDICTS" : "THE RANKING";
+        var defaultTitle = panelType === "character-ledger" ?
+          "WHO SHOWED UP" : panelType === "verdict-ledger" ?
+            "WHAT THE TAPE SAID" : "THE BOARD";
+        return '<section class="source-dossier-editorial-ledger is-' +
+          esc(panelType) + '" id="' + esc(panelDomId) +
+          '" data-editorial-panel="' + esc(panelKey) +
+          '" data-editorial-panel-type="' + esc(panelType) +
+          '"><header><span>' + esc(clean(panel.eyebrow) || defaultEyebrow) +
+          '</span><h5>' + esc(clean(panel.title) || defaultTitle) +
+          '</h5><p>' + esc(panel.intro) + '</p></header><div>' +
+          groupsMarkup + itemsMarkup + '</div>' +
+          (clean(panel.note) ? '<footer><b>WHAT WE DID NOT GUESS</b><p>' +
+            esc(panel.note) + '</p></footer>' : '') + '</section>';
+      }).filter(Boolean).join("");
+      var legacyChronicleMarkup = legacyAssembly ?
+        '<section class="source-dossier-feldman-chronicle" ' +
+          'id="sourceDossierFeldmanActs"><header><span>' +
+          esc(chronologyLabel) + '</span><b>' + esc(sections.length) + ' ' +
+          (sections.length === 1 ? 'ACT' : 'ACTS') + ' // ' +
+          esc(chronologyNote) + '</b></header><div class="source-dossier-feldman-acts" ' +
+          'id="sourceDossierFeldmanActList">' +
+          sectionMarkup + '</div>' +
+          (compact && omittedSections.length ?
+            '<div class="source-dossier-feldman-omitted-acts" ' +
+            'id="sourceDossierFeldmanOmittedActs"' +
+            (recapExpanded ? '' : ' hidden') + '>' +
+            (recapExpanded ? omittedSectionMarkup : '') + '</div>' : '') +
+          recapToggle + '</section>' : "";
 
       return '<section class="source-dossier-feldman-recap is-ready" ' +
         'id="sourceDossierShowWikiSummary" data-feldman-recap="ready" ' +
@@ -2096,31 +2275,24 @@
         '"><header><div class="source-dossier-feldman-heading"><span>' +
         esc(recap.label) + '</span><h4>' + esc(recap.headline) +
         '</h4></div><b>' + esc(recap.badge) + '</b></header>' +
-        '<p class="source-dossier-feldman-deck">' + esc(recap.deck) +
-        '</p><section class="source-dossier-feldman-quick-take" ' +
+        (clean(recap.deck) ? '<p class="source-dossier-feldman-deck">' +
+          esc(recap.deck) + '</p>' : '') +
+        '<section class="source-dossier-feldman-quick-take" ' +
          'id="sourceDossierFeldmanOverview"><span>THE 30-SECOND VERSION</span><p>' +
         esc(recap.overview) + '</p></section>' + indexBoundaryMarkup +
-        formatExperienceMarkup + topicRebuildExperienceMarkup +
-        openingJump + storyMarkup + bestMomentMarkup +
+        (legacyAssembly ?
+          formatExperienceMarkup + topicRebuildExperienceMarkup + openingJump :
+          '') +
+        storyMarkup + bestMomentMarkup +
+        (legacyAssembly ? '' : editorialPanelsMarkup) +
         (topicOrbitMarkup || topicRailMarkup) +
         (damageMarkup ? '<section class="source-dossier-feldman-damage" ' +
           'id="sourceDossierFeldmanDamage"><header><span>' +
           'FEATURED SIGNATURE MOMENTS // DAMAGE REPORT</span><b>' +
           'PLAY THE NIGHT&#39;S BIGGEST TURNS</b></header><div>' +
           damageMarkup + '</div></section>' : '') +
-        '<section class="source-dossier-feldman-chronicle" ' +
-        'id="sourceDossierFeldmanActs"><header><span>' +
-        esc(chronologyLabel) + '</span><b>' + esc(sections.length) + ' ' +
-        (sections.length === 1 ? 'ACT' : 'ACTS') + ' // ' +
-        esc(chronologyNote) + '</b></header><div class="source-dossier-feldman-acts" ' +
-        'id="sourceDossierFeldmanActList">' +
-        sectionMarkup + '</div>' +
-        (compact && omittedSections.length ?
-          '<div class="source-dossier-feldman-omitted-acts" ' +
-          'id="sourceDossierFeldmanOmittedActs"' +
-          (recapExpanded ? '' : ' hidden') + '>' +
-          (recapExpanded ? omittedSectionMarkup : '') + '</div>' : '') +
-        recapToggle + '</section>' + trustMarkup +
+        legacyChronicleMarkup +
+        trustMarkup +
          '</section>';
     }
 
@@ -2215,8 +2387,8 @@
         esc(why.body) + '</p>' + (threadMarkup ? '<div>' + threadMarkup + '</div>' : '') +
         '</div>' + fanPlayButton(strongest, "PLAY THE MUST-HEAR CUT") + '</div>' +
         (cards ? '<div class="source-dossier-fan-read-grid">' + cards + '</div>' : '') +
-        '<footer><b>READ IT. HEAR IT. KEEP THE SOURCE ATTACHED.</b><span>These are machine-surfaced ' +
-        'caption reads from this exact upload. Automatic captions do not establish the speaker.</span></footer></section>';
+        '<footer><b>READ IT. HEAR IT. KEEP THE SOURCE ATTACHED.</b><span>Every timestamp returns to this exact upload. ' +
+        'Captions can miss a name or mangle a word, so the playable clip always gets the last word.</span></footer></section>';
     }
 
     function showWikiEpisodeGuideMarkup(dossier, compact) {
@@ -2411,12 +2583,10 @@
       var sourceBrief = isSourceBrief(dossier);
       var episodeRecap = episodeRecapFor(dossier);
       var readyEpisodeRecap = clean(episodeRecap.state) === "ready";
-      var formatStopCount = episodeFormatDisplayItems(
-        episodeFormatExperienceFor(dossier)
-      ).length;
-      var deepStopCount = array(
-        record(episodeTopicRebuildExperienceFor(dossier)).stops
-      ).length;
+      var structuredSummaryRecap = readyEpisodeRecap &&
+        structuredSummaryEpisodeRecap(episodeRecap);
+      var canonicalEpisodeRecap = readyEpisodeRecap &&
+        canonicalEditorialEpisodeRecap(episodeRecap);
       var topicOnlyRecap = readyEpisodeRecap &&
         clean(episodeRecap.tier) === "topic-recap";
       var status = clean(wiki.status) ||
@@ -2427,7 +2597,6 @@
       var experience = record(wiki.experience);
       var guide = record(wiki.episodeGuide);
       var hasEpisodeGuide = clean(guide.schema) === "wwam-episode-guide/v2";
-      var guideCutCount = hasEpisodeGuide ? array(guide.cuts).length : 0;
       var hasMappedContent = Boolean(readyEpisodeRecap ||
         record(wiki.recap).overview || source.summary ||
         array(experience.routeReceiptKeys).length || lanes.some(function (lane) {
@@ -2447,7 +2616,17 @@
       });
       if (!highlightEntries.length) highlightEntries = populated.slice(0, 2);
       var visibleEntries = compact ? [] : populated;
-      var visibleMomentCount = compact ?
+      var recapMomentCount = structuredSummaryRecap ? 0 :
+        array(episodeRecap.highlightRunway).length;
+      var recapTopicDoorCount = structuredSummaryRecap ?
+        episodeRecapTopicEntries(dossier, 8).length : 0;
+      var recapHasHumanStory =
+        /human-editorial/i.test(clean(episodeRecap.editorialState)) ||
+        record(episodeRecap.caseFile).humanEditorialRead === true;
+      var recapStoryCount = recapHasHumanStory ?
+        array(episodeRecap.story).length : 0;
+      var visibleMomentCount = structuredSummaryRecap ? recapTopicDoorCount :
+        readyEpisodeRecap ? recapMomentCount : compact ?
         (hasEpisodeGuide ? Math.min(4, array(guide.cuts).length) :
           Math.min(3, array(experience.routeReceiptKeys).length)) :
         visibleEntries.reduce(function (total, entry) {
@@ -2456,6 +2635,7 @@
       var headerTitle = sourceBrief && hasEpisodeRecap(dossier) ?
         "THE SHOW IS HERE. THE RECAP IS WAITING ON THE TAPE." :
         sourceBrief ? "THE SHOW IS HERE. THE DEEP DIVE IS NOT READY YET." :
+        structuredSummaryRecap ? "WHAT CAME UP, WITHOUT A FAKE BEST-OF LIST." :
         status === "topic-nav-only" ? "WHAT THEY COVERED, WITH A WAY BACK TO EACH PART." :
           hasMappedContent ? "THE WHOLE NIGHT, CUT TO THE PARTS WORTH REVISITING." :
             "THE SHOW IS HERE. THE MOMENT MAP IS COMING.";
@@ -2463,15 +2643,18 @@
         "The official upload is verified. No episode events are invented while its caption map is missing." :
         sourceBrief ?
         "The official upload is linked and verified. A recap will appear only after this exact show has usable captions." :
+        structuredSummaryRecap ?
+          "The subjects and timestamps are mapped. The written story and best-of shelf stay hidden until somebody has actually read the whole tape." :
         queued ? "The upload is ready to watch. Its recap and moments wait for captions from this exact show." :
           "A recap, watch path, and timestamped moments from this exact upload.";
       var statusLabel = sourceBrief && hasEpisodeRecap(dossier) ?
         "RECAP WAITING ON THE TAPE" :
+        structuredSummaryRecap ? "SOURCE SUBJECT MAP" :
         readyEpisodeRecap && clean(episodeRecap.tier) === "topic-recap" ?
           (number(record(episodeRecap.caseFile).lastPlayableAnchorPercent) > 0 &&
             number(record(episodeRecap.caseFile).lastPlayableAnchorPercent) < 85 ?
             "PARTIAL SUBJECT MAP" : "SOURCE SUBJECT MAP") :
-          readyEpisodeRecap ? "FELDMAN RECAP" :
+          readyEpisodeRecap ? "EPISODE WIKI" :
             sourceBrief ? "DEEP DIVE NOT READY" : queued ? "WAITING FOR CAPTIONS" :
           status === "topic-nav-only" ? "TOPICS READY" :
             receiptCount ? (compact ? "SHOW HIGHLIGHTS" : "FULL SHOW FILE") :
@@ -2485,23 +2668,32 @@
           'NO FAKE RECAP.</b><span>This page will not turn a title and thumbnail into made-up topics, ' +
           'quotes, character bits, or comedy verdicts.</span></aside>';
       } else {
-        body += (hasEpisodeRecap(dossier) ?
-          showWikiEpisodeRecapMarkup(dossier, compact) :
-          showWikiRecapMarkup(dossier, compact)) +
-          showWikiFanReadMarkup(dossier, compact) +
-          ((!compact || !hasEpisodeRecap(dossier)) ?
-            showWikiEpisodeGuideMarkup(dossier, compact) : "") +
-          ((!compact || !hasEpisodeRecap(dossier) && !hasEpisodeGuide) ?
-            showWikiExperienceMarkup(dossier, compact) : "") +
-          (visibleEntries.length ? '<div class="source-dossier-wiki-lanes">' +
-            visibleEntries.map(function (entry) {
-              return showWikiLaneMarkup(
-                dossier, entry.lane, entry.index, seenReceipts, compact
-              );
-            }).join("") + '</div>' : '') +
-          (queued
-            ? '<p class="source-dossier-wiki-queued-note"><b>THE CATEGORIES ARE READY.</b> They stay empty until this exact upload has captions strong enough to support them.</p>'
-            : compact ? '' : showWikiEmptyLanesMarkup(empty));
+        if (canonicalEpisodeRecap) {
+          /*
+           * One episode, one story, one moment index. The old assembly stacked
+           * the same timestamps as a watch path, format desk, fan read,
+           * episode guide, category lanes, and act chronicle.
+           */
+          body += showWikiEpisodeRecapMarkup(dossier, compact);
+        } else {
+          body += (hasEpisodeRecap(dossier) ?
+            showWikiEpisodeRecapMarkup(dossier, compact) :
+            showWikiRecapMarkup(dossier, compact)) +
+            showWikiFanReadMarkup(dossier, compact) +
+            ((!compact || !hasEpisodeRecap(dossier)) ?
+              showWikiEpisodeGuideMarkup(dossier, compact) : "") +
+            ((!compact || !hasEpisodeRecap(dossier) && !hasEpisodeGuide) ?
+              showWikiExperienceMarkup(dossier, compact) : "") +
+            (visibleEntries.length ? '<div class="source-dossier-wiki-lanes">' +
+              visibleEntries.map(function (entry) {
+                return showWikiLaneMarkup(
+                  dossier, entry.lane, entry.index, seenReceipts, compact
+                );
+              }).join("") + '</div>' : '') +
+            (queued
+              ? '<p class="source-dossier-wiki-queued-note"><b>THE CATEGORIES ARE READY.</b> They stay empty until this exact upload has captions strong enough to support them.</p>'
+              : compact ? '' : showWikiEmptyLanesMarkup(empty));
+        }
       }
       return '<section class="source-dossier-show-wiki"' + sectionAttributes("wiki") +
         ' aria-labelledby="sourceDossierShowWikiTitle" data-source-show-wiki-status="' +
@@ -2510,20 +2702,20 @@
         '</h3></div>' + (headerDescription ? '<p>' + esc(headerDescription) + '</p>' : '') +
         '</header><div class="source-dossier-wiki-status" role="status"><span>' +
         'ON THIS PAGE</span><b>' + esc(statusLabel) +
-        '</b><small>' + (compact && !sourceBrief ?
-          esc(visibleMomentCount) + (topicOnlyRecap ?
-            ' TOPIC DOOR' + (visibleMomentCount === 1 ? '' : 'S') :
-            ' HIGHLIGHT' + (visibleMomentCount === 1 ? '' : 'S')) +
-          ' SHOWN // ' : '') +
-        esc(receiptCount) + (topicOnlyRecap ?
-          ' TOPIC DOOR' + (receiptCount === 1 ? '' : 'S') + ' ON FILE' :
-          ' TIMESTAMPED MOMENT' + (receiptCount === 1 ? '' : 'S')) +
-        (formatStopCount ? ' // ' + esc(formatStopCount) +
-          ' FORMAT-SPECIFIC STOP' + (formatStopCount === 1 ? '' : 'S') : '') +
-        (deepStopCount ? ' // ' + esc(deepStopCount) +
-          ' DEEP-SOURCE STOP' + (deepStopCount === 1 ? '' : 'S') : '') +
-        (hasEpisodeGuide ? ' // ' + esc(guideCutCount) + ' DEEP-DIVE CUT' +
-          (guideCutCount === 1 ? '' : 'S') : '') +
+        '</b><small>' + (structuredSummaryRecap ?
+          esc(recapTopicDoorCount) + ' PLAYABLE TOPIC ' +
+            (recapTopicDoorCount === 1 ? 'DOOR' : 'DOORS') +
+            ' // FULL STORY PENDING' :
+          readyEpisodeRecap ?
+          esc(recapMomentCount) + ' PLAYABLE MOMENT' +
+            (recapMomentCount === 1 ? '' : 'S') +
+            (recapStoryCount ? ' // ' + esc(recapStoryCount) +
+              '-CHAPTER FULL SHOW STORY' : ' // SUBJECT MAP INCLUDED') :
+          (compact && !sourceBrief ?
+            esc(visibleMomentCount) + ' STARTER MOMENT' +
+              (visibleMomentCount === 1 ? '' : 'S') + ' // ' : '') +
+            esc(receiptCount) + ' TIMESTAMP' +
+            (receiptCount === 1 ? '' : 'S')) +
         '</small></div>' + body + '</section>';
     }
     function refusalMarkup(dossier) {
@@ -3289,7 +3481,12 @@
       var hasEpisodeGuide = !isSourceBrief(dossier) &&
         clean(record(record(source.showWiki).episodeGuide).schema) ===
           "wwam-episode-guide/v2";
-      var hasWrittenEpisodeStory = episodeRecapStory(dossier).length > 0;
+      var heroRecap = episodeRecapFor(dossier);
+      var heroCanonicalRecap = canonicalEditorialEpisodeRecap(heroRecap);
+      var hasWrittenEpisodeStory =
+        (humanEditorialEpisodeRecap(heroRecap) ||
+          !clean(heroRecap.editorialState)) &&
+        episodeRecapStory(dossier).length > 0;
       var deepResearch = askMarkup(dossier) + proofMarkup(dossier) +
         insideMarkup(dossier) + footprintMarkup(dossier) + wakeMarkup(dossier) +
         '<nav class="source-dossier-chronology"' + sectionAttributes("chronology") +
@@ -3324,8 +3521,9 @@
         primaryPlay +
         (hasWrittenEpisodeStory ?
           '<a class="source-dossier-recap-cta" href="#sourceDossierFeldmanStory">' +
-          'READ THE FELDMAN RECAP &#8595;</a>' : '') +
-        (hasEpisodeGuide ?
+          'READ THE EPISODE WIKI &#8595;</a>' : '') +
+        (hasEpisodeGuide &&
+          (!hasWrittenEpisodeStory || !heroCanonicalRecap) ?
           '<a class="source-dossier-deep-dive-cta" href="#sourceDossierEpisodeGuide">' +
           'OPEN THE DEEP DIVE &#8595;</a>' : '') +
         '<button type="button" data-source-dossier-action="copy-link">COPY PAGE LINK</button>' +

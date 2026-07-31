@@ -2,7 +2,7 @@
   "use strict";
 
   var SCHEMA = "shokker-episode-recap/v1";
-  var VERSION = "1.9.2";
+  var VERSION = "1.9.3";
 
   function clean(value) {
     return String(value == null ? "" : value).trim();
@@ -185,7 +185,8 @@
   }
 
   function receiptDisplayLabel(receipt) {
-    if (receiptKind(receipt) === "character") {
+    if (receiptKind(receipt) === "character" ||
+        receiptKind(receipt) === "character-reference") {
       return characterLabels(receipt)[0] || "Named character receipt";
     }
     return displayLabel(receipt && receipt.label) || "Saved checkpoint";
@@ -215,7 +216,17 @@
     var kind = clean(receipt.kind).toLowerCase();
     var evidenceType = clean(receipt.evidenceType).toLowerCase();
     if (kind.indexOf("topic") >= 0 || evidenceType.indexOf("topic") >= 0) return "topic";
-    if (kind.indexOf("character") >= 0 || evidenceType.indexOf("character") >= 0) return "character";
+    if (kind.indexOf("character") >= 0 || evidenceType.indexOf("character") >= 0) {
+      /*
+       * A caption match for a character name proves only that the name was
+       * present. It does not prove that Mike or J performed the character.
+       * Keep those useful jumps, but never sell them as appearances.
+       */
+      if (/curated-character-performance|reviewed-character-performance/.test(
+        kind + " " + evidenceType
+      )) return "character";
+      return "character-reference";
+    }
     return "moment";
   }
 
@@ -361,6 +372,7 @@
     var kind = receiptKind(receipt);
     var label = clean(receiptDisplayLabel(receipt)).toUpperCase();
     if (kind === "character") return "CHARACTER APPEARANCE";
+    if (kind === "character-reference") return "REFERENCE / CALLBACK";
     if (receiptBelongsToLane(
       receipt,
       context,
@@ -489,6 +501,7 @@
       "STRAIGHT TO STEVE'S ASSHOLE",
       "UP IN YA / STINGER",
       "CHARACTER APPEARANCE",
+      "REFERENCE / CALLBACK",
       "SOUNDBYTE / REPLAY",
       "MAJOR TOPIC TURN",
     ].forEach(function (category) {
@@ -525,7 +538,9 @@
         var category = highlightCategory(receipt, context);
         var label = receiptDisplayLabel(receipt).toLowerCase();
         var signal = Math.min(140, Math.max(0, receiptSignal(receipt))) * 1.25;
-        var kindWeight = kind === "moment" ? 34 : kind === "character" ? 29 : 12;
+        var kindWeight = kind === "moment" ? 34 :
+          kind === "character" ? 29 :
+            kind === "character-reference" ? 14 : 12;
         var categoryNovelty = selected.some(function (chosen) {
           return highlightCategory(chosen, context) === category;
         }) ? 0 : 36;

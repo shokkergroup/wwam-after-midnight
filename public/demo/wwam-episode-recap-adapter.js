@@ -2,7 +2,7 @@
   "use strict";
 
   var SCHEMA = "wwam-feldman-recap/v1";
-  var VERSION = "2.2.3";
+  var VERSION = "2.3.2";
 
   function clean(value) {
     return String(value == null ? "" : value).trim();
@@ -1368,6 +1368,40 @@
     return prefix + " // " + subject.toUpperCase();
   }
 
+  function fanStoryBody(
+    segment,
+    index,
+    total,
+    duration,
+    topicMapOnly,
+    sourceId
+  ) {
+    var topics = displayLabels(segment.topicLabels).map(naturalLabel).filter(function (topic) {
+      return !structuralStorySubject(topic) && !genericMomentLabel(topic);
+    });
+    var characters = displayLabels(segment.characterLabels).map(naturalLabel);
+    var moments = displayLabels(segment.momentLabels).map(naturalLabel);
+    var subject = naturalLabel(segment.primarySubject) ||
+      naturalLabel(record(segment.narrative).primarySubject) ||
+      topics[0] || characters[0] ||
+      moments.find(function (moment) { return !genericMomentLabel(moment); }) ||
+      "the conversation";
+    var related = unique(topics.concat(characters)).filter(function (item) {
+      return item.toLowerCase() !== subject.toLowerCase();
+    }).slice(0, 3);
+    var namedMoment = moments.find(function (moment) {
+      return !genericMomentLabel(moment) &&
+        moment.toLowerCase() !== subject.toLowerCase();
+    });
+    /*
+     * Machine evidence gets a factual map row, not synthetic storytelling.
+     * Human-reviewed packs replace these rows with actual prose. This keeps
+     * 509 pages from repeating the same four "the chapter turns to..." molds.
+     */
+    return unique(related.concat(namedMoment ? [namedMoment] : []))
+      .join(" // ");
+  }
+
   function readableStoryBody(
     segment,
     index,
@@ -1985,171 +2019,102 @@
       .toLowerCase() || "episode";
   }
 
+  function fanHeadline(map) {
+    return displayTapeTitle(clean(record(map.metadata).title), 110);
+  }
+
+  function fanDeck() {
+    return "";
+  }
+
+  function sourceSummaryLine(map) {
+    var topics = recapTopics(map).map(naturalLabel).filter(function (topic) {
+      return topic && !genericMomentLabel(topic) &&
+        !structuralStorySubject(topic);
+    }).slice(0, 6);
+    var format = readableFormatLabel(map);
+    var output = "Over " + runtime(record(map.metadata).duration) +
+      ", this " + format;
+    if (topics.length) {
+      output += " gets into " + list(topics, "");
+    } else {
+      output += " follows the subjects named in the original upload";
+    }
+    output += ". The playable topic doors below show where those subjects come up; " +
+      "the written story and best-of shelf appear only after somebody has actually read the whole tape.";
+    return output;
+  }
+
   function readableOverview(map) {
     var metadata = record(map.metadata);
     var title = clean(metadata.title) || "This WWAM episode";
     var story = array(map.story).map(record);
-    var topics = recapTopics(map).map(naturalLabel);
+    var topics = recapTopics(map).map(naturalLabel).filter(function (topic) {
+      return topic && !genericMomentLabel(topic) &&
+        !structuralStorySubject(topic);
+    });
     var characters = recapCharacters(map).map(naturalLabel);
     var strongest = record(topReplay(map));
     var topicMapOnly = clean(map.mode) === "topic-recap";
-    var seed = clean(map.sourceId) + "|plain-overview-v2";
-    var output = title + " runs " + runtime(metadata.duration) + ".";
-    if (story.length) {
+    var format = readableFormatLabel(map);
+    var seed = clean(map.sourceId) + "|fan-overview-v3";
+    var subjectPool = unique(story.map(function (segment) {
+      return naturalLabel(segment.primarySubject || segment.anchor);
+    }).concat(topics)).filter(function (subject) {
+      return subject && !genericMomentLabel(subject) &&
+        !structuralStorySubject(subject);
+    });
+    var focus = list(subjectPool.slice(0, 5), "the night's main conversation");
+    var output;
+    if (/ranking/.test(format)) {
+      output = title + " is a " + runtime(metadata.duration) +
+        " ranking show built around " + focus +
+        ". The list is the spine; arguments, chat detours and movie-news trouble are what keep kicking it sideways.";
+    } else if (/movie companion|commentary|watch/.test(format)) {
+      output = title + " is a " + runtime(metadata.duration) +
+        " movie companion. The film keeps rolling while the conversation circles " +
+        focus + " and wanders wherever the joke or argument takes it.";
+    } else if (/review|recap/.test(format)) {
+      output = title + " puts " + focus + " on trial for " +
+        runtime(metadata.duration) +
+        ". The useful part is not a pile of caption counts; it is the case they build, the places they disagree and the moments the room goes off the rails.";
+    } else if (/news|trailer/.test(format)) {
+      output = title + " is " + runtime(metadata.duration) +
+        " of movie talk moving through " + focus +
+        ". Headlines provide the doors. The takes and detours are the reason to stay.";
+    } else {
+      output = title + " runs " + runtime(metadata.duration) +
+        " and moves through " + focus +
+        ". This page keeps the actual subjects and playable turns up front instead of narrating the database underneath them.";
+    }
+    if (story.length > 1) {
       var opening = story[0];
-      var middle = story[Math.floor((story.length - 1) / 2)];
       var closing = story[story.length - 1];
       var openingSubject = naturalLabel(opening.primarySubject || opening.anchor);
-      var openingTopicEvidence = array(opening.topicEvidence).map(record).find(
-        function (topic) {
-          return naturalLabel(topic.label).toLowerCase() ===
-            openingSubject.toLowerCase();
-        }
-      );
-      var openingAt = openingTopicEvidence &&
-        Number.isFinite(Number(openingTopicEvidence.firstAt)) ?
-        number(openingTopicEvidence.firstAt) : number(opening.at);
-      output += " " + (topicMapOnly ?
-        choice(seed + "|topic-open", [
-          "The first subject jump is " + openingSubject + " at " +
-            clock(openingAt) + ".",
-          "It first opens on " + openingSubject + " at " + clock(openingAt) + ".",
-          "The earliest named subject is " + openingSubject + " at " +
-            clock(openingAt) + ".",
-          "Start at " + clock(openingAt) + " when " + openingSubject +
-            " enters the conversation.",
-          openingSubject + " provides the first timed doorway at " +
-            clock(openingAt) + ".",
-          "The subject trail begins with " + openingSubject + " at " +
-            clock(openingAt) + ".",
-        ]) :
-        choice(seed + "|ready-open", [
-          "The first chapter turns to " + openingSubject + " at " +
-            clock(openingAt) + ".",
-          "The show opens its highlight route with " + openingSubject +
-            " at " + clock(openingAt) + ".",
-          openingSubject + " leads off the written chapters at " +
-            clock(openingAt) + ".",
-          "The first big turn arrives at " + clock(openingAt) + " with " +
-            openingSubject + ".",
-          "Start with " + openingSubject + " at " + clock(openingAt) + ".",
-          "The opening stretch reaches " + openingSubject + " at " +
-            clock(openingAt) + ".",
-        ]));
-      if (story.length > 2) {
-        var middleSubject = naturalLabel(middle.primarySubject || middle.anchor);
-        output += " " + (topicMapOnly ?
-          choice(seed + "|topic-middle", [
-            "Another subject marker points to " + middleSubject + " at " +
-              clock(middle.at) + ".",
-            "A separate jump for " + middleSubject + " is " +
-              clock(middle.at) + ".",
-            "The subject list also places " + middleSubject + " at " +
-              clock(middle.at) + ".",
-            middleSubject + " has another timed doorway at " +
-              clock(middle.at) + ".",
-            "One more caption-based stop is " + middleSubject + " at " +
-              clock(middle.at) + ".",
-            "The next listed subject marker is " + middleSubject + " at " +
-              clock(middle.at) + ".",
-          ]) :
-          choice(seed + "|ready-middle", [
-            "Near the center, " + middleSubject + " takes over at " +
-              clock(middle.at) + ".",
-            "The route changes lanes to " + middleSubject + " at " +
-              clock(middle.at) + ".",
-            "By " + clock(middle.at) + ", the show has reached " +
-              middleSubject + ".",
-            "A central turn lands on " + middleSubject + " at " +
-              clock(middle.at) + ".",
-            "The middle stretch focuses on " + middleSubject + " at " +
-              clock(middle.at) + ".",
-            middleSubject + " anchors the midpoint at " + clock(middle.at) + ".",
-          ]));
-      }
-      if (story.length > 1) {
-        var closingSubject = naturalLabel(closing.primarySubject || closing.anchor);
-        output += " " + (topicMapOnly ?
-          choice(seed + "|topic-closing", [
-            "The latest listed subject marker is " + closingSubject + " at " +
-              clock(closing.at) + ".",
-            "A later jump points to " + closingSubject + " at " +
-              clock(closing.at) + ".",
-            closingSubject + " supplies the last subject entry at " +
-              clock(closing.at) + ".",
-            "The subject list continues through " + closingSubject + " at " +
-              clock(closing.at) + ".",
-            "A final navigation point for this page is " + closingSubject +
-              " at " + clock(closing.at) + ".",
-            "The latest caption-based doorway is " + closingSubject + " at " +
-              clock(closing.at) + ".",
-          ]) :
-          choice(seed + "|ready-closing", [
-            "The last written turn reaches " + closingSubject + " at " +
-              clock(closing.at) + ".",
-            "The chapter route closes on " + closingSubject + " at " +
-              clock(closing.at) + ".",
-            "Its final listed subject is " + closingSubject + " at " +
-              clock(closing.at) + ".",
-            "The written highlights finish with " + closingSubject + " at " +
-              clock(closing.at) + ".",
-            "By the final chapter, the show has moved to " + closingSubject +
-              " at " + clock(closing.at) + ".",
-            closingSubject + " carries the last timed chapter at " +
-              clock(closing.at) + ".",
-          ]));
+      var closingSubject = naturalLabel(closing.primarySubject || closing.anchor);
+      if (openingSubject && closingSubject &&
+          openingSubject.toLowerCase() !== closingSubject.toLowerCase()) {
+        output += " It begins around " + openingSubject +
+          " and the last mapped stretch reaches " + closingSubject + ".";
       }
     }
     if (!topicMapOnly && clean(strongest.label)) {
-      var strongestSubject = story.find(function (segment) {
-        return number(strongest.at) >= number(segment.at) &&
-          number(strongest.at) <= Math.max(number(segment.end), number(segment.at));
-      });
-      var strongestSubjectLabel = naturalLabel(
-        record(strongestSubject).primarySubject ||
-        record(strongestSubject).anchor
-      );
       var strongestLabel = naturalLabel(strongest.label);
-      var strongestContext = strongestSubjectLabel &&
-        strongestSubjectLabel.toLowerCase() !== strongestLabel.toLowerCase() ?
-        " inside " + definite(strongestSubjectLabel) + " chapter" : "";
-      output += " " + choice(seed + "|strongest", [
-        "The fastest highlight jump is " + strongestLabel +
-          strongestContext + " at " + clock(strongest.at) + ".",
-        "Jump to " + strongestLabel + strongestContext + " at " +
-          clock(strongest.at) + " for the quickest replay.",
-        "The standout short stop is " + strongestLabel +
-          strongestContext + " at " + clock(strongest.at) + ".",
-        strongestLabel + strongestContext + " is the top quick hit at " +
-          clock(strongest.at) + ".",
-        "For the sharpest replay, jump to " + strongestLabel +
-          strongestContext + " at " + clock(strongest.at) + ".",
-        "The highlight path peaks with " + strongestLabel +
-          strongestContext + " at " + clock(strongest.at) + ".",
-      ]);
+      output += genericMomentLabel(strongestLabel) ?
+        " If you only have a minute, the quickest playable hit starts at " +
+          clock(strongest.at) + "." :
+        " For the quickest taste, jump to " + strongestLabel + " at " +
+          clock(strongest.at) + ".";
     }
     if (characters.length) {
-      output += " " + choice(seed + "|characters", [
-        "Character appearances include " + list(characters.slice(0, 5), "") +
-          "; the player keeps the original voices and delivery.",
-        "Listen for " + list(characters.slice(0, 5), "") +
-          " along the way, with every performance left in its full exchange.",
-        "The character side of the show brings in " +
-          list(characters.slice(0, 5), "") +
-          ", and the playable clips preserve how each bit lands.",
-        list(characters.slice(0, 5), "") +
-          " " + agrees(characters.slice(0, 5), "has", "have") +
-          " playable stops in the character route.",
-        "The character callbacks reach " + list(characters.slice(0, 5), "") +
-          ", with the complete delivery available at each jump.",
-        "This episode's character path includes " +
-          list(characters.slice(0, 5), "") +
-          "; use the player for the full performance.",
-      ]);
+      output += " Confirmed character performances include " +
+        list(characters.slice(0, 5), "") + ".";
     }
-    if (clean(map.sourceId) === "QMYgsEfPMg0" &&
-        !/christmas movies/i.test(output)) {
-      output += " The Christmas Movies tier list gives the episode its main event.";
+    if (topicMapOnly) {
+      output += choice(seed + "|topic-boundary", [
+        " This page can prove where those subjects appear; press play for the opinion and delivery.",
+        " These are subject doors, not invented verdicts. The original tape supplies the rest.",
+      ]);
     }
     return output;
   }
@@ -2436,6 +2401,143 @@
     }, {});
   }
 
+  function editorialPackFor(map) {
+    var registry = record(root.WWAM_EPISODE_EDITORIAL_PACKS);
+    if (clean(registry.schema) !== "shokker-episode-editorial-packs/v1") {
+      return null;
+    }
+    var pack = record(record(registry.sources)[clean(map.sourceId)]);
+    if (!clean(pack.sourceId) || clean(pack.sourceId) !== clean(map.sourceId)) {
+      return null;
+    }
+    var declaredDuration = number(record(pack.evidence).duration);
+    var actualDuration = number(record(map.metadata).duration);
+    if (declaredDuration && actualDuration &&
+        Math.abs(declaredDuration - actualDuration) > 2) {
+      return null;
+    }
+    return pack;
+  }
+
+  function applyEditorialPack(recap, map) {
+    var pack = editorialPackFor(map);
+    if (!pack) return recap;
+    var duration = Math.max(1, number(record(map.metadata).duration));
+    var story = array(pack.story).map(function (item, index) {
+      var at = Math.max(0, Math.min(duration, number(item.at)));
+      var end = number(item.end) > at ?
+        Math.min(duration, number(item.end)) :
+        Math.min(duration, at + 45);
+      return {
+        id: clean(item.id) || "editorial-reel-" +
+          String(index + 1).padStart(2, "0"),
+        ordinal: index + 1,
+        label: clean(item.label),
+        body: clean(item.body),
+        at: at,
+        end: end,
+        displayAt: at,
+        displayEnd: end,
+        playAt: at,
+        playEnd: end,
+        anchorAt: at,
+        anchor: clean(item.label),
+        primarySubject: clean(item.label),
+        excerpt: clean(item.excerpt),
+        topicLabels: array(item.topicLabels).map(clean).filter(Boolean),
+        momentLabels: [],
+        characterLabels: [],
+        threadLabels: array(item.threadLabels).map(clean).filter(Boolean),
+        receiptKeys: [],
+        guideCutIds: [],
+        guideChapterIds: [],
+        guideAnchor: {},
+        narrative: {
+          kind: "human-editorial-story",
+          primarySubject: clean(item.label),
+        },
+        evidenceBasis: "full-tape-human-editorial-read",
+      };
+    });
+    var highlights = array(pack.highlights).map(function (item, index) {
+      var at = Math.max(0, Math.min(duration, number(item.at)));
+      var end = number(item.end) > at ?
+        Math.min(duration, number(item.end)) :
+        Math.min(duration, at + 35);
+      return {
+        receiptKey: "",
+        guideCutId: "",
+        ordinal: index + 1,
+        kind: "human-editorial-highlight",
+        category: clean(item.category) || "BEST MOMENT",
+        at: at,
+        end: end,
+        playAt: at,
+        playEnd: end,
+        label: clean(item.label),
+        excerpt: clean(item.excerpt),
+        signalScore: Math.max(1, 100 - index),
+        evidenceBasis: "full-tape-human-editorial-read",
+      };
+    });
+    var sections = story.map(function (item) {
+      return {
+        id: item.id,
+        ordinal: item.ordinal,
+        label: item.label,
+        body: item.body,
+        at: item.at,
+        end: item.end,
+        displayAt: item.displayAt,
+        playAt: item.playAt,
+        playEnd: item.playEnd,
+        subjectFirstAt: item.at,
+        subjectPeakAt: item.at,
+        subjectMentions: 0,
+        anchor: item.anchor,
+        category: "human-editorial-story",
+        excerpt: item.excerpt,
+        receiptKeys: [],
+        guideCutId: "",
+        evidenceBasis: "full-tape-human-editorial-read",
+      };
+    });
+    var fanReadPack = record(pack.fanRead);
+    var packedTopics = unique(array(pack.panels).reduce(function (output, panel) {
+      return output.concat(array(panel.groups).reduce(function (items, group) {
+        return items.concat(array(group.items));
+      }, []));
+    }, []).map(clean).filter(Boolean));
+
+    return Object.assign({}, recap, {
+      label: clean(pack.label) || "THE SHOW, WITHOUT THE BULLSHIT",
+      badge: clean(pack.badge) || "FULL SHOW WIKI // NO SKIPPING",
+      headline: clean(pack.headline) || recap.headline,
+      deck: clean(pack.deck) || recap.deck,
+      overview: clean(pack.overview) || recap.overview,
+      topics: packedTopics.length ? packedTopics : recap.topics,
+      sections: sections.length ? sections : recap.sections,
+      story: story.length ? story : recap.story,
+      highlightRunway: highlights.length ? highlights : recap.highlightRunway,
+      bestMoments: highlights.length ? highlights : recap.bestMoments,
+      fanRead: Object.keys(fanReadPack).length ? fanReadPack : recap.fanRead,
+      editorialPanels: array(pack.panels),
+      editorialState: clean(pack.reviewState),
+      editorialEvidence: record(pack.evidence),
+      caseFile: Object.assign({}, record(recap.caseFile), {
+        actCount: sections.length || number(record(recap.caseFile).actCount),
+        editorialHighlightCount: highlights.length,
+        humanEditorialRead: true,
+      }),
+      approval: {
+        meaning: "independent-source-linked-fan-archive",
+        actualApproval: false,
+        disclosure:
+          "Independent fan archive built from the official WWAM upload; not an endorsement by Mike, J, Corey Feldman, or WWAM.",
+      },
+    });
+  }
+
   function build(input) {
     input = record(input);
     var map = record(input.map || input.episodeRecap);
@@ -2503,7 +2605,7 @@
           values.length,
           clean(map.mode) === "topic-recap"
         ),
-        body: readableStoryBody(
+        body: fanStoryBody(
           segment,
           index,
           values.length,
@@ -2577,7 +2679,7 @@
         number(record(map.caseFile).lastPlayableAnchorPercent) < 85 ?
         "PARTIAL SUBJECT MAP" : "SOURCE SUBJECT MAP",
     };
-    return {
+    var output = {
       schema: SCHEMA,
       generatorVersion: VERSION,
       coreSchema: clean(map.schema),
@@ -2586,11 +2688,12 @@
       semanticFingerprint: map.semanticFingerprint,
       state: "ready",
       tier: clean(map.mode),
-      label: "WWAM FELDMAN APPROVED RECAP",
+      editorialState: "structured-source-summary",
+      label: "SHOW WIKI // SOURCE-LINKED SUMMARY",
       badge: tierLabels[map.mode] || "PLAYABLE EPISODE RECAP",
-      headline: headline(map),
-      deck: readableDeck(map),
-      overview: readableOverview(map),
+      headline: fanHeadline(map),
+      deck: fanDeck(map),
+      overview: sourceSummaryLine(map),
       topics: recapTopics(map),
       topicMap: array(map.topicMap).map(function (topic) {
         return {
@@ -2641,6 +2744,7 @@
         disclosure: "A recurring-bit-inspired archive label, not an endorsement by Corey Feldman, Mike, J, or WWAM.",
       },
     };
+    return applyEditorialPack(output, map);
   }
 
   root.WWAMEpisodeRecapAdapter = Object.freeze({

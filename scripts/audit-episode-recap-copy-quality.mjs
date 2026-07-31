@@ -44,6 +44,20 @@ const RUNTIME_FILES = [
   "archive-recovery-batch2.js",
   "archive-completion.js",
   "title-topic-overrides.js",
+  "episode-editorial-packs.js",
+  "episode-editorial-packs-recent.js",
+  "episode-editorial-packs-wave2.js",
+  "episode-editorial-packs-wave3.js",
+  "episode-editorial-packs-wave4.js",
+  "episode-editorial-packs-wave5.js",
+  "episode-editorial-packs-wave6.js",
+  "episode-editorial-packs-wave7.js",
+  "episode-editorial-packs-wave8.js",
+  "episode-editorial-packs-wave9.js",
+  "episode-editorial-packs-wave10.js",
+  "episode-editorial-packs-wave11.js",
+  "episode-editorial-packs-wave12.js",
+  "episode-editorial-packs-wave13.js",
   "episode-recap-engine.js",
   "wwam-episode-recap-adapter.js",
   "wwam-source-dossier-adapter.js",
@@ -301,6 +315,10 @@ function sourceEntities(file) {
 
 function declaredFields(file) {
   const recap = record(file.recap);
+  const structuredSummary =
+    clean(recap.editorialState) === "structured-source-summary";
+  const humanEditorial =
+    clean(recap.editorialState) === "full-tape-human-editorial-read";
   const fields = [
     {
       field: "label",
@@ -324,7 +342,7 @@ function declaredFields(file) {
       field: "deck",
       text: recap.deck,
       role: "prose",
-      required: true,
+      required: !structuredSummary,
     },
     {
       field: "overview",
@@ -351,39 +369,46 @@ function declaredFields(file) {
       required: true,
     })),
   ];
-  array(recap.story).forEach((segment, index) => {
-    fields.push(
-      {
-        field: `story[${index}].label`,
-        text: segment?.label,
-        role: "label",
-        required: true,
-      },
-      {
-        field: `story[${index}].body`,
-        text: segment?.body,
-        role: "prose",
-        required: true,
-      },
-    );
-  });
-  array(recap.sections).forEach((section, index) => {
-    fields.push(
-      {
-        field: `sections[${index}].label`,
-        text: section?.label,
-        role: "label",
-        required: true,
-      },
-      {
-        field: `sections[${index}].body`,
-        text: section?.body,
-        role: "prose",
-        required: true,
-      },
-    );
-  });
-  array(recap.bestMoments).forEach((moment, index) => {
+  if (!structuredSummary) {
+    array(recap.story).forEach((segment, index) => {
+      fields.push(
+        {
+          field: `story[${index}].label`,
+          text: segment?.label,
+          role: "label",
+          required: true,
+        },
+        {
+          field: `story[${index}].body`,
+          text: segment?.body,
+          role: "prose",
+          required: true,
+        },
+      );
+    });
+  }
+  // A human pack projects its canonical story into `sections` for older
+  // consumers, but the visitor UI renders that story once. Auditing both
+  // compatibility fields would report public duplication that does not exist.
+  if (!structuredSummary && !humanEditorial) {
+    array(recap.sections).forEach((section, index) => {
+      fields.push(
+        {
+          field: `sections[${index}].label`,
+          text: section?.label,
+          role: "label",
+          required: true,
+        },
+        {
+          field: `sections[${index}].body`,
+          text: section?.body,
+          role: "prose",
+          required: true,
+        },
+      );
+    });
+  }
+  if (!structuredSummary) array(recap.bestMoments).forEach((moment, index) => {
     for (const [name, role] of [
       ["label", "label"],
       ["topic", "label"],
@@ -400,7 +425,7 @@ function declaredFields(file) {
       }
     }
   });
-  array(recap.highlightRunway).forEach((moment, index) => {
+  if (!structuredSummary) array(recap.highlightRunway).forEach((moment, index) => {
     for (const name of ["label", "category"]) {
       fields.push({
         field: `highlightRunway[${index}].${name}`,
@@ -440,7 +465,11 @@ function declaredFields(file) {
 function coreShapeFailures(file) {
   const recap = record(file.recap);
   const failures = [];
-  if (file.state === "ready") {
+  const structuredSummary =
+    clean(recap.editorialState) === "structured-source-summary";
+  const humanEditorial =
+    clean(recap.editorialState) === "full-tape-human-editorial-read";
+  if (file.state === "ready" && !structuredSummary) {
     if (!array(recap.story).length) {
       failures.push(compactFailure(
         file,
@@ -449,7 +478,7 @@ function coreShapeFailures(file) {
         "",
       ));
     }
-    if (!array(recap.sections).length) {
+    if (!humanEditorial && !array(recap.sections).length) {
       failures.push(compactFailure(
         file,
         "sections",
@@ -609,7 +638,13 @@ function repeatedSentenceFailures(file, fields) {
 }
 
 function pathologicalMolds(files, fieldsBySource, options) {
-  const ready = files.filter((file) => file.state === "ready");
+  // Structured summaries intentionally share a transparent first-pass frame.
+  // They are not published as authored editorial prose, so measure voice
+  // repetition only across recaps that claim a finished editorial read.
+  const ready = files.filter((file) =>
+    file.state === "ready" &&
+    clean(record(file.recap).editorialState) !== "structured-source-summary"
+  );
   const moldPercent = Number.isFinite(Number(options.pathologicalMoldPercent))
     ? Math.max(0, Math.min(100, Number(options.pathologicalMoldPercent)))
     : PATHOLOGICAL_MOLD_PERCENT;

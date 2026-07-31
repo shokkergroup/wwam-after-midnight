@@ -1511,7 +1511,7 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
   assert.match(html, /THE 30-SECOND VERSION/);
   assert.match(
     html,
-    /class="source-dossier-recap-cta" href="#sourceDossierFeldmanStory">READ THE FELDMAN RECAP/,
+    /class="source-dossier-recap-cta" href="#sourceDossierFeldmanStory">READ THE EPISODE WIKI/,
   );
   assert.match(html, /EXACT-SHOW CASE FILE/);
   assert.match(html, /data-feldman-stat="receipts"><b>21<\/b><small>RECEIPTS/);
@@ -1587,8 +1587,8 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
     /<section class="source-dossier-feldman-best"[\s\S]*?<\/section>/,
   );
   assert.ok(compactRunway);
-  assert.match(compactRunway[0], /THE HIGHLIGHT RUNWAY \/\/ FULL-SHOW CUT/);
-  assert.match(compactRunway[0], /EVERY SAVED TURN THAT CLEARED THE TAPE/);
+  assert.match(compactRunway[0], /PLAYABLE CLIPS TO CHECK OUT/);
+  assert.match(compactRunway[0], /THE CLEANEST DOORS INTO THE SHOW/);
   assert.match(compactRunway[0], /21 SOURCE-BOUND STOPS/);
   assert.equal((compactRunway[0].match(/<article>/g) ?? []).length, 6);
   assert.match(compactRunway[0], /RUNWAY MOMENT 1/);
@@ -1722,12 +1722,12 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
   );
   assert.match(mount.innerHTML, /SOURCE SUBJECT MAP/);
   assert.match(mount.innerHTML, /TOPIC NAVIGATION ONLY/);
-  assert.match(mount.innerHTML, /TOPIC DOORS? SHOWN/);
-  assert.match(mount.innerHTML, /TOPIC DOORS? ON FILE/);
+  assert.match(mount.innerHTML, /SUBJECT MAP INCLUDED/);
+  assert.match(mount.innerHTML, /TOPIC DOORS/);
   assert.doesNotMatch(mount.innerHTML, /HIGHLIGHTS? SHOWN/);
-  assert.match(mount.innerHTML, /THE TOPIC RUNWAY \/\/ EXACT SUBJECT DOORS/);
-  assert.match(mount.innerHTML, /EVERY CONFIRMED TOPIC TURN ON THIS TAPE/);
-  assert.match(mount.innerHTML, /TOPIC TURNS, NOT OPINIONS/);
+  assert.match(mount.innerHTML, /WHERE THEY TALK ABOUT IT/);
+  assert.match(mount.innerHTML, /THE USEFUL SUBJECT JUMPS/);
+  assert.match(mount.innerHTML, /A MAP, NOT A MIND READER/);
   assert.doesNotMatch(mount.innerHTML, /THE HIGHLIGHT RUNWAY \/\/ FULL-SHOW CUT/);
 
   mount.click("play-receipt", {
@@ -1737,6 +1737,256 @@ test("ready episode recaps render the Feldman label, playable evidence, and Dama
   assert.equal(plays.length, 1);
   assert.equal(plays[0].receipt, dossier.source.receipts[0]);
   assert.equal(plays[0].section, "wiki");
+});
+
+test("human editorial ledgers render grouped rankings, readable verdicts, and playable character rows", () => {
+  const dossier = makeDossier();
+  dossier.source.showWiki.episodeRecap = {
+    schema: "wwam-feldman-recap/v1",
+    state: "ready",
+    tier: "full-chronicle",
+    editorialState: "full-tape-human-editorial-read",
+    label: "WWAM HUMAN EDITORIAL RECAP",
+    badge: "FULL TAPE REVIEWED",
+    headline: "THE TAPE GETS ITS DAY IN COURT.",
+    deck: "The human review keeps rankings, verdicts, and performances separate.",
+    overview: "A source-bounded editorial recap with three useful ledgers.",
+    topics: ["Movie rankings", "Character performances"],
+    sections: [],
+    story: [],
+    highlightRunway: [],
+    bestMoments: [],
+    fanRead: {},
+    editorialPanels: [
+      {
+        id: "ranking-board",
+        type: "ranking-ledger",
+        eyebrow: "THE RANKING",
+        title: "THE BOARD",
+        intro: "Only placements stated clearly enough on the tape appear here.",
+        groups: [
+          {
+            label: "TOP TIER",
+            items: ["Gremlins", "It's a Wonderful Life"],
+          },
+          {
+            label: "STRAIGHT TO STEVE'S ASSHOLE",
+            items: ["The Bad One"],
+          },
+        ],
+      },
+      {
+        id: "verdict-ledger",
+        type: "verdict-ledger",
+        eyebrow: "WHAT THEY ACTUALLY THOUGHT",
+        title: "THE PRAISE & THE PANIC",
+        intro: "The cards preserve the tape's stated opinions.",
+        items: [
+          {
+            subject: "Obsession & Soulm8te",
+            verdict: "Strong acting, real scares, and some rough plot behavior.",
+          },
+          {
+            subject: "Incomplete verdict",
+            verdict: "",
+          },
+        ],
+      },
+      {
+        id: "character-ledger",
+        type: "character-ledger",
+        eyebrow: "ACTUAL PERFORMANCES, NOT NAME-DROPS",
+        title: "WHO REALLY SHOWED UP",
+        items: [
+          {
+            at: 3803,
+            end: 3830,
+            character: "Dr. Loomis",
+            label: "THE TALKING TACOS ALIBI",
+          },
+          {
+            character: "Slenderman",
+            label: "NAME-DROP ONLY",
+          },
+          {
+            at: 9000,
+            end: 9030,
+            character: "Out Of Range",
+            label: "MUST NOT BECOME PLAYABLE",
+          },
+        ],
+        note: "A name-drop is not promoted into a performance.",
+      },
+    ],
+    caseFile: {
+      humanEditorialRead: true,
+      receiptCount: 0,
+      actCount: 0,
+    },
+    approval: {
+      actualApproval: false,
+      disclosure: "Human editorial copy without a creator endorsement.",
+    },
+    semanticFingerprint: "human-editorial-ledger-ui-fixture",
+  };
+  const plays = [];
+  const { ui, mount } = setup(dossier, {
+    onPlay: (payload) => plays.push(payload),
+  });
+
+  ui.render(dossier.source.id);
+  const html = mount.innerHTML;
+  assert.equal(
+    (html.match(/class="source-dossier-editorial-ledger /g) ?? []).length,
+    3,
+  );
+  assert.match(
+    html,
+    /data-editorial-panel="ranking-board" data-editorial-panel-type="ranking-ledger"/,
+  );
+  assert.match(html, /<h6>TOP TIER<\/h6><ul><li>Gremlins<\/li><li>It&#39;s a Wonderful Life<\/li>/);
+  assert.match(html, /<h6>STRAIGHT TO STEVE&#39;S ASSHOLE<\/h6>/);
+  assert.match(
+    html,
+    /data-editorial-panel="verdict-ledger" data-editorial-panel-type="verdict-ledger"/,
+  );
+  assert.match(html, /data-editorial-subject="Obsession &amp; Soulm8te"/);
+  assert.match(
+    html,
+    /<h6>Obsession &amp; Soulm8te<\/h6><p>Strong acting, real scares, and some rough plot behavior\.<\/p>/,
+  );
+  assert.doesNotMatch(html, /Incomplete verdict/);
+
+  const characterPanel = html.match(
+    /<section class="source-dossier-editorial-ledger is-character-ledger"[\s\S]*?<\/section>/,
+  );
+  assert.ok(characterPanel);
+  assert.match(characterPanel[0], /data-editorial-character="Dr\. Loomis"/);
+  assert.match(characterPanel[0], /<h6>Dr\. Loomis<\/h6><p>THE TALKING TACOS ALIBI<\/p>/);
+  assert.match(characterPanel[0], /<time>01:03:23&mdash;01:03:50<\/time>/);
+  assert.match(
+    characterPanel[0],
+    /data-source-dossier-action="play-guide-cut" data-guide-at="3803" data-guide-end="3830"/,
+  );
+  assert.match(characterPanel[0], /data-guide-return="sourceDossierEditorialPanel-character-ledger-2"/);
+  assert.match(characterPanel[0], /<h6>Slenderman<\/h6><p>NAME-DROP ONLY<\/p>/);
+  assert.equal(
+    (characterPanel[0].match(/data-source-dossier-action="play-guide-cut"/g) ?? []).length,
+    1,
+  );
+  assert.match(characterPanel[0], /Out Of Range/);
+  assert.match(characterPanel[0], /WHAT WE DID NOT GUESS/);
+  assert.match(cssSource, /\.source-dossier-editorial-ledger-card\s*\{/);
+  assert.match(
+    cssSource,
+    /\.source-dossier \.source-dossier-editorial-ledger-card > footer button\s*\{/,
+  );
+
+  mount.click("play-guide-cut", {
+    "data-guide-at": "3803",
+    "data-guide-end": "3830",
+    "data-guide-label": "Dr. Loomis // THE TALKING TACOS ALIBI",
+    "data-guide-return": "sourceDossierEditorialPanel-character-ledger-2",
+    "data-guide-return-label": "WHO REALLY SHOWED UP",
+    "data-owner-section": "wiki",
+  });
+  assert.equal(plays.length, 1);
+  assert.equal(plays[0].mode, "episode-guide");
+  assert.equal(plays[0].at, 3803);
+  assert.equal(plays[0].end, 3830);
+  assert.equal(plays[0].receipt, null);
+  assert.equal(plays[0].section, "wiki");
+  assert.match(mount.innerHTML, /data-now-playing-guide="3803:3830"/);
+  assert.match(
+    mount.innerHTML,
+    /href="#sourceDossierEditorialPanel-character-ledger-2">RETURN TO WHO REALLY SHOWED UP/,
+  );
+});
+
+test("structured summaries omit Show Menu links when editorial targets do not render", () => {
+  const dossier = makeDossier();
+  dossier.source.receipts[0].kind = "topic";
+  dossier.source.receipts[0].evidenceType = "caption-topic-receipt";
+  dossier.source.receipts[0].label = "TOPIC: HALLOWEEN";
+  dossier.source.showWiki.episodeRecap = {
+    schema: "wwam-feldman-recap/v1",
+    state: "ready",
+    tier: "receipt-recap",
+    editorialState: "structured-source-summary",
+    label: "SHOW WIKI // SOURCE-LINKED SUMMARY",
+    badge: "PLAYABLE EPISODE INDEX",
+    headline: "THE STRUCTURED SUMMARY",
+    deck: "Only source-bound recap material should receive a navigation target.",
+    overview: "Unresolved candidates stay out of the rendered recap.",
+    topics: ["Halloween"],
+    sections: [],
+    story: [
+      {
+        id: "machine-story",
+        label: "A STRUCTURED STORY CANDIDATE",
+        at: 90,
+        end: 120,
+      },
+    ],
+    highlightRunway: [
+      {
+        receiptKey: dossier.source.receipts[0].key,
+        ordinal: 1,
+        category: "SOUNDBYTE / REPLAY",
+        at: dossier.source.receipts[0].at,
+        end: dossier.source.receipts[0].end,
+        label: "THE ROOM BREAKS",
+        excerpt: "she caught you goddamn hair off and then the room went",
+      },
+    ],
+    bestMoments: [],
+    fanRead: {
+      hated: {
+        label: "STRAIGHT TO STEVE'S ASSHOLE",
+        topic: "AN AUTOMATIC GUESS",
+        body: "This unresolved candidate must not become a public verdict.",
+        at: dossier.source.receipts[0].at,
+        end: dossier.source.receipts[0].end,
+        receiptKey: dossier.source.receipts[0].key,
+      },
+    },
+    caseFile: {
+      receiptCount: 0,
+      actCount: 0,
+    },
+    approval: {
+      actualApproval: false,
+      disclosure: "A structured summary, not a human editorial read.",
+    },
+    semanticFingerprint: "structured-summary-nav-ui-fixture",
+  };
+  const { ui, mount } = setup(dossier);
+
+  ui.render(dossier.source.id);
+  const html = mount.innerHTML;
+  const showMenu = html.match(
+    /<nav class="source-dossier-explore"[\s\S]*?<\/nav>/,
+  );
+
+  assert.ok(showMenu);
+  assert.doesNotMatch(
+    showMenu[0],
+    /href="#sourceDossierFeldmanBest">HIGHLIGHTS<\/a>/,
+  );
+  assert.doesNotMatch(
+    showMenu[0],
+    /href="#sourceDossierFeldmanStory">EPISODE STORY<\/a>/,
+  );
+  assert.doesNotMatch(html, /id="sourceDossierFeldmanBest"/);
+  assert.doesNotMatch(html, /id="sourceDossierFeldmanStory"/);
+  assert.doesNotMatch(html, /THE ROOM BREAKS/);
+  assert.doesNotMatch(html, /she caught you goddamn hair off/);
+  assert.doesNotMatch(html, /AN AUTOMATIC GUESS/);
+  assert.doesNotMatch(html, /STRAIGHT TO STEVE'S ASSHOLE/);
+  assert.match(html, /WHAT CAME UP, WITHOUT A FAKE BEST-OF LIST/);
+  assert.match(html, /1 PLAYABLE TOPIC DOOR \/\/ FULL STORY PENDING/);
+  assert.match(html, /JUMP THE TOPIC BOARD/);
+  assert.match(html, /Play Halloween from this show at 01:00/);
 });
 
 test("typed format facts turn the Christmas show into a playable ranking board", () => {
@@ -1886,8 +2136,6 @@ test("typed Batch 2 facts turn an episode recap into an accurate playable recap 
   assert.match(html, /data-format-experience="recap-desk"/);
   assert.match(html, /THE EPISODE RECAP/);
   assert.match(html, /11 TAPE-LOCKED STOPS/);
-  assert.match(html, /11 FORMAT-SPECIFIC STOPS/);
-  assert.match(html, /15 DEEP-SOURCE STOPS/);
   assert.match(html, /OPENING CAR SCENE/);
   assert.match(html, /CGI COMPLAINT/);
   assert.match(html, /FINAL EPISODE VERDICT/);
@@ -2737,7 +2985,8 @@ test("Episode Guide V2 exposes the episode spine and plays bounded source-local 
   assert.match(mount.innerHTML, /data-episode-guide-view="start-here"/);
   assert.doesNotMatch(mount.innerHTML, /href="#sourceDossierFanRead">FAN READ<\/a>/);
   assert.doesNotMatch(mount.innerHTML, /id="sourceDossierFanRead"/);
-  assert.match(mount.innerHTML, /21 TIMESTAMPED MOMENTS \/\/ 8 DEEP-DIVE CUTS/);
+  assert.match(mount.innerHTML, /4 STARTER MOMENTS \/\/ 21 TIMESTAMPS/);
+  assert.match(mount.innerHTML, /<b>8<\/b> CUTS IN THE FULL GUIDE/);
   assert.doesNotMatch(mount.innerHTML, /21 PLAYABLE MOMENTS/);
   assert.match(mount.innerHTML, /THE FASTEST WAY INTO THIS EPISODE/);
   assert.equal((mount.innerHTML.match(/MOVE \d\d \/\//g) ?? []).length, 4);
@@ -4424,7 +4673,7 @@ test("Show Wiki keeps the archive truth but removes machine-room language and du
 
   assert.match(wiki, /THE WHOLE NIGHT, CUT TO THE PARTS WORTH REVISITING/);
   assert.match(wiki, /THE SHOW IN PLAIN ENGLISH/);
-  assert.match(wiki, /TIMESTAMPED MOMENTS/);
+  assert.match(wiki, /21 TIMESTAMPS/);
   assert.doesNotMatch(wiki, /HOW THESE TIMESTAMPS WORK/);
   assert.match(html, /data-source-dossier-view="compact"/);
   assert.match(html, /id="sourceDossierDeepResearch" hidden/);

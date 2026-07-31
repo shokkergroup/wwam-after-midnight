@@ -10,7 +10,7 @@
    * captions, promote evidence, clear rights, or publish anything.
    */
 
-  var VERSION = "1.15.0";
+  var VERSION = "1.15.7";
   var INPUT_SCHEMA = "shokker-source-dossier-input/v1";
   var DOSSIER_SCHEMA = "shokker-source-dossier/v1";
   var EXPORT_SCHEMA = "shokker-source-dossier-export/v1";
@@ -48,7 +48,9 @@
     "caption-character-signal": true,
     "caption-character-context": true,
     "curated-character-performance": true,
-    "reviewed-guide-negative-take": true
+    "reviewed-guide-negative-take": true,
+    "reviewed-episode-highlight": true,
+    "reviewed-up-in-ya-highlight": true
   });
   var STEVE_EVIDENCE_STATES = Object.freeze({
     "editorially-screened-source-cut": true,
@@ -418,10 +420,14 @@
       );
     }
     var editorNote = clean(raw.editorNote, 400);
-    if (editorNote && !steveEvidenceState) {
+    var humanEditorialReceipt =
+      clean(raw.evidenceLevel) === "human-editorial" &&
+      clean(raw.evidenceBasis) === "full-tape-human-editorial-read" &&
+      clean(raw.reviewState) === "human-editor-reviewed";
+    if (editorNote && !steveEvidenceState && !humanEditorialReceipt) {
       fail(
         "UNBOUND_RECEIPT_EDITOR_NOTE",
-        path + ".editorNote requires a screened Steve evidence state.",
+        path + ".editorNote requires a screened Steve evidence state or a full-tape human editorial receipt.",
         path + ".editorNote"
       );
     }
@@ -1259,6 +1265,451 @@
       }
     };
   }
+  function normalizeHumanEpisodeRecap(raw, source, path) {
+    var evidencePath = path + ".editorialEvidence";
+    if (!isRecord(raw.editorialEvidence)) {
+      fail(
+        "HUMAN_EDITORIAL_EVIDENCE_REQUIRED",
+        evidencePath + " must describe the exact reviewed tape.",
+        evidencePath
+      );
+    }
+    var evidenceDuration = finiteNumber(
+      raw.editorialEvidence.duration,
+      evidencePath + ".duration",
+      1
+    );
+    if (Math.abs(evidenceDuration - source.duration) > 2) {
+      fail(
+        "HUMAN_EDITORIAL_DURATION_MISMATCH",
+        evidencePath + ".duration must match the owning source.",
+        evidencePath + ".duration"
+      );
+    }
+    var captionWords = finiteNumber(
+      raw.editorialEvidence.captionWords,
+      evidencePath + ".captionWords",
+      1
+    );
+    if (!Number.isInteger(captionWords)) {
+      fail(
+        "HUMAN_EDITORIAL_WORD_COUNT",
+        evidencePath + ".captionWords must be an integer.",
+        evidencePath + ".captionWords"
+      );
+    }
+    var captionSha256 = requiredText(
+      raw.editorialEvidence.captionSha256,
+      evidencePath + ".captionSha256",
+      80
+    );
+    if (!/^sha256:[a-f0-9]{64}$/.test(captionSha256)) {
+      fail(
+        "HUMAN_EDITORIAL_CAPTION_HASH",
+        evidencePath + ".captionSha256 must identify the reviewed caption tape.",
+        evidencePath + ".captionSha256"
+      );
+    }
+    if (raw.editorialEvidence.speakerAttribution !== false) {
+      fail(
+        "HUMAN_EDITORIAL_SPEAKER_OVERREACH",
+        evidencePath + ".speakerAttribution must remain false without diarization.",
+        evidencePath + ".speakerAttribution"
+      );
+    }
+
+    function boundedEditorialWindow(item, itemPath) {
+      var at = finiteNumber(item.at, itemPath + ".at", 0);
+      var end = finiteNumber(item.end, itemPath + ".end", 0);
+      if (end > source.duration && end - source.duration <= 1) {
+        end = source.duration;
+      }
+      if (at > source.duration || end <= at || end > source.duration) {
+        fail(
+          "HUMAN_EDITORIAL_WINDOW_INVALID",
+          itemPath + " must remain inside the exact reviewed upload.",
+          itemPath
+        );
+      }
+      var playAt = finiteNumber(
+        item.playAt == null ? at : item.playAt,
+        itemPath + ".playAt",
+        0
+      );
+      var playEnd = finiteNumber(
+        item.playEnd == null ? end : item.playEnd,
+        itemPath + ".playEnd",
+        0
+      );
+      if (Math.abs(playAt - at) > 0.001 ||
+          Math.abs(playEnd - end) > 0.001) {
+        fail(
+          "HUMAN_EDITORIAL_PLAY_WINDOW_DRIFT",
+          itemPath + " playback must match its reviewed editorial window.",
+          itemPath
+        );
+      }
+      return { at: at, end: end, playAt: playAt, playEnd: playEnd };
+    }
+
+    if (!Array.isArray(raw.story) || !raw.story.length ||
+        raw.story.length > 80) {
+      fail(
+        "HUMAN_EDITORIAL_STORY_COUNT",
+        path + ".story must contain between one and eighty reviewed story beats.",
+        path + ".story"
+      );
+    }
+    var storyIds = new Set();
+    var story = raw.story.map(function (item, index) {
+      var itemPath = path + ".story[" + index + "]";
+      if (!isRecord(item)) {
+        fail(
+          "INVALID_HUMAN_EDITORIAL_STORY",
+          itemPath + " must be an object.",
+          itemPath
+        );
+      }
+      var id = requiredText(item.id, itemPath + ".id", 80);
+      if (!KEBAB_ID.test(id) || storyIds.has(id)) {
+        fail(
+          "INVALID_HUMAN_EDITORIAL_STORY_ID",
+          itemPath + ".id must be unique kebab-case.",
+          itemPath + ".id"
+        );
+      }
+      storyIds.add(id);
+      var window = boundedEditorialWindow(item, itemPath);
+      var evidenceBasis = requiredText(
+        item.evidenceBasis,
+        itemPath + ".evidenceBasis",
+        120
+      );
+      if (evidenceBasis !== "full-tape-human-editorial-read") {
+        fail(
+          "HUMAN_EDITORIAL_STORY_BASIS",
+          itemPath + " must declare the full-tape editorial read.",
+          itemPath + ".evidenceBasis"
+        );
+      }
+      return {
+        id: id,
+        ordinal: index + 1,
+        label: requiredText(item.label, itemPath + ".label", 240),
+        body: requiredText(item.body, itemPath + ".body", 1200),
+        at: window.at,
+        end: window.end,
+        playAt: window.playAt,
+        playEnd: window.playEnd,
+        anchorAt: window.at,
+        anchor: clean(item.anchor || item.label, 240),
+        primarySubject: clean(item.primarySubject || item.label, 240),
+        excerpt: "",
+        topicLabels: [],
+        momentLabels: [],
+        characterLabels: [],
+        threadLabels: [],
+        receiptKeys: [],
+        guideCutIds: [],
+        guideChapterIds: [],
+        guideAnchor: {},
+        narrative: {
+          kind: "human-editorial-story",
+          primarySubject: clean(item.primarySubject || item.label, 240),
+        },
+        evidenceBasis: evidenceBasis,
+      };
+    });
+    for (var storyIndex = 1; storyIndex < story.length; storyIndex += 1) {
+      if (story[storyIndex].at < story[storyIndex - 1].at) {
+        fail(
+          "HUMAN_EDITORIAL_STORY_ORDER",
+          path + ".story must remain chronological.",
+          path + ".story[" + storyIndex + "]"
+        );
+      }
+    }
+
+    if (!Array.isArray(raw.sections) ||
+        raw.sections.length !== story.length) {
+      fail(
+        "HUMAN_EDITORIAL_SECTION_PROJECTION",
+        path + ".sections must mirror the reviewed story.",
+        path + ".sections"
+      );
+    }
+    raw.sections.forEach(function (section, index) {
+      var itemPath = path + ".sections[" + index + "]";
+      if (!isRecord(section)) {
+        fail(
+          "INVALID_HUMAN_EDITORIAL_SECTION",
+          itemPath + " must be an object.",
+          itemPath
+        );
+      }
+      var beat = story[index];
+      if (clean(section.id) !== beat.id ||
+          clean(section.label) !== beat.label ||
+          clean(section.body) !== beat.body ||
+          Number(section.at) !== beat.at ||
+          Number(section.end) !== beat.end) {
+        fail(
+          "HUMAN_EDITORIAL_SECTION_DRIFT",
+          itemPath + " must be an exact story projection.",
+          itemPath
+        );
+      }
+    });
+    var sections = story.map(function (beat) {
+      return {
+        id: beat.id,
+        ordinal: beat.ordinal,
+        label: beat.label,
+        body: beat.body,
+        at: beat.at,
+        end: beat.end,
+        playAt: beat.playAt,
+        playEnd: beat.playEnd,
+        anchor: beat.anchor,
+        category: "human-editorial-story",
+        excerpt: "",
+        receiptKeys: [],
+        guideCutId: "",
+        evidenceBasis: beat.evidenceBasis,
+      };
+    });
+
+    if (!Array.isArray(raw.highlightRunway) ||
+        !raw.highlightRunway.length ||
+        raw.highlightRunway.length > 250) {
+      fail(
+        "HUMAN_EDITORIAL_HIGHLIGHT_COUNT",
+        path + ".highlightRunway must contain one to 250 reviewed highlights.",
+        path + ".highlightRunway"
+      );
+    }
+    var highlightKeys = new Set();
+    var highlightRunway = raw.highlightRunway.map(function (item, index) {
+      var itemPath = path + ".highlightRunway[" + index + "]";
+      if (!isRecord(item)) {
+        fail(
+          "INVALID_HUMAN_EDITORIAL_HIGHLIGHT",
+          itemPath + " must be an object.",
+          itemPath
+        );
+      }
+      var window = boundedEditorialWindow(item, itemPath);
+      var label = requiredText(item.label, itemPath + ".label", 220);
+      var identity = Math.round(window.at * 1000) + "|" + label.toLowerCase();
+      if (highlightKeys.has(identity)) {
+        fail(
+          "DUPLICATE_HUMAN_EDITORIAL_HIGHLIGHT",
+          itemPath + " repeats a reviewed highlight.",
+          itemPath
+        );
+      }
+      highlightKeys.add(identity);
+      var evidenceBasis = requiredText(
+        item.evidenceBasis,
+        itemPath + ".evidenceBasis",
+        120
+      );
+      if (evidenceBasis !== "full-tape-human-editorial-read") {
+        fail(
+          "HUMAN_EDITORIAL_HIGHLIGHT_BASIS",
+          itemPath + " must declare the full-tape editorial read.",
+          itemPath + ".evidenceBasis"
+        );
+      }
+      var excerpt = requiredText(item.excerpt, itemPath + ".excerpt", 600);
+      if (wordCount(excerpt) > 35) {
+        fail(
+          "HUMAN_EDITORIAL_HIGHLIGHT_EXCERPT",
+          itemPath + ".excerpt exceeds 35 words.",
+          itemPath + ".excerpt"
+        );
+      }
+      return {
+        receiptKey: "",
+        guideCutId: "",
+        ordinal: index + 1,
+        kind: "human-editorial-highlight",
+        category: requiredText(item.category, itemPath + ".category", 120),
+        at: window.at,
+        end: window.end,
+        playAt: window.playAt,
+        playEnd: window.playEnd,
+        label: label,
+        excerpt: excerpt,
+        signalScore: finiteNumber(
+          item.signalScore == null ? Math.max(1, 100 - index) :
+            item.signalScore,
+          itemPath + ".signalScore",
+          0
+        ),
+        evidenceBasis: evidenceBasis,
+      };
+    });
+    for (var highlightIndex = 1;
+      highlightIndex < highlightRunway.length;
+      highlightIndex += 1) {
+      if (highlightRunway[highlightIndex].at <
+          highlightRunway[highlightIndex - 1].at) {
+        fail(
+          "HUMAN_EDITORIAL_HIGHLIGHT_ORDER",
+          path + ".highlightRunway must remain chronological.",
+          path + ".highlightRunway[" + highlightIndex + "]"
+        );
+      }
+    }
+
+    var fanRead = {};
+    ["loved", "hated", "wildestDetour", "lastWord"].forEach(function (key) {
+      var item = raw.fanRead && raw.fanRead[key];
+      if (item == null) return;
+      var itemPath = path + ".fanRead." + key;
+      if (!isRecord(item)) {
+        fail(
+          "INVALID_HUMAN_EDITORIAL_FAN_READ",
+          itemPath + " must be an object.",
+          itemPath
+        );
+      }
+      var window = boundedEditorialWindow(item, itemPath);
+      fanRead[key] = {
+        label: requiredText(item.label, itemPath + ".label", 180),
+        topic: clean(item.topic, 180),
+        body: requiredText(item.body, itemPath + ".body", 900),
+        at: window.at,
+        end: window.end,
+        playAt: window.playAt,
+        playEnd: window.playEnd,
+        receiptKey: "",
+        guideCutId: "",
+        excerpt: "",
+        evidenceBasis: "full-tape-human-editorial-read",
+      };
+    });
+
+    if (!isRecord(raw.caseFile) ||
+        raw.caseFile.humanEditorialRead !== true) {
+      fail(
+        "HUMAN_EDITORIAL_CASE_FILE",
+        path + ".caseFile must confirm the full-tape editorial read.",
+        path + ".caseFile"
+      );
+    }
+    if (Number(raw.caseFile.editorialHighlightCount) !==
+        highlightRunway.length ||
+        Number(raw.caseFile.actCount) !== story.length) {
+      fail(
+        "HUMAN_EDITORIAL_CASE_FILE_COUNTS",
+        path + ".caseFile must match the reviewed story and highlight counts.",
+        path + ".caseFile"
+      );
+    }
+    var caseFile = Object.assign({}, serial(raw.caseFile), {
+      humanEditorialRead: true,
+      editorialHighlightCount: highlightRunway.length,
+      actCount: story.length,
+      storySegmentCount: story.length,
+      storyNarrativeBeatCount: story.length,
+      storyNamedSegmentCount: story.length,
+    });
+
+    var panels = array(raw.editorialPanels).map(function (panel, index) {
+      var panelPath = path + ".editorialPanels[" + index + "]";
+      if (!isRecord(panel)) {
+        fail(
+          "INVALID_HUMAN_EDITORIAL_PANEL",
+          panelPath + " must be an object.",
+          panelPath
+        );
+      }
+      var type = requiredText(panel.type, panelPath + ".type", 80);
+      if (!/^(?:ranking|verdict|character)-ledger$/.test(type)) {
+        fail(
+          "UNKNOWN_HUMAN_EDITORIAL_PANEL",
+          panelPath + ".type is unsupported.",
+          panelPath + ".type"
+        );
+      }
+      return serial(panel);
+    });
+
+    return {
+      schema: "wwam-feldman-recap/v1",
+      generatorVersion: requiredText(
+        raw.generatorVersion,
+        path + ".generatorVersion",
+        40
+      ),
+      coreSchema: requiredText(raw.coreSchema, path + ".coreSchema", 80),
+      sourceId: source.id,
+      sourceFingerprint: requiredText(
+        raw.sourceFingerprint,
+        path + ".sourceFingerprint",
+        80
+      ),
+      evidenceFingerprint: requiredText(
+        raw.evidenceFingerprint || raw.sourceFingerprint,
+        path + ".evidenceFingerprint",
+        80
+      ),
+      semanticFingerprint: requiredText(
+        raw.semanticFingerprint,
+        path + ".semanticFingerprint",
+        80
+      ),
+      state: "ready",
+      tier: requiredText(raw.tier, path + ".tier", 80),
+      editorialState: "full-tape-human-editorial-read",
+      label: requiredText(raw.label, path + ".label", 180),
+      badge: requiredText(raw.badge, path + ".badge", 180),
+      headline: requiredText(raw.headline, path + ".headline", 320),
+      deck: requiredText(raw.deck, path + ".deck", 1000),
+      overview: requiredText(raw.overview, path + ".overview", 2400),
+      topics: stringList(raw.topics || [], path + ".topics", { max: 180 }),
+      topicMap: [],
+      sections: sections,
+      story: story,
+      highlightRunway: highlightRunway,
+      bestMoments: [],
+      fanRead: fanRead,
+      editorialPanels: panels,
+      editorialEvidence: {
+        duration: evidenceDuration,
+        captionWords: captionWords,
+        captionSha256: captionSha256,
+        speakerAttribution: false,
+        visualTierPlacementInferred:
+          raw.editorialEvidence.visualTierPlacementInferred === false,
+      },
+      guideRecap: null,
+      caseFile: caseFile,
+      coverage: isRecord(raw.coverage) ? serial(raw.coverage) : {},
+      format: isRecord(raw.format) ? serial(raw.format) : {},
+      limitations: stringList(
+        raw.limitations || [],
+        path + ".limitations",
+        { max: 360 }
+      ),
+      approval: {
+        meaning: requiredText(
+          raw.approval.meaning,
+          path + ".approval.meaning",
+          120
+        ),
+        actualApproval: false,
+        disclosure: requiredText(
+          raw.approval.disclosure,
+          path + ".approval.disclosure",
+          400
+        ),
+      },
+    };
+  }
+
   function normalizeEpisodeRecap(raw, source, receiptMap, episodeGuide, path) {
     if (raw == null) return null;
     if (!isRecord(raw)) {
@@ -1289,6 +1740,12 @@
         path
       );
     }
+    if (clean(raw.editorialState) ===
+        "full-tape-human-editorial-read") {
+      return normalizeHumanEpisodeRecap(raw, source, path);
+    }
+    var structuredSourceSummary =
+      clean(raw.editorialState) === "structured-source-summary";
     var guideCuts = array(episodeGuide && episodeGuide.cuts);
     var guideCutMap = new Map(guideCuts.map(function (cut) {
       return [clean(cut.id), cut];
@@ -2238,7 +2695,9 @@
         id: id,
         ordinal: finiteNumber(segment.ordinal || index + 1, segmentPath + ".ordinal", 1),
         label: requiredText(segment.label, segmentPath + ".label", 240),
-        body: requiredText(segment.body, segmentPath + ".body", 1400),
+        body: structuredSourceSummary ?
+          clean(segment.body, 1400) :
+          requiredText(segment.body, segmentPath + ".body", 1400),
         at: window.at,
         end: window.end,
         anchorReceiptKey: anchorReceiptKey,
@@ -2811,7 +3270,11 @@
         var receiptIdentity = clean(localEvidence.kind).toLowerCase() + " " +
           clean(localEvidence.evidenceType).toLowerCase();
         expectedKind = receiptIdentity.indexOf("topic") >= 0 ? "topic" :
-          receiptIdentity.indexOf("character") >= 0 ? "character" : "moment";
+          receiptIdentity.indexOf("character") >= 0 ?
+            /curated-character-performance|reviewed-character-performance/.test(
+              receiptIdentity
+            ) ? "character" : "character-reference" :
+            "moment";
         expectedLabel = receiptProjectionLabel(localEvidence);
         expectedSignal = Number(localEvidence.signalScore || 0);
         if (!expectedSignal && expectedKind === "topic") {
@@ -3119,7 +3582,11 @@
           expected.topics += 1;
         } else if (kind.indexOf("character") >= 0 ||
             evidenceType.indexOf("character") >= 0) {
-          expected.characters += 1;
+          if (/curated-character-performance|reviewed-character-performance/.test(
+            kind + " " + evidenceType
+          )) {
+            expected.characters += 1;
+          }
         } else {
           expected.moments += 1;
         }
@@ -3404,10 +3871,13 @@
       semanticFingerprint: requiredText(raw.semanticFingerprint, path + ".semanticFingerprint", 80),
       state: state,
       tier: requiredText(raw.tier, path + ".tier", 80),
+      editorialState: clean(raw.editorialState, 100),
       label: requiredText(raw.label, path + ".label", 180),
       badge: requiredText(raw.badge, path + ".badge", 180),
       headline: requiredText(raw.headline, path + ".headline", 320),
-      deck: requiredText(raw.deck, path + ".deck", 700),
+      deck: structuredSourceSummary ?
+        clean(raw.deck, 700) :
+        requiredText(raw.deck, path + ".deck", 700),
       overview: requiredText(raw.overview, path + ".overview", 1800),
       topics: topics,
       topicMap: topicMap,
@@ -3637,11 +4107,14 @@
       if (!isRecord(raw.recap)) {
         fail("INVALID_SHOW_WIKI_RECAP", recapPath + " must be an object or null.", recapPath);
       }
-      if (!Array.isArray(raw.recap.blocks) || !raw.recap.blocks.length ||
+      var canonicalRecapOwnsStory = episodeRecap &&
+        episodeRecap.state === "ready";
+      if (!Array.isArray(raw.recap.blocks) ||
+          !canonicalRecapOwnsStory && !raw.recap.blocks.length ||
           raw.recap.blocks.length > 4) {
         fail(
           "SHOW_WIKI_RECAP_BLOCKS_REQUIRED",
-          recapPath + ".blocks must contain between one and four blocks.",
+          recapPath + ".blocks must contain between one and four blocks unless the canonical episode recap owns the story.",
           recapPath + ".blocks"
         );
       }

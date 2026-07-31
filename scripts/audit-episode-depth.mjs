@@ -31,6 +31,20 @@ const runtimeFiles = [
   "archive-recovery-batch2.js",
   "archive-completion.js",
   "title-topic-overrides.js",
+  "episode-editorial-packs.js",
+  "episode-editorial-packs-recent.js",
+  "episode-editorial-packs-wave2.js",
+  "episode-editorial-packs-wave3.js",
+  "episode-editorial-packs-wave4.js",
+  "episode-editorial-packs-wave5.js",
+  "episode-editorial-packs-wave6.js",
+  "episode-editorial-packs-wave7.js",
+  "episode-editorial-packs-wave8.js",
+  "episode-editorial-packs-wave9.js",
+  "episode-editorial-packs-wave10.js",
+  "episode-editorial-packs-wave11.js",
+  "episode-editorial-packs-wave12.js",
+  "episode-editorial-packs-wave13.js",
   "episode-recap-engine.js",
   "wwam-episode-recap-adapter.js",
   "wwam-source-dossier-adapter.js",
@@ -62,6 +76,13 @@ const categoryOrder = [
   "SOUNDBYTE / REPLAY",
   "MAJOR TOPIC TURN",
 ];
+
+const humanEditorialReviewState = "full-tape-human-editorial-read";
+const humanEditorialPanelTypes = new Set([
+  "ranking-ledger",
+  "verdict-ledger",
+  "character-ledger",
+]);
 
 function array(value) {
   return Array.isArray(value) ? value : [];
@@ -112,6 +133,241 @@ function runtimeHighlightFloor(duration) {
   if (seconds < 7200) return 10;
   if (seconds < 10800) return 12;
   return 15;
+}
+
+function humanEditorialDepthFloor(duration) {
+  const seconds = number(duration);
+  if (seconds >= 10800) return { story: 10, highlights: 15 };
+  if (seconds >= 7200) return { story: 8, highlights: 10 };
+  if (seconds >= 3600) return { story: 5, highlights: 6 };
+  return { story: 3, highlights: 4 };
+}
+
+function declaresCoordinate(value) {
+  return value !== null &&
+    value !== undefined &&
+    String(value).trim() !== "";
+}
+
+function hasCoordinate(value) {
+  return declaresCoordinate(value) && Number.isFinite(Number(value));
+}
+
+function boundedEditorialWindow(item, duration) {
+  if (!hasCoordinate(item?.at) || !hasCoordinate(item?.end)) return false;
+  const at = Number(item.at);
+  const end = Number(item.end);
+  return at >= 0 && end > at && end <= duration;
+}
+
+function inspectHumanTimedEntries(values, duration, kind) {
+  const entries = array(values);
+  const problems = [];
+  const windows = new Map();
+  const labels = new Map();
+  let previousAt = -1;
+
+  entries.forEach((item, index) => {
+    const at = Number(item?.at);
+    const end = Number(item?.end);
+    if (!boundedEditorialWindow(item, duration)) {
+      problems.push({
+        index,
+        problem: "out-of-bounds",
+        at: item?.at,
+        end: item?.end,
+      });
+    }
+    if (hasCoordinate(item?.at) && at < previousAt) {
+      problems.push({
+        index,
+        problem: "not-chronological",
+        at,
+        previousAt,
+      });
+    }
+    if (hasCoordinate(item?.at)) previousAt = at;
+
+    if (hasCoordinate(item?.at) && hasCoordinate(item?.end)) {
+      const windowKey = `${at}:${end}`;
+      if (windows.has(windowKey)) {
+        problems.push({
+          index,
+          problem: "duplicate-window",
+          duplicateOf: windows.get(windowKey),
+          window: windowKey,
+        });
+      } else {
+        windows.set(windowKey, index);
+      }
+    }
+
+    const labelKey = topologyKey(item?.label);
+    if (!labelKey) {
+      problems.push({ index, problem: "missing-label" });
+    } else if (labels.has(labelKey)) {
+      problems.push({
+        index,
+        problem: "duplicate-label",
+        duplicateOf: labels.get(labelKey),
+        label: clean(item?.label),
+      });
+    } else {
+      labels.set(labelKey, index);
+    }
+
+    if (kind === "story") {
+      if (!clean(item?.body)) {
+        problems.push({ index, problem: "missing-body" });
+      }
+      if (
+        clean(item?.evidenceBasis) !== humanEditorialReviewState ||
+        clean(item?.narrative?.kind) !== "human-editorial-story"
+      ) {
+        problems.push({ index, problem: "missing-human-editorial-basis" });
+      }
+    } else {
+      if (!clean(item?.category)) {
+        problems.push({ index, problem: "missing-category" });
+      }
+      if (!clean(item?.excerpt)) {
+        problems.push({ index, problem: "missing-excerpt" });
+      }
+      if (
+        clean(item?.kind) !== "human-editorial-highlight" ||
+        clean(item?.evidenceBasis) !== humanEditorialReviewState
+      ) {
+        problems.push({ index, problem: "missing-human-editorial-basis" });
+      }
+    }
+  });
+
+  return {
+    count: entries.length,
+    problemCount: problems.length,
+    problems,
+  };
+}
+
+function inspectHumanEditorialPanels(values, duration) {
+  const panels = array(values);
+  const problems = [];
+  const ids = new Map();
+  let groupCount = 0;
+  let itemCount = 0;
+
+  panels.forEach((panel, panelIndex) => {
+    const type = clean(panel?.type);
+    const id = clean(panel?.id);
+    const groups = array(panel?.groups);
+    const items = array(panel?.items);
+
+    if (!id) {
+      problems.push({ panelIndex, problem: "missing-id" });
+    } else if (ids.has(id)) {
+      problems.push({
+        panelIndex,
+        problem: "duplicate-id",
+        duplicateOf: ids.get(id),
+        id,
+      });
+    } else {
+      ids.set(id, panelIndex);
+    }
+    if (!humanEditorialPanelTypes.has(type)) {
+      problems.push({
+        panelIndex,
+        problem: "unsupported-type",
+        type,
+      });
+    }
+    if (!clean(panel?.title)) {
+      problems.push({ panelIndex, problem: "missing-title" });
+    }
+    if (!groups.length && !items.length) {
+      problems.push({ panelIndex, problem: "empty-panel" });
+    }
+    if (groups.length && type === "character-ledger") {
+      problems.push({
+        panelIndex,
+        problem: "unsupported-grouped-character-ledger",
+      });
+    }
+    if (items.length && type === "ranking-ledger") {
+      problems.push({
+        panelIndex,
+        problem: "unsupported-item-ranking-ledger",
+      });
+    }
+
+    groups.forEach((group, groupIndex) => {
+      groupCount += 1;
+      const groupItems = array(group?.items);
+      if (!clean(group?.label)) {
+        problems.push({
+          panelIndex,
+          groupIndex,
+          problem: "missing-group-label",
+        });
+      }
+      if (
+        !groupItems.length ||
+        groupItems.some((item) =>
+          typeof item !== "string" || !clean(item)
+        )
+      ) {
+        problems.push({
+          panelIndex,
+          groupIndex,
+          problem: "empty-group-items",
+        });
+      }
+    });
+
+    items.forEach((item, itemIndex) => {
+      itemCount += 1;
+      if (type === "verdict-ledger") {
+        if (!clean(item?.subject) || !clean(item?.verdict)) {
+          problems.push({
+            panelIndex,
+            itemIndex,
+            problem: "incomplete-verdict-item",
+          });
+        }
+      } else if (type === "character-ledger") {
+        if (!clean(item?.character) || !clean(item?.label)) {
+          problems.push({
+            panelIndex,
+            itemIndex,
+            problem: "incomplete-character-item",
+          });
+        }
+      }
+
+      const declaresAt = declaresCoordinate(item?.at);
+      const declaresEnd = declaresCoordinate(item?.end);
+      if (
+        (declaresAt || declaresEnd) &&
+        !boundedEditorialWindow(item, duration)
+      ) {
+        problems.push({
+          panelIndex,
+          itemIndex,
+          problem: "out-of-bounds-item-window",
+          at: item?.at,
+          end: item?.end,
+        });
+      }
+    });
+  });
+
+  return {
+    count: panels.length,
+    groupCount,
+    itemCount,
+    problemCount: problems.length,
+    problems,
+  };
 }
 
 function receiptKind(receipt) {
@@ -367,6 +623,31 @@ function issue(source, metric, severity, score, message, detail = {}) {
 
 function auditSource(source) {
   const recap = source?.showWiki?.episodeRecap || {};
+  const duration = Math.max(1, number(source?.duration));
+  const humanEditorial =
+    clean(recap?.editorialState) === humanEditorialReviewState;
+  const humanFloors = humanEditorial
+    ? humanEditorialDepthFloor(duration)
+    : { story: 0, highlights: 0 };
+  const humanStory = humanEditorial
+    ? inspectHumanTimedEntries(recap?.story, duration, "story")
+    : { count: 0, problemCount: 0, problems: [] };
+  const humanHighlights = humanEditorial
+    ? inspectHumanTimedEntries(
+      recap?.highlightRunway,
+      duration,
+      "highlights",
+    )
+    : { count: 0, problemCount: 0, problems: [] };
+  const humanPanels = humanEditorial
+    ? inspectHumanEditorialPanels(recap?.editorialPanels, duration)
+    : {
+      count: 0,
+      groupCount: 0,
+      itemCount: 0,
+      problemCount: 0,
+      problems: [],
+    };
   const receipts = array(source?.receipts);
   const visibleReceipts = receipts.filter((receipt) =>
     receipt?.showWikiHidden !== true
@@ -418,31 +699,41 @@ function auditSource(source) {
     source,
     /up[- ]in[- ]ya|out[- ]of[- ]pocket/i,
   );
-  const availableCategories = new Set([
-    ...visibleReceipts.map((receipt) =>
-      expectedReceiptCategory(receipt, steveKeys, upInYaKeys)
-    ),
-    ...guideCuts.map((cut) => expectedGuideCategory(source, cut)),
-  ]);
   const actualCategories = new Set(runway.map((item) =>
     clean(item?.category)
   ).filter(Boolean));
+  const availableCategories = humanEditorial
+    ? new Set(actualCategories)
+    : new Set([
+      ...visibleReceipts.map((receipt) =>
+        expectedReceiptCategory(receipt, steveKeys, upInYaKeys)
+      ),
+      ...guideCuts.map((cut) => expectedGuideCategory(source, cut)),
+    ]);
   // Exact topic navigation is still playable source evidence. A "ready" show
   // with ten timestamped topic doors and zero comedy/character candidates
   // must not be excused into a zero-highlight wiki.
   const hasNavigableEvidence =
     visibleReceipts.length > 0 || guideCuts.length > 0;
-  const targetFloor = hasNavigableEvidence
-    ? runtimeHighlightFloor(source?.duration)
-    : 0;
-  const featureCapacity = visibleReceipts.length + guideCuts.length;
-  const achievableFloor = hasNavigableEvidence
-    ? Math.min(targetFloor, featureCapacity)
-    : 0;
+  const targetFloor = humanEditorial
+    ? humanFloors.highlights
+    : hasNavigableEvidence
+      ? runtimeHighlightFloor(source?.duration)
+      : 0;
+  const featureCapacity = humanEditorial
+    ? runway.length
+    : visibleReceipts.length + guideCuts.length;
+  const achievableFloor = humanEditorial
+    ? targetFloor
+    : hasNavigableEvidence
+      ? Math.min(targetFloor, featureCapacity)
+      : 0;
 
-  const missingRequired = requiredReceipts.filter((receipt) =>
-    !runwayReceiptKeys.has(clean(receipt?.key))
-  );
+  const missingRequired = humanEditorial
+    ? []
+    : requiredReceipts.filter((receipt) =>
+      !runwayReceiptKeys.has(clean(receipt?.key))
+    );
   const duplicateRunwayKeys = runway.map((item) =>
     clean(item?.receiptKey)
       ? `receipt:${clean(item?.receiptKey)}`
@@ -452,21 +743,25 @@ function auditSource(source) {
   ).filter(Boolean);
   const duplicateFeatureCount =
     duplicateRunwayKeys.length - new Set(duplicateRunwayKeys).size;
-  const foreignFeatures = runway.filter((item) => {
-    const receiptKey = clean(item?.receiptKey);
-    const guideCutId = clean(item?.guideCutId);
-    if (receiptKey) return !sourceReceiptKeys.has(receiptKey);
-    if (guideCutId) return !guideCutIds.has(guideCutId);
-    return true;
-  });
+  const foreignFeatures = humanEditorial
+    ? []
+    : runway.filter((item) => {
+      const receiptKey = clean(item?.receiptKey);
+      const guideCutId = clean(item?.guideCutId);
+      if (receiptKey) return !sourceReceiptKeys.has(receiptKey);
+      if (guideCutId) return !guideCutIds.has(guideCutId);
+      return true;
+    });
 
   const recapTopicLabels = array(recap?.topics).map(clean).filter(Boolean);
   const actualTopicKeys = recapTopicLabels.map(topologyKey).filter(Boolean);
   const uniqueActualTopicKeys = new Set(actualTopicKeys);
-  const expectedTopicLabels = Array.from(new Map(topicReceipts.map((receipt) => [
-    topologyKey(receipt?.label),
-    clean(receipt?.label),
-  ])).entries()).filter(([key]) => key);
+  const expectedTopicLabels = humanEditorial
+    ? []
+    : Array.from(new Map(topicReceipts.map((receipt) => [
+      topologyKey(receipt?.label),
+      clean(receipt?.label),
+    ])).entries()).filter(([key]) => key);
   const expectedTopicKeys = new Set(expectedTopicLabels.map(([key]) => key));
   const duplicateTopicDoors =
     actualTopicKeys.length - uniqueActualTopicKeys.size;
@@ -495,36 +790,67 @@ function auditSource(source) {
     ]),
     runway.map((item) => item?.label),
   ]);
-  const missingTitleSubjects = titleReceipts.filter((receipt) => {
-    const key = clean(receipt?.key);
-    return !surfacedReceiptKeys.has(key) ||
-      !textContainsLabel(recapText, receipt?.label);
-  });
+  const missingTitleSubjects = humanEditorial
+    ? []
+    : titleReceipts.filter((receipt) => {
+      const key = clean(receipt?.key);
+      return !surfacedReceiptKeys.has(key) ||
+        !textContainsLabel(recapText, receipt?.label);
+    });
 
-  const duration = Math.max(1, number(source?.duration));
-  const lateReceiptEvidence = visibleReceipts.filter((receipt) =>
-    receiptAt(receipt) / duration >= 0.75
-  );
-  const lateGuideEvidence = guideCuts.filter((cut) =>
-    cutAt(cut) / duration >= 0.75
-  );
-  const missingLateReceipts = lateReceiptEvidence.filter((receipt) =>
-    !surfacedReceiptKeys.has(clean(receipt?.key))
-  );
-  const missingLateGuideCuts = lateGuideEvidence.filter((cut) =>
-    !surfacedGuideIds.has(clean(cut?.id))
-  );
+  const lateReceiptEvidence = humanEditorial
+    ? []
+    : visibleReceipts.filter((receipt) =>
+      receiptAt(receipt) / duration >= 0.75
+    );
+  const lateGuideEvidence = humanEditorial
+    ? []
+    : guideCuts.filter((cut) =>
+      cutAt(cut) / duration >= 0.75
+    );
+  const missingLateReceipts = humanEditorial
+    ? []
+    : lateReceiptEvidence.filter((receipt) =>
+      !surfacedReceiptKeys.has(clean(receipt?.key))
+    );
+  const missingLateGuideCuts = humanEditorial
+    ? []
+    : lateGuideEvidence.filter((cut) =>
+      !surfacedGuideIds.has(clean(cut?.id))
+    );
+  const humanPanelTimedItems = humanEditorial
+    ? array(recap?.editorialPanels).flatMap((panel) =>
+      array(panel?.items).filter((item) =>
+        boundedEditorialWindow(item, duration)
+      )
+    )
+    : [];
+  const humanLateEvidence = humanEditorial
+    ? [
+      ...array(recap?.story),
+      ...runway,
+      ...humanPanelTimedItems,
+    ].filter((item) =>
+      boundedEditorialWindow(item, duration) &&
+      number(item?.at) / duration >= 0.75
+    )
+    : [];
   const latestSurfaceAt = Math.max(0, ...[
     ...runway.map((item) => number(item?.at)),
     ...array(recap?.story).map((segment) =>
       Math.max(number(segment?.at), number(segment?.anchorAt))
     ),
     ...array(recap?.sections).map((section) => number(section?.at)),
+    ...humanPanelTimedItems.map((item) => number(item?.at)),
   ]);
-  const latestEligibleAt = Math.max(0, ...[
-    ...lateReceiptEvidence.map(receiptAt),
-    ...lateGuideEvidence.map(cutAt),
-  ]);
+  const latestEligibleAt = humanEditorial
+    ? duration * 0.75
+    : Math.max(0, ...[
+      ...lateReceiptEvidence.map(receiptAt),
+      ...lateGuideEvidence.map(cutAt),
+    ]);
+  const humanLateTailMissing =
+    humanEditorial && latestSurfaceAt < duration * 0.75;
 
   const highlightLabels = runway.map((item) => clean(item?.label))
     .filter(Boolean);
@@ -556,6 +882,78 @@ function auditSource(source) {
         actual: runway.length,
         featureCapacity,
         deficit,
+      },
+    ));
+  }
+  if (humanEditorial && humanStory.count < humanFloors.story) {
+    const deficit = humanFloors.story - humanStory.count;
+    issues.push(issue(
+      source,
+      "human-story-floor",
+      "blocker",
+      140 + deficit * 15,
+      `${humanStory.count} human story chapters is below the ` +
+        `${humanFloors.story}-chapter editorial floor.`,
+      {
+        runtimeBand: runtimeBand(duration),
+        required: humanFloors.story,
+        actual: humanStory.count,
+        deficit,
+      },
+    ));
+  }
+  if (
+    humanEditorial &&
+    recap?.caseFile?.humanEditorialRead !== true
+  ) {
+    issues.push(issue(
+      source,
+      "human-editorial-marker",
+      "blocker",
+      220,
+      "The full-tape editorial recap is missing its explicit human-read marker.",
+    ));
+  }
+  if (humanEditorial && humanStory.problemCount) {
+    issues.push(issue(
+      source,
+      "human-story-structure",
+      "blocker",
+      190 + humanStory.problemCount * 12,
+      "Human story chapters contain invalid windows, repeated identities, " +
+        "missing copy, or non-editorial evidence.",
+      {
+        problemCount: humanStory.problemCount,
+        problems: humanStory.problems.slice(0, 25),
+      },
+    ));
+  }
+  if (humanEditorial && humanHighlights.problemCount) {
+    issues.push(issue(
+      source,
+      "human-highlight-structure",
+      "blocker",
+      190 + humanHighlights.problemCount * 12,
+      "Human highlights contain invalid windows, repeated identities, " +
+        "missing copy, or non-editorial evidence.",
+      {
+        problemCount: humanHighlights.problemCount,
+        problems: humanHighlights.problems.slice(0, 25),
+      },
+    ));
+  }
+  if (humanEditorial && humanPanels.problemCount) {
+    issues.push(issue(
+      source,
+      "human-editorial-panels",
+      "blocker",
+      185 + humanPanels.problemCount * 12,
+      "Human editorial panels contain unsupported, empty, incomplete, or " +
+        "out-of-bounds content.",
+      {
+        panelCount: humanPanels.count,
+        problemCount: humanPanels.problemCount,
+        problems: humanPanels.problems.slice(0, 25),
       },
     ));
   }
@@ -623,7 +1021,25 @@ function auditSource(source) {
     ));
   }
 
-  if (missingLateReceipts.length || missingLateGuideCuts.length) {
+  if (humanLateTailMissing) {
+    issues.push(issue(
+      source,
+      "late-tail-coverage",
+      "blocker",
+      180,
+      "The full-tape human story, highlights, and timed editorial panel rows " +
+        "do not reach the final quarter of the source.",
+      {
+        requiredAt: duration * 0.75,
+        requiredClock: clock(duration * 0.75),
+        latestSurfaceAt,
+        latestSurfaceClock: clock(latestSurfaceAt),
+      },
+    ));
+  } else if (
+    !humanEditorial &&
+    (missingLateReceipts.length || missingLateGuideCuts.length)
+  ) {
     issues.push(issue(
       source,
       "late-tail-coverage",
@@ -648,6 +1064,7 @@ function auditSource(source) {
       },
     ));
   } else if (
+    !humanEditorial &&
     duration >= 5400 &&
     latestEligibleAt >= duration * 0.75 &&
     latestSurfaceAt < duration * 0.7
@@ -785,12 +1202,15 @@ function auditSource(source) {
     runtime: clock(duration),
     runtimeBand: runtimeBand(duration),
     recapState: clean(recap?.state),
+    editorialState: clean(recap?.editorialState),
     highlight: {
       targetFloor,
       achievableFloor,
       featureCapacity,
       actual: runway.length,
-      registeredMomentsAndCharacters: requiredReceipts.length,
+      registeredMomentsAndCharacters: humanEditorial
+        ? 0
+        : requiredReceipts.length,
       missingRegisteredMomentsAndCharacters: missingRequired.length,
       overFloor: Math.max(0, runway.length - achievableFloor),
       uncapped: runway.length > targetFloor,
@@ -801,14 +1221,22 @@ function auditSource(source) {
       requiredDiversity: categoryFloor,
     },
     lateTail: {
-      availableEvidence: lateReceiptEvidence.length + lateGuideEvidence.length,
-      missingEvidence: missingLateReceipts.length + missingLateGuideCuts.length,
+      availableEvidence: humanEditorial
+        ? humanLateEvidence.length
+        : lateReceiptEvidence.length + lateGuideEvidence.length,
+      missingEvidence: humanEditorial
+        ? Number(humanLateTailMissing)
+        : missingLateReceipts.length + missingLateGuideCuts.length,
       latestEligibleAt,
       latestSurfaceAt,
-      closingPhaseCovered: recap?.caseFile?.closingPhaseCovered === true,
+      closingPhaseCovered:
+        recap?.caseFile?.closingPhaseCovered === true ||
+        humanEditorial && !humanLateTailMissing,
     },
     titleSubjects: {
-      registered: titleReceipts.map((receipt) => clean(receipt?.label)),
+      registered: humanEditorial
+        ? []
+        : titleReceipts.map((receipt) => clean(receipt?.label)),
       missing: missingTitleSubjects.map((receipt) => clean(receipt?.label)),
     },
     topicDoors: {
@@ -824,6 +1252,26 @@ function auditSource(source) {
       dominantLabel: dominantLabelEntry[0],
       dominantLabelCount: dominantLabelEntry[1],
       dominantLabelPercent: Math.round(dominantLabelRatio * 100),
+    },
+    humanEditorial: {
+      active: humanEditorial,
+      markerPresent: recap?.caseFile?.humanEditorialRead === true,
+      story: {
+        required: humanFloors.story,
+        actual: humanStory.count,
+        problemCount: humanEditorial ? humanStory.problemCount : 0,
+      },
+      highlights: {
+        required: humanFloors.highlights,
+        actual: humanEditorial ? humanHighlights.count : 0,
+        problemCount: humanEditorial ? humanHighlights.problemCount : 0,
+      },
+      panels: {
+        actual: humanEditorial ? humanPanels.count : 0,
+        groups: humanEditorial ? humanPanels.groupCount : 0,
+        items: humanEditorial ? humanPanels.itemCount : 0,
+        problemCount: humanEditorial ? humanPanels.problemCount : 0,
+      },
     },
     issues,
   };
@@ -873,6 +1321,21 @@ export function auditEpisodeDepth({
   const titleSubjectFailures = shows.filter((show) =>
     show.titleSubjects.missing.length > 0
   );
+  const humanEditorialShows = shows.filter((show) =>
+    show.humanEditorial.active
+  );
+  const humanStoryFailures = humanEditorialShows.filter((show) =>
+    show.humanEditorial.story.actual < show.humanEditorial.story.required
+  );
+  const humanIntegrityMetrics = new Set([
+    "human-editorial-marker",
+    "human-story-structure",
+    "human-highlight-structure",
+    "human-editorial-panels",
+  ]);
+  const humanIntegrityBlockers = blockers.filter((item) =>
+    humanIntegrityMetrics.has(item.metric)
+  );
   const uniqueTopicDoorFailures = shows.filter((show) =>
     show.topicDoors.duplicateCount > 0 ||
     show.topicDoors.visibleUnique < Math.min(3, show.topicDoors.registeredUnique)
@@ -898,6 +1361,9 @@ export function auditEpisodeDepth({
       sourceIds: group.map((show) => show.sourceId),
       titles: group.map((show) => show.title),
     }));
+  const unexplainedHeadlineCollisions = repeatedHeadlines.filter((group) =>
+    new Set(group.titles.map((title) => topologyKey(title))).size > 1
+  );
 
   const gates = {
     runtimeHighlightFloorsPass: floorFailures.length === 0,
@@ -908,7 +1374,9 @@ export function auditEpisodeDepth({
     titleSubjectPresencePass: titleSubjectFailures.length === 0,
     uniqueTopicDoorsPass: uniqueTopicDoorFailures.length === 0,
     noGenericLabelBlockers: genericBlockers.length === 0,
-    uniqueEpisodeHeadlinesPass: repeatedHeadlines.length === 0,
+    humanEditorialStoryDepthPass: humanStoryFailures.length === 0,
+    humanEditorialIntegrityPass: humanIntegrityBlockers.length === 0,
+    uniqueEpisodeHeadlinesPass: unexplainedHeadlineCollisions.length === 0,
   };
   const summary = {
     schema: "wwam-episode-depth-audit-summary/v1",
@@ -971,6 +1439,32 @@ export function auditEpisodeDepth({
       populated: headlineGroups.size,
       repeatedGroups: repeatedHeadlines.length,
       collisions: repeatedHeadlines,
+      unexplainedCollisions: unexplainedHeadlineCollisions,
+    },
+    humanEditorial: {
+      shows: humanEditorialShows.length,
+      storyChapters: humanEditorialShows.reduce(
+        (total, show) => total + show.humanEditorial.story.actual,
+        0,
+      ),
+      highlights: humanEditorialShows.reduce(
+        (total, show) => total + show.humanEditorial.highlights.actual,
+        0,
+      ),
+      panels: humanEditorialShows.reduce(
+        (total, show) => total + show.humanEditorial.panels.actual,
+        0,
+      ),
+      panelGroups: humanEditorialShows.reduce(
+        (total, show) => total + show.humanEditorial.panels.groups,
+        0,
+      ),
+      panelItems: humanEditorialShows.reduce(
+        (total, show) => total + show.humanEditorial.panels.items,
+        0,
+      ),
+      storyFloorFailures: humanStoryFailures.length,
+      integrityBlockers: humanIntegrityBlockers.length,
     },
     issues: {
       blockers: blockers.length,
@@ -1012,6 +1506,7 @@ function printHuman(report) {
     `Topic doors: ${summary.topicDoors.averageVisibleUnique} average unique // ${summary.topicDoors.failures} failures`,
     `Generic labels: ${summary.genericLabels.blockerShows} blockers // ${summary.genericLabels.advisoryShows} advisories // ${summary.genericLabels.averagePercent}% corpus average`,
     `Episode headlines: ${summary.headlineUniqueness.populated} populated // ${summary.headlineUniqueness.repeatedGroups} repeated groups`,
+    `Human editorial: ${summary.humanEditorial.shows} shows // ${summary.humanEditorial.storyChapters} story chapters // ${summary.humanEditorial.highlights} highlights // ${summary.humanEditorial.panels} panels (${summary.humanEditorial.panelGroups} groups + ${summary.humanEditorial.panelItems} items) // ${summary.humanEditorial.storyFloorFailures} story-floor failures // ${summary.humanEditorial.integrityBlockers} integrity blockers`,
     `Issues: ${summary.issues.blockers} blockers // ${summary.issues.advisories} advisories`,
     `DEPTH RELEASE GATE: ${summary.pass ? "PASS" : "FAIL"}`,
     "",

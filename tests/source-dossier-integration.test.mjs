@@ -424,10 +424,10 @@ test("all 472 Atlas records pass through one card-to-dossier route", () => {
   assert.match(appBridge, /openSourceDossier\(record\.id\)/);
 });
 
-test("dossier CSS and scripts load lazily through the feature loader, never eager index tags", () => {
+test("dossier CSS brands cold routes immediately while heavy scripts remain lazy", () => {
   assert.match(
     html,
-    /<script src="app\.js\?v=0\.5\.71-archive-copy-grammar"><\/script>/,
+    /<script src="app\.js\?v=0\.5\.\d+-[a-z0-9-]+"><\/script>/,
   );
   const eagerScripts = Array.from(
     html.matchAll(/<script\b[^>]*\bsrc="([^"]+)"/g),
@@ -458,6 +458,20 @@ test("dossier CSS and scripts load lazily through the feature loader, never eage
     "episode-guide-v2-newest-five-release.js",
     "episode-guide-v2-reviewed-merge.js",
     "title-topic-overrides.js",
+    "episode-editorial-packs.js",
+    "episode-editorial-packs-recent.js",
+    "episode-editorial-packs-wave2.js",
+    "episode-editorial-packs-wave3.js",
+    "episode-editorial-packs-wave4.js",
+    "episode-editorial-packs-wave5.js",
+    "episode-editorial-packs-wave6.js",
+    "episode-editorial-packs-wave7.js",
+    "episode-editorial-packs-wave8.js",
+    "episode-editorial-packs-wave9.js",
+    "episode-editorial-packs-wave10.js",
+    "episode-editorial-packs-wave11.js",
+    "episode-editorial-packs-wave12.js",
+    "episode-editorial-packs-wave13.js",
     "episode-recap-engine.js",
     "wwam-episode-recap-adapter.js",
     "source-dossier-engine.js",
@@ -467,7 +481,7 @@ test("dossier CSS and scripts load lazily through the feature loader, never eage
     "source-dossier-ui.js",
     "wwam-dossier-editorial.js",
   ];
-  assert.equal(eagerStyles.includes("source-dossier.css"), false);
+  assert.equal(eagerStyles.includes("source-dossier.css"), true);
   for (const asset of dossierScripts) {
     assert.equal(eagerScripts.includes(asset), false, `${asset} must remain lazy`);
   }

@@ -484,6 +484,33 @@ test("accepts the title, timeline, and reviewed-negative receipt types used by l
   );
 });
 
+test("accepts bounded full-tape editorial highlights without weakening machine receipt rules", () => {
+  const api = runtime();
+
+  for (const evidenceType of [
+    "reviewed-episode-highlight",
+    "reviewed-up-in-ya-highlight",
+  ]) {
+    const input = fixture();
+    const receipt = input.sources[0].receipts[0];
+    receipt.evidenceType = evidenceType;
+    receipt.evidenceLevel = "human-editorial";
+    receipt.evidenceBasis = "full-tape-human-editorial-read";
+    receipt.reviewState = "human-editor-reviewed";
+    receipt.editorNote = evidenceType === "reviewed-up-in-ya-highlight"
+      ? "WWAM UP IN YA"
+      : "ROOM BREAK";
+    assert.doesNotThrow(() => api.create(input), evidenceType);
+  }
+
+  const machine = fixture();
+  machine.sources[0].receipts[0].editorNote = "ROOM BREAK";
+  assert.throws(
+    () => api.create(machine),
+    expectCode("UNBOUND_RECEIPT_EDITOR_NOTE"),
+  );
+});
+
 test("exports exact coordinates and bindings without excerpts, captions, media, or speakers", () => {
   const manifest = clone(runtime().create(fixture()).exportManifest("RACEFILE01A"));
   const serialized = JSON.stringify(manifest);

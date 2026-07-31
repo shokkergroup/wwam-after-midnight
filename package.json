@@ -12,7 +12,9 @@
     "test": "npm run build && node --test tests/*.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate",
-    "build:pages": "node scripts/build-github-pages.mjs"
+    "build:pages": "node scripts/build-github-pages.mjs",
+    "audit:public-truth": "node scripts/audit-editorial-truth.mjs --check",
+    "audit:editorial-completion": "node scripts/audit-editorial-truth.mjs --require-all-human --check"
   },
   "dependencies": {
     "drizzle-orm": "0.45.2",

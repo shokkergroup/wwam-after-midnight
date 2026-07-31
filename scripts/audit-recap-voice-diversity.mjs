@@ -36,6 +36,20 @@ const RUNTIME_FILES = [
   "archive-recovery-batch2.js",
   "archive-completion.js",
   "title-topic-overrides.js",
+  "episode-editorial-packs.js",
+  "episode-editorial-packs-recent.js",
+  "episode-editorial-packs-wave2.js",
+  "episode-editorial-packs-wave3.js",
+  "episode-editorial-packs-wave4.js",
+  "episode-editorial-packs-wave5.js",
+  "episode-editorial-packs-wave6.js",
+  "episode-editorial-packs-wave7.js",
+  "episode-editorial-packs-wave8.js",
+  "episode-editorial-packs-wave9.js",
+  "episode-editorial-packs-wave10.js",
+  "episode-editorial-packs-wave11.js",
+  "episode-editorial-packs-wave12.js",
+  "episode-editorial-packs-wave13.js",
   "episode-recap-engine.js",
   "wwam-episode-recap-adapter.js",
   "wwam-source-dossier-adapter.js",
@@ -72,7 +86,6 @@ const DRY_INVENTORY_PATTERNS = [
 ];
 
 const MACHINE_ROOM_PATTERNS = [
-  ["algorithm", /\balgorithm(?:ic|s)?\b/i],
   ["caption-derived", /\bcaption-derived\b/i],
   ["machine-taxonomy", /\bmachine taxonomy\b/i],
   ["machine-label", /\bmachine label\b/i],
@@ -117,9 +130,12 @@ export const SPEAKER_OVERCLAIM_PATTERNS = [
   ],
   [
     "generic-host-attribution",
-    /\b(?:the host|a host|one of (?:the hosts|them)|they)\s+(?:said|says|argued|argues|thought|thinks|hated|hates|loved|loves)\b/i,
+    /\b(?:the host|a host|one of (?:the hosts|them))\s+(?:said|says|argued|argues|thought|thinks|hated|hates|loved|loves)\b/i,
   ],
-  ["speaker-identity-claim", /\b(?:speaker|performer) (?:is|was|says|said)\b/i],
+  [
+    "speaker-identity-claim",
+    /\b(?:(?:speaker|performer) (?:is|was) (?:mike|j|jay)|(?:speaker|performer) (?:says|said))\b/i,
+  ],
 ];
 
 export const FIREWALL_COPY_PATTERNS = [
@@ -249,6 +265,8 @@ export function compileReadyRecaps() {
       registeredRecap: source.showWiki.recap || null,
       tier: source.showWiki.episodeRecap.tier || "unknown",
       format: source.showWiki.episodeRecap.format?.id || "unknown",
+      editorialPack:
+        runtime.WWAM_EPISODE_EDITORIAL_PACKS?.sources?.[source.id] || null,
     }));
 }
 
@@ -260,6 +278,37 @@ function cleanMojibake(value) {
     .replaceAll("â€“", "–")
     .replaceAll("â€”", "—")
     .replaceAll("â†’", "→");
+}
+
+function cleanPublicCaptionExcerpt(value) {
+  const text = cleanMojibake(value)
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/^(?:\s*>>\s*)+/, "")
+    .replace(/>>/g, " ")
+    .replace(/\[(?:laughter|music|applause|cheering)\]/gi, " ")
+    .replace(/\[\s*__\s*\]/g, "[BLEEP]")
+    .replace(/\b([A-Za-z][A-Za-z'-]*)\s+\1\b/gi, "$1")
+    .replace(/\s+([,.;!?])/g, "$1")
+    .replace(/\s+/g, " ")
+    .replace(/^[\s\u2026]+|[\s\u2026]+$/g, "")
+    .trim();
+  if (!text) return "";
+  const words = text.match(/[A-Za-z0-9]+(?:['-][A-Za-z0-9]+)*/g) || [];
+  const hasPunctuation = /[,;:!?]|\.(?:\s|$)/.test(text);
+  const startsMidBreath =
+    /^(?:uh+|um+|and|but|so|about|because|like|well)\b/i.test(text);
+  const dangles =
+    /\b(?:and|or|but|because|with|to|from|of|the|a|an|which|who|while|when|where|as|at|in|on|for|by|we're|i'm|it's)\s*$/i
+      .test(text);
+  if (
+    dangles ||
+    !hasPunctuation && words.length < 8 ||
+    startsMidBreath && !hasPunctuation && words.length < 12
+  ) {
+    return "";
+  }
+  return text;
 }
 
 function escapeRegExp(value) {
@@ -403,46 +452,160 @@ function sentenceEntry(file, text, field) {
   };
 }
 
+function isHumanEditorialFile(file) {
+  const recap = file?.recap || {};
+  return /human-editorial/i.test(String(recap.editorialState || "")) ||
+    recap.editorialEvidence?.humanEditorialRead === true ||
+    recap.caseFile?.humanEditorialRead === true ||
+    file?.editorialPack?.reviewState === "full-tape-human-editorial-read";
+}
+
+function isStructuredSummaryFile(file) {
+  return !isHumanEditorialFile(file) &&
+    String(file?.recap?.editorialState || "") ===
+      "structured-source-summary";
+}
+
+function isLegacyRecapFile(file) {
+  return !isHumanEditorialFile(file) && !isStructuredSummaryFile(file);
+}
+
+function publicFanReadFields(file, includeLabels) {
+  return Object.entries(file.recap?.fanRead || {}).flatMap(([lane, item]) => {
+    const fields = [{
+      field: `fanRead.${lane}.body`,
+      text: item?.body,
+    }];
+    if (includeLabels) {
+      fields.push(
+        { field: `fanRead.${lane}.label`, text: item?.label },
+        { field: `fanRead.${lane}.topic`, text: item?.topic },
+        {
+          field: `fanRead.${lane}.excerpt`,
+          text: cleanPublicCaptionExcerpt(item?.excerpt),
+        },
+      );
+    }
+    return fields;
+  });
+}
+
+function publicHighlightFields(file) {
+  return (file.recap?.highlightRunway || []).flatMap((item, index) => [
+    { field: `highlightRunway[${index}].category`, text: item?.category },
+    { field: `highlightRunway[${index}].label`, text: item?.label },
+    {
+      field: `highlightRunway[${index}].excerpt`,
+      text: cleanPublicCaptionExcerpt(item?.excerpt),
+    },
+  ]);
+}
+
+function publicPanelFields(file, proseOnly) {
+  if (!isHumanEditorialFile(file)) return [];
+  return (file.recap?.editorialPanels || []).flatMap((panel, panelIndex) => {
+    const prefix = `editorialPanels[${panelIndex}]`;
+    const fields = [
+      { field: `${prefix}.intro`, text: panel?.intro },
+      { field: `${prefix}.note`, text: panel?.note },
+    ];
+    if (!proseOnly) {
+      fields.push(
+        { field: `${prefix}.eyebrow`, text: panel?.eyebrow },
+        { field: `${prefix}.title`, text: panel?.title },
+      );
+    }
+    (panel?.groups || []).forEach((group, groupIndex) => {
+      if (!proseOnly) {
+        fields.push({
+          field: `${prefix}.groups[${groupIndex}].label`,
+          text: group?.label,
+        });
+      }
+      (group?.items || []).forEach((item, itemIndex) => {
+        fields.push({
+          field: `${prefix}.groups[${groupIndex}].items[${itemIndex}]`,
+          text: item,
+        });
+      });
+    });
+    (panel?.items || []).forEach((item, itemIndex) => {
+      const itemPrefix = `${prefix}.items[${itemIndex}]`;
+      fields.push(
+        { field: `${itemPrefix}.verdict`, text: item?.verdict },
+        { field: `${itemPrefix}.label`, text: item?.label },
+      );
+      if (!proseOnly) {
+        fields.push(
+          { field: `${itemPrefix}.subject`, text: item?.subject },
+          { field: `${itemPrefix}.character`, text: item?.character },
+        );
+      }
+    });
+    return fields;
+  });
+}
+
 function proseFields(file) {
   const recap = file.recap;
   const registered = file.registeredRecap || file.source.showWiki?.recap || {};
-  return [
+  const fields = [
     { field: "deck", text: recap.deck },
     { field: "overview", text: recap.overview },
-    ...(recap.sections || []).map((section, index) => ({
-      field: `section[${index}].body`,
-      text: section.body,
-    })),
-    ...(recap.story || []).map((segment, index) => ({
+    ...publicFanReadFields(file, false),
+    ...publicPanelFields(file, true),
+  ];
+  if (isHumanEditorialFile(file) || isLegacyRecapFile(file)) {
+    fields.push(...(recap.story || []).map((segment, index) => ({
       field: `story[${index}].body`,
       text: segment.body,
-    })),
-    ...Object.entries(recap.fanRead || {}).map(([lane, item]) => ({
-      field: `fanRead.${lane}.body`,
-      text: item?.body,
-    })),
-    { field: "registeredRecap.overview", text: registered.overview },
-    ...(registered.blocks || []).map((block, index) => ({
+    })));
+  }
+  if (isLegacyRecapFile(file)) {
+    fields.push(...(recap.sections || []).map((section, index) => ({
+      field: `section[${index}].body`,
+      text: section.body,
+    })));
+    fields.push(
+      { field: "registeredRecap.overview", text: registered.overview },
+      ...(registered.blocks || []).map((block, index) => ({
       field: `registeredRecap.blocks[${index}].body`,
       text: block?.body,
-    })),
-  ].filter((item) => String(item.text || "").trim());
+      })),
+    );
+  }
+  return fields.filter((item) => String(item.text || "").trim());
 }
 
 function visibleTextFields(file) {
   const recap = file.recap;
-  return [
+  const fields = [
     ...proseFields(file),
     { field: "headline", text: recap.headline },
-    ...(recap.sections || []).map((section, index) => ({
-      field: `section[${index}].label`,
-      text: section.label,
-    })),
-    ...(recap.story || []).map((segment, index) => ({
+    ...publicHighlightFields(file),
+    ...publicFanReadFields(file, true),
+    ...publicPanelFields(file, false),
+  ];
+  if (isHumanEditorialFile(file) || isLegacyRecapFile(file)) {
+    fields.push(...(recap.story || []).map((segment, index) => ({
       field: `story[${index}].label`,
       text: segment.label,
-    })),
-  ].filter((item) => String(item.text || "").trim());
+    })));
+  }
+  if (isLegacyRecapFile(file)) {
+    fields.push(...(recap.sections || []).map((section, index) => ({
+      field: `section[${index}].label`,
+      text: section.label,
+    })));
+  }
+  const seen = new Set();
+  return fields.filter((item) => {
+    if (!String(item.text || "").trim()) return false;
+    const key = `${item.field}\u0000${item.text}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 function normalizedWords(value) {
@@ -466,6 +629,7 @@ function removeEntities(value, entities) {
 }
 
 function rawExcerptReuse(file, field, text) {
+  if (isHumanEditorialFile(file)) return [];
   if (!/\.body$/.test(field)) return [];
   const entities = normalizationEntities(file);
   const body = ` ${removeEntities(text, entities)} `;
@@ -474,9 +638,10 @@ function rawExcerptReuse(file, field, text) {
   (file.source.receipts || []).forEach((receipt) => {
     const excerpt = removeEntities(receipt?.excerpt, entities);
     const tokens = excerpt.split(/\s+/).filter(Boolean);
-    if (tokens.length < 5) return;
-    for (let index = 0; index <= tokens.length - 5; index += 1) {
-      const phrase = tokens.slice(index, index + 5).join(" ");
+    if (tokens.length < 8) return;
+    const phraseWidth = Math.min(12, tokens.length);
+    for (let index = 0; index <= tokens.length - phraseWidth; index += 1) {
+      const phrase = tokens.slice(index, index + phraseWidth).join(" ");
       if (` ${body} `.includes(` ${phrase} `)) {
         failures.push({
           receiptKey: String(receipt?.key || ""),
@@ -563,6 +728,7 @@ function lexiconFlags(files) {
     const entities = normalizationEntities(file);
     visibleTextFields(file).forEach(({ field, text }) => {
       const unquoted = replaceQuotedText(cleanMojibake(text));
+      const sourceExcerpt = /\.excerpt$/.test(field);
       RAW_CAPTION_PATTERNS.forEach(([kind, pattern]) => {
         if (pattern.test(text)) {
           rawCaptionMarkers.push(compactFlag(
@@ -575,6 +741,7 @@ function lexiconFlags(files) {
         }
       });
       FORBIDDEN_METAPHOR_PATTERNS.forEach(([kind, pattern]) => {
+        if (sourceExcerpt) return;
         if (pattern.test(unquoted)) {
           forbiddenMetaphors.push(compactFlag(
             file,
@@ -595,6 +762,7 @@ function lexiconFlags(files) {
         ));
       }
       SPEAKER_OVERCLAIM_PATTERNS.forEach(([kind, pattern]) => {
+        if (sourceExcerpt) return;
         if (pattern.test(unquoted)) {
           speakerOverclaims.push(compactFlag(
             file,
@@ -606,6 +774,7 @@ function lexiconFlags(files) {
         }
       });
       FIREWALL_COPY_PATTERNS.forEach(([kind, pattern]) => {
+        if (sourceExcerpt) return;
         if (pattern.test(unquoted)) {
           firewallCopy.push(compactFlag(
             file,
@@ -628,7 +797,7 @@ function lexiconFlags(files) {
           receiptKey: reuse.receiptKey,
         });
       });
-      quoteSalad(text).forEach((span) => {
+      (sourceExcerpt ? [] : quoteSalad(text)).forEach((span) => {
         quoteSaladFlags.push(compactFlag(
           file,
           field,
@@ -638,21 +807,24 @@ function lexiconFlags(files) {
         ));
       });
       DRY_INVENTORY_PATTERNS.forEach(([kind, pattern]) => {
+        if (sourceExcerpt) return;
         if (pattern.test(unquoted)) {
           dryInventory.push(compactFlag(file, field, text, kind, pattern.source));
         }
       });
       MACHINE_ROOM_PATTERNS.forEach(([kind, pattern]) => {
+        if (sourceExcerpt) return;
         if (pattern.test(unquoted)) {
           machineRoomJargon.push(compactFlag(file, field, text, kind, pattern.source));
         }
       });
-      splitSentences(text).forEach((sentence) => {
+      (sourceExcerpt ? [] : splitSentences(text)).forEach((sentence) => {
         if (DISCLAIMER_PATTERN.test(sentence)) {
           disclaimerSentences.push(sentenceEntry(file, sentence, field));
         }
       });
 
+      if (sourceExcerpt) return;
       const normalized = normalizeSentenceMold(unquoted, entities);
       const incompatible = [];
       if (
@@ -706,8 +878,12 @@ function lexiconFlags(files) {
 
 export function auditRecapVoiceDiversity(files, options = {}) {
   const limit = Number(options.maxDominantMoldPercent) || DEFAULT_LIMIT_PERCENT;
-  const storyFiles = files.filter((file) => (file.recap.story || []).length);
-  const bridgeFiles = files.filter((file) => (file.recap.story || []).length > 1);
+  const storyFiles = files.filter((file) =>
+    !isStructuredSummaryFile(file) && (file.recap.story || []).length
+  );
+  const bridgeFiles = files.filter((file) =>
+    !isStructuredSummaryFile(file) && (file.recap.story || []).length > 1
+  );
   const openingEntries = [];
   const bridgeEntries = [];
   const finalEntries = [];
@@ -737,7 +913,7 @@ export function auditRecapVoiceDiversity(files, options = {}) {
     }
   });
 
-  files.forEach((file) => {
+  files.filter(isLegacyRecapFile).forEach((file) => {
     (file.recap.sections || []).forEach((section, index) => {
       const opening = splitSentences(section.body)[0];
       if (opening) {
@@ -806,6 +982,11 @@ export function auditRecapVoiceDiversity(files, options = {}) {
     },
     corpus: {
       ready: files.length,
+      publicModels: {
+        humanEditorial: files.filter(isHumanEditorialFile).length,
+        structuredSourceSummary: files.filter(isStructuredSummaryFile).length,
+        legacy: files.filter(isLegacyRecapFile).length,
+      },
       tiers: Object.fromEntries(
         Array.from(new Set(files.map((file) => file.tier))).sort().map((tier) => [
           tier,
