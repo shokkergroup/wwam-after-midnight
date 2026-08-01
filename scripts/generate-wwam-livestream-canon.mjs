@@ -286,14 +286,15 @@ const episodes = metadata.map((record) => {
   const topicRead = topicNames.length === 1 ? topicNames[0] : topicNames.length === 2 ? `${topicNames[0]} and ${topicNames[1]}` : topicNames.length > 2 ? `${topicNames.slice(0, -1).join(", ")}, and ${topicNames.at(-1)}` : "the night's open mic";
   const lead = mode === "ranking-show" ? "A bracket-and-ranking night" : mode === "trailer-reaction" ? "A trailer-and-news night" : mode === "movie-commentary" ? "A movie watchalong" : mode === "q-and-a" ? "A fan-mail night" : mode === "spoiler-review" ? "A spoiler-heavy review night" : "An open-line movie-news night";
   const hotLane = moments.slice().sort((left, right) => Number(right.score || 0) - Number(left.score || 0))[0]?.category;
+  const hotMoment = moments.slice().sort((left, right) => Number(right.score || 0) - Number(left.score || 0) || Number(left.t || 0) - Number(right.t || 0))[0] || null;
   const summaryVariant = Array.from(id).reduce((total, character) => total + character.charCodeAt(0), 0) % 4;
-  const routeLine = hotLane ? `The loudest machine-surfaced lane is ${hotLane}.` : "The caption trail is the map, not the final word.";
+  const hookLine = hotMoment ? `The first door worth pressing is ${clock(hotMoment.t)} // ${hotLane || hotMoment.category}; its rough caption surface starts: ${excerpt(hotMoment.excerpt || "", 16)}.` : "No bounded tape hook survived this evidence tier.";
   const fanLine = fan.length ? `The file also keeps ${fan.length} fan-signal receipts in the room.` : "No fan-signal cluster was retained in this ledger.";
   const ledgerSummary = [
-    `${lead} from ${dateFrom(record.upload_date)}. The caption trail keeps returning to ${topicRead}, with ${moments.length} timestamp candidates across ${clock(record.duration)}. ${routeLine} ${fanLine}`,
-    `If you are dropping into this ${shape.toLowerCase()}, start with ${topicRead}. The ledger marks ${moments.length} places to press play across ${clock(record.duration)}; ${routeLine.toLowerCase()} ${fanLine}`,
-    `The shape of the night is ${shape.toLowerCase()}. The clearest doors are ${topicRead}. There are ${moments.length} bounded routes across ${clock(record.duration)}. ${routeLine} ${fanLine}`,
-    `This ${shape.toLowerCase()} spends its time bouncing through ${topicRead}. The source-local map surfaces ${moments.length} candidates across ${clock(record.duration)}. ${routeLine} ${fanLine}`
+    `${lead} from ${dateFrom(record.upload_date)}. The caption trail keeps returning to ${topicRead}, with ${moments.length} timestamp candidates across ${clock(record.duration)}. ${hookLine} ${fanLine}`,
+    `If you are dropping into this ${shape.toLowerCase()}, start with ${topicRead}. The ledger marks ${moments.length} places to press play across ${clock(record.duration)}; ${hookLine} ${fanLine}`,
+    `The shape of the night is ${shape.toLowerCase()}. The clearest doors are ${topicRead}. There are ${moments.length} bounded routes across ${clock(record.duration)}. ${hookLine} ${fanLine}`,
+    `This ${shape.toLowerCase()} spends its time bouncing through ${topicRead}. The source-local map surfaces ${moments.length} candidates across ${clock(record.duration)}. ${hookLine} ${fanLine}`
   ][summaryVariant];
   const summary = clean(existing?.summary || (events.length
     ? `${ledgerSummary} Captions are navigation, not a final quote or speaker verdict—open a receipt and hear the full exchange.`
@@ -308,7 +309,7 @@ const episodes = metadata.map((record) => {
     topics, moments, chapters: chapterList, heatmap: existing?.heatmap?.length ? existing.heatmap : heatmap(Number(record.duration || 0), events, moments, topics), fanSignals: normalizeFanSignals(fan),
     recurringBits: recurringBits(events, moments, fan, Number(record.duration || 0)), bestBits: bestBits(moments, fan), characterCues: characterCues(events, Number(record.duration || 0)),
     characters: existing?.characters || characters(events), peak: existing?.peak || moments.slice().sort((a, b) => b.score - a.score)[0] || null,
-    dossier: { summary, shape, whyItMatters: clean(existing?.editorial?.whyItMatters || `This episode is part of the ${series.label} shelf. Its evidence tier is ${tier}; the official upload remains the authority for delivery, speaker, and intent.`), evidence, restricted, reviewStatus: tier === "source-brief" ? "held-source-brief" : tier === "completion-dossier" ? "distilled-machine-candidate" : "machine-surfaced" }
+    dossier: { summary, shape, hook: hotMoment ? { at: Number(hotMoment.t || 0), category: hotMoment.category || hotMoment.label || "SOURCE RECEIPT", excerpt: hotMoment.excerpt || "", evidenceBasis: hotMoment.evidenceBasis || "source-local caption candidate", reviewStatus: hotMoment.reviewStatus || "machine-candidate" } : null, whyItMatters: clean(existing?.editorial?.whyItMatters || `This episode is part of the ${series.label} shelf. Its evidence tier is ${tier}; the official upload remains the authority for delivery, speaker, and intent. Use the bounded receipts as navigation, then play the source before treating the caption surface as a quote.`), evidence, restricted, reviewStatus: tier === "source-brief" ? "held-source-brief" : tier === "completion-dossier" ? "distilled-machine-candidate" : "machine-surfaced" }
   };
 }).sort((left, right) => right.date.localeCompare(left.date) || right.id.localeCompare(left.id));
 
