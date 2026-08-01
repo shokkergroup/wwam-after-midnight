@@ -9,6 +9,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const demo = path.join(root, "public", "demo");
 const html = fs.readFileSync(path.join(demo, "index.html"), "utf8");
 const ui = fs.readFileSync(path.join(demo, "watchalong-canon-ui.js"), "utf8");
+const css = fs.readFileSync(path.join(demo, "watchalong-canon.css"), "utf8");
 const context = { console };
 context.window = context;
 vm.createContext(context);
@@ -56,6 +57,13 @@ test("every episode has an official source, evidence state, and playable receipt
   const heldSource = canon.episodes.find((episode) => episode.id === "AzrcgoyE7C4");
   assert.equal(heldSource.dossier.state, "source-brief-dossier");
   assert.match(heldSource.dossier.summary, /source brief/i);
+  const halloween = canon.episodes.filter((episode) => episode.franchiseKey === "halloween");
+  assert.equal(halloween.length, 15);
+  assert.ok(halloween.every((episode) => episode.watchPass), "every Halloween source has a watch-pass record");
+  assert.ok(halloween.filter((episode) => episode.watchPass.status === "audio-feature-pilot").every((episode) => episode.watchPass.candidates.length >= 12), "acquired Halloween audio keeps a ranked route");
+  assert.equal(heldSource.watchPass.status, "held-age-restricted");
+  assert.equal(heldSource.watchPass.candidates.length, 0);
+  assert.match(heldSource.watchPass.note, /duration drift/i);
 });
 
 test("watchalong canon is reachable from the Watchalongs route", () => {
@@ -67,4 +75,8 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(ui, /data-wac-group/);
   assert.match(ui, /function fanSignalsMarkup\(episode, signals\)/);
   assert.match(ui, /fanSignalsMarkup\(episode, dossier\.fanSignals\)/);
+  assert.match(ui, /function watchPassMarkup\(episode\)/);
+  assert.match(ui, /HALLOWEEN WATCH PASS/);
+  assert.match(ui, /LISTEN FOR THE ROOM TO CHANGE/);
+  assert.match(css, /\.wac-watch-pass/);
 });

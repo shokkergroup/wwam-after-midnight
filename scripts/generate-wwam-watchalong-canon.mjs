@@ -25,12 +25,14 @@ const deepContext = loadBrowserScript("deep-distill.js");
 const guideContext = loadBrowserScript("episode-guides.js");
 const atlasContext = loadBrowserScript("archive-atlas-data.js");
 const overridesContext = loadBrowserScript("title-topic-overrides.js");
+const watchPassContext = loadBrowserScript("wwam-watch-pass-pilot.js");
 
 const catalog = catalogContext.WWAM_CATALOG || [];
 const deep = deepContext.WWAM_DEEP_DISTILL || { tapes: [] };
 const guides = guideContext.WWAM_EPISODE_GUIDES || { guides: [] };
 const atlas = atlasContext.WWAM_ARCHIVE_ATLAS || { records: [] };
 const overrides = overridesContext.WWAM_TITLE_TOPIC_OVERRIDES || { topics: [] };
+const watchPass = watchPassContext.WWAM_WATCH_PASS_PILOT || { episodes: {} };
 
 const metadata = fs.readdirSync(METADATA_DIR)
   .filter((file) => file.endsWith(".json"))
@@ -374,6 +376,7 @@ function episodeFrom(id) {
     franchiseKey: taxonomy.franchiseKey, franchiseTitle: taxonomy.franchiseTitle, movieKey: taxonomy.movieKey, movieTitle: taxonomy.movieTitle,
     aliases, transcript: Boolean(events.length || deepRecord?.wordsAudited), captioned: Boolean(events.length || deepRecord?.wordsAudited), deepIndexed: Boolean(deepRecord),
     topics, sourceTopics, dossier, metrics: deepRecord?.metrics || null, unhinged: deepRecord?.unhinged || null, verdict: deepRecord?.verdict || null,
+    watchPass: watchPass.episodes?.[id] || null,
     editorial: deepRecord?.arc ? { arc: deepRecord.arc, moments: moments } : { arc: chapters.map((chapter) => ({ chapter: chapter.act, at: chapter.at, dominant: chapter.category })), moments }
   };
 }
