@@ -66,6 +66,7 @@ test("each source has an honest evidence tier and playable source link", () => {
   assert.equal(year2026.length, 37);
   assert.ok(year2026.every((episode) => episode.yearPass && episode.yearPass.version === "2026-wave-01"));
   assert.ok(year2026.every((episode) => episode.yearPass.sceneBeats.length >= 4));
+  assert.ok(year2026.every((episode) => episode.yearPass.sceneBeats.some((beat) => beat.receipt)), "the second pass keeps a bounded tape receipt in every year map");
   assert.ok(canon.yearIndex["2026"].topTopics.length > 0);
   assert.ok(canon.yearIndex["2026"].topLanes.length > 0);
   const ledgerSummaries = canon.episodes.filter((episode) => episode.evidenceTier === "caption-ledger").map((episode) => episode.dossier.summary);

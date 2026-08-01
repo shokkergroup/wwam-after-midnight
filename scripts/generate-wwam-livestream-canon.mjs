@@ -291,9 +291,11 @@ function yearPass(record, events, topics, moments, fan, recurring, characterCues
     const label = clean(topic?.name || moment?.category || moment?.label || "OPEN ROOM");
     const at = Math.round(Number(moment?.t ?? topic?.at ?? topic?.peak ?? from) || from);
     const lane = clean(moment?.category || moment?.label || "TOPIC DOOR");
+    const routeExcerpt = excerpt(moment?.excerpt || topic?.receipt || "", 18);
     return {
       act: index + 1, from, to, at, label, lane,
       topic: topic?.name || null,
+      receipt: routeExcerpt,
       momentCandidates: localMoments.length,
       fanSignals: localFans.length,
       characterCues: localCharacters.reduce((sum, character) => sum + (character.receipts || []).length, 0),
