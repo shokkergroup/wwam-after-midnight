@@ -1,7 +1,7 @@
 (function(root){
 "use strict";
 var p=root.WWAM_LIVESTREAM_CANON,m=root.document&&root.document.getElementById("livestreamCanonMount");if(!p||!m)return;
-var E=Array.isArray(p.episodes)?p.episodes:[],s={q:"",year:"all",series:"all",format:"all",tier:"all",limit:24,selected:""};
+var E=Array.isArray(p.episodes)?p.episodes:[],s={q:"",year:"all",series:"all",format:"all",tier:"all",limit:24,selected:""};if(root.document&&root.CustomEvent)root.document.dispatchEvent(new root.CustomEvent("wwam:livestream-canon-ready",{bubbles:true,detail:{stats:p.stats||{}}}));
 function c(v){return String(v==null?"":v).replace(/\s+/g," ").trim()}
 function x(v){return c(v).replace(/[&<>"']/g,function(k){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[k]})}
 function n(v){return Number(v||0).toLocaleString("en-US")}

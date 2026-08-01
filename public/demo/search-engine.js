@@ -3347,7 +3347,41 @@
     return "Start with " + location + ". Play the clip below for the full context.";
   }
 
-  function combineLiveData(live, popular, archiveDeep) {
+  function canonStreamRecords(canon) {
+    return (canon && canon.episodes || []).map(function (episode) {
+      return {
+        id: episode.id, title: episode.title, date: episode.date, duration: Number(episode.duration || 0), views: Number(episode.views || 0), url: episode.url,
+        summary: episode.dossier && episode.dossier.summary || "Indexed livestream source.",
+        editorial: episode.dossier && { showShape: episode.dossier.shape, whyItMatters: episode.dossier.whyItMatters }, captioned: Boolean(episode.captioned),
+        captionEvidence: episode.dossier && episode.dossier.evidence || null, topics: episode.topics || [],
+        moments: (episode.moments || []).map(function (moment) { return Object.assign({}, moment, { quote: moment.excerpt || "", heat: Number(moment.score || 0) }); }),
+        characters: (episode.characterCues || []).map(function (character) { return { character: character.name, mentions: Number(character.mentions || 0), t: Number(character.peak || character.first || 0), receipt: character.receipts && character.receipts[0] && character.receipts[0].excerpt || "" }; }),
+        _lane: "archive", _canonLedger: episode, rightsPolicy: { mode: "source-link-only", restrictedToTopicNavigation: false },
+      };
+    }).filter(function (stream) { return stream.id && stream.url; });
+  }
+
+  function mergeCanonIntoStreams(streams, canonStreams) {
+    var byId = {};
+    streams.forEach(function (stream, index) { if (stream.id) byId[stream.id] = index; });
+    canonStreams.forEach(function (canonStream) {
+      var index = byId[canonStream.id];
+      if (index == null) { byId[canonStream.id] = streams.length; streams.push(canonStream); return; }
+      var base = streams[index], baseMoments = base.moments || [], canonMoments = canonStream.moments || [], momentKeys = {};
+      baseMoments.forEach(function (moment) { momentKeys[String(Number(moment.t || 0)) + "|" + normalize(moment.category || "")] = true; });
+      var mergedMoments = baseMoments.concat(canonMoments.filter(function (moment) { var key = String(Number(moment.t || 0)) + "|" + normalize(moment.category || ""); if (momentKeys[key]) return false; momentKeys[key] = true; return true; }));
+      var baseTopics = base.topics || [], topicKeys = {};
+      baseTopics.forEach(function (topic) { topicKeys[normalize(topic.name)] = true; });
+      var mergedTopics = baseTopics.concat((canonStream.topics || []).filter(function (topic) { var key = normalize(topic.name); if (!key || topicKeys[key]) return false; topicKeys[key] = true; return true; }));
+      var baseCharacters = base.characters || [], characterKeys = {};
+      baseCharacters.forEach(function (character) { characterKeys[normalize(character.character || character.name)] = true; });
+      var mergedCharacters = baseCharacters.concat((canonStream.characters || []).filter(function (character) { var key = normalize(character.character); if (!key || characterKeys[key]) return false; characterKeys[key] = true; return true; }));
+      streams[index] = Object.assign({}, canonStream, base, { moments: mergedMoments, topics: mergedTopics, characters: mergedCharacters, _canonLedger: canonStream._canonLedger || base._canonLedger });
+    });
+    return streams;
+  }
+
+  function combineLiveData(live, popular, archiveDeep, canon) {
     archiveDeep = archiveDeep || { streams: [], topicIndex: [], characterIndex: [] };
     var streams = (live.streams || []).map(function (stream) {
       return Object.assign({}, stream, { _lane: "fresh" });
@@ -3356,6 +3390,7 @@
     })).concat((archiveDeep.streams || []).map(function (stream) {
       return Object.assign({}, stream, { _lane: "archive" });
     }));
+    streams = mergeCanonIntoStreams(streams, canonStreamRecords(canon));
     var groupedTopics = {};
     (live.topicIndex || []).concat(popular.topicIndex || [], archiveDeep.topicIndex || [])
       .forEach(function (topic) {
@@ -3887,7 +3922,7 @@
     channelDNA = channelDNA || {};
     runtimeOptions = runtimeOptions || {};
 
-    var combinedLive = combineLiveData(live, popular, archiveDeep);
+    var combinedLive = combineLiveData(live, popular, archiveDeep, runtimeOptions.livestreamCanon);
     var promotedSourceById = new Map(
       catalog
         .concat(live.streams || [], popular.streams || [])

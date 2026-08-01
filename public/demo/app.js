@@ -77,8 +77,15 @@
     streamById[stream.id] = stream;
   });
   askEngine = window.WWAMSearchEngine.create(
-    catalog, deep, live, curated, popular, characterLore, archiveDeepPayload, channelDNA
+    catalog, deep, live, curated, popular, characterLore, archiveDeepPayload, channelDNA,
+    { livestreamCanon: window.WWAM_LIVESTREAM_CANON || null }
   );
+  document.addEventListener("wwam:livestream-canon-ready", function () {
+    askEngine = window.WWAMSearchEngine.create(
+      catalog, deep, live, curated, popular, characterLore, archiveDeepPayload, channelDNA,
+      { livestreamCanon: window.WWAM_LIVESTREAM_CANON || null }
+    );
+  });
   characterEngine = window.WWAMCharacterEngine && window.WWAMCharacterEngine.create ?
     window.WWAMCharacterEngine.create(characterLore) : null;
 
@@ -217,7 +224,8 @@
       streamById[stream.id] = stream;
     });
     askEngine = window.WWAMSearchEngine.create(
-      catalog, deep, live, curated, popular, characterLore, archiveDeepPayload, channelDNA
+      catalog, deep, live, curated, popular, characterLore, archiveDeepPayload, channelDNA,
+      { livestreamCanon: window.WWAM_LIVESTREAM_CANON || null }
     );
     return archiveDeepEngine;
   }
