@@ -63,6 +63,8 @@ test("livestream canon surface is wired into the page and route shell", () => {
   assert.match(gate, /"livestream-canon": "shows"/);
   assert.match(ui, /OPEN FULL SHOW WIKI/);
   assert.match(ui, /data-lvc-open/);
+  assert.match(ui, /NEW SINCE ATLAS/);
   assert.doesNotMatch(ui, /moments\|\|\[\]\)\.slice\(0,40\)/);
   assert.match(css, /\.lvc-card-grid/);
+  assert.match(css, /\.lvc-new/);
 });
