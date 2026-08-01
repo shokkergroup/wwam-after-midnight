@@ -22,10 +22,6 @@ function excerpt(value, limit = 20) {
   const tokens = words(String(value).replace(/\s*\n\s*/g, " "));
   return tokens.length <= limit ? tokens.join(" ") : `${tokens.slice(0, limit).join(" ")}...`;
 }
-function slug(value) {
-  return clean(value).toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "unknown";
-}
 function dateFrom(value) {
   const text = clean(value);
   return /^\d{8}$/.test(text) ? `${text.slice(0, 4)}-${text.slice(4, 6)}-${text.slice(6, 8)}` : text || null;
@@ -67,7 +63,6 @@ function captionWindow(events, index, before = 5, after = 12) {
   });
   return deduped.join(" ");
 }
-function countHits(events, pattern) { return events.reduce((sum, event) => sum + (pattern.test(event.text) ? 1 : 0), 0); }
 function topicAnchor(events, term) {
   const pattern = new RegExp(`\\b${term.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&").replace(/\\s+/g, "\\s+")}\\b`, "i");
   const hits = events.map((event, index) => ({ event, index })).filter(({ event }) => pattern.test(event.text));
@@ -77,7 +72,6 @@ function topicAnchor(events, term) {
 }
 
 const metadata = fs.readdirSync(METADATA_DIR).filter((file) => file.endsWith(".json")).map((file) => readJson(path.join(METADATA_DIR, file)));
-const metadataById = new Map(metadata.map((record) => [record.id, record]));
 const atlas = loadScript("archive-atlas-data.js").WWAM_ARCHIVE_ATLAS || { records: [] };
 const completion = loadScript("archive-completion.js").WWAM_ARCHIVE_COMPLETION || { streams: [] };
 const deep = loadScript("archive-deep-distill.js").WWAM_ARCHIVE_DEEP || { streams: [] };
@@ -222,8 +216,21 @@ const episodes = metadata.map((record) => {
   const shape = existing?.editorial?.showShape || (mode === "ranking-show" ? "RANKING NIGHT" : mode === "trailer-reaction" ? "TRAILER EMERGENCY" : mode === "movie-commentary" ? "MOVIE COMMENTARY" : mode === "q-and-a" ? "FAN MAIL" : "OPEN-LINE MOVIE NEWS");
   const series = inferSeries(record.title, mode);
   const tier = completionById.has(id) ? "completion-dossier" : deepById.has(id) || freshById.has(id) ? "distill-dossier" : events.length ? "caption-ledger" : "source-brief";
+  const topicNames = topics.slice(0, 3).map((topic) => topic.name);
+  const topicRead = topicNames.length === 1 ? topicNames[0] : topicNames.length === 2 ? `${topicNames[0]} and ${topicNames[1]}` : topicNames.length > 2 ? `${topicNames.slice(0, -1).join(", ")}, and ${topicNames.at(-1)}` : "the night's open mic";
+  const lead = mode === "ranking-show" ? "A bracket-and-ranking night" : mode === "trailer-reaction" ? "A trailer-and-news night" : mode === "movie-commentary" ? "A movie watchalong" : mode === "q-and-a" ? "A fan-mail night" : mode === "spoiler-review" ? "A spoiler-heavy review night" : "An open-line movie-news night";
+  const hotLane = moments.slice().sort((left, right) => Number(right.score || 0) - Number(left.score || 0))[0]?.category;
+  const summaryVariant = Array.from(id).reduce((total, character) => total + character.charCodeAt(0), 0) % 4;
+  const routeLine = hotLane ? `The loudest machine-surfaced lane is ${hotLane}.` : "The caption trail is the map, not the final word.";
+  const fanLine = fan.length ? `The file also keeps ${fan.length} fan-signal receipts in the room.` : "No fan-signal cluster was retained in this ledger.";
+  const ledgerSummary = [
+    `${lead} from ${dateFrom(record.upload_date)}. The caption trail keeps returning to ${topicRead}, with ${moments.length} timestamp candidates across ${clock(record.duration)}. ${routeLine} ${fanLine}`,
+    `If you are dropping into this ${shape.toLowerCase()}, start with ${topicRead}. The ledger marks ${moments.length} places to press play across ${clock(record.duration)}; ${routeLine.toLowerCase()} ${fanLine}`,
+    `The shape of the night is ${shape.toLowerCase()}. The clearest doors are ${topicRead}. There are ${moments.length} bounded routes across ${clock(record.duration)}. ${routeLine} ${fanLine}`,
+    `This ${shape.toLowerCase()} spends its time bouncing through ${topicRead}. The source-local map surfaces ${moments.length} candidates across ${clock(record.duration)}. ${routeLine} ${fanLine}`
+  ][summaryVariant];
   const summary = clean(existing?.summary || (events.length
-    ? `A ${shape.toLowerCase()} from ${dateFrom(record.upload_date)}. The caption ledger routes through ${topics.slice(0, 3).map((topic) => topic.name).join(", ") || "the night's open mic"}, with ${moments.length} bounded playable leads across ${clock(record.duration)}. Open the timestamp before treating any excerpt as a final quote.`
+    ? `${ledgerSummary} Captions are navigation, not a final quote or speaker verdict—open a receipt and hear the full exchange.`
     : `A source brief for ${clean(record.title)}. Metadata is preserved, but no local caption route survived for a responsible episode breakdown.`));
   const evidence = existing?.captionEvidence || { type: events.length ? "youtube-automatic-caption" : "metadata-only", eventsAudited: events.length, speakerDiarized: false, originAttribution: false, reviewStatus: events.length ? "machine-candidate" : "held" };
   return {

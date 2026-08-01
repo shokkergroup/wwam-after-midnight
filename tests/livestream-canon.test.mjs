@@ -41,6 +41,11 @@ test("each source has an honest evidence tier and playable source link", () => {
   assert.ok(canon.stats.captionLedgers >= 200);
   assert.ok(canon.stats.latestOutsideAtlas > 0);
   assert.ok(canon.stats.fanSignalReceipts > 0);
+  const ledgerSummaries = canon.episodes.filter((episode) => episode.evidenceTier === "caption-ledger").map((episode) => episode.dossier.summary);
+  assert.ok(ledgerSummaries.length >= 200);
+  assert.equal(ledgerSummaries.some((summary) => /\bA open-line\b/i.test(summary)), false);
+  assert.equal(ledgerSummaries.some((summary) => summary.includes("Open the timestamp before treating")), false);
+  assert.ok(ledgerSummaries.some((summary) => summary.includes("fan-signal receipts")));
 });
 
 test("livestream canon surface is wired into the page and route shell", () => {
