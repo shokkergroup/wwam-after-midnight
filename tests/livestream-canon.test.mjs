@@ -85,6 +85,7 @@ test("livestream canon surface is wired into the page and route shell", () => {
   assert.match(ui, /RECURRING BITS/);
   assert.match(ui, /WWAM FAM HALL/);
   assert.match(ui, /CHARACTER CUES/);
+  assert.match(ui, /TAPE HOOK/);
   assert.doesNotMatch(ui, /moments\|\|\[\]\)\.slice\(0,40\)/);
   assert.match(css, /\.lvc-card-grid/);
   assert.match(css, /\.lvc-new/);
