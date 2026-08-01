@@ -135,6 +135,22 @@ function inferSeries(title, mode) {
   if (mode === "spoiler-review" || mode === "review-show") return { key: "review-desk", label: "Review Desk" };
   return { key: "wwam-live", label: "WWAM Live" };
 }
+function inferShape(title, mode, existing, yearSnapshot) {
+  if (existing?.editorial?.showShape) return existing.editorial.showShape;
+  if (yearSnapshot?.editorial?.showShape) return yearSnapshot.editorial.showShape;
+  const text = clean(title);
+  if (/friday night fights/i.test(text)) return "FIGHT NIGHT";
+  if (/retro rewind|video store/i.test(text)) return "VIDEO STORE BUILD NIGHT";
+  if (/tier list/i.test(text)) return "TIER-LIST NIGHT";
+  if (/bracket|tournament/i.test(text)) return "BRACKET NIGHT";
+  if (/trailer|teaser|breakdown/i.test(text)) return "TRAILER EMERGENCY";
+  if (/review|spoiler/i.test(text)) return "REVIEW NIGHT";
+  if (/movie news|news and more/i.test(text)) return "LIVE NEWS DESK";
+  if (mode === "ranking-show") return "RANKING NIGHT";
+  if (mode === "movie-commentary") return "MOVIE COMMENTARY";
+  if (mode === "q-and-a") return "FAN MAIL";
+  return "OPEN-LINE MOVIE NEWS";
+}
 function derivedTopics(events, title) {
   const titleTerms = TOPIC_TERMS.filter((term) => new RegExp(term.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&"), "i").test(title));
   const found = TOPIC_TERMS.map((term) => topicAnchor(events, term)).filter(Boolean);
@@ -182,7 +198,7 @@ function fanSignalType(text) {
   return "CHAT / FAN CALLOUT";
 }
 function recurringBits(events, moments, fan, duration) {
-  const receiptLimit = Math.max(3, Math.round((duration || 1) / 900));
+  const receiptLimit = Math.max(6, Math.round((duration || 1) / 450));
   return LANE_DEFS.map((lane) => {
     const hits = lane.key === "fan"
       ? fan.map((signal) => ({ t: signal.t, end: signal.end, text: signal.excerpt, index: -1, signalType: signal.signalType }))
@@ -204,11 +220,30 @@ function recurringBits(events, moments, fan, duration) {
   }).filter(Boolean);
 }
 function bestBits(moments, fan) {
-  return moments.concat(fan).slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || Number(a.t || 0) - Number(b.t || 0)).slice(0, 5).map((moment, index) => ({
+  return moments.concat(fan).slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || Number(a.t || 0) - Number(b.t || 0)).map((moment, index) => ({
     rank: index + 1, t: Number(moment.t || 0), end: Number(moment.end || moment.t || 0), category: clean(moment.category || moment.label || "SOURCE RECEIPT"),
     label: clean(moment.label || moment.category || "SOURCE RECEIPT"), excerpt: clean(moment.excerpt || moment.quote || ""), score: Number(moment.score || 0),
     evidenceBasis: moment.evidenceBasis || "source-local caption candidate", reviewStatus: moment.reviewStatus || "machine-candidate"
   }));
+}
+function listPhrase(items) {
+  const names = items.filter(Boolean).map(clean).filter(Boolean);
+  if (!names.length) return "the night's open room";
+  if (names.length === 1) return names[0];
+  if (names.length === 2) return `${names[0]} and ${names[1]}`;
+  return `${names.slice(0, -1).join(", ")}, and ${names.at(-1)}`;
+}
+function tapeNote(shape, topics, moments, fan, recurring, characterCues) {
+  const topicList = listPhrase(topics.slice(0, 4).map((topic) => topic.name));
+  const laneLead = recurring.slice().sort((a, b) => Number(b.candidateCount || 0) - Number(a.candidateCount || 0))[0];
+  const hot = moments.slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || Number(a.t || 0) - Number(b.t || 0))[0];
+  const characterList = listPhrase(characterCues.slice().sort((a, b) => Number(b.mentions || 0) - Number(a.mentions || 0)).slice(0, 3).map((character) => character.name));
+  const fanTypes = Array.from(new Set(fan.map((signal) => signal.signalType))).slice(0, 2);
+  const hook = hot ? `The cleanest first play is ${clock(hot.t)} // ${hot.category}: "${excerpt(hot.excerpt || "", 18)}"` : "There is no bounded first-play hook in this evidence tier";
+  const lane = laneLead ? `The loudest recurring lane is ${laneLead.label} (${laneLead.candidateCount} caption cues).` : "No recurring-bit lane survived this pass.";
+  const fanLine = fan.length ? `The room also leaves ${fan.length} fan-signal receipts${fanTypes.length ? `, including ${listPhrase(fanTypes)}` : ""}.` : "No fan-signal cluster survived this pass.";
+  const characterLine = characterCues.length ? `Character traffic includes ${characterList}; the captions do not diarize who performed a cue.` : "No character cue was strong enough to retain in the caption map.";
+  return `${shape} built around ${topicList}. The source-local map keeps ${moments.length} moment candidates on the board. ${lane} ${hook}. ${fanLine} ${characterLine}`;
 }
 function normalizeFanSignals(items) {
   return (items || []).map((signal) => ({ ...signal, signalType: clean(signal.signalType || fanSignalType(signal.excerpt || "")) })).filter((signal) => signal.excerpt || Number(signal.t || 0) >= 0);
@@ -242,7 +277,7 @@ function characters(events) {
   }).filter(Boolean);
 }
 function characterCues(events, duration) {
-  const receiptLimit = Math.max(2, Math.round((duration || 1) / 1200));
+  const receiptLimit = Math.max(4, Math.round((duration || 1) / 600));
   return CHARACTER_DEFS.map((character) => {
     const hits = events.map((event, index) => ({ event, index })).filter((item) => character.pattern.test(item.event.text));
     if (!hits.length) return null;
@@ -270,6 +305,11 @@ function normalizeMoments(items, restricted = false) {
       reviewStatus: moment.reviewStatus || "machine-candidate"
     }))
     .filter((moment) => moment.excerpt || moment.t >= 0);
+}
+function conversationThreads(topics) {
+  return topics.slice().sort((a, b) => Number(a.first || a.at || 0) - Number(b.first || b.at || 0) || Number(b.mentions || 0) - Number(a.mentions || 0)).map((topic, index) => ({
+    rank: index + 1, name: topic.name, first: Number(topic.first || topic.at || 0), peak: Number(topic.peak || topic.at || topic.first || 0), mentions: Number(topic.mentions || 0), receipt: clean(topic.receipt || "Open the source at this topic door."), evidenceBasis: "source-local automatic caption topic anchor", reviewStatus: "machine-candidate"
+  }));
 }
 function yearPass(record, events, topics, moments, fan, recurring, characterCues, existing, evidence, yearSnapshot) {
   const year = Number(String(record.upload_date || "").slice(0, 4) || 0);
@@ -334,7 +374,7 @@ const episodes = metadata.map((record) => {
   const fan = fanSignals(events, Number(record.duration || 0));
   const chapterList = chapters(Number(record.duration || 0), moments, topics, restricted);
   const yearSnapshot = yearCanonById.get(id) || null;
-  const shape = existing?.editorial?.showShape || yearSnapshot?.editorial?.showShape || (mode === "ranking-show" ? "RANKING NIGHT" : mode === "trailer-reaction" ? "TRAILER EMERGENCY" : mode === "movie-commentary" ? "MOVIE COMMENTARY" : mode === "q-and-a" ? "FAN MAIL" : "OPEN-LINE MOVIE NEWS");
+  const shape = inferShape(record.title, mode, existing, yearSnapshot);
   const series = inferSeries(record.title, mode);
   const tier = completionById.has(id) ? "completion-dossier" : deepById.has(id) || freshById.has(id) ? "distill-dossier" : events.length ? "caption-ledger" : "source-brief";
   const topicNames = topics.slice(0, 3).map((topic) => topic.name);
@@ -361,6 +401,8 @@ const episodes = metadata.map((record) => {
   const evidence = existing?.captionEvidence || { type: events.length ? "youtube-automatic-caption" : "metadata-only", eventsAudited: events.length, speakerDiarized: false, originAttribution: false, reviewStatus: events.length ? "machine-candidate" : "held" };
   const cueList = characterCues(events, Number(record.duration || 0));
   const recurring = recurringBits(events, moments, fan, Number(record.duration || 0));
+  const note = tapeNote(shape, topics, moments, fan, recurring, cueList);
+  const finalSummary = currentYear === 2026 ? `${note} This is a machine-surfaced caption map; playback remains the authority.` : summary;
   const pass = yearPass(record, events, topics, moments, fan, recurring, cueList, existing, evidence, yearSnapshot);
   return {
     id, title: clean(record.title), date: dateFrom(record.upload_date), duration: Number(record.duration || 0), durationLabel: clock(record.duration), views: Number(record.view_count || 0),
@@ -368,11 +410,11 @@ const episodes = metadata.map((record) => {
     format: mode, seriesKey: series.key, seriesTitle: series.label, year: Number(String(record.upload_date || "").slice(0, 4) || 0),
     sourceInAtlas: atlasById.has(id), latestOutsideAtlas: !atlasById.has(id), atlasCoverage: atlasById.get(id)?.coverage || null, archiveLanes: atlasById.get(id)?.lanes || [],
     evidenceTier: tier, captioned: Boolean(events.length || existing?.captioned), wordsAudited: Number(existing?.wordsAudited || words(events.map((event) => event.text).join(" ")).length),
-    topics, moments, chapters: chapterList, heatmap: existing?.heatmap?.length ? existing.heatmap : heatmap(Number(record.duration || 0), events, moments, topics), fanSignals: normalizeFanSignals(fan),
+    topics, conversationThreads: conversationThreads(topics), moments, chapters: chapterList, heatmap: existing?.heatmap?.length ? existing.heatmap : heatmap(Number(record.duration || 0), events, moments, topics), fanSignals: normalizeFanSignals(fan),
     recurringBits: recurring, bestBits: bestBits(moments, fan), characterCues: cueList,
     characters: existing?.characters || characters(events), peak: existing?.peak || moments.slice().sort((a, b) => b.score - a.score)[0] || null,
     yearPass: pass,
-    dossier: { summary, shape, hook: hotMoment ? { at: Number(hotMoment.t || 0), category: hotMoment.category || hotMoment.label || "SOURCE RECEIPT", excerpt: hotMoment.excerpt || "", evidenceBasis: hotMoment.evidenceBasis || "source-local caption candidate", reviewStatus: hotMoment.reviewStatus || "machine-candidate" } : null, whyItMatters: clean(existing?.editorial?.whyItMatters || `This episode is part of the ${series.label} shelf. Its evidence tier is ${tier}; the official upload remains the authority for delivery, speaker, and intent. Use the bounded receipts as navigation, then play the source before treating the caption surface as a quote.`), evidence, restricted, reviewStatus: tier === "source-brief" ? "held-source-brief" : tier === "completion-dossier" ? "distilled-machine-candidate" : "machine-surfaced" }
+    dossier: { summary: finalSummary, tapeNote: note, archiveSummary: currentYear === 2026 && existing?.summary ? clean(existing.summary) : null, shape, hook: hotMoment ? { at: Number(hotMoment.t || 0), category: hotMoment.category || hotMoment.label || "SOURCE RECEIPT", excerpt: hotMoment.excerpt || "", evidenceBasis: hotMoment.evidenceBasis || "source-local caption candidate", reviewStatus: hotMoment.reviewStatus || "machine-candidate" } : null, whyItMatters: clean(existing?.editorial?.whyItMatters || `This episode is part of the ${series.label} shelf. Its evidence tier is ${tier}; the official upload remains the authority for delivery, speaker, and intent. Use the bounded receipts as navigation, then play the source before treating the caption surface as a quote.`), evidence, restricted, reviewStatus: tier === "source-brief" ? "held-source-brief" : tier === "completion-dossier" ? "distilled-machine-candidate" : "machine-surfaced" }
   };
 }).sort((left, right) => right.date.localeCompare(left.date) || right.id.localeCompare(left.id));
 

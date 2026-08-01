@@ -40,6 +40,7 @@ test("each source has an honest evidence tier and playable source link", () => {
     assert.ok(Array.isArray(episode.recurringBits));
     assert.ok(Array.isArray(episode.bestBits));
     assert.ok(Array.isArray(episode.characterCues));
+    assert.ok(Array.isArray(episode.conversationThreads));
     for (const signal of episode.fanSignals) assert.ok(signal.signalType);
     for (const lane of episode.recurringBits) {
       assert.ok(lane.candidateCount >= 1);
@@ -67,6 +68,8 @@ test("each source has an honest evidence tier and playable source link", () => {
   assert.ok(year2026.every((episode) => episode.yearPass && episode.yearPass.version === "2026-wave-01"));
   assert.ok(year2026.every((episode) => episode.yearPass.sceneBeats.length >= 4));
   assert.ok(year2026.every((episode) => episode.yearPass.sceneBeats.some((beat) => beat.receipt)), "the second pass keeps a bounded tape receipt in every year map");
+  assert.ok(year2026.every((episode) => episode.conversationThreads.length >= 4), "2026 episodes retain a chronological topic thread map");
+  assert.ok(year2026.some((episode) => episode.bestBits.length > 5), "best-bit candidates are not silently capped at five");
   assert.ok(canon.yearIndex["2026"].topTopics.length > 0);
   assert.ok(canon.yearIndex["2026"].topLanes.length > 0);
   const ledgerSummaries = canon.episodes.filter((episode) => episode.evidenceTier === "caption-ledger").map((episode) => episode.dossier.summary);
@@ -97,6 +100,9 @@ test("livestream canon surface is wired into the page and route shell", () => {
   assert.match(ui, /TAPE HOOK/);
   assert.match(ui, /2026 SECOND PASS/);
   assert.match(ui, /THE ROUTE THROUGH THIS NIGHT/);
+  assert.match(ui, /TAPE NOTE/);
+  assert.match(ui, /ALL RECEIPTS, RANKED/);
+  assert.match(ui, /CONVERSATION THREADS/);
   assert.doesNotMatch(ui, /moments\|\|\[\]\)\.slice\(0,40\)/);
   assert.match(css, /\.lvc-card-grid/);
   assert.match(css, /\.lvc-new/);
