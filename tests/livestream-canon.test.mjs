@@ -35,12 +35,23 @@ test("each source has an honest evidence tier and playable source link", () => {
     assert.ok(Array.isArray(episode.chapters));
     assert.ok(Array.isArray(episode.moments));
     assert.ok(Array.isArray(episode.fanSignals));
+    assert.ok(Array.isArray(episode.recurringBits));
+    assert.ok(Array.isArray(episode.bestBits));
+    for (const signal of episode.fanSignals) assert.ok(signal.signalType);
+    for (const lane of episode.recurringBits) {
+      assert.ok(lane.candidateCount >= 1);
+      assert.ok(Array.isArray(lane.receipts));
+      assert.ok(lane.receipts.every((receipt) => Number.isFinite(receipt.t)));
+    }
   }
   assert.ok(canon.stats.completionDossiers >= 200);
   assert.ok(canon.stats.distillDossiers >= 10);
   assert.ok(canon.stats.captionLedgers >= 200);
   assert.ok(canon.stats.latestOutsideAtlas > 0);
   assert.ok(canon.stats.fanSignalReceipts > 0);
+  assert.ok(canon.stats.recurringBitReceipts >= canon.stats.fanSignalReceipts);
+  assert.ok(Array.isArray(canon.fanHall) && canon.fanHall.length > 0);
+  assert.ok(canon.fanHall.every((entry) => entry.receipts > 0 && entry.episodeIds.length > 0));
   assert.ok(canon.episodes.some((episode) => episode.moments.length > 40), "long shows retain more than forty candidates when the tape supports them");
   const ledgerSummaries = canon.episodes.filter((episode) => episode.evidenceTier === "caption-ledger").map((episode) => episode.dossier.summary);
   assert.ok(ledgerSummaries.length >= 200);
@@ -64,6 +75,8 @@ test("livestream canon surface is wired into the page and route shell", () => {
   assert.match(ui, /OPEN FULL SHOW WIKI/);
   assert.match(ui, /data-lvc-open/);
   assert.match(ui, /NEW SINCE ATLAS/);
+  assert.match(ui, /RECURRING BITS/);
+  assert.match(ui, /WWAM FAM HALL/);
   assert.doesNotMatch(ui, /moments\|\|\[\]\)\.slice\(0,40\)/);
   assert.match(css, /\.lvc-card-grid/);
   assert.match(css, /\.lvc-new/);
