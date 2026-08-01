@@ -21,6 +21,8 @@ test("livestream canon contains the complete source registry", () => {
   assert.equal(new Set(canon.episodes.map((episode) => episode.id)).size, 509);
   assert.equal(canon.episodes[0].id, "LV2rmwEA0w4");
   assert.equal(canon.episodes.at(-1).date, "2016-02-01");
+  assert.equal(canon.yearIndex["2026"].episodeCount, 37);
+  assert.equal(canon.stats.yearPassEpisodes, 37);
 });
 
 test("each source has an honest evidence tier and playable source link", () => {
@@ -60,6 +62,12 @@ test("each source has an honest evidence tier and playable source link", () => {
   assert.ok(Array.isArray(canon.characterIndex) && canon.characterIndex.some((entry) => entry.name === "Dr. Loomis"));
   assert.ok(canon.fanHall.every((entry) => entry.receipts > 0 && entry.episodeIds.length > 0));
   assert.ok(canon.episodes.some((episode) => episode.moments.length > 40), "long shows retain more than forty candidates when the tape supports them");
+  const year2026 = canon.episodes.filter((episode) => episode.year === 2026);
+  assert.equal(year2026.length, 37);
+  assert.ok(year2026.every((episode) => episode.yearPass && episode.yearPass.version === "2026-wave-01"));
+  assert.ok(year2026.every((episode) => episode.yearPass.sceneBeats.length >= 4));
+  assert.ok(canon.yearIndex["2026"].topTopics.length > 0);
+  assert.ok(canon.yearIndex["2026"].topLanes.length > 0);
   const ledgerSummaries = canon.episodes.filter((episode) => episode.evidenceTier === "caption-ledger").map((episode) => episode.dossier.summary);
   assert.ok(ledgerSummaries.length >= 200);
   assert.equal(ledgerSummaries.some((summary) => /\bA open-line\b/i.test(summary)), false);
@@ -86,6 +94,8 @@ test("livestream canon surface is wired into the page and route shell", () => {
   assert.match(ui, /WWAM FAM HALL/);
   assert.match(ui, /CHARACTER CUES/);
   assert.match(ui, /TAPE HOOK/);
+  assert.match(ui, /2026 SECOND PASS/);
+  assert.match(ui, /THE ROUTE THROUGH THIS NIGHT/);
   assert.doesNotMatch(ui, /moments\|\|\[\]\)\.slice\(0,40\)/);
   assert.match(css, /\.lvc-card-grid/);
   assert.match(css, /\.lvc-new/);

@@ -76,10 +76,12 @@ const atlas = loadScript("archive-atlas-data.js").WWAM_ARCHIVE_ATLAS || { record
 const completion = loadScript("archive-completion.js").WWAM_ARCHIVE_COMPLETION || { streams: [] };
 const deep = loadScript("archive-deep-distill.js").WWAM_ARCHIVE_DEEP || { streams: [] };
 const fresh = loadScript("livestream-distill.js").WWAM_LIVESTREAMS || { streams: [] };
+const yearCanon = loadScript("year-canon-2025-2026.js").WWAM_YEAR_CANON_2025_2026 || { streams: [] };
 const atlasById = new Map((atlas.records || []).map((record) => [record.id, record]));
 const completionById = new Map((completion.streams || []).map((record) => [record.id, record]));
 const deepById = new Map((deep.streams || []).map((record) => [record.id, record]));
 const freshById = new Map((fresh.streams || []).map((record) => [record.id, record]));
+const yearCanonById = new Map((yearCanon.streams || []).map((record) => [record.id, record]));
 
 const TOPIC_TERMS = [
   "Halloween", "Scream", "Friday the 13th", "A Nightmare on Elm Street", "Chucky", "Child's Play", "Michael Myers", "Freddy", "Jason", "Batman", "Marvel", "DC", "Superman", "Alien", "Predator", "Evil Dead", "Hellraiser", "Texas Chainsaw", "The Conjuring", "Terrifier", "Saw", "Mortal Kombat", "Ghostbusters", "Star Wars", "Jurassic", "Trailers", "Streaming", "Box Office", "Retro Rewind", "Rankings & Lists", "Horror", "Comedy", "Video Games", "Halloween Ends", "Scream 7", "Feldman", "Loomis", "Challis", "Slenderman"
@@ -269,6 +271,56 @@ function normalizeMoments(items, restricted = false) {
     }))
     .filter((moment) => moment.excerpt || moment.t >= 0);
 }
+function yearPass(record, events, topics, moments, fan, recurring, characterCues, existing, evidence, yearSnapshot) {
+  const year = Number(String(record.upload_date || "").slice(0, 4) || 0);
+  if (year !== 2026) return null;
+  const duration = Number(record.duration || 0);
+  const usableRoutes = moments.concat(fan).filter((route) => Number.isFinite(Number(route.t)));
+  const segmentCount = duration >= 10800 ? 6 : duration >= 5400 ? 5 : 4;
+  const sceneBeats = Array.from({ length: segmentCount }, (_, index) => {
+    const from = Math.round(duration * index / segmentCount);
+    const to = Math.round(duration * (index + 1) / segmentCount);
+    const localMoments = moments.filter((moment) => moment.t >= from && moment.t < to);
+    const localFans = fan.filter((signal) => signal.t >= from && signal.t < to);
+    const localCharacters = characterCues.filter((character) => character.first >= from && character.first < to);
+    const localTopics = topics.filter((topic) => (topic.at || topic.peak || topic.first || 0) >= from && (topic.at || topic.peak || topic.first || 0) < to);
+    const topic = localTopics.slice().sort((a, b) => Number(b.mentions || 0) - Number(a.mentions || 0))[0]
+      || topics.slice().sort((a, b) => Math.abs(Number(a.at || a.peak || a.first || 0) - (from + to) / 2) - Math.abs(Number(b.at || b.peak || b.first || 0) - (from + to) / 2))[0];
+    const moment = localMoments.slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || Number(a.t || 0) - Number(b.t || 0))[0]
+      || usableRoutes.slice().sort((a, b) => Math.abs(Number(a.t || 0) - (from + to) / 2) - Math.abs(Number(b.t || 0) - (from + to) / 2))[0];
+    const label = clean(topic?.name || moment?.category || moment?.label || "OPEN ROOM");
+    const at = Math.round(Number(moment?.t ?? topic?.at ?? topic?.peak ?? from) || from);
+    const lane = clean(moment?.category || moment?.label || "TOPIC DOOR");
+    return {
+      act: index + 1, from, to, at, label, lane,
+      topic: topic?.name || null,
+      momentCandidates: localMoments.length,
+      fanSignals: localFans.length,
+      characterCues: localCharacters.reduce((sum, character) => sum + (character.receipts || []).length, 0),
+      description: `${label} is the clearest searchable door in this stretch of the source. The map holds ${localMoments.length} moment candidate${localMoments.length === 1 ? "" : "s"}, ${localFans.length} fan signal${localFans.length === 1 ? "" : "s"}, and ${localCharacters.reduce((sum, character) => sum + (character.receipts || []).length, 0)} character cue${localCharacters.reduce((sum, character) => sum + (character.receipts || []).length, 0) === 1 ? "" : "s"}. Open ${clock(at)} for the actual exchange.`,
+      evidenceBasis: events.length ? "2026 second-pass caption route; machine-surfaced" : "2026 second-pass source dossier route; machine-surfaced",
+      reviewStatus: "machine-candidate"
+    };
+  });
+  const laneTotals = recurring.slice().sort((a, b) => Number(b.candidateCount || 0) - Number(a.candidateCount || 0)).map((lane) => ({ key: lane.key, label: lane.label, candidateCount: Number(lane.candidateCount || 0), receipts: Number(lane.receipts?.length || 0) }));
+  const characterReceipts = characterCues.reduce((sum, character) => sum + (character.receipts || []).length, 0);
+  const eventCount = Number(evidence?.eventsAudited || evidence?.eventsObserved || events.length || 0);
+  const crossCheck = yearSnapshot ? {
+    observedAt: yearCanon.observedAt || null,
+    showShape: clean(yearSnapshot.editorial?.showShape || ""),
+    signature: clean(yearSnapshot.editorial?.signature || ""),
+    note: "Retained as a cross-check from the earlier 2025–2026 machine pass; it does not upgrade this source's review state."
+  } : null;
+  return {
+    version: "2026-wave-01",
+    label: "2026 SECOND PASS // MACHINE ROUTE MAP",
+    status: "machine-repass",
+    note: `This 2026 file was run through the second-pass route map: ${topics.length} topic doors, ${moments.length} moment candidates, ${fan.length} fan signals, and ${characterReceipts} character cue receipts across ${clock(duration)}. It is built to make the source easier to explore; it is not a diarized transcript or a claim of human review.`,
+    density: { durationSeconds: duration, eventsAudited: eventCount, wordsAudited: Number(existing?.wordsAudited || words(events.map((event) => event.text).join(" ")).length), topicDoors: topics.length, momentCandidates: moments.length, fanSignals: fan.length, characterCueReceipts: characterReceipts, recurringBitCues: recurring.reduce((sum, lane) => sum + Number(lane.candidateCount || 0), 0), evidenceTier: existing ? (completionById.has(record.id) ? "completion-dossier" : deepById.has(record.id) || freshById.has(record.id) ? "distill-dossier" : "caption-ledger") : "caption-ledger" },
+    laneTotals, sceneBeats, crossCheck,
+    sourceAuthority: "Official WWAM upload; captions are navigation, playback is the authority."
+  };
+}
 const episodes = metadata.map((record) => {
   const id = record.id;
   const events = captionEvents(id);
@@ -279,7 +331,8 @@ const episodes = metadata.map((record) => {
   const moments = normalizeMoments(existing?.moments, restricted).length ? normalizeMoments(existing?.moments, restricted) : derivedMoments(events, Number(record.duration || 0), restricted);
   const fan = fanSignals(events, Number(record.duration || 0));
   const chapterList = chapters(Number(record.duration || 0), moments, topics, restricted);
-  const shape = existing?.editorial?.showShape || (mode === "ranking-show" ? "RANKING NIGHT" : mode === "trailer-reaction" ? "TRAILER EMERGENCY" : mode === "movie-commentary" ? "MOVIE COMMENTARY" : mode === "q-and-a" ? "FAN MAIL" : "OPEN-LINE MOVIE NEWS");
+  const yearSnapshot = yearCanonById.get(id) || null;
+  const shape = existing?.editorial?.showShape || yearSnapshot?.editorial?.showShape || (mode === "ranking-show" ? "RANKING NIGHT" : mode === "trailer-reaction" ? "TRAILER EMERGENCY" : mode === "movie-commentary" ? "MOVIE COMMENTARY" : mode === "q-and-a" ? "FAN MAIL" : "OPEN-LINE MOVIE NEWS");
   const series = inferSeries(record.title, mode);
   const tier = completionById.has(id) ? "completion-dossier" : deepById.has(id) || freshById.has(id) ? "distill-dossier" : events.length ? "caption-ledger" : "source-brief";
   const topicNames = topics.slice(0, 3).map((topic) => topic.name);
@@ -287,6 +340,7 @@ const episodes = metadata.map((record) => {
   const lead = mode === "ranking-show" ? "A bracket-and-ranking night" : mode === "trailer-reaction" ? "A trailer-and-news night" : mode === "movie-commentary" ? "A movie watchalong" : mode === "q-and-a" ? "A fan-mail night" : mode === "spoiler-review" ? "A spoiler-heavy review night" : "An open-line movie-news night";
   const hotLane = moments.slice().sort((left, right) => Number(right.score || 0) - Number(left.score || 0))[0]?.category;
   const hotMoment = moments.slice().sort((left, right) => Number(right.score || 0) - Number(left.score || 0) || Number(left.t || 0) - Number(right.t || 0))[0] || null;
+  const currentYear = Number(String(record.upload_date || "").slice(0, 4) || 0);
   const summaryVariant = Array.from(id).reduce((total, character) => total + character.charCodeAt(0), 0) % 4;
   const hookLine = hotMoment ? `The first door worth pressing is ${clock(hotMoment.t)} // ${hotLane || hotMoment.category}; its rough caption surface starts: ${excerpt(hotMoment.excerpt || "", 16)}.` : "No bounded tape hook survived this evidence tier.";
   const fanLine = fan.length ? `The file also keeps ${fan.length} fan-signal receipts in the room.` : "No fan-signal cluster was retained in this ledger.";
@@ -296,10 +350,16 @@ const episodes = metadata.map((record) => {
     `The shape of the night is ${shape.toLowerCase()}. The clearest doors are ${topicRead}. There are ${moments.length} bounded routes across ${clock(record.duration)}. ${hookLine} ${fanLine}`,
     `This ${shape.toLowerCase()} spends its time bouncing through ${topicRead}. The source-local map surfaces ${moments.length} candidates across ${clock(record.duration)}. ${hookLine} ${fanLine}`
   ][summaryVariant];
-  const summary = clean(existing?.summary || (events.length
+  const secondPassSummary = currentYear === 2026
+    ? `The 2026 second pass reads this ${shape.toLowerCase()} through ${topicRead}. It keeps ${topics.length} topic doors, ${moments.length} moment candidates, ${fan.length} fan-signal receipts, and ${characterCues(events, Number(record.duration || 0)).reduce((sum, character) => sum + character.receipts.length, 0)} character cue receipts across ${clock(record.duration)}. Start at ${hookLine.replace(/\.$/, "")} and use the scene beats below as a route through the night. Playback remains the authority; captions do not certify a speaker or intent.`
+    : null;
+  const summary = clean(existing?.summary || secondPassSummary || (events.length
     ? `${ledgerSummary} Captions are navigation, not a final quote or speaker verdict—open a receipt and hear the full exchange.`
     : `A source brief for ${clean(record.title)}. Metadata is preserved, but no local caption route survived for a responsible episode breakdown.`));
   const evidence = existing?.captionEvidence || { type: events.length ? "youtube-automatic-caption" : "metadata-only", eventsAudited: events.length, speakerDiarized: false, originAttribution: false, reviewStatus: events.length ? "machine-candidate" : "held" };
+  const cueList = characterCues(events, Number(record.duration || 0));
+  const recurring = recurringBits(events, moments, fan, Number(record.duration || 0));
+  const pass = yearPass(record, events, topics, moments, fan, recurring, cueList, existing, evidence, yearSnapshot);
   return {
     id, title: clean(record.title), date: dateFrom(record.upload_date), duration: Number(record.duration || 0), durationLabel: clock(record.duration), views: Number(record.view_count || 0),
     thumbnail: record.thumbnail || `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`, url: `https://www.youtube.com/watch?v=${id}`, channel: record.channel || "WeWatchedAMovie", publicSource: true,
@@ -307,8 +367,9 @@ const episodes = metadata.map((record) => {
     sourceInAtlas: atlasById.has(id), latestOutsideAtlas: !atlasById.has(id), atlasCoverage: atlasById.get(id)?.coverage || null, archiveLanes: atlasById.get(id)?.lanes || [],
     evidenceTier: tier, captioned: Boolean(events.length || existing?.captioned), wordsAudited: Number(existing?.wordsAudited || words(events.map((event) => event.text).join(" ")).length),
     topics, moments, chapters: chapterList, heatmap: existing?.heatmap?.length ? existing.heatmap : heatmap(Number(record.duration || 0), events, moments, topics), fanSignals: normalizeFanSignals(fan),
-    recurringBits: recurringBits(events, moments, fan, Number(record.duration || 0)), bestBits: bestBits(moments, fan), characterCues: characterCues(events, Number(record.duration || 0)),
+    recurringBits: recurring, bestBits: bestBits(moments, fan), characterCues: cueList,
     characters: existing?.characters || characters(events), peak: existing?.peak || moments.slice().sort((a, b) => b.score - a.score)[0] || null,
+    yearPass: pass,
     dossier: { summary, shape, hook: hotMoment ? { at: Number(hotMoment.t || 0), category: hotMoment.category || hotMoment.label || "SOURCE RECEIPT", excerpt: hotMoment.excerpt || "", evidenceBasis: hotMoment.evidenceBasis || "source-local caption candidate", reviewStatus: hotMoment.reviewStatus || "machine-candidate" } : null, whyItMatters: clean(existing?.editorial?.whyItMatters || `This episode is part of the ${series.label} shelf. Its evidence tier is ${tier}; the official upload remains the authority for delivery, speaker, and intent. Use the bounded receipts as navigation, then play the source before treating the caption surface as a quote.`), evidence, restricted, reviewStatus: tier === "source-brief" ? "held-source-brief" : tier === "completion-dossier" ? "distilled-machine-candidate" : "machine-surfaced" }
   };
 }).sort((left, right) => right.date.localeCompare(left.date) || right.id.localeCompare(left.id));
@@ -321,6 +382,39 @@ episodes.forEach((episode) => {
 const series = Array.from(seriesMap.values()).map((item) => ({ ...item, formats: Array.from(item.formats), episodeCount: item.episodeIds.length }));
 const years = {};
 episodes.forEach((episode) => { years[episode.year] = (years[episode.year] || 0) + 1; });
+function buildYearIndex(year) {
+  const set = episodes.filter((episode) => episode.year === year);
+  if (!set.length) return null;
+  const topicMap = new Map();
+  const laneMap = new Map();
+  const monthMap = new Map();
+  set.forEach((episode) => {
+    const month = String(episode.date || "").slice(0, 7) || "unknown";
+    monthMap.set(month, (monthMap.get(month) || 0) + 1);
+    episode.topics.forEach((topic) => {
+      if (!topicMap.has(topic.name)) topicMap.set(topic.name, { name: topic.name, mentions: 0, episodeIds: [] });
+      const item = topicMap.get(topic.name); item.mentions += Number(topic.mentions || 0); if (!item.episodeIds.includes(episode.id)) item.episodeIds.push(episode.id);
+    });
+    episode.recurringBits.forEach((lane) => {
+      if (!laneMap.has(lane.key)) laneMap.set(lane.key, { key: lane.key, label: lane.label, candidateCount: 0, episodeIds: [] });
+      const item = laneMap.get(lane.key); item.candidateCount += Number(lane.candidateCount || 0); if (!item.episodeIds.includes(episode.id)) item.episodeIds.push(episode.id);
+    });
+  });
+  const passEpisodes = set.filter((episode) => episode.yearPass);
+  const evidenceMix = {};
+  set.forEach((episode) => { evidenceMix[episode.evidenceTier] = (evidenceMix[episode.evidenceTier] || 0) + 1; });
+  return {
+    year, label: `${year} SECOND PASS // YEAR AT A GLANCE`, episodeCount: set.length, episodeIds: set.map((episode) => episode.id), months: Object.fromEntries(Array.from(monthMap.entries()).sort()),
+    totalDurationSeconds: set.reduce((sum, episode) => sum + episode.duration, 0), totalViewsSnapshot: set.reduce((sum, episode) => sum + episode.views, 0), wordsAudited: set.reduce((sum, episode) => sum + episode.wordsAudited, 0),
+    captionBacked: set.filter((episode) => episode.captioned).length, sourceBriefs: set.filter((episode) => episode.evidenceTier === "source-brief").length,
+    topicDoors: set.reduce((sum, episode) => sum + episode.topics.length, 0), momentCandidates: set.reduce((sum, episode) => sum + episode.moments.length, 0), fanSignals: set.reduce((sum, episode) => sum + episode.fanSignals.length, 0),
+    characterCueReceipts: set.reduce((sum, episode) => sum + episode.characterCues.reduce((inner, character) => inner + character.receipts.length, 0), 0), recurringBitCues: set.reduce((sum, episode) => sum + episode.recurringBits.reduce((inner, lane) => inner + Number(lane.candidateCount || 0), 0), 0),
+    topTopics: Array.from(topicMap.values()).sort((a, b) => b.mentions - a.mentions || a.name.localeCompare(b.name)).slice(0, 12),
+    topLanes: Array.from(laneMap.values()).sort((a, b) => b.candidateCount - a.candidateCount || a.label.localeCompare(b.label)), evidenceMix,
+    passEpisodes: passEpisodes.length, note: `All ${set.length} official ${year} source records are present. This is a machine-surfaced second pass built for navigation and comparison; playback remains the authority and human review is still required for speaker, intent, visual context, and final clip selection.`
+  };
+}
+const yearIndex = { 2026: buildYearIndex(2026) };
 const topicMap = new Map();
 episodes.forEach((episode) => episode.topics.forEach((topic) => {
   if (!topicMap.has(topic.name)) topicMap.set(topic.name, { name: topic.name, mentions: 0, episodeIds: [], latest: topic.at });
@@ -349,13 +443,14 @@ const stats = {
   fanSignalReceipts: episodes.reduce((sum, episode) => sum + episode.fanSignals.length, 0), episodesWithFanSignals: episodes.filter((episode) => episode.fanSignals.length).length,
   recurringBitReceipts: episodes.reduce((sum, episode) => sum + episode.recurringBits.reduce((inner, lane) => inner + lane.candidateCount, 0), 0),
   characterCueReceipts: episodes.reduce((sum, episode) => sum + episode.characterCues.reduce((inner, character) => inner + character.receipts.length, 0), 0),
+  yearPassEpisodes: episodes.filter((episode) => episode.yearPass).length,
   firstDate: episodes.at(-1)?.date || null, lastDate: episodes[0]?.date || null, years
 };
 const payload = {
   schema: "shokker-wwam-livestream-canon/v1", generated: new Date().toISOString(), observedAt: "2026-07-31",
   sourcePolicy: "Every public WWAM source represented in the local official metadata snapshot is retained. Completion and distill artifacts are reused when present; remaining episodes receive bounded caption-ledger routes or a held source brief. Speaker, intent, visual context, rights, and creator approval are never inferred.",
-  scope: { metadataSources: metadata.length, captionFiles: fs.readdirSync(CAPTIONS_DIR).filter((file) => file.endsWith(".json")).length, atlasRecords: atlas.records?.length || 0, completionSources: completion.streams?.length || 0, deepSources: deep.streams?.length || 0, freshSources: fresh.streams?.length || 0 },
-  stats, series, topicIndex, fanHall, characterIndex, episodes
+  scope: { metadataSources: metadata.length, captionFiles: fs.readdirSync(CAPTIONS_DIR).filter((file) => file.endsWith(".json")).length, atlasRecords: atlas.records?.length || 0, completionSources: completion.streams?.length || 0, deepSources: deep.streams?.length || 0, freshSources: fresh.streams?.length || 0, yearCanonSources: yearCanon.streams?.length || 0 },
+  stats, series, yearIndex, topicIndex, fanHall, characterIndex, episodes
 };
 fs.writeFileSync(path.join(DEMO, "wwam-livestream-canon.js"), `/* Generated by scripts/generate-wwam-livestream-canon.mjs. */\nwindow.WWAM_LIVESTREAM_CANON = ${JSON.stringify(payload)};\n`);
 console.log(`Generated ${episodes.length} livestream episodes; ${stats.completionDossiers} completion dossiers, ${stats.distillDossiers} distill dossiers, ${stats.captionLedgers} caption ledgers, ${stats.sourceBriefs} source briefs.`);
