@@ -127,7 +127,7 @@ function derivedTopics(events, title) {
 }
 function derivedMoments(events, duration, restricted = false) {
   if (!events.length || restricted) return [];
-  const perLane = Math.max(3, Math.min(10, Math.round((duration || 1) / 1800)));
+  const perLane = Math.max(3, Math.round((duration || 1) / 1800));
   const output = [];
   for (const lane of LANE_DEFS) {
     const ranked = events.map((event, index) => ({ event, index, hits: lane.pattern.test(event.text) })).filter((item) => item.hits)
@@ -149,7 +149,7 @@ function derivedMoments(events, duration, restricted = false) {
 function fanSignals(events, duration) {
   const lane = LANE_DEFS.find((item) => item.key === "fan");
   const ranked = events.map((event, index) => ({ event, index })).filter((item) => lane.pattern.test(item.event.text));
-  const max = Math.max(3, Math.min(16, Math.round((duration || 1) / 1800) + 2));
+  const max = Math.max(3, Math.round((duration || 1) / 1800) + 2);
   const picked = [];
   ranked.forEach((item) => {
     if (picked.length >= max || picked.some((other) => Math.abs(other.event.t - item.event.t) < 55)) return;
@@ -189,7 +189,6 @@ function normalizeTopics(items) { return (items || []).slice(0, 10).map((topic) 
 function normalizeMoments(items, restricted = false) {
   if (restricted) return [];
   return (items || [])
-    .slice(0, 40)
     .map((moment, index) => ({
       id: moment.id || `moment-${index + 1}`,
       t: Math.round(Number(moment.t || 0)),

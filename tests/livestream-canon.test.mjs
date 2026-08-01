@@ -41,6 +41,7 @@ test("each source has an honest evidence tier and playable source link", () => {
   assert.ok(canon.stats.captionLedgers >= 200);
   assert.ok(canon.stats.latestOutsideAtlas > 0);
   assert.ok(canon.stats.fanSignalReceipts > 0);
+  assert.ok(canon.episodes.some((episode) => episode.moments.length > 40), "long shows retain more than forty candidates when the tape supports them");
   const ledgerSummaries = canon.episodes.filter((episode) => episode.evidenceTier === "caption-ledger").map((episode) => episode.dossier.summary);
   assert.ok(ledgerSummaries.length >= 200);
   assert.equal(ledgerSummaries.some((summary) => /\bA open-line\b/i.test(summary)), false);
@@ -62,5 +63,6 @@ test("livestream canon surface is wired into the page and route shell", () => {
   assert.match(gate, /"livestream-canon": "shows"/);
   assert.match(ui, /OPEN FULL SHOW WIKI/);
   assert.match(ui, /data-lvc-open/);
+  assert.doesNotMatch(ui, /moments\|\|\[\]\)\.slice\(0,40\)/);
   assert.match(css, /\.lvc-card-grid/);
 });
