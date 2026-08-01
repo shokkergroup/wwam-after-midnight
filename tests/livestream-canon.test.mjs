@@ -70,6 +70,11 @@ test("each source has an honest evidence tier and playable source link", () => {
   assert.ok(year2026.every((episode) => episode.yearPass.sceneBeats.some((beat) => beat.receipt)), "the second pass keeps a bounded tape receipt in every year map");
   assert.ok(year2026.every((episode) => episode.conversationThreads.length >= 4), "2026 episodes retain a chronological topic thread map");
   assert.ok(year2026.some((episode) => episode.bestBits.length > 5), "best-bit candidates are not silently capped at five");
+  const latestThree = ["LV2rmwEA0w4", "iz0WFhe6LYM", "ag3axSC9BpU"].map((id) => canon.episodes.find((episode) => episode.id === id));
+  assert.ok(latestThree.every((episode) => episode.watchPass && episode.watchPass.status === "audio-feature-pilot"));
+  assert.ok(latestThree.every((episode) => episode.watchPass.candidates.length >= 12), "the latest-three pilot retains a substantial ranked audio route");
+  assert.ok(latestThree.every((episode) => episode.watchPass.media.audioOnly === true));
+  assert.ok(latestThree.every((episode) => episode.watchPass.candidates.every((candidate) => candidate.audio && candidate.evidenceBasis.includes("canonical YouTube audio"))));
   assert.ok(canon.yearIndex["2026"].topTopics.length > 0);
   assert.ok(canon.yearIndex["2026"].topLanes.length > 0);
   const ledgerSummaries = canon.episodes.filter((episode) => episode.evidenceTier === "caption-ledger").map((episode) => episode.dossier.summary);
@@ -103,7 +108,10 @@ test("livestream canon surface is wired into the page and route shell", () => {
   assert.match(ui, /TAPE NOTE/);
   assert.match(ui, /ALL RECEIPTS, RANKED/);
   assert.match(ui, /CONVERSATION THREADS/);
+  assert.match(ui, /AUDIO WATCH PASS/);
+  assert.match(ui, /LISTEN FOR THE ROOM TO CHANGE/);
   assert.doesNotMatch(ui, /moments\|\|\[\]\)\.slice\(0,40\)/);
   assert.match(css, /\.lvc-card-grid/);
   assert.match(css, /\.lvc-new/);
+  assert.match(css, /\.lvc-audio-pass/);
 });

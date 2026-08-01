@@ -77,6 +77,7 @@ const completion = loadScript("archive-completion.js").WWAM_ARCHIVE_COMPLETION |
 const deep = loadScript("archive-deep-distill.js").WWAM_ARCHIVE_DEEP || { streams: [] };
 const fresh = loadScript("livestream-distill.js").WWAM_LIVESTREAMS || { streams: [] };
 const yearCanon = loadScript("year-canon-2025-2026.js").WWAM_YEAR_CANON_2025_2026 || { streams: [] };
+const watchPilot = loadScript("wwam-watch-pass-pilot.js").WWAM_WATCH_PASS_PILOT || { episodes: {} };
 const atlasById = new Map((atlas.records || []).map((record) => [record.id, record]));
 const completionById = new Map((completion.streams || []).map((record) => [record.id, record]));
 const deepById = new Map((deep.streams || []).map((record) => [record.id, record]));
@@ -404,6 +405,7 @@ const episodes = metadata.map((record) => {
   const note = tapeNote(shape, topics, moments, fan, recurring, cueList);
   const finalSummary = currentYear === 2026 ? `${note} This is a machine-surfaced caption map; playback remains the authority.` : summary;
   const pass = yearPass(record, events, topics, moments, fan, recurring, cueList, existing, evidence, yearSnapshot);
+  const watchPass = watchPilot.episodes?.[id] || null;
   return {
     id, title: clean(record.title), date: dateFrom(record.upload_date), duration: Number(record.duration || 0), durationLabel: clock(record.duration), views: Number(record.view_count || 0),
     thumbnail: record.thumbnail || `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`, url: `https://www.youtube.com/watch?v=${id}`, channel: record.channel || "WeWatchedAMovie", publicSource: true,
@@ -413,7 +415,7 @@ const episodes = metadata.map((record) => {
     topics, conversationThreads: conversationThreads(topics), moments, chapters: chapterList, heatmap: existing?.heatmap?.length ? existing.heatmap : heatmap(Number(record.duration || 0), events, moments, topics), fanSignals: normalizeFanSignals(fan),
     recurringBits: recurring, bestBits: bestBits(moments, fan), characterCues: cueList,
     characters: existing?.characters || characters(events), peak: existing?.peak || moments.slice().sort((a, b) => b.score - a.score)[0] || null,
-    yearPass: pass,
+    yearPass: pass, watchPass,
     dossier: { summary: finalSummary, tapeNote: note, archiveSummary: currentYear === 2026 && existing?.summary ? clean(existing.summary) : null, shape, hook: hotMoment ? { at: Number(hotMoment.t || 0), category: hotMoment.category || hotMoment.label || "SOURCE RECEIPT", excerpt: hotMoment.excerpt || "", evidenceBasis: hotMoment.evidenceBasis || "source-local caption candidate", reviewStatus: hotMoment.reviewStatus || "machine-candidate" } : null, whyItMatters: clean(existing?.editorial?.whyItMatters || `This episode is part of the ${series.label} shelf. Its evidence tier is ${tier}; the official upload remains the authority for delivery, speaker, and intent. Use the bounded receipts as navigation, then play the source before treating the caption surface as a quote.`), evidence, restricted, reviewStatus: tier === "source-brief" ? "held-source-brief" : tier === "completion-dossier" ? "distilled-machine-candidate" : "machine-surfaced" }
   };
 }).sort((left, right) => right.date.localeCompare(left.date) || right.id.localeCompare(left.id));
