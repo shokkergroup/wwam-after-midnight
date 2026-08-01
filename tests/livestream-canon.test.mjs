@@ -37,11 +37,16 @@ test("each source has an honest evidence tier and playable source link", () => {
     assert.ok(Array.isArray(episode.fanSignals));
     assert.ok(Array.isArray(episode.recurringBits));
     assert.ok(Array.isArray(episode.bestBits));
+    assert.ok(Array.isArray(episode.characterCues));
     for (const signal of episode.fanSignals) assert.ok(signal.signalType);
     for (const lane of episode.recurringBits) {
       assert.ok(lane.candidateCount >= 1);
       assert.ok(Array.isArray(lane.receipts));
       assert.ok(lane.receipts.every((receipt) => Number.isFinite(receipt.t)));
+    }
+    for (const character of episode.characterCues) {
+      assert.ok(character.name && character.mentions > 0);
+      assert.ok(Array.isArray(character.receipts) && character.receipts.length > 0);
     }
   }
   assert.ok(canon.stats.completionDossiers >= 200);
@@ -50,7 +55,9 @@ test("each source has an honest evidence tier and playable source link", () => {
   assert.ok(canon.stats.latestOutsideAtlas > 0);
   assert.ok(canon.stats.fanSignalReceipts > 0);
   assert.ok(canon.stats.recurringBitReceipts >= canon.stats.fanSignalReceipts);
+  assert.ok(canon.stats.characterCueReceipts > 0);
   assert.ok(Array.isArray(canon.fanHall) && canon.fanHall.length > 0);
+  assert.ok(Array.isArray(canon.characterIndex) && canon.characterIndex.some((entry) => entry.name === "Dr. Loomis"));
   assert.ok(canon.fanHall.every((entry) => entry.receipts > 0 && entry.episodeIds.length > 0));
   assert.ok(canon.episodes.some((episode) => episode.moments.length > 40), "long shows retain more than forty candidates when the tape supports them");
   const ledgerSummaries = canon.episodes.filter((episode) => episode.evidenceTier === "caption-ledger").map((episode) => episode.dossier.summary);
@@ -77,6 +84,7 @@ test("livestream canon surface is wired into the page and route shell", () => {
   assert.match(ui, /NEW SINCE ATLAS/);
   assert.match(ui, /RECURRING BITS/);
   assert.match(ui, /WWAM FAM HALL/);
+  assert.match(ui, /CHARACTER CUES/);
   assert.doesNotMatch(ui, /moments\|\|\[\]\)\.slice\(0,40\)/);
   assert.match(css, /\.lvc-card-grid/);
   assert.match(css, /\.lvc-new/);

@@ -92,6 +92,20 @@ const LANE_DEFS = [
   { key: "fan", label: "FAN SIGNAL", pattern: /super\s*chat|\bdonat(?:e|ed|ion)\b|lee(?:\s+the)?\s+machine|michael\s+part(?:on|in)|chat(?:'s| is) asking|question from (?:the )?chat|(?:thanks|welcome|appreciate|thank you).{0,45}(?:member|membership)|(?:new|another|our) member|(?:member|membership).{0,45}(?:joined|join|thanks|thank|gift)/i },
   { key: "take", label: "TAKE GETS NUCLEAR", pattern: /\b(obviously|literally|never|always|worst|best|greatest|insane|ridiculous|unacceptable|wrong|right|point blank|period)\b/i },
 ];
+const CHARACTER_DEFS = [
+  { key: "loomis", name: "Dr. Loomis", pattern: /\b(?:dr\.?\s*)?loomis\b/i },
+  { key: "challis", name: "Dr. Challis", pattern: /\b(?:dr\.?\s*)?chall[ie]s\b/i },
+  { key: "slenderman", name: "Slenderman", pattern: /\bslender\s*man\b/i },
+  { key: "feldman", name: "Corey Feldman", pattern: /\b(?:corey\s+feldman|feldman)\b/i },
+  { key: "myers", name: "Michael Myers", pattern: /\bmichael\s+myers\b/i },
+  { key: "freddy", name: "Freddy Krueger", pattern: /\b(?:freddy(?:\s+krueger)?|krueger)\b/i },
+  { key: "jason", name: "Jason Voorhees", pattern: /\bjason\s+voorhees\b/i },
+  { key: "chucky", name: "Chucky", pattern: /\bchucky\b|\bchild['’]?s\s+play\b/i },
+  { key: "ghostface", name: "Ghostface", pattern: /\bghostface\b/i },
+  { key: "pleasence", name: "Donald Pleasence", pattern: /\bdonald\s+pleasence\b|\bpleasence\b/i },
+  { key: "rob-zombie", name: "Rob Zombie", pattern: /\brob\s+zombie\b/i },
+  { key: "leatherface", name: "Leatherface", pattern: /\bleatherface\b/i },
+];
 const RESTRICTED_MODES = new Set(["trailer-reaction", "source-video-watch-party"]);
 
 function inferMode(title) {
@@ -225,6 +239,19 @@ function characters(events) {
     return hits.length ? { name, mentions: hits.length, first: Math.round(hits[0].t), peak: Math.round(hits[0].t), receipt: excerpt(hits[0].text, 18), evidenceBasis: "source-local automatic caption character cue", reviewStatus: "machine-candidate" } : null;
   }).filter(Boolean);
 }
+function characterCues(events, duration) {
+  const receiptLimit = Math.max(2, Math.round((duration || 1) / 1200));
+  return CHARACTER_DEFS.map((character) => {
+    const hits = events.map((event, index) => ({ event, index })).filter((item) => character.pattern.test(item.event.text));
+    if (!hits.length) return null;
+    const ranked = hits.slice().sort((a, b) => words(b.event.text).length - words(a.event.text).length || a.event.t - b.event.t);
+    return {
+      key: character.key, name: character.name, mentions: hits.length, first: Math.round(hits[0].event.t), peak: Math.round(ranked[0].event.t),
+      receipts: ranked.slice(0, receiptLimit).map((item) => ({ t: Math.round(item.event.t), end: Math.round(item.event.end || item.event.t + 36), excerpt: excerpt(captionWindow(events, item.index), 24), evidenceBasis: "source-local automatic caption character cue", reviewStatus: "machine-candidate" })),
+      evidenceBasis: "source-local automatic caption character cue; host identity is not diarized", reviewStatus: "machine-candidate"
+    };
+  }).filter(Boolean);
+}
 function normalizeTopics(items) { return (items || []).slice(0, 10).map((topic) => ({ name: clean(topic.name), mentions: Number(topic.mentions || 0), first: Math.round(Number(topic.first || 0)), peak: Math.round(Number(topic.peak || topic.at || 0)), cluster: Number(topic.cluster || 0), receipt: clean(topic.receipt || ""), at: Math.round(Number(topic.at || topic.peak || topic.first || 0)), evidence: topic.evidence || { type: "source-local caption", speakerStatus: "not-diarized", reviewStatus: "machine-candidate" } })).filter((topic) => topic.name); }
 function normalizeMoments(items, restricted = false) {
   if (restricted) return [];
@@ -279,7 +306,7 @@ const episodes = metadata.map((record) => {
     sourceInAtlas: atlasById.has(id), latestOutsideAtlas: !atlasById.has(id), atlasCoverage: atlasById.get(id)?.coverage || null, archiveLanes: atlasById.get(id)?.lanes || [],
     evidenceTier: tier, captioned: Boolean(events.length || existing?.captioned), wordsAudited: Number(existing?.wordsAudited || words(events.map((event) => event.text).join(" ")).length),
     topics, moments, chapters: chapterList, heatmap: existing?.heatmap?.length ? existing.heatmap : heatmap(Number(record.duration || 0), events, moments, topics), fanSignals: normalizeFanSignals(fan),
-    recurringBits: recurringBits(events, moments, fan, Number(record.duration || 0)), bestBits: bestBits(moments, fan),
+    recurringBits: recurringBits(events, moments, fan, Number(record.duration || 0)), bestBits: bestBits(moments, fan), characterCues: characterCues(events, Number(record.duration || 0)),
     characters: existing?.characters || characters(events), peak: existing?.peak || moments.slice().sort((a, b) => b.score - a.score)[0] || null,
     dossier: { summary, shape, whyItMatters: clean(existing?.editorial?.whyItMatters || `This episode is part of the ${series.label} shelf. Its evidence tier is ${tier}; the official upload remains the authority for delivery, speaker, and intent.`), evidence, restricted, reviewStatus: tier === "source-brief" ? "held-source-brief" : tier === "completion-dossier" ? "distilled-machine-candidate" : "machine-surfaced" }
   };
@@ -306,6 +333,13 @@ episodes.forEach((episode) => episode.fanSignals.forEach((signal) => {
   const item = fanHallMap.get(key); item.receipts += 1; if (!item.episodeIds.includes(episode.id)) item.episodeIds.push(episode.id); item.firstDate = item.firstDate < episode.date ? item.firstDate : episode.date; item.latestDate = item.latestDate > episode.date ? item.latestDate : episode.date;
 }));
 const fanHall = Array.from(fanHallMap.values()).sort((a, b) => b.receipts - a.receipts || a.label.localeCompare(b.label));
+const characterMap = new Map();
+episodes.forEach((episode) => episode.characterCues.forEach((character) => {
+  const key = character.key;
+  if (!characterMap.has(key)) characterMap.set(key, { key, name: character.name, mentions: 0, episodeIds: [], receipts: 0, firstDate: episode.date, latestDate: episode.date });
+  const item = characterMap.get(key); item.mentions += character.mentions; item.receipts += character.receipts.length; if (!item.episodeIds.includes(episode.id)) item.episodeIds.push(episode.id); item.firstDate = item.firstDate < episode.date ? item.firstDate : episode.date; item.latestDate = item.latestDate > episode.date ? item.latestDate : episode.date;
+}));
+const characterIndex = Array.from(characterMap.values()).sort((a, b) => b.mentions - a.mentions || a.name.localeCompare(b.name));
 const stats = {
   episodes: episodes.length, atlasRecords: atlas.records?.length || 0, latestOutsideAtlas: episodes.filter((episode) => episode.latestOutsideAtlas).length,
   completionDossiers: episodes.filter((episode) => episode.evidenceTier === "completion-dossier").length, distillDossiers: episodes.filter((episode) => episode.evidenceTier === "distill-dossier").length,
@@ -313,13 +347,14 @@ const stats = {
   captionBacked: episodes.filter((episode) => episode.captioned).length, totalDurationSeconds: episodes.reduce((sum, episode) => sum + episode.duration, 0), totalViewsSnapshot: episodes.reduce((sum, episode) => sum + episode.views, 0),
   fanSignalReceipts: episodes.reduce((sum, episode) => sum + episode.fanSignals.length, 0), episodesWithFanSignals: episodes.filter((episode) => episode.fanSignals.length).length,
   recurringBitReceipts: episodes.reduce((sum, episode) => sum + episode.recurringBits.reduce((inner, lane) => inner + lane.candidateCount, 0), 0),
+  characterCueReceipts: episodes.reduce((sum, episode) => sum + episode.characterCues.reduce((inner, character) => inner + character.receipts.length, 0), 0),
   firstDate: episodes.at(-1)?.date || null, lastDate: episodes[0]?.date || null, years
 };
 const payload = {
   schema: "shokker-wwam-livestream-canon/v1", generated: new Date().toISOString(), observedAt: "2026-07-31",
   sourcePolicy: "Every public WWAM source represented in the local official metadata snapshot is retained. Completion and distill artifacts are reused when present; remaining episodes receive bounded caption-ledger routes or a held source brief. Speaker, intent, visual context, rights, and creator approval are never inferred.",
   scope: { metadataSources: metadata.length, captionFiles: fs.readdirSync(CAPTIONS_DIR).filter((file) => file.endsWith(".json")).length, atlasRecords: atlas.records?.length || 0, completionSources: completion.streams?.length || 0, deepSources: deep.streams?.length || 0, freshSources: fresh.streams?.length || 0 },
-  stats, series, topicIndex, fanHall, episodes
+  stats, series, topicIndex, fanHall, characterIndex, episodes
 };
 fs.writeFileSync(path.join(DEMO, "wwam-livestream-canon.js"), `/* Generated by scripts/generate-wwam-livestream-canon.mjs. */\nwindow.WWAM_LIVESTREAM_CANON = ${JSON.stringify(payload)};\n`);
 console.log(`Generated ${episodes.length} livestream episodes; ${stats.completionDossiers} completion dossiers, ${stats.distillDossiers} distill dossiers, ${stats.captionLedgers} caption ledgers, ${stats.sourceBriefs} source briefs.`);
