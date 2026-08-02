@@ -63,6 +63,15 @@ const explicitExtras = new Map([
   ["YegOLKaN5dM", { franchiseKey: "childs-play", franchiseTitle: "Child's Play / Chucky", movieKey: "seed-of-chucky", movieTitle: "Seed of Chucky", type: "commentary", note: "Chucky franchise commentary" }],
   ["WqXiUhdG2PU", { franchiseKey: "childs-play", franchiseTitle: "Child's Play / Chucky", movieKey: "curse-of-chucky", movieTitle: "Curse of Chucky", type: "commentary", note: "Chucky franchise commentary" }],
   ["zJtK9KDE-sI", { franchiseKey: "childs-play", franchiseTitle: "Child's Play / Chucky", movieKey: "cult-of-chucky", movieTitle: "Cult of Chucky", type: "commentary", note: "Chucky franchise commentary" }],
+  ["ot91NhcRSdM", { franchiseKey: "childs-play", franchiseTitle: "Child's Play / Chucky", movieKey: "childs-play-1988", movieTitle: "Child's Play (1988)", type: "watch-along", note: "edited highlight cut from the full live commentary" }],
+  ["tGsSV60FmX0", { franchiseKey: "childs-play", franchiseTitle: "Child's Play / Chucky", movieKey: "cult-of-chucky", movieTitle: "Cult of Chucky", type: "watch-along", note: "edited highlight cut from the full live commentary" }],
+  ["xWkQKdVHQKU", { franchiseKey: "childs-play", franchiseTitle: "Child's Play / Chucky", movieKey: "curse-of-chucky", movieTitle: "Curse of Chucky", type: "watch-along", note: "edited highlight cut from the full live commentary" }],
+  ["-jTbmZb2EvE", { franchiseKey: "childs-play", franchiseTitle: "Child's Play / Chucky", movieKey: "seed-of-chucky", movieTitle: "Seed of Chucky", type: "watch-along", note: "edited highlight cut from the full live commentary" }],
+  ["Uz04ygWeetA", { franchiseKey: "childs-play", franchiseTitle: "Child's Play / Chucky", movieKey: "bride-of-chucky", movieTitle: "Bride of Chucky", type: "watch-along", note: "edited highlight cut from the full live commentary" }],
+  ["TyzZ2FbOdGg", { franchiseKey: "childs-play", franchiseTitle: "Child's Play / Chucky", movieKey: "childs-play-3", movieTitle: "Child's Play 3", type: "watch-along", note: "edited highlight cut from the full live commentary" }],
+  ["v4TuS9kqPnM", { franchiseKey: "childs-play", franchiseTitle: "Child's Play / Chucky", movieKey: "childs-play-2", movieTitle: "Child's Play 2", type: "watch-along", note: "edited highlight cut from the full live commentary" }],
+  ["9Kql8Y14bAw", { franchiseKey: "uncategorized", franchiseTitle: "Standalone / One-Offs", movieKey: "sinister-2012", movieTitle: "Sinister (2012)", type: "watch-along", note: "Patreon commentary highlight cut" }],
+  ["0X8Jq7wxfJo", { franchiseKey: "dc", franchiseTitle: "DC / Batman", movieKey: "the-batman-2022", movieTitle: "The Batman (2022)", type: "watch-along", note: "Patreon commentary highlight cut" }],
   ["KrBhfGxsJNM", { franchiseKey: "halloween", franchiseTitle: "Halloween", movieKey: "halloween-4", movieTitle: "Halloween 4: The Return of Michael Myers", type: "watch-party", note: "2024 public watch-party repeat" }],
   ["QxJyVaAgZ_Y", { franchiseKey: "friday-the-13th", franchiseTitle: "Friday the 13th", movieKey: "friday-the-13th-part-4", movieTitle: "Friday the 13th: The Final Chapter", type: "watch-along", note: "2024 public watch-along repeat" }]
 ]);
@@ -71,7 +80,7 @@ const includedIds = new Set(catalog.map((record) => record.id));
 metadata.forEach((record) => {
   // The public canon must not silently promote member-only uploads. They
   // remain visible in the discovery audit as held leads until access changes.
-  if (record.availability !== "subscriber_only" && /commentary|watch\s*party|watch\s*along|full\s+movie/i.test(record.title)) {
+  if (record.availability !== "subscriber_only" && /commentary|watch\s*party|watch\s*along|full\s+movie|^\s*we\s+watched\s+(?!a\s+movie(?:\b|'s))(?!.{0,80}\bpodcast\b)(?!.*[,]\s)/i.test(record.title)) {
     includedIds.add(record.id);
   }
 });
@@ -338,6 +347,7 @@ function candidateMoments(events, duration, aliases) {
 function titleDerivedTaxonomy(title) {
   const source = clean(title);
   const normalized = source
+    .replace(/^\s*we\s+watched\b/gi, " ")
     .replace(/\b(first\s+time\s+watch|reaction|live\s+commentary|full\s+video|full\s+movie|full|movie|video|audio|commentary|watch\s*(?:along|party)|on\s+riff\.?tv|w\/\s*video)\b/gi, " ")
     .replace(/[!]+/g, " ")
     .replace(/\s+/g, " ")
@@ -363,7 +373,7 @@ function titleDerivedTaxonomy(title) {
   ];
   const family = families.find(([pattern]) => pattern.test(source));
   if (family) return { franchiseKey: family[1], franchiseTitle: family[2], movieKey: slug(normalized), movieTitle: normalized };
-  return { franchiseKey: "uncategorized", franchiseTitle: "Uncategorized", movieKey: slug(normalized), movieTitle: normalized };
+  return { franchiseKey: "uncategorized", franchiseTitle: "Standalone / One-Offs", movieKey: slug(normalized), movieTitle: normalized };
 }
 
 function fallbackTaxonomy(id, metadataRecord, catalogRecord) {
@@ -532,7 +542,9 @@ groups.forEach((group) => {
 });
 const franchises = Array.from(franchisesByKey.values()).map((franchise) => ({ ...franchise, groupCount: franchise.groupKeys.length, episodeCount: franchise.episodeIds.length }));
 
-const titleSignal = /commentary|watch\s*party|watch\s*along|full\s+movie/i;
+// WWAM's early edited watchalong cuts are titled "We Watched <movie>".
+// Exclude generic podcasts/roundups; those remain in the discovery edge lane.
+const titleSignal = /commentary|watch\s*party|watch\s*along|full\s+movie|^\s*we\s+watched\s+(?!a\s+movie(?:\b|'s))(?!.{0,80}\bpodcast\b)(?!.*[,]\s)/i;
 const titleCandidates = metadata.filter((record) => record.availability !== "subscriber_only" && titleSignal.test(record.title));
 const heldTitleCandidates = metadata.filter((record) => record.availability === "subscriber_only" && titleSignal.test(record.title));
 const broadDiscoveryCandidates = Array.isArray(discoveryManifest?.broadCandidates) ? discoveryManifest.broadCandidates : [];
@@ -576,7 +588,7 @@ const payload = {
   schema: "shokker-wwam-watchalong-canon/v1",
   generated: new Date().toISOString(),
   observedAt: discoveryManifest?.observedAt || "2026-07-30",
-  sourcePolicy: "Official cached WWAM YouTube metadata plus local caption or audio-transcript receipts. Existing curated 39-tape dossiers are retained; title-explicit public commentaries and movie watch parties outside that set are added as caption-ledger or held source-brief dossiers. Members-only uploads stay in the discovery ledger until access changes. No speaker, intent, rights, or creator-approval claim is inferred.",
+  sourcePolicy: "Official cached WWAM YouTube metadata plus local caption or audio-transcript receipts. Existing curated 39-tape dossiers are retained; title-explicit public commentaries, movie watch parties, and clearly labeled We Watched <film> highlight edits are added as caption-ledger or source-brief dossiers. Members-only uploads stay in the discovery ledger until access changes. No speaker, intent, rights, or creator-approval claim is inferred.",
   scope: { metadataSources: metadata.length, channelSnapshotSources: discoveryManifest?.channelSnapshotSources || null, titleCandidates: titleCandidates.length, heldTitleCandidates: heldTitleCandidates.length, episodes: episodes.length, captionFiles: fs.readdirSync(CAPTIONS_DIR).filter((file) => file.endsWith(".json")).length },
   stats: {
     episodes: episodes.length, deepDossiers: episodes.filter((episode) => episode.dossier.state === "full-editorial-dossier").length, captionLedgers: episodes.filter((episode) => episode.dossier.state === "caption-ledger-dossier").length, sourceBriefs: episodes.filter((episode) => episode.dossier.state === "source-brief-dossier").length, nonFullAdditions: episodes.filter((episode) => episode.dossier.state !== "full-editorial-dossier").length,
@@ -592,6 +604,7 @@ const payload = {
   franchises, groups, episodes, discovery: {
     channelUrl: discoveryManifest?.channelUrl || "https://www.youtube.com/@WeWatchedAMovie/videos",
     titlePattern: discoveryManifest?.titlePattern || titleSignal.source,
+    watchedMoviePattern: discoveryManifest?.watchedMoviePattern || null,
     broadTitlePattern: discoveryManifest?.broadTitlePattern || null,
     channelSnapshotSources: discoveryManifest?.channelSnapshotSources || null,
     explicitCandidateCount: discoveryManifest?.explicitCandidateCount || null,

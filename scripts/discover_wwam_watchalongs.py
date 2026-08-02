@@ -32,6 +32,11 @@ CHANNEL_URL = "https://www.youtube.com/@WeWatchedAMovie/videos"
 TITLE_PATTERN = re.compile(
     r"(?i)\bcommentary\b|\bwatch\s*(?:along|party)\b|\bfull\s+movie\b"
 )
+# Older WWAM highlight edits use the channel's own phrase rather than
+# "commentary". Generic podcasts/roundups stay outside this strict lane.
+WATCHED_MOVIE_PATTERN = re.compile(
+    r"(?i)^\s*we\s+watched\s+(?!a\s+movie(?:\b|'s|’s))(?!.{0,80}\bpodcast\b)(?!.*[,]\s).+"
+)
 # The strict pattern drives public-canon inclusion. This wider pattern is an
 # audit lane only: it catches older naming conventions and lets us explain
 # why a title-looking lead was *not* promoted (review/reaction, short clip,
@@ -39,7 +44,7 @@ TITLE_PATTERN = re.compile(
 BROAD_TITLE_PATTERN = re.compile(
     r"(?i)\bcommentary\b|\bwatch\s*(?:along|party|with)\b|\bfull\s+movie\b|"
     r"riff\.?tv|let(?:'|’)s\s+watch|first\s+time\s+watch|w[ /_-]*video|watching|"
-    r"movie\s+review\s+marathon"
+    r"we\s+watched\b|movie\s+review\s+marathon"
 )
 
 
@@ -51,6 +56,8 @@ def broad_signal(title: str) -> str:
         return "short-form-watch-lead"
     if re.search(r"(?i)riff\.?tv|w[ /_-]*video|full\s+movie|commentary|watch\s*(?:along|party|with)|let(?:'|’)s\s+watch", text):
         return "watchalong-or-commentary"
+    if re.search(r"(?i)we\s+watched\b", text):
+        return "watchalong-edit"
     return "broad-watch-signal"
 
 
@@ -94,13 +101,14 @@ def discover() -> tuple[int, list[dict[str, Any]], list[dict[str, Any]]]:
         video_id = str(entry.get("id") or "").strip()
         if not video_id or not BROAD_TITLE_PATTERN.search(title):
             continue
+        watched_movie = bool(WATCHED_MOVIE_PATTERN.search(title))
         row = {
             "id": video_id,
             "title": title,
             "duration": entry.get("duration"),
             "url": f"https://www.youtube.com/watch?v={video_id}",
             "signal": broad_signal(title),
-            "strictTitleMatch": bool(TITLE_PATTERN.search(title)),
+            "strictTitleMatch": bool(TITLE_PATTERN.search(title) or watched_movie),
         }
         broad_candidates.append(row)
         if row["strictTitleMatch"]:
@@ -161,6 +169,7 @@ def main() -> int:
         "observedAt": observed,
         "channelUrl": CHANNEL_URL,
         "titlePattern": TITLE_PATTERN.pattern,
+        "watchedMoviePattern": WATCHED_MOVIE_PATTERN.pattern,
         "broadTitlePattern": BROAD_TITLE_PATTERN.pattern,
         "channelSnapshotSources": channel_count,
         "explicitCandidateCount": len(candidates),

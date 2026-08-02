@@ -180,6 +180,25 @@ def main() -> None:
         caption_path = ROOT / "source-cache" / "captions" / f"{video_id}.json"
         asr_path = ROOT / "source-cache" / "captions" / f"{video_id}.asr.json"
         has_transcript = caption_path.exists() or asr_path.exists()
+        prior = output.get("episodes", {}).get(video_id) or {}
+        prior_media = prior.get("media") or {}
+        # The pass is intentionally incremental. A prior audio-feature record
+        # already contains the decoded one-second rows' aggregate stats and
+        # ranked receipts; reuse it unless the local media disappeared. This
+        # keeps an archive refresh focused on newly acquired sources instead
+        # of decoding every historical tape again.
+        if (
+            audio_file
+            and prior.get("status") == "audio-feature-pilot"
+            and prior_media.get("canonicalAudioAvailable") is True
+        ):
+            output["episodes"][video_id] = prior
+            analyzed += 1
+            total_audio_seconds += int((prior.get("audit") or {}).get("audioRows") or 0)
+            total_caption_events += int((prior.get("audit") or {}).get("captionEvents") or 0)
+            total_candidates += int((prior.get("audit") or {}).get("candidateCount") or len(prior.get("candidates") or []))
+            print(f"{video_id}: reused prior audio-feature receipt")
+            continue
         if not audio_file and has_transcript:
             events = caption_events(video_id)
             output["episodes"][video_id] = caption_only_record(episode, events)
