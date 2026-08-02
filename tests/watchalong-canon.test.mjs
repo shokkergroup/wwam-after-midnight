@@ -30,6 +30,11 @@ test("watchalong canon has the complete public source registry", () => {
   assert.equal(canon.stats.sourceCounts.heldMembersOnly, 22);
   assert.equal(canon.scope.channelSnapshotSources, 2882);
   assert.equal(canon.discovery.explicitCandidateCount, 101);
+  assert.equal(canon.discovery.broadCandidateCount, 110);
+  assert.equal(canon.discovery.broadSignalCounts["watchalong-or-commentary"], 102);
+  assert.equal(canon.discovery.broadDiscoveryOmissions.length, 31);
+  assert.equal(canon.discovery.broadDiscoveryOmissions.filter((record) => record.availability === "subscriber_only").length, 24);
+  assert.ok(canon.discovery.broadDiscoveryOmissions.some((record) => /Watching GHOSTBUSTERS/i.test(record.title)));
   assert.equal(canon.discovery.heldTitleCandidates.length, 22);
   assert.ok(canon.discovery.titleCandidates.some((record) => /Rambo|Saved By The Bell|Batman|Terminator|Men In Black/i.test(record.title)));
   assert.equal(new Set(canon.episodes.map((episode) => episode.id)).size, canon.episodes.length);

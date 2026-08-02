@@ -463,6 +463,32 @@ const franchises = Array.from(franchisesByKey.values()).map((franchise) => ({ ..
 const titleSignal = /commentary|watch\s*party|watch\s*along|full\s+movie/i;
 const titleCandidates = metadata.filter((record) => record.availability !== "subscriber_only" && titleSignal.test(record.title));
 const heldTitleCandidates = metadata.filter((record) => record.availability === "subscriber_only" && titleSignal.test(record.title));
+const broadDiscoveryCandidates = Array.isArray(discoveryManifest?.broadCandidates) ? discoveryManifest.broadCandidates : [];
+const broadSignalCounts = broadDiscoveryCandidates.reduce((counts, candidate) => {
+  const signal = candidate.signal || "broad-watch-signal";
+  counts[signal] = (counts[signal] || 0) + 1;
+  return counts;
+}, {});
+const broadDiscoveryOmissions = broadDiscoveryCandidates
+  .filter((candidate) => !includedIds.has(candidate.id))
+  .map((candidate) => {
+    const sourceRecord = metadataById.get(candidate.id) || heldTitleCandidates.find((record) => record.id === candidate.id);
+    return {
+      id: candidate.id,
+      title: candidate.title,
+      signal: candidate.signal || "broad-watch-signal",
+      strictTitleMatch: Boolean(candidate.strictTitleMatch),
+      date: dateFrom(sourceRecord?.upload_date),
+      availability: sourceRecord?.availability || "unknown",
+      reason: sourceRecord?.availability === "subscriber_only"
+        ? "held: YouTube currently reports this upload as members-only"
+        : candidate.signal === "reaction-or-review"
+          ? "not promoted: title reads as a review/reaction rather than a full movie commentary"
+          : candidate.signal === "short-form-watch-lead"
+            ? "not promoted: short-form watch lead; title and runtime do not establish a full watchalong"
+            : "not promoted: broad title signal needs a source-specific watchalong confirmation"
+    };
+  });
 const excludedWatchalongCandidates = heldTitleCandidates.concat(
   metadata.filter((record) => titleSignal.test(record.title) && !includedIds.has(record.id) && record.availability !== "subscriber_only")
 ).slice(0, 150).map((record) => ({
@@ -494,8 +520,12 @@ const payload = {
   franchises, groups, episodes, discovery: {
     channelUrl: discoveryManifest?.channelUrl || "https://www.youtube.com/@WeWatchedAMovie/videos",
     titlePattern: discoveryManifest?.titlePattern || titleSignal.source,
+    broadTitlePattern: discoveryManifest?.broadTitlePattern || null,
     channelSnapshotSources: discoveryManifest?.channelSnapshotSources || null,
     explicitCandidateCount: discoveryManifest?.explicitCandidateCount || null,
+    broadCandidateCount: discoveryManifest?.broadCandidateCount || broadDiscoveryCandidates.length || null,
+    broadSignalCounts,
+    broadDiscoveryOmissions,
     priorCanonCount: discoveryManifest?.priorCanonCount || null,
     heldTitleCandidates: heldTitleCandidates.map((record) => ({ id: record.id, title: record.title, date: dateFrom(record.upload_date), availability: record.availability, included: false })),
     titleCandidates: titleCandidates.map((record) => ({ id: record.id, title: record.title, date: dateFrom(record.upload_date), included: includedIds.has(record.id) })),
