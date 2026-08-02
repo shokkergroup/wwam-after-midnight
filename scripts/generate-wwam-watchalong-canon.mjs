@@ -532,14 +532,19 @@ function episodeFrom(id) {
   const closingStop = finalMoment ? `${formatTimestamp(finalMoment.t)} (${finalMoment.category || "SOURCE RECEIPT"})` : "the final stretch";
   const strongestStop = strongestMoment ? `${formatTimestamp(strongestMoment.t)} (${strongestMoment.category || "SOURCE RECEIPT"})` : "the strongest indexed route";
   const derivedSummary = `${taxonomy.type === "watch-party" ? "This watch-party" : "This commentary"} for ${taxonomy.movieTitle} runs ${formatTimestamp(duration)} and feels like ${roomTone}. ${laneSentence} The ledger leaves ${allMoments.length} bounded jump points, with the strongest route at ${strongestStop}. ${topicSentence} For a compact run, start at ${openingStop}, then finish at ${closingStop}.${audioLine} These are navigation receipts rather than speaker-diarized certainty; press play before treating a caption as canon.`;
+  const alternateRouteCount = Number(watchPassRecord?.alternateAudio?.candidates?.length || 0);
   const summary = guide?.overview || (!events.length && !deepRecord
-    ? `This source brief preserves the official upload for ${taxonomy.movieTitle}, but no local caption map was available in this observation. The source remains playable; no timestamps or speaker claims are manufactured.`
+    ? (alternateRouteCount
+      ? `This source brief preserves the official upload for ${taxonomy.movieTitle}, which is currently held for unauthenticated YouTube playback. The official WWAM podcast variant remains playable with ${alternateRouteCount} bounded audio routes in its own source-local clock; those routes are not pasted onto YouTube.`
+      : `This source brief preserves the official upload for ${taxonomy.movieTitle}, but no local caption map was available in this observation. The source remains playable; no timestamps or speaker claims are manufactured.`)
     : (deepRecord && !guide
-      ? `This catalog entry is held as a source brief for ${taxonomy.movieTitle}. The public upload and its archived editorial note are preserved, while the local caption ledger contributes ${allMoments.length} machine-found route receipts. Press play before treating any line as a reviewed quote.`
+      ? (alternateRouteCount
+        ? `This catalog entry is held as a source brief for ${taxonomy.movieTitle}. The canonical YouTube source is currently held, while the official podcast variant contributes ${alternateRouteCount} audio-bound routes on its own clock; no YouTube timestamp is manufactured.`
+        : `This catalog entry is held as a source brief for ${taxonomy.movieTitle}. The public upload and its archived editorial note are preserved, while the local caption ledger contributes ${allMoments.length} machine-found route receipts. Press play before treating any line as a reviewed quote.`)
       : deepRecord?.verdict || derivedSummary));
   const evidenceSummary = guide?.evidenceSummary
     ? `${guide.evidenceSummary}${audioCuts.length ? ` The audio-feature pass contributes ${audioCuts.length} ranked routes; those acoustic windows are browse aids, not speaker or joke proof.` : ""}`
-    : `The source ledger contains ${events.length.toLocaleString("en-US")} ${sourceKind === "local-whisper-transcript" ? "audio transcript segments" : "caption events"} and ${(deepRecord?.wordsAudited || derived?.captionWords || 0).toLocaleString("en-US")} words.${audioCuts.length ? ` The audio-feature pass contributes ${audioCuts.length} ranked routes.` : ""} These timestamps are machine-found leads, not speaker-diarized quotes; press play before treating a line as canon.`;
+    : `The source ledger contains ${events.length.toLocaleString("en-US")} ${sourceKind === "local-whisper-transcript" ? "audio transcript segments" : "caption events"} and ${(deepRecord?.wordsAudited || derived?.captionWords || 0).toLocaleString("en-US")} words.${audioCuts.length ? ` The audio-feature pass contributes ${audioCuts.length} ranked routes.` : ""}${alternateRouteCount ? ` The official podcast variant contributes ${alternateRouteCount} audio-bound routes on its own clock; no YouTube mapping is claimed.` : ""} These timestamps are machine-found leads, not speaker-diarized quotes; press play before treating a line as canon.`;
   const dossier = {
     state: deepRecord && guide ? "full-editorial-dossier" : deepRecord || !events.length ? "source-brief-dossier" : "caption-ledger-dossier",
     summary: clean(summary),
