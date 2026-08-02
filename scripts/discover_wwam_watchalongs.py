@@ -154,6 +154,15 @@ def main() -> int:
     channel_count, candidates, broad_candidates = discover()
     canon_ids = load_current_canon_ids()
     missing = [candidate for candidate in candidates if candidate["id"] not in canon_ids]
+    # Keep the wider audit honest too.  These are not promoted into the
+    # full-film canon, but acquiring their source metadata lets the UI split
+    # public early edits/reviews from member-only or unresolved leads instead
+    # of treating every edge title as an unknown.
+    strict_ids = {candidate["id"] for candidate in candidates}
+    edge_missing = [
+        candidate for candidate in broad_candidates
+        if candidate["id"] not in canon_ids and candidate["id"] not in strict_ids
+    ]
     results: list[dict[str, Any]] = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=max(1, args.workers)) as executor:
         futures = [executor.submit(acquire, seed, args.refresh, observed) for seed in missing]
@@ -170,6 +179,19 @@ def main() -> int:
             # let a decorative glyph abort the remaining acquisitions.
             print(line.encode("ascii", "backslashreplace").decode("ascii"), flush=True)
     results.sort(key=lambda item: item["id"])
+    edge_results: list[dict[str, Any]] = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max(1, args.workers)) as executor:
+        futures = [executor.submit(acquire, seed, args.refresh, observed) for seed in edge_missing]
+        for future in concurrent.futures.as_completed(futures):
+            result = future.result()
+            edge_results.append(result)
+            line = (
+                f"edge-{result['status']:>8} {result['id']} "
+                f"{result.get('captionEvents', 0):>5} events "
+                f"{result.get('title', '')}"
+            )
+            print(line.encode("ascii", "backslashreplace").decode("ascii"), flush=True)
+    edge_results.sort(key=lambda item: item["id"])
     manifest = {
         "schema": "shokker-wwam-watchalong-discovery/v1",
         "observedAt": observed,
@@ -185,6 +207,8 @@ def main() -> int:
         "priorCanonCount": len(canon_ids),
         "omittedCandidateCount": len(missing),
         "results": results,
+        "edgeCandidateCount": len(edge_missing),
+        "edgeResults": edge_results,
     }
     MANIFEST.parent.mkdir(parents=True, exist_ok=True)
     MANIFEST.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")

@@ -103,6 +103,31 @@
 .wac-edge-bucket li a:hover { color: var(--canon-acid); }
 .wac-edge-bucket li small { color: var(--canon-dim); font: 600 .48rem/1.25 ui-monospace, SFMono-Regular, Consolas, monospace; }
 
+.wac-companion-shelf { border: 1px solid rgba(255, 44, 131, .32); background: linear-gradient(135deg, rgba(255, 44, 131, .045), rgba(203, 255, 40, .025)); }
+.wac-companion-shelf > header { display: grid; grid-template-columns: minmax(0, 1fr) 14rem; gap: 1.2rem; align-items: start; padding: 1.2rem 1.35rem; border-bottom: 1px solid var(--canon-line); }
+.wac-companion-shelf h3 { margin: .3rem 0 .55rem; color: var(--canon-ink); font: 800 clamp(1.55rem, 3vw, 2.65rem)/.92 "Arial Narrow", Impact, sans-serif; letter-spacing: -.03em; text-transform: uppercase; }
+.wac-companion-shelf header p { max-width: 58rem; margin: 0; color: #d4cbcf; font: 500 .78rem/1.5 ui-sans-serif, system-ui, sans-serif; }
+.wac-companion-proof { display: grid; gap: .25rem; border-left: 2px solid var(--canon-hot); padding: .7rem .8rem; background: rgba(0, 0, 0, .24); }
+.wac-companion-proof b { color: var(--canon-acid); font: 800 2.35rem/.9 "Arial Narrow", Impact, sans-serif; }
+.wac-companion-proof span, .wac-companion-proof small { color: var(--canon-dim); font: 800 .53rem/1.3 ui-monospace, Consolas, monospace; letter-spacing: .08em; text-transform: uppercase; }
+.wac-companion-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .65rem; padding: 1rem 1.35rem 1.25rem; }
+.wac-companion-card { display: flex; flex-direction: column; gap: .5rem; min-height: 10.5rem; border: 1px solid var(--canon-line); padding: .75rem; background: rgba(0, 0, 0, .24); }
+.wac-companion-card header { display: flex; justify-content: space-between; gap: .45rem; align-items: baseline; }
+.wac-companion-card header span { color: var(--canon-hot); font: 800 .48rem/1.2 ui-monospace, Consolas, monospace; letter-spacing: .08em; text-transform: uppercase; }
+.wac-companion-card header small { color: var(--canon-dim); font: 700 .46rem/1.2 ui-monospace, Consolas, monospace; white-space: nowrap; }
+.wac-companion-card h4 { margin: 0; color: var(--canon-ink); font: 800 .95rem/1.05 "Arial Narrow", Impact, sans-serif; text-transform: uppercase; }
+.wac-companion-card p { flex: 1; margin: 0; color: var(--canon-dim); font: 500 .63rem/1.42 ui-sans-serif, system-ui, sans-serif; }
+.wac-companion-card a { color: var(--canon-acid); font: 800 .52rem/1.2 ui-monospace, Consolas, monospace; letter-spacing: .06em; text-decoration: none; text-transform: uppercase; }
+.wac-companion-card a:hover { color: var(--canon-hot); }
+.wac-companion-reviews { border-top: 1px solid var(--canon-line); }
+.wac-companion-reviews summary { display: flex; justify-content: space-between; gap: .7rem; padding: .75rem 1.35rem; color: var(--canon-acid); cursor: pointer; list-style: none; font: 800 .56rem/1.2 ui-monospace, Consolas, monospace; letter-spacing: .08em; text-transform: uppercase; }
+.wac-companion-reviews summary::-webkit-details-marker { display: none; }
+.wac-companion-reviews summary::after { content: '+'; color: var(--canon-hot); font-size: 1rem; }
+.wac-companion-reviews[open] summary::after { content: '−'; }
+.wac-companion-reviews summary b { color: var(--canon-dim); }
+.wac-companion-shelf > footer { border-top: 1px solid var(--canon-line); padding: .8rem 1.35rem 1rem; color: var(--canon-dim); font: 500 .66rem/1.45 ui-sans-serif, system-ui, sans-serif; }
+.wac-companion-shelf > footer strong { color: var(--canon-acid); font: 800 .54rem/1.2 ui-monospace, Consolas, monospace; letter-spacing: .08em; }
+
 .wac-tools {
   display: grid;
   grid-template-columns: minmax(16rem, 1fr) minmax(10rem, .6fr) minmax(10rem, .6fr) auto;
@@ -276,6 +301,7 @@
   .wac-tools { grid-template-columns: 1fr 1fr; }
   .wac-tools button { width: 100%; }
   .wac-edge-grid { grid-template-columns: 1fr 1fr; }
+  .wac-companion-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .wac-podcast-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .wac-coverage-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .wac-coverage-cards article:nth-child(3n) { border-right: 0; }
@@ -288,7 +314,7 @@
   .wac-proof { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .wac-proof article:nth-child(odd) { border-right: 1px solid var(--canon-line); }
   .wac-proof article:nth-child(even) { border-right: 0; }
-  .wac-tools, .wac-franchise-grid, .wac-group-grid, .wac-episode-grid, .wac-route-grid, .wac-chapter-grid, .wac-moment-grid, .wac-edge-grid, .wac-podcast-grid, .wac-coverage-cards, .wac-cross-genre-list { grid-template-columns: 1fr; }
+  .wac-tools, .wac-franchise-grid, .wac-group-grid, .wac-episode-grid, .wac-route-grid, .wac-chapter-grid, .wac-moment-grid, .wac-edge-grid, .wac-companion-grid, .wac-podcast-grid, .wac-coverage-cards, .wac-cross-genre-list { grid-template-columns: 1fr; }
   .wac-episode-card { grid-template-columns: 7.5rem minmax(0, 1fr); }
   .wac-episode-art img { min-height: 13rem; }
   .wac-dossier-head { grid-template-columns: 1fr; padding: 1rem; }
@@ -296,6 +322,7 @@
   .wac-dossier-footer { padding-left: 1rem; padding-right: 1rem; }
   .wac-podcast-recovery > header { grid-template-columns: 1fr; padding: 1rem; }
   .wac-coverage-ledger > header { grid-template-columns: 1fr; padding: 1rem; }
+  .wac-companion-shelf > header { grid-template-columns: 1fr; padding: 1rem; }
   .wac-cross-genre { padding-left: 1rem; padding-right: 1rem; }
   .wac-podcast-grid { padding-left: 1rem; padding-right: 1rem; }
   .wac-podcast-recovery > footer { padding-left: 1rem; padding-right: 1rem; }

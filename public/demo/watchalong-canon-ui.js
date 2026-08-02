@@ -113,6 +113,20 @@
     return '<section class="wac-coverage-ledger" aria-labelledby="wacCoverageTitle"><header><div><span class="wac-section-label">COVERAGE LEDGER // THE RECEIPT COUNT</span><h3 id="wacCoverageTitle">MORE THAN 50. THE AUDIT SAYS HOW MANY.</h3><p>' + number(ledger.channelUploads) + ' live channel uploads were checked against strict full-film signals and a wider edge search. The result is deliberately split by access and evidence status, so a review never gets quietly sold as a commentary.</p></div><div class="wac-coverage-proof"><b>' + number((ledger.publicYoutubeCanon || 0) + (ledger.podcastRecoveries || 0)) + '</b><span>INDEXED FULL-FILM SOURCES</span><small>' + number(ledger.strictCandidates) + ' STRICT LIVE LEADS // ' + number(ledger.broadCandidates) + ' BROAD TITLES CHECKED</small></div></header><div class="wac-coverage-cards">' + cardMarkup + '</div><div class="wac-cross-genre"><div><span class="wac-section-label">CROSS-GENRE PROOF</span><p>Action, comedy, superhero, sci-fi, television, and cult titles are already in the tape—not just slashers.</p></div><div class="wac-cross-genre-list">' + exampleMarkup + '</div></div></section>';
   }
 
+  function companionShelfMarkup() {
+    var watchalongs = Array.isArray(payload.companionWatchalongs) ? payload.companionWatchalongs : [];
+    var reviews = Array.isArray(payload.companionReviews) ? payload.companionReviews : [];
+    if (!watchalongs.length && !reviews.length) return '';
+    function card(item, label) {
+      var state = item.status === 'public-companion' || item.status === 'public-adjacent' ? 'PUBLIC SOURCE' : item.status === 'members-only-hold' ? 'MEMBERS-ONLY HOLD' : 'PLAYABILITY UNRESOLVED';
+      var source = item.url || ('https://www.youtube.com/watch?v=' + encodeURIComponent(item.id));
+      return '<article class="wac-companion-card"><header><span>' + esc(label) + '</span><small>' + esc(dateLabel(item.date)) + ' // ' + esc(durationLabel(item.duration)) + '</small></header><h4>' + esc(item.title) + '</h4><p>' + esc(state) + '. This title stays outside the full-film count until its exact format is confirmed; no fake jump points are attached.</p><a target="_blank" rel="noopener" href="' + esc(source) + '">OPEN SOURCE ' + esc(state === 'PUBLIC SOURCE' ? '→' : '↗') + '</a></article>';
+    }
+    var watchMarkup = watchalongs.map(function (item) { return card(item, 'EARLY WATCHED CUT'); }).join('');
+    var reviewMarkup = reviews.map(function (item) { return card(item, item.signal === 'short-form-watch-lead' ? 'SHORT WATCH LEAD' : 'REACTION / REVIEW'); }).join('');
+    return '<section class="wac-companion-shelf" aria-labelledby="wacCompanionTitle"><header><div><span class="wac-section-label">THE OTHER MOVIE ROOMS // EARLY WWAM CUTS</span><h3 id="wacCompanionTitle">THE FULL-FILM CANON ISN’T THE WHOLE HISTORY.</h3><p>These older “We Watched…” edits and movie-room cuts were found in the same channel inventory. They are surfaced as companion sources so comedy, action, sci-fi, and one-off movie work does not vanish just because the upload is shorter than a full commentary.</p></div><div class="wac-companion-proof"><b>' + number(watchalongs.length) + '</b><span>WATCHALONG COMPANIONS</span><small>' + number(reviews.length) + ' REVIEWS / REACTIONS KEPT SEPARATE</small></div></header><div class="wac-companion-grid">' + watchMarkup + '</div>' + (reviews.length ? '<details class="wac-companion-reviews"><summary><span>SHOW THE ADJACENT REVIEW / REACTION SHELF</span><b>' + number(reviews.length) + ' LEADS</b></summary><div class="wac-companion-grid">' + reviewMarkup + '</div></details>' : '') + '<footer><strong>FORMAT RULE</strong> A companion source can be playable and worth revisiting without being misrepresented as a full-film commentary. The source link is real; the full dossier and timestamp map stay gated on a source-specific receipt.</footer></section>';
+  }
+
   function edgeAuditMarkup() {
     var discovery = payload.discovery || {};
     var omissions = Array.isArray(discovery.broadDiscoveryOmissions) ? discovery.broadDiscoveryOmissions : [];
@@ -357,7 +371,7 @@
   function render() {
     var visible = visibleEpisodes();
     var selected = episodeById(state.selected);
-    mount.innerHTML = '<div class="wac-shell">' + proofMarkup() + coverageLedgerMarkup() + edgeAuditMarkup() + podcastRecoveryMarkup() + toolsMarkup() + franchiseMarkup() + movieFileMarkup() +
+    mount.innerHTML = '<div class="wac-shell">' + proofMarkup() + coverageLedgerMarkup() + companionShelfMarkup() + edgeAuditMarkup() + podcastRecoveryMarkup() + toolsMarkup() + franchiseMarkup() + movieFileMarkup() +
       '<div class="wac-results-head"><h3>' + (state.franchise === "all" ? "THE FULL TAPE LIST" : esc((franchises.filter(function (item) { return item.key === state.franchise; })[0] || {}).title || "FILTERED TAPE LIST")) + '</h3><span>' + number(visible.length) + ' EPISODES // EVERY MOVIE VERSION STAYS VISIBLE</span></div>' +
       '<div class="wac-episode-grid">' + (visible.length ? visible.map(episodeCard).join('') : '<div class="wac-empty">No public watchalong matches that filter. Try another movie, franchise, or format.</div>') + '</div>' + (selected ? dossierMarkup(selected) : '') + '</div>';
     bind();

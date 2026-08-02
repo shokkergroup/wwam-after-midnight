@@ -38,6 +38,13 @@ test("watchalong canon has the complete public source registry", () => {
   assert.equal(canon.stats.podcastOnlyCommentaries, 6);
   assert.equal(canon.stats.podcastFeedRecords, 56);
   assert.equal(canon.stats.uniqueFilmSources, 108);
+  assert.equal(canon.stats.companionWatchalongs, 11);
+  assert.equal(canon.stats.companionReviews, 17);
+  assert.equal(canon.companionWatchalongs.length, 11);
+  assert.equal(canon.companionReviews.length, 17);
+  assert.ok(canon.companionWatchalongs.some((record) => /DUNKIRK/i.test(record.title)));
+  assert.ok(canon.companionWatchalongs.some((record) => /Star Trek/i.test(record.title)));
+  assert.ok(canon.companionReviews.some((record) => /LONGLEGS/i.test(record.title)));
   assert.equal(canon.podcastCommentaries.length, 6);
   assert.ok(canon.podcastCommentaries.some((record) => record.movieTitle === "Wayne's World"));
   assert.ok(canon.podcastCommentaries.some((record) => record.movieTitle === "Predator (1987)"));
@@ -70,8 +77,12 @@ test("watchalong canon has the complete public source registry", () => {
   assert.equal(canon.discovery.edgeReview.captionConfirmed, 5);
   assert.equal(canon.coverageLedger.podcastRecoveries, 6);
   assert.equal(canon.coverageLedger.heldStrictMembersOnly, 22);
-  assert.equal(canon.coverageLedger.adjacentPublicLeads, 6);
-  assert.equal(canon.coverageLedger.unresolvedEdgeLeads, 19);
+  assert.equal(canon.coverageLedger.adjacentPublicLeads, 25);
+  assert.equal(canon.coverageLedger.unresolvedEdgeLeads, 0);
+  assert.equal(canon.coverageLedger.companionWatchalongs, 11);
+  assert.equal(canon.coverageLedger.companionReviews, 17);
+  assert.equal(canon.coverageLedger.companionPublic, 25);
+  assert.equal(canon.coverageLedger.companionHeld, 3);
   assert.ok(canon.coverageLedger.crossGenreExamples.some((record) => /Rambo/i.test(record.title)));
   assert.ok(canon.coverageLedger.crossGenreExamples.some((record) => /Wayne's World/i.test(record.title)));
   assert.ok(canon.discovery.broadDiscoveryOmissions.some((record) => /Watching GHOSTBUSTERS/i.test(record.title)));
@@ -199,6 +210,9 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(ui, /ACOUSTIC ONLY/);
   assert.match(ui, /function edgeAuditMarkup\(\)/);
   assert.match(ui, /function coverageLedgerMarkup\(\)/);
+  assert.match(ui, /function companionShelfMarkup\(\)/);
+  assert.match(ui, /THE OTHER MOVIE ROOMS/);
+  assert.match(ui, /companionWatchalongs/);
   assert.match(ui, /MORE THAN 50\. THE AUDIT SAYS HOW MANY/);
   assert.match(ui, /YOUTUBE WATCHALONG CANON/);
   assert.match(ui, /RSS COMMENTARY RECEIPTS/);
@@ -218,6 +232,7 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(css, /\.wac-watch-pass/);
   assert.match(css, /\.wac-watch-pass-read/);
   assert.match(css, /\.wac-edge-shelf/);
+  assert.match(css, /\.wac-companion-shelf/);
   assert.match(css, /\.wac-coverage-ledger/);
   assert.match(css, /\.wac-podcast-recovery/);
   assert.match(css, /\.wac-podcast-moment/);

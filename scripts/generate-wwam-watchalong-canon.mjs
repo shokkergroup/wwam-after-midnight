@@ -601,6 +601,51 @@ const titleSignal = /commentary|watch\s*party|watch\s*along|full\s+movie|^\s*we\
 const titleCandidates = metadata.filter((record) => record.availability !== "subscriber_only" && titleSignal.test(record.title));
 const heldTitleCandidates = metadata.filter((record) => record.availability === "subscriber_only" && titleSignal.test(record.title));
 const broadDiscoveryCandidates = Array.isArray(discoveryManifest?.broadCandidates) ? discoveryManifest.broadCandidates : [];
+const edgeAcquisitionById = new Map((discoveryManifest?.edgeResults || []).map((record) => [record.id, record]));
+const companionWatchalongs = broadDiscoveryCandidates
+  .filter((candidate) => candidate.signal === "watchalong-edit" && !includedIds.has(candidate.id))
+  .map((candidate) => {
+    const acquired = edgeAcquisitionById.get(candidate.id) || {};
+    const source = metadataById.get(candidate.id) || acquired;
+    const availability = source.availability || "unresolved";
+    return {
+      id: candidate.id,
+      title: candidate.title,
+      url: candidate.url,
+      date: dateFrom(source.upload_date) || null,
+      duration: Number(source.duration || candidate.duration || 0),
+      durationLabel: formatTimestamp(Number(source.duration || candidate.duration || 0)),
+      thumbnail: source.thumbnail || `https://i.ytimg.com/vi/${candidate.id}/maxresdefault.jpg`,
+      signal: candidate.signal,
+      availability,
+      publicSource: availability !== "subscriber_only",
+      captionEvents: Number(acquired.captionEvents || 0),
+      status: availability === "subscriber_only" ? "members-only-hold" : availability === "unresolved" ? "playability-unresolved" : "public-companion",
+      evidence: "title-explicit early edited watchalong lead; retained outside the full-film canon until its source format is confirmed",
+    };
+  });
+const companionReviews = broadDiscoveryCandidates
+  .filter((candidate) => ["reaction-or-review", "short-form-watch-lead"].includes(candidate.signal) && !includedIds.has(candidate.id))
+  .map((candidate) => {
+    const acquired = edgeAcquisitionById.get(candidate.id) || {};
+    const source = metadataById.get(candidate.id) || acquired;
+    const availability = source.availability || "unresolved";
+    return {
+      id: candidate.id,
+      title: candidate.title,
+      url: candidate.url,
+      date: dateFrom(source.upload_date) || null,
+      duration: Number(source.duration || candidate.duration || 0),
+      durationLabel: formatTimestamp(Number(source.duration || candidate.duration || 0)),
+      thumbnail: source.thumbnail || `https://i.ytimg.com/vi/${candidate.id}/maxresdefault.jpg`,
+      signal: candidate.signal,
+      availability,
+      publicSource: availability !== "subscriber_only",
+      captionEvents: Number(acquired.captionEvents || 0),
+      status: availability === "subscriber_only" ? "members-only-hold" : availability === "unresolved" ? "playability-unresolved" : "public-adjacent",
+      evidence: "title-explicit movie reaction/review or short watch lead; not promoted as a full-film commentary",
+    };
+  });
 const liveStrictCandidates = broadDiscoveryCandidates.filter((candidate) => candidate.strictTitleMatch);
 const liveStrictHeldCandidates = liveStrictCandidates.filter((candidate) => metadataById.get(candidate.id)?.availability === "subscriber_only");
 const liveStrictPublicCandidates = liveStrictCandidates.filter((candidate) => metadataById.get(candidate.id)?.availability !== "subscriber_only");
@@ -668,6 +713,10 @@ const coverageLedger = {
   podcastFeedOverlaps: Math.max(0, podcastFeedCount - podcastOnlyCommentaries.length),
   uniqueFilmSources: episodes.length + podcastOnlyCommentaries.length,
   heldStrictMembersOnly: liveStrictHeldCandidates.length,
+  companionWatchalongs: companionWatchalongs.length,
+  companionReviews: companionReviews.length,
+  companionPublic: companionWatchalongs.filter((item) => item.publicSource).length + companionReviews.filter((item) => item.publicSource).length,
+  companionHeld: companionWatchalongs.filter((item) => !item.publicSource).length + companionReviews.filter((item) => !item.publicSource).length,
   adjacentPublicLeads: broadDiscoveryOmissions.filter((item) => item.availability === "public").length,
   unresolvedEdgeLeads: broadDiscoveryOmissions.filter((item) => item.availability === "unknown").length,
   crossGenreExamples
@@ -681,7 +730,7 @@ const payload = {
   scope: { metadataSources: metadata.length, channelSnapshotSources: discoveryManifest?.channelSnapshotSources || null, titleCandidates: titleCandidates.length, heldTitleCandidates: heldTitleCandidates.length, episodes: episodes.length, captionFiles: fs.readdirSync(CAPTIONS_DIR).filter((file) => file.endsWith(".json")).length },
   stats: {
     episodes: episodes.length, deepDossiers: episodes.filter((episode) => episode.dossier.state === "full-editorial-dossier").length, captionLedgers: episodes.filter((episode) => episode.dossier.state === "caption-ledger-dossier").length, sourceBriefs: episodes.filter((episode) => episode.dossier.state === "source-brief-dossier").length, nonFullAdditions: episodes.filter((episode) => episode.dossier.state !== "full-editorial-dossier").length,
-    franchises: franchises.length, movieGroups: groups.length, repeatedMovies: groups.filter((group) => group.repeatCount > 0).length, podcastOnlyCommentaries: podcastOnlyCommentaries.length, podcastFeedRecords: podcastFeedCount, uniqueFilmSources: episodes.length + podcastOnlyCommentaries.length,
+    franchises: franchises.length, movieGroups: groups.length, repeatedMovies: groups.filter((group) => group.repeatCount > 0).length, podcastOnlyCommentaries: podcastOnlyCommentaries.length, podcastFeedRecords: podcastFeedCount, uniqueFilmSources: episodes.length + podcastOnlyCommentaries.length, companionWatchalongs: companionWatchalongs.length, companionReviews: companionReviews.length,
     totalDurationSeconds: episodes.reduce((sum, episode) => sum + episode.duration, 0), totalViewsSnapshot: episodes.reduce((sum, episode) => sum + episode.views, 0),
     fanSignalReceipts: episodes.reduce((sum, episode) => sum + Number(episode.dossier?.fanSignals?.length || 0), 0),
     episodesWithFanSignals: episodes.filter((episode) => Number(episode.dossier?.fanSignals?.length || 0) > 0).length,
@@ -690,6 +739,8 @@ const payload = {
   },
   taxonomy: { groups: groups.map((group) => ({ key: group.key, title: group.title, franchiseKey: group.franchiseKey })), aliases: Object.fromEntries(episodes.map((episode) => [episode.id, episode.aliases])) },
   coverageLedger,
+  companionWatchalongs,
+  companionReviews,
   watchPassCoverage: watchPass.coverage || null,
   podcastCommentaries: podcastOnlyCommentaries,
   podcastFeedRecords,
