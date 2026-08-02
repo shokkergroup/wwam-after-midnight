@@ -262,6 +262,47 @@ test("canonical, legacy tape, and legacy live source routes remain readable", ()
   );
 });
 
+test("fallback show wiki keeps the full local dossier route map", () => {
+  const fallbackSourceMoments = evaluateNamed("fallbackSourceMoments", {
+    tapeById: {},
+    boundedExcerpt(value) {
+      return String(value).slice(0, 240);
+    },
+  });
+  const dossierCuts = Array.from({ length: 20 }, (_, index) => ({
+    t: 100 + index * 17,
+    end: 112 + index * 17,
+    category: "WWAM UP IN YA",
+    label: `verified dossier cut ${index + 1}`,
+    score: 80 + index,
+    excerpt: "A source-local receipt from the editorial dossier.",
+  }));
+  const routes = fallbackSourceMoments("ABCDEFGHIJK", {
+    dossier: { cuts: dossierCuts },
+    watchPass: {
+      candidates: [{
+        t: 900,
+        end: 914,
+        category: "STRAIGHT TO STEVE'S ASSHOLE",
+        label: "a later verified route",
+        score: 99,
+        captionExcerpt: "The later route must survive the fallback merge.",
+      }],
+    },
+  });
+  assert.equal(routes.length, 21);
+  assert.equal(routes[0].at, 100);
+  assert.equal(routes.at(-1).at, 900);
+  assert.match(routes.at(-1).excerpt, /later route/i);
+});
+
+test("cold source routes hydrate the local Watchalong route index before fallback", () => {
+  assert.match(app, /function ensureWatchalongCanonForSource\(sourceId\)/);
+  assert.match(app, /wwam-watchalong-route-index\.js\?v=1\.0\.0/);
+  assert.match(app, /WWAM_WATCHALONG_ROUTE_INDEX && window\.WWAM_WATCHALONG_ROUTE_INDEX\.sources/);
+  assert.match(app, /Prefer the cold-route index\/canon record/);
+});
+
 test("the app consumes every Source Dossier UI callback as one bounded payload object", () => {
   const runtime = namedFunction(app, "buildSourceDossierRuntime");
   const callbacks = [

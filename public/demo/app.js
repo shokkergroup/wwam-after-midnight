@@ -17,7 +17,7 @@
     archiveDeepEngine, archiveDeepLoadPromise, redBandRankingEngine,
     redBandQueryEngine, sourceDossierEngine, sourceQueryEngine, sourceDossierUi, aftermathPackEngine,
     sourceDossierLoadPromise, aftermathPilotLoadPromise, archiveAtlasLoadPromise, archiveAtlasObserver,
-    redBandLoadPromise, redBandObserver, sourceDossierWarmupScheduled;
+    redBandLoadPromise, redBandObserver, sourceDossierWarmupScheduled, watchalongRouteLoadPromise;
   var archiveDeepStreams = [], redBandMoments = deep.hot100 || [],
     showcaseReceiptById = {}, showcaseSourceById = {}, clipItemById = {},
     campaignSnapshots = {}, lastDialogFocus = null, tapeById = {}, itemById = {},
@@ -275,6 +275,21 @@
       };
       document.body.appendChild(script);
     });
+  }
+
+  function ensureWatchalongCanonForSource(sourceId) {
+    // A copied Show Wiki route can arrive before the Watchalongs section has
+    // hydrated. Load the compact local route index only for that cold route;
+    // the homepage keeps the large registry lazy, while direct movie links
+    // still receive their complete source-local dossier instead of the legacy shell.
+    if (window.WWAM_WATCHALONG_ROUTE_INDEX || window.WWAM_WATCHALONG_CANON || streamById[sourceId]) return Promise.resolve();
+    if (watchalongRouteLoadPromise) return watchalongRouteLoadPromise;
+    watchalongRouteLoadPromise = loadDemoScript("wwam-watchalong-route-index.js?v=1.0.0")
+      .catch(function (error) {
+        watchalongRouteLoadPromise = null;
+        throw error;
+      });
+    return watchalongRouteLoadPromise;
   }
 
   function loadArchiveAtlas() {
@@ -670,6 +685,7 @@
   function fallbackSourceRecord(sourceId) {
     var source = itemById[sourceId] || streamById[sourceId] || null;
     var pools = [
+      window.WWAM_WATCHALONG_ROUTE_INDEX && window.WWAM_WATCHALONG_ROUTE_INDEX.sources,
       window.WWAM_WATCHALONG_CANON && window.WWAM_WATCHALONG_CANON.episodes,
       window.WWAM_WATCHALONG_CANON && window.WWAM_WATCHALONG_CANON.companionWatchalongs,
       window.WWAM_WATCHALONG_CANON && window.WWAM_WATCHALONG_CANON.companionReviews,
@@ -677,13 +693,17 @@
       window.WWAM_LIVESTREAM_CANON && window.WWAM_LIVESTREAM_CANON.episodes,
       window.WWAM_ARCHIVE_ATLAS && window.WWAM_ARCHIVE_ATLAS.records,
     ];
-    if (source) return source;
+    var indexed = null;
     pools.some(function (pool) {
       if (!Array.isArray(pool)) return false;
       var hit = pool.filter(function (entry) { return entry && entry.id === sourceId; })[0];
-      if (hit) { source = hit; return true; }
+      if (hit) { indexed = hit; return true; }
       return false;
     });
+    // Prefer the cold-route index/canon record when a legacy catalog entry
+    // exists for the same source; those records carry the complete dossier
+    // cuts instead of the original eight-moment shell.
+    if (indexed) return Object.assign({}, source || {}, indexed);
     return source || { id: sourceId, title: "WWAM SOURCE", displayTitle: "WWAM SOURCE" };
   }
 
@@ -693,6 +713,14 @@
     if (Array.isArray(tape.moments)) raw = raw.concat(tape.moments);
     if (Array.isArray(source.moments)) raw = raw.concat(source.moments);
     if (Array.isArray(source.bestMoments)) raw = raw.concat(source.bestMoments);
+    // The canon's editorial dossier is the richest source-local route map.  The
+    // fallback modal used to ignore it, so a show with 30+ verified cuts could
+    // misleadingly look like it only had the handful of legacy tape moments.
+    // Keep every bounded receipt in the local bundle; the source player remains
+    // the authority for what a listener hears at each timestamp.
+    if (source.dossier && Array.isArray(source.dossier.cuts)) raw = raw.concat(source.dossier.cuts);
+    if (source.episodeGuide && Array.isArray(source.episodeGuide.cuts)) raw = raw.concat(source.episodeGuide.cuts);
+    if (source.editorial && Array.isArray(source.editorial.cuts)) raw = raw.concat(source.editorial.cuts);
     if (source.watchPass && Array.isArray(source.watchPass.candidates)) raw = raw.concat(source.watchPass.candidates);
     var seen = {};
     return raw.map(function (moment) {
@@ -708,7 +736,7 @@
       if (!moment.at || seen[moment.at]) return false;
       seen[moment.at] = true;
       return true;
-    }).sort(function (a, b) { return (b.heat - a.heat) || (a.at - b.at); }).slice(0, 18)
+    }).sort(function (a, b) { return (b.heat - a.heat) || (a.at - b.at); })
       .sort(function (a, b) { return a.at - b.at; });
   }
 
@@ -762,11 +790,22 @@
     if (!/^[A-Za-z0-9_-]{11}$/.test(sourceId)) return Promise.resolve(false);
     showSourceDossierLoading();
     var fallbackShown = false;
+    var renderFallback = function () {
+      return ensureWatchalongCanonForSource(sourceId).catch(function (error) {
+        runtimeDiagnostics.push({at:new Date().toISOString(),operation:"watchalong route hydration",
+          sourceId:sourceId,message:error&&error.message?error.message:String(error)});
+      }).then(function () {
+        var modal = document.getElementById("tapeModal");
+        if (!modal || !modal.classList.contains("show")) return false;
+        fallbackSourceWiki(sourceId, startTime, section);
+        syncSourceRoute(sourceId, startTime, section, settings.routeMode || "push");
+        return true;
+      });
+    };
     var fallbackTimer = window.setTimeout(function () {
       if (fallbackShown || !document.getElementById("tapeModal").classList.contains("show")) return;
       fallbackShown = true;
-      fallbackSourceWiki(sourceId, startTime, section);
-      syncSourceRoute(sourceId, startTime, section, settings.routeMode || "push");
+      renderFallback();
     }, 1800);
     return loadSourceDossier().then(function (ui) {
       window.clearTimeout(fallbackTimer);
@@ -792,8 +831,8 @@
       if (fallbackShown) return true;
       runtimeDiagnostics.push({at:new Date().toISOString(),operation:"open source dossier",
         sourceId:sourceId,message:error&&error.message?error.message:String(error)});
-      fallbackSourceWiki(sourceId, startTime, section);
-      syncSourceRoute(sourceId, startTime, section, settings.routeMode || "push");
+      fallbackShown = true;
+      renderFallback();
       return true;
     });
   }

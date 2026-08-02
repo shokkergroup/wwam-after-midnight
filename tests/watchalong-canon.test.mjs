@@ -14,11 +14,22 @@ const context = { console };
 context.window = context;
 vm.createContext(context);
 vm.runInContext(fs.readFileSync(path.join(demo, "wwam-watchalong-canon.js"), "utf8"), context);
+vm.runInContext(fs.readFileSync(path.join(demo, "wwam-watchalong-route-index.js"), "utf8"), context);
 vm.runInContext(fs.readFileSync(path.join(demo, "wwam-watch-pass-pilot.js"), "utf8"), context);
 vm.runInContext(fs.readFileSync(path.join(demo, "wwam-podcast-commentary-audio.js"), "utf8"), context);
 const canon = context.WWAM_WATCHALONG_CANON;
+const routeIndex = context.WWAM_WATCHALONG_ROUTE_INDEX;
 const watchPass = context.WWAM_WATCH_PASS_PILOT;
 const podcastAudio = context.WWAM_PODCAST_COMMENTARY_AUDIO;
+
+test("cold-route Show Wiki index mirrors every source and keeps full dossier cuts", () => {
+  assert.equal(routeIndex.schema, "shokker-wwam-watchalong-route-index/v1");
+  assert.equal(routeIndex.sources.length, 130);
+  const halloweenFour = routeIndex.sources.find((source) => source.id === "28PfRNKoSCA");
+  assert.ok(halloweenFour);
+  assert.equal(halloweenFour.dossier.cuts.length, 37);
+  assert.ok(halloweenFour.dossier.cuts.some((cut) => cut.category === "STRAIGHT TO STEVE'S ASSHOLE"));
+});
 
 test("watchalong canon has the complete public source registry", () => {
   assert.equal(canon.schema, "shokker-wwam-watchalong-canon/v1");

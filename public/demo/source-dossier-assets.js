@@ -36,7 +36,7 @@
     "episode-editorial-packs-wave12.js?v=1.0.0-full-tape",
     "episode-editorial-packs-wave13.js?v=1.0.0-full-tape",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
-    "episode-recap-engine.js?v=1.9.3-character-truth",
+    "episode-recap-engine.js?v=1.9.4-character-truth",
     "wwam-episode-recap-adapter.js?v=2.3.2-safe-topic-doors",
     "source-dossier-engine.js?v=1.16.0-fam-receipts",
     "wwam-source-dossier-adapter.js?v=1.17.0-fam-receipts",
