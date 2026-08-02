@@ -226,6 +226,9 @@
 .wac-episode-proof.is-caption { border-left-color: rgba(203,255,40,.55); background: rgba(203,255,40,.035); }
 .wac-episode-proof.is-held { border-left-color: #f3a443; background: rgba(243,164,67,.045); }
 .wac-episode-proof.is-held span { color: #f3a443; }
+.wac-peak-door { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .45rem; border: 1px solid rgba(255,44,131,.3); padding: .42rem .55rem; color: var(--canon-ink); background: rgba(255,44,131,.035); font: 800 .5rem/1.2 ui-monospace, Consolas, monospace; letter-spacing: .06em; text-decoration: none; text-transform: uppercase; }
+.wac-peak-door span { color: var(--canon-acid); }
+.wac-peak-door:hover { border-color: var(--canon-acid); color: var(--canon-acid); }
 .wac-episode-footer { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-top: auto; }
 .wac-episode-footer a,
 .wac-episode-footer button { border: 1px solid var(--canon-line); padding: .55rem .6rem; color: var(--canon-ink); background: transparent; cursor: pointer; font: 800 .57rem/1 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .07em; text-transform: uppercase; text-decoration: none; }

@@ -309,12 +309,20 @@
     return '';
   }
 
+  function peakDoorMarkup(episode) {
+    var pass = episode.watchPass || {};
+    if (pass.status !== 'audio-feature-pilot' || !Array.isArray(pass.candidates) || !pass.candidates.length) return '';
+    var peak = pass.candidates.slice().sort(function (left, right) { return Number(right.score || 0) - Number(left.score || 0) || Number(left.t || 0) - Number(right.t || 0); })[0];
+    if (!peak) return '';
+    return '<a class="wac-peak-door" href="' + esc(sourceUrl(episode, peak.t)) + '"><span>PEAK AUDIO SIGNAL // ' + esc(timestamp(peak.t)) + '</span>PLAY THIS WINDOW →</a>';
+  }
+
   function episodeCard(episode) {
     var repeat = episode.catalogMember ? "CURATED CORE" : "ADDITIONAL PUBLIC CUT";
     return '<article class="wac-episode-card" data-wac-episode="' + esc(episode.id) + '">' +
       '<div class="wac-episode-art"><img loading="lazy" src="' + esc(episode.thumbnail) + '" alt="' + esc(episode.movieTitle) + ' watchalong thumbnail"><span>' + esc(stateLabel(episode)) + '</span></div>' +
       '<div class="wac-episode-copy"><header><p>' + esc(dateLabel(episode.date)) + ' // ' + esc(typeLabel(episode.type)) + '</p><b>' + esc(durationLabel(episode.duration)) + '</b></header>' +
-      '<h4>' + esc(episode.movieTitle) + '</h4><p>' + esc(excerpt(episode.dossier && episode.dossier.summary, 210)) + '</p>' + laneMarkup(episode) + episodeProofMarkup(episode) +
+      '<h4>' + esc(episode.movieTitle) + '</h4><p>' + esc(excerpt(episode.dossier && episode.dossier.summary, 210)) + '</p>' + laneMarkup(episode) + episodeProofMarkup(episode) + peakDoorMarkup(episode) +
       '<div class="wac-episode-footer"><button type="button" data-wac-open="' + esc(episode.id) + '">OPEN FULL DOSSIER →</button><a href="' + esc(wikiUrl(episode)) + '">SHOW WIKI</a><span style="color:#a9a1a0;font:700 .55rem/1 ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase">' + esc(repeat) + '</span></div></div></article>';
   }
 

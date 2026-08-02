@@ -269,8 +269,10 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(ui, /wacMovieWorlds/, "movie worlds have a stable scroll target");
   assert.match(ui, /wac-audit-lanes/, "audit ledgers remain available after the primary browse path");
   assert.match(ui, /function episodeProofMarkup\(episode\)/, "cards expose the evidence mode and peak signal");
+  assert.match(ui, /function peakDoorMarkup\(episode\)/, "audio-backed cards expose a direct local peak route");
   assert.match(ui, /STRAIGHT TO STEVE'S ASSHOLE/, "Steve's lane is reserved before generic top-score lanes");
   assert.match(css, /\.wac-episode-proof/, "cards style the audio/caption evidence badge");
+  assert.match(css, /\.wac-peak-door/, "cards style the direct peak route");
   assert.match(ui, /data-wac-group/);
   assert.match(ui, /function fanSignalsMarkup\(episode, signals\)/);
   assert.match(ui, /fanSignalsMarkup\(episode, dossier\.fanSignals\)/);
