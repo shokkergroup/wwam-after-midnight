@@ -1,0 +1,8 @@
+.lvc-listening-anchors{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.5rem;margin:0 .95rem .75rem;padding-top:.7rem;border-top:1px solid var(--lvc-line)}
+.lvc-listening-anchors>span{grid-column:1/-1;color:var(--lvc-acid);font:800 .48rem/1.2 ui-monospace,Consolas,monospace;letter-spacing:.08em;text-transform:uppercase}
+.lvc-listening-anchors a{display:grid;gap:.22rem;border:1px solid rgba(255,44,131,.28);padding:.5rem;color:var(--lvc-ink);background:rgba(255,44,131,.035);text-decoration:none}
+.lvc-listening-anchors a:hover{border-color:var(--lvc-acid)}
+.lvc-listening-anchors b{color:var(--lvc-hot);font:800 .52rem/1.1 ui-monospace,Consolas,monospace;letter-spacing:.05em;text-transform:uppercase}
+.lvc-listening-anchors small{color:var(--lvc-acid);font:700 .46rem/1.2 ui-monospace,Consolas,monospace;letter-spacing:.04em;text-transform:uppercase}
+.lvc-listening-anchors p{margin:.12rem 0 0;color:#c8c0c3;font:500 .62rem/1.35 ui-sans-serif,system-ui,sans-serif}
+@media(max-width:720px){.lvc-listening-anchors{grid-template-columns:1fr;margin-left:1rem;margin-right:1rem}}
