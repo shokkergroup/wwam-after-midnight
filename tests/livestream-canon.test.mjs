@@ -127,6 +127,9 @@ test("each source has an honest evidence tier and playable source link", () => {
   assert.ok(latestThree.every((episode) => episode.watchPass.candidates.length >= 12), "the latest-three pilot retains a substantial ranked audio route");
   assert.ok(latestThree.every((episode) => episode.watchPass.media.audioOnly === true));
   assert.ok(latestThree.every((episode) => episode.watchPass.candidates.every((candidate) => candidate.audio && candidate.evidenceBasis.includes("canonical YouTube audio"))));
+  const restrictedListening = canon.episodes.find((episode) => episode.id === "fpNtQMexZiw");
+  assert.ok(restrictedListening.bestBits.length >= restrictedListening.watchPass.candidates.length, "restricted shows expose their listening routes in the best-bit shelf");
+  assert.ok(restrictedListening.recurringBits.some((lane) => lane.label === "THE ROOM BREAKS" && lane.momentReceipts > 0), "audio room-break routes count as doors even when visual-result moments are withheld");
   assert.ok(canon.yearIndex["2026"].topTopics.length > 0);
   assert.ok(canon.yearIndex["2026"].topLanes.length > 0);
   const ledgerSummaries = canon.episodes.filter((episode) => episode.evidenceTier === "caption-ledger").map((episode) => episode.dossier.summary);

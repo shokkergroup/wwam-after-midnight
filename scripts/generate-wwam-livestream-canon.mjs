@@ -216,7 +216,14 @@ function fanSignalType(text) {
   if (/member|membership/i.test(value)) return "MEMBERSHIP CUE";
   return "CHAT / FAN CALLOUT";
 }
-function recurringBits(events, moments, fan, duration) {
+function laneLabelMatches(value, laneLabel) {
+  const candidate = clean(value).toLowerCase();
+  const lane = clean(laneLabel).toLowerCase();
+  if (candidate === lane) return true;
+  const aliases = { "the room breaks": "room break", "wwam up in ya": "up in ya" };
+  return aliases[lane] === candidate;
+}
+function recurringBits(events, moments, fan, duration, listeningRoutes = []) {
   const receiptLimit = Math.max(6, Math.round((duration || 1) / 450));
   return LANE_DEFS.map((lane) => {
     const hits = lane.key === "fan"
@@ -229,20 +236,28 @@ function recurringBits(events, moments, fan, duration) {
       excerpt: excerpt(item.index >= 0 ? captionWindow(events, item.index) : item.text, 24),
       signalType: item.signalType || null, evidenceBasis: "source-local automatic caption lane cue", reviewStatus: "machine-candidate"
     }));
-    const laneMoments = moments.filter((moment) => String(moment.category || moment.label || "").toLowerCase() === lane.label.toLowerCase());
+    const laneMoments = moments.filter((moment) => laneLabelMatches(moment.category || moment.label, lane.label));
+    const listeningLaneMoments = listeningRoutes.filter((moment) => laneLabelMatches(moment.category || moment.label, lane.label));
     const peak = ranked[0];
     return {
-      key: lane.key, label: lane.label, candidateCount: hits.length, momentReceipts: laneMoments.length,
+      key: lane.key, label: lane.label, candidateCount: hits.length, momentReceipts: laneMoments.length + listeningLaneMoments.length,
       first: Math.round(hits.slice().sort((a, b) => a.t - b.t)[0].t), peak: Math.round(peak.t),
       receipts, evidenceBasis: "caption pattern + bounded timestamp receipts; not speaker-diarized", reviewStatus: "machine-candidate"
     };
   }).filter(Boolean);
 }
-function bestBits(moments, fan) {
-  return moments.concat(fan).slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || Number(a.t || 0) - Number(b.t || 0)).map((moment, index) => ({
+function bestBits(moments, fan, listeningRoutes = []) {
+  const seen = new Set();
+  const routes = moments.concat(fan, listeningRoutes).filter((moment) => {
+    const key = `${Math.round(Number(moment.t || 0))}|${clean(moment.category || moment.label || "SOURCE RECEIPT")}|${clean(moment.excerpt || moment.quote || moment.captionExcerpt || "").slice(0, 80)}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  return routes.slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || Number(a.t || 0) - Number(b.t || 0)).map((moment, index) => ({
     rank: index + 1, t: Number(moment.t || 0), end: Number(moment.end || moment.t || 0), category: clean(moment.category || moment.label || "SOURCE RECEIPT"),
-    label: clean(moment.label || moment.category || "SOURCE RECEIPT"), excerpt: clean(moment.excerpt || moment.quote || ""), score: Number(moment.score || 0),
-    evidenceBasis: moment.evidenceBasis || "source-local caption candidate", reviewStatus: moment.reviewStatus || "machine-candidate"
+    label: clean(moment.label || moment.category || "SOURCE RECEIPT"), excerpt: clean(moment.excerpt || moment.quote || moment.captionExcerpt || ""), score: Number(moment.score || 0),
+    evidenceBasis: moment.evidenceBasis || "source-local listening route", reviewStatus: moment.reviewStatus || "machine-candidate"
   }));
 }
 function listPhrase(items) {
@@ -418,6 +433,12 @@ const episodes = canonicalMetadata.map((record) => {
   const tier = completionById.has(id) ? "completion-dossier" : deepById.has(id) || freshById.has(id) ? "distill-dossier" : events.length ? "caption-ledger" : "source-brief";
   const watchPassRaw = livestreamAudio.episodes?.[id] || watchPilot.episodes?.[id] || null;
   const audioCandidates = Array.isArray(watchPassRaw?.candidates) ? watchPassRaw.candidates : [];
+  const listeningRoutes = audioCandidates.map((candidate) => ({
+    ...candidate,
+    excerpt: normalizeCaptionText(candidate.captionExcerpt || candidate.excerpt || ""),
+    evidenceBasis: candidate.evidenceBasis || "source-local listening route",
+    reviewStatus: candidate.reviewStatus || "machine-candidate"
+  }));
   const decodedAudio = watchPassRaw?.status === "audio-feature-pass" && watchPassRaw?.media?.canonicalAudioAvailable !== false;
   const audioStrongest = audioCandidates.slice().sort((left, right) => Number(right.score || 0) - Number(left.score || 0) || Number(left.t || 0) - Number(right.t || 0))[0] || null;
   const audioSignalMix = Array.isArray(watchPassRaw?.listeningDigest?.signalMix)
@@ -451,7 +472,7 @@ const episodes = canonicalMetadata.map((record) => {
     : `A source brief for ${clean(record.title)}. Metadata is preserved, but no local caption route survived for a responsible episode breakdown.`));
   const evidence = existing?.captionEvidence || { type: events.length ? "youtube-automatic-caption" : "metadata-only", eventsAudited: events.length, speakerDiarized: false, originAttribution: false, reviewStatus: events.length ? "machine-candidate" : "held" };
   const cueList = characterCues(events, Number(record.duration || 0));
-  const recurring = recurringBits(events, moments, fan, Number(record.duration || 0));
+  const recurring = recurringBits(events, moments, fan, Number(record.duration || 0), listeningRoutes);
   const note = tapeNote(shape, topics, moments, fan, recurring, cueList);
   const generatedSummary = currentYear === 2026 || machineShapedSummary(summary)
     ? voiceSummary(record.title, dateFrom(record.upload_date), shape, topics, moments, fan, recurring, cueList, tier)
@@ -473,7 +494,7 @@ const episodes = canonicalMetadata.map((record) => {
     sourceInAtlas: atlasById.has(id), latestOutsideAtlas: !atlasById.has(id), atlasCoverage: atlasById.get(id)?.coverage || null, archiveLanes: atlasById.get(id)?.lanes || [],
     evidenceTier: tier, captioned: Boolean(events.length || existing?.captioned), wordsAudited: Number(existing?.wordsAudited || words(events.map((event) => event.text).join(" ")).length),
     topics, conversationThreads: conversationThreads(topics), moments, chapters: chapterList, heatmap: existing?.heatmap?.length ? existing.heatmap : heatmap(Number(record.duration || 0), events, moments, topics), fanSignals: normalizeFanSignals(fan),
-    recurringBits: recurring, bestBits: bestBits(moments, fan), characterCues: cueList,
+    recurringBits: recurring, bestBits: bestBits(moments, fan, listeningRoutes), characterCues: cueList,
     characters: existing?.characters || characters(events), peak: existing?.peak || moments.slice().sort((a, b) => b.score - a.score)[0] || null,
     yearPass: pass, watchPass, rssAudioPass,
     dossier: { summary: finalSummary, tapeNote: clean(`${note} ${audioLine}`), archiveSummary: currentYear === 2026 && existing?.summary ? clean(existing.summary) : null, shape, hook: hotMoment ? { at: Number(hotMoment.t || 0), category: hotMoment.category || hotMoment.label || "SOURCE RECEIPT", excerpt: hotMoment.excerpt || "", evidenceBasis: hotMoment.evidenceBasis || "source-local caption candidate", reviewStatus: hotMoment.reviewStatus || "machine-candidate" } : null, audioRead: watchPassRaw ? { mode: decodedAudio ? "decoded-audio" : "caption-only", routeCount: audioCandidates.length, strongest: audioStrongest ? { t: Number(audioStrongest.t || 0), category: audioStrongest.category || audioStrongest.label || "SOURCE RECEIPT", score: Number(audioStrongest.score || 0) } : null, signalMix: audioSignalMix.slice(0, 8), evidence: decodedAudio ? "Decoded canonical audio re-ranked source-local windows; playback remains the authority." : "Caption-only source-local routes; no acoustic intensity claim is made." } : null, whyItMatters: clean(existing?.editorial?.whyItMatters || `This episode is part of the ${series.label} shelf. Its evidence tier is ${tier}; the official upload remains the authority for delivery, speaker, and intent. Use the bounded receipts as navigation, then play the source before treating the caption surface as a quote.`), evidence, restricted, reviewStatus: tier === "source-brief" ? "held-source-brief" : tier === "completion-dossier" ? "distilled-machine-candidate" : "machine-surfaced" }
