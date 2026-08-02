@@ -383,6 +383,18 @@
       link.removeAttribute("target");
       link.removeAttribute("rel");
     });
+    keepLocalReceiptLinks();
+  }
+
+  function keepLocalReceiptLinks() {
+    Array.prototype.forEach.call(root.document.querySelectorAll("a[href^=\"?source=\"]"), function (link) {
+      // Topic, chapter, fan, audio-ranked, and moment receipts all resolve to
+      // the same local Show Wiki route. Keep the visitor inside the dossier;
+      // the explicit official-upload buttons remain the only external exits.
+      link.removeAttribute("target");
+      link.removeAttribute("rel");
+      link.textContent = link.textContent.replace(/OPEN SOURCE AT/gi, "OPEN LOCAL SOURCE AT");
+    });
   }
 
   function render() {
@@ -441,5 +453,5 @@
   }
 
   render();
-  root.WWAMWatchalongCanonUI = Object.freeze({ version: "1.0.0", render: render, payload: payload });
+  root.WWAMWatchalongCanonUI = Object.freeze({ version: "1.1.0", render: render, payload: payload });
 })(typeof window !== "undefined" ? window : globalThis);

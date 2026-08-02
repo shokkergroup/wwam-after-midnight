@@ -221,6 +221,8 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(ui, /THE OVERLOOKED EDGE/);
   assert.match(ui, /edgeReview/);
   assert.match(ui, /function keepPublicEdgeLinksLocal\(\)/, "public edge leads stay in the local app route");
+  assert.match(ui, /function keepLocalReceiptLinks\(\)/, "bounded watchalong receipts stay in the local Show Wiki route");
+  assert.match(ui, /a\[href\^=\\"\?source=/, "local receipt cleanup covers dossier links");
   assert.match(ui, /\.wac-edge-shelf a\[href\^=\\"\?source=/, "the local edge selector is scoped to the adjacent shelf");
   assert.match(ui, /link\.removeAttribute\("target"\)/, "public edge leads do not open a second tab");
   assert.match(ui, /function podcastRecoveryMarkup\(\)/);
