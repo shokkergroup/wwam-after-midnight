@@ -691,6 +691,55 @@
     });
   }
 
+  // The watchalong canon carries a second, source-local listening pass for the
+  // same public YouTube uploads.  Keep those routes as ordinary dossier
+  // receipts so the universal Show Wiki can expose them alongside topics,
+  // characters, and the comedy lanes.  The audio pass is a ranking aid only:
+  // it never upgrades a candidate into a human-reviewed joke, speaker, or
+  // intent claim.
+  function watchalongAudioReceipts(source, watchalongById) {
+    var episode = watchalongById && watchalongById.get(source.id);
+    var pass = episode && episode.watchPass;
+    if (!pass || source.coverage !== "caption-backed" ||
+        pass.status === "held-age-restricted") return [];
+    var candidates = array(pass.candidates).filter(function (candidate) {
+      var at = numberOrNull(candidate && candidate.t);
+      return at != null && at >= 0 && at <= source.duration;
+    });
+    return candidates.slice(0, 48).map(function (candidate, index) {
+      var at = Math.max(0, number(candidate.t));
+      var requestedEnd = Math.max(at + 8, number(candidate.end));
+      var end = Math.min(source.duration, requestedEnd);
+      var category = clean(candidate.category || candidate.label || "LISTENING SPIKE");
+      var excerpt = clean(candidate.captionExcerpt || candidate.excerpt ||
+        "No caption fragment aligned; open the source and listen to this audio-ranked window.");
+      var score = boundedSignal(candidate.score);
+      return normalizedReceipt(
+        {
+          id: source.id + ":audio-pass:" + Math.floor(at) + ":" + index,
+          t: at,
+          end: end,
+          type: "audio-feature-candidate",
+          label: category,
+          excerpt: excerpt,
+        },
+        source,
+        {
+          kind: "moment",
+          label: category,
+          evidenceLevel: "machine",
+          evidenceType: "audio-feature-candidate",
+          evidenceBasis: clean(candidate.evidenceBasis) ||
+            "canonical watchalong audio pass; local audio ranked against the source caption clock",
+          reviewState: "audio-feature-candidate; playback remains the authority",
+          publicExcerptAllowed: Boolean(excerpt),
+          signalScore: score,
+          signalBasis: score == null ? null : "audio-pass-ranked-candidate",
+        }
+      );
+    });
+  }
+
   function timelineReceipts(source, overlay) {
     var heatmap = array(overlay && overlay.heatmap).filter(function (point) {
       return Number.isFinite(Number(point && point.from)) &&
@@ -1541,6 +1590,10 @@
       };
     }
 
+    var audioPassReceipts = receipts.filter(function (receipt) {
+      return receipt.evidenceType === "audio-feature-candidate";
+    }).slice().sort(signalOrder);
+
     var laneById = {
       topics: lane(
         "topics",
@@ -1649,12 +1702,29 @@
         ]
       ),
     };
+    if (audioPassReceipts.length) {
+      laneById["audio-pass"] = lane(
+        "audio-pass",
+        "LISTENING PASS",
+        "Audio-ranked windows from the local watchalong pass. These are useful places to press play, not proof that a joke, speaker, or intention landed.",
+        "No source-local audio-ranked route is registered for this show yet.",
+        audioPassReceipts,
+        [
+          "audio pass", "listening pass", "audio routes", "listen for the room",
+          "acoustic moments", "soundbyte candidates"
+        ]
+      );
+    }
     var format = showWikiFormat(source);
     var laneOrder = format.id === "movie-commentary"
       ? ["best-moments", "wwam-fam", "funny-moments", "up-in-ya", "straight-to-steves-asshole", "character-bits", "character-references", "topics"]
       : format.id === "ranking-show"
         ? ["topics", "wwam-fam", "straight-to-steves-asshole", "best-moments", "funny-moments", "up-in-ya", "character-bits", "character-references"]
         : ["topics", "wwam-fam", "best-moments", "funny-moments", "up-in-ya", "straight-to-steves-asshole", "character-bits", "character-references"];
+    if (audioPassReceipts.length) {
+      var audioIndex = format.id === "movie-commentary" ? 1 : 2;
+      laneOrder.splice(Math.min(audioIndex, laneOrder.length), 0, "audio-pass");
+    }
     var recap = distilled
       ? showWikiRecapFor(
         source, receipts, moments, topics, characters, steves, funny, characterNames
@@ -2326,6 +2396,7 @@
     var episodeGuides = input.episodeGuides || {};
     var live = input.live || {};
     var popular = input.popular || {};
+    var watchalongCanon = input.watchalongCanon || {};
     var archiveStreams = streamsFrom(
       input.archiveDeepPortfolio || input.archiveDeep
     );
@@ -2386,6 +2457,10 @@
     var popularStreams = streamsFrom(popular);
     var liveById = mapById(liveStreams, "WWAM Fresh 10");
     var popularById = mapById(popularStreams, "WWAM Popular 25");
+    var watchalongById = mapById(
+      array(watchalongCanon.episodes),
+      "WWAM Watchalong Canon"
+    );
     var archiveById = mapById(archiveStreams, "WWAM Archive Deep");
     var atlasIds = new Set(atlasById.keys());
 
@@ -2708,6 +2783,10 @@
           entityRegistry.forLabel
         ));
         receipts = receipts.concat(famCalloutReceipts(source));
+        receipts = receipts.concat(watchalongAudioReceipts(
+          source,
+          watchalongById
+        ));
       }
       if (policy.restrictedToTopicNavigation) {
         receipts = restrictedTopicNavigationReceipts(receipts);

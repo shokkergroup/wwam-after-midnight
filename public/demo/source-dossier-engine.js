@@ -51,7 +51,8 @@
     "reviewed-guide-negative-take": true,
     "reviewed-episode-highlight": true,
     "reviewed-up-in-ya-highlight": true,
-    "caption-fan-name-navigation": true
+    "caption-fan-name-navigation": true,
+    "audio-feature-candidate": true
   });
   var STEVE_EVIDENCE_STATES = Object.freeze({
     "editorially-screened-source-cut": true,
@@ -1912,6 +1913,22 @@
       return naturalEvidenceLabel(receipt && receipt.label);
     }
 
+    function projectedReceiptLabelMatches(projected, expected) {
+      if (projected === expected) return true;
+      /*
+       * The recap engine may add a source-local subject to a generic saved
+       * spike (for example, "Full Send // Batman").  That is still the same
+       * receipt label with a navigational context suffix, not a new claim.
+       * Keep the canonical prefix exact and bound the suffix so a recap cannot
+       * silently replace the evidence label with unrelated prose.
+      */
+      var prefix = expected + " // ";
+      if (projected.toLowerCase().indexOf(prefix.toLowerCase()) !== 0) return false;
+      var suffix = projected.slice(prefix.length).trim();
+      return Boolean(suffix) && suffix.length <= 120 &&
+        suffix.indexOf(" // ") < 0;
+    }
+
     function sameWindow(actualAt, actualEnd, expected, itemPath, code) {
       if (Math.abs(actualAt - expected.at) > 0.001 ||
           Math.abs(actualEnd - expected.end) > 0.001) {
@@ -3301,7 +3318,7 @@
           comparableExcerpt(excerpt) === comparableExcerpt(localEvidence.excerpt);
       }
       if (projectedKind !== expectedKind ||
-          projectedLabel !== expectedLabel ||
+          !projectedReceiptLabelMatches(projectedLabel, expectedLabel) ||
           projectedSignal !== expectedSignal ||
           projectedBasis !== expectedBasis ||
           !excerptMatches) {

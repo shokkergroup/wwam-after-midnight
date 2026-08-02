@@ -419,6 +419,7 @@
       live: live,
       popular: popular,
       archiveDeep: archiveDeepStreams,
+      watchalongCanon: window.WWAM_WATCHALONG_CANON || null,
       titleTopicOverrides: window.WWAM_TITLE_TOPIC_OVERRIDES || null,
       showcase: showcaseEngine,
       clipLab: clipLabEngine,
@@ -583,6 +584,12 @@
         return assets.reduce(function (promise, source) {
           return promise.then(function () { return loader.load(source); });
         }, Promise.resolve());
+      })
+      .then(function () {
+        // Keep the full Show Wiki aware of the already-audited watchalong
+        // audio pass even when the visitor deep-links straight into a source
+        // before opening the Watchalongs shelf.
+        return loader.load("wwam-watchalong-canon.js?v=1.3.0");
       })
       .then(buildSourceDossierRuntime)
       .catch(function (error) {
