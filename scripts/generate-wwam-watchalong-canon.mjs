@@ -435,6 +435,7 @@ function episodeFrom(id) {
       )[0];
       const category = clean(candidate.category || candidate.label || "AUDIO RECEIPT");
       const subject = clean(nearestTopic?.name || "SOURCE CHECKPOINT");
+      const captionExcerpt = excerpt(normalizeCaptionText(candidate.captionExcerpt || ""), 22);
       return {
         id: `audio-${Math.round(at)}-${index + 1}`,
         t: Math.round(at),
@@ -442,7 +443,8 @@ function episodeFrom(id) {
         category,
         label: `${category} // ${subject}`,
         score: Number(candidate.score || 0),
-        excerpt: excerpt(normalizeCaptionText(candidate.captionExcerpt || ""), 22),
+        excerpt: captionExcerpt || "No caption fragment aligned; open the source and listen to this acoustic window.",
+        captionAligned: Boolean(captionExcerpt),
         topic: nearestTopic?.name || null,
         audioRank: Number(candidate.rank || index + 1),
         audio: candidate.audio || null,

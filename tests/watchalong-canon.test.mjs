@@ -111,7 +111,7 @@ test("every episode has an official source, evidence state, and playable receipt
   assert.equal(canon.episodes.filter((episode) => episode.watchPass.status === "caption-ledger-pilot").length, 1, "caption-only fallback remains explicitly separated from the audio-feature routes");
   assert.ok(allAudioDossierCuts.length >= 2000, "audio-ranked routes are also carried into full editorial dossiers");
   assert.equal(canon.episodes.filter((episode) => episode.dossier.state === "full-editorial-dossier" && episode.dossier.cuts.some((cut) => cut.audio)).length, 38, "all full editorial watchalong dossiers expose their audio-ranked routes");
-  assert.ok(allAudioDossierCuts.every((cut) => !/[\\[]\\s*(?:__+|music|laughter|inaudible|bleep)\\s*[\\]]/i.test(cut.excerpt || "")), "audio dossier excerpts remove caption-stage marker debris");
+  assert.ok(allAudioDossierCuts.every((cut) => cut.excerpt && !/[\\[]\\s*(?:__+|music|laughter|inaudible|bleep)\\s*[\\]]/i.test(cut.excerpt)), "audio dossier excerpts remove caption-stage marker debris and expose an honest fallback when no caption aligns");
 });
 
 test("watchalong canon is reachable from the Watchalongs route", () => {
@@ -129,6 +129,7 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(ui, /function watchPassMarkup\(episode\)/);
   assert.match(ui, /watchCandidateLabel/);
   assert.match(ui, /AUDIO FEATURE RANK/);
+  assert.match(ui, /ACOUSTIC ONLY/);
   assert.match(ui, /function edgeAuditMarkup\(\)/);
   assert.match(ui, /THE OVERLOOKED EDGE/);
   assert.match(ui, /broadDiscoveryOmissions/);
