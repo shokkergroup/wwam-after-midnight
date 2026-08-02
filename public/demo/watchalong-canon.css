@@ -46,7 +46,7 @@
 
 .wac-proof {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   border: 1px solid var(--canon-line);
   background: rgba(0, 0, 0, .22);
 }
@@ -60,6 +60,7 @@
 .wac-proof article:last-child { border-right: 0; }
 .wac-proof b { display: block; color: var(--canon-acid); font: 800 clamp(1.5rem, 3vw, 2.55rem)/1 "Arial Narrow", Impact, sans-serif; letter-spacing: -.04em; }
 .wac-proof span { display: block; margin-top: .55rem; color: var(--canon-dim); font: 700 .58rem/1.35 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .11em; text-transform: uppercase; }
+.wac-proof small { display: block; margin-top: .45rem; color: var(--canon-hot); font: 700 .5rem/1.25 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .08em; text-transform: uppercase; }
 .wac-proof-note { margin: -.35rem 0 .35rem; border-left: 2px solid var(--canon-hot); padding: .65rem .8rem; color: var(--canon-dim); background: rgba(255, 44, 131, .045); font: 500 .72rem/1.45 ui-sans-serif, system-ui, sans-serif; }
 .wac-proof-note strong { margin-right: .4rem; color: var(--canon-acid); font: 800 .58rem/1 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .1em; }
 .wac-coverage-ledger { border: 1px solid rgba(255,44,131,.38); background: linear-gradient(135deg, rgba(255,44,131,.065), rgba(203,255,40,.025)); }

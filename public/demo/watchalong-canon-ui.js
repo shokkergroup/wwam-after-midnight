@@ -67,6 +67,8 @@
   function proofMarkup() {
     var stats = payload.stats || {};
     var pass = payload.watchPassCoverage || {};
+    var halloweenCount = episodes.filter(function (episode) { return episode.franchiseKey === 'halloween'; }).length;
+    var halloweenAudio = episodes.filter(function (episode) { return episode.franchiseKey === 'halloween' && episode.watchPass && episode.watchPass.status === 'audio-feature-pilot'; }).length;
     return '<div class="wac-proof" aria-label="Watchalong canon proof">' +
       '<article><b>' + number(stats.episodes) + '</b><span>CANON WATCHALONG SOURCES</span></article>' +
       '<article><b>' + number(stats.movieGroups) + '</b><span>MOVIE FILES</span></article>' +
@@ -74,6 +76,7 @@
       '<article><b>' + number(stats.deepDossiers) + '</b><span>FULL EDITORIAL DOSSIERS</span></article>' +
       '<article><b>' + number(stats.nonFullAdditions || stats.captionLedgers) + '</b><span>SOURCE-BRIEF / LEDGER ADDITIONS</span></article>' +
       '<article><b>' + number(pass.audioAnalyzed) + '</b><span>AUDIO-BACKED PASSES</span></article>' +
+      '<article><b>' + number(halloweenCount) + '</b><span>HALLOWEEN TAPES VERIFIED</span><small>' + number(halloweenAudio) + ' AUDIO-BACKED</small></article>' +
       '<article><b>' + number(stats.repeatedMovies) + '</b><span>REPEAT / ALT EDITIONS</span></article>' +
       '</div><p class="wac-proof-note"><strong>EVIDENCE SPLIT</strong> ' + number(stats.deepDossiers) + ' full editorial dossiers // ' + number(stats.captionLedgers) + ' caption-ledger additions // ' + number(stats.sourceBriefs || 0) + ' held source brief. <strong>FAN SIGNAL LEDGER</strong> ' + number(stats.fanSignalReceipts) + ' source-local fan callout receipts across ' + number(stats.episodesWithFanSignals) + ' episodes — Super Chats, memberships, Lee “The Machine,” Michael Parton/Partin, and chat questions stay attached to the tape.</p>';
   }
