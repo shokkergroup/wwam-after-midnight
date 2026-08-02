@@ -147,9 +147,11 @@ def candidate_rows(events: list[dict], audio: dict, max_candidates: int = 15) ->
         # Text/laughter establishes what kind of moment it may be; acoustic intensity
         # only re-ranks candidates and is never presented as a joke detector.
         score = min(99.0, 35.0 + signal_hits * 12.0 + (14.0 if marker else 0.0) + min(18.0, words / 3.0) + energy * 0.18 + peak * 0.09 + min(8.0, db_span / 4.0))
+        start_time = min(len(rows) - 1, max(0, int(round(event["t"]))))
+        end_time = min(len(rows), max(start_time + 1, int(round(max(event["end"], event["t"] + 8)))))
         candidates.append({
-            "t": int(round(event["t"])),
-            "end": int(round(max(event["end"], event["t"] + 8))),
+            "t": start_time,
+            "end": end_time,
             "category": label,
             "label": label,
             "score": round(score, 1),
@@ -179,14 +181,14 @@ def candidate_rows(events: list[dict], audio: dict, max_candidates: int = 15) ->
     return picked
 
 
-def provenance(video_id: str, date: str, audio_file: Path, duration: int) -> dict:
+def provenance(video_id: str, date: str, audio_file: Path, duration: int, format_id: str = "139") -> dict:
     digest = hashlib.sha256(audio_file.read_bytes()).hexdigest()
     return {
         "schema": "shokker-lore/audio-acquisition/v1",
         "observedAt": "2026-08-01T00:00:00-04:00",
         "canonicalSource": {"id": video_id, "url": f"https://www.youtube.com/watch?v={video_id}", "uploadDate": date, "durationSeconds": duration},
-        "acquiredSource": {"formatId": "139", "container": "m4a", "file": f"source-cache/audio/{video_id}.m4a", "bytes": audio_file.stat().st_size, "sha256": digest, "decodeValidation": "complete"},
-        "acquisition": {"tool": "yt-dlp", "command": "python -m yt_dlp --js-runtimes node:C:\\Program Files\\nodejs\\node.exe --remote-components ejs:github --no-playlist --retries 10 --fragment-retries 10 --continue -f 139 --ffmpeg-location imageio-ffmpeg ffmpeg-win-x86_64-v7.1.exe", "alignment": "canonical-youtube-media", "rightsNote": "Raw media is retained locally for analysis; public pages link to the official upload and publish bounded timestamps only."},
+        "acquiredSource": {"formatId": format_id, "container": audio_file.suffix.lstrip(".") or "unknown", "file": f"source-cache/audio/{audio_file.name}", "bytes": audio_file.stat().st_size, "sha256": digest, "decodeValidation": "complete"},
+        "acquisition": {"tool": "yt-dlp", "command": f"python -m yt_dlp --js-runtimes node:C:\\Program Files\\nodejs\\node.exe --remote-components ejs:github --no-playlist --retries 10 --fragment-retries 10 --continue -f {format_id} --ffmpeg-location imageio-ffmpeg ffmpeg-win-x86_64-v7.1.exe", "alignment": "canonical-youtube-media", "rightsNote": "Raw media is retained locally for analysis; public pages link to the official upload and publish bounded timestamps only."},
     }
 
 

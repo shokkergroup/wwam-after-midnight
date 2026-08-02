@@ -14,6 +14,7 @@
     "db:generate": "drizzle-kit generate",
     "build:pages": "node scripts/build-github-pages.mjs",
     "generate:watchalong-canon": "node scripts/generate-wwam-watchalong-canon.mjs",
+    "pilot:all-watchalong-audio": "python scripts/run_wwam_all_watchalong_audio_watch_pass.py && npm run generate:watchalong-canon",
     "pilot:halloween-audio": "python scripts/run_wwam_halloween_audio_watch_pass.py && npm run generate:watchalong-canon",
     "pilot:latest-audio": "python scripts/run_wwam_audio_watch_pass.py && npm run generate:livestream-canon",
     "generate:livestream-canon": "node scripts/generate-wwam-livestream-canon.mjs",

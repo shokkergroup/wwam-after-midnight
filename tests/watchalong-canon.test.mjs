@@ -14,7 +14,9 @@ const context = { console };
 context.window = context;
 vm.createContext(context);
 vm.runInContext(fs.readFileSync(path.join(demo, "wwam-watchalong-canon.js"), "utf8"), context);
+vm.runInContext(fs.readFileSync(path.join(demo, "wwam-watch-pass-pilot.js"), "utf8"), context);
 const canon = context.WWAM_WATCHALONG_CANON;
+const watchPass = context.WWAM_WATCH_PASS_PILOT;
 
 test("watchalong canon has the complete public source registry", () => {
   assert.equal(canon.schema, "shokker-wwam-watchalong-canon/v1");
@@ -26,6 +28,11 @@ test("watchalong canon has the complete public source registry", () => {
   assert.equal(canon.stats.sourceBriefs, 1);
   assert.equal(canon.stats.nonFullAdditions, 12);
   assert.equal(new Set(canon.episodes.map((episode) => episode.id)).size, canon.episodes.length);
+  assert.equal(watchPass.version, "2026-audio-pilot-03");
+  assert.equal(watchPass.coverage.watchalongEpisodes, 50);
+  assert.equal(watchPass.coverage.audioAnalyzed, 49);
+  assert.equal(watchPass.coverage.held, 1);
+  assert.ok(watchPass.coverage.rankedCandidates >= 700);
 });
 
 test("repeated films stay separate while grouping into one movie file", () => {
@@ -64,6 +71,10 @@ test("every episode has an official source, evidence state, and playable receipt
   assert.equal(heldSource.watchPass.status, "held-age-restricted");
   assert.equal(heldSource.watchPass.candidates.length, 0);
   assert.match(heldSource.watchPass.note, /duration drift/i);
+  assert.ok(canon.episodes.every((episode) => episode.watchPass), "every watchalong source has a watch-pass record");
+  assert.ok(canon.episodes.filter((episode) => episode.watchPass.status === "audio-feature-pilot").every((episode) => episode.watchPass.media.sourceUrl.includes(episode.id)));
+  assert.ok(canon.episodes.some((episode) => episode.watchPass.label === "WATCHALONG WATCH PASS // AUDIO PILOT"));
+  assert.ok(canon.episodes.some((episode) => episode.watchPass.audit.candidateTarget > 15), "longer watchalongs receive a larger ranked browse set");
 });
 
 test("watchalong canon is reachable from the Watchalongs route", () => {
