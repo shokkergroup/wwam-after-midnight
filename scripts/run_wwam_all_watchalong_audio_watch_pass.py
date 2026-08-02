@@ -156,6 +156,16 @@ def listening_digest(candidates: list[dict], audio_stats: dict | None, *, audio_
         counts[category] = counts.get(category, 0) + 1
     mix = [f"{name} ({count})" for name, count in sorted(counts.items(), key=lambda item: (-item[1], item[0]))[:4]]
     strongest = max(candidates, key=lambda item: float(item.get("score") or 0), default=None)
+    anchors = []
+    for candidate in sorted(candidates, key=lambda item: (-float(item.get("score") or 0), float(item.get("t") or 0)))[:3]:
+        excerpt = str(candidate.get("captionExcerpt") or candidate.get("excerpt") or "").strip()
+        anchors.append({
+            "t": int(round(float(candidate.get("t") or 0))),
+            "category": str(candidate.get("category") or "SOURCE RECEIPT"),
+            "score": float(candidate.get("score") or 0),
+            "excerpt": excerpt[:240],
+            "evidenceBasis": "audio-feature-ranked candidate; playback remains the authority",
+        })
     if audio_available:
         headline = (
             f"Audio re-ranking favors {strongest.get('category', 'source leads')} at {clock(strongest.get('t', 0))}. "
@@ -171,7 +181,7 @@ def listening_digest(candidates: list[dict], audio_stats: dict | None, *, audio_
         )
         evidence = "No local audio measurement was available; these are caption-ledger routes and playback remains the authority."
         mode = "caption-only"
-    return {"mode": mode, "headline": headline, "signalMix": mix, "strongest": {"t": strongest.get("t"), "category": strongest.get("category"), "score": strongest.get("score")} if strongest else None, "evidence": evidence}
+    return {"mode": mode, "headline": headline, "signalMix": mix, "anchors": anchors, "strongest": {"t": strongest.get("t"), "category": strongest.get("category"), "score": strongest.get("score")} if strongest else None, "evidence": evidence}
 
 
 def held_record(episode: dict) -> dict:

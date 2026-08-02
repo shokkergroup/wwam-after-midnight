@@ -390,11 +390,18 @@
     }).join('') + '</div>';
   }
 
-  function listeningReadMarkup(pass) {
+  function listeningReadMarkup(pass, episode) {
     var digest = pass && pass.listeningDigest;
     if (!digest) return '';
     var mix = Array.isArray(digest.signalMix) ? digest.signalMix : [];
-    return '<div class="wac-watch-pass-read"><span class="wac-section-label">LISTENING READ // EVIDENCE MIX</span><strong>' + esc(digest.headline || 'The pass retained bounded source routes.') + '</strong>' + (mix.length ? '<small>' + esc(mix.join(' // ')) + '</small>' : '') + '<p>' + esc(digest.evidence || 'Playback remains the authority.') + '</p></div>';
+    var anchors = Array.isArray(digest.anchors) ? digest.anchors : (Array.isArray(pass.candidates) ? pass.candidates.slice().sort(function (left, right) { return Number(right.score || 0) - Number(left.score || 0) || Number(left.t || 0) - Number(right.t || 0); }).slice(0, 3).map(function (candidate) {
+      return { t: candidate.t, category: candidate.category || candidate.label || 'SOURCE RECEIPT', score: candidate.score, excerpt: candidate.captionExcerpt || candidate.excerpt || '' };
+    }) : []);
+    var anchorMarkup = anchors.length && episode ? '<div class="wac-listening-anchors"><span>FIRST LISTENING ANCHORS</span>' + anchors.map(function (anchor) {
+      var at = Number(anchor.t || 0);
+      return '<a href="' + esc(sourceUrl(episode, at)) + '"><b>' + esc(anchor.category || 'SOURCE RECEIPT') + '</b><small>' + esc(timestamp(at)) + ' // SCORE ' + esc(anchor.score == null ? '-' : anchor.score) + '</small><p>' + esc(excerpt(anchor.excerpt, 180) || 'Open this bounded route and listen.') + '</p></a>';
+    }).join('') + '</div>' : '';
+    return '<div class="wac-watch-pass-read"><span class="wac-section-label">LISTENING READ // EVIDENCE MIX</span><strong>' + esc(digest.headline || 'The pass retained bounded source routes.') + '</strong>' + (mix.length ? '<small>' + esc(mix.join(' // ')) + '</small>' : '') + '<p>' + esc(digest.evidence || 'Playback remains the authority.') + '</p>' + anchorMarkup + '</div>';
   }
 
   function watchCandidateLabel(episode, candidate) {
@@ -485,7 +492,7 @@
     }
     var rendered = baseWatchPassMarkup(episode);
     if (pass && pass.listeningDigest) {
-      rendered = rendered.replace('</header>', '</header>' + listeningReadMarkup(pass));
+      rendered = rendered.replace('</header>', '</header>' + listeningReadMarkup(pass, episode));
     }
     if (pass && pass.status === 'caption-ledger-pilot') {
       rendered = rendered.replace('LISTEN FOR THE ROOM TO CHANGE.', 'FOLLOW THE CAPTION RECEIPTS.')
@@ -729,5 +736,5 @@
   }
 
   render();
-  root.WWAMWatchalongCanonUI = Object.freeze({ version: "1.6.0", render: render, payload: payload });
+  root.WWAMWatchalongCanonUI = Object.freeze({ version: "1.7.0", render: render, payload: payload });
 })(typeof window !== "undefined" ? window : globalThis);

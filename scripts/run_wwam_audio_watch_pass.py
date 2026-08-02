@@ -51,6 +51,16 @@ def listening_digest(candidates: list[dict], *, audio_available: bool = True) ->
         counts[category] = counts.get(category, 0) + 1
     mix = [f"{name} ({count})" for name, count in sorted(counts.items(), key=lambda item: (-item[1], item[0]))[:4]]
     strongest = max(candidates, key=lambda item: float(item.get("score") or 0), default=None)
+    anchors = []
+    for candidate in sorted(candidates, key=lambda item: (-float(item.get("score") or 0), float(item.get("t") or 0)))[:3]:
+        excerpt = clean(candidate.get("captionExcerpt") or candidate.get("excerpt") or "")
+        anchors.append({
+            "t": int(round(float(candidate.get("t") or 0))),
+            "category": str(candidate.get("category") or "SOURCE RECEIPT"),
+            "score": float(candidate.get("score") or 0),
+            "excerpt": excerpt[:240],
+            "evidenceBasis": "audio-feature-ranked candidate; playback remains the authority",
+        })
     if strongest:
         headline = f"Audio re-ranking favors {strongest.get('category', 'source leads')} at {clock(strongest.get('t', 0))}. The pass retained {len(candidates)} bounded routes across {', '.join(mix) or 'the caption map'}."
     else:
@@ -59,6 +69,7 @@ def listening_digest(candidates: list[dict], *, audio_available: bool = True) ->
         "mode": "audio-feature" if audio_available else "caption-only",
         "headline": headline,
         "signalMix": mix,
+        "anchors": anchors,
         "strongest": {"t": strongest.get("t"), "category": strongest.get("category"), "score": strongest.get("score")} if strongest else None,
         "evidence": "Acoustic energy re-ranks caption signals; it does not prove a joke, speaker, or visual reaction.",
     }

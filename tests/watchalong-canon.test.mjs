@@ -322,11 +322,15 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(html, /wwam-podcast-commentary-audio\.js/);
   assert.match(ui, /broadDiscoveryOmissions/);
   assert.match(ui, /LISTENING READ \/\/ EVIDENCE MIX/);
+  assert.match(ui, /FIRST LISTENING ANCHORS/, "show dossiers expose the first source-local listening routes");
+  assert.match(ui, /function listeningReadMarkup\(pass, episode\)/, "listening anchors retain the episode-local route");
+  assert.match(ui, /pass\.candidates\) \? pass\.candidates\.slice\(\)/, "older passes without a stored digest still derive anchors from their bounded candidates");
   assert.match(ui, /AUDIO PASS/);
   assert.match(ui, /HALLOWEEN WATCH PASS/);
   assert.match(ui, /LISTEN FOR THE ROOM TO CHANGE/);
   assert.match(css, /\.wac-watch-pass/);
   assert.match(css, /\.wac-watch-pass-read/);
+  assert.match(css, /\.wac-listening-anchors/);
   assert.match(css, /\.wac-edge-shelf/);
   assert.match(css, /\.wac-companion-shelf/);
   assert.match(css, /\.wac-coverage-ledger/);
