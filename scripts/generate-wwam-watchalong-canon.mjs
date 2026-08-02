@@ -550,6 +550,11 @@ const titleSignal = /commentary|watch\s*party|watch\s*along|full\s+movie|^\s*we\
 const titleCandidates = metadata.filter((record) => record.availability !== "subscriber_only" && titleSignal.test(record.title));
 const heldTitleCandidates = metadata.filter((record) => record.availability === "subscriber_only" && titleSignal.test(record.title));
 const broadDiscoveryCandidates = Array.isArray(discoveryManifest?.broadCandidates) ? discoveryManifest.broadCandidates : [];
+const liveStrictCandidates = broadDiscoveryCandidates.filter((candidate) => candidate.strictTitleMatch);
+const liveStrictHeldCandidates = liveStrictCandidates.filter((candidate) => metadataById.get(candidate.id)?.availability === "subscriber_only");
+const liveStrictPublicCandidates = liveStrictCandidates.filter((candidate) => metadataById.get(candidate.id)?.availability !== "subscriber_only");
+const liveCandidateIds = new Set(broadDiscoveryCandidates.map((candidate) => candidate.id));
+const legacyCatalogRetained = episodes.filter((episode) => !liveCandidateIds.has(episode.id));
 const broadSignalCounts = broadDiscoveryCandidates.reduce((counts, candidate) => {
   const signal = candidate.signal || "broad-watch-signal";
   counts[signal] = (counts[signal] || 0) + 1;
@@ -599,7 +604,7 @@ const payload = {
     fanSignalReceipts: episodes.reduce((sum, episode) => sum + Number(episode.dossier?.fanSignals?.length || 0), 0),
     episodesWithFanSignals: episodes.filter((episode) => Number(episode.dossier?.fanSignals?.length || 0) > 0).length,
     firstDate: episodes[0]?.date || null, lastDate: episodes.at(-1)?.date || null,
-    sourceCounts: { catalogCommentaries: catalog.length, titleCommentaries: titleCandidates.filter((record) => /commentary/i.test(record.title)).length, explicitWatchParties: 2, heldMembersOnly: heldTitleCandidates.length }
+    sourceCounts: { catalogCommentaries: catalog.length, titleCommentaries: titleCandidates.filter((record) => /commentary/i.test(record.title)).length, explicitWatchParties: 2, heldMembersOnly: heldTitleCandidates.length, liveStrictCandidates: liveStrictCandidates.length, liveStrictPublicCandidates: liveStrictPublicCandidates.length, legacyCatalogRetained: legacyCatalogRetained.length }
   },
   taxonomy: { groups: groups.map((group) => ({ key: group.key, title: group.title, franchiseKey: group.franchiseKey })), aliases: Object.fromEntries(episodes.map((episode) => [episode.id, episode.aliases])) },
   watchPassCoverage: watchPass.coverage || null,
@@ -612,6 +617,10 @@ const payload = {
     channelSnapshotSources: discoveryManifest?.channelSnapshotSources || null,
     explicitCandidateCount: discoveryManifest?.explicitCandidateCount || null,
     broadCandidateCount: discoveryManifest?.broadCandidateCount || broadDiscoveryCandidates.length || null,
+    liveStrictCandidateCount: liveStrictCandidates.length,
+    liveStrictPublicCandidateCount: liveStrictPublicCandidates.length,
+    liveStrictHeldCandidateCount: liveStrictHeldCandidates.length,
+    legacyCatalogRetained: legacyCatalogRetained.map((episode) => ({ id: episode.id, title: episode.title, date: episode.date })),
     broadSignalCounts,
     broadDiscoveryOmissions,
     priorCanonCount: discoveryManifest?.priorCanonCount || null,

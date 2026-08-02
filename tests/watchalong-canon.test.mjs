@@ -28,8 +28,15 @@ test("watchalong canon has the complete public source registry", () => {
   assert.equal(canon.stats.sourceBriefs, 2);
   assert.equal(canon.stats.nonFullAdditions, 64);
   assert.equal(canon.stats.sourceCounts.heldMembersOnly, 22);
+  assert.equal(canon.stats.sourceCounts.liveStrictCandidates, 112);
+  assert.equal(canon.stats.sourceCounts.liveStrictPublicCandidates, 90);
+  assert.equal(canon.stats.sourceCounts.legacyCatalogRetained, 12);
   assert.equal(canon.scope.channelSnapshotSources, 2882);
   assert.equal(canon.discovery.explicitCandidateCount, 112);
+  assert.equal(canon.discovery.liveStrictCandidateCount, 112);
+  assert.equal(canon.discovery.liveStrictPublicCandidateCount, 90);
+  assert.equal(canon.discovery.liveStrictHeldCandidateCount, 22);
+  assert.equal(canon.discovery.legacyCatalogRetained.length, 12);
   assert.equal(canon.discovery.broadCandidateCount, 139);
   assert.equal(canon.discovery.broadSignalCounts["watchalong-or-commentary"], 102);
   assert.equal(canon.discovery.broadSignalCounts["watchalong-edit"], 20);
