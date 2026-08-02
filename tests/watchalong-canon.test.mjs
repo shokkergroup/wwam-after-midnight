@@ -24,7 +24,9 @@ test("watchalong canon has the complete public source registry", () => {
   assert.equal(canon.schema, "shokker-wwam-watchalong-canon/v1");
   assert.match(canon.sourcePolicy, /non-isomorphic/i);
   assert.equal(canon.podcastAudit.feedItemsAudited, 56);
+  assert.equal(canon.podcastAudit.titleExplicitFilmCommentaries, 56);
   assert.equal(canon.podcastAudit.newToPublicYouTubeCanon, 6);
+  assert.equal(canon.podcastFeedRecords.length, 56);
   assert.match(canon.podcastAudit.feedUrl, /anchor\.fm\/s\/10a245f8\/podcast\/rss/);
   assert.equal(canon.stats.episodes, 102);
   assert.equal(canon.stats.movieGroups, 91);
@@ -34,6 +36,8 @@ test("watchalong canon has the complete public source registry", () => {
   assert.equal(canon.stats.sourceBriefs, 1);
   assert.equal(canon.stats.nonFullAdditions, 64);
   assert.equal(canon.stats.podcastOnlyCommentaries, 6);
+  assert.equal(canon.stats.podcastFeedRecords, 56);
+  assert.equal(canon.stats.uniqueFilmSources, 108);
   assert.equal(canon.podcastCommentaries.length, 6);
   assert.ok(canon.podcastCommentaries.some((record) => record.movieTitle === "Wayne's World"));
   assert.ok(canon.podcastCommentaries.some((record) => record.movieTitle === "Predator (1987)"));
@@ -59,6 +63,11 @@ test("watchalong canon has the complete public source registry", () => {
   assert.equal(canon.discovery.broadDiscoveryOmissions.length, 49);
   assert.equal(canon.discovery.broadDiscoveryOmissions.filter((record) => record.availability === "subscriber_only").length, 24);
   assert.equal(canon.coverageLedger.publicYoutubeCanon, 102);
+  assert.equal(canon.coverageLedger.podcastFeedRecords, 56);
+  assert.equal(canon.coverageLedger.podcastFeedOverlaps, 50);
+  assert.equal(canon.coverageLedger.uniqueFilmSources, 108);
+  assert.equal(canon.discovery.edgeReview.publicEdgeLeads, 25);
+  assert.equal(canon.discovery.edgeReview.captionConfirmed, 5);
   assert.equal(canon.coverageLedger.podcastRecoveries, 6);
   assert.equal(canon.coverageLedger.heldStrictMembersOnly, 22);
   assert.equal(canon.coverageLedger.adjacentPublicLeads, 6);
@@ -184,7 +193,9 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(ui, /function edgeAuditMarkup\(\)/);
   assert.match(ui, /function coverageLedgerMarkup\(\)/);
   assert.match(ui, /MORE THAN 50\. THE AUDIT SAYS HOW MANY/);
+  assert.match(ui, /RSS COMMENTARY RECEIPTS/);
   assert.match(ui, /THE OVERLOOKED EDGE/);
+  assert.match(ui, /edgeReview/);
   assert.match(ui, /function podcastRecoveryMarkup\(\)/);
   assert.match(ui, /OFFICIAL FEED RECOVERY/);
   assert.match(ui, /<audio id=.*controls/);

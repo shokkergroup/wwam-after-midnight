@@ -1,0 +1,569 @@
+{
+  "schema": "shokker-wwam-podcast-commentary-audit/v1",
+  "observedAt": "2026-08-02T11:20:50Z",
+  "feedUrl": "https://anchor.fm/s/10a245f8/podcast/rss",
+  "records": [
+    {
+      "title": "FRIDAY THE 13TH The Final Chapter Watchalong",
+      "date": "Sat, 14 Dec 2024 14:35:33 GMT",
+      "guid": "d4312eb6-4b53-45f2-89f9-195223565f17",
+      "sourceUrl": "https://anchor.fm/s/10a245f8/podcast/play/95825164/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2024-11-14%2F8491e67a-0def-41cd-b486-d6d68acd5de6.m4a",
+      "bytes": 181638919,
+      "durationSeconds": 11231,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "HALLOWEEN 4 Live Watch Party",
+      "date": "Thu, 12 Dec 2024 20:33:54 GMT",
+      "guid": "e4feb678-62aa-45cf-81b8-38ce34ee286d",
+      "sourceUrl": "https://anchor.fm/s/10a245f8/podcast/play/95757116/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2024-11-12%2F275929e3-ab9d-6e6e-d238-5c272fd23afe.m4a",
+      "bytes": 159995798,
+      "durationSeconds": 9893,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "AMERICAN PSYCHO Full Movie Commentary",
+      "date": "Fri, 19 May 2023 13:00:42 GMT",
+      "guid": "5c522702-8d22-4e6a-824f-59b44446d065",
+      "sourceUrl": "https://traffic.megaphone.fm/APO4628987666.mp3",
+      "bytes": 99322148,
+      "durationSeconds": 6207,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "SCREAM VI Full Movie Commentary",
+      "date": "Fri, 28 Apr 2023 15:40:11 GMT",
+      "guid": "86d421d0-087e-4675-8897-3e70d31e0d4d",
+      "sourceUrl": "https://traffic.megaphone.fm/APO3876630573.mp3",
+      "bytes": 114992274,
+      "durationSeconds": 7187,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "Wayne's World Commentary",
+      "date": "Thu, 16 Jun 2022 19:16:25 GMT",
+      "guid": "93e1bba5-3d3d-4ba5-8eab-e627e8e1c808",
+      "sourceUrl": "https://traffic.megaphone.fm/APO6747829456.mp3",
+      "bytes": 91576946,
+      "durationSeconds": 5723,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "HALLOWEEN KILLS Movie Commentary",
+      "date": "Thu, 04 Nov 2021 03:48:47 GMT",
+      "guid": "fd865523-9fd6-4453-a6d4-ffcd58e3be44",
+      "sourceUrl": "https://traffic.megaphone.fm/APO6985107266.mp3",
+      "bytes": 106676558,
+      "durationSeconds": 6667,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "NEW NIGHTMARE Movie Commentary",
+      "date": "Wed, 15 Sep 2021 14:16:41 GMT",
+      "guid": "62856276-fa74-4c7a-842a-14926c96e074",
+      "sourceUrl": "https://traffic.megaphone.fm/APO8550440335.mp3",
+      "bytes": 106569142,
+      "durationSeconds": 6660,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "FREDDY'S DEAD Movie Commentary",
+      "date": "Wed, 08 Sep 2021 02:58:24 GMT",
+      "guid": "c17d88de-5c85-41c4-afeb-e5b593aa4d4d",
+      "sourceUrl": "https://traffic.megaphone.fm/APO2565465418.mp3",
+      "bytes": 89216313,
+      "durationSeconds": 5575,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "A NIGHTMARE ON ELM STREET 5 Movie Commentary",
+      "date": "Sun, 05 Sep 2021 14:58:08 GMT",
+      "guid": "b922c57a-774b-47b4-9417-bbf88810290d",
+      "sourceUrl": "https://traffic.megaphone.fm/APO8591003824.mp3",
+      "bytes": 85816215,
+      "durationSeconds": 5363,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "A Nightmare on Elm Street 4 Commentary",
+      "date": "Sat, 04 Sep 2021 18:24:45 GMT",
+      "guid": "e4235db8-8be8-4c05-880b-33d2bbaa716f",
+      "sourceUrl": "https://traffic.megaphone.fm/APO9657505854.mp3",
+      "bytes": 90087340,
+      "durationSeconds": 5630,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "A Nightmare on Elm Street DREAM WARRIORS Full Movie Commentary",
+      "date": "Sat, 28 Aug 2021 15:46:59 GMT",
+      "guid": "dd641368-1ea5-4e2a-a642-af81373e5f65",
+      "sourceUrl": "https://traffic.megaphone.fm/APO2750970730.mp3",
+      "bytes": 93830582,
+      "durationSeconds": 5864,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "A NIGHTMARE ON ELM STREET 2 Full Movie Commentary",
+      "date": "Wed, 25 Aug 2021 14:45:31 GMT",
+      "guid": "929c8e07-750c-447f-adfc-ff37140e8526",
+      "sourceUrl": "https://traffic.megaphone.fm/APO6768403870.mp3",
+      "bytes": 91221263,
+      "durationSeconds": 5701,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "A NIGHTMARE ON ELM STREET Full Commentary",
+      "date": "Sat, 21 Aug 2021 17:01:34 GMT",
+      "guid": "5dc57331-c775-4a61-86ae-b447dfb62895",
+      "sourceUrl": "https://traffic.megaphone.fm/APO9438130226.mp3",
+      "bytes": 92693733,
+      "durationSeconds": 5793,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "YOU'RE NEXT Full Movie Commentary",
+      "date": "Sun, 21 Mar 2021 22:27:53 GMT",
+      "guid": "533d71d7-36be-448e-9d3d-f04d65ba223a",
+      "sourceUrl": "https://traffic.megaphone.fm/APO6196779298.mp3",
+      "bytes": 100168097,
+      "durationSeconds": 6260,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "The Dark Knight Full Movie Commentary",
+      "date": "Mon, 22 Feb 2021 18:03:44 GMT",
+      "guid": "ad9d2d4e-12fd-466e-9dc6-c137edea6d4f",
+      "sourceUrl": "https://traffic.megaphone.fm/APO1622430482.mp3",
+      "bytes": 153117257,
+      "durationSeconds": 9569,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "MEN IN BLACK Full Movie Commentary",
+      "date": "Mon, 15 Feb 2021 18:19:58 GMT",
+      "guid": "ff2fc06c-f033-4641-99c9-382d620de968",
+      "sourceUrl": "https://traffic.megaphone.fm/APO4505470321.mp3",
+      "bytes": 94073835,
+      "durationSeconds": 5879,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "JUST LIKE THE MOVIES - Planes Trains and Automobiles FULL Movie Commentary",
+      "date": "Fri, 27 Nov 2020 22:43:50 GMT",
+      "guid": "0458f154-9bf6-418a-953d-5a7427ae9167",
+      "sourceUrl": "https://traffic.megaphone.fm/APO7287494031.mp3",
+      "bytes": 91748728,
+      "durationSeconds": 5734,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "Freddy Got Fingered Full Movie Commentary",
+      "date": "Mon, 27 Jul 2020 15:04:23 GMT",
+      "guid": "https://api.spreaker.com/episode/40001182",
+      "sourceUrl": "https://traffic.megaphone.fm/APO5456869264.mp3",
+      "bytes": 87388577,
+      "durationSeconds": 5461,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "HELLRAISER INFERNO Full Movie Commentary",
+      "date": "Sun, 31 May 2020 02:58:41 GMT",
+      "guid": "https://api.spreaker.com/episode/28729699",
+      "sourceUrl": "https://traffic.megaphone.fm/APO1147533457.mp3",
+      "bytes": 102777835,
+      "durationSeconds": 6423,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "HELLRAISER BLOODLINE Full Movie Commentary",
+      "date": "Wed, 20 May 2020 17:38:06 GMT",
+      "guid": "https://api.spreaker.com/episode/27888410",
+      "sourceUrl": "https://traffic.megaphone.fm/APO7244564137.mp3",
+      "bytes": 84064548,
+      "durationSeconds": 5254,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "HELLRAISER III Hell On Earth FULL COMMENTARY",
+      "date": "Wed, 13 May 2020 16:58:02 GMT",
+      "guid": "https://api.spreaker.com/episode/27247767",
+      "sourceUrl": "https://traffic.megaphone.fm/APO7050849770.mp3",
+      "bytes": 89807307,
+      "durationSeconds": 5612,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "HELLRAISER 2 Full Movie Commentary (Hellbound Hellraiser II)",
+      "date": "Mon, 11 May 2020 15:13:45 GMT",
+      "guid": "https://api.spreaker.com/episode/27098237",
+      "sourceUrl": "https://traffic.megaphone.fm/APO7418800983.mp3",
+      "bytes": 102657044,
+      "durationSeconds": 6416,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "HELLRAISER Full Movie Commentary",
+      "date": "Mon, 11 May 2020 03:42:18 GMT",
+      "guid": "https://api.spreaker.com/episode/27064875",
+      "sourceUrl": "https://traffic.megaphone.fm/APO7263552370.mp3",
+      "bytes": 95008809,
+      "durationSeconds": 5938,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "Batman V Superman FULL MOVIE COMMENTARY",
+      "date": "Wed, 25 Mar 2020 23:18:47 GMT",
+      "guid": "20790c13-692e-4d6f-9116-840d939408a2",
+      "sourceUrl": "https://traffic.megaphone.fm/APO5588901127.mp3",
+      "bytes": 148880822,
+      "durationSeconds": 9305,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "Once Upon A Time In Hollywood Full Movie Commentary",
+      "date": "Fri, 06 Mar 2020 17:05:26 GMT",
+      "guid": "ac4bb1a2-56be-4ded-a707-92c0f4966422",
+      "sourceUrl": "https://traffic.megaphone.fm/APO2105851512.mp3",
+      "bytes": 154084832,
+      "durationSeconds": 9630,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "MY BLOODY VALENTINE Full Movie Commentary",
+      "date": "Wed, 12 Feb 2020 00:41:43 GMT",
+      "guid": "3f30f087-de46-48d8-9cb6-2273239c800b",
+      "sourceUrl": "https://traffic.megaphone.fm/APO4538169463.mp3",
+      "bytes": 89898840,
+      "durationSeconds": 5618,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "Freddy Vs Jason Full Movie Commentary",
+      "date": "Fri, 27 Dec 2019 20:16:05 GMT",
+      "guid": "ae6b9d5a-70fd-4822-83a7-8b2b3071725e",
+      "sourceUrl": "https://traffic.megaphone.fm/APO5804772569.mp3",
+      "bytes": 96074187,
+      "durationSeconds": 6004,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "JASON X Full Movie Commentary",
+      "date": "Fri, 27 Dec 2019 19:50:59 GMT",
+      "guid": "af2c334f-3d6c-489e-90e3-69cbf50d06f7",
+      "sourceUrl": "https://traffic.megaphone.fm/APO2296443077.mp3",
+      "bytes": 88892395,
+      "durationSeconds": 5555,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "JASON GOES TO HELL Full Movie Commentary",
+      "date": "Fri, 27 Dec 2019 18:32:51 GMT",
+      "guid": "6eecd320-4c44-4e75-a731-93ea2cf3ae21",
+      "sourceUrl": "https://traffic.megaphone.fm/APO5165974171.mp3",
+      "bytes": 101844532,
+      "durationSeconds": 6365,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "JASON TAKES MANHATTAN Full Movie Commentary",
+      "date": "Fri, 27 Dec 2019 18:21:13 GMT",
+      "guid": "75925492-f11a-44be-84b4-3ed0e2d931e4",
+      "sourceUrl": "https://traffic.megaphone.fm/APO7734931863.mp3",
+      "bytes": 104365662,
+      "durationSeconds": 6522,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "Friday the 13th: A New Blood Full Movie Commentary",
+      "date": "Sun, 15 Dec 2019 00:24:34 GMT",
+      "guid": "45c9b386-26d0-4101-bd37-288baed0cf7c",
+      "sourceUrl": "https://traffic.megaphone.fm/APO1217714200.mp3",
+      "bytes": 92717975,
+      "durationSeconds": 5794,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "FRIDAY THE 13th: JASON LIVES Full Commentary",
+      "date": "Sat, 14 Dec 2019 21:30:46 GMT",
+      "guid": "6597b2cd-b0a5-4e20-b986-bf1042dfca06",
+      "sourceUrl": "https://traffic.megaphone.fm/APO2953543573.mp3",
+      "bytes": 99136574,
+      "durationSeconds": 6196,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "Friday the 13th PART V Full Movie Commentary (A New Beginning)",
+      "date": "Sat, 14 Dec 2019 19:53:55 GMT",
+      "guid": "b76db50a-289b-4241-9e34-66c7c46d7175",
+      "sourceUrl": "https://traffic.megaphone.fm/APO3998886200.mp3",
+      "bytes": 95689665,
+      "durationSeconds": 5980,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "Friday the 13th Part IV: The Final Chapter Full Movie Commentary",
+      "date": "Fri, 13 Dec 2019 22:38:51 GMT",
+      "guid": "69a1dd9d-56d5-4071-8bfc-0e952b10ff04",
+      "sourceUrl": "https://traffic.megaphone.fm/APO1600805711.mp3",
+      "bytes": 96685662,
+      "durationSeconds": 6042,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "Friday the 13th 3D Full Movie Commentary",
+      "date": "Fri, 13 Dec 2019 18:52:17 GMT",
+      "guid": "4b978d21-d0c9-4f1e-8b80-bf18d514687b",
+      "sourceUrl": "https://traffic.megaphone.fm/APO4779676982.mp3",
+      "bytes": 96141061,
+      "durationSeconds": 6008,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "Friday the 13th Part II Full Movie Commentary",
+      "date": "Fri, 13 Dec 2019 16:30:04 GMT",
+      "guid": "620b09c3-71c3-4a56-924d-6704d0d1bcee",
+      "sourceUrl": "https://traffic.megaphone.fm/APO6641601100.mp3",
+      "bytes": 94919784,
+      "durationSeconds": 5932,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "FRIDAY THE 13th Full Movie Commentary",
+      "date": "Fri, 13 Dec 2019 15:08:34 GMT",
+      "guid": "c8533b1d-c250-4831-8d75-0dacfc15e9a0",
+      "sourceUrl": "https://traffic.megaphone.fm/APO7994572880.mp3",
+      "bytes": 95412140,
+      "durationSeconds": 5963,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "HELLRAISER: INFERNO FULL MOVIE COMMENTARY",
+      "date": "Fri, 11 Oct 2019 22:48:54 GMT",
+      "guid": "0a119b2d-80fb-42df-806f-2c4d4cba384d",
+      "sourceUrl": "https://traffic.megaphone.fm/APO4331345323.mp3",
+      "bytes": 102099069,
+      "durationSeconds": 6381,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "SCREAM 4 Full Movie Commentary w Katie!",
+      "date": "Tue, 18 Jun 2019 17:28:33 GMT",
+      "guid": "42e00040-bc42-4860-a3b5-f41694f138a7",
+      "sourceUrl": "https://traffic.megaphone.fm/APO8517180021.mp3",
+      "bytes": 104191791,
+      "durationSeconds": 6511,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "'Hellfest' Commentary",
+      "date": "Sat, 12 Jan 2019 01:52:00 GMT",
+      "guid": "b4c0f43a-7562-4c7b-98b3-1fdc98b7c05d",
+      "sourceUrl": "https://traffic.megaphone.fm/APO2324805446.mp3",
+      "bytes": 88355317,
+      "durationSeconds": 5522,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "'Trick R Treat' Full Movie Commentary",
+      "date": "Sun, 16 Dec 2018 17:32:00 GMT",
+      "guid": "553bb1ae-af94-473f-9e55-d93b70457d11",
+      "sourceUrl": "https://traffic.megaphone.fm/APO2278255464.mp3",
+      "bytes": 78495242,
+      "durationSeconds": 4905,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "'Dawn of the Dead' Movie Commentary",
+      "date": "Thu, 13 Dec 2018 01:19:00 GMT",
+      "guid": "6f84cf1b-90fb-4d17-afd5-d43e41481074",
+      "sourceUrl": "https://traffic.megaphone.fm/APO3395476215.mp3",
+      "bytes": 113213857,
+      "durationSeconds": 7075,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "'Death Wish' Movie Commentary",
+      "date": "Thu, 13 Dec 2018 01:08:00 GMT",
+      "guid": "3866e446-7c07-49ba-ad6c-8a2cea88e1d2",
+      "sourceUrl": "https://traffic.megaphone.fm/APO2045620215.mp3",
+      "bytes": 61273234,
+      "durationSeconds": 3829,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "Dead End Commentary",
+      "date": "Mon, 12 Nov 2018 16:50:00 GMT",
+      "guid": "9ae0ac53-e5e9-4d57-af8f-999610b0fa9a",
+      "sourceUrl": "https://traffic.megaphone.fm/APO7808140727.mp3",
+      "bytes": 81504966,
+      "durationSeconds": 5094,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "Mimic Commentary",
+      "date": "Mon, 12 Nov 2018 16:39:00 GMT",
+      "guid": "607e3f46-3f98-4522-b56f-3b03b4cb4e1c",
+      "sourceUrl": "https://traffic.megaphone.fm/APO8420831953.mp3",
+      "bytes": 106069681,
+      "durationSeconds": 6629,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "Predator (1987) COMMENTARY",
+      "date": "Mon, 12 Nov 2018 16:35:00 GMT",
+      "guid": "e5055d90-8fc0-4142-9c87-2d10bc02b129",
+      "sourceUrl": "https://traffic.megaphone.fm/APO7781268085.mp3",
+      "bytes": 109713867,
+      "durationSeconds": 6857,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "Rob Zombies H2 Commentary",
+      "date": "Mon, 08 Oct 2018 23:49:00 GMT",
+      "guid": "78171367-671f-46f6-a7a2-f6f75ed89818",
+      "sourceUrl": "https://traffic.megaphone.fm/APO8004693726.mp3",
+      "bytes": 117641717,
+      "durationSeconds": 7352,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "Rob Zombies Halloween Commentary",
+      "date": "Mon, 08 Oct 2018 23:43:00 GMT",
+      "guid": "fc3f7168-d262-4d35-8f87-a5af0640cc06",
+      "sourceUrl": "https://traffic.megaphone.fm/APO8423400898.mp3",
+      "bytes": 117028989,
+      "durationSeconds": 7314,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "Halloween Resurrection Commentary",
+      "date": "Mon, 08 Oct 2018 23:10:00 GMT",
+      "guid": "3b2e4bb2-82ab-42c4-bda7-1d93dcbbb9b3",
+      "sourceUrl": "https://traffic.megaphone.fm/APO9628276562.mp3",
+      "bytes": 84884584,
+      "durationSeconds": 5305,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "Halloween H2O Commentary",
+      "date": "Mon, 08 Oct 2018 21:59:00 GMT",
+      "guid": "e4aa3776-7810-4460-8867-381d09a5be25",
+      "sourceUrl": "https://traffic.megaphone.fm/APO8536289402.mp3",
+      "bytes": 95172649,
+      "durationSeconds": 5948,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "Halloween 6 Commentary",
+      "date": "Mon, 08 Oct 2018 21:46:00 GMT",
+      "guid": "bc14d89b-1d58-46c5-beb3-d3aed1c1688a",
+      "sourceUrl": "https://traffic.megaphone.fm/APO4527680889.mp3",
+      "bytes": 86192796,
+      "durationSeconds": 5386,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "Halloween 5 Commentary",
+      "date": "Mon, 08 Oct 2018 21:39:00 GMT",
+      "guid": "eed2ee94-9815-4368-afbb-448bf56dc787",
+      "sourceUrl": "https://traffic.megaphone.fm/APO4997682554.mp3",
+      "bytes": 103252636,
+      "durationSeconds": 6453,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "Halloween IV Commentary",
+      "date": "Mon, 08 Oct 2018 20:35:00 GMT",
+      "guid": "c0341617-be9c-48d4-aa30-bd5804f4ebf6",
+      "sourceUrl": "https://traffic.megaphone.fm/APO7174176348.mp3",
+      "bytes": 90834651,
+      "durationSeconds": 5677,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "Halloween III Commentary",
+      "date": "Mon, 08 Oct 2018 18:38:00 GMT",
+      "guid": "440d7980-53da-4292-815f-a8e3eaee0ce3",
+      "sourceUrl": "https://traffic.megaphone.fm/APO4842142192.mp3",
+      "bytes": 103866618,
+      "durationSeconds": 6491,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "Halloween II Commentary",
+      "date": "Mon, 08 Oct 2018 18:25:00 GMT",
+      "guid": "3c674079-dd57-4fe5-9561-cf21b074a9d8",
+      "sourceUrl": "https://traffic.megaphone.fm/APO8473135553.mp3",
+      "bytes": 90823784,
+      "durationSeconds": 5676,
+      "playable": true,
+      "titleExplicit": true
+    },
+    {
+      "title": "Halloween Commentary",
+      "date": "Sat, 18 Nov 2017 02:00:00 GMT",
+      "guid": "47790455-0cd4-48cc-99bf-3e0d1dac9532",
+      "sourceUrl": "https://traffic.megaphone.fm/APO2643885458.mp3",
+      "bytes": 90905286,
+      "durationSeconds": 5681,
+      "playable": true,
+      "titleExplicit": true
+    }
+  ],
+  "titleExplicitFilmCommentaries": 56,
+  "playable": 56
+}

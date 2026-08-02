@@ -95,6 +95,7 @@
     var examples = Array.isArray(ledger.crossGenreExamples) ? ledger.crossGenreExamples : [];
     var cards = [
       [ledger.publicYoutubeCanon, "PUBLIC YOUTUBE WATCHALONGS", "caption-backed or source-dossier canon"],
+      [ledger.podcastFeedRecords, "RSS COMMENTARY RECEIPTS", number(ledger.podcastFeedOverlaps) + " overlap checks // " + number(ledger.podcastRecoveries) + " net-new"],
       [ledger.podcastRecoveries, "OFFICIAL PODCAST RECOVERIES", "full-film audio sources kept separate"],
       [ledger.heldStrictMembersOnly, "STRICT HOLDS", "title-explicit, access-limited leads"],
       [ledger.adjacentPublicLeads, "ADJACENT PUBLIC LEADS", "reactions, reviews, or short-form edges"],
@@ -114,10 +115,11 @@
   function edgeAuditMarkup() {
     var discovery = payload.discovery || {};
     var omissions = Array.isArray(discovery.broadDiscoveryOmissions) ? discovery.broadDiscoveryOmissions : [];
+    var edgeReview = discovery.edgeReview || {};
     if (!omissions.length) return '';
     var buckets = [
       { key: 'subscriber_only', label: 'MEMBERS-ONLY HOLDS', note: 'Full-length commentary signals found in the live channel snapshot, but YouTube currently keeps the source behind membership.' },
-      { key: 'public', label: 'ADJACENT PUBLIC LEADS', note: 'Public reaction, review, or short-form watch signals kept outside the full-commentary canon until the format earns its own lane.' },
+      { key: 'public', label: 'ADJACENT PUBLIC LEADS', note: 'Public reaction, review, or short-form watch signals kept outside the full-commentary canon until the format earns its own lane. ' + number(edgeReview.captionConfirmed) + ' now have local caption receipts confirming the upload is real without pretending it is a full commentary.' },
       { key: 'unknown', label: 'PLAYABILITY UNRESOLVED', note: 'The title signal is real, but the current public watch page did not yield enough metadata to promote it.' }
     ];
     var bucketMarkup = buckets.map(function (bucket) {

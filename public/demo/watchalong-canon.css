@@ -69,7 +69,7 @@
 .wac-coverage-proof { display: grid; gap: .25rem; border-left: 2px solid var(--canon-hot); padding: .7rem .8rem; background: rgba(0,0,0,.24); }
 .wac-coverage-proof b { color: var(--canon-acid); font: 800 2.35rem/.9 "Arial Narrow", Impact, sans-serif; }
 .wac-coverage-proof span, .wac-coverage-proof small { color: var(--canon-dim); font: 800 .53rem/1.3 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .08em; text-transform: uppercase; }
-.wac-coverage-cards { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border-bottom: 1px solid var(--canon-line); }
+.wac-coverage-cards { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); border-bottom: 1px solid var(--canon-line); }
 .wac-coverage-cards article { display: grid; gap: .25rem; min-height: 6.4rem; padding: .8rem .9rem; border-right: 1px solid var(--canon-line); }
 .wac-coverage-cards article:last-child { border-right: 0; }
 .wac-coverage-cards b { color: var(--canon-acid); font: 800 1.7rem/.9 "Arial Narrow", Impact, sans-serif; }
@@ -278,7 +278,7 @@
   .wac-edge-grid { grid-template-columns: 1fr 1fr; }
   .wac-podcast-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .wac-coverage-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .wac-coverage-cards article:nth-child(3) { border-right: 0; }
+  .wac-coverage-cards article:nth-child(3n) { border-right: 0; }
   .wac-cross-genre { grid-template-columns: 1fr; }
   .wac-cross-genre-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

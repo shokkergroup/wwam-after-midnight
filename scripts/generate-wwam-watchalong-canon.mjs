@@ -8,6 +8,8 @@ const PUBLIC_DEMO = path.join(ROOT, "public", "demo");
 const METADATA_DIR = path.join(ROOT, "source-cache", "metadata");
 const CAPTIONS_DIR = path.join(ROOT, "source-cache", "captions");
 const DISCOVERY_MANIFEST_PATH = path.join(ROOT, "source-cache", "wwam-watchalong-discovery.json");
+const PODCAST_AUDIT_PATH = path.join(ROOT, "source-cache", "wwam-podcast-commentary-audit.json");
+const EDGE_AUDIT_PATH = path.join(ROOT, "source-cache", "wwam-watchalong-edge-audit.json");
 
 function readJson(file) {
   return JSON.parse(fs.readFileSync(file, "utf8"));
@@ -35,6 +37,10 @@ const atlas = atlasContext.WWAM_ARCHIVE_ATLAS || { records: [] };
 const overrides = overridesContext.WWAM_TITLE_TOPIC_OVERRIDES || { topics: [] };
 const watchPass = watchPassContext.WWAM_WATCH_PASS_PILOT || { episodes: {} };
 const discoveryManifest = fs.existsSync(DISCOVERY_MANIFEST_PATH) ? readJson(DISCOVERY_MANIFEST_PATH) : null;
+const podcastAuditData = fs.existsSync(PODCAST_AUDIT_PATH) ? readJson(PODCAST_AUDIT_PATH) : { records: [] };
+const podcastFeedRecords = Array.isArray(podcastAuditData.records) ? podcastAuditData.records : [];
+const podcastFeedCount = Number(podcastAuditData.titleExplicitFilmCommentaries || podcastFeedRecords.length || 0);
+const edgeAuditData = fs.existsSync(EDGE_AUDIT_PATH) ? readJson(EDGE_AUDIT_PATH) : { publicEdgeLeads: 0, captionConfirmed: 0, records: [] };
 
 const metadata = fs.readdirSync(METADATA_DIR)
   .filter((file) => file.endsWith(".json"))
@@ -634,6 +640,9 @@ const coverageLedger = {
   strictCandidates: liveStrictCandidates.length,
   publicYoutubeCanon: episodes.length,
   podcastRecoveries: podcastOnlyCommentaries.length,
+  podcastFeedRecords: podcastFeedCount,
+  podcastFeedOverlaps: Math.max(0, podcastFeedCount - podcastOnlyCommentaries.length),
+  uniqueFilmSources: episodes.length + podcastOnlyCommentaries.length,
   heldStrictMembersOnly: liveStrictHeldCandidates.length,
   adjacentPublicLeads: broadDiscoveryOmissions.filter((item) => item.availability === "public").length,
   unresolvedEdgeLeads: broadDiscoveryOmissions.filter((item) => item.availability === "unknown").length,
@@ -643,12 +652,12 @@ const payload = {
   schema: "shokker-wwam-watchalong-canon/v1",
   generated: new Date().toISOString(),
   observedAt: discoveryManifest?.observedAt || "2026-07-30",
-  podcastAudit: { feedUrl: "https://anchor.fm/s/10a245f8/podcast/rss", feedItemsAudited: 56, titleExplicitFilmCommentaries: 56, newToPublicYouTubeCanon: podcastOnlyCommentaries.length, method: "Official RSS title + enclosure + iTunes duration; no title-only RSS item is promoted without a full-film commentary signal." },
+  podcastAudit: { ...podcastAuditData, feedItemsAudited: podcastAuditData.records?.length || podcastFeedCount, titleExplicitFilmCommentaries: podcastFeedCount, newToPublicYouTubeCanon: podcastOnlyCommentaries.length, method: "Official RSS title + enclosure + iTunes duration; no title-only RSS item is promoted without a full-film commentary signal." },
   sourcePolicy: "Official cached WWAM YouTube metadata plus local caption or audio-transcript receipts. Existing curated 39-tape dossiers are retained; title-explicit public commentaries, movie watch parties, and clearly labeled We Watched <film> highlight edits are added as caption-ledger or source-brief dossiers. Official podcast variants may add variant-bound audio routes only when their timeline is explicitly non-isomorphic; they never substitute for canonical YouTube timestamps. The official RSS audit also preserves six title-explicit, playable podcast-only film commentaries whose YouTube counterparts are absent from the current public snapshot; they remain a separate recovery lane with no invented timestamps. Members-only uploads stay in the discovery ledger until access changes. No speaker, intent, rights, or creator-approval claim is inferred.",
   scope: { metadataSources: metadata.length, channelSnapshotSources: discoveryManifest?.channelSnapshotSources || null, titleCandidates: titleCandidates.length, heldTitleCandidates: heldTitleCandidates.length, episodes: episodes.length, captionFiles: fs.readdirSync(CAPTIONS_DIR).filter((file) => file.endsWith(".json")).length },
   stats: {
     episodes: episodes.length, deepDossiers: episodes.filter((episode) => episode.dossier.state === "full-editorial-dossier").length, captionLedgers: episodes.filter((episode) => episode.dossier.state === "caption-ledger-dossier").length, sourceBriefs: episodes.filter((episode) => episode.dossier.state === "source-brief-dossier").length, nonFullAdditions: episodes.filter((episode) => episode.dossier.state !== "full-editorial-dossier").length,
-    franchises: franchises.length, movieGroups: groups.length, repeatedMovies: groups.filter((group) => group.repeatCount > 0).length, podcastOnlyCommentaries: podcastOnlyCommentaries.length,
+    franchises: franchises.length, movieGroups: groups.length, repeatedMovies: groups.filter((group) => group.repeatCount > 0).length, podcastOnlyCommentaries: podcastOnlyCommentaries.length, podcastFeedRecords: podcastFeedCount, uniqueFilmSources: episodes.length + podcastOnlyCommentaries.length,
     totalDurationSeconds: episodes.reduce((sum, episode) => sum + episode.duration, 0), totalViewsSnapshot: episodes.reduce((sum, episode) => sum + episode.views, 0),
     fanSignalReceipts: episodes.reduce((sum, episode) => sum + Number(episode.dossier?.fanSignals?.length || 0), 0),
     episodesWithFanSignals: episodes.filter((episode) => Number(episode.dossier?.fanSignals?.length || 0) > 0).length,
@@ -659,6 +668,7 @@ const payload = {
   coverageLedger,
   watchPassCoverage: watchPass.coverage || null,
   podcastCommentaries: podcastOnlyCommentaries,
+  podcastFeedRecords,
   franchises, groups, episodes, discovery: {
     channelUrl: discoveryManifest?.channelUrl || "https://www.youtube.com/@WeWatchedAMovie/videos",
     titlePattern: discoveryManifest?.titlePattern || titleSignal.source,
@@ -677,7 +687,8 @@ const payload = {
     priorCanonCount: discoveryManifest?.priorCanonCount || null,
     heldTitleCandidates: heldTitleCandidates.map((record) => ({ id: record.id, title: record.title, date: dateFrom(record.upload_date), availability: record.availability, included: false })),
     titleCandidates: titleCandidates.map((record) => ({ id: record.id, title: record.title, date: dateFrom(record.upload_date), included: includedIds.has(record.id) })),
-    excludedWatchalongCandidates
+    excludedWatchalongCandidates,
+    edgeReview: edgeAuditData
   }
 };
 

@@ -40,7 +40,9 @@ next-env.d.ts
 /.wrangler/
 /outputs/
 /work/
-/source-cache/
+/source-cache/*
+!/source-cache/wwam-podcast-commentary-audit.json
+!/source-cache/wwam-watchalong-edge-audit.json
 __pycache__/
 *.pyc
 
