@@ -40,6 +40,8 @@ test("livestream canon contains the complete source registry", () => {
   assert.ok((canon.stats.audioPassCoverage.yearCoverage["2021"].captionFallback || 0) <= 1);
   assert.equal(canon.stats.rssAudioMirrors, 2);
   assert.ok(canon.episodes.find((episode) => episode.id === "LVVGdGxTBfI")?.rssAudioPass?.media?.canonicalTimestampMapping === false);
+  assert.equal(canon.episodes.filter((episode) => episode.dossier?.audioRead?.mode === "decoded-audio").length, 508);
+  assert.equal(canon.episodes.filter((episode) => episode.dossier?.audioRead?.mode === "caption-only").length, 1);
 });
 
 test("repeated livestream headlines receive date-qualified navigation titles", () => {
@@ -131,6 +133,11 @@ test("each source has an honest evidence tier and playable source link", () => {
   assert.equal(ledgerSummaries.some((summary) => /\bA open-line\b/i.test(summary)), false);
   assert.equal(ledgerSummaries.some((summary) => summary.includes("Open the timestamp before treating")), false);
   assert.equal(canon.episodes.some((episode) => /caption trail keeps returning|spends its time bouncing|built around/i.test(`${episode.dossier.summary} ${episode.dossier.tapeNote || ""}`)), false, "livestream copy does not turn topic doors into whole-show claims");
+  assert.ok(canon.episodes.every((episode) => episode.dossier.audioRead && Number.isInteger(episode.dossier.audioRead.routeCount)), "every show exposes an explicit listening-read state");
+  assert.ok(canon.episodes.filter((episode) => episode.dossier.audioRead.mode === "decoded-audio").every((episode) => /decoded audio pass/i.test(episode.dossier.summary)), "decoded audio state is reflected in the show read");
+  const heldCaptionEpisode = canon.episodes.find((episode) => episode.id === "LVVGdGxTBfI");
+  assert.ok(heldCaptionEpisode && /caption-only fallback/i.test(heldCaptionEpisode.dossier.summary), "the held source states its caption-only boundary");
+  assert.equal(/The decoded audio pass adds/i.test(heldCaptionEpisode.dossier.summary), false, "caption-only source is never described as decoded audio");
   const tapeNotes = canon.episodes.map((episode) => episode.dossier.tapeNote || "");
   assert.equal(tapeNotes.some((note) => /indexed doors|source-local map keeps|loudest recurring lane|cleanest first play|room also leaves/i.test(note)), false, "episode tape notes do not use the old machine-shaped boilerplate");
   assert.ok(tapeNotes.some((note) => /dominant recurring lane|fan ledger catches/i.test(note)), "episode tape notes retain a human-readable listening read");

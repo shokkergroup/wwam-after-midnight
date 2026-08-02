@@ -416,6 +416,18 @@ const episodes = canonicalMetadata.map((record) => {
   const shape = inferShape(record.title, mode, existing, yearSnapshot);
   const series = inferSeries(record.title, mode);
   const tier = completionById.has(id) ? "completion-dossier" : deepById.has(id) || freshById.has(id) ? "distill-dossier" : events.length ? "caption-ledger" : "source-brief";
+  const watchPassRaw = livestreamAudio.episodes?.[id] || watchPilot.episodes?.[id] || null;
+  const audioCandidates = Array.isArray(watchPassRaw?.candidates) ? watchPassRaw.candidates : [];
+  const decodedAudio = watchPassRaw?.status === "audio-feature-pass" && watchPassRaw?.media?.canonicalAudioAvailable !== false;
+  const audioStrongest = audioCandidates.slice().sort((left, right) => Number(right.score || 0) - Number(left.score || 0) || Number(left.t || 0) - Number(right.t || 0))[0] || null;
+  const audioSignalMix = Array.isArray(watchPassRaw?.listeningDigest?.signalMix)
+    ? watchPassRaw.listeningDigest.signalMix
+    : Object.entries(watchPassRaw?.audit?.candidateCategories || {}).sort((left, right) => Number(right[1]) - Number(left[1])).map(([label, count]) => `${label} (${count})`);
+  const audioLine = decodedAudio && audioCandidates.length
+    ? `The decoded audio pass adds ${audioCandidates.length} listening routes; its strongest acoustic lane is ${clock(audioStrongest?.t || 0)} // ${audioStrongest?.category || "SOURCE RECEIPT"}. ${audioSignalMix.length ? `The mix leans ${audioSignalMix.slice(0, 3).join(", ")}.` : ""} That is an evidence-backed browse cue, not proof of a joke, speaker, or visual reaction.`
+    : watchPassRaw && audioCandidates.length
+      ? `The caption-only fallback retains ${audioCandidates.length} source-local routes; its strongest caption lane is ${clock(audioStrongest?.t || 0)} // ${audioStrongest?.category || "SOURCE RECEIPT"}. These are navigation cues only because no decoded audio pass is attached.`
+      : "No decoded audio pass is attached to this file; caption routes remain navigation only.";
   const topicNames = topics.slice(0, 3).map((topic) => topic.name);
   const topicRead = topicNames.length === 1 ? topicNames[0] : topicNames.length === 2 ? `${topicNames[0]} and ${topicNames[1]}` : topicNames.length > 2 ? `${topicNames.slice(0, -1).join(", ")}, and ${topicNames.at(-1)}` : "the night's open mic";
   const lead = mode === "ranking-show" ? "A bracket-and-ranking night" : mode === "trailer-reaction" ? "A trailer-and-news night" : mode === "movie-commentary" ? "A movie watchalong" : mode === "q-and-a" ? "A fan-mail night" : mode === "spoiler-review" ? "A spoiler-heavy review night" : "An open-line movie-news night";
@@ -441,11 +453,11 @@ const episodes = canonicalMetadata.map((record) => {
   const cueList = characterCues(events, Number(record.duration || 0));
   const recurring = recurringBits(events, moments, fan, Number(record.duration || 0));
   const note = tapeNote(shape, topics, moments, fan, recurring, cueList);
-  const finalSummary = currentYear === 2026 || machineShapedSummary(summary)
+  const generatedSummary = currentYear === 2026 || machineShapedSummary(summary)
     ? voiceSummary(record.title, dateFrom(record.upload_date), shape, topics, moments, fan, recurring, cueList, tier)
     : summary;
+  const finalSummary = clean(`${generatedSummary} ${audioLine}`);
   const pass = yearPass(record, events, topics, moments, fan, recurring, cueList, existing, evidence, yearSnapshot);
-  const watchPassRaw = livestreamAudio.episodes?.[id] || watchPilot.episodes?.[id] || null;
   const watchPass = watchPassRaw ? {
     ...watchPassRaw,
     candidates: (watchPassRaw.candidates || []).map((candidate) => {
@@ -464,7 +476,7 @@ const episodes = canonicalMetadata.map((record) => {
     recurringBits: recurring, bestBits: bestBits(moments, fan), characterCues: cueList,
     characters: existing?.characters || characters(events), peak: existing?.peak || moments.slice().sort((a, b) => b.score - a.score)[0] || null,
     yearPass: pass, watchPass, rssAudioPass,
-    dossier: { summary: finalSummary, tapeNote: note, archiveSummary: currentYear === 2026 && existing?.summary ? clean(existing.summary) : null, shape, hook: hotMoment ? { at: Number(hotMoment.t || 0), category: hotMoment.category || hotMoment.label || "SOURCE RECEIPT", excerpt: hotMoment.excerpt || "", evidenceBasis: hotMoment.evidenceBasis || "source-local caption candidate", reviewStatus: hotMoment.reviewStatus || "machine-candidate" } : null, whyItMatters: clean(existing?.editorial?.whyItMatters || `This episode is part of the ${series.label} shelf. Its evidence tier is ${tier}; the official upload remains the authority for delivery, speaker, and intent. Use the bounded receipts as navigation, then play the source before treating the caption surface as a quote.`), evidence, restricted, reviewStatus: tier === "source-brief" ? "held-source-brief" : tier === "completion-dossier" ? "distilled-machine-candidate" : "machine-surfaced" }
+    dossier: { summary: finalSummary, tapeNote: clean(`${note} ${audioLine}`), archiveSummary: currentYear === 2026 && existing?.summary ? clean(existing.summary) : null, shape, hook: hotMoment ? { at: Number(hotMoment.t || 0), category: hotMoment.category || hotMoment.label || "SOURCE RECEIPT", excerpt: hotMoment.excerpt || "", evidenceBasis: hotMoment.evidenceBasis || "source-local caption candidate", reviewStatus: hotMoment.reviewStatus || "machine-candidate" } : null, audioRead: watchPassRaw ? { mode: decodedAudio ? "decoded-audio" : "caption-only", routeCount: audioCandidates.length, strongest: audioStrongest ? { t: Number(audioStrongest.t || 0), category: audioStrongest.category || audioStrongest.label || "SOURCE RECEIPT", score: Number(audioStrongest.score || 0) } : null, signalMix: audioSignalMix.slice(0, 8), evidence: decodedAudio ? "Decoded canonical audio re-ranked source-local windows; playback remains the authority." : "Caption-only source-local routes; no acoustic intensity claim is made." } : null, whyItMatters: clean(existing?.editorial?.whyItMatters || `This episode is part of the ${series.label} shelf. Its evidence tier is ${tier}; the official upload remains the authority for delivery, speaker, and intent. Use the bounded receipts as navigation, then play the source before treating the caption surface as a quote.`), evidence, restricted, reviewStatus: tier === "source-brief" ? "held-source-brief" : tier === "completion-dossier" ? "distilled-machine-candidate" : "machine-surfaced" }
   };
 }).sort((left, right) => right.date.localeCompare(left.date) || right.id.localeCompare(left.id));
 
