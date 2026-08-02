@@ -90,6 +90,7 @@ test("each source has an honest evidence tier and playable source link", () => {
   assert.ok(ledgerSummaries.length >= 200);
   assert.equal(ledgerSummaries.some((summary) => /\bA open-line\b/i.test(summary)), false);
   assert.equal(ledgerSummaries.some((summary) => summary.includes("Open the timestamp before treating")), false);
+  assert.equal(canon.episodes.some((episode) => /caption trail keeps returning|spends its time bouncing|built around/i.test(`${episode.dossier.summary} ${episode.dossier.tapeNote || ""}`)), false, "livestream copy does not turn topic doors into whole-show claims");
   assert.ok(ledgerSummaries.some((summary) => summary.includes("fan-signal receipts")));
 });
 
