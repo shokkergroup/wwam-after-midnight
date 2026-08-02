@@ -764,8 +764,12 @@
         reviewStatus: moment.reviewStatus || null,
       };
     }).filter(function (moment) {
-      if (!moment.at || seen[moment.at]) return false;
-      seen[moment.at] = true;
+      // Keep distinct lanes at the same second. A UP IN YA route and a
+      // Steve's Asshole route can share an audio boundary; collapsing them
+      // by timestamp made the cold Show Wiki quietly lose a category.
+      var key = moment.at + "|" + String(moment.label || "").toLowerCase();
+      if (!moment.at || seen[key]) return false;
+      seen[key] = true;
       return true;
     }).sort(function (a, b) { return (b.heat - a.heat) || (a.at - b.at); })
       .sort(function (a, b) { return a.at - b.at; });

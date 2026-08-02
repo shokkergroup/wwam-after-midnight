@@ -294,11 +294,18 @@ test("fallback show wiki keeps the full local dossier route map", () => {
   assert.equal(routes[0].at, 100);
   assert.equal(routes.at(-1).at, 900);
   assert.match(routes.at(-1).excerpt, /later route/i);
+  const sameSecondDifferentLanes = fallbackSourceMoments("ABCDEFGHIJK", {
+    dossier: { cuts: [
+      { t: 180, end: 188, category: "WWAM UP IN YA", label: "UP IN YA", excerpt: "one lane" },
+      { t: 180, end: 192, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "STRAIGHT TO STEVE'S ASSHOLE", excerpt: "another lane" },
+    ] },
+  });
+  assert.equal(sameSecondDifferentLanes.length, 2);
 });
 
 test("cold source routes hydrate the local Watchalong route index before fallback", () => {
   assert.match(app, /function ensureWatchalongCanonForSource\(sourceId\)/);
-  assert.match(app, /wwam-watchalong-route-index\.js\?v=1\.2\.0-edge-receipts/);
+  assert.match(app, /wwam-watchalong-route-index\.js\?v=1\.2\.1-alternate-routes/);
   assert.match(app, /WWAM_WATCHALONG_ROUTE_INDEX && window\.WWAM_WATCHALONG_ROUTE_INDEX\.sources/);
   assert.match(app, /Prefer the cold-route index\/canon record/);
 });
