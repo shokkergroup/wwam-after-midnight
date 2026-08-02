@@ -249,6 +249,36 @@ test("watchalong audio-pass routes become a local Show Wiki lane", () => {
   assert.equal(compiled.source.showWiki.lanes.find((candidate) => candidate.id === "audio-pass").receiptKeys.length, 2);
 });
 
+test("livestream audio index routes become a local Show Wiki lane", () => {
+  const { result } = buildFixture(({ input }) => {
+    input.livestreamAudioIndex = {
+      episodes: [{
+        id: "LV2rmwEA0w4",
+        watchPass: {
+          status: "audio-feature-pass",
+          candidates: [{
+            t: 7,
+            end: 15,
+            category: "FAN SIGNAL",
+            score: 87,
+            captionExcerpt: "A source-local livestream audio route with aligned captions.",
+            evidenceBasis: "canonical livestream audio + source-local caption alignment",
+          }],
+        },
+      }],
+    };
+  });
+  const source = byId(result, "LV2rmwEA0w4");
+  const lane = source.showWiki.lanes.find((candidate) => candidate.id === "audio-pass");
+  assert.ok(lane);
+  assert.equal(lane.receiptKeys.length, 1);
+  assert.match(lane.description, /local livestream pass/);
+  const receipt = source.receipts.find((candidate) => candidate.evidenceType === "audio-feature-candidate");
+  assert.ok(receipt);
+  assert.match(receipt.evidenceBasis, /^canonical livestream audio pass/);
+  assert.equal(receipt.publicExcerptAllowed, true);
+});
+
 test("canonical format contracts classify all 510 sources without relaxing rights", () => {
   const { window, result } = buildFixture();
   const registry = window.WWAMEpisodeFormatContracts;

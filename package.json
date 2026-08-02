@@ -27,6 +27,7 @@
     "pilot:latest-audio": "python scripts/run_wwam_audio_watch_pass.py && npm run generate:livestream-canon",
     "pilot:livestream-rss-audio": "python scripts/run_wwam_livestream_rss_audio_pass.py && npm run generate:livestream-canon",
     "generate:livestream-canon": "node scripts/generate-wwam-livestream-canon.mjs",
+    "generate:livestream-audio-index": "node scripts/generate-wwam-livestream-audio-index.mjs",
     "audit:livestream-audio": "node scripts/audit-livestream-audio-coverage.mjs",
     "audit:public-truth": "node scripts/audit-editorial-truth.mjs --check",
     "audit:editorial-completion": "node scripts/audit-editorial-truth.mjs --require-all-human --check"

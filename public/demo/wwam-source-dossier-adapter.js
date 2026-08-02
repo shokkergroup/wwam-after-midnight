@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.17.1";
+  var VERSION = "1.19.0";
   var SCHEMA = "shokker-source-dossier-input/v1";
   var PUBLIC_EXCERPT_WORDS = 16;
   var OFFICIAL_WWAM_CHANNEL_ID = "UC6ieEOZW4iXV8TcILJI8k5g";
@@ -691,15 +691,33 @@
     });
   }
 
-  // The watchalong canon carries a second, source-local listening pass for the
-  // same public YouTube uploads.  Keep those routes as ordinary dossier
-  // receipts so the universal Show Wiki can expose them alongside topics,
-  // characters, and the comedy lanes.  The audio pass is a ranking aid only:
-  // it never upgrades a candidate into a human-reviewed joke, speaker, or
-  // intent claim.
-  function watchalongAudioReceipts(source, watchalongById) {
-    var episode = watchalongById && watchalongById.get(source.id);
-    var pass = episode && episode.watchPass;
+  // Both the watchalong and livestream canons carry a source-local listening
+  // pass for public YouTube uploads. Keep one deterministic pass per source
+  // (the richer watchalong record wins on the 49 overlaps) so the universal
+  // Show Wiki can expose every available listening route without duplicating
+  // the same timestamp. The audio pass is a ranking aid only: it never
+  // upgrades a candidate into a human-reviewed joke, speaker, or intent claim.
+  function sourceAudioPass(source, watchalongById, livestreamById) {
+    var watchEpisode = watchalongById && watchalongById.get(source.id);
+    var liveEpisode = livestreamById && livestreamById.get(source.id);
+    var watchPass = watchEpisode && watchEpisode.watchPass;
+    var livePass = liveEpisode && liveEpisode.watchPass;
+    var usable = function (pass) {
+      return pass && pass.status !== "held-age-restricted" &&
+        array(pass.candidates).length > 0;
+    };
+    if (usable(watchPass)) {
+      return { pass: watchPass, origin: "watchalong" };
+    }
+    if (usable(livePass)) {
+      return { pass: livePass, origin: "livestream" };
+    }
+    return null;
+  }
+
+  function sourceAudioPassReceipts(source, watchalongById, livestreamById) {
+    var selected = sourceAudioPass(source, watchalongById, livestreamById);
+    var pass = selected && selected.pass;
     if (!pass || source.coverage !== "caption-backed" ||
         pass.status === "held-age-restricted") return [];
     var candidates = array(pass.candidates).filter(function (candidate) {
@@ -715,6 +733,7 @@
       var excerpt = alignedExcerpt ||
         "No caption fragment aligned; open the source and listen to this audio-ranked window.";
       var score = boundedSignal(candidate.score);
+      var candidateBasis = clean(candidate.evidenceBasis);
       return normalizedReceipt(
         {
           id: source.id + ":audio-pass:" + Math.floor(at) + ":" + index,
@@ -730,8 +749,9 @@
           label: category,
           evidenceLevel: "machine",
           evidenceType: "audio-feature-candidate",
-          evidenceBasis: clean(candidate.evidenceBasis) ||
-            "canonical watchalong audio pass; local audio ranked against the source caption clock",
+          evidenceBasis: "canonical " + selected.origin +
+            " audio pass; " + (candidateBasis ||
+              "local audio ranked against the source caption clock"),
           reviewState: "audio-feature-candidate; playback remains the authority",
           publicExcerptAllowed: Boolean(alignedExcerpt),
           signalScore: score,
@@ -1594,6 +1614,9 @@
     var audioPassReceipts = receipts.filter(function (receipt) {
       return receipt.evidenceType === "audio-feature-candidate";
     }).slice().sort(signalOrder);
+    var audioPassOrigin = audioPassReceipts.some(function (receipt) {
+      return /^canonical livestream audio pass/i.test(receipt.evidenceBasis);
+    }) ? "livestream" : "watchalong";
 
     var laneById = {
       topics: lane(
@@ -1707,7 +1730,8 @@
       laneById["audio-pass"] = lane(
         "audio-pass",
         "LISTENING PASS",
-        "Audio-ranked windows from the local watchalong pass. These are useful places to press play, not proof that a joke, speaker, or intention landed.",
+        "Audio-ranked windows from the local " + audioPassOrigin +
+          " pass. These are useful places to press play, not proof that a joke, speaker, or intention landed.",
         "No source-local audio-ranked route is registered for this show yet.",
         audioPassReceipts,
         [
@@ -2396,6 +2420,8 @@
     var deep = input.deep || {};
     var episodeGuides = input.episodeGuides || {};
     var live = input.live || {};
+    var livestreamCanon = input.livestreamCanon || {};
+    var livestreamAudioIndex = input.livestreamAudioIndex || {};
     var popular = input.popular || {};
     var watchalongCanon = input.watchalongCanon || {};
     var archiveStreams = streamsFrom(
@@ -2462,6 +2488,17 @@
       array(watchalongCanon.episodes),
       "WWAM Watchalong Canon"
     );
+    var livestreamCanonById = mapById(
+      array(livestreamCanon.episodes),
+      "WWAM Livestream Canon"
+    );
+    var livestreamAudioById = mapById(
+      array(livestreamAudioIndex.episodes),
+      "WWAM Livestream Audio Index"
+    );
+    var livestreamById = livestreamAudioById.size
+      ? livestreamAudioById
+      : livestreamCanonById;
     var archiveById = mapById(archiveStreams, "WWAM Archive Deep");
     var atlasIds = new Set(atlasById.keys());
 
@@ -2784,9 +2821,10 @@
           entityRegistry.forLabel
         ));
         receipts = receipts.concat(famCalloutReceipts(source));
-        receipts = receipts.concat(watchalongAudioReceipts(
+        receipts = receipts.concat(sourceAudioPassReceipts(
           source,
-          watchalongById
+          watchalongById,
+          livestreamById
         ));
       }
       if (policy.restrictedToTopicNavigation) {

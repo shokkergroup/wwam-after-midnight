@@ -39,7 +39,7 @@
     "episode-recap-engine.js?v=1.9.4-character-truth",
     "wwam-episode-recap-adapter.js?v=2.3.2-safe-topic-doors",
     "source-dossier-engine.js?v=1.16.1-audio-pass-receipts",
-    "wwam-source-dossier-adapter.js?v=1.17.3-audio-pass-no-cap",
+    "wwam-source-dossier-adapter.js?v=1.19.0-bounded-livestream-audio-index",
     "source-query-engine.js?v=1.6.1-lanes",
     "aftermath-pack-engine.js?v=1.0.0",
     "source-dossier-ui.js?v=1.31.1-audio-receipt-badge",

@@ -420,6 +420,8 @@
       popular: popular,
       archiveDeep: archiveDeepStreams,
       watchalongCanon: window.WWAM_WATCHALONG_CANON || null,
+      livestreamAudioIndex: window.WWAM_LIVESTREAM_AUDIO_INDEX || null,
+      livestreamCanon: window.WWAM_LIVESTREAM_CANON || null,
       titleTopicOverrides: window.WWAM_TITLE_TOPIC_OVERRIDES || null,
       showcase: showcaseEngine,
       clipLab: clipLabEngine,
@@ -574,7 +576,7 @@
       })
       .then(function () { return loader.loadStyle("source-dossier.css?v=5.38-podcast-variant-routes"); })
       .then(function () {
-        return loader.load("source-dossier-assets.js?v=1.0.26-audio-pass-boundary");
+        return loader.load("source-dossier-assets.js?v=1.0.27-audio-pass-both-canons");
       })
       .then(function () {
         var assets = window.WWAM_SOURCE_DOSSIER_ASSETS || [];
@@ -590,6 +592,12 @@
         // audio pass even when the visitor deep-links straight into a source
         // before opening the Watchalongs shelf.
         return loader.load("wwam-watchalong-canon.js?v=1.3.0");
+      })
+      .then(function () {
+        // The same source-local listening contract now covers all 509 public
+        // livestream records, including deep links opened before the live
+        // canon shelf has hydrated.
+        return loader.load("wwam-livestream-audio-index.js?v=1.0.0-bounded-excerpts");
       })
       .then(buildSourceDossierRuntime)
       .catch(function (error) {
