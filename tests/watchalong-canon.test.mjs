@@ -41,6 +41,8 @@ test("watchalong canon has the complete public source registry", () => {
   assert.equal(Object.keys(podcastAudio.records).length, 6);
   assert.ok(Object.values(podcastAudio.records).every((record) => record.status === "podcast-audio-feature" && record.candidates.length >= 20));
   assert.ok(Object.values(podcastAudio.records).every((record) => record.media.canonicalTimestampMapping === false));
+  assert.ok(Object.values(podcastAudio.records).every((record) => record.dossier && record.dossier.chapters.length >= 3));
+  assert.ok(Object.values(podcastAudio.records).some((record) => record.dossier.topics.length > 0));
   assert.equal(canon.stats.sourceCounts.heldMembersOnly, 22);
   assert.equal(canon.stats.sourceCounts.liveStrictCandidates, 112);
   assert.equal(canon.stats.sourceCounts.liveStrictPublicCandidates, 90);
@@ -178,6 +180,7 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(ui, /OFFICIAL FEED RECOVERY/);
   assert.match(ui, /<audio id=.*controls/);
   assert.match(ui, /data-wac-podcast-seek/);
+  assert.match(ui, /TAPE SHAPE \/\/ SOURCE-LOCAL READ/);
   assert.match(html, /wwam-podcast-commentary-audio\.js/);
   assert.match(ui, /broadDiscoveryOmissions/);
   assert.match(ui, /LISTENING READ \/\/ EVIDENCE MIX/);
@@ -189,4 +192,5 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(css, /\.wac-edge-shelf/);
   assert.match(css, /\.wac-podcast-recovery/);
   assert.match(css, /\.wac-podcast-moment/);
+  assert.match(css, /\.wac-podcast-shape/);
 });
