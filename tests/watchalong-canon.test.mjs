@@ -273,6 +273,7 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(ui, /function signatureLaneMarkup\(episode, moments\)/, "opened dossiers expose the recurring WWAM fast lanes");
   assert.match(ui, /wacLane-' \+ key/, "signature lanes receive direct in-dossier anchors");
   assert.match(ui, /steve: \[\], 'up-in-ya': \[\]/, "Steve's Asshole and UP IN YA are first-class lanes");
+  assert.match(ui, /fanSignals\.forEach/, "fan callouts are folded into the in-dossier Fan Signal lane");
   assert.match(ui, /STRAIGHT TO STEVE'S ASSHOLE/, "Steve's lane is reserved before generic top-score lanes");
   assert.match(css, /\.wac-episode-proof/, "cards style the audio/caption evidence badge");
   assert.match(css, /\.wac-peak-door/, "cards style the direct peak route");

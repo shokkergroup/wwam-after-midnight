@@ -520,7 +520,12 @@
 
   function signatureLaneMarkup(episode, moments) {
     var lanes = { steve: [], 'up-in-ya': [], character: [], fan: [] };
-    moments.forEach(function (moment) {
+    var laneMoments = moments.slice();
+    var fanSignals = episode && episode.dossier && Array.isArray(episode.dossier.fanSignals) ? episode.dossier.fanSignals : [];
+    fanSignals.forEach(function (signal) {
+      if (!laneMoments.some(function (moment) { return signal.id && moment.id === signal.id; })) laneMoments.push(signal);
+    });
+    laneMoments.forEach(function (moment) {
       var key = signatureLaneKey(moment.category || moment.label);
       if (key) lanes[key].push(moment);
     });
@@ -717,5 +722,5 @@
   }
 
   render();
-  root.WWAMWatchalongCanonUI = Object.freeze({ version: "1.5.0", render: render, payload: payload });
+  root.WWAMWatchalongCanonUI = Object.freeze({ version: "1.5.1", render: render, payload: payload });
 })(typeof window !== "undefined" ? window : globalThis);
