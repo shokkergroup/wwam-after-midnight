@@ -9,6 +9,7 @@
   var episodes = Array.isArray(payload.episodes) ? payload.episodes : [];
   var franchises = Array.isArray(payload.franchises) ? payload.franchises : [];
   var groups = Array.isArray(payload.groups) ? payload.groups : [];
+  var podcastAudio = root.WWAM_PODCAST_COMMENTARY_AUDIO || { records: {} };
 
   function clean(value) { return String(value == null ? "" : value).replace(/\s+/g, " ").trim(); }
   function esc(value) {
@@ -114,7 +115,17 @@
     if (!recovered.length) return '';
     var sourceCounts = (payload.stats || {}).sourceCounts || {};
     return '<section class="wac-podcast-recovery" aria-labelledby="wacPodcastRecoveryTitle"><header><div><span class="wac-section-label">OFFICIAL FEED RECOVERY // NON-HORROR LANES INCLUDED</span><h3 id="wacPodcastRecoveryTitle">THE COMMENTARIES THE LIVE YOUTUBE AUDIT COULD NOT SEE.</h3><p>We checked the official WWAM RSS archive alongside the live channel. These full-film commentaries are real, playable WWAM releases that are absent from the current public YouTube snapshot. They stay separate from the 102-source YouTube canon so the archive never invents a video ID or pretends podcast time equals YouTube time.</p></div><div class="wac-podcast-proof"><b>' + number(recovered.length) + '</b><span>RECOVERED PODCAST SOURCES</span><small>' + number(sourceCounts.podcastOnlyCommentaries || recovered.length) + ' AUDIO-ONLY // 0 FAKE TIMESTAMPS</small></div></header><div class="wac-podcast-grid">' + recovered.map(function (item) {
-      return '<article class="wac-podcast-card"><div class="wac-podcast-card-head"><span>OFFICIAL WWAM PODCAST</span><b>' + esc(item.movieTitle) + '</b><small>' + esc(dateLabel(item.date)) + ' // ' + esc(durationLabel(item.duration)) + '</small></div><p>' + esc(item.note) + '</p><audio controls preload="none" src="' + esc(item.sourceUrl || item.url) + '"></audio><div class="wac-podcast-card-foot"><a target="_blank" rel="noopener" href="' + esc(item.sourceUrl || item.url) + '">OPEN AUDIO SOURCE â†—</a><span>RSS TITLE + RUNTIME VERIFIED</span></div></article>';
+      var pass = (podcastAudio.records || {})[item.key] || null;
+      var candidates = pass && Array.isArray(pass.candidates) ? pass.candidates : [];
+      var featured = candidates.slice(0, 6);
+      var remaining = candidates.slice(6);
+      function candidateButtons(list) {
+        return list.map(function (candidate) {
+          return '<button type="button" class="wac-podcast-moment" data-wac-podcast-seek="' + esc(item.key) + '" data-wac-podcast-time="' + esc(candidate.t) + '"><span><b>' + esc(candidate.category || 'SOURCE RECEIPT') + '</b><small>' + esc(timestamp(candidate.t)) + ' // HEAT ' + esc(candidate.score) + '</small></span><em>' + esc(excerpt(candidate.captionExcerpt || candidate.excerpt || 'Podcast-bound receipt.', 150)) + '</em></button>';
+        }).join('');
+      }
+      var passMarkup = pass ? '<div class="wac-podcast-listening-read"><small>LISTENING READ // ' + esc(pass.audit.candidateCount) + ' BOUNDED ROUTES // ' + esc(pass.audit.transcriptSegments) + ' WHISPER SEGMENTS</small><p>' + esc(pass.listeningDigest.headline) + '</p><div class="wac-podcast-hot-list">' + candidateButtons(featured) + '</div>' + (remaining.length ? '<details><summary>SHOW ALL ' + esc(remaining.length) + ' ADDITIONAL ROUTES</summary><div class="wac-podcast-hot-list">' + candidateButtons(remaining) + '</div></details>' : '') + '</div>' : '<div class="wac-podcast-listening-read"><small>LISTENING PASS QUEUED</small><p>Official audio is playable now; bounded audio-ranked receipts will appear after the local listening pass.</p></div>';
+      return '<article class="wac-podcast-card"><div class="wac-podcast-card-head"><span>OFFICIAL WWAM PODCAST</span><b>' + esc(item.movieTitle) + '</b><small>' + esc(dateLabel(item.date)) + ' // ' + esc(durationLabel(item.duration)) + '</small></div><p>' + esc(item.note) + '</p><audio id="wacPodcastAudio-' + esc(item.key) + '" controls preload="none" src="' + esc(item.sourceUrl || item.url) + '"></audio>' + passMarkup + '<div class="wac-podcast-card-foot"><a target="_blank" rel="noopener" href="' + esc(item.sourceUrl || item.url) + '">OPEN AUDIO SOURCE â†—</a><span>RSS TITLE + RUNTIME VERIFIED</span></div></article>';
     }).join('') + '</div><footer><strong>LISTENING RULE</strong> Start with the audio player above. When this lane receives a future audio pass, its receipts will remain bound to the podcast file; the archive will never paste a podcast timestamp onto a YouTube player.</footer></section>';
   }
 
@@ -356,6 +367,16 @@
     });
     Array.prototype.forEach.call(root.document.querySelectorAll("[data-wac-close]"), function (button) {
       button.addEventListener("click", function () { state.selected = ""; render(); });
+    });
+    Array.prototype.forEach.call(root.document.querySelectorAll("[data-wac-podcast-seek]"), function (button) {
+      button.addEventListener("click", function () {
+        var key = button.getAttribute("data-wac-podcast-seek");
+        var audio = root.document.getElementById("wacPodcastAudio-" + key);
+        if (!audio) return;
+        audio.currentTime = Math.max(0, Number(button.getAttribute("data-wac-podcast-time")) || 0);
+        var play = audio.play();
+        if (play && typeof play.catch === "function") play.catch(function () {});
+      });
     });
   }
 

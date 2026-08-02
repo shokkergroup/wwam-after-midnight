@@ -15,8 +15,10 @@ context.window = context;
 vm.createContext(context);
 vm.runInContext(fs.readFileSync(path.join(demo, "wwam-watchalong-canon.js"), "utf8"), context);
 vm.runInContext(fs.readFileSync(path.join(demo, "wwam-watch-pass-pilot.js"), "utf8"), context);
+vm.runInContext(fs.readFileSync(path.join(demo, "wwam-podcast-commentary-audio.js"), "utf8"), context);
 const canon = context.WWAM_WATCHALONG_CANON;
 const watchPass = context.WWAM_WATCH_PASS_PILOT;
+const podcastAudio = context.WWAM_PODCAST_COMMENTARY_AUDIO;
 
 test("watchalong canon has the complete public source registry", () => {
   assert.equal(canon.schema, "shokker-wwam-watchalong-canon/v1");
@@ -36,6 +38,9 @@ test("watchalong canon has the complete public source registry", () => {
   assert.ok(canon.podcastCommentaries.some((record) => record.movieTitle === "Wayne's World"));
   assert.ok(canon.podcastCommentaries.some((record) => record.movieTitle === "Predator (1987)"));
   assert.ok(canon.podcastCommentaries.every((record) => record.status === "recovered-audio-lead" && record.evidence.publicPlayback === true));
+  assert.equal(Object.keys(podcastAudio.records).length, 6);
+  assert.ok(Object.values(podcastAudio.records).every((record) => record.status === "podcast-audio-feature" && record.candidates.length >= 20));
+  assert.ok(Object.values(podcastAudio.records).every((record) => record.media.canonicalTimestampMapping === false));
   assert.equal(canon.stats.sourceCounts.heldMembersOnly, 22);
   assert.equal(canon.stats.sourceCounts.liveStrictCandidates, 112);
   assert.equal(canon.stats.sourceCounts.liveStrictPublicCandidates, 90);
@@ -155,7 +160,7 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(html, /href="#watchalong-canon"/);
   assert.match(html, /wwam-watchalong-canon\.js/);
   assert.match(html, /watchalong-canon\.css/);
-  assert.match(html, /PUBLIC WATCHALONG CANON \/\/ 91 SOURCES \/ 88 MOVIE FILES/);
+  assert.match(html, /PUBLIC WATCHALONG CANON \/\/ 102 SOURCES \/ 91 MOVIE FILES \/\/ \+6 PODCAST RECOVERIES/);
   assert.doesNotMatch(html, /PUBLIC WATCHALONG CANON \/\/ 50 SOURCES \/ 47 MOVIE FILES/);
   assert.match(html, /THIRTEEN FRANCHISE WORLDS \/\/ NINETY-ONE SOURCES/);
   assert.match(ui, /MOVIE FILES \/\/ REPEATS STAY ATTACHED/);
@@ -171,7 +176,9 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(ui, /THE OVERLOOKED EDGE/);
   assert.match(ui, /function podcastRecoveryMarkup\(\)/);
   assert.match(ui, /OFFICIAL FEED RECOVERY/);
-  assert.match(ui, /<audio controls/);
+  assert.match(ui, /<audio id=.*controls/);
+  assert.match(ui, /data-wac-podcast-seek/);
+  assert.match(html, /wwam-podcast-commentary-audio\.js/);
   assert.match(ui, /broadDiscoveryOmissions/);
   assert.match(ui, /LISTENING READ \/\/ EVIDENCE MIX/);
   assert.match(ui, /AUDIO PASS/);
@@ -181,4 +188,5 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(css, /\.wac-watch-pass-read/);
   assert.match(css, /\.wac-edge-shelf/);
   assert.match(css, /\.wac-podcast-recovery/);
+  assert.match(css, /\.wac-podcast-moment/);
 });

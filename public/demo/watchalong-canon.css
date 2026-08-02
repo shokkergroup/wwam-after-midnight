@@ -214,6 +214,19 @@
 .wac-podcast-card-head small, .wac-podcast-card-foot span { color: var(--canon-dim); font: 700 .53rem/1.3 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .06em; text-transform: uppercase; }
 .wac-podcast-card p { min-height: 3.2rem; margin: 0; color: #c8c0c3; font: 500 .7rem/1.45 ui-sans-serif, system-ui, sans-serif; }
 .wac-podcast-card audio { width: 100%; height: 2rem; accent-color: var(--canon-hot); }
+.wac-podcast-listening-read { border-top: 1px solid rgba(203, 255, 40, .18); padding-top: .6rem; }
+.wac-podcast-listening-read > small { display: block; color: var(--canon-acid); font: 800 .5rem/1.3 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .07em; text-transform: uppercase; }
+.wac-podcast-listening-read > p { min-height: 0; margin: .35rem 0 .55rem; color: var(--canon-dim); font-size: .66rem; }
+.wac-podcast-hot-list { display: grid; gap: .35rem; }
+.wac-podcast-moment { display: grid; gap: .25rem; border: 1px solid rgba(255, 44, 131, .25); padding: .5rem; color: var(--canon-ink); background: rgba(255, 44, 131, .035); cursor: pointer; text-align: left; }
+.wac-podcast-moment:hover { border-color: var(--canon-acid); background: rgba(203, 255, 40, .06); }
+.wac-podcast-moment span { display: flex; justify-content: space-between; gap: .45rem; align-items: baseline; }
+.wac-podcast-moment b { color: var(--canon-hot); font: 800 .5rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .06em; text-transform: uppercase; }
+.wac-podcast-moment small { color: var(--canon-acid); font: 700 .48rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .05em; }
+.wac-podcast-moment em { color: #c8c0c3; font: 500 .63rem/1.35 ui-sans-serif, system-ui, sans-serif; font-style: normal; }
+.wac-podcast-listening-read details { margin-top: .45rem; border-top: 1px solid var(--canon-line); padding-top: .45rem; }
+.wac-podcast-listening-read summary { color: var(--canon-acid); cursor: pointer; font: 800 .52rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .06em; text-transform: uppercase; }
+.wac-podcast-listening-read details .wac-podcast-hot-list { margin-top: .45rem; }
 .wac-podcast-card-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .4rem; align-items: center; margin-top: auto; }
 .wac-podcast-card-foot a { color: var(--canon-acid); font: 800 .55rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .07em; text-decoration: none; text-transform: uppercase; }
 .wac-podcast-card-foot a:hover { color: var(--canon-hot); }
