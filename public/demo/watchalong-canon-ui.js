@@ -180,6 +180,13 @@
     }).join('') + '</div>';
   }
 
+  function listeningReadMarkup(pass) {
+    var digest = pass && pass.listeningDigest;
+    if (!digest) return '';
+    var mix = Array.isArray(digest.signalMix) ? digest.signalMix : [];
+    return '<div class="wac-watch-pass-read"><span class="wac-section-label">LISTENING READ // EVIDENCE MIX</span><strong>' + esc(digest.headline || 'The pass retained bounded source routes.') + '</strong>' + (mix.length ? '<small>' + esc(mix.join(' // ')) + '</small>' : '') + '<p>' + esc(digest.evidence || 'Playback remains the authority.') + '</p></div>';
+  }
+
   function watchPassMarkup(episode) {
     var pass = episode.watchPass;
     if (!pass) return '';
@@ -204,6 +211,9 @@
       return '<section class="wac-watch-pass wac-watch-pass-held"><header><div><span class="wac-section-label">' + esc(pass.label || 'WATCHALONG WATCH PASS // HELD SOURCE') + '</span><h4>THE SOURCE RECEIPT IS HELD.</h4><p>' + esc(pass.note || 'The source could not be acquired in this run. No timestamps were manufactured.') + '</p></div><a target="_blank" rel="noopener" href="' + esc(episode.url) + '">OPEN YOUTUBE SOURCE â†—</a></header><p class="wac-watch-pass-foot">NO TIMESTAMP RECEIPTS MANUFACTURED // PLAYBACK REMAINS THE AUTHORITY.</p></section>';
     }
     var rendered = baseWatchPassMarkup(episode);
+    if (pass && pass.listeningDigest) {
+      rendered = rendered.replace('</header>', '</header>' + listeningReadMarkup(pass));
+    }
     if (pass && pass.status === 'caption-ledger-pilot') {
       rendered = rendered.replace('LISTEN FOR THE ROOM TO CHANGE.', 'FOLLOW THE CAPTION RECEIPTS.')
         .replace('<b>0</b>HIGH-ENERGY SECONDS', '<b>—</b>ACOUSTIC PASS HELD')

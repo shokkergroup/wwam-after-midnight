@@ -81,6 +81,8 @@ test("every episode has an official source, evidence state, and playable receipt
   assert.ok(canon.episodes.some((episode) => episode.watchPass.label === "WATCHALONG WATCH PASS // AUDIO PILOT"));
   assert.ok(canon.episodes.some((episode) => episode.watchPass.status === "caption-ledger-pilot"), "public caption-backed tapes retain a caption-only route when audio is unavailable");
   assert.ok(canon.episodes.some((episode) => episode.watchPass.audit.candidateTarget > 15), "longer watchalongs receive a larger ranked browse set");
+  assert.equal(canon.episodes.filter((episode) => !/^held-/.test(episode.watchPass.status)).filter((episode) => episode.watchPass.listeningDigest?.headline).length, 89, "every acquired watchalong has a listening read");
+  assert.ok(canon.episodes.filter((episode) => episode.watchPass.status === "caption-ledger-pilot").every((episode) => episode.watchPass.listeningDigest?.mode === "caption-only"), "caption-only tapes disclose their evidence mode");
 });
 
 test("watchalong canon is reachable from the Watchalongs route", () => {
@@ -93,7 +95,9 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(ui, /function fanSignalsMarkup\(episode, signals\)/);
   assert.match(ui, /fanSignalsMarkup\(episode, dossier\.fanSignals\)/);
   assert.match(ui, /function watchPassMarkup\(episode\)/);
+  assert.match(ui, /LISTENING READ \/\/ EVIDENCE MIX/);
   assert.match(ui, /HALLOWEEN WATCH PASS/);
   assert.match(ui, /LISTEN FOR THE ROOM TO CHANGE/);
   assert.match(css, /\.wac-watch-pass/);
+  assert.match(css, /\.wac-watch-pass-read/);
 });

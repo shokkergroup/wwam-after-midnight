@@ -41,9 +41,16 @@ def audio_file_for(video_id: str) -> Path | None:
     return None
 
 
-def runtime_target(duration_seconds: int) -> int:
-    """Give longer tapes a larger browse set without flattening every show to 15."""
-    return max(15, min(32, round(duration_seconds / 480)))
+def runtime_target(duration_seconds: int, caption_events: int = 0) -> int:
+    """Scale browse depth by runtime *and* how much source evidence exists.
+
+    A fixed 15-card ceiling made dense two-hour commentaries look artificially
+    thin. This keeps short tapes navigable but lets long, caption-rich tapes
+    surface more routes without claiming that the list is exhaustive.
+    """
+    runtime_component = max(15, min(48, round(duration_seconds / 360)))
+    density_bonus = min(16, max(0, round(caption_events / 250)))
+    return max(15, min(48, runtime_component + density_bonus))
 
 
 def title_for(episode: dict) -> str:
@@ -52,6 +59,38 @@ def title_for(episode: dict) -> str:
 
 def label_for(episode: dict) -> str:
     return "HALLOWEEN WATCH PASS // AUDIO PILOT" if episode.get("franchiseKey") == "halloween" else "WATCHALONG WATCH PASS // AUDIO PILOT"
+
+
+def clock(seconds: int | float) -> str:
+    value = max(0, int(round(float(seconds or 0))))
+    hours, remainder = divmod(value, 3600)
+    minutes, secs = divmod(remainder, 60)
+    return f"{hours}:{minutes:02d}:{secs:02d}" if hours else f"{minutes}:{secs:02d}"
+
+
+def listening_digest(candidates: list[dict], audio_stats: dict | None, *, audio_available: bool) -> dict:
+    counts: dict[str, int] = {}
+    for candidate in candidates:
+        category = str(candidate.get("category") or "OPEN MIC")
+        counts[category] = counts.get(category, 0) + 1
+    mix = [f"{name} ({count})" for name, count in sorted(counts.items(), key=lambda item: (-item[1], item[0]))[:4]]
+    strongest = max(candidates, key=lambda item: float(item.get("score") or 0), default=None)
+    if audio_available:
+        headline = (
+            f"Audio re-ranking favors {strongest.get('category', 'source leads')} at {clock(strongest.get('t', 0))}. "
+            f"The pass retained {len(candidates)} bounded routes across {', '.join(mix) or 'the caption map'}."
+            if strongest else f"The audio pass retained {len(candidates)} bounded routes."
+        )
+        evidence = "Acoustic energy re-ranks caption signals; it does not prove a joke, speaker, or visual reaction."
+        mode = "audio-feature"
+    else:
+        headline = (
+            f"Caption density produces {len(candidates)} bounded routes, led by {strongest.get('category', 'source leads')} at {clock(strongest.get('t', 0))}."
+            if strongest else "The caption ledger produced no safe route candidates."
+        )
+        evidence = "No local audio measurement was available; these are caption-ledger routes and playback remains the authority."
+        mode = "caption-only"
+    return {"mode": mode, "headline": headline, "signalMix": mix, "strongest": {"t": strongest.get("t"), "category": strongest.get("category"), "score": strongest.get("score")} if strongest else None, "evidence": evidence}
 
 
 def held_record(episode: dict) -> dict:
@@ -83,7 +122,7 @@ def caption_only_record(episode: dict, events: list[dict]) -> dict:
     the evidence state.
     """
     duration = int(episode.get("duration") or 0)
-    target = runtime_target(duration)
+    target = runtime_target(duration, len(events))
     cuts = list((episode.get("dossier") or {}).get("cuts") or [])
     cuts.sort(key=lambda item: (-float(item.get("score") or 0), float(item.get("t") or 0)))
     candidates = []
@@ -112,6 +151,7 @@ def caption_only_record(episode: dict, events: list[dict]) -> dict:
         "media": {"sourceUrl": episode.get("url") or f"https://www.youtube.com/watch?v={episode['id']}", "audioOnly": True, "canonicalAudioAvailable": False, "captionMapAvailable": True},
         "audit": {"captionEvents": len(events), "audioRows": 0, "laughterOrOverlapMarkers": 0, "candidateCount": len(candidates), "candidateTarget": target, "audioStats": {}},
         "candidates": candidates,
+        "listeningDigest": listening_digest(candidates, None, audio_available=False),
         "note": "The public upload has a source-local caption map, but YouTube did not expose a locally acquirable media format in this run. These are bounded caption leads—not acoustic intensity measurements. Open the official source at each timestamp.",
         "provenanceFile": None,
     }
@@ -161,7 +201,7 @@ def main() -> None:
 
         events = caption_events(video_id)
         audio = stream_features(audio_file)
-        target = runtime_target(audio["durationSeconds"])
+        target = runtime_target(audio["durationSeconds"], len(events))
         candidates = candidate_rows(events, audio, max_candidates=target)
         container = audio_file.suffix.lstrip(".")
         marker_count = sum(bool(re.search(r"\[(?:laughter|snorts?|crosstalk|applause)\]", event["text"], re.I)) for event in events)
@@ -174,6 +214,7 @@ def main() -> None:
             "media": {"sourceUrl": episode.get("url") or f"https://www.youtube.com/watch?v={video_id}", "localFile": f"source-cache/audio/{audio_file.name}", "container": container, "durationSeconds": audio["durationSeconds"], "audioOnly": True, "canonicalAudioAvailable": True},
             "audit": {"captionEvents": len(events), "audioRows": audio["durationSeconds"], "laughterOrOverlapMarkers": marker_count, "candidateCount": len(candidates), "candidateTarget": target, "audioStats": audio["stats"]},
             "candidates": candidates,
+            "listeningDigest": listening_digest(candidates, audio["stats"], audio_available=True),
             "note": "This pass decoded the canonical audio track at one-second feature resolution and aligned ranked windows to the source-local caption map. It does not assign a speaker, claim a visual reaction, or prove that a candidate is objectively funny; open the official source at each bounded timestamp.",
             "provenanceFile": f"source-cache/audio/{video_id}.provenance.json",
         }

@@ -30,6 +30,40 @@ EPISODES = [
 ]
 
 
+def runtime_target(duration_seconds: int, caption_events: int = 0) -> int:
+    """Keep current-show listening routes proportional to tape length and density."""
+    runtime_component = max(15, min(48, round(duration_seconds / 360)))
+    density_bonus = min(16, max(0, round(caption_events / 250)))
+    return max(15, min(48, runtime_component + density_bonus))
+
+
+def clock(seconds: int | float) -> str:
+    value = max(0, int(round(float(seconds or 0))))
+    hours, remainder = divmod(value, 3600)
+    minutes, secs = divmod(remainder, 60)
+    return f"{hours}:{minutes:02d}:{secs:02d}" if hours else f"{minutes}:{secs:02d}"
+
+
+def listening_digest(candidates: list[dict], *, audio_available: bool = True) -> dict:
+    counts: dict[str, int] = {}
+    for candidate in candidates:
+        category = str(candidate.get("category") or "OPEN MIC")
+        counts[category] = counts.get(category, 0) + 1
+    mix = [f"{name} ({count})" for name, count in sorted(counts.items(), key=lambda item: (-item[1], item[0]))[:4]]
+    strongest = max(candidates, key=lambda item: float(item.get("score") or 0), default=None)
+    if strongest:
+        headline = f"Audio re-ranking favors {strongest.get('category', 'source leads')} at {clock(strongest.get('t', 0))}. The pass retained {len(candidates)} bounded routes across {', '.join(mix) or 'the caption map'}."
+    else:
+        headline = "The audio pass retained no safe route candidates."
+    return {
+        "mode": "audio-feature" if audio_available else "caption-only",
+        "headline": headline,
+        "signalMix": mix,
+        "strongest": {"t": strongest.get("t"), "category": strongest.get("category"), "score": strongest.get("score")} if strongest else None,
+        "evidence": "Acoustic energy re-ranks caption signals; it does not prove a joke, speaker, or visual reaction.",
+    }
+
+
 def clean(text: object) -> str:
     return re.sub(r"\s+", " ", str(text or "")).strip()
 
@@ -200,14 +234,16 @@ def main() -> None:
             raise FileNotFoundError(audio_file)
         events = caption_events(video_id)
         audio = stream_features(audio_file)
-        candidates = candidate_rows(events, audio)
+        target = runtime_target(audio["durationSeconds"], len(events))
+        candidates = candidate_rows(events, audio, max_candidates=target)
         episode = {
             "id": video_id,
             "date": date,
             "status": "audio-feature-pilot",
             "media": {"sourceUrl": f"https://www.youtube.com/watch?v={video_id}", "localFile": f"source-cache/audio/{video_id}.m4a", "container": "m4a", "durationSeconds": audio["durationSeconds"], "audioOnly": True},
-            "audit": {"captionEvents": len(events), "audioRows": audio["durationSeconds"], "laughterOrOverlapMarkers": sum(bool(re.search(r"\[(?:laughter|snorts?|crosstalk)\]", event["text"], re.I)) for event in events), "candidateCount": len(candidates), "audioStats": audio["stats"]},
+            "audit": {"captionEvents": len(events), "audioRows": audio["durationSeconds"], "laughterOrOverlapMarkers": sum(bool(re.search(r"\[(?:laughter|snorts?|crosstalk)\]", event["text"], re.I)) for event in events), "candidateCount": len(candidates), "candidateTarget": target, "audioStats": audio["stats"]},
             "candidates": candidates,
+            "listeningDigest": listening_digest(candidates),
             "note": "This pilot listened to the canonical audio track and used captions only for navigation. It does not claim a human visual watch, speaker diarization, or a definitive joke/intensity judgment; open the official source at each bounded timestamp.",
             "provenanceFile": f"source-cache/audio/{video_id}.provenance.json",
         }
