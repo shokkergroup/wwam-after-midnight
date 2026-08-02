@@ -13,7 +13,7 @@ import json
 import re
 from pathlib import Path
 
-from run_wwam_audio_watch_pass import AUDIO_DIR, DEMO_DIR, candidate_rows, caption_events, category_counts, provenance, runtime_target, stream_features
+from run_wwam_audio_watch_pass import AUDIO_DIR, DEMO_DIR, candidate_rows, caption_events, caption_window, category_counts, listening_digest, provenance, runtime_target, signal_for, stream_features
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -51,13 +51,66 @@ def held_record(episode: dict) -> dict:
     }
 
 
+def caption_only_candidates(events: list[dict], max_candidates: int = 24) -> list[dict]:
+    """Rank caption receipts when YouTube audio cannot be acquired.
+
+    This is deliberately separate from the acoustic pass.  It preserves useful
+    navigation for held source files without implying that a transcript marker
+    is a laugh, a speaker attribution, or a visual reaction.
+    """
+    candidates: list[dict] = []
+    for index, event in enumerate(events):
+        text = event["text"]
+        label, signal_hits = signal_for(text)
+        marker = bool(re.search(r"\[(?:laughter|snorts?|crosstalk|applause)\]", text, re.I))
+        words = len(text.split())
+        if signal_hits == 0 and not marker and words < 10 and "!" not in text:
+            continue
+        score = min(99.0, 35.0 + signal_hits * 14.0 + (18.0 if marker else 0.0) + min(28.0, words / 2.5))
+        start = max(0, int(round(event["t"])))
+        end = max(start + 8, int(round(max(event["end"], event["t"] + 8))))
+        candidates.append({
+            "t": start,
+            "end": end,
+            "category": label,
+            "label": label,
+            "score": round(score, 1),
+            "captionExcerpt": caption_window(events, index),
+            "signals": {"captionSignalHits": signal_hits, "captionMarker": marker},
+            "evidenceBasis": f"source-local {event.get('evidenceType', 'caption')} only; canonical audio unavailable",
+            "reviewStatus": "caption-ledger-candidate; playback remains the authority",
+        })
+    candidates.sort(key=lambda row: (-row["score"], row["t"]))
+    priority_categories = ["STRAIGHT TO STEVE'S ASSHOLE", "CHARACTER SIGNAL", "WWAM UP IN YA", "FAN SIGNAL", "TAKE GETS NUCLEAR", "ROOM BREAK"]
+    ordered: list[dict] = []
+    for category in priority_categories:
+        first = next((candidate for candidate in candidates if candidate["category"] == category), None)
+        if first is not None:
+            ordered.append(first)
+    ordered.extend(candidate for candidate in candidates if candidate not in ordered)
+    picked: list[dict] = []
+    for candidate in ordered:
+        if any(abs(candidate["t"] - row["t"]) < 45 for row in picked):
+            continue
+        picked.append(candidate)
+        if len(picked) >= max_candidates:
+            break
+    picked.sort(key=lambda row: row["t"])
+    for rank, row in enumerate(picked, 1):
+        row["rank"] = rank
+    return picked
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Decode and rank bounded audio routes for selected WWAM livestream year shelves.")
     parser.add_argument("--year", type=int, action="append", dest="years", help="Year shelf to process; repeat to process more than one. Defaults to 2026.")
+    parser.add_argument("--held-only", action="store_true", help="Only revisit episodes without a local canonical audio file; preserve existing audio-feature records.")
     args = parser.parse_args()
     years = {str(year) for year in (args.years or [2026])}
     canon = load_window(CANON)
     episodes = [episode for episode in canon.get("episodes", []) if str(episode.get("date", ""))[:4] in years]
+    if args.held_only:
+        episodes = [episode for episode in episodes if not audio_file(episode["id"])]
     prior: dict = load_window(OUTPUT) if OUTPUT.exists() else {}
     output: dict = {
         "schema": "wwam/livestream-audio-pass/v1",
@@ -77,9 +130,23 @@ def main() -> None:
         audio = audio_file(video_id)
         events = caption_events(video_id)
         if not audio:
-            output["episodes"][video_id] = held_record(episode)
-            held += 1
-            print(f"{video_id}: held (no canonical audio)", flush=True)
+            record = held_record(episode)
+            if events:
+                target = runtime_target(float(episode.get("duration") or 0), len(events))
+                candidates = caption_only_candidates(events, max_candidates=target)
+                record.update({
+                    "status": "caption-ledger-pass",
+                    "label": f"{str(episode.get('date') or 'unknown')[:4]} LIVESTREAM WATCH PASS // CAPTION ROUTE",
+                    "audit": {"captionEvents": len(events), "audioRows": 0, "laughterOrOverlapMarkers": sum(bool(re.search(r"\[(?:laughter|snorts?|crosstalk|applause)\]", event["text"], re.I)) for event in events), "candidateCount": len(candidates), "candidateTarget": target, "candidateCategories": category_counts(candidates), "audioStats": {}},
+                    "candidates": candidates,
+                    "listeningDigest": listening_digest(candidates, audio_available=False),
+                    "note": "Canonical audio could not be acquired in this run, but the source-local caption map still provides bounded navigation candidates. No acoustic intensity, speaker, visual, or intent claim is made; open the official upload before treating a receipt as a final moment.",
+                })
+                print(f"{video_id}: caption route ({len(events)} events, {len(candidates)} candidates)", flush=True)
+            else:
+                held += 1
+                print(f"{video_id}: held (no canonical audio or caption map)", flush=True)
+            output["episodes"][video_id] = record
             continue
         if not events:
             # Audio without a source-local language map is still useful for
@@ -131,6 +198,9 @@ def main() -> None:
         bucket["livestreamEpisodes"] += 1
         if record.get("status") == "audio-feature-pass":
             bucket["audioAnalyzed"] += 1
+        elif record.get("status") == "caption-ledger-pass":
+            bucket["captionFallback"] = bucket.get("captionFallback", 0) + 1
+            bucket["held"] += 1
         else:
             bucket["held"] += 1
         audit = record.get("audit") or {}
@@ -145,6 +215,7 @@ def main() -> None:
         "audioSeconds": sum(bucket["audioSeconds"] for bucket in year_coverage.values()),
         "captionEvents": sum(bucket["captionEvents"] for bucket in year_coverage.values()),
         "rankedCandidates": sum(bucket["rankedCandidates"] for bucket in year_coverage.values()),
+        "captionFallback": sum(bucket.get("captionFallback", 0) for bucket in year_coverage.values()),
         "yearCoverage": year_coverage,
         "lastProcessedYears": sorted(years),
     }

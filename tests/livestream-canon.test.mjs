@@ -29,6 +29,8 @@ test("livestream canon contains the complete source registry", () => {
   assert.ok(canon.stats.audioPassCoverage.years.includes("2026"));
   assert.equal(canon.stats.audioPassCoverage.yearCoverage["2026"].audioAnalyzed, 37);
   assert.equal(canon.stats.audioPassCoverage.yearCoverage["2023"].audioAnalyzed, 68);
+  assert.equal(canon.stats.audioPassCoverage.captionFallback, 154);
+  assert.equal(canon.stats.audioPassCoverage.yearCoverage["2021"].captionFallback, 72);
 });
 
 test("each source has an honest evidence tier and playable source link", () => {
@@ -65,6 +67,9 @@ test("each source has an honest evidence tier and playable source link", () => {
   assert.ok(canon.stats.fanSignalReceipts > 0);
   assert.ok(canon.stats.recurringBitReceipts >= canon.stats.fanSignalReceipts);
   assert.ok(canon.stats.characterCueReceipts > 0);
+  const captionFallbacks = canon.episodes.filter((episode) => episode.watchPass?.status === "caption-ledger-pass");
+  assert.equal(captionFallbacks.length, 154);
+  assert.ok(captionFallbacks.every((episode) => episode.watchPass.candidates.length >= 9 && episode.watchPass.candidates.every((candidate) => !candidate.audio && /canonical audio unavailable/i.test(candidate.evidenceBasis))), "held shows retain caption-only routes without acoustic claims");
   assert.ok(Array.isArray(canon.fanHall) && canon.fanHall.length > 0);
   assert.ok(Array.isArray(canon.characterIndex) && canon.characterIndex.some((entry) => entry.name === "Dr. Loomis"));
   assert.ok(canon.fanHall.every((entry) => entry.receipts > 0 && entry.episodeIds.length > 0));
@@ -136,6 +141,8 @@ test("livestream canon surface is wired into the page and route shell", () => {
   assert.match(ui, /CONVERSATION THREADS/);
   assert.match(ui, /AUDIO WATCH PASS/);
   assert.match(ui, /AUDIO PASSES/);
+  assert.match(ui, /CAPTION FALLBACKS/);
+  assert.match(ui, /CAPTION-ONLY PASS/);
   assert.match(ui, /LISTEN FOR THE ROOM TO CHANGE/);
   assert.doesNotMatch(ui, /moments\|\|\[\]\)\.slice\(0,40\)/);
   assert.match(css, /\.lvc-card-grid/);
