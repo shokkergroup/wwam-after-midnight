@@ -239,6 +239,7 @@ function watchalongVoiceSummary({ taxonomy, duration, laneCounts, topics, firstM
   const rankedLanes = Object.entries(laneCounts).sort((left, right) => right[1] - left[1]);
   const dominant = rankedLanes[0]?.[0] || "SOURCE RECEIPT";
   const secondary = rankedLanes[1]?.[0] || null;
+  const strongestAudio = (audioCuts || []).slice().sort((left, right) => Number(right.score || 0) - Number(left.score || 0))[0] || null;
   const laneText = rankedLanes.slice(0, 3).map(([label, count]) => `${label} (${count})`).join(", ");
   const runtimeRead = duration >= 9000 ? "marathon-length" : duration >= 5400 ? "feature-length" : duration >= 1800 ? "a compact feature" : "a short-form";
   const opening = {
@@ -267,7 +268,7 @@ function watchalongVoiceSummary({ taxonomy, duration, laneCounts, topics, firstM
   const openingStop = firstMoment ? `${formatTimestamp(firstMoment.t)} (${firstMoment.category || "SOURCE RECEIPT"})` : "the opening minute";
   const closingStop = finalMoment ? `${formatTimestamp(finalMoment.t)} (${finalMoment.category || "SOURCE RECEIPT"})` : "the closing stretch";
   const audioLine = audioCuts.length
-    ? `The audio-feature pass adds ${audioCuts.length} ranked windows, with the strongest acoustic signal at ${strongestMoment ? formatTimestamp(strongestMoment.t) : "the indexed peak"}; that is a browse aid, not proof of a joke, speaker, or visual reaction.`
+    ? `The audio-feature pass adds ${audioCuts.length} ranked windows, with the strongest acoustic signal at ${strongestAudio ? formatTimestamp(strongestAudio.t) : "the indexed peak"}; that is a browse aid, not proof of a joke, speaker, or visual reaction.`
     : "The page keeps its route receipts caption-led because no matching local audio measurement is available.";
   const secondaryLine = secondary ? ` ${secondary} supplies the next-best pressure point.` : "";
   return `${opening} It runs ${formatTimestamp(duration)}. ${tone} The route mix is ${laneText || "source receipts"}.${secondaryLine} The cleanest entry is ${openingStop}; the strongest indexed door is ${strongestStop}; and the exit route is ${closingStop}. ${topicSentence} ${audioLine} There are ${allMoments.length} bounded jump points here, so press play at the timestamp before treating any caption fragment as canon.`;
@@ -563,8 +564,9 @@ function episodeFrom(id) {
   const fanSignals = fanSignalCandidates(events, duration);
   const derivedSummary = watchalongVoiceSummary({ taxonomy, duration, laneCounts, topics, firstMoment, strongestMoment, finalMoment, allMoments, audioCuts });
   const alternateRouteCount = Number(watchPassRecord?.alternateAudio?.candidates?.length || 0);
+  const strongestAudio = audioCuts.slice().sort((left, right) => Number(right.score || 0) - Number(left.score || 0))[0] || null;
   const audioSummarySuffix = audioCuts.length && guide?.overview
-    ? ` The audio-feature pass adds ${audioCuts.length} ranked browse windows, with its strongest acoustic signal at ${strongestMoment ? formatTimestamp(strongestMoment.t) : "the indexed peak"}; those windows are navigation aids, not speaker or joke proof.`
+    ? ` The audio-feature pass adds ${audioCuts.length} ranked browse windows, with its strongest acoustic signal at ${strongestAudio ? formatTimestamp(strongestAudio.t) : "the indexed peak"}; those windows are navigation aids, not speaker or joke proof.`
     : "";
   const summary = guide?.overview ? `${clean(guide.overview)}${audioSummarySuffix}` : (!events.length && !deepRecord
     ? (alternateRouteCount
