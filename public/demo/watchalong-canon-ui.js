@@ -282,13 +282,31 @@
   }
 
   function laneMarkup(episode) {
-    var lanes = [];
-    (episode.dossier && episode.dossier.cuts || []).slice().sort(function (left, right) { return Number(right.score || 0) - Number(left.score || 0); }).forEach(function (cut) {
+    var cuts = episode.dossier && Array.isArray(episode.dossier.cuts) ? episode.dossier.cuts : [];
+    var counts = {};
+    cuts.forEach(function (cut) {
+      var label = clean(cut.category || cut.label);
+      if (label) counts[label] = (counts[label] || 0) + 1;
+    });
+    if (episode.dossier && Array.isArray(episode.dossier.fanSignals) && episode.dossier.fanSignals.length) counts["FAN SIGNAL"] = episode.dossier.fanSignals.length;
+    var preferred = ["STRAIGHT TO STEVE'S ASSHOLE", "WWAM UP IN YA", "CHARACTER SIGNAL", "FAN SIGNAL"];
+    var lanes = preferred.filter(function (label) { return counts[label]; });
+    cuts.slice().sort(function (left, right) { return Number(right.score || 0) - Number(left.score || 0); }).forEach(function (cut) {
       var label = clean(cut.category || cut.label);
       if (label && lanes.indexOf(label) < 0 && lanes.length < 4) lanes.push(label);
     });
-    if (episode.dossier && Array.isArray(episode.dossier.fanSignals) && episode.dossier.fanSignals.length && lanes.indexOf("FAN SIGNAL") < 0 && lanes.length < 4) lanes.push("FAN SIGNAL");
-    return lanes.length ? '<div class="wac-lane-row">' + lanes.map(function (lane) { return '<span>' + esc(lane) + '</span>'; }).join("") + '</div>' : '';
+    return lanes.length ? '<div class="wac-lane-row">' + lanes.map(function (lane) { return '<span>' + esc(lane) + ' <b>' + counts[lane] + '</b></span>'; }).join("") + '</div>' : '';
+  }
+
+  function episodeProofMarkup(episode) {
+    var pass = episode.watchPass || {};
+    var audit = pass.audit || {};
+    var candidates = Array.isArray(pass.candidates) ? pass.candidates : [];
+    var peak = candidates.reduce(function (value, candidate) { return Math.max(value, Number(candidate.score || 0)); }, 0);
+    if (pass.status === 'audio-feature-pilot') return '<div class="wac-episode-proof"><span>AUDIO PASS // ' + number(audit.candidateCount || candidates.length) + ' WINDOWS</span><b>PEAK SIGNAL ' + (peak ? Math.round(peak) : '—') + '</b></div>';
+    if (pass.status === 'caption-ledger-pilot') return '<div class="wac-episode-proof is-caption"><span>CAPTION PATH // ' + number(audit.candidateCount || candidates.length) + ' ROUTES</span><b>PLAYBACK IS THE AUTHORITY</b></div>';
+    if (/^held-/.test(pass.status || '')) return '<div class="wac-episode-proof is-held"><span>SOURCE HELD // NO TIMESTAMP CLAIM</span><b>OFFICIAL UPLOAD STILL LINKED</b></div>';
+    return '';
   }
 
   function episodeCard(episode) {
@@ -296,7 +314,7 @@
     return '<article class="wac-episode-card" data-wac-episode="' + esc(episode.id) + '">' +
       '<div class="wac-episode-art"><img loading="lazy" src="' + esc(episode.thumbnail) + '" alt="' + esc(episode.movieTitle) + ' watchalong thumbnail"><span>' + esc(stateLabel(episode)) + '</span></div>' +
       '<div class="wac-episode-copy"><header><p>' + esc(dateLabel(episode.date)) + ' // ' + esc(typeLabel(episode.type)) + '</p><b>' + esc(durationLabel(episode.duration)) + '</b></header>' +
-      '<h4>' + esc(episode.movieTitle) + '</h4><p>' + esc(excerpt(episode.dossier && episode.dossier.summary, 210)) + '</p>' + laneMarkup(episode) +
+      '<h4>' + esc(episode.movieTitle) + '</h4><p>' + esc(excerpt(episode.dossier && episode.dossier.summary, 210)) + '</p>' + laneMarkup(episode) + episodeProofMarkup(episode) +
       '<div class="wac-episode-footer"><button type="button" data-wac-open="' + esc(episode.id) + '">OPEN FULL DOSSIER →</button><a href="' + esc(wikiUrl(episode)) + '">SHOW WIKI</a><span style="color:#a9a1a0;font:700 .55rem/1 ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase">' + esc(repeat) + '</span></div></div></article>';
   }
 

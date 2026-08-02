@@ -219,6 +219,13 @@
 .wac-episode-copy > p { margin: 0; color: #c8c0c3; font: 500 .77rem/1.5 ui-sans-serif, system-ui, sans-serif; }
 .wac-lane-row { display: flex; flex-wrap: wrap; gap: .35rem; }
 .wac-lane-row span { border: 1px solid rgba(203, 255, 40, .25); padding: .28rem .4rem; color: var(--canon-acid); font: 700 .52rem/1 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .08em; text-transform: uppercase; }
+.wac-lane-row span b { color: var(--canon-ink); font-weight: 800; }
+.wac-episode-proof { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem; border-left: 2px solid var(--canon-hot); padding: .42rem .55rem; background: rgba(255,44,131,.045); }
+.wac-episode-proof span, .wac-episode-proof b { color: var(--canon-acid); font: 800 .49rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .07em; text-transform: uppercase; }
+.wac-episode-proof b { color: var(--canon-ink); }
+.wac-episode-proof.is-caption { border-left-color: rgba(203,255,40,.55); background: rgba(203,255,40,.035); }
+.wac-episode-proof.is-held { border-left-color: #f3a443; background: rgba(243,164,67,.045); }
+.wac-episode-proof.is-held span { color: #f3a443; }
 .wac-episode-footer { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-top: auto; }
 .wac-episode-footer a,
 .wac-episode-footer button { border: 1px solid var(--canon-line); padding: .55rem .6rem; color: var(--canon-ink); background: transparent; cursor: pointer; font: 800 .57rem/1 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .07em; text-transform: uppercase; text-decoration: none; }
