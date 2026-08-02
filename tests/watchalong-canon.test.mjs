@@ -178,8 +178,8 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(html, /href="#watchalong-canon"/);
   assert.match(html, /wwam-watchalong-canon\.js/);
   assert.match(html, /watchalong-canon\.css/);
-  assert.match(html, /PUBLIC WATCHALONG CANON \/\/ 102 SOURCES \/ 91 MOVIE FILES \/\/ \+6 PODCAST RECOVERIES/);
-  assert.match(html, /509 livestreams.*102 public YouTube watchalong sources.*\+6 official podcast recoveries/i);
+  assert.match(html, /YOUTUBE WATCHALONG CANON \/\/ 102 SOURCES \/ 91 MOVIE FILES \/\/ \+6 PODCAST RECOVERIES/);
+  assert.match(html, /509 livestreams.*102 YouTube watchalong canon sources.*90 current public leads.*12 legacy records.*\+6 official podcast recoveries/i);
   assert.match(html, /509 current-canon livestreams.*108 indexed full-film sources/i);
   assert.doesNotMatch(html, /PUBLIC WATCHALONG CANON \/\/ 50 SOURCES \/ 47 MOVIE FILES/);
   assert.doesNotMatch(html, /131 livestreams|50 public watchalong sources/i);
@@ -196,6 +196,7 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(ui, /function edgeAuditMarkup\(\)/);
   assert.match(ui, /function coverageLedgerMarkup\(\)/);
   assert.match(ui, /MORE THAN 50\. THE AUDIT SAYS HOW MANY/);
+  assert.match(ui, /YOUTUBE WATCHALONG CANON/);
   assert.match(ui, /RSS COMMENTARY RECEIPTS/);
   assert.match(ui, /THE OVERLOOKED EDGE/);
   assert.match(ui, /edgeReview/);

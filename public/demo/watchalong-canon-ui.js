@@ -92,9 +92,10 @@
 
   function coverageLedgerMarkup() {
     var ledger = payload.coverageLedger || {};
+    var sourceCounts = (payload.stats || {}).sourceCounts || {};
     var examples = Array.isArray(ledger.crossGenreExamples) ? ledger.crossGenreExamples : [];
     var cards = [
-      [ledger.publicYoutubeCanon, "PUBLIC YOUTUBE WATCHALONGS", "caption-backed or source-dossier canon"],
+      [ledger.publicYoutubeCanon, "YOUTUBE WATCHALONG CANON", number(sourceCounts.liveStrictPublicCandidates) + " current public leads // " + number(sourceCounts.legacyCatalogRetained) + " legacy records"],
       [ledger.podcastFeedRecords, "RSS COMMENTARY RECEIPTS", number(ledger.podcastFeedOverlaps) + " overlap checks // " + number(ledger.podcastRecoveries) + " net-new"],
       [ledger.podcastRecoveries, "OFFICIAL PODCAST RECOVERIES", "full-film audio sources kept separate"],
       [ledger.heldStrictMembersOnly, "STRICT HOLDS", "title-explicit, access-limited leads"],
