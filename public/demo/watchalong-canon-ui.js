@@ -109,6 +109,15 @@
     return '<details class="wac-edge-shelf"><summary><span>THE OVERLOOKED EDGE // EVERY TITLE CHECKED</span><b>' + number(omissions.length) + ' LEADS OUTSIDE CANON +</b></summary><p class="wac-edge-intro">This is the audit shelf that keeps “more than 50” honest. These are not silently discarded: each lead is named, dated, and linked. Members-only uploads stay held; adjacent public reactions stay adjacent; unresolved pages stay unresolved.</p><div class="wac-edge-grid">' + bucketMarkup + '</div></details>';
   }
 
+  function podcastRecoveryMarkup() {
+    var recovered = Array.isArray(payload.podcastCommentaries) ? payload.podcastCommentaries : [];
+    if (!recovered.length) return '';
+    var sourceCounts = (payload.stats || {}).sourceCounts || {};
+    return '<section class="wac-podcast-recovery" aria-labelledby="wacPodcastRecoveryTitle"><header><div><span class="wac-section-label">OFFICIAL FEED RECOVERY // NON-HORROR LANES INCLUDED</span><h3 id="wacPodcastRecoveryTitle">THE COMMENTARIES THE LIVE YOUTUBE AUDIT COULD NOT SEE.</h3><p>We checked the official WWAM RSS archive alongside the live channel. These full-film commentaries are real, playable WWAM releases that are absent from the current public YouTube snapshot. They stay separate from the 102-source YouTube canon so the archive never invents a video ID or pretends podcast time equals YouTube time.</p></div><div class="wac-podcast-proof"><b>' + number(recovered.length) + '</b><span>RECOVERED PODCAST SOURCES</span><small>' + number(sourceCounts.podcastOnlyCommentaries || recovered.length) + ' AUDIO-ONLY // 0 FAKE TIMESTAMPS</small></div></header><div class="wac-podcast-grid">' + recovered.map(function (item) {
+      return '<article class="wac-podcast-card"><div class="wac-podcast-card-head"><span>OFFICIAL WWAM PODCAST</span><b>' + esc(item.movieTitle) + '</b><small>' + esc(dateLabel(item.date)) + ' // ' + esc(durationLabel(item.duration)) + '</small></div><p>' + esc(item.note) + '</p><audio controls preload="none" src="' + esc(item.sourceUrl || item.url) + '"></audio><div class="wac-podcast-card-foot"><a target="_blank" rel="noopener" href="' + esc(item.sourceUrl || item.url) + '">OPEN AUDIO SOURCE â†—</a><span>RSS TITLE + RUNTIME VERIFIED</span></div></article>';
+    }).join('') + '</div><footer><strong>LISTENING RULE</strong> Start with the audio player above. When this lane receives a future audio pass, its receipts will remain bound to the podcast file; the archive will never paste a podcast timestamp onto a YouTube player.</footer></section>';
+  }
+
   function toolsMarkup() {
     var typeOptions = ["all", "commentary", "watch-party", "watch-along"].map(function (type) {
       return '<option value="' + esc(type) + '"' + (state.type === type ? " selected" : "") + '>' + (type === "all" ? "ALL WATCHALONG TYPES" : typeLabel(type)) + '</option>';
@@ -309,7 +318,7 @@
   function render() {
     var visible = visibleEpisodes();
     var selected = episodeById(state.selected);
-    mount.innerHTML = '<div class="wac-shell">' + proofMarkup() + edgeAuditMarkup() + toolsMarkup() + franchiseMarkup() + movieFileMarkup() +
+    mount.innerHTML = '<div class="wac-shell">' + proofMarkup() + edgeAuditMarkup() + podcastRecoveryMarkup() + toolsMarkup() + franchiseMarkup() + movieFileMarkup() +
       '<div class="wac-results-head"><h3>' + (state.franchise === "all" ? "THE FULL TAPE LIST" : esc((franchises.filter(function (item) { return item.key === state.franchise; })[0] || {}).title || "FILTERED TAPE LIST")) + '</h3><span>' + number(visible.length) + ' EPISODES // EVERY MOVIE VERSION STAYS VISIBLE</span></div>' +
       '<div class="wac-episode-grid">' + (visible.length ? visible.map(episodeCard).join('') : '<div class="wac-empty">No public watchalong matches that filter. Try another movie, franchise, or format.</div>') + '</div>' + (selected ? dossierMarkup(selected) : '') + '</div>';
     bind();

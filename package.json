@@ -14,6 +14,7 @@
     "db:generate": "drizzle-kit generate",
     "build:pages": "node scripts/build-github-pages.mjs",
     "audit:watchalong-discovery": "python scripts/discover_wwam_watchalongs.py",
+    "audit:podcast-watchalongs": "python scripts/audit_wwam_podcast_commentaries.py",
     "acquire:watchalong-audio": "python scripts/acquire_wwam_watchalong_audio.py",
     "acquire:2026-livestream-audio": "python scripts/acquire_wwam_2026_livestream_audio.py",
     "generate:watchalong-canon": "node scripts/generate-wwam-watchalong-canon.mjs",

@@ -21,6 +21,9 @@ const watchPass = context.WWAM_WATCH_PASS_PILOT;
 test("watchalong canon has the complete public source registry", () => {
   assert.equal(canon.schema, "shokker-wwam-watchalong-canon/v1");
   assert.match(canon.sourcePolicy, /non-isomorphic/i);
+  assert.equal(canon.podcastAudit.feedItemsAudited, 56);
+  assert.equal(canon.podcastAudit.newToPublicYouTubeCanon, 6);
+  assert.match(canon.podcastAudit.feedUrl, /anchor\.fm\/s\/10a245f8\/podcast\/rss/);
   assert.equal(canon.stats.episodes, 102);
   assert.equal(canon.stats.movieGroups, 91);
   assert.equal(canon.stats.franchises, 13);
@@ -28,6 +31,11 @@ test("watchalong canon has the complete public source registry", () => {
   assert.equal(canon.stats.captionLedgers, 63);
   assert.equal(canon.stats.sourceBriefs, 1);
   assert.equal(canon.stats.nonFullAdditions, 64);
+  assert.equal(canon.stats.podcastOnlyCommentaries, 6);
+  assert.equal(canon.podcastCommentaries.length, 6);
+  assert.ok(canon.podcastCommentaries.some((record) => record.movieTitle === "Wayne's World"));
+  assert.ok(canon.podcastCommentaries.some((record) => record.movieTitle === "Predator (1987)"));
+  assert.ok(canon.podcastCommentaries.every((record) => record.status === "recovered-audio-lead" && record.evidence.publicPlayback === true));
   assert.equal(canon.stats.sourceCounts.heldMembersOnly, 22);
   assert.equal(canon.stats.sourceCounts.liveStrictCandidates, 112);
   assert.equal(canon.stats.sourceCounts.liveStrictPublicCandidates, 90);
@@ -161,6 +169,9 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(ui, /ACOUSTIC ONLY/);
   assert.match(ui, /function edgeAuditMarkup\(\)/);
   assert.match(ui, /THE OVERLOOKED EDGE/);
+  assert.match(ui, /function podcastRecoveryMarkup\(\)/);
+  assert.match(ui, /OFFICIAL FEED RECOVERY/);
+  assert.match(ui, /<audio controls/);
   assert.match(ui, /broadDiscoveryOmissions/);
   assert.match(ui, /LISTENING READ \/\/ EVIDENCE MIX/);
   assert.match(ui, /AUDIO PASS/);
@@ -169,4 +180,5 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(css, /\.wac-watch-pass/);
   assert.match(css, /\.wac-watch-pass-read/);
   assert.match(css, /\.wac-edge-shelf/);
+  assert.match(css, /\.wac-podcast-recovery/);
 });

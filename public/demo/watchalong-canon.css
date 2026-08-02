@@ -199,6 +199,27 @@
 .wac-dossier-footer a { color: var(--canon-ink); font: 800 .61rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .08em; text-decoration: none; text-transform: uppercase; }
 .wac-dossier-footer a:hover { color: var(--canon-hot); }
 
+.wac-podcast-recovery { margin-top: 1.2rem; border: 1px solid rgba(203, 255, 40, .34); background: linear-gradient(135deg, rgba(203, 255, 40, .07), rgba(0, 0, 0, .22)); }
+.wac-podcast-recovery > header { display: grid; grid-template-columns: minmax(0, 1fr) 14rem; gap: 1.2rem; align-items: start; padding: 1.35rem 1.5rem; border-bottom: 1px solid var(--canon-line); }
+.wac-podcast-recovery h3 { margin: .35rem 0 .55rem; max-width: 44rem; color: var(--canon-ink); font: 800 clamp(1.65rem, 3vw, 2.8rem)/.92 "Arial Narrow", Impact, sans-serif; letter-spacing: -.03em; text-transform: uppercase; }
+.wac-podcast-recovery header p { max-width: 58rem; margin: 0; color: #d4cbcf; font: 500 .8rem/1.55 ui-sans-serif, system-ui, sans-serif; }
+.wac-podcast-proof { display: grid; gap: .25rem; border-left: 2px solid var(--canon-acid); padding: .7rem .8rem; background: rgba(0, 0, 0, .24); }
+.wac-podcast-proof b { color: var(--canon-acid); font: 800 2.4rem/.9 "Arial Narrow", Impact, sans-serif; }
+.wac-podcast-proof span, .wac-podcast-proof small { color: var(--canon-dim); font: 800 .53rem/1.3 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .09em; text-transform: uppercase; }
+.wac-podcast-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .7rem; padding: 1rem 1.5rem 1.25rem; }
+.wac-podcast-card { display: flex; flex-direction: column; gap: .6rem; border: 1px solid var(--canon-line); padding: .8rem; background: rgba(0, 0, 0, .28); }
+.wac-podcast-card-head { display: grid; gap: .25rem; }
+.wac-podcast-card-head span { color: var(--canon-hot); font: 800 .5rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .1em; text-transform: uppercase; }
+.wac-podcast-card-head b { color: var(--canon-ink); font: 800 1.15rem/1 "Arial Narrow", Impact, sans-serif; text-transform: uppercase; }
+.wac-podcast-card-head small, .wac-podcast-card-foot span { color: var(--canon-dim); font: 700 .53rem/1.3 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .06em; text-transform: uppercase; }
+.wac-podcast-card p { min-height: 3.2rem; margin: 0; color: #c8c0c3; font: 500 .7rem/1.45 ui-sans-serif, system-ui, sans-serif; }
+.wac-podcast-card audio { width: 100%; height: 2rem; accent-color: var(--canon-hot); }
+.wac-podcast-card-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .4rem; align-items: center; margin-top: auto; }
+.wac-podcast-card-foot a { color: var(--canon-acid); font: 800 .55rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .07em; text-decoration: none; text-transform: uppercase; }
+.wac-podcast-card-foot a:hover { color: var(--canon-hot); }
+.wac-podcast-recovery > footer { border-top: 1px solid var(--canon-line); padding: .8rem 1.5rem 1rem; color: var(--canon-dim); font: 500 .66rem/1.45 ui-sans-serif, system-ui, sans-serif; }
+.wac-podcast-recovery > footer strong { color: var(--canon-acid); font: 800 .55rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .08em; }
+
 @media (max-width: 1000px) {
   .wac-proof { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .wac-proof article:nth-child(3) { border-right: 0; }
@@ -208,6 +229,7 @@
   .wac-tools { grid-template-columns: 1fr 1fr; }
   .wac-tools button { width: 100%; }
   .wac-edge-grid { grid-template-columns: 1fr 1fr; }
+  .wac-podcast-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 720px) {
@@ -215,10 +237,13 @@
   .wac-proof { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .wac-proof article:nth-child(odd) { border-right: 1px solid var(--canon-line); }
   .wac-proof article:nth-child(even) { border-right: 0; }
-  .wac-tools, .wac-franchise-grid, .wac-group-grid, .wac-episode-grid, .wac-route-grid, .wac-chapter-grid, .wac-moment-grid, .wac-edge-grid { grid-template-columns: 1fr; }
+  .wac-tools, .wac-franchise-grid, .wac-group-grid, .wac-episode-grid, .wac-route-grid, .wac-chapter-grid, .wac-moment-grid, .wac-edge-grid, .wac-podcast-grid { grid-template-columns: 1fr; }
   .wac-episode-card { grid-template-columns: 7.5rem minmax(0, 1fr); }
   .wac-episode-art img { min-height: 13rem; }
   .wac-dossier-head { grid-template-columns: 1fr; padding: 1rem; }
   .wac-dossier-note, .wac-route-grid, .wac-chapter-grid, .wac-topic-row, .wac-moment-grid { margin-left: 0; margin-right: 0; padding-left: 1rem; padding-right: 1rem; }
   .wac-dossier-footer { padding-left: 1rem; padding-right: 1rem; }
+  .wac-podcast-recovery > header { grid-template-columns: 1fr; padding: 1rem; }
+  .wac-podcast-grid { padding-left: 1rem; padding-right: 1rem; }
+  .wac-podcast-recovery > footer { padding-left: 1rem; padding-right: 1rem; }
 }

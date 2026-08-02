@@ -78,6 +78,27 @@ const explicitExtras = new Map([
   ["QxJyVaAgZ_Y", { franchiseKey: "friday-the-13th", franchiseTitle: "Friday the 13th", movieKey: "friday-the-13th-part-4", movieTitle: "Friday the 13th: The Final Chapter", type: "watch-along", note: "2024 public watch-along repeat" }]
 ]);
 
+// The official WWAM podcast feed preserves a handful of full-film commentaries
+// that no longer appear in the public YouTube channel snapshot. They are kept
+// in a separate, playable evidence lane rather than being given fake YouTube
+// IDs or invented timestamps. The RSS title, publication date, enclosure URL,
+// and duration are the complete source boundary for this recovery slice.
+const podcastOnlyCommentaries = [
+  { key: "american-psycho-podcast-2023", title: "AMERICAN PSYCHO Full Movie Commentary", movieTitle: "American Psycho", franchiseKey: "podcast-recovered", franchiseTitle: "Podcast Recovered // Other Films", date: "2023-05-19", duration: 6207, bytes: 99322148, url: "https://traffic.megaphone.fm/APO4628987666.mp3", guid: "5c522702-8d22-4e6a-824f-59b44446d065", note: "Official WWAM podcast-feed commentary; no matching public YouTube upload was found in the live channel snapshot." },
+  { key: "wayne-s-world-podcast-2022", title: "Wayne's World Commentary", movieTitle: "Wayne's World", franchiseKey: "podcast-recovered", franchiseTitle: "Podcast Recovered // Other Films", date: "2022-06-16", duration: 5723, bytes: 91576946, url: "https://traffic.megaphone.fm/APO6747829456.mp3", guid: "93e1bba5-3d3d-4ba5-8eab-e627e8e1c808", note: "Official WWAM podcast-feed commentary; comedy watchalong recovered outside the current YouTube canon." },
+  { key: "planes-trains-automobiles-podcast-2020", title: "JUST LIKE THE MOVIES - Planes Trains and Automobiles FULL Movie Commentary", movieTitle: "Planes, Trains and Automobiles", franchiseKey: "podcast-recovered", franchiseTitle: "Podcast Recovered // Other Films", date: "2020-11-27", duration: 5734, bytes: 91748728, url: "https://traffic.megaphone.fm/APO7287494031.mp3", guid: "0458f154-9bf6-418a-953d-5a7427ae9167", note: "Official WWAM podcast-feed commentary; the holiday comedy lane is not represented in the current public YouTube canon." },
+  { key: "once-upon-a-time-in-hollywood-podcast-2020", title: "Once Upon A Time In Hollywood Full Movie Commentary", movieTitle: "Once Upon a Time in Hollywood", franchiseKey: "podcast-recovered", franchiseTitle: "Podcast Recovered // Other Films", date: "2020-03-06", duration: 9630, bytes: 154084832, url: "https://traffic.megaphone.fm/APO2105851512.mp3", guid: "ac4bb1a2-56be-4ded-a707-92c0f4966422", note: "Official WWAM podcast-feed commentary; a full 2h40m film discussion recovered outside the current YouTube canon." },
+  { key: "death-wish-podcast-2018", title: "'Death Wish' Movie Commentary", movieTitle: "Death Wish", franchiseKey: "podcast-recovered", franchiseTitle: "Podcast Recovered // Other Films", date: "2018-12-13", duration: 3829, bytes: 61273234, url: "https://traffic.megaphone.fm/APO2045620215.mp3", guid: "3866e446-7c07-49ba-ad6c-8a2cea88e1d2", note: "Official WWAM podcast-feed commentary; an early non-horror/action title missed by the live YouTube audit." },
+  { key: "predator-1987-podcast-2018", title: "Predator (1987) COMMENTARY", movieTitle: "Predator (1987)", franchiseKey: "podcast-recovered", franchiseTitle: "Podcast Recovered // Other Films", date: "2018-11-12", duration: 6857, bytes: 109713867, url: "https://traffic.megaphone.fm/APO7781268085.mp3", guid: "e5055d90-8fc0-4142-9c87-2d10bc02b129", note: "Official WWAM podcast-feed commentary; the action/sci-fi lane is not present in the current public YouTube canon." }
+].map((record) => ({
+  ...record,
+  sourceKind: "official-wwam-podcast",
+  status: "recovered-audio-lead",
+  sourceUrl: record.url,
+  timestampPolicy: "No YouTube timestamp is manufactured. Any future listening notes must remain bound to this podcast audio file.",
+  evidence: { type: "official-wwam-podcast-rss", titleExplicit: true, enclosureBytes: record.bytes, guid: record.guid, durationSeconds: record.duration, publicPlayback: true }
+}));
+
 const includedIds = new Set(catalog.map((record) => record.id));
 metadata.forEach((record) => {
   // The public canon must not silently promote member-only uploads. They
@@ -595,19 +616,21 @@ const payload = {
   schema: "shokker-wwam-watchalong-canon/v1",
   generated: new Date().toISOString(),
   observedAt: discoveryManifest?.observedAt || "2026-07-30",
-  sourcePolicy: "Official cached WWAM YouTube metadata plus local caption or audio-transcript receipts. Existing curated 39-tape dossiers are retained; title-explicit public commentaries, movie watch parties, and clearly labeled We Watched <film> highlight edits are added as caption-ledger or source-brief dossiers. Official podcast variants may add variant-bound audio routes only when their timeline is explicitly non-isomorphic; they never substitute for canonical YouTube timestamps. Members-only uploads stay in the discovery ledger until access changes. No speaker, intent, rights, or creator-approval claim is inferred.",
+  podcastAudit: { feedUrl: "https://anchor.fm/s/10a245f8/podcast/rss", feedItemsAudited: 56, titleExplicitFilmCommentaries: 56, newToPublicYouTubeCanon: podcastOnlyCommentaries.length, method: "Official RSS title + enclosure + iTunes duration; no title-only RSS item is promoted without a full-film commentary signal." },
+  sourcePolicy: "Official cached WWAM YouTube metadata plus local caption or audio-transcript receipts. Existing curated 39-tape dossiers are retained; title-explicit public commentaries, movie watch parties, and clearly labeled We Watched <film> highlight edits are added as caption-ledger or source-brief dossiers. Official podcast variants may add variant-bound audio routes only when their timeline is explicitly non-isomorphic; they never substitute for canonical YouTube timestamps. The official RSS audit also preserves six title-explicit, playable podcast-only film commentaries whose YouTube counterparts are absent from the current public snapshot; they remain a separate recovery lane with no invented timestamps. Members-only uploads stay in the discovery ledger until access changes. No speaker, intent, rights, or creator-approval claim is inferred.",
   scope: { metadataSources: metadata.length, channelSnapshotSources: discoveryManifest?.channelSnapshotSources || null, titleCandidates: titleCandidates.length, heldTitleCandidates: heldTitleCandidates.length, episodes: episodes.length, captionFiles: fs.readdirSync(CAPTIONS_DIR).filter((file) => file.endsWith(".json")).length },
   stats: {
     episodes: episodes.length, deepDossiers: episodes.filter((episode) => episode.dossier.state === "full-editorial-dossier").length, captionLedgers: episodes.filter((episode) => episode.dossier.state === "caption-ledger-dossier").length, sourceBriefs: episodes.filter((episode) => episode.dossier.state === "source-brief-dossier").length, nonFullAdditions: episodes.filter((episode) => episode.dossier.state !== "full-editorial-dossier").length,
-    franchises: franchises.length, movieGroups: groups.length, repeatedMovies: groups.filter((group) => group.repeatCount > 0).length,
+    franchises: franchises.length, movieGroups: groups.length, repeatedMovies: groups.filter((group) => group.repeatCount > 0).length, podcastOnlyCommentaries: podcastOnlyCommentaries.length,
     totalDurationSeconds: episodes.reduce((sum, episode) => sum + episode.duration, 0), totalViewsSnapshot: episodes.reduce((sum, episode) => sum + episode.views, 0),
     fanSignalReceipts: episodes.reduce((sum, episode) => sum + Number(episode.dossier?.fanSignals?.length || 0), 0),
     episodesWithFanSignals: episodes.filter((episode) => Number(episode.dossier?.fanSignals?.length || 0) > 0).length,
     firstDate: episodes[0]?.date || null, lastDate: episodes.at(-1)?.date || null,
-    sourceCounts: { catalogCommentaries: catalog.length, titleCommentaries: titleCandidates.filter((record) => /commentary/i.test(record.title)).length, explicitWatchParties: 2, heldMembersOnly: heldTitleCandidates.length, liveStrictCandidates: liveStrictCandidates.length, liveStrictPublicCandidates: liveStrictPublicCandidates.length, legacyCatalogRetained: legacyCatalogRetained.length }
+    sourceCounts: { catalogCommentaries: catalog.length, titleCommentaries: titleCandidates.filter((record) => /commentary/i.test(record.title)).length, explicitWatchParties: 2, heldMembersOnly: heldTitleCandidates.length, liveStrictCandidates: liveStrictCandidates.length, liveStrictPublicCandidates: liveStrictPublicCandidates.length, legacyCatalogRetained: legacyCatalogRetained.length, podcastOnlyCommentaries: podcastOnlyCommentaries.length }
   },
   taxonomy: { groups: groups.map((group) => ({ key: group.key, title: group.title, franchiseKey: group.franchiseKey })), aliases: Object.fromEntries(episodes.map((episode) => [episode.id, episode.aliases])) },
   watchPassCoverage: watchPass.coverage || null,
+  podcastCommentaries: podcastOnlyCommentaries,
   franchises, groups, episodes, discovery: {
     channelUrl: discoveryManifest?.channelUrl || "https://www.youtube.com/@WeWatchedAMovie/videos",
     titlePattern: discoveryManifest?.titlePattern || titleSignal.source,
