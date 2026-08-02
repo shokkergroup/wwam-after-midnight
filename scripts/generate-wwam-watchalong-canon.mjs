@@ -442,10 +442,22 @@ function candidateMoments(events, duration, aliases, taxonomy = {}) {
     const subject = excerptSubject || nearest?.name || "SOURCE CHECKPOINT";
     return { ...candidate, label: `${candidate.label} // ${subject}` };
   });
+  // A chapter is a jump point, not a decorative repeat of the same receipt.
+  // Older ledgers could select the same nearest candidate for several eighths
+  // of a short tape, which made the chapter rail feel broken even though the
+  // underlying moment count passed its depth floor. Prefer an unused timestamp
+  // first, then an unused candidate id when a tape has clustered evidence.
+  const usedChapterIds = new Set();
+  const usedChapterTimes = new Set();
   const chapters = [0, 1, 2, 3, 4, 5, 6, 7].map((index) => {
     const at = Math.round((duration || events.at(-1).end) * index / 8);
-    const nearest = contextualCandidates.slice().sort((left, right) => Math.abs(left.t - at) - Math.abs(right.t - at))[0];
-    return nearest ? { id: `act-${String(index + 1).padStart(2, "0")}`, act: index + 1, label: `${nearest.label} // ${nearest.category}`, at: nearest.t, end: nearest.end, body: `The source-local caption ledger puts ${nearest.label.toLowerCase()} at ${formatTimestamp(nearest.t)}. The jump is a machine candidate; open the tape before treating the line as a final read.`, excerpt: nearest.excerpt, category: nearest.category, cutId: nearest.id, evidenceBasis: nearest.evidenceBasis } : null;
+    const unused = contextualCandidates.filter((candidate) => !usedChapterIds.has(candidate.id) && !usedChapterTimes.has(candidate.t));
+    const fallback = contextualCandidates.filter((candidate) => !usedChapterIds.has(candidate.id));
+    const nearest = (unused.length ? unused : fallback).slice().sort((left, right) => Math.abs(left.t - at) - Math.abs(right.t - at))[0];
+    if (!nearest) return null;
+    usedChapterIds.add(nearest.id);
+    usedChapterTimes.add(nearest.t);
+    return { id: `act-${String(index + 1).padStart(2, "0")}`, act: index + 1, label: `${nearest.label} // ${nearest.category}`, at: nearest.t, end: nearest.end, body: `The source-local caption ledger puts ${nearest.label.toLowerCase()} at ${formatTimestamp(nearest.t)}. The jump is a machine candidate; open the tape before treating the line as a final read.`, excerpt: nearest.excerpt, category: nearest.category, cutId: nearest.id, evidenceBasis: nearest.evidenceBasis };
   }).filter(Boolean);
   return { moments: contextualCandidates, topics: topicTerms, chapters, captionWords: words(events.map((event) => event.text).join(" ")).length, captionEvents: events.length };
 }
