@@ -304,6 +304,7 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(ui, /edgeReview/);
   assert.match(ui, /function keepPublicEdgeLinksLocal\(\)/, "public edge leads stay in the local app route");
   assert.match(ui, /function keepLocalReceiptLinks\(\)/, "bounded watchalong receipts stay in the local Show Wiki route");
+  assert.match(ui, /function keepLocalJumpLinksInApp\(\)/, "watchalong receipt jumps stay in the current local page instead of opening a tab");
   assert.match(ui, /function receiptUrl\(episode, item\)/, "variant receipts have an explicit source URL lane");
   assert.match(ui, /OPEN PODCAST VARIANT AT/, "variant-clock receipts are labeled instead of masquerading as YouTube jumps");
   assert.match(ui, /data-wac-variant-seek/, "held podcast variants have in-page playable seek controls");

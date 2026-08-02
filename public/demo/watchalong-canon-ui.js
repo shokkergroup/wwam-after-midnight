@@ -746,6 +746,16 @@
     });
   }
 
+  function keepLocalJumpLinksInApp() {
+    Array.prototype.forEach.call(mount.querySelectorAll('a[href^="?source="]'), function (link) {
+      link.removeAttribute("target");
+      link.removeAttribute("rel");
+    });
+  }
   render();
-  root.WWAMWatchalongCanonUI = Object.freeze({ version: "1.8.0", render: render, payload: payload });
+  keepLocalJumpLinksInApp();
+  if (root.MutationObserver) {
+    new root.MutationObserver(keepLocalJumpLinksInApp).observe(mount, { childList: true, subtree: true });
+  }
+  root.WWAMWatchalongCanonUI = Object.freeze({ version: "1.8.1", render: render, payload: payload });
 })(typeof window !== "undefined" ? window : globalThis);
