@@ -706,7 +706,7 @@
       var at = numberOrNull(candidate && candidate.t);
       return at != null && at >= 0 && at <= source.duration;
     });
-    return candidates.slice(0, 48).map(function (candidate, index) {
+    return candidates.map(function (candidate, index) {
       var at = Math.max(0, number(candidate.t));
       var requestedEnd = Math.max(at + 8, number(candidate.end));
       var end = Math.min(source.duration, requestedEnd);
