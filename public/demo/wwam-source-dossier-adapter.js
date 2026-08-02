@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.17.0";
+  var VERSION = "1.17.1";
   var SCHEMA = "shokker-source-dossier-input/v1";
   var PUBLIC_EXCERPT_WORDS = 16;
   var OFFICIAL_WWAM_CHANNEL_ID = "UC6ieEOZW4iXV8TcILJI8k5g";
@@ -711,8 +711,9 @@
       var requestedEnd = Math.max(at + 8, number(candidate.end));
       var end = Math.min(source.duration, requestedEnd);
       var category = clean(candidate.category || candidate.label || "LISTENING SPIKE");
-      var excerpt = clean(candidate.captionExcerpt || candidate.excerpt ||
-        "No caption fragment aligned; open the source and listen to this audio-ranked window.");
+      var alignedExcerpt = clean(candidate.captionExcerpt || candidate.excerpt);
+      var excerpt = alignedExcerpt ||
+        "No caption fragment aligned; open the source and listen to this audio-ranked window.";
       var score = boundedSignal(candidate.score);
       return normalizedReceipt(
         {
@@ -732,7 +733,7 @@
           evidenceBasis: clean(candidate.evidenceBasis) ||
             "canonical watchalong audio pass; local audio ranked against the source caption clock",
           reviewState: "audio-feature-candidate; playback remains the authority",
-          publicExcerptAllowed: Boolean(excerpt),
+          publicExcerptAllowed: Boolean(alignedExcerpt),
           signalScore: score,
           signalBasis: score == null ? null : "audio-pass-ranked-candidate",
         }

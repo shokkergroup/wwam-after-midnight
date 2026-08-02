@@ -218,6 +218,12 @@ test("watchalong audio-pass routes become a local Show Wiki lane", () => {
             score: 91,
             captionExcerpt: "The room breaks when the commentary takes a hard left turn.",
             evidenceBasis: "canonical YouTube audio pass + local caption alignment",
+          }, {
+            t: 20,
+            end: 20,
+            category: "AUDIO SPIKE",
+            score: 64,
+            evidenceBasis: "canonical YouTube audio pass; no aligned caption fragment",
           }],
         },
       })),
@@ -229,15 +235,18 @@ test("watchalong audio-pass routes become a local Show Wiki lane", () => {
   assert.ok(source);
   const lane = source.showWiki.lanes.find((candidate) => candidate.id === "audio-pass");
   assert.ok(lane);
-  assert.equal(lane.receiptKeys.length, 1);
+  assert.equal(lane.receiptKeys.length, 2);
   const receipt = source.receipts.find((candidate) => candidate.evidenceType === "audio-feature-candidate");
   assert.ok(receipt);
   assert.equal(receipt.at, 1);
   assert.equal(receipt.end, 9);
   assert.equal(receipt.speakerStatus, "not-diarized");
   assert.equal(receipt.publicExcerptAllowed, true);
+  const fallback = source.receipts.find((candidate) => candidate.at === 20);
+  assert.ok(fallback);
+  assert.equal(fallback.publicExcerptAllowed, false);
   const compiled = runtime.ShokkerSourceDossier.create(result).build(source.id);
-  assert.equal(compiled.source.showWiki.lanes.find((candidate) => candidate.id === "audio-pass").receiptKeys.length, 1);
+  assert.equal(compiled.source.showWiki.lanes.find((candidate) => candidate.id === "audio-pass").receiptKeys.length, 2);
 });
 
 test("canonical format contracts classify all 510 sources without relaxing rights", () => {
