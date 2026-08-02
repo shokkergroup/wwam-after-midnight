@@ -124,8 +124,11 @@
     if (!watchalongs.length && !reviews.length) return '';
     function card(item, label) {
       var state = item.status === 'public-companion' || item.status === 'public-adjacent' ? 'PUBLIC SOURCE' : item.status === 'members-only-hold' ? 'MEMBERS-ONLY HOLD' : 'PLAYABILITY UNRESOLVED';
-      var source = item.url || ('https://www.youtube.com/watch?v=' + encodeURIComponent(item.id));
-      return '<article class="wac-companion-card"><header><span>' + esc(label) + '</span><small>' + esc(dateLabel(item.date)) + ' // ' + esc(durationLabel(item.duration)) + '</small></header><h4>' + esc(item.title) + '</h4><p>' + esc(state) + '. This title stays outside the full-film count until its exact format is confirmed; no fake jump points are attached.</p><a target="_blank" rel="noopener" href="' + esc(source) + '">OPEN SOURCE ' + esc(state === 'PUBLIC SOURCE' ? '→' : '↗') + '</a></article>';
+      var local = state === 'PUBLIC SOURCE';
+      var source = local ? ('?source=' + encodeURIComponent(item.id) + '&section=wiki#archive') : (item.url || ('https://www.youtube.com/watch?v=' + encodeURIComponent(item.id)));
+      var linkAttrs = local ? '' : ' target="_blank" rel="noopener"';
+      var linkLabel = local ? 'OPEN LOCAL SHOW WIKI →' : 'OPEN SOURCE ↗';
+      return '<article class="wac-companion-card"><header><span>' + esc(label) + '</span><small>' + esc(dateLabel(item.date)) + ' // ' + esc(durationLabel(item.duration)) + '</small></header><h4>' + esc(item.title) + '</h4><p>' + esc(state) + '. This title stays outside the full-film count until its exact format is confirmed; no fake jump points are attached.</p><a' + linkAttrs + ' href="' + esc(source) + '">' + linkLabel + '</a></article>';
     }
     var watchMarkup = watchalongs.map(function (item) { return card(item, 'EARLY WATCHED CUT'); }).join('');
     var reviewMarkup = reviews.map(function (item) { return card(item, item.signal === 'short-form-watch-lead' ? 'SHORT WATCH LEAD' : 'REACTION / REVIEW'); }).join('');

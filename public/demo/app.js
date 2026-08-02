@@ -671,6 +671,8 @@
     var source = itemById[sourceId] || streamById[sourceId] || null;
     var pools = [
       window.WWAM_WATCHALONG_CANON && window.WWAM_WATCHALONG_CANON.episodes,
+      window.WWAM_WATCHALONG_CANON && window.WWAM_WATCHALONG_CANON.companionWatchalongs,
+      window.WWAM_WATCHALONG_CANON && window.WWAM_WATCHALONG_CANON.companionReviews,
       window.WWAM_LIVESTREAM_CANON && window.WWAM_LIVESTREAM_CANON.episodes,
       window.WWAM_ARCHIVE_ATLAS && window.WWAM_ARCHIVE_ATLAS.records,
     ];
