@@ -31,7 +31,10 @@
   var primaryViewSelectors = {
     home: [".wwam-editorial-hero", ".wwam-pick-your-poison", ".guided-home"],
     shows: ["#shows-hub", "#livewire", "#archive", "#livestream-canon"],
-    watchalongs: ["#watchalongs-hub", "#watchalong-canon", "#franchises", "#autopsies"],
+    // Put the visitor's actual choice in front: movie worlds first, the audit
+    // ledger second. The 102-source ledger is still one click away, but it no
+    // longer blocks the obvious Halloween / comedy / franchise entry points.
+    watchalongs: ["#watchalongs-hub", "#franchises", "#halloween-universe", "#comedy-vault", "#watchalong-canon", "#autopsies"],
     characters: ["#characters-hub", "#characters", "#lore"],
     fam: ["#fam-hall"],
     ask: ["#ask"],
@@ -116,10 +119,10 @@
         title: "PICK A MOVIE.<br><em>ENTER ITS WORLD.</em>",
         copy: "Choose a franchise or a one-off commentary. The movie context, WWAM versions, playable moments, and source record stay in one place.",
         links: [
-          ["#watchalong-canon", "watchalongs", "PUBLIC WATCHALONG CANON", "Every movie cut, repeat, and source dossier"],
           ["#franchises", "watchalongs", "ALL COMMENTARIES", "Halloween, Friday, Scream, Elm Street"],
           ["#halloween-universe", "watchalongs", "HALLOWEEN UNIVERSE", "WWAM's deepest franchise map"],
           ["#comedy-vault", "watchalongs", "COMEDY SHELF", "Scary Movie, Waiting, Harold & Kumar"],
+          ["#watchalong-canon", "watchalongs", "PUBLIC WATCHALONG CANON", "Every movie cut, repeat, and source dossier"],
           ["#autopsies", "watchalongs", "COMMENTARY WIKIS", "Open the individual movie files"]
         ]
       },

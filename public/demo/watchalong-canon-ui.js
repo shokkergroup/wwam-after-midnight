@@ -36,7 +36,9 @@
     return text.length <= max ? text : text.slice(0, max - 1).trimEnd() + "…";
   }
   function sourceUrl(episode, at) {
-    return episode.url + (String(episode.url).indexOf("?") >= 0 ? "&" : "?") + "t=" + Math.max(0, Math.round(Number(at) || 0)) + "s";
+    var sourceId = encodeURIComponent(episode && episode.id || "");
+    var seconds = Math.max(0, Math.round(Number(at) || 0));
+    return "?source=" + sourceId + "&at=" + seconds + "&section=wiki#archive";
   }
   function wikiUrl(episode) { return "?source=" + encodeURIComponent(episode.id) + "&section=wiki#archive"; }
   function stateLabel(episode) {

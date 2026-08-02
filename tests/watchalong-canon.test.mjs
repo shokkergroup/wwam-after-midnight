@@ -102,7 +102,8 @@ test("watchalong canon has the complete public source registry", () => {
   assert.equal(watchPass.coverage.held, 1);
   assert.equal(watchPass.coverage.alternateAudioAnalyzed, 1);
   assert.ok(watchPass.coverage.alternateRankedCandidates >= 30);
-  assert.ok(watchPass.coverage.rankedCandidates >= 2000);
+  assert.match(watchPass.selectionPolicy, /no fixed 48-card ceiling/i);
+  assert.ok(watchPass.coverage.rankedCandidates >= 3000, "evidence-scaled watchalong routes expand beyond the former fixed shelf");
   assert.equal(canon.watchPassCoverage.audioAnalyzed, 101);
   const latestPilot = watchPass.episodes.LV2rmwEA0w4;
   assert.ok(latestPilot.audit.candidateCategories["STRAIGHT TO STEVE'S ASSHOLE"] > 0 || latestPilot.audit.candidateCategories["CHARACTER SIGNAL"] > 0, "current-show route selection preserves a recurring WWAM lane");
@@ -165,6 +166,7 @@ test("every episode has an official source, evidence state, and playable receipt
   assert.equal(signs.watchPass.status, "audio-feature-pilot");
   assert.ok(signs.watchPass.candidates.length >= 20, "public no-caption source receives an audio/ASR route");
   assert.ok(canon.episodes.some((episode) => episode.watchPass.audit.candidateTarget > 15), "longer watchalongs receive a larger ranked browse set");
+  assert.ok(canon.episodes.some((episode) => episode.watchPass.audit.candidateTarget > 48), "dense long tapes exceed the former 48-card ceiling");
   assert.ok(canon.episodes.filter((episode) => episode.duration >= 5400 && episode.watchPass.status === "audio-feature-pilot").every((episode) => episode.watchPass.candidates.length >= 15), "feature-length watchalongs retain at least fifteen audio-ranked routes");
   assert.ok(canon.episodes.filter((episode) => episode.dossier.state === "caption-ledger-dossier").every((episode) => !/local caption ledger leaves|indexed doors hit|cleanest way in|jumpable guide to the room/i.test(episode.dossier.summary)), "caption-ledger recaps do not fall back to the old machine-shaped boilerplate");
   const heldHalloweenTwo = canon.episodes.find((episode) => episode.id === "AzrcgoyE7C4");

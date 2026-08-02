@@ -123,13 +123,14 @@ def alternate_audio_record(episode: dict, config: dict) -> dict:
 def runtime_target(duration_seconds: int, caption_events: int = 0) -> int:
     """Scale browse depth by runtime *and* how much source evidence exists.
 
-    A fixed 15-card ceiling made dense two-hour commentaries look artificially
-    thin. This keeps short tapes navigable but lets long, caption-rich tapes
-    surface more routes without claiming that the list is exhaustive.
+    A fixed 15- or 48-card ceiling made dense two-hour commentaries look
+    artificially thin. This keeps short tapes navigable while allowing long,
+    caption-rich tapes to surface as many bounded routes as their evidence
+    supports. The count is not a claim that the list is exhaustive.
     """
-    runtime_component = max(15, min(48, round(duration_seconds / 360)))
-    density_bonus = min(16, max(0, round(caption_events / 250)))
-    return max(15, min(48, runtime_component + density_bonus))
+    runtime_component = max(15, round(duration_seconds / 300))
+    density_bonus = max(0, round(caption_events / 180))
+    return max(15, runtime_component + density_bonus)
 
 
 def title_for(episode: dict) -> str:
@@ -243,7 +244,7 @@ def main() -> None:
     output["version"] = "2026-audio-pilot-03"
     output["scope"] = "latest-three-2026 + all-watchalongs"
     output["scopes"] = ["latest-three-2026", "all-watchalongs"]
-    output["selectionPolicy"] = "Runtime-scaled ranked browse set; longer tapes receive more surfaced receipts. This is not a claim that unlisted caption candidates do not exist."
+    output["selectionPolicy"] = "Evidence-scaled ranked browse set with no fixed 48-card ceiling; longer and denser tapes receive more surfaced receipts. This is not a claim that unlisted caption candidates do not exist."
     output.setdefault("episodes", {})
     canon = load_json_from_window(WATCHALONG_FILE)
     episodes = canon.get("episodes", [])
@@ -268,10 +269,15 @@ def main() -> None:
         # ranked receipts; reuse it unless the local media disappeared. This
         # keeps an archive refresh focused on newly acquired sources instead
         # of decoding every historical tape again.
+        desired_prior_target = runtime_target(
+            int(prior_media.get("durationSeconds") or episode.get("duration") or 0),
+            int((prior.get("audit") or {}).get("captionEvents") or 0),
+        )
         if (
             audio_file
             and prior.get("status") == "audio-feature-pilot"
             and prior_media.get("canonicalAudioAvailable") is True
+            and int((prior.get("audit") or {}).get("candidateTarget") or 0) >= desired_prior_target
         ):
             output["episodes"][video_id] = prior
             analyzed += 1

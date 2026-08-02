@@ -73,6 +73,13 @@
   function sourceLink(item, label) {
     var href = clean(item && item.url);
     if (!href) return "";
+    var original = /official|youtube/i.test(clean(label));
+    var sourceId = clean(item && (item.sourceId || item.id));
+    if (!original && /^[A-Za-z0-9_-]{11}$/.test(sourceId)) {
+      var at = item && item.start != null ? "&at=" + Math.max(0, Math.round(Number(item.start) || 0)) : "";
+      href = "?source=" + encodeURIComponent(sourceId) + at + "&section=wiki#archive";
+      return '<a class="hu-source" href="' + attr(href) + '">' + esc(label || "OPEN THE LOCAL SHOW WIKI") + ' -&gt;</a>';
+    }
     return '<a class="hu-source" href="' + attr(href) + '" target="_blank" rel="noopener noreferrer">' +
       esc(label || "OPEN ON YOUTUBE") + ' -&gt;</a>';
   }

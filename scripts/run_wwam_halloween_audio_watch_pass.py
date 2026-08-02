@@ -11,6 +11,7 @@ import json
 from pathlib import Path
 
 from run_wwam_audio_watch_pass import AUDIO_DIR, DEMO_DIR, candidate_rows, caption_events, provenance, stream_features
+from run_wwam_all_watchalong_audio_watch_pass import runtime_target
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -57,7 +58,8 @@ def main() -> None:
             continue
         events = caption_events(video_id)
         audio = stream_features(audio_file)
-        candidates = candidate_rows(events, audio, max_candidates=15)
+        target = runtime_target(audio["durationSeconds"], len(events))
+        candidates = candidate_rows(events, audio, max_candidates=target)
         output["episodes"][video_id] = {
             "id": video_id,
             "date": date,
@@ -65,7 +67,7 @@ def main() -> None:
             "status": "audio-feature-pilot",
             "label": "HALLOWEEN WATCH PASS // AUDIO PILOT",
             "media": {"sourceUrl": f"https://www.youtube.com/watch?v={video_id}", "localFile": f"source-cache/audio/{video_id}.m4a", "container": "m4a", "durationSeconds": audio["durationSeconds"], "audioOnly": True, "canonicalAudioAvailable": True},
-            "audit": {"captionEvents": len(events), "audioRows": audio["durationSeconds"], "laughterOrOverlapMarkers": sum("[laughter]" in event["text"].lower() or "[snort" in event["text"].lower() or "[crosstalk]" in event["text"].lower() for event in events), "candidateCount": len(candidates), "audioStats": audio["stats"]},
+            "audit": {"captionEvents": len(events), "audioRows": audio["durationSeconds"], "laughterOrOverlapMarkers": sum("[laughter]" in event["text"].lower() or "[snort" in event["text"].lower() or "[crosstalk]" in event["text"].lower() for event in events), "candidateCount": len(candidates), "candidateTarget": target, "audioStats": audio["stats"]},
             "candidates": candidates,
             "note": "This Halloween file listened to the canonical audio track end-to-end at a feature level and aligned its candidate windows to the source-local captions. It does not assign a speaker or claim a visual reaction; open the official source at each bounded timestamp.",
             "provenanceFile": f"source-cache/audio/{video_id}.provenance.json",

@@ -552,7 +552,7 @@
         }
         return clipLabEngine?null:loadDemoScript("creator-studio-engine.js").then(createClipLab);
       })
-      .then(function () { return loader.loadStyle("source-dossier.css?v=5.36-fam-roll-call"); })
+      .then(function () { return loader.loadStyle("source-dossier.css?v=5.37-local-wiki-shell"); })
       .then(function () {
         return loader.load("source-dossier-assets.js?v=1.0.25-fam-ledger");
       })
@@ -661,15 +661,116 @@
     focusSoon("#modalClose");
   }
 
+  // A show Wiki must never strand the visitor behind a spinner. The full dossier
+  // is intentionally lazy (it carries the entire archive evidence portfolio),
+  // so direct deep-links get a source-local, playable shell immediately. If the
+  // richer dossier finishes later it can still replace this shell; if an asset
+  // is held or unavailable, the visitor keeps a truthful local page instead of
+  // being bounced to YouTube.
+  function fallbackSourceRecord(sourceId) {
+    var source = itemById[sourceId] || streamById[sourceId] || null;
+    var pools = [
+      window.WWAM_WATCHALONG_CANON && window.WWAM_WATCHALONG_CANON.episodes,
+      window.WWAM_LIVESTREAM_CANON && window.WWAM_LIVESTREAM_CANON.episodes,
+      window.WWAM_ARCHIVE_ATLAS && window.WWAM_ARCHIVE_ATLAS.records,
+    ];
+    if (source) return source;
+    pools.some(function (pool) {
+      if (!Array.isArray(pool)) return false;
+      var hit = pool.filter(function (entry) { return entry && entry.id === sourceId; })[0];
+      if (hit) { source = hit; return true; }
+      return false;
+    });
+    return source || { id: sourceId, title: "WWAM SOURCE", displayTitle: "WWAM SOURCE" };
+  }
+
+  function fallbackSourceMoments(sourceId, source) {
+    var tape = tapeById[sourceId] || {};
+    var raw = [];
+    if (Array.isArray(tape.moments)) raw = raw.concat(tape.moments);
+    if (Array.isArray(source.moments)) raw = raw.concat(source.moments);
+    if (Array.isArray(source.bestMoments)) raw = raw.concat(source.bestMoments);
+    if (source.watchPass && Array.isArray(source.watchPass.candidates)) raw = raw.concat(source.watchPass.candidates);
+    var seen = {};
+    return raw.map(function (moment) {
+      var at = Number(moment.at != null ? moment.at : moment.t);
+      return {
+        at: Number.isFinite(at) ? Math.max(0, Math.round(at)) : 0,
+        end: Number.isFinite(Number(moment.end)) ? Math.round(Number(moment.end)) : null,
+        label: String(moment.label || moment.category || "INDEXED ROUTE"),
+        excerpt: boundedExcerpt(moment.excerpt || moment.quote || moment.captionExcerpt || "Source-local receipt; press play to hear the tape."),
+        heat: Number(moment.heat || moment.score || moment.audioRank || 0),
+      };
+    }).filter(function (moment) {
+      if (!moment.at || seen[moment.at]) return false;
+      seen[moment.at] = true;
+      return true;
+    }).sort(function (a, b) { return (b.heat - a.heat) || (a.at - b.at); }).slice(0, 18)
+      .sort(function (a, b) { return a.at - b.at; });
+  }
+
+  function fallbackSourceWiki(sourceId, startTime, section) {
+    var source = fallbackSourceRecord(sourceId);
+    var tape = tapeById[sourceId] || {};
+    var title = source.displayTitle || source.film || source.title || "WWAM SOURCE";
+    var date = source.date ? shortDate(source.date) : "SOURCE DATE HELD";
+    var total = Number(source.durationSeconds != null ? source.durationSeconds : source.duration) || 0;
+    var moments = fallbackSourceMoments(sourceId, source);
+    var topics = (Array.isArray(source.topics) ? source.topics : []).map(function (topic) {
+      return typeof topic === "string" ? topic : topic && (topic.name || topic.label);
+    }).filter(Boolean).slice(0, 8);
+    var summary = source.dossier && source.dossier.summary || source.summary || source.editorial && source.editorial.whyItMatters || tape.verdict;
+    if (!summary) summary = "This local show file is ready with its source, runtime, and bounded route map. Press play, pick a timestamp, and make your own call on the tape.";
+    var player = window.ShokkerYouTubePlayback && window.ShokkerYouTubePlayback.iframe ?
+      window.ShokkerYouTubePlayback.iframe(sourceId, { autoplay: false, start: Number(startTime || 0), title: "WWAM source playback" }) :
+      '<iframe src="https://www.youtube.com/embed/' + encodeURIComponent(sourceId) + '?rel=0&playsinline=1" title="WWAM source playback" allowfullscreen></iframe>';
+    var sourceHref = "https://www.youtube.com/watch?v=" + encodeURIComponent(sourceId);
+    document.getElementById("modalContent").innerHTML =
+      '<article class="source-dossier source-dossier-fallback" data-fallback-source="' + esc(sourceId) + '">' +
+      '<header class="source-dossier-fallback-head"><div><p class="kicker">LOCAL SHOW WIKI // SOURCE-LOCAL MODE</p><h2 id="sourceDossierTitle">' + esc(title) + '</h2><p>' + esc(date) + ' // ' + esc(total ? duration(total) : "RUNTIME HELD") + '</p></div><span>THE ARCHIVE IS READY BEFORE THE BIGGER INDEX FINISHES LOADING.</span></header>' +
+      '<nav class="source-dossier-fallback-nav" aria-label="Show Wiki shortcuts"><a href="#fallback-player">PLAY</a><a href="#fallback-routes">BEST MOMENTS</a><a href="#fallback-about">ABOUT THIS TAPE</a></nav>' +
+      '<section class="source-dossier-fallback-player" id="fallback-player"><div class="modal-player" id="modalPlayer">' + player + '</div><p class="source-dossier-fallback-boundary">PLAYBACK stays inside this page. The official source opens only if you choose the link below.</p></section>' +
+      '<section class="source-dossier-fallback-about" id="fallback-about"><p class="kicker">THE SHORT VERSION</p><p>' + esc(summary) + '</p>' +
+      (topics.length ? '<div class="source-dossier-fallback-topics">' + topics.map(function (topic) { return '<span>' + esc(topic) + '</span>'; }).join("") + '</div>' : "") + '</section>' +
+      '<section class="source-dossier-fallback-routes" id="fallback-routes"><header><div><p class="kicker">SOURCE-LOCAL RECEIPTS</p><h3>PRESS PLAY HERE.</h3></div><span>' + moments.length + ' bounded route' + (moments.length === 1 ? "" : "s") + ' // no invented speaker labels</span></header>' +
+      (moments.length ? '<div class="source-dossier-fallback-route-grid">' + moments.map(function (moment, index) {
+        return '<button type="button" data-fallback-jump="' + moment.at + '" data-fallback-end="' + (moment.end || "") + '"><b>0' + (index + 1) + '</b><span>' + esc(moment.label) + '</span><time>' + timestamp(moment.at) + '</time><em>' + esc(moment.excerpt) + '</em></button>';
+      }).join("") + '</div>' : '<p class="source-dossier-fallback-empty">This source has no safe timestamp receipt in the local bundle yet. The source link remains honest and playable.</p>') + '</section>' +
+      '<footer class="source-dossier-fallback-foot"><span>LOCAL WIKI // ' + esc(sourceId) + '</span><a href="' + sourceHref + '" target="_blank" rel="noopener">OPEN THE FULL EPISODE ON YOUTUBE ↗</a></footer></article>';
+    var modal = document.getElementById("tapeModal");
+    modal.setAttribute("aria-busy", "false");
+    modal.setAttribute("aria-labelledby", "sourceDossierTitle");
+    modal.setAttribute("aria-describedby", "fallback-about");
+    document.querySelectorAll("[data-fallback-jump]").forEach(function (button) {
+      button.addEventListener("click", function () {
+        loadPlayer(sourceId, Number(button.getAttribute("data-fallback-jump") || 0), Number(button.getAttribute("data-fallback-end") || 0) || null);
+        var playerNode = document.getElementById("fallback-player");
+        if (playerNode) playerNode.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+    syncBackgroundInert();
+    focusSoon("#modalClose");
+    return true;
+  }
+
   function openSourceDossier(id, startTime, options) {
     var settings = options || {}, sourceId = String(id == null ? "" : id).trim(),
       section = sourceDossierSection(settings.section);
     if (!/^[A-Za-z0-9_-]{11}$/.test(sourceId)) return Promise.resolve(false);
     showSourceDossierLoading();
+    var fallbackShown = false;
+    var fallbackTimer = window.setTimeout(function () {
+      if (fallbackShown || !document.getElementById("tapeModal").classList.contains("show")) return;
+      fallbackShown = true;
+      fallbackSourceWiki(sourceId, startTime, section);
+      syncSourceRoute(sourceId, startTime, section, settings.routeMode || "push");
+    }, 1800);
     return loadSourceDossier().then(function (ui) {
+      window.clearTimeout(fallbackTimer);
       if (!sourceDossierEngine.has(sourceId)) {
         throw new Error("This source is outside the current canonical registry.");
       }
+      if (fallbackShown) return true;
       var rendered = ui.render(sourceId, {at:startTime == null ? null : Number(startTime),
         section:section, query:String(settings.query || "").slice(0, 240)});
       if (!rendered) throw new Error("The Source Dossier failed its render boundary.");
@@ -684,17 +785,13 @@
       if(startTime!=null&&settings.autoplay!==false)loadPlayer(sourceId,+startTime,settings.end);
       return true;
     }).catch(function (error) {
+      window.clearTimeout(fallbackTimer);
+      if (fallbackShown) return true;
       runtimeDiagnostics.push({at:new Date().toISOString(),operation:"open source dossier",
         sourceId:sourceId,message:error&&error.message?error.message:String(error)});
-      document.getElementById("tapeModal").setAttribute("aria-busy", "false");
-      document.getElementById("modalContent").innerHTML =
-        '<div class="source-dossier-loading source-dossier-error" role="alert">' +
-        '<span>THE INTERACTIVE FILE HIT A SNAG</span><h2 id="sourceDossierTitle">THE WIKI DIDN\'T OPEN.</h2>' +
-        '<p id="sourceDossierBoundary">The upload is fine. This page failed a check. Retry it or open the tape.</p>' +
-        '<a href="' + esc(sourceRouteUrl(sourceId, startTime, section)) +
-        '">TRY THIS WIKI AGAIN &orarr;</a><a href="https://www.youtube.com/watch?v=' + encodeURIComponent(sourceId) +
-        '" target="_blank" rel="noopener">OPEN THE OFFICIAL SOURCE ON YOUTUBE &nearr;</a></div>';
-      return false;
+      fallbackSourceWiki(sourceId, startTime, section);
+      syncSourceRoute(sourceId, startTime, section, settings.routeMode || "push");
+      return true;
     });
   }
 

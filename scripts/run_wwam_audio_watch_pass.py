@@ -31,10 +31,10 @@ EPISODES = [
 
 
 def runtime_target(duration_seconds: int, caption_events: int = 0) -> int:
-    """Keep current-show listening routes proportional to tape length and density."""
-    runtime_component = max(15, min(48, round(duration_seconds / 360)))
-    density_bonus = min(16, max(0, round(caption_events / 250)))
-    return max(15, min(48, runtime_component + density_bonus))
+    """Scale listening routes to runtime and evidence density without a fixed card cap."""
+    runtime_component = max(15, round(duration_seconds / 300))
+    density_bonus = max(0, round(caption_events / 180))
+    return max(15, runtime_component + density_bonus)
 
 
 def clock(seconds: int | float) -> str:
