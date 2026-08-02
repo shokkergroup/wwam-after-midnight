@@ -875,7 +875,22 @@
       if (!sourceDossierEngine.has(sourceId)) {
         throw new Error("This source is outside the current canonical registry.");
       }
-      if (fallbackShown) return true;
+      if (fallbackShown) {
+        // The source-local shell is a latency guard, not the final page. If
+        // the richer dossier finishes after the guard fired, promote the same
+        // open modal in place so a slow build can never strand a visitor on a
+        // thin fallback forever.
+        var upgraded = ui.render(sourceId, {at:startTime == null ? null : Number(startTime),
+          section:section, query:String(settings.query || "").slice(0, 240)});
+        if (!upgraded) {
+          fallbackSourceWiki(sourceId, startTime, section);
+        } else {
+          document.getElementById("tapeModal").setAttribute("aria-busy", "false");
+          syncSourceRoute(sourceId, startTime, section, "replace");
+          syncBagButtons();
+        }
+        return true;
+      }
       var rendered = ui.render(sourceId, {at:startTime == null ? null : Number(startTime),
         section:section, query:String(settings.query || "").slice(0, 240)});
       if (!rendered) throw new Error("The Source Dossier failed its render boundary.");
