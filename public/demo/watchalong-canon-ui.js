@@ -88,6 +88,26 @@
     return baseProofMarkup() + '<p class="wac-proof-note"><strong>AUDIO PASS</strong> ' + number((payload.watchPassCoverage || {}).audioAnalyzed) + ' canonical watchalong sources decoded and ranked // ' + number((payload.watchPassCoverage || {}).held) + ' source held. </p><p class="wac-proof-note"><strong>CHANNEL AUDIT</strong> ' + number(scope.channelSnapshotSources) + ' uploads observed in the live channel snapshot // ' + number(stats.sourceCounts && stats.sourceCounts.heldMembersOnly) + ' title-explicit members-only leads held outside public canon. The public list is source-bounded, not a guess at a lifetime total.</p><p class="wac-proof-note"><strong>EDGE AUDIT</strong> ' + number(discovery.broadCandidateCount) + ' broad watch-like titles checked beyond the strict canon signal // ' + number(edgeHeld) + ' members-only leads held and ' + number(edgeAdjacency) + ' review/reaction or short-form leads kept out until a full watchalong source is established.</p>';
   };
 
+  function edgeAuditMarkup() {
+    var discovery = payload.discovery || {};
+    var omissions = Array.isArray(discovery.broadDiscoveryOmissions) ? discovery.broadDiscoveryOmissions : [];
+    if (!omissions.length) return '';
+    var buckets = [
+      { key: 'subscriber_only', label: 'MEMBERS-ONLY HOLDS', note: 'Full-length commentary signals found in the live channel snapshot, but YouTube currently keeps the source behind membership.' },
+      { key: 'public', label: 'ADJACENT PUBLIC LEADS', note: 'Public reaction, review, or short-form watch signals kept outside the full-commentary canon until the format earns its own lane.' },
+      { key: 'unknown', label: 'PLAYABILITY UNRESOLVED', note: 'The title signal is real, but the current public watch page did not yield enough metadata to promote it.' }
+    ];
+    var bucketMarkup = buckets.map(function (bucket) {
+      var items = omissions.filter(function (item) { return (item.availability || 'unknown') === bucket.key; });
+      if (!items.length) return '';
+      return '<section class="wac-edge-bucket"><header><div><b>' + esc(bucket.label) + '</b><span>' + number(items.length) + ' LEADS</span></div><p>' + esc(bucket.note) + '</p></header><ul>' + items.map(function (item) {
+        var source = 'https://www.youtube.com/watch?v=' + encodeURIComponent(item.id);
+        return '<li><a target="_blank" rel="noopener" href="' + esc(source) + '">' + esc(item.title) + ' ↗</a><small>' + esc(item.date || 'DATE UNKNOWN') + ' // ' + esc(item.reason || item.signal || 'edge audit lead') + '</small></li>';
+      }).join('') + '</ul></section>';
+    }).join('');
+    return '<details class="wac-edge-shelf"><summary><span>THE OVERLOOKED EDGE // EVERY TITLE CHECKED</span><b>' + number(omissions.length) + ' LEADS OUTSIDE CANON +</b></summary><p class="wac-edge-intro">This is the audit shelf that keeps “more than 50” honest. These are not silently discarded: each lead is named, dated, and linked. Members-only uploads stay held; adjacent public reactions stay adjacent; unresolved pages stay unresolved.</p><div class="wac-edge-grid">' + bucketMarkup + '</div></details>';
+  }
+
   function toolsMarkup() {
     var typeOptions = ["all", "commentary", "watch-party", "watch-along"].map(function (type) {
       return '<option value="' + esc(type) + '"' + (state.type === type ? " selected" : "") + '>' + (type === "all" ? "ALL WATCHALONG TYPES" : typeLabel(type)) + '</option>';
@@ -268,7 +288,7 @@
   function render() {
     var visible = visibleEpisodes();
     var selected = episodeById(state.selected);
-    mount.innerHTML = '<div class="wac-shell">' + proofMarkup() + toolsMarkup() + franchiseMarkup() + movieFileMarkup() +
+    mount.innerHTML = '<div class="wac-shell">' + proofMarkup() + edgeAuditMarkup() + toolsMarkup() + franchiseMarkup() + movieFileMarkup() +
       '<div class="wac-results-head"><h3>' + (state.franchise === "all" ? "THE FULL TAPE LIST" : esc((franchises.filter(function (item) { return item.key === state.franchise; })[0] || {}).title || "FILTERED TAPE LIST")) + '</h3><span>' + number(visible.length) + ' EPISODES // EVERY MOVIE VERSION STAYS VISIBLE</span></div>' +
       '<div class="wac-episode-grid">' + (visible.length ? visible.map(episodeCard).join('') : '<div class="wac-empty">No public watchalong matches that filter. Try another movie, franchise, or format.</div>') + '</div>' + (selected ? dossierMarkup(selected) : '') + '</div>';
     bind();

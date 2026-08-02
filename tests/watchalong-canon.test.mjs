@@ -119,10 +119,14 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(ui, /function watchPassMarkup\(episode\)/);
   assert.match(ui, /watchCandidateLabel/);
   assert.match(ui, /AUDIO FEATURE RANK/);
+  assert.match(ui, /function edgeAuditMarkup\(\)/);
+  assert.match(ui, /THE OVERLOOKED EDGE/);
+  assert.match(ui, /broadDiscoveryOmissions/);
   assert.match(ui, /LISTENING READ \/\/ EVIDENCE MIX/);
   assert.match(ui, /AUDIO PASS/);
   assert.match(ui, /HALLOWEEN WATCH PASS/);
   assert.match(ui, /LISTEN FOR THE ROOM TO CHANGE/);
   assert.match(css, /\.wac-watch-pass/);
   assert.match(css, /\.wac-watch-pass-read/);
+  assert.match(css, /\.wac-edge-shelf/);
 });
