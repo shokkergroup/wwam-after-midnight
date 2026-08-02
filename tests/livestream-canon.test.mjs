@@ -23,10 +23,12 @@ test("livestream canon contains the complete source registry", () => {
   assert.equal(canon.episodes.at(-1).date, "2016-02-01");
   assert.equal(canon.yearIndex["2026"].episodeCount, 37);
   assert.equal(canon.stats.yearPassEpisodes, 37);
-  assert.equal(canon.stats.audioPassCoverage.audioAnalyzed, 37);
+  assert.equal(canon.stats.audioPassCoverage.audioAnalyzed, 355);
   assert.equal(canon.stats.audioPassCoverage.livestreamEpisodes, 509);
   assert.ok(Array.isArray(canon.stats.audioPassCoverage.years));
   assert.ok(canon.stats.audioPassCoverage.years.includes("2026"));
+  assert.equal(canon.stats.audioPassCoverage.yearCoverage["2026"].audioAnalyzed, 37);
+  assert.equal(canon.stats.audioPassCoverage.yearCoverage["2023"].audioAnalyzed, 68);
 });
 
 test("each source has an honest evidence tier and playable source link", () => {
