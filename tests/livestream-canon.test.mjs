@@ -93,6 +93,14 @@ test("each source has an honest evidence tier and playable source link", () => {
   assert.ok(ledgerSummaries.some((summary) => summary.includes("fan-signal receipts")));
 });
 
+test("audio watch-pass receipts are marker-clean and disclose caption alignment", () => {
+  const canon = loadCanon();
+  const candidates = canon.episodes.flatMap((episode) => (episode.watchPass?.candidates || []).map((candidate) => ({ ...candidate, episode: episode.id })));
+  assert.ok(candidates.length >= 1700, "2026 audio pass retains its ranked candidate shelf");
+  assert.ok(candidates.every((candidate) => typeof candidate.captionAligned === "boolean" && candidate.captionExcerpt), "each audio candidate discloses whether a caption fragment aligned and has an honest fallback");
+  assert.ok(candidates.every((candidate) => !/[\\[]\\s*(?:__+|music|laughter|inaudible|bleep)\\s*[\\]]/i.test(candidate.captionExcerpt || "")), "livestream audio candidates remove caption-stage marker debris");
+});
+
 test("livestream canon surface is wired into the page and route shell", () => {
   const html = fs.readFileSync(path.join(root, "public/demo/index.html"), "utf8");
   const guided = fs.readFileSync(path.join(root, "public/demo/guided-shell.js"), "utf8");

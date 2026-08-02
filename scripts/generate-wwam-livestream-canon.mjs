@@ -420,7 +420,14 @@ const episodes = canonicalMetadata.map((record) => {
   const note = tapeNote(shape, topics, moments, fan, recurring, cueList);
   const finalSummary = currentYear === 2026 ? `${note} This is a machine-surfaced caption map; playback remains the authority.` : summary;
   const pass = yearPass(record, events, topics, moments, fan, recurring, cueList, existing, evidence, yearSnapshot);
-  const watchPass = livestreamAudio.episodes?.[id] || watchPilot.episodes?.[id] || null;
+  const watchPassRaw = livestreamAudio.episodes?.[id] || watchPilot.episodes?.[id] || null;
+  const watchPass = watchPassRaw ? {
+    ...watchPassRaw,
+    candidates: (watchPassRaw.candidates || []).map((candidate) => {
+      const captionExcerpt = normalizeCaptionText(candidate.captionExcerpt || "");
+      return { ...candidate, captionExcerpt: captionExcerpt || "No caption fragment aligned; open the source and listen to this acoustic window.", captionAligned: Boolean(captionExcerpt) };
+    })
+  } : null;
   return {
     id, title: clean(record.title), date: dateFrom(record.upload_date), duration: Number(record.duration || 0), durationLabel: clock(record.duration), views: Number(record.view_count || 0),
     thumbnail: record.thumbnail || `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`, url: `https://www.youtube.com/watch?v=${id}`, channel: record.channel || "WeWatchedAMovie", publicSource: true,
