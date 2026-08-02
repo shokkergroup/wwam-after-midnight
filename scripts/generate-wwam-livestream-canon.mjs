@@ -255,7 +255,7 @@ function tapeNote(shape, topics, moments, fan, recurring, characterCues) {
   const hot = moments.slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || Number(a.t || 0) - Number(b.t || 0))[0];
   const characterList = listPhrase(characterCues.slice().sort((a, b) => Number(b.mentions || 0) - Number(a.mentions || 0)).slice(0, 3).map((character) => character.name));
   const fanTypes = Array.from(new Set(fan.map((signal) => signal.signalType))).slice(0, 2);
-  const hook = hot ? `The cleanest first play is ${clock(hot.t)} // ${hot.category}: "${excerpt(hot.excerpt || "", 18)}"` : "There is no bounded first-play hook in this evidence tier";
+  const hook = hot ? `The cleanest first play is ${clock(hot.t)} // ${hot.category}; open that timestamp to hear the exchange` : "There is no bounded first-play hook in this evidence tier";
   const lane = laneLead ? `The loudest recurring lane is ${laneLead.label} (${laneLead.candidateCount} caption cues).` : "No recurring-bit lane survived this pass.";
   const fanLine = fan.length ? `The room also leaves ${fan.length} fan-signal receipts${fanTypes.length ? `, including ${listPhrase(fanTypes)}` : ""}.` : "No fan-signal cluster survived this pass.";
   const characterLine = characterCues.length ? `Character traffic includes ${characterList}; the captions do not diarize who performed a cue.` : "No character cue was strong enough to retain in the caption map.";
@@ -400,7 +400,7 @@ const episodes = canonicalMetadata.map((record) => {
   const hotMoment = moments.slice().sort((left, right) => Number(right.score || 0) - Number(left.score || 0) || Number(left.t || 0) - Number(right.t || 0))[0] || null;
   const currentYear = Number(String(record.upload_date || "").slice(0, 4) || 0);
   const summaryVariant = Array.from(id).reduce((total, character) => total + character.charCodeAt(0), 0) % 4;
-  const hookLine = hotMoment ? `The first door worth pressing is ${clock(hotMoment.t)} // ${hotLane || hotMoment.category}; its rough caption surface starts: ${excerpt(hotMoment.excerpt || "", 16)}.` : "No bounded tape hook survived this evidence tier.";
+  const hookLine = hotMoment ? `The first door worth pressing is ${clock(hotMoment.t)} // ${hotLane || hotMoment.category}; open that timestamp to hear the exchange.` : "No bounded tape hook survived this evidence tier.";
   const fanLine = fan.length ? `The file also keeps ${fan.length} fan-signal receipts in the room.` : "No fan-signal cluster was retained in this ledger.";
   const ledgerSummary = [
     `${lead} from ${dateFrom(record.upload_date)}. The caption map opens on ${topicRead}, with ${moments.length} timestamp candidates across ${clock(record.duration)}. ${hookLine} ${fanLine}`,
