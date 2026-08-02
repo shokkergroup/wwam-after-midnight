@@ -482,7 +482,7 @@ function buildYearIndex(year) {
     passEpisodes: passEpisodes.length, note: `All ${set.length} official ${year} source records are present. This is a machine-surfaced second pass built for navigation and comparison; playback remains the authority and human review is still required for speaker, intent, visual context, and final clip selection.`
   };
 }
-const yearIndex = { 2026: buildYearIndex(2026) };
+const yearIndex = Object.fromEntries(Object.keys(years).sort((left, right) => Number(right) - Number(left)).map((year) => [year, buildYearIndex(Number(year))]));
 const topicMap = new Map();
 episodes.forEach((episode) => episode.topics.forEach((topic) => {
   if (!topicMap.has(topic.name)) topicMap.set(topic.name, { name: topic.name, mentions: 0, episodeIds: [], latest: topic.at });
