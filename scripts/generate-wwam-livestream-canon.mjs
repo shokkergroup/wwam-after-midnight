@@ -313,6 +313,25 @@ function machineShapedSummary(value) {
   const text = clean(value);
   return !text || /(?:This completion pass maps|A bracket-and-ranking night from|A trailer-and-news night from|A movie watchalong from|A fan-mail night from|A spoiler-heavy review night from|An open-line movie-news night from|caption map opens on|timestamp candidates across|If you are dropping into this|The shape of the night is|has indexed doors on|The 2026 second pass maps|This is a machine-surfaced caption map|Ranked #\d+ among eligible archived livestreams|Selected #\d+ by the frozen Archive Atlas|Automatic captions support timestamped|Its caption map concentrates on)/i.test(text);
 }
+function machineShapedWhyItMatters(value) {
+  const text = clean(value);
+  return !text || /(?:final canonical shows without an episode recap|recovered caption map now supplies|This episode is part of the .* shelf\. Its evidence tier is .*Use the bounded receipts as navigation|This source is a source-linked machine index)/i.test(text);
+}
+function whyItMattersRead(title, series, tier, shape, topics, moments, audioCandidates, audioStrongest, audioSignalMix, fan, characterCues, recurring, decodedAudio) {
+  const routeCount = Math.max(moments.length, audioCandidates.length);
+  const routeLine = routeCount
+    ? `${routeCount} bounded route${routeCount === 1 ? "" : "s"} remain attached to the source`
+    : "the topic and chapter rails remain the honest entry points";
+  const lane = audioSignalMix[0] || recurring.slice().sort((left, right) => Number(right.candidateCount || 0) - Number(left.candidateCount || 0))[0]?.label || "OPEN MIC";
+  const lead = audioStrongest || moments.slice().sort((left, right) => Number(right.score || 0) - Number(left.score || 0))[0] || null;
+  const leadLine = lead ? `The ranked lead is ${clock(lead.t)} // ${lead.category || lead.label || "SOURCE RECEIPT"}.` : "No single ranked lead clears the evidence boundary.";
+  const topicList = listPhrase(topics.slice(0, 3).map((topic) => topic.name));
+  const fanLine = fan.length ? `${fan.length} fan-signal receipt${fan.length === 1 ? "" : "s"} stay in the file` : "no fan-signal cluster cleared the source-local threshold";
+  const characterList = listPhrase(characterCues.slice().sort((left, right) => Number(right.mentions || 0) - Number(left.mentions || 0)).slice(0, 3).map((character) => character.name));
+  const characterLine = characterCues.length ? `Character traffic includes ${characterList}; performance is not diarized.` : "No character cue cleared the source-local threshold.";
+  const audioLine = decodedAudio && audioCandidates.length ? `Decoded audio contributes ${audioCandidates.length} listening routes.` : audioCandidates.length ? `Caption-bound listening routes contribute ${audioCandidates.length} navigation leads.` : "No decoded audio route is attached in this pass.";
+  return `${title} is worth opening in the ${series.label} shelf because ${routeLine} around ${topicList}. ${leadLine} The evidence mix leans ${lane}; ${fanLine}, and ${characterLine} ${audioLine} Tier: ${tier}. Playback remains the authority for delivery, speaker, intent, and the joke that actually lands.`;
+}
 function voiceSummary(title, date, shape, topics, moments, fan, recurring, characterCues, evidenceTier, listeningRoutes = []) {
   const topicList = listPhrase(topics.slice(0, 4).map((topic) => topic.name));
   const laneLead = recurring.slice().sort((a, b) => Number(b.candidateCount || 0) - Number(a.candidateCount || 0))[0];
@@ -511,6 +530,10 @@ const episodes = canonicalMetadata.map((record) => {
     ? voiceSummary(record.title, dateFrom(record.upload_date), shape, topics, moments, fan, recurring, cueList, tier, listeningRoutes)
     : summary;
   const finalSummary = clean(`${generatedSummary} ${audioLine}`);
+  const existingWhyItMatters = existing?.editorial?.whyItMatters;
+  const whyItMatters = machineShapedWhyItMatters(existingWhyItMatters)
+    ? whyItMattersRead(record.title, series, tier, shape, topics, moments, audioCandidates, audioStrongest, audioSignalMix, fan, cueList, recurring, decodedAudio)
+    : clean(existingWhyItMatters);
   const pass = yearPass(record, events, topics, moments, fan, recurring, cueList, existing, evidence, yearSnapshot);
   const watchPass = watchPassRaw ? {
     ...watchPassRaw,
@@ -530,7 +553,7 @@ const episodes = canonicalMetadata.map((record) => {
     recurringBits: recurring, bestBits: bestBits(moments, fan, listeningRoutes), characterCues: cueList,
     characters: existing?.characters || characters(events), peak: existing?.peak || moments.slice().sort((a, b) => b.score - a.score)[0] || null,
     yearPass: pass, watchPass, rssAudioPass,
-    dossier: { summary: finalSummary, tapeNote: clean(`${note} ${audioLine}`), archiveSummary: currentYear === 2026 && existing?.summary ? clean(existing.summary) : null, shape, hook: hotMoment ? { at: Number(hotMoment.t || 0), category: hotMoment.category || hotMoment.label || "SOURCE RECEIPT", excerpt: hotMoment.excerpt || "", evidenceBasis: hotMoment.evidenceBasis || "source-local caption candidate", reviewStatus: hotMoment.reviewStatus || "machine-candidate" } : null, audioRead: watchPassRaw ? { mode: decodedAudio ? "decoded-audio" : "caption-only", routeCount: audioCandidates.length, strongest: audioStrongest ? { t: Number(audioStrongest.t || 0), category: audioStrongest.category || audioStrongest.label || "SOURCE RECEIPT", score: Number(audioStrongest.score || 0) } : null, signalMix: audioSignalMix.slice(0, 8), evidence: decodedAudio ? "Decoded canonical audio re-ranked source-local windows; playback remains the authority." : "Caption-only source-local routes; no acoustic intensity claim is made." } : null, whyItMatters: clean(existing?.editorial?.whyItMatters || `This episode is part of the ${series.label} shelf. Its evidence tier is ${tier}; the official upload remains the authority for delivery, speaker, and intent. Use the bounded receipts as navigation, then play the source before treating the caption surface as a quote.`), evidence, restricted, reviewStatus: tier === "source-brief" ? "held-source-brief" : tier === "completion-dossier" ? "distilled-machine-candidate" : "machine-surfaced" }
+    dossier: { summary: finalSummary, tapeNote: clean(`${note} ${audioLine}`), archiveSummary: currentYear === 2026 && existing?.summary ? clean(existing.summary) : null, shape, hook: hotMoment ? { at: Number(hotMoment.t || 0), category: hotMoment.category || hotMoment.label || "SOURCE RECEIPT", excerpt: hotMoment.excerpt || "", evidenceBasis: hotMoment.evidenceBasis || "source-local caption candidate", reviewStatus: hotMoment.reviewStatus || "machine-candidate" } : null, audioRead: watchPassRaw ? { mode: decodedAudio ? "decoded-audio" : "caption-only", routeCount: audioCandidates.length, strongest: audioStrongest ? { t: Number(audioStrongest.t || 0), category: audioStrongest.category || audioStrongest.label || "SOURCE RECEIPT", score: Number(audioStrongest.score || 0) } : null, signalMix: audioSignalMix.slice(0, 8), evidence: decodedAudio ? "Decoded canonical audio re-ranked source-local windows; playback remains the authority." : "Caption-only source-local routes; no acoustic intensity claim is made." } : null, whyItMatters, evidence, restricted, reviewStatus: tier === "source-brief" ? "held-source-brief" : tier === "completion-dossier" ? "distilled-machine-candidate" : "machine-surfaced" }
   };
 }).sort((left, right) => right.date.localeCompare(left.date) || right.id.localeCompare(left.id));
 

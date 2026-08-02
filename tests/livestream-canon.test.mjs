@@ -153,6 +153,8 @@ test("each source has an honest evidence tier and playable source link", () => {
   const ledgerSummaries = canon.episodes.filter((episode) => episode.evidenceTier === "caption-ledger").map((episode) => episode.dossier.summary);
   assert.ok(ledgerSummaries.length >= 200);
   assert.equal(canon.episodes.some((episode) => /Ranked #\d+ among eligible archived livestreams|Selected #\d+ by the frozen Archive Atlas|caption map concentrates on|This completion pass maps/i.test(episode.dossier.summary)), false, "episode summaries do not retain the old ranking/metadata boilerplate");
+  assert.equal(canon.episodes.some((episode) => /final canonical shows without an episode recap|recovered caption map now supplies|This episode is part of the .* shelf\. Its evidence tier is .*Use the bounded receipts as navigation/i.test(episode.dossier.whyItMatters || "")), false, "why-this-matters reads do not retain stale recap boilerplate");
+  assert.ok(canon.episodes.every((episode) => episode.dossier.whyItMatters && episode.dossier.whyItMatters.length >= 140), "every show has a substantive episode-specific why-this-matters read");
   assert.ok(canon.episodes.every((episode) => episode.dossier.summary.length >= 220), "every show summary gives the visitor a real conversational read");
   assert.equal(ledgerSummaries.some((summary) => /\bA open-line\b/i.test(summary)), false);
   assert.equal(ledgerSummaries.some((summary) => summary.includes("Open the timestamp before treating")), false);
