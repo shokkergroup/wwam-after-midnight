@@ -23,13 +23,15 @@ test("livestream canon contains the complete source registry", () => {
   assert.equal(canon.episodes.at(-1).date, "2016-02-01");
   assert.equal(canon.yearIndex["2026"].episodeCount, 37);
   assert.equal(canon.stats.yearPassEpisodes, 37);
-  assert.equal(canon.stats.audioPassCoverage.audioAnalyzed, 423);
+  assert.equal(canon.stats.audioPassCoverage.audioAnalyzed, 474);
   assert.equal(canon.stats.audioPassCoverage.livestreamEpisodes, 509);
   assert.ok(Array.isArray(canon.stats.audioPassCoverage.years));
   assert.ok(canon.stats.audioPassCoverage.years.includes("2026"));
   assert.equal(canon.stats.audioPassCoverage.yearCoverage["2026"].audioAnalyzed, 37);
   assert.equal(canon.stats.audioPassCoverage.yearCoverage["2023"].audioAnalyzed, 68);
-  assert.equal(canon.stats.audioPassCoverage.captionFallback, 86);
+  assert.equal(canon.stats.audioPassCoverage.captionFallback, 35);
+  assert.equal(canon.stats.audioPassCoverage.yearCoverage["2020"].audioAnalyzed, 65);
+  assert.equal(canon.stats.audioPassCoverage.yearCoverage["2020"].captionFallback, 3);
   assert.equal(canon.stats.audioPassCoverage.yearCoverage["2021"].audioAnalyzed, 70);
   assert.equal(canon.stats.audioPassCoverage.yearCoverage["2021"].captionFallback, 4);
   assert.equal(canon.stats.rssAudioMirrors, 2);
@@ -71,7 +73,7 @@ test("each source has an honest evidence tier and playable source link", () => {
   assert.ok(canon.stats.recurringBitReceipts >= canon.stats.fanSignalReceipts);
   assert.ok(canon.stats.characterCueReceipts > 0);
   const captionFallbacks = canon.episodes.filter((episode) => episode.watchPass?.status === "caption-ledger-pass");
-  assert.equal(captionFallbacks.length, 86);
+  assert.equal(captionFallbacks.length, 35);
   assert.ok(captionFallbacks.every((episode) => episode.watchPass.candidates.length >= 9 && episode.watchPass.candidates.every((candidate) => !candidate.audio && /canonical audio unavailable/i.test(candidate.evidenceBasis))), "held shows retain caption-only routes without acoustic claims");
   assert.ok(Array.isArray(canon.fanHall) && canon.fanHall.length > 0);
   assert.ok(Array.isArray(canon.characterIndex) && canon.characterIndex.some((entry) => entry.name === "Dr. Loomis"));
