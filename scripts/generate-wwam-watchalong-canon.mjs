@@ -217,6 +217,62 @@ function ledgerLaneCounts(items) {
   }, {});
 }
 
+function topicIsRelevant(topic, taxonomy) {
+  const name = clean(topic?.name);
+  if (!name) return false;
+  const normalizedName = name.toLowerCase();
+  const title = clean(taxonomy?.movieTitle).toLowerCase();
+  const franchise = clean(taxonomy?.franchiseTitle).toLowerCase();
+  const titleTokens = title.split(/\s+/).filter((token) => token.length >= 4 && !["this", "that", "the", "with", "from", "full", "movie"].includes(token));
+  const exactTitleHit = title.includes(normalizedName) || normalizedName.includes(title) || titleTokens.some((token) => normalizedName === token || normalizedName.includes(token));
+  const franchiseHit = franchise && (franchise.includes(normalizedName) || normalizedName.includes(franchise));
+  return Boolean(exactTitleHit || franchiseHit || Number(topic.mentions || 0) >= 4);
+}
+
+function relevantTopics(items, taxonomy) {
+  return (items || []).filter((topic) => topicIsRelevant(topic, taxonomy)).slice(0, 6);
+}
+
+function watchalongVoiceSummary({ taxonomy, duration, laneCounts, topics, firstMoment, strongestMoment, finalMoment, allMoments, audioCuts }) {
+  const title = clean(taxonomy.movieTitle) || "this source";
+  const format = taxonomy.type === "watch-party" ? "watch-party" : taxonomy.type === "watch-along" ? "watch-along" : "commentary";
+  const rankedLanes = Object.entries(laneCounts).sort((left, right) => right[1] - left[1]);
+  const dominant = rankedLanes[0]?.[0] || "SOURCE RECEIPT";
+  const secondary = rankedLanes[1]?.[0] || null;
+  const laneText = rankedLanes.slice(0, 3).map(([label, count]) => `${label} (${count})`).join(", ");
+  const runtimeRead = duration >= 9000 ? "marathon-length" : duration >= 5400 ? "feature-length" : duration >= 1800 ? "a compact feature" : "a short-form";
+  const opening = {
+    "STRAIGHT TO STEVE'S ASSHOLE": `${title} is ${runtimeRead} ${format} with a target list, and the hate drawer opens early.`,
+    "TAKE GETS NUCLEAR": `The ${title} room does not ease in; it starts ${runtimeRead} and immediately makes the movie defend itself.`,
+    "ROOM BREAK": `${title} starts as ${runtimeRead} ${format} and then keeps finding new ways to lose the room's composure.`,
+    "CHARACTER SIGNAL": `${title} is ${runtimeRead} ${format} with the brakes cut; the commentary keeps wandering into bits and character work.`,
+    "WWAM UP IN YA": `${title} is ${runtimeRead} ${format} where the filthy side roads are part of the destination.`,
+    "FILM READ": `${title} is ${runtimeRead} ${format} with actual movie talk underneath the mess.`,
+    "FAN SIGNAL": `${title} is ${runtimeRead} ${format} with the audience getting a real turn at the wheel.`,
+  }[dominant] || `${title} is ${runtimeRead} ${format} with one eye on the source and one on the room.`;
+  const tone = {
+    "STRAIGHT TO STEVE'S ASSHOLE": "The hate drawer is doing overtime; the tape keeps finding things it would happily mail straight to Steve's Asshole.",
+    "TAKE GETS NUCLEAR": "The takes arrive with a flamethrower, so the movie has to defend itself scene by scene.",
+    "ROOM BREAK": "The room keeps losing its composure, which is usually where the rewatch earns its keep.",
+    "CHARACTER SIGNAL": "The tape keeps stepping sideways into bits and character work instead of behaving like a normal commentary.",
+    "WWAM UP IN YA": "The filthy detours are not background noise here; they are part of the route through the tape.",
+    "FILM READ": "There is real movie talk underneath the mess, even when the booth cannot resist setting it on fire.",
+    "FAN SIGNAL": "The audience gets a turn at the wheel, with fan traffic shaping the room's rhythm.",
+  }[dominant] || "The source stays playful and unpredictable without pretending every timestamp is a finished verdict.";
+  const topicNames = relevantTopics(topics, taxonomy).map((topic) => topic.name).filter(Boolean).slice(0, 3);
+  const topicSentence = topicNames.length
+    ? `The subject doors that survive the relevance check are ${topicNames.join(", ")}; they are jump points into the conversation, not a claim that the room stays on one subject.`
+    : "No side-topic label is promoted above the film itself; that keeps the page from turning caption noise into fake lore.";
+  const strongestStop = strongestMoment ? `${formatTimestamp(strongestMoment.t)} (${strongestMoment.category || "SOURCE RECEIPT"})` : "the strongest indexed route";
+  const openingStop = firstMoment ? `${formatTimestamp(firstMoment.t)} (${firstMoment.category || "SOURCE RECEIPT"})` : "the opening minute";
+  const closingStop = finalMoment ? `${formatTimestamp(finalMoment.t)} (${finalMoment.category || "SOURCE RECEIPT"})` : "the closing stretch";
+  const audioLine = audioCuts.length
+    ? `The audio-feature pass adds ${audioCuts.length} ranked windows, with the strongest acoustic signal at ${strongestMoment ? formatTimestamp(strongestMoment.t) : "the indexed peak"}; that is a browse aid, not proof of a joke, speaker, or visual reaction.`
+    : "The page keeps its route receipts caption-led because no matching local audio measurement is available.";
+  const secondaryLine = secondary ? ` ${secondary} supplies the next-best pressure point.` : "";
+  return `${opening} It runs ${formatTimestamp(duration)}. ${tone} The route mix is ${laneText || "source receipts"}.${secondaryLine} The cleanest entry is ${openingStop}; the strongest indexed door is ${strongestStop}; and the exit route is ${closingStop}. ${topicSentence} ${audioLine} There are ${allMoments.length} bounded jump points here, so press play at the timestamp before treating any caption fragment as canon.`;
+}
+
 function ledgerFanRead(items, finalMoment) {
   const byCategory = new Map();
   items.slice().sort((left, right) => Number(right.score || 0) - Number(left.score || 0)).forEach((item) => {
@@ -460,7 +516,9 @@ function episodeFrom(id) {
     const titleHit = name.length >= 4 && (filmTitleLower.includes(name) || filmTitleTokens.some((token) => name === token || name.includes(token)));
     return mentions >= 2 || titleHit;
   });
-  const topics = deepRecord && guide ? (guide?.threads || []).slice(0, 10).map((thread) => ({ name: thread.name, mentions: thread.mentions, first: thread.first, peak: thread.peak, cluster: thread.cluster, receipt: excerpt(thread.receipt), kind: thread.kind })) : (sourceTopics.length ? sourceTopics : derivedTopicDoors);
+  const topics = deepRecord && guide
+    ? (guide?.threads || []).slice(0, 10).map((thread) => ({ name: thread.name, mentions: thread.mentions, first: thread.first, peak: thread.peak, cluster: thread.cluster, receipt: excerpt(thread.receipt), kind: thread.kind }))
+    : relevantTopics(sourceTopics.length ? sourceTopics : derivedTopicDoors, taxonomy);
   const watchPassRecord = watchPass.episodes?.[id] || null;
   const audioCandidates = watchPassRecord && watchPassRecord.status === "audio-feature-pilot"
     ? (watchPassRecord.candidates || [])
@@ -503,37 +561,12 @@ function episodeFrom(id) {
   const finalMoment = allMoments.slice().sort((left, right) => right.t - left.t)[0] || null;
   const laneCounts = ledgerLaneCounts(allMoments);
   const fanSignals = fanSignalCandidates(events, duration);
-  const lanePhrase = Object.entries(laneCounts).sort((left, right) => right[1] - left[1]).slice(0, 3).map(([label, count]) => `${label} (${count})`).join(", ");
-  const topicPhrase = topics.slice(0, 5).map((topic) => topic.name).filter((name) => name && !/watch\s*party|commentary|watch\s*along/i.test(name)).slice(0, 3).join(", ");
-  const leadLine = strongestMoment
-    ? `The cleanest way in is ${formatTimestamp(strongestMoment.t)}, where the map tags a ${strongestMoment.category || "source"} lead.`
-    : "No single lead is promoted above the rest.";
-  const topicLine = topicPhrase ? `The indexed doors hit ${topicPhrase}; use them as jump points, not a claim that the whole conversation stays on those subjects.` : "The map stays close to the film without promoting a side-topic label.";
-  const audioLine = audioCuts.length
-    ? ` An audio-feature pass adds ${audioCuts.length} ranked intensity routes; it re-ranks caption windows but does not prove a joke, speaker, or visual reaction.`
-    : "";
-  const topLane = Object.entries(laneCounts).sort((left, right) => right[1] - left[1])[0]?.[0] || "SOURCE RECEIPT";
-  const roomTone = topLane === "ROOM BREAK"
-    ? "a room that keeps losing its composure"
-    : topLane === "TAKE GETS NUCLEAR"
-      ? "an argument with a movie playing underneath it"
-      : topLane === "STRAIGHT TO STEVE'S ASSHOLE"
-        ? "a particularly hostile little courtroom"
-        : topLane === "WWAM UP IN YA"
-          ? "a chaotic out-of-pocket reel"
-          : topLane === "CHARACTER SIGNAL"
-            ? "a bit-heavy performance room"
-            : "a film-first conversation with sharp detours";
-  const laneSentence = lanePhrase ? `The loudest lanes are ${lanePhrase}.` : "The route mix stays intentionally modest.";
-  const topicSentence = topicPhrase
-    ? `The reliable topic doors are ${topicPhrase}; they are jump points into the tape, not a claim that every minute stays there.`
-    : "The source stays close to the film without promoting a noisy side-topic label.";
-  const openingStop = firstMoment ? `${formatTimestamp(firstMoment.t)} (${firstMoment.category || "SOURCE RECEIPT"})` : "the opening of the source";
-  const closingStop = finalMoment ? `${formatTimestamp(finalMoment.t)} (${finalMoment.category || "SOURCE RECEIPT"})` : "the final stretch";
-  const strongestStop = strongestMoment ? `${formatTimestamp(strongestMoment.t)} (${strongestMoment.category || "SOURCE RECEIPT"})` : "the strongest indexed route";
-  const derivedSummary = `${taxonomy.type === "watch-party" ? "This watch-party" : "This commentary"} for ${taxonomy.movieTitle} runs ${formatTimestamp(duration)} and feels like ${roomTone}. ${laneSentence} The ledger leaves ${allMoments.length} bounded jump points, with the strongest route at ${strongestStop}. ${topicSentence} For a compact run, start at ${openingStop}, then finish at ${closingStop}.${audioLine} These are navigation receipts rather than speaker-diarized certainty; press play before treating a caption as canon.`;
+  const derivedSummary = watchalongVoiceSummary({ taxonomy, duration, laneCounts, topics, firstMoment, strongestMoment, finalMoment, allMoments, audioCuts });
   const alternateRouteCount = Number(watchPassRecord?.alternateAudio?.candidates?.length || 0);
-  const summary = guide?.overview || (!events.length && !deepRecord
+  const audioSummarySuffix = audioCuts.length && guide?.overview
+    ? ` The audio-feature pass adds ${audioCuts.length} ranked browse windows, with its strongest acoustic signal at ${strongestMoment ? formatTimestamp(strongestMoment.t) : "the indexed peak"}; those windows are navigation aids, not speaker or joke proof.`
+    : "";
+  const summary = guide?.overview ? `${clean(guide.overview)}${audioSummarySuffix}` : (!events.length && !deepRecord
     ? (alternateRouteCount
       ? `This source brief preserves the official upload for ${taxonomy.movieTitle}, which is currently held for unauthenticated YouTube playback. The official WWAM podcast variant remains playable with ${alternateRouteCount} bounded audio routes in its own source-local clock; those routes are not pasted onto YouTube.`
       : `This source brief preserves the official upload for ${taxonomy.movieTitle}, but no local caption map was available in this observation. The source remains playable; no timestamps or speaker claims are manufactured.`)

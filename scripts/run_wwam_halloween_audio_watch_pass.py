@@ -15,25 +15,6 @@ from run_wwam_audio_watch_pass import AUDIO_DIR, DEMO_DIR, candidate_rows, capti
 
 ROOT = Path(__file__).resolve().parents[1]
 WATCHALONG_FILE = DEMO_DIR / "wwam-watchalong-canon.js"
-HALLOWEEN_IDS = [
-    "l4Ae4ywJvuo",
-    "6VXSBDZ-3WE",
-    "ThPjds8iI9U",
-    "4UokRLETypU",
-    "28PfRNKoSCA",
-    "AtcRT3Xkk6E",
-    "ZWF8TPnHr4Y",
-    "Q6SN-Om1gIo",
-    "M2iupVAFWt8",
-    "AzrcgoyE7C4",
-    "3wK00_-K-Y0",
-    "NjH2tcGvmAY",
-    "5HfhwoDSQ0E",
-    "I6QKteG_hK0",
-    "KrBhfGxsJNM",
-]
-
-
 def load_json_from_window(path: Path) -> dict:
     raw = path.read_text(encoding="utf-8")
     return json.JSONDecoder().raw_decode(raw.split("=", 1)[1].lstrip())[0]
@@ -47,9 +28,13 @@ def main() -> None:
     output["scopes"] = ["latest-three-2026", "halloween-watchalongs"]
     output.setdefault("episodes", {})
     canon = load_json_from_window(WATCHALONG_FILE)
-    by_id = {episode["id"]: episode for episode in canon.get("episodes", [])}
+    halloween_episodes = [episode for episode in canon.get("episodes", []) if episode.get("franchiseKey") == "halloween"]
+    # Drive this lane from the canonical taxonomy instead of a hand-maintained
+    # ID list. That keeps repeat cuts and newly discovered Halloween uploads
+    # from silently falling out of the verification pass.
+    by_id = {episode["id"]: episode for episode in halloween_episodes}
 
-    for video_id in HALLOWEEN_IDS:
+    for video_id in by_id:
         episode = by_id.get(video_id, {})
         audio_file = AUDIO_DIR / f"{video_id}.m4a"
         title = episode.get("movieTitle") or episode.get("title") or video_id

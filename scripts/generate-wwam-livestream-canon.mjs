@@ -266,6 +266,24 @@ function tapeNote(shape, topics, moments, fan, recurring, characterCues) {
   const characterLine = characterCues.length ? `Character traffic includes ${characterList}; the captions do not diarize who performed a cue.` : "No character cue was strong enough to retain in the caption map.";
   return `${shape} circles ${topicList} and plays like ${frame}. ${lane} ${hook} ${fanLine} ${characterLine}`;
 }
+function machineShapedSummary(value) {
+  const text = clean(value);
+  return !text || /(?:This completion pass maps|A bracket-and-ranking night from|A trailer-and-news night from|A movie watchalong from|A fan-mail night from|A spoiler-heavy review night from|An open-line movie-news night from|caption map opens on|timestamp candidates across|If you are dropping into this|The shape of the night is|has indexed doors on|The 2026 second pass maps|This is a machine-surfaced caption map|Ranked #\d+ among eligible archived livestreams|Selected #\d+ by the frozen Archive Atlas|Automatic captions support timestamped|Its caption map concentrates on)/i.test(text);
+}
+function voiceSummary(title, date, shape, topics, moments, fan, recurring, characterCues, evidenceTier) {
+  const topicList = listPhrase(topics.slice(0, 4).map((topic) => topic.name));
+  const laneLead = recurring.slice().sort((a, b) => Number(b.candidateCount || 0) - Number(a.candidateCount || 0))[0];
+  const hot = moments.slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || Number(a.t || 0) - Number(b.t || 0))[0];
+  const characterList = listPhrase(characterCues.slice().sort((a, b) => Number(b.mentions || 0) - Number(a.mentions || 0)).slice(0, 3).map((character) => character.name));
+  const fanTypes = Array.from(new Set(fan.map((signal) => signal.signalType))).slice(0, 2);
+  const frame = /ranking|tier|bracket/i.test(shape) ? "a ranking-night argument" : /q\s*&?\s*a|fan/i.test(shape) ? "a fan-driven open line" : /commentary|watch/i.test(shape) ? "a movie-side hang" : "a late-night movie desk";
+  const mood = laneLead?.label === "ROOM BREAK" ? "the room keeps losing its composure" : laneLead?.label === "TAKE GETS NUCLEAR" ? "the takes keep catching fire" : laneLead?.label === "WWAM UP IN YA" ? "the conversation gets gloriously filthy" : laneLead?.label === "STRAIGHT TO STEVE'S ASSHOLE" ? "the verdict lane gets mean" : "the side conversations keep widening";
+  const route = hot ? `Your best first stop is ${clock(hot.t)} // ${hot.category}; press play there and let the full exchange establish the context.` : "There is no honest single hook in this evidence tier, so the route stays chapter-first.";
+  const fanLine = fan.length ? `The fan traffic is part of the show too: ${fan.length} retained callout${fan.length === 1 ? "" : "s"}${fanTypes.length ? ` across ${listPhrase(fanTypes)}` : ""}.` : "No fan callout cluster survived the source-local ledger.";
+  const characterLine = characterCues.length ? `Character traffic includes ${characterList}, but captions do not prove who was performing the bit.` : "No character cue cleared the source-local threshold.";
+  const evidenceLine = evidenceTier === "source-brief" ? "This one stays a source brief until a playable local receipt appears." : "The routes are machine-surfaced navigation aids, not speaker-diarized quotes or a claim that every funny beat has been found.";
+  return `${clean(title)} is ${frame} from ${date}. It circles ${topicList} while ${mood}. ${route} ${fanLine} ${characterLine} ${evidenceLine}`;
+}
 function normalizeFanSignals(items) {
   return (items || []).map((signal) => ({ ...signal, signalType: clean(signal.signalType || fanSignalType(signal.excerpt || "")) })).filter((signal) => signal.excerpt || Number(signal.t || 0) >= 0);
 }
@@ -423,7 +441,9 @@ const episodes = canonicalMetadata.map((record) => {
   const cueList = characterCues(events, Number(record.duration || 0));
   const recurring = recurringBits(events, moments, fan, Number(record.duration || 0));
   const note = tapeNote(shape, topics, moments, fan, recurring, cueList);
-  const finalSummary = currentYear === 2026 ? `${note} This is a machine-surfaced caption map; playback remains the authority.` : summary;
+  const finalSummary = currentYear === 2026 || machineShapedSummary(summary)
+    ? voiceSummary(record.title, dateFrom(record.upload_date), shape, topics, moments, fan, recurring, cueList, tier)
+    : summary;
   const pass = yearPass(record, events, topics, moments, fan, recurring, cueList, existing, evidence, yearSnapshot);
   const watchPassRaw = livestreamAudio.episodes?.[id] || watchPilot.episodes?.[id] || null;
   const watchPass = watchPassRaw ? {

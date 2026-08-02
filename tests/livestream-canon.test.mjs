@@ -23,14 +23,15 @@ test("livestream canon contains the complete source registry", () => {
   assert.equal(canon.episodes.at(-1).date, "2016-02-01");
   assert.equal(canon.yearIndex["2026"].episodeCount, 37);
   assert.equal(canon.stats.yearPassEpisodes, 37);
-  assert.equal(canon.stats.audioPassCoverage.audioAnalyzed, 355);
+  assert.equal(canon.stats.audioPassCoverage.audioAnalyzed, 423);
   assert.equal(canon.stats.audioPassCoverage.livestreamEpisodes, 509);
   assert.ok(Array.isArray(canon.stats.audioPassCoverage.years));
   assert.ok(canon.stats.audioPassCoverage.years.includes("2026"));
   assert.equal(canon.stats.audioPassCoverage.yearCoverage["2026"].audioAnalyzed, 37);
   assert.equal(canon.stats.audioPassCoverage.yearCoverage["2023"].audioAnalyzed, 68);
-  assert.equal(canon.stats.audioPassCoverage.captionFallback, 154);
-  assert.equal(canon.stats.audioPassCoverage.yearCoverage["2021"].captionFallback, 72);
+  assert.equal(canon.stats.audioPassCoverage.captionFallback, 86);
+  assert.equal(canon.stats.audioPassCoverage.yearCoverage["2021"].audioAnalyzed, 70);
+  assert.equal(canon.stats.audioPassCoverage.yearCoverage["2021"].captionFallback, 4);
   assert.equal(canon.stats.rssAudioMirrors, 2);
   assert.ok(canon.episodes.find((episode) => episode.id === "LVVGdGxTBfI")?.rssAudioPass?.media?.canonicalTimestampMapping === false);
 });
@@ -70,7 +71,7 @@ test("each source has an honest evidence tier and playable source link", () => {
   assert.ok(canon.stats.recurringBitReceipts >= canon.stats.fanSignalReceipts);
   assert.ok(canon.stats.characterCueReceipts > 0);
   const captionFallbacks = canon.episodes.filter((episode) => episode.watchPass?.status === "caption-ledger-pass");
-  assert.equal(captionFallbacks.length, 154);
+  assert.equal(captionFallbacks.length, 86);
   assert.ok(captionFallbacks.every((episode) => episode.watchPass.candidates.length >= 9 && episode.watchPass.candidates.every((candidate) => !candidate.audio && /canonical audio unavailable/i.test(candidate.evidenceBasis))), "held shows retain caption-only routes without acoustic claims");
   assert.ok(Array.isArray(canon.fanHall) && canon.fanHall.length > 0);
   assert.ok(Array.isArray(canon.characterIndex) && canon.characterIndex.some((entry) => entry.name === "Dr. Loomis"));
@@ -92,13 +93,15 @@ test("each source has an honest evidence tier and playable source link", () => {
   assert.ok(canon.yearIndex["2026"].topLanes.length > 0);
   const ledgerSummaries = canon.episodes.filter((episode) => episode.evidenceTier === "caption-ledger").map((episode) => episode.dossier.summary);
   assert.ok(ledgerSummaries.length >= 200);
+  assert.equal(canon.episodes.some((episode) => /Ranked #\d+ among eligible archived livestreams|Selected #\d+ by the frozen Archive Atlas|caption map concentrates on|This completion pass maps/i.test(episode.dossier.summary)), false, "episode summaries do not retain the old ranking/metadata boilerplate");
+  assert.ok(canon.episodes.every((episode) => episode.dossier.summary.length >= 220), "every show summary gives the visitor a real conversational read");
   assert.equal(ledgerSummaries.some((summary) => /\bA open-line\b/i.test(summary)), false);
   assert.equal(ledgerSummaries.some((summary) => summary.includes("Open the timestamp before treating")), false);
   assert.equal(canon.episodes.some((episode) => /caption trail keeps returning|spends its time bouncing|built around/i.test(`${episode.dossier.summary} ${episode.dossier.tapeNote || ""}`)), false, "livestream copy does not turn topic doors into whole-show claims");
   const tapeNotes = canon.episodes.map((episode) => episode.dossier.tapeNote || "");
   assert.equal(tapeNotes.some((note) => /indexed doors|source-local map keeps|loudest recurring lane|cleanest first play|room also leaves/i.test(note)), false, "episode tape notes do not use the old machine-shaped boilerplate");
   assert.ok(tapeNotes.some((note) => /dominant recurring lane|fan ledger catches/i.test(note)), "episode tape notes retain a human-readable listening read");
-  assert.ok(ledgerSummaries.some((summary) => summary.includes("fan-signal receipts")));
+  assert.ok(ledgerSummaries.some((summary) => /fan traffic is part|retained callouts/i.test(summary)));
 });
 
 test("audio watch-pass receipts are marker-clean and disclose caption alignment", () => {
