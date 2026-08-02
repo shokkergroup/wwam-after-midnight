@@ -286,6 +286,7 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(ui, /function receiptUrl\(episode, item\)/, "variant receipts have an explicit source URL lane");
   assert.match(ui, /OPEN PODCAST VARIANT AT/, "variant-clock receipts are labeled instead of masquerading as YouTube jumps");
   assert.match(ui, /data-wac-variant-seek/, "held podcast variants have in-page playable seek controls");
+  assert.match(ui, /OPEN PODCAST VARIANT AT .*data-wac-variant-seek|data-wac-variant-seek=.*OPEN PODCAST VARIANT AT/, "podcast-clock dossier receipts stay inside the local player");
   assert.match(ui, /AD \/ INTRO BOUNDARY/, "podcast ad boundaries remain visibly separate from WWAM bits");
   assert.match(app, /sourceKind: moment\.sourceKind/, "cold-route receipts retain their source clock metadata");
   assert.match(app, /Podcast-variant receipts have their own in-page audio shelf/, "cold-route YouTube rails do not duplicate podcast-clock cuts");

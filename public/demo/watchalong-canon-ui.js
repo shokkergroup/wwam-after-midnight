@@ -483,7 +483,10 @@
       '<div class="wac-section-label" style="padding:0 1.5rem">EVERY INDEXED RECEIPT // PRESS PLAY AT THE TAPE</div><div class="wac-moment-grid">' + moments.map(function (moment) {
         var podcast = moment.sourceKind === "podcast-variant";
         var label = podcast ? "OPEN PODCAST VARIANT AT " : "OPEN SOURCE AT ";
-        return '<article class="wac-moment"><header><span>' + esc(moment.category || moment.label || 'SOURCE RECEIPT') + '</span><span>' + esc(receiptClock(moment) + timestamp(moment.t)) + '</span></header><p>' + esc(moment.excerpt || moment.quote || 'Caption receipt available at this timestamp.') + '</p><a' + receiptTarget(moment) + ' href="' + esc(receiptUrl(episode, moment)) + '">' + label + esc(timestamp(moment.t)) + ' -></a></article>';
+            var action = podcast
+              ? '<button type="button" class="wac-variant-route" data-wac-variant-seek="' + esc(moment.t || 0) + '" data-wac-variant-audio="wacVariantAudio-source">OPEN PODCAST VARIANT AT ' + esc(timestamp(moment.t)) + ' -></button>'
+              : '<a' + receiptTarget(moment) + ' href="' + esc(receiptUrl(episode, moment)) + '">' + label + esc(timestamp(moment.t)) + ' -></a>';
+            return '<article class="wac-moment"><header><span>' + esc(moment.category || moment.label || 'SOURCE RECEIPT') + '</span><span>' + esc(receiptClock(moment) + timestamp(moment.t)) + '</span></header><p>' + esc(moment.excerpt || moment.quote || 'Caption receipt available at this timestamp.') + '</p>' + action + '</article>';
       }).join('') + '</div><footer class="wac-dossier-footer"><a href="' + esc(wikiUrl(episode)) + '">OPEN THIS SHOW&rsquo;S WIKI -></a><a target="_blank" rel="noopener" href="' + esc(episode.url) + '">OPEN OFFICIAL UPLOAD -></a><button class="wac-button" type="button" data-wac-close>CLOSE DOSSIER</button></footer></section>';
   }
 
