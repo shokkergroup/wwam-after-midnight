@@ -419,6 +419,7 @@
       live: live,
       popular: popular,
       archiveDeep: archiveDeepStreams,
+      watchalongAudioIndex: window.WWAM_WATCH_PASS_PILOT || null,
       watchalongCanon: window.WWAM_WATCHALONG_CANON || null,
       livestreamAudioIndex: window.WWAM_LIVESTREAM_AUDIO_INDEX || null,
       livestreamCanon: window.WWAM_LIVESTREAM_CANON || null,
@@ -591,7 +592,7 @@
         // Keep the full Show Wiki aware of the already-audited watchalong
         // audio pass even when the visitor deep-links straight into a source
         // before opening the Watchalongs shelf.
-        return loader.load("wwam-watchalong-canon.js?v=1.3.0");
+        return loader.load("wwam-watch-pass-pilot.js?v=1.0.0-source-dossier-audio");
       })
       .then(function () {
         // The same source-local listening contract now covers all 509 public

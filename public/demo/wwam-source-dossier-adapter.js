@@ -17,6 +17,15 @@
     return Array.isArray(value) ? value : [];
   }
 
+  function episodeRecords(payload) {
+    var episodes = payload && payload.episodes;
+    if (Array.isArray(episodes)) return episodes;
+    if (!episodes || typeof episodes !== "object") return [];
+    return Object.keys(episodes).map(function (id) {
+      return episodes[id];
+    });
+  }
+
   function clean(value) {
     return String(value == null ? "" : value).replace(/\s+/g, " ").trim();
   }
@@ -700,8 +709,13 @@
   function sourceAudioPass(source, watchalongById, livestreamById) {
     var watchEpisode = watchalongById && watchalongById.get(source.id);
     var liveEpisode = livestreamById && livestreamById.get(source.id);
-    var watchPass = watchEpisode && watchEpisode.watchPass;
-    var livePass = liveEpisode && liveEpisode.watchPass;
+    var passFromEpisode = function (episode) {
+      if (!episode) return null;
+      return episode.watchPass ||
+        (Array.isArray(episode.candidates) ? episode : null);
+    };
+    var watchPass = passFromEpisode(watchEpisode);
+    var livePass = passFromEpisode(liveEpisode);
     var usable = function (pass) {
       return pass && pass.status !== "held-age-restricted" &&
         array(pass.candidates).length > 0;
@@ -2422,6 +2436,7 @@
     var live = input.live || {};
     var livestreamCanon = input.livestreamCanon || {};
     var livestreamAudioIndex = input.livestreamAudioIndex || {};
+    var watchalongAudioIndex = input.watchalongAudioIndex || {};
     var popular = input.popular || {};
     var watchalongCanon = input.watchalongCanon || {};
     var archiveStreams = streamsFrom(
@@ -2485,15 +2500,22 @@
     var liveById = mapById(liveStreams, "WWAM Fresh 10");
     var popularById = mapById(popularStreams, "WWAM Popular 25");
     var watchalongById = mapById(
-      array(watchalongCanon.episodes),
+      episodeRecords(watchalongCanon),
       "WWAM Watchalong Canon"
     );
+    var watchalongAudioById = mapById(
+      episodeRecords(watchalongAudioIndex),
+      "WWAM Watchalong Audio Index"
+    );
+    var watchalongPassById = watchalongAudioById.size
+      ? watchalongAudioById
+      : watchalongById;
     var livestreamCanonById = mapById(
-      array(livestreamCanon.episodes),
+      episodeRecords(livestreamCanon),
       "WWAM Livestream Canon"
     );
     var livestreamAudioById = mapById(
-      array(livestreamAudioIndex.episodes),
+      episodeRecords(livestreamAudioIndex),
       "WWAM Livestream Audio Index"
     );
     var livestreamById = livestreamAudioById.size
@@ -2823,7 +2845,7 @@
         receipts = receipts.concat(famCalloutReceipts(source));
         receipts = receipts.concat(sourceAudioPassReceipts(
           source,
-          watchalongById,
+          watchalongPassById,
           livestreamById
         ));
       }

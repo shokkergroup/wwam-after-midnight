@@ -204,29 +204,27 @@ test("adapter exposes the universal schema and exact 510-source WWAM union", () 
   });
 });
 
-test("watchalong audio-pass routes become a local Show Wiki lane", () => {
+test("watchalong audio index routes become a local Show Wiki lane", () => {
   const { window: runtime, input, result } = buildFixture(({ input, window }) => {
-    input.watchalongCanon = {
-      episodes: window.WWAM_CATALOG.map((item) => ({
+    input.watchalongAudioIndex = {
+      episodes: Object.fromEntries(window.WWAM_CATALOG.map((item) => [item.id, {
         id: item.id,
-        watchPass: {
-          status: "audio-feature-pilot",
-          candidates: [{
-            t: 1,
-            end: 9,
-            category: "ROOM BREAK",
-            score: 91,
-            captionExcerpt: "The room breaks when the commentary takes a hard left turn.",
-            evidenceBasis: "canonical YouTube audio pass + local caption alignment",
-          }, {
-            t: 20,
-            end: 20,
-            category: "AUDIO SPIKE",
-            score: 64,
-            evidenceBasis: "canonical YouTube audio pass; no aligned caption fragment",
-          }],
-        },
-      })),
+        status: "audio-feature-pilot",
+        candidates: [{
+          t: 1,
+          end: 9,
+          category: "ROOM BREAK",
+          score: 91,
+          captionExcerpt: "The room breaks when the commentary takes a hard left turn.",
+          evidenceBasis: "canonical YouTube audio pass + local caption alignment",
+        }, {
+          t: 20,
+          end: 20,
+          category: "AUDIO SPIKE",
+          score: 64,
+          evidenceBasis: "canonical YouTube audio pass; no aligned caption fragment",
+        }],
+      }])),
     };
   });
   const source = result.sources.find((candidate) =>
