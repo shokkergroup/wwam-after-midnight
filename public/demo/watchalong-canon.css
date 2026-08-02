@@ -45,6 +45,22 @@
 
 .wac-shell { display: grid; gap: 1.2rem; }
 
+/* The first viewport is a door, not a filing cabinet. Audit panels remain
+   available lower on the page, while this rail exposes the actual fan paths. */
+.wac-quickstart { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(18rem, .75fr); gap: 1rem; border: 1px solid rgba(255, 44, 131, .5); padding: 1.1rem 1.25rem; background: linear-gradient(135deg, rgba(255,44,131,.11), rgba(203,255,40,.045)); scroll-margin-top: 5rem; }
+.wac-quickstart-copy h3 { margin: .25rem 0 .5rem; color: var(--canon-ink); font: 800 clamp(1.55rem, 3vw, 2.6rem)/.9 "Arial Narrow", Impact, sans-serif; letter-spacing: -.03em; text-transform: uppercase; }
+.wac-quickstart-copy p { max-width: 58rem; margin: 0; color: #d4cbcf; font: 500 .76rem/1.5 ui-sans-serif, system-ui, sans-serif; }
+.wac-quickstart-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-left: 2px solid var(--canon-hot); background: rgba(0,0,0,.2); }
+.wac-quickstart-stats span { display: grid; align-content: center; gap: .25rem; padding: .6rem .55rem; border-right: 1px solid var(--canon-line); }
+.wac-quickstart-stats span:last-child { border-right: 0; }
+.wac-quickstart-stats b { color: var(--canon-acid); font: 800 1.45rem/.9 "Arial Narrow", Impact, sans-serif; }
+.wac-quickstart-stats small { color: var(--canon-dim); font: 800 .45rem/1.2 ui-monospace, Consolas, monospace; letter-spacing: .07em; text-transform: uppercase; }
+.wac-quickstart-actions { display: flex; flex-wrap: wrap; grid-column: 1 / -1; gap: .45rem; padding-top: .1rem; }
+.wac-quickstart-actions button { border: 1px solid rgba(203,255,40,.38); padding: .55rem .7rem; color: var(--canon-ink); background: rgba(0,0,0,.22); cursor: pointer; font: 800 .55rem/1.1 ui-monospace, Consolas, monospace; letter-spacing: .07em; text-transform: uppercase; }
+.wac-quickstart-actions button:hover, .wac-quickstart-actions button:focus-visible { border-color: var(--canon-hot); color: var(--canon-acid); outline: 0; }
+.wac-audit-lanes { display: grid; gap: 1.2rem; border-top: 1px solid var(--canon-line); padding-top: .2rem; }
+#wacMovieWorlds { scroll-margin-top: 5rem; }
+
 .wac-proof {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -327,6 +343,8 @@
 .wac-podcast-clock-note { color: var(--canon-acid); font: 800 .55rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .07em; text-transform: uppercase; }
 
 @media (max-width: 1000px) {
+  .wac-quickstart { grid-template-columns: 1fr; }
+  .wac-quickstart-stats { border-left: 0; border-top: 2px solid var(--canon-hot); }
   .wac-proof { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .wac-proof article:nth-child(3) { border-right: 0; }
   .wac-franchise-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -346,6 +364,10 @@
 
 @media (max-width: 720px) {
   .watchalong-canon-entry { padding: 0 1rem 3rem; }
+  .wac-quickstart { padding: .95rem; }
+  .wac-quickstart-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .wac-quickstart-stats span:nth-child(odd) { border-right: 1px solid var(--canon-line); }
+  .wac-quickstart-stats span:nth-child(even) { border-right: 0; }
   .wac-proof { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .wac-proof article:nth-child(odd) { border-right: 1px solid var(--canon-line); }
   .wac-proof article:nth-child(even) { border-right: 0; }

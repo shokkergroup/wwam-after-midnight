@@ -110,6 +110,20 @@
     return baseProofMarkup() + '<p class="wac-proof-note"><strong>AUDIO PASS</strong> ' + number((payload.watchPassCoverage || {}).audioAnalyzed) + ' canonical watchalong sources decoded and ranked // ' + number((payload.watchPassCoverage || {}).held) + ' source held. </p><p class="wac-proof-note"><strong>CHANNEL AUDIT</strong> ' + number(scope.channelSnapshotSources) + ' uploads observed in the live channel snapshot // ' + number(stats.sourceCounts && stats.sourceCounts.heldMembersOnly) + ' title-explicit members-only leads held outside public canon. The public list is source-bounded, not a guess at a lifetime total.</p><p class="wac-proof-note"><strong>STRICT LIVE AUDIT</strong> ' + number(discovery.liveStrictCandidateCount || sourceCounts.liveStrictCandidates) + ' strict film-watchalong leads found in the live feed // ' + number(discovery.liveStrictPublicCandidateCount || sourceCounts.liveStrictPublicCandidates) + ' public live leads plus ' + number(sourceCounts.legacyCatalogRetained) + ' legacy catalog sources retained.</p><p class="wac-proof-note"><strong>EDGE AUDIT</strong> ' + number(discovery.broadCandidateCount) + ' broad watch-like titles checked beyond the strict canon signal // ' + number(edgeHeld) + ' members-only leads held and ' + number(edgeAdjacency) + ' review/reaction or short-form leads kept out until a full watchalong source is established.</p>';
   };
 
+  // Put the useful front doors before the audit paperwork. The old render
+  // order made visitors walk through several proof ledgers before they could
+  // reach a movie world. This compact index keeps the evidence visible, but
+  // lets a fan start with a title, a world, or the complete tape list.
+  function quickStartMarkup() {
+    var stats = payload.stats || {};
+    var ledger = payload.coverageLedger || {};
+    var sourceCount = Number(stats.episodes || ledger.publicYoutubeCanon || 0);
+    var movieCount = Number(stats.movieGroups || 0);
+    var worldCount = Number(stats.franchises || franchises.length || 0);
+    var podcastCount = Number(ledger.podcastRecoveries || 0);
+    return '<section class="wac-quickstart" aria-labelledby="wacQuickstartTitle"><div class="wac-quickstart-copy"><span class="wac-section-label">START HERE // THE SHORT WAY IN</span><h3 id="wacQuickstartTitle">PICK A WORLD. FIND THE TAPE.</h3><p>Movie worlds and repeats are grouped first. Choose a lane below, or search the whole canon when you already know the title. The audit ledgers are still here—just after the doors people actually came to use.</p></div><div class="wac-quickstart-stats"><span><b>' + number(worldCount) + '</b><small>WORLDS</small></span><span><b>' + number(movieCount) + '</b><small>MOVIE FILES</small></span><span><b>' + number(sourceCount) + '</b><small>YOUTUBE SOURCES</small></span><span><b>' + number(podcastCount) + '</b><small>PODCAST RECOVERIES</small></span></div><nav class="wac-quickstart-actions" aria-label="Watchalong quick starts"><button type="button" data-wac-quick="all">BROWSE ALL MOVIE FILES</button><button type="button" data-wac-quick="halloween">OPEN HALLOWEEN UNIVERSE</button><button type="button" data-wac-quick="comedy">OPEN COMEDY VAULT</button><button type="button" data-wac-quick="search">SEARCH EVERY TAPE</button></nav></section>';
+  }
+
   function coverageLedgerMarkup() {
     var ledger = payload.coverageLedger || {};
     var sourceCounts = (payload.stats || {}).sourceCounts || {};
@@ -240,7 +254,7 @@
   }
 
   function franchiseMarkup() {
-    return '<div class="wac-section-label">MOVIE WORLDS // CLICK A WORLD TO FILTER THE TAPE</div><div class="wac-franchise-grid">' + franchises.map(function (franchise) {
+    return '<div class="wac-section-label" id="wacMovieWorlds">MOVIE WORLDS // CLICK A WORLD TO FILTER THE TAPE</div><div class="wac-franchise-grid">' + franchises.map(function (franchise) {
       var active = state.franchise === franchise.key;
       return '<button type="button" class="wac-franchise-card' + (active ? ' is-active' : '') + '" data-wac-franchise="' + esc(franchise.key) + '">' +
         '<b>' + esc(franchise.title) + '</b><span>' + number(franchise.episodeCount) + ' EPISODES // ' + number(franchise.groupCount) + ' MOVIE FILES</span><i></i></button>';
@@ -530,9 +544,10 @@
     var visible = visibleEpisodes();
     var selected = episodeById(state.selected);
     var selectedPodcast = podcastByKey(state.selectedPodcast);
-    mount.innerHTML = '<div class="wac-shell">' + proofMarkup() + coverageLedgerMarkup() + companionShelfMarkup() + edgeAuditMarkup() + podcastRecoveryMarkup() + toolsMarkup() + franchiseMarkup() + movieFileMarkup() +
+    mount.innerHTML = '<div class="wac-shell">' + quickStartMarkup() + franchiseMarkup() + toolsMarkup() + movieFileMarkup() +
       '<div class="wac-results-head"><h3>' + (state.franchise === "all" ? "THE FULL TAPE LIST" : esc((franchises.filter(function (item) { return item.key === state.franchise; })[0] || {}).title || "FILTERED TAPE LIST")) + '</h3><span>' + number(visible.length) + ' EPISODES // EVERY MOVIE VERSION STAYS VISIBLE</span></div>' +
-      '<div class="wac-episode-grid">' + (visible.length ? visible.map(episodeCard).join('') : '<div class="wac-empty">No public watchalong matches that filter. Try another movie, franchise, or format.</div>') + '</div>' + (selected ? dossierMarkup(selected) : '') + (selectedPodcast ? podcastDossierMarkup(selectedPodcast) : '') + '</div>';
+      '<div class="wac-episode-grid">' + (visible.length ? visible.map(episodeCard).join('') : '<div class="wac-empty">No public watchalong matches that filter. Try another movie, franchise, or format.</div>') + '</div>' + (selected ? dossierMarkup(selected) : '') + (selectedPodcast ? podcastDossierMarkup(selectedPodcast) : '') +
+      '<div class="wac-audit-lanes">' + proofMarkup() + coverageLedgerMarkup() + companionShelfMarkup() + edgeAuditMarkup() + podcastRecoveryMarkup() + '</div></div>';
     keepPublicEdgeLinksLocal();
     bind();
   }
@@ -546,6 +561,28 @@
     if (franchise) franchise.addEventListener("change", function (event) { state.franchise = event.target.value; render(); });
     if (type) type.addEventListener("change", function (event) { state.type = event.target.value; render(); });
     if (repeat) repeat.addEventListener("click", function () { state.showRepeats = !state.showRepeats; render(); });
+    Array.prototype.forEach.call(root.document.querySelectorAll("[data-wac-quick]"), function (button) {
+      button.addEventListener("click", function () {
+        var quick = button.getAttribute("data-wac-quick");
+        state.selected = "";
+        state.selectedPodcast = "";
+        if (quick === "halloween") state.franchise = franchises.filter(function (item) { return item.key === "halloween"; })[0] ? "halloween" : state.franchise;
+        else if (quick === "comedy") {
+          state.franchise = "all";
+          state.query = "Scary Movie";
+        } else if (quick === "search") {
+          state.franchise = "all";
+          state.query = "";
+        } else {
+          state.franchise = "all";
+          state.query = "";
+        }
+        render();
+        var target = quick === "all" || quick === "halloween" || quick === "comedy" ? root.document.getElementById("wacMovieWorlds") : root.document.getElementById("wacSearch");
+        if (target && typeof target.scrollIntoView === "function") target.scrollIntoView({ behavior: "smooth", block: "start" });
+        if (target && quick === "search") target.focus();
+      });
+    });
     Array.prototype.forEach.call(root.document.querySelectorAll("[data-wac-franchise]"), function (button) {
       button.addEventListener("click", function () { state.franchise = button.getAttribute("data-wac-franchise"); render(); });
     });
