@@ -263,6 +263,11 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.doesNotMatch(html, /131 livestreams|50 public watchalong sources/i);
   assert.match(html, /THIRTEEN FRANCHISE WORLDS \/\/ NINETY-ONE SOURCES/);
   assert.match(ui, /MOVIE FILES \/\/ REPEATS STAY ATTACHED/);
+  assert.match(ui, /function quickStartMarkup\(\)/, "the Watchalongs mount exposes a short path before audit ledgers");
+  assert.match(ui, /data-wac-quick="halloween"/, "Halloween is a first-viewport door");
+  assert.match(ui, /data-wac-quick="comedy"/, "the comedy vault is a first-viewport door");
+  assert.match(ui, /wacMovieWorlds/, "movie worlds have a stable scroll target");
+  assert.match(ui, /wac-audit-lanes/, "audit ledgers remain available after the primary browse path");
   assert.match(ui, /data-wac-group/);
   assert.match(ui, /function fanSignalsMarkup\(episode, signals\)/);
   assert.match(ui, /fanSignalsMarkup\(episode, dossier\.fanSignals\)/);
