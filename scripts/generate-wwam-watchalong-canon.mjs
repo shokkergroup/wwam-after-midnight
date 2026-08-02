@@ -121,16 +121,33 @@ function formatTimestamp(seconds) {
 }
 
 function captionEvents(id) {
-  const file = path.join(CAPTIONS_DIR, `${id}.json`);
-  if (!fs.existsSync(file)) return [];
-  const payload = readJson(file);
-  return (payload.events || []).filter((event) => Array.isArray(event.segs) && event.segs.length)
-    .map((event) => ({
-      t: Math.max(0, Number(event.tStartMs || 0) / 1000),
-      end: Math.max(0, Number(event.tStartMs || 0) / 1000 + Number(event.dDurationMs || 0) / 1000),
-      text: normalizeCaptionText(event.segs.map((segment) => segment && segment.utf8 || "").join(""))
-    }))
-    .filter((event) => event.text);
+  const captionFile = path.join(CAPTIONS_DIR, `${id}.json`);
+  if (fs.existsSync(captionFile)) {
+    const payload = readJson(captionFile);
+    return (payload.events || []).filter((event) => Array.isArray(event.segs) && event.segs.length)
+      .map((event) => ({
+        t: Math.max(0, Number(event.tStartMs || 0) / 1000),
+        end: Math.max(0, Number(event.tStartMs || 0) / 1000 + Number(event.dDurationMs || 0) / 1000),
+        text: normalizeCaptionText(event.segs.map((segment) => segment && segment.utf8 || "").join("")),
+        evidenceType: "youtube-automatic-caption"
+      }))
+      .filter((event) => event.text);
+  }
+  const asrFile = path.join(CAPTIONS_DIR, `${id}.asr.json`);
+  if (!fs.existsSync(asrFile)) return [];
+  const payload = readJson(asrFile);
+  return (payload.segments || []).map((segment) => ({
+    t: Math.max(0, Number(segment.start || 0)),
+    end: Math.max(0, Number(segment.end || segment.start || 0)),
+    text: normalizeCaptionText(segment.text),
+    evidenceType: "local-whisper-transcript"
+  })).filter((event) => event.text);
+}
+
+function captionSourceKind(id) {
+  if (fs.existsSync(path.join(CAPTIONS_DIR, `${id}.json`))) return "youtube-automatic-caption";
+  if (fs.existsSync(path.join(CAPTIONS_DIR, `${id}.asr.json`))) return "local-whisper-transcript";
+  return null;
 }
 
 function captionWindow(events, index, before = 5, after = 10) {
@@ -289,7 +306,7 @@ function candidateMoments(events, duration, aliases) {
     .filter((item) => item.data)
     .sort((left, right) => right.data.mentions - left.data.mentions)
     .slice(0, 10)
-    .map((item) => ({ name: item.name, ...item.data, evidence: { type: "youtube-automatic-caption", timestampStatus: "caption-event", excerptStatus: "short-caption-fragment", speakerStatus: "not-diarized", reviewStatus: "machine-candidate" } }));
+    .map((item) => ({ name: item.name, ...item.data, evidence: { type: events[0]?.evidenceType || "source-local-transcript", timestampStatus: "caption-event", excerptStatus: "short-caption-fragment", speakerStatus: "not-diarized", reviewStatus: "machine-candidate" } }));
   const chapters = [0, 1, 2, 3, 4, 5, 6, 7].map((index) => {
     const at = Math.round((duration || events.at(-1).end) * index / 8);
     const nearest = candidates.slice().sort((left, right) => Math.abs(left.t - at) - Math.abs(right.t - at))[0];
@@ -359,6 +376,9 @@ function episodeFrom(id) {
   const date = dateFrom(metadataRecord.upload_date || catalogRecord?.date);
   const duration = Number(metadataRecord.duration || catalogRecord?.duration || 0);
   const events = captionEvents(id);
+  const sourceKind = captionSourceKind(id);
+  const evidenceLabel = sourceKind === "local-whisper-transcript" ? "local Whisper audio transcript" : "local caption ledger";
+  const captionSourceFile = sourceKind === "local-whisper-transcript" ? `source-cache/captions/${id}.asr.json` : `source-cache/captions/${id}.json`;
   const aliases = [taxonomy.movieTitle, taxonomy.franchiseTitle, taxonomy.movieTitle.replace(/\s*\([^)]*\)/g, "")].filter(Boolean);
   // A deep record without a matching human guide is still useful when the local
   // caption ledger can provide bounded route receipts. Keep the evidence state
@@ -380,7 +400,7 @@ function episodeFrom(id) {
   const fanSignals = fanSignalCandidates(events, duration);
   const lanePhrase = Object.entries(laneCounts).sort((left, right) => right[1] - left[1]).slice(0, 3).map(([label, count]) => `${label} (${count})`).join(", ");
   const topicPhrase = topics.slice(0, 5).map((topic) => topic.name).filter((name) => name && !/watch\s*party|commentary|watch\s*along/i.test(name)).slice(0, 3).join(", ");
-  const derivedSummary = `This ${taxonomy.type.replace(/-/g, " ")} for ${taxonomy.movieTitle} runs ${formatTimestamp(duration)}. The local caption ledger flags ${allMoments.length} playable leads${lanePhrase ? ` across ${lanePhrase}` : ""}${topicPhrase ? `, with the conversation repeatedly touching ${topicPhrase}` : ""}. It is a navigation dossier rather than a speaker-diarized transcript: press the timestamp, hear the full exchange, and decide whether the lead earns a place in the permanent cut.`;
+  const derivedSummary = `This ${taxonomy.type.replace(/-/g, " ")} for ${taxonomy.movieTitle} runs ${formatTimestamp(duration)}. The ${evidenceLabel} flags ${allMoments.length} playable leads${lanePhrase ? ` across ${lanePhrase}` : ""}${topicPhrase ? `, with the conversation repeatedly touching ${topicPhrase}` : ""}. It is a navigation dossier rather than a speaker-diarized transcript: press the timestamp, hear the full exchange, and decide whether the lead earns a place in the permanent cut.`;
   const summary = guide?.overview || (!events.length && !deepRecord
     ? `This source brief preserves the official upload for ${taxonomy.movieTitle}, but no local caption map was available in this observation. The source remains playable; no timestamps or speaker claims are manufactured.`
     : (deepRecord && !guide
@@ -389,7 +409,7 @@ function episodeFrom(id) {
   const dossier = {
     state: deepRecord && guide ? "full-editorial-dossier" : deepRecord || !events.length ? "source-brief-dossier" : "caption-ledger-dossier",
     summary: clean(summary),
-    evidenceSummary: guide?.evidenceSummary || `The source ledger contains ${events.length.toLocaleString("en-US")} caption events and ${(deepRecord?.wordsAudited || derived?.captionWords || 0).toLocaleString("en-US")} caption words. These timestamps are machine-found leads, not speaker-diarized quotes; press play before treating a line as canon.`,
+    evidenceSummary: guide?.evidenceSummary || `The source ledger contains ${events.length.toLocaleString("en-US")} ${sourceKind === "local-whisper-transcript" ? "audio transcript segments" : "caption events"} and ${(deepRecord?.wordsAudited || derived?.captionWords || 0).toLocaleString("en-US")} words. These timestamps are machine-found leads, not speaker-diarized quotes; press play before treating a line as canon.`,
     shape: guide?.shape || { runtimeBand: duration >= 9000 ? "MARATHON" : duration >= 5400 ? "FEATURE" : "SHORT", chapters: chapters.length, threads: topics.length, cuts: allMoments.length },
     fanRead: guide?.fanRead || (deepRecord ? null : ledgerFanRead(allMoments, finalMoment)),
     fanSignals,
@@ -397,13 +417,13 @@ function episodeFrom(id) {
     chapters,
     cuts: allMoments,
     route: { opening: firstMoment, strongest: strongestMoment, closing: finalMoment },
-    caption: { words: deepRecord?.wordsAudited || derived?.captionWords || 0, events: events.length, minutes: deepRecord?.captionMinutes || Math.round(duration / 60), sourceFile: `source-cache/captions/${id}.json` }
+    caption: { words: deepRecord?.wordsAudited || derived?.captionWords || 0, events: events.length, minutes: deepRecord?.captionMinutes || Math.round(duration / 60), sourceFile: captionSourceFile, sourceKind }
   };
   return {
     id, title: clean(metadataRecord.title), date, duration, durationLabel: formatTimestamp(duration), views: Number(metadataRecord.view_count || 0),
     thumbnail: metadataRecord.thumbnail || catalogRecord?.thumbnail || `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`,
     url: `https://www.youtube.com/watch?v=${id}`, channel: metadataRecord.channel || "WeWatchedAMovie", channelId: metadataRecord.channel_id || null,
-    publicSource: metadataRecord.availability !== "subscriber_only", publicSourceBasis: "official cached YouTube metadata + local caption file", availability: metadataRecord.availability || atlasRecord?.availability || "public-source-snapshot",
+    publicSource: metadataRecord.availability !== "subscriber_only", publicSourceBasis: `official cached YouTube metadata + ${sourceKind === "local-whisper-transcript" ? "local audio transcript" : "local caption file"}`, availability: metadataRecord.availability || atlasRecord?.availability || "public-source-snapshot",
     sourceAvailability: metadataRecord.availability || null,
     atlasCoverage: atlasRecord?.coverage || (deepRecord ? "catalog-distilled" : "caption-backed-local"), lanes: atlasRecord?.lanes || [],
     type: taxonomy.type, note: taxonomy.note, repeat: !catalogRecord, catalogMember: Boolean(catalogRecord), catalogOrder: catalogRecord?.order || null,
@@ -454,7 +474,7 @@ const payload = {
   schema: "shokker-wwam-watchalong-canon/v1",
   generated: new Date().toISOString(),
   observedAt: discoveryManifest?.observedAt || "2026-07-30",
-  sourcePolicy: "Official cached WWAM YouTube metadata and local caption files. Existing curated 39-tape dossiers are retained; title-explicit public commentaries and movie watch parties outside that set are added as caption-ledger or held source-brief dossiers. Members-only uploads stay in the discovery ledger until access changes. No speaker, intent, rights, or creator-approval claim is inferred.",
+  sourcePolicy: "Official cached WWAM YouTube metadata plus local caption or audio-transcript receipts. Existing curated 39-tape dossiers are retained; title-explicit public commentaries and movie watch parties outside that set are added as caption-ledger or held source-brief dossiers. Members-only uploads stay in the discovery ledger until access changes. No speaker, intent, rights, or creator-approval claim is inferred.",
   scope: { metadataSources: metadata.length, channelSnapshotSources: discoveryManifest?.channelSnapshotSources || null, titleCandidates: titleCandidates.length, heldTitleCandidates: heldTitleCandidates.length, episodes: episodes.length, captionFiles: fs.readdirSync(CAPTIONS_DIR).filter((file) => file.endsWith(".json")).length },
   stats: {
     episodes: episodes.length, deepDossiers: episodes.filter((episode) => episode.dossier.state === "full-editorial-dossier").length, captionLedgers: episodes.filter((episode) => episode.dossier.state === "caption-ledger-dossier").length, sourceBriefs: episodes.filter((episode) => episode.dossier.state === "source-brief-dossier").length, nonFullAdditions: episodes.filter((episode) => episode.dossier.state !== "full-editorial-dossier").length,
@@ -466,6 +486,7 @@ const payload = {
     sourceCounts: { catalogCommentaries: catalog.length, titleCommentaries: titleCandidates.filter((record) => /commentary/i.test(record.title)).length, explicitWatchParties: 2, heldMembersOnly: heldTitleCandidates.length }
   },
   taxonomy: { groups: groups.map((group) => ({ key: group.key, title: group.title, franchiseKey: group.franchiseKey })), aliases: Object.fromEntries(episodes.map((episode) => [episode.id, episode.aliases])) },
+  watchPassCoverage: watchPass.coverage || null,
   franchises, groups, episodes, discovery: {
     channelUrl: discoveryManifest?.channelUrl || "https://www.youtube.com/@WeWatchedAMovie/videos",
     titlePattern: discoveryManifest?.titlePattern || titleSignal.source,

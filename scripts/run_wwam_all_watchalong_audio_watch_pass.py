@@ -142,17 +142,18 @@ def caption_only_record(episode: dict, events: list[dict]) -> dict:
             "reviewStatus": "caption-ledger-candidate; playback remains the authority",
             "rank": rank,
         })
+    asr_only = bool(events) and events[0].get("evidenceType") == "local-whisper-transcript"
     return {
         "id": episode["id"],
         "date": episode.get("date") or "unknown",
         "title": title_for(episode),
         "status": "caption-ledger-pilot",
-        "label": "HALLOWEEN WATCH PASS // CAPTION PILOT" if episode.get("franchiseKey") == "halloween" else "WATCHALONG WATCH PASS // CAPTION PILOT",
+        "label": "HALLOWEEN WATCH PASS // ASR PILOT" if asr_only and episode.get("franchiseKey") == "halloween" else ("WATCHALONG WATCH PASS // ASR PILOT" if asr_only else ("HALLOWEEN WATCH PASS // CAPTION PILOT" if episode.get("franchiseKey") == "halloween" else "WATCHALONG WATCH PASS // CAPTION PILOT")),
         "media": {"sourceUrl": episode.get("url") or f"https://www.youtube.com/watch?v={episode['id']}", "audioOnly": True, "canonicalAudioAvailable": False, "captionMapAvailable": True},
         "audit": {"captionEvents": len(events), "audioRows": 0, "laughterOrOverlapMarkers": 0, "candidateCount": len(candidates), "candidateTarget": target, "audioStats": {}},
         "candidates": candidates,
         "listeningDigest": listening_digest(candidates, None, audio_available=False),
-        "note": "The public upload has a source-local caption map, but YouTube did not expose a locally acquirable media format in this run. These are bounded caption leads—not acoustic intensity measurements. Open the official source at each timestamp.",
+        "note": ("The public upload has a local Whisper transcript generated from the canonical audio track, but no YouTube caption map was available. These are bounded transcript leads with no acoustic intensity claim; open the official source at each timestamp." if asr_only else "The public upload has a source-local caption map, but YouTube did not expose a locally acquirable media format in this run. These are bounded caption leads—not acoustic intensity measurements. Open the official source at each timestamp."),
         "provenanceFile": None,
     }
 
@@ -177,7 +178,9 @@ def main() -> None:
         video_id = episode["id"]
         audio_file = audio_file_for(video_id)
         caption_path = ROOT / "source-cache" / "captions" / f"{video_id}.json"
-        if not audio_file and caption_path.exists():
+        asr_path = ROOT / "source-cache" / "captions" / f"{video_id}.asr.json"
+        has_transcript = caption_path.exists() or asr_path.exists()
+        if not audio_file and has_transcript:
             events = caption_events(video_id)
             output["episodes"][video_id] = caption_only_record(episode, events)
             analyzed += 1
@@ -191,7 +194,7 @@ def main() -> None:
             print(f"{video_id}: held (no canonical audio or caption receipt)")
             continue
 
-        if not caption_path.exists():
+        if not has_transcript:
             output["episodes"][video_id] = held_record(episode)
             output["episodes"][video_id]["status"] = "held-caption-unavailable"
             output["episodes"][video_id]["note"] = "Canonical audio was acquired, but no source-local caption map was available for safe timestamp alignment. No timestamp candidates are manufactured."

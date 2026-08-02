@@ -69,7 +69,14 @@ def clean(text: object) -> str:
 
 
 def caption_events(video_id: str) -> list[dict]:
-    payload = json.loads((CAPTION_DIR / f"{video_id}.json").read_text(encoding="utf-8"))
+    caption_file = CAPTION_DIR / f"{video_id}.json"
+    asr_file = CAPTION_DIR / f"{video_id}.asr.json"
+    if not caption_file.exists() and asr_file.exists():
+        payload = json.loads(asr_file.read_text(encoding="utf-8"))
+        return [{"t": max(0.0, float(segment.get("start") or 0)), "end": max(0.05, float(segment.get("end") or segment.get("start") or 0)), "text": clean(segment.get("text")), "evidenceType": "local-whisper-transcript"} for segment in payload.get("segments", []) if clean(segment.get("text"))]
+    if not caption_file.exists():
+        return []
+    payload = json.loads(caption_file.read_text(encoding="utf-8"))
     events: list[dict] = []
     for event in payload.get("events", []):
         segs = event.get("segs") or []
@@ -80,7 +87,7 @@ def caption_events(video_id: str) -> list[dict]:
             continue
         t = max(0.0, float(event.get("tStartMs", 0)) / 1000.0)
         end = t + max(0.05, float(event.get("dDurationMs", 0)) / 1000.0)
-        events.append({"t": t, "end": end, "text": raw})
+        events.append({"t": t, "end": end, "text": raw, "evidenceType": "youtube-automatic-caption"})
     return events
 
 
@@ -198,7 +205,7 @@ def candidate_rows(events: list[dict], audio: dict, max_candidates: int = 15) ->
                 "markerObserved": marker,
             },
             "signals": {"captionSignalHits": signal_hits, "captionMarker": marker},
-            "evidenceBasis": "canonical YouTube audio + source-local caption alignment",
+            "evidenceBasis": f"canonical YouTube audio + source-local {events[0].get('evidenceType', 'caption')} alignment",
             "reviewStatus": "audio-feature-candidate; playback remains the authority",
         })
     candidates.sort(key=lambda row: (-row["score"], row["t"]))

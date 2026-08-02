@@ -24,8 +24,8 @@ test("watchalong canon has the complete public source registry", () => {
   assert.equal(canon.stats.movieGroups, 88);
   assert.equal(canon.stats.franchises, 12);
   assert.equal(canon.stats.deepDossiers, 38);
-  assert.equal(canon.stats.captionLedgers, 51);
-  assert.equal(canon.stats.sourceBriefs, 2);
+  assert.equal(canon.stats.captionLedgers, 52);
+  assert.equal(canon.stats.sourceBriefs, 1);
   assert.equal(canon.stats.nonFullAdditions, 53);
   assert.equal(canon.stats.sourceCounts.heldMembersOnly, 22);
   assert.equal(canon.scope.channelSnapshotSources, 2882);
@@ -35,9 +35,10 @@ test("watchalong canon has the complete public source registry", () => {
   assert.equal(new Set(canon.episodes.map((episode) => episode.id)).size, canon.episodes.length);
   assert.match(watchPass.version, /^2026-audio-pilot-0[34]$/);
   assert.equal(watchPass.coverage.watchalongEpisodes, 91);
-  assert.equal(watchPass.coverage.audioAnalyzed, 89);
-  assert.equal(watchPass.coverage.held, 2);
-  assert.ok(watchPass.coverage.rankedCandidates >= 1300);
+  assert.equal(watchPass.coverage.audioAnalyzed, 90);
+  assert.equal(watchPass.coverage.held, 1);
+  assert.ok(watchPass.coverage.rankedCandidates >= 2000);
+  assert.equal(canon.watchPassCoverage.audioAnalyzed, 90);
 });
 
 test("repeated films stay separate while grouping into one movie file", () => {
@@ -80,8 +81,12 @@ test("every episode has an official source, evidence state, and playable receipt
   assert.ok(canon.episodes.filter((episode) => episode.watchPass.status === "audio-feature-pilot").every((episode) => episode.watchPass.media.sourceUrl.includes(episode.id)));
   assert.ok(canon.episodes.some((episode) => episode.watchPass.label === "WATCHALONG WATCH PASS // AUDIO PILOT"));
   assert.ok(canon.episodes.some((episode) => episode.watchPass.status === "caption-ledger-pilot"), "public caption-backed tapes retain a caption-only route when audio is unavailable");
+  const signs = canon.episodes.find((episode) => episode.id === "F1DTb9zwceY");
+  assert.equal(signs.dossier.caption.sourceKind, "local-whisper-transcript");
+  assert.equal(signs.watchPass.status, "audio-feature-pilot");
+  assert.ok(signs.watchPass.candidates.length >= 20, "public no-caption source receives an audio/ASR route");
   assert.ok(canon.episodes.some((episode) => episode.watchPass.audit.candidateTarget > 15), "longer watchalongs receive a larger ranked browse set");
-  assert.equal(canon.episodes.filter((episode) => !/^held-/.test(episode.watchPass.status)).filter((episode) => episode.watchPass.listeningDigest?.headline).length, 89, "every acquired watchalong has a listening read");
+  assert.equal(canon.episodes.filter((episode) => !/^held-/.test(episode.watchPass.status)).filter((episode) => episode.watchPass.listeningDigest?.headline).length, 90, "every acquired watchalong has a listening read");
   assert.ok(canon.episodes.filter((episode) => episode.watchPass.status === "caption-ledger-pilot").every((episode) => episode.watchPass.listeningDigest?.mode === "caption-only"), "caption-only tapes disclose their evidence mode");
 });
 
@@ -99,6 +104,7 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(ui, /fanSignalsMarkup\(episode, dossier\.fanSignals\)/);
   assert.match(ui, /function watchPassMarkup\(episode\)/);
   assert.match(ui, /LISTENING READ \/\/ EVIDENCE MIX/);
+  assert.match(ui, /AUDIO PASS/);
   assert.match(ui, /HALLOWEEN WATCH PASS/);
   assert.match(ui, /LISTEN FOR THE ROOM TO CHANGE/);
   assert.match(css, /\.wac-watch-pass/);
