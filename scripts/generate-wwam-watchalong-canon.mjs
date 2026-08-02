@@ -343,6 +343,11 @@ function titleDerivedTaxonomy(title) {
     .replace(/\s+/g, " ")
     .trim()
     .replace(/\s+[-|:]\s*$/, "") || source;
+  // “Freddy Got Fingered” is a Tom Green comedy, not a Nightmare on Elm Street entry.
+  // Keep the title-driven family matcher from treating the actor's first name as franchise evidence.
+  if (/freddy\s+got\s+fingered/i.test(source)) {
+    return { franchiseKey: "comedy", franchiseTitle: "Comedy / Cult", movieKey: slug(normalized), movieTitle: normalized };
+  }
   const families = [
     [/hellraiser/i, "hellraiser", "Hellraiser"],
     [/halloween/i, "halloween", "Halloween"],

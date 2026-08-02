@@ -22,7 +22,7 @@ test("watchalong canon has the complete public source registry", () => {
   assert.equal(canon.schema, "shokker-wwam-watchalong-canon/v1");
   assert.equal(canon.stats.episodes, 91);
   assert.equal(canon.stats.movieGroups, 88);
-  assert.equal(canon.stats.franchises, 12);
+  assert.equal(canon.stats.franchises, 13);
   assert.equal(canon.stats.deepDossiers, 38);
   assert.equal(canon.stats.captionLedgers, 52);
   assert.equal(canon.stats.sourceBriefs, 1);
@@ -60,6 +60,7 @@ test("repeated films stay separate while grouping into one movie file", () => {
   assert.equal(finalChapter.repeatCount, 1);
   assert.equal(halloweenOriginal.repeatCount, 1);
   assert.equal(darkKnight.franchiseKey, "dc");
+  assert.equal(canon.episodes.find((episode) => episode.id === "LHK_KKVd8nw")?.franchiseKey, "comedy", "Freddy Got Fingered is not misfiled as Nightmare on Elm Street");
 });
 
 test("every episode has an official source, evidence state, and playable receipt lane", () => {
@@ -111,7 +112,7 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(html, /watchalong-canon\.css/);
   assert.match(html, /PUBLIC WATCHALONG CANON \/\/ 91 SOURCES \/ 88 MOVIE FILES/);
   assert.doesNotMatch(html, /PUBLIC WATCHALONG CANON \/\/ 50 SOURCES \/ 47 MOVIE FILES/);
-  assert.match(html, /TWELVE FRANCHISE WORLDS \/\/ NINETY-ONE SOURCES/);
+  assert.match(html, /THIRTEEN FRANCHISE WORLDS \/\/ NINETY-ONE SOURCES/);
   assert.match(ui, /MOVIE FILES \/\/ REPEATS STAY ATTACHED/);
   assert.match(ui, /data-wac-group/);
   assert.match(ui, /function fanSignalsMarkup\(episode, signals\)/);
