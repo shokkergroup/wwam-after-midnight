@@ -390,13 +390,24 @@
     }).join('') + '</div>';
   }
 
+  function listeningAnchorCandidates(candidates) {
+    var ranked = (Array.isArray(candidates) ? candidates : []).slice().sort(function (left, right) { return Number(right.score || 0) - Number(left.score || 0) || Number(left.t || 0) - Number(right.t || 0); });
+    var priority = ["STRAIGHT TO STEVE'S ASSHOLE", "WWAM UP IN YA", "CHARACTER SIGNAL", "FAN SIGNAL", "ROOM BREAK", "TAKE GETS NUCLEAR"];
+    var chosen = [];
+    priority.forEach(function (category) {
+      if (chosen.length >= 3) return;
+      var match = ranked.filter(function (candidate) { return chosen.indexOf(candidate) < 0 && clean(candidate.category || candidate.label) === category; })[0];
+      if (match) chosen.push(match);
+    });
+    ranked.forEach(function (candidate) { if (chosen.length < 3 && chosen.indexOf(candidate) < 0) chosen.push(candidate); });
+    return chosen.map(function (candidate) { return { t: candidate.t, category: candidate.category || candidate.label || 'SOURCE RECEIPT', score: candidate.score, excerpt: candidate.captionExcerpt || candidate.excerpt || '' }; });
+  }
+
   function listeningReadMarkup(pass, episode) {
     var digest = pass && pass.listeningDigest;
     if (!digest) return '';
     var mix = Array.isArray(digest.signalMix) ? digest.signalMix : [];
-    var anchors = Array.isArray(digest.anchors) ? digest.anchors : (Array.isArray(pass.candidates) ? pass.candidates.slice().sort(function (left, right) { return Number(right.score || 0) - Number(left.score || 0) || Number(left.t || 0) - Number(right.t || 0); }).slice(0, 3).map(function (candidate) {
-      return { t: candidate.t, category: candidate.category || candidate.label || 'SOURCE RECEIPT', score: candidate.score, excerpt: candidate.captionExcerpt || candidate.excerpt || '' };
-    }) : []);
+    var anchors = Array.isArray(digest.anchors) && digest.anchors.length ? digest.anchors : listeningAnchorCandidates(pass.candidates);
     var anchorMarkup = anchors.length && episode ? '<div class="wac-listening-anchors"><span>FIRST LISTENING ANCHORS</span>' + anchors.map(function (anchor) {
       var at = Number(anchor.t || 0);
       return '<a href="' + esc(sourceUrl(episode, at)) + '"><b>' + esc(anchor.category || 'SOURCE RECEIPT') + '</b><small>' + esc(timestamp(at)) + ' // SCORE ' + esc(anchor.score == null ? '-' : anchor.score) + '</small><p>' + esc(excerpt(anchor.excerpt, 180) || 'Open this bounded route and listen.') + '</p></a>';
@@ -736,5 +747,5 @@
   }
 
   render();
-  root.WWAMWatchalongCanonUI = Object.freeze({ version: "1.7.0", render: render, payload: payload });
+  root.WWAMWatchalongCanonUI = Object.freeze({ version: "1.8.0", render: render, payload: payload });
 })(typeof window !== "undefined" ? window : globalThis);

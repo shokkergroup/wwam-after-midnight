@@ -51,16 +51,7 @@ def listening_digest(candidates: list[dict], *, audio_available: bool = True) ->
         counts[category] = counts.get(category, 0) + 1
     mix = [f"{name} ({count})" for name, count in sorted(counts.items(), key=lambda item: (-item[1], item[0]))[:4]]
     strongest = max(candidates, key=lambda item: float(item.get("score") or 0), default=None)
-    anchors = []
-    for candidate in sorted(candidates, key=lambda item: (-float(item.get("score") or 0), float(item.get("t") or 0)))[:3]:
-        excerpt = clean(candidate.get("captionExcerpt") or candidate.get("excerpt") or "")
-        anchors.append({
-            "t": int(round(float(candidate.get("t") or 0))),
-            "category": str(candidate.get("category") or "SOURCE RECEIPT"),
-            "score": float(candidate.get("score") or 0),
-            "excerpt": excerpt[:240],
-            "evidenceBasis": "audio-feature-ranked candidate; playback remains the authority",
-        })
+    anchors = listening_anchors(candidates)
     if strongest:
         headline = f"Audio re-ranking favors {strongest.get('category', 'source leads')} at {clock(strongest.get('t', 0))}. The pass retained {len(candidates)} bounded routes across {', '.join(mix) or 'the caption map'}."
     else:
@@ -85,6 +76,33 @@ def category_counts(candidates: list[dict]) -> dict[str, int]:
 
 def clean(text: object) -> str:
     return re.sub(r"\s+", " ", str(text or "")).strip()
+
+
+ANCHOR_PRIORITY = ["STRAIGHT TO STEVE'S ASSHOLE", "WWAM UP IN YA", "CHARACTER SIGNAL", "FAN SIGNAL", "ROOM BREAK", "TAKE GETS NUCLEAR"]
+
+
+def listening_anchors(candidates: list[dict], limit: int = 3) -> list[dict]:
+    """Choose diverse listening doorways without discarding the full route set."""
+    ranked = sorted(candidates, key=lambda item: (-float(item.get("score") or 0), float(item.get("t") or 0)))
+    chosen: list[dict] = []
+    for category in ANCHOR_PRIORITY:
+        if len(chosen) >= limit:
+            break
+        match = next((candidate for candidate in ranked if candidate not in chosen and candidate.get("category") == category), None)
+        if match:
+            chosen.append(match)
+    for candidate in ranked:
+        if len(chosen) >= limit:
+            break
+        if candidate not in chosen:
+            chosen.append(candidate)
+    return [{
+        "t": int(round(float(candidate.get("t") or 0))),
+        "category": str(candidate.get("category") or "SOURCE RECEIPT"),
+        "score": float(candidate.get("score") or 0),
+        "excerpt": clean(candidate.get("captionExcerpt") or candidate.get("excerpt") or "")[:240],
+        "evidenceBasis": "audio-feature-ranked candidate; playback remains the authority",
+    } for candidate in chosen]
 
 
 def caption_events(video_id: str) -> list[dict]:

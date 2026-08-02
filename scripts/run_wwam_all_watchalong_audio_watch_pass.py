@@ -13,7 +13,7 @@ import re
 import sys
 from pathlib import Path
 
-from run_wwam_audio_watch_pass import AUDIO_DIR, DEMO_DIR, candidate_rows, caption_events, category_counts, provenance, stream_features
+from run_wwam_audio_watch_pass import AUDIO_DIR, DEMO_DIR, candidate_rows, caption_events, category_counts, listening_anchors, provenance, stream_features
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -156,16 +156,7 @@ def listening_digest(candidates: list[dict], audio_stats: dict | None, *, audio_
         counts[category] = counts.get(category, 0) + 1
     mix = [f"{name} ({count})" for name, count in sorted(counts.items(), key=lambda item: (-item[1], item[0]))[:4]]
     strongest = max(candidates, key=lambda item: float(item.get("score") or 0), default=None)
-    anchors = []
-    for candidate in sorted(candidates, key=lambda item: (-float(item.get("score") or 0), float(item.get("t") or 0)))[:3]:
-        excerpt = str(candidate.get("captionExcerpt") or candidate.get("excerpt") or "").strip()
-        anchors.append({
-            "t": int(round(float(candidate.get("t") or 0))),
-            "category": str(candidate.get("category") or "SOURCE RECEIPT"),
-            "score": float(candidate.get("score") or 0),
-            "excerpt": excerpt[:240],
-            "evidenceBasis": "audio-feature-ranked candidate; playback remains the authority",
-        })
+    anchors = listening_anchors(candidates)
     if audio_available:
         headline = (
             f"Audio re-ranking favors {strongest.get('category', 'source leads')} at {clock(strongest.get('t', 0))}. "
