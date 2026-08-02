@@ -512,7 +512,26 @@ function episodeFrom(id) {
   const audioLine = audioCuts.length
     ? ` An audio-feature pass adds ${audioCuts.length} ranked intensity routes; it re-ranks caption windows but does not prove a joke, speaker, or visual reaction.`
     : "";
-  const derivedSummary = `${taxonomy.type === "watch-party" ? "This watch-party tape" : "This commentary tape"} for ${taxonomy.movieTitle} runs ${formatTimestamp(duration)}. The ${evidenceLabel} leaves ${allMoments.length} playable leads on the board${lanePhrase ? ` — ${lanePhrase}` : ""}. ${topicLine} ${leadLine}${audioLine} The source is a jumpable guide to the room, not a speaker-diarized transcript: press play before treating any line as canon.`;
+  const topLane = Object.entries(laneCounts).sort((left, right) => right[1] - left[1])[0]?.[0] || "SOURCE RECEIPT";
+  const roomTone = topLane === "ROOM BREAK"
+    ? "a room that keeps losing its composure"
+    : topLane === "TAKE GETS NUCLEAR"
+      ? "an argument with a movie playing underneath it"
+      : topLane === "STRAIGHT TO STEVE'S ASSHOLE"
+        ? "a particularly hostile little courtroom"
+        : topLane === "WWAM UP IN YA"
+          ? "a chaotic out-of-pocket reel"
+          : topLane === "CHARACTER SIGNAL"
+            ? "a bit-heavy performance room"
+            : "a film-first conversation with sharp detours";
+  const laneSentence = lanePhrase ? `The loudest lanes are ${lanePhrase}.` : "The route mix stays intentionally modest.";
+  const topicSentence = topicPhrase
+    ? `The reliable topic doors are ${topicPhrase}; they are jump points into the tape, not a claim that every minute stays there.`
+    : "The source stays close to the film without promoting a noisy side-topic label.";
+  const openingStop = firstMoment ? `${formatTimestamp(firstMoment.t)} (${firstMoment.category || "SOURCE RECEIPT"})` : "the opening of the source";
+  const closingStop = finalMoment ? `${formatTimestamp(finalMoment.t)} (${finalMoment.category || "SOURCE RECEIPT"})` : "the final stretch";
+  const strongestStop = strongestMoment ? `${formatTimestamp(strongestMoment.t)} (${strongestMoment.category || "SOURCE RECEIPT"})` : "the strongest indexed route";
+  const derivedSummary = `${taxonomy.type === "watch-party" ? "This watch-party" : "This commentary"} for ${taxonomy.movieTitle} runs ${formatTimestamp(duration)} and feels like ${roomTone}. ${laneSentence} The ledger leaves ${allMoments.length} bounded jump points, with the strongest route at ${strongestStop}. ${topicSentence} For a compact run, start at ${openingStop}, then finish at ${closingStop}.${audioLine} These are navigation receipts rather than speaker-diarized certainty; press play before treating a caption as canon.`;
   const summary = guide?.overview || (!events.length && !deepRecord
     ? `This source brief preserves the official upload for ${taxonomy.movieTitle}, but no local caption map was available in this observation. The source remains playable; no timestamps or speaker claims are manufactured.`
     : (deepRecord && !guide
