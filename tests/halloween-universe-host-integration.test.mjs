@@ -28,6 +28,7 @@ test("Halloween Universe is a contextual, lazy Watchalongs destination", () => {
   assert.match(section, /aria-labelledby="halloweenUniverseTitle"/);
   assert.match(section, /id="halloweenUniverseMount"/);
   assert.match(section, /data-feature-styles="halloween-universe\.css\?v=1\.1\.1-snap-safe"/);
+  assert.match(section, /halloween-universe-ui\.js\?v=1\.1\.4-snap-safe/);
 
   const dataAt = section.indexOf("halloween-acquired-distill.js");
   const enrichmentAt = section.indexOf("halloween-commentary-enrichment.js");
@@ -37,6 +38,8 @@ test("Halloween Universe is a contextual, lazy Watchalongs destination", () => {
   assert.match(guided, /"halloween-universe": "watchalongs"/);
   assert.match(guided, /watchalongs: \["#watchalongs-hub", "#halloween-universe", "#comedy-vault", "#watchalong-canon"\]/);
   assert.match(editorialCss, /\.wwam-route-local-nav a\s*\{[\s\S]*?min-height:\s*84px;/);
+  assert.match(read("halloween-universe-ui.js"), /focusStage\("\.hu-dossier"\)/);
+  assert.match(read("halloween-universe.css"), /\.hu-dossier\s*\{[^}]*scroll-margin-top:\s*92px/);
   assert.doesNotMatch(section, /\b(?:price|pricing|buy|purchase|revenue|sales)\b/i);
 });
 test("the acquired and enriched Halloween lanes load before the Universe engine", () => {

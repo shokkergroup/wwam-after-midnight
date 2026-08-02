@@ -230,6 +230,14 @@
         section.setAttribute("data-halloween-universe-ready", "true");
       }
     }
+    function focusStage(selector) {
+      setTimeout(function () {
+        var target = mountNode && mountNode.querySelector(selector);
+        if (target && typeof target.scrollIntoView === "function") {
+          target.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }, 0);
+    }
     function play(detail) {
       if (typeof options.onPlay === "function") options.onPlay(detail);
       if (documentRef && typeof root.CustomEvent === "function") {
@@ -240,9 +248,9 @@
       var tab = event.target.closest && event.target.closest("[data-hu-tab]");
       if (tab) { state.activeTab = tab.getAttribute("data-hu-tab"); state.filmId = ""; state.pathId = ""; state.query = ""; render(); return; }
       var film = event.target.closest && event.target.closest("[data-hu-film]");
-      if (film) { state.filmId = film.getAttribute("data-hu-film"); state.pathId = ""; state.query = ""; render(); return; }
+      if (film) { state.filmId = film.getAttribute("data-hu-film"); state.pathId = ""; state.query = ""; render(); focusStage(".hu-dossier"); return; }
       var path = event.target.closest && event.target.closest("[data-hu-path]");
-      if (path) { state.pathId = path.getAttribute("data-hu-path"); state.filmId = ""; render(); return; }
+      if (path) { state.pathId = path.getAttribute("data-hu-path"); state.filmId = ""; render(); focusStage(".hu-path-stage"); return; }
       if (event.target.closest && event.target.closest("[data-hu-close-film]")) { state.filmId = ""; render(); return; }
       if (event.target.closest && event.target.closest("[data-hu-close-path]")) { state.pathId = ""; render(); return; }
       var button = event.target.closest && event.target.closest("[data-hu-play]");
