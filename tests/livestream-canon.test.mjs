@@ -130,6 +130,12 @@ test("each source has an honest evidence tier and playable source link", () => {
   const restrictedListening = canon.episodes.find((episode) => episode.id === "fpNtQMexZiw");
   assert.ok(restrictedListening.bestBits.length >= restrictedListening.watchPass.candidates.length, "restricted shows expose their listening routes in the best-bit shelf");
   assert.ok(restrictedListening.recurringBits.some((lane) => lane.label === "THE ROOM BREAKS" && lane.momentReceipts > 0), "audio room-break routes count as doors even when visual-result moments are withheld");
+  assert.match(restrictedListening.dossier.summary, /best first listening stop/i, "restricted shows surface their strongest listening route in the conversational summary");
+  assert.doesNotMatch(restrictedListening.dossier.summary, /no honest single hook/i, "a decoded listening route prevents a false empty-hook message");
+  const trailerRoundtable = canon.episodes.find((episode) => episode.id === "Q_CprCuIXLk");
+  assert.match(trailerRoundtable.dossier.summary, /trailer-and-news roundtable/i);
+  const episodeRecap = canon.episodes.find((episode) => episode.id === "jBVlQGkeh-Q");
+  assert.match(episodeRecap.dossier.summary, /episode-recap room/i);
   assert.ok(canon.yearIndex["2026"].topTopics.length > 0);
   assert.ok(canon.yearIndex["2026"].topLanes.length > 0);
   const ledgerSummaries = canon.episodes.filter((episode) => episode.evidenceTier === "caption-ledger").map((episode) => episode.dossier.summary);

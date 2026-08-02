@@ -267,14 +267,25 @@ function listPhrase(items) {
   if (names.length === 2) return `${names[0]} and ${names[1]}`;
   return `${names.slice(0, -1).join(", ")}, and ${names.at(-1)}`;
 }
-function tapeNote(shape, topics, moments, fan, recurring, characterCues) {
+function contentFrame(title, shape, topics = []) {
+  const text = `${clean(title)} ${clean(shape)} ${topics.map((topic) => topic?.name || "").join(" ")}`;
+  if (/game of thrones|welcome to derry|episode\s+\d+|season\s+\d+|\brecap\b/i.test(text)) return "an episode-recap room";
+  if (/trailer|teaser|spot|description|coming soon|\bbreakdown\b|delay talk|super bowl/i.test(text)) return "a trailer-and-news roundtable";
+  if (/ranking|tier|bracket|mount rushmore|\bvs\b|versus/i.test(text)) return "a ranking-night argument";
+  if (/q\s*&?\s*a|fan mail|super chat|member/i.test(text)) return "a fan-driven open line";
+  if (/spoiler|review/i.test(text)) return "a spoiler-review hang";
+  if (/commentary|watch\s*along|watch party/i.test(text)) return "a movie-side conversation";
+  return "an open-line movie-news room";
+}
+function tapeNote(title, shape, topics, moments, fan, recurring, characterCues, listeningRoutes = []) {
   const topicList = listPhrase(topics.slice(0, 4).map((topic) => topic.name));
   const laneLead = recurring.slice().sort((a, b) => Number(b.candidateCount || 0) - Number(a.candidateCount || 0))[0];
-  const hot = moments.slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || Number(a.t || 0) - Number(b.t || 0))[0];
+  const routeMoments = moments.length ? moments : listeningRoutes;
+  const hot = routeMoments.slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || Number(a.t || 0) - Number(b.t || 0))[0];
   const characterList = listPhrase(characterCues.slice().sort((a, b) => Number(b.mentions || 0) - Number(a.mentions || 0)).slice(0, 3).map((character) => character.name));
   const fanTypes = Array.from(new Set(fan.map((signal) => signal.signalType))).slice(0, 2);
-  const frame = /ranking|tier|bracket/i.test(shape) ? "a ranking-room argument" : /q\s*&?\s*a|fan/i.test(shape) ? "a fan-driven open line" : /commentary|watch/i.test(shape) ? "a movie-side conversation" : "a late-night movie desk";
-  const hook = hot ? `The first route worth pressing is ${clock(hot.t)} // ${hot.category}; open the source there and hear the exchange in full.` : "No bounded first-play hook survived this evidence tier.";
+  const frame = contentFrame(title, shape, topics);
+  const hook = hot ? `The first ${moments.length ? "caption" : "listening"} route worth pressing is ${clock(hot.t)} // ${hot.category}; open the source there and hear the exchange in full.` : "No bounded first-play hook survived this evidence tier.";
   const laneMood = laneLead?.label === "ROOM BREAK" ? "breakdown territory" : laneLead?.label === "TAKE GETS NUCLEAR" ? "an argumentative register" : laneLead?.label === "WWAM UP IN YA" ? "out-of-pocket territory" : laneLead?.label === "STRAIGHT TO STEVE'S ASSHOLE" ? "a hostile verdict lane" : "a sharp side-channel";
   const lane = laneLead ? `The dominant recurring lane is ${laneLead.label} (${laneLead.candidateCount} caption cues), which puts the night in ${laneMood}.` : "The recurring-bit lanes stay quiet in this pass.";
   const fanLine = fan.length ? `The fan ledger catches ${fan.length} ${fan.length === 1 ? "signal receipt" : "signal receipts"}${fanTypes.length ? `, including ${listPhrase(fanTypes)}` : ""}.` : "No fan-signal cluster survived this pass.";
@@ -285,15 +296,16 @@ function machineShapedSummary(value) {
   const text = clean(value);
   return !text || /(?:This completion pass maps|A bracket-and-ranking night from|A trailer-and-news night from|A movie watchalong from|A fan-mail night from|A spoiler-heavy review night from|An open-line movie-news night from|caption map opens on|timestamp candidates across|If you are dropping into this|The shape of the night is|has indexed doors on|The 2026 second pass maps|This is a machine-surfaced caption map|Ranked #\d+ among eligible archived livestreams|Selected #\d+ by the frozen Archive Atlas|Automatic captions support timestamped|Its caption map concentrates on)/i.test(text);
 }
-function voiceSummary(title, date, shape, topics, moments, fan, recurring, characterCues, evidenceTier) {
+function voiceSummary(title, date, shape, topics, moments, fan, recurring, characterCues, evidenceTier, listeningRoutes = []) {
   const topicList = listPhrase(topics.slice(0, 4).map((topic) => topic.name));
   const laneLead = recurring.slice().sort((a, b) => Number(b.candidateCount || 0) - Number(a.candidateCount || 0))[0];
-  const hot = moments.slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || Number(a.t || 0) - Number(b.t || 0))[0];
+  const routeMoments = moments.length ? moments : listeningRoutes;
+  const hot = routeMoments.slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || Number(a.t || 0) - Number(b.t || 0))[0];
   const characterList = listPhrase(characterCues.slice().sort((a, b) => Number(b.mentions || 0) - Number(a.mentions || 0)).slice(0, 3).map((character) => character.name));
   const fanTypes = Array.from(new Set(fan.map((signal) => signal.signalType))).slice(0, 2);
-  const frame = /ranking|tier|bracket/i.test(shape) ? "a ranking-night argument" : /q\s*&?\s*a|fan/i.test(shape) ? "a fan-driven open line" : /commentary|watch/i.test(shape) ? "a movie-side hang" : "a late-night movie desk";
+  const frame = contentFrame(title, shape, topics);
   const mood = laneLead?.label === "ROOM BREAK" ? "the room keeps losing its composure" : laneLead?.label === "TAKE GETS NUCLEAR" ? "the takes keep catching fire" : laneLead?.label === "WWAM UP IN YA" ? "the conversation gets gloriously filthy" : laneLead?.label === "STRAIGHT TO STEVE'S ASSHOLE" ? "the verdict lane gets mean" : "the side conversations keep widening";
-  const route = hot ? `Your best first stop is ${clock(hot.t)} // ${hot.category}; press play there and let the full exchange establish the context.` : "There is no honest single hook in this evidence tier, so the route stays chapter-first.";
+  const route = hot ? `Your best first ${moments.length ? "caption" : "listening"} stop is ${clock(hot.t)} // ${hot.category}; press play there and let the full exchange establish the context.` : "There is no honest single hook in this evidence tier, so the route stays chapter-first.";
   const fanLine = fan.length ? `The fan traffic is part of the show too: ${fan.length} retained callout${fan.length === 1 ? "" : "s"}${fanTypes.length ? ` across ${listPhrase(fanTypes)}` : ""}.` : "No fan callout cluster survived the source-local ledger.";
   const characterLine = characterCues.length ? `Character traffic includes ${characterList}, but captions do not prove who was performing the bit.` : "No character cue cleared the source-local threshold.";
   const evidenceLine = evidenceTier === "source-brief" ? "This one stays a source brief until a playable local receipt appears." : "The routes are machine-surfaced navigation aids, not speaker-diarized quotes or a claim that every funny beat has been found.";
@@ -473,9 +485,9 @@ const episodes = canonicalMetadata.map((record) => {
   const evidence = existing?.captionEvidence || { type: events.length ? "youtube-automatic-caption" : "metadata-only", eventsAudited: events.length, speakerDiarized: false, originAttribution: false, reviewStatus: events.length ? "machine-candidate" : "held" };
   const cueList = characterCues(events, Number(record.duration || 0));
   const recurring = recurringBits(events, moments, fan, Number(record.duration || 0), listeningRoutes);
-  const note = tapeNote(shape, topics, moments, fan, recurring, cueList);
+  const note = tapeNote(record.title, shape, topics, moments, fan, recurring, cueList, listeningRoutes);
   const generatedSummary = currentYear === 2026 || machineShapedSummary(summary)
-    ? voiceSummary(record.title, dateFrom(record.upload_date), shape, topics, moments, fan, recurring, cueList, tier)
+    ? voiceSummary(record.title, dateFrom(record.upload_date), shape, topics, moments, fan, recurring, cueList, tier, listeningRoutes)
     : summary;
   const finalSummary = clean(`${generatedSummary} ${audioLine}`);
   const pass = yearPass(record, events, topics, moments, fan, recurring, cueList, existing, evidence, yearSnapshot);
