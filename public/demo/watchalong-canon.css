@@ -290,8 +290,37 @@
 .wac-podcast-card-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .4rem; align-items: center; margin-top: auto; }
 .wac-podcast-card-foot a { color: var(--canon-acid); font: 800 .55rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .07em; text-decoration: none; text-transform: uppercase; }
 .wac-podcast-card-foot a:hover { color: var(--canon-hot); }
+.wac-podcast-open { border: 1px solid var(--canon-hot); padding: .45rem .55rem; color: var(--canon-ink); background: rgba(255, 44, 131, .1); cursor: pointer; font: 800 .55rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .07em; text-transform: uppercase; }
+.wac-podcast-open:hover { border-color: var(--canon-acid); color: var(--canon-acid); }
 .wac-podcast-recovery > footer { border-top: 1px solid var(--canon-line); padding: .8rem 1.5rem 1rem; color: var(--canon-dim); font: 500 .66rem/1.45 ui-sans-serif, system-ui, sans-serif; }
 .wac-podcast-recovery > footer strong { color: var(--canon-acid); font: 800 .55rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .08em; }
+.wac-podcast-dossier { margin-top: 1.35rem; border-color: var(--canon-acid); background: linear-gradient(160deg, rgba(203, 255, 40, .07), rgba(0, 0, 0, .24)); }
+.wac-podcast-dossier-player { display: flex; flex-wrap: wrap; gap: .7rem; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid var(--canon-line); }
+.wac-podcast-dossier-player audio { flex: 1 1 24rem; min-width: 15rem; height: 2.35rem; accent-color: var(--canon-hot); }
+.wac-podcast-dossier-player a { color: var(--canon-acid); font: 800 .57rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .07em; text-decoration: none; text-transform: uppercase; }
+.wac-podcast-dossier-player a:hover { color: var(--canon-hot); }
+.wac-podcast-dossier-shape { margin: 1rem 1.5rem 0; border-left: 3px solid var(--canon-hot); padding: .8rem 1rem; background: rgba(255, 44, 131, .045); }
+.wac-podcast-dossier-shape > p { margin: .45rem 0 .7rem; color: #d4cbcf; font: 500 .78rem/1.5 ui-sans-serif, system-ui, sans-serif; }
+.wac-podcast-dossier-chapters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .45rem; }
+.wac-podcast-dossier-chapters button { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .3rem; border: 1px solid rgba(203, 255, 40, .2); padding: .55rem; color: var(--canon-ink); background: rgba(0, 0, 0, .25); cursor: pointer; text-align: left; }
+.wac-podcast-dossier-chapters button:hover { border-color: var(--canon-acid); }
+.wac-podcast-dossier-chapters b { color: var(--canon-acid); font: 800 .54rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .06em; text-transform: uppercase; }
+.wac-podcast-dossier-chapters span { color: var(--canon-dim); font: 700 .52rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; }
+.wac-podcast-dossier-chapters em { grid-column: 1 / -1; color: var(--canon-dim); font: 500 .64rem/1.4 ui-sans-serif, system-ui, sans-serif; font-style: normal; }
+.wac-podcast-dossier-topics { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .7rem; }
+.wac-podcast-dossier-topics button { display: grid; gap: .18rem; border: 1px solid rgba(255, 44, 131, .28); padding: .42rem .5rem; color: var(--canon-ink); background: rgba(0, 0, 0, .2); cursor: pointer; text-align: left; }
+.wac-podcast-dossier-topics button:hover { border-color: var(--canon-hot); }
+.wac-podcast-dossier-topics b { color: var(--canon-hot); font: 800 .52rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .05em; text-transform: uppercase; }
+.wac-podcast-dossier-topics small { color: var(--canon-dim); font: 700 .48rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; }
+.wac-podcast-dossier-routes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem; padding: 1rem 1.5rem 1.3rem; }
+.wac-podcast-dossier-route { display: grid; gap: .35rem; border: 1px solid rgba(255, 44, 131, .25); padding: .7rem; color: var(--canon-ink); background: rgba(255, 44, 131, .035); cursor: pointer; text-align: left; }
+.wac-podcast-dossier-route:hover { border-color: var(--canon-acid); background: rgba(203, 255, 40, .055); }
+.wac-podcast-dossier-route header { display: flex; justify-content: space-between; gap: .5rem; align-items: baseline; }
+.wac-podcast-dossier-route header b { color: var(--canon-hot); font: 800 .56rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .06em; text-transform: uppercase; }
+.wac-podcast-dossier-route time { color: var(--canon-acid); font: 700 .55rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; }
+.wac-podcast-dossier-route p { margin: 0; color: #d4cbcf; font: 500 .7rem/1.45 ui-sans-serif, system-ui, sans-serif; }
+.wac-podcast-dossier-route small { color: var(--canon-dim); font: 700 .48rem/1.3 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .04em; text-transform: uppercase; }
+.wac-podcast-clock-note { color: var(--canon-acid); font: 800 .55rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .07em; text-transform: uppercase; }
 
 @media (max-width: 1000px) {
   .wac-proof { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -304,6 +333,7 @@
   .wac-edge-grid { grid-template-columns: 1fr 1fr; }
   .wac-companion-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .wac-podcast-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .wac-podcast-dossier-routes, .wac-podcast-dossier-chapters { grid-template-columns: 1fr; }
   .wac-coverage-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .wac-coverage-cards article:nth-child(3n) { border-right: 0; }
   .wac-cross-genre { grid-template-columns: 1fr; }
@@ -326,5 +356,7 @@
   .wac-companion-shelf > header { grid-template-columns: 1fr; padding: 1rem; }
   .wac-cross-genre { padding-left: 1rem; padding-right: 1rem; }
   .wac-podcast-grid { padding-left: 1rem; padding-right: 1rem; }
+  .wac-podcast-dossier-player, .wac-podcast-dossier-shape { margin-left: 0; margin-right: 0; padding-left: 1rem; padding-right: 1rem; }
+  .wac-podcast-dossier-routes { padding-left: 1rem; padding-right: 1rem; }
   .wac-podcast-recovery > footer { padding-left: 1rem; padding-right: 1rem; }
 }

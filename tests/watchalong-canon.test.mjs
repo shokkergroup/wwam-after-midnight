@@ -269,4 +269,9 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(app, /data-alternate-jump/);
   assert.match(dossierCss, /\.source-dossier-fallback-variant/);
   assert.match(dossierCss, /\.source-dossier-fallback-variant-grid/);
+  assert.match(ui, /OPEN LOCAL PODCAST WIKI/);
+  assert.match(ui, /wacPodcastDossier/);
+  assert.match(ui, /data-wac-podcast-dossier-seek/);
+  assert.match(css, /\.wac-podcast-dossier-route/);
+  assert.match(css, /\.wac-podcast-open/);
 });

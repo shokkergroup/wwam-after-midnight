@@ -5,7 +5,7 @@
   var mount = root.document && root.document.getElementById("watchalongCanonMount");
   if (!payload || !mount) return;
 
-  var state = { query: "", franchise: "all", type: "all", selected: "", showRepeats: true };
+  var state = { query: "", franchise: "all", type: "all", selected: "", selectedPodcast: "", showRepeats: true };
   var episodes = Array.isArray(payload.episodes) ? payload.episodes : [];
   var franchises = Array.isArray(payload.franchises) ? payload.franchises : [];
   var groups = Array.isArray(payload.groups) ? payload.groups : [];
@@ -65,6 +65,9 @@
     });
   }
   function episodeById(id) { return episodes.filter(function (episode) { return episode.id === id; })[0] || null; }
+  function podcastByKey(key) {
+    return (Array.isArray(payload.podcastCommentaries) ? payload.podcastCommentaries : []).filter(function (item) { return item.key === key; })[0] || null;
+  }
 
   function proofMarkup() {
     var stats = payload.stats || {};
@@ -175,8 +178,26 @@
         return '<button type="button" data-wac-podcast-seek="' + esc(item.key) + '" data-wac-podcast-time="' + esc(chapter.at) + '"><b>ACT ' + esc(chapter.chapter) + ' // ' + esc(chapter.label) + '</b><span>' + esc(timestamp(chapter.at)) + '</span><em>' + esc(excerpt(chapter.excerpt, 130)) + '</em></button>';
       }).join('') + '</div>' + ((shape.topics || []).length ? '<div class="wac-podcast-topics">' + shape.topics.slice(0, 6).map(function (topic) { return '<button type="button" data-wac-podcast-seek="' + esc(item.key) + '" data-wac-podcast-time="' + esc(topic.peak) + '"><b>' + esc(topic.name) + '</b><small>' + esc(topic.mentions) + ' MENTIONS // ' + esc(timestamp(topic.peak)) + '</small></button>'; }).join('') + '</div>' : '') + '</div>' : '';
       var passMarkup = pass ? '<div class="wac-podcast-listening-read"><small>LISTENING READ // ' + esc(pass.audit.candidateCount) + ' BOUNDED ROUTES // ' + esc(pass.audit.transcriptSegments) + ' WHISPER SEGMENTS</small><p>' + esc(pass.listeningDigest.headline) + '</p>' + shapeMarkup + '<div class="wac-podcast-hot-list">' + candidateButtons(featured) + '</div>' + (remaining.length ? '<details><summary>SHOW ALL ' + esc(remaining.length) + ' ADDITIONAL ROUTES</summary><div class="wac-podcast-hot-list">' + candidateButtons(remaining) + '</div></details>' : '') + '</div>' : '<div class="wac-podcast-listening-read"><small>LISTENING PASS QUEUED</small><p>Official audio is playable now; bounded audio-ranked receipts will appear after the local listening pass.</p></div>';
-      return '<article class="wac-podcast-card"><div class="wac-podcast-card-head"><span>OFFICIAL WWAM PODCAST</span><b>' + esc(item.movieTitle) + '</b><small>' + esc(dateLabel(item.date)) + ' // ' + esc(durationLabel(item.duration)) + '</small></div><p>' + esc(item.note) + '</p><audio id="wacPodcastAudio-' + esc(item.key) + '" controls preload="none" src="' + esc(item.sourceUrl || item.url) + '"></audio>' + passMarkup + '<div class="wac-podcast-card-foot"><a target="_blank" rel="noopener" href="' + esc(item.sourceUrl || item.url) + '">OPEN AUDIO SOURCE â†—</a><span>RSS TITLE + RUNTIME VERIFIED</span></div></article>';
+      return '<article class="wac-podcast-card"><div class="wac-podcast-card-head"><span>OFFICIAL WWAM PODCAST</span><b>' + esc(item.movieTitle) + '</b><small>' + esc(dateLabel(item.date)) + ' // ' + esc(durationLabel(item.duration)) + '</small></div><p>' + esc(item.note) + '</p><audio id="wacPodcastAudio-' + esc(item.key) + '" controls preload="none" src="' + esc(item.sourceUrl || item.url) + '"></audio>' + passMarkup + '<div class="wac-podcast-card-foot"><button type="button" class="wac-podcast-open" data-wac-podcast-open="' + esc(item.key) + '">OPEN LOCAL PODCAST WIKI →</button><a target="_blank" rel="noopener" href="' + esc(item.sourceUrl || item.url) + '">OPEN AUDIO SOURCE â†—</a><span>RSS TITLE + RUNTIME VERIFIED</span></div></article>';
     }).join('') + '</div><footer><strong>LISTENING RULE</strong> Start with the audio player above. When this lane receives a future audio pass, its receipts will remain bound to the podcast file; the archive will never paste a podcast timestamp onto a YouTube player.</footer></section>';
+  }
+
+  function podcastDossierMarkup(item) {
+    if (!item) return '';
+    var pass = (podcastAudio.records || {})[item.key] || null;
+    var candidates = pass && Array.isArray(pass.candidates) ? pass.candidates : [];
+    var shape = pass && pass.dossier ? pass.dossier : {};
+    var audioId = 'wacPodcastDossierAudio-' + item.key;
+    var routeMarkup = candidates.map(function (candidate) {
+      return '<button type="button" class="wac-podcast-dossier-route" data-wac-podcast-dossier-seek="' + esc(item.key) + '" data-wac-podcast-dossier-time="' + esc(candidate.t) + '"><header><b>#' + esc(candidate.rank || '') + ' // ' + esc(candidate.category || 'SOURCE RECEIPT') + '</b><time>' + esc(timestamp(candidate.t)) + '</time></header><p>' + esc(excerpt(candidate.captionExcerpt || candidate.excerpt || 'Podcast-bound receipt.', 360)) + '</p><small>SCORE ' + esc(candidate.score || '—') + ' // PODCAST CLOCK ONLY // ' + esc(candidate.evidenceBasis || 'official WWAM audio + local transcript') + '</small></button>';
+    }).join('');
+    var chapterMarkup = (shape.chapters || []).map(function (chapter) {
+      return '<button type="button" data-wac-podcast-dossier-seek="' + esc(item.key) + '" data-wac-podcast-dossier-time="' + esc(chapter.at) + '"><b>ACT ' + esc(chapter.chapter || '') + ' // ' + esc(chapter.label || 'LISTENING LANE') + '</b><span>' + esc(timestamp(chapter.at)) + '</span><em>' + esc(excerpt(chapter.excerpt, 220)) + '</em></button>';
+    }).join('');
+    var topicMarkup = (shape.topics || []).slice(0, 12).map(function (topic) {
+      return '<button type="button" data-wac-podcast-dossier-seek="' + esc(item.key) + '" data-wac-podcast-dossier-time="' + esc(topic.peak || topic.first) + '"><b>' + esc(topic.name || 'TOPIC') + '</b><small>' + number(topic.mentions || 1) + ' MENTIONS // ' + esc(timestamp(topic.peak || topic.first)) + '</small></button>';
+    }).join('');
+    return '<section class="wac-dossier wac-podcast-dossier" id="wacPodcastDossier" aria-labelledby="wacPodcastDossierTitle"><header class="wac-dossier-head"><div><span class="wac-dossier-kicker">OFFICIAL WWAM PODCAST // AUDIO-ONLY CANON</span><h3 id="wacPodcastDossierTitle">' + esc(item.movieTitle) + '</h3><p>' + esc(item.note || 'A recovered WWAM commentary with a local listening map.') + ' Every route below is bound to this podcast file; no YouTube timestamp is implied.</p></div><div class="wac-dossier-facts"><span><small>DATE</small><b>' + esc(dateLabel(item.date)) + '</b></span><span><small>RUNTIME</small><b>' + esc(durationLabel((pass && pass.media || {}).durationSeconds || item.duration)) + '</b></span><span><small>BOUNDED ROUTES</small><b>' + number(candidates.length) + '</b></span><span><small>TOPIC DOORS</small><b>' + number((shape.topics || []).length) + '</b></span></div></header><div class="wac-dossier-note"><strong>SEPARATE PODCAST CLOCK // </strong>' + esc((pass && pass.listeningDigest && pass.listeningDigest.evidence) || 'Official podcast audio was decoded and locally transcribed. Playback remains the authority; speaker identity and exact joke intent are not inferred.') + '</div><div class="wac-podcast-dossier-player"><audio id="' + esc(audioId) + '" controls preload="metadata" src="' + esc(item.sourceUrl || item.url) + '"></audio><a target="_blank" rel="noopener" href="' + esc(item.sourceUrl || item.url) + '">OPEN OFFICIAL AUDIO SOURCE ↗</a></div>' + (shape.summary ? '<div class="wac-podcast-dossier-shape"><span class="wac-section-label">TAPE SHAPE // SOURCE-LOCAL READ</span><p>' + esc(shape.summary) + '</p><div class="wac-podcast-dossier-chapters">' + chapterMarkup + '</div>' + (topicMarkup ? '<div class="wac-podcast-dossier-topics">' + topicMarkup + '</div>' : '') + '</div>' : '') + '<div class="wac-section-label" style="padding:1rem 1.5rem 0">EVERY BOUNDED PODCAST RECEIPT // CLICK TO PLAY HERE</div><div class="wac-podcast-dossier-routes">' + (routeMarkup || '<p class="wac-empty">The audio is catalogued, but its bounded listening pass has not landed yet.</p>') + '</div><footer class="wac-dossier-footer"><button class="wac-button" type="button" data-wac-podcast-close>CLOSE PODCAST WIKI</button><span class="wac-podcast-clock-note">PODCAST TIME IS NOT YOUTUBE TIME.</span></footer></section>';
   }
 
   function toolsMarkup() {
@@ -400,9 +421,10 @@
   function render() {
     var visible = visibleEpisodes();
     var selected = episodeById(state.selected);
+    var selectedPodcast = podcastByKey(state.selectedPodcast);
     mount.innerHTML = '<div class="wac-shell">' + proofMarkup() + coverageLedgerMarkup() + companionShelfMarkup() + edgeAuditMarkup() + podcastRecoveryMarkup() + toolsMarkup() + franchiseMarkup() + movieFileMarkup() +
       '<div class="wac-results-head"><h3>' + (state.franchise === "all" ? "THE FULL TAPE LIST" : esc((franchises.filter(function (item) { return item.key === state.franchise; })[0] || {}).title || "FILTERED TAPE LIST")) + '</h3><span>' + number(visible.length) + ' EPISODES // EVERY MOVIE VERSION STAYS VISIBLE</span></div>' +
-      '<div class="wac-episode-grid">' + (visible.length ? visible.map(episodeCard).join('') : '<div class="wac-empty">No public watchalong matches that filter. Try another movie, franchise, or format.</div>') + '</div>' + (selected ? dossierMarkup(selected) : '') + '</div>';
+      '<div class="wac-episode-grid">' + (visible.length ? visible.map(episodeCard).join('') : '<div class="wac-empty">No public watchalong matches that filter. Try another movie, franchise, or format.</div>') + '</div>' + (selected ? dossierMarkup(selected) : '') + (selectedPodcast ? podcastDossierMarkup(selectedPodcast) : '') + '</div>';
     keepPublicEdgeLinksLocal();
     bind();
   }
@@ -440,6 +462,18 @@
     Array.prototype.forEach.call(root.document.querySelectorAll("[data-wac-close]"), function (button) {
       button.addEventListener("click", function () { state.selected = ""; render(); });
     });
+    Array.prototype.forEach.call(root.document.querySelectorAll("[data-wac-podcast-open]"), function (button) {
+      button.addEventListener("click", function () {
+        state.selectedPodcast = button.getAttribute("data-wac-podcast-open") || "";
+        state.selected = "";
+        render();
+        var dossier = root.document.getElementById("wacPodcastDossier");
+        if (dossier) dossier.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+    Array.prototype.forEach.call(root.document.querySelectorAll("[data-wac-podcast-close]"), function (button) {
+      button.addEventListener("click", function () { state.selectedPodcast = ""; render(); });
+    });
     Array.prototype.forEach.call(root.document.querySelectorAll("[data-wac-podcast-seek]"), function (button) {
       button.addEventListener("click", function () {
         var key = button.getAttribute("data-wac-podcast-seek");
@@ -450,8 +484,20 @@
         if (play && typeof play.catch === "function") play.catch(function () {});
       });
     });
+    Array.prototype.forEach.call(root.document.querySelectorAll("[data-wac-podcast-dossier-seek]"), function (button) {
+      button.addEventListener("click", function () {
+        var key = button.getAttribute("data-wac-podcast-dossier-seek");
+        var audio = root.document.getElementById("wacPodcastDossierAudio-" + key);
+        if (!audio) return;
+        audio.currentTime = Math.max(0, Number(button.getAttribute("data-wac-podcast-dossier-time")) || 0);
+        var play = audio.play();
+        if (play && typeof play.catch === "function") play.catch(function () {});
+        var dossier = root.document.getElementById("wacPodcastDossier");
+        if (dossier) dossier.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
   }
 
   render();
-  root.WWAMWatchalongCanonUI = Object.freeze({ version: "1.1.0", render: render, payload: payload });
+  root.WWAMWatchalongCanonUI = Object.freeze({ version: "1.2.0", render: render, payload: payload });
 })(typeof window !== "undefined" ? window : globalThis);
