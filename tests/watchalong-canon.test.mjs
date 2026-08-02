@@ -10,6 +10,8 @@ const demo = path.join(root, "public", "demo");
 const html = fs.readFileSync(path.join(demo, "index.html"), "utf8");
 const ui = fs.readFileSync(path.join(demo, "watchalong-canon-ui.js"), "utf8");
 const css = fs.readFileSync(path.join(demo, "watchalong-canon.css"), "utf8");
+const app = fs.readFileSync(path.join(demo, "app.js"), "utf8");
+const dossierCss = fs.readFileSync(path.join(demo, "source-dossier.css"), "utf8");
 const context = { console };
 context.window = context;
 vm.createContext(context);
@@ -29,6 +31,13 @@ test("cold-route Show Wiki index mirrors every source and keeps full dossier cut
   assert.ok(halloweenFour);
   assert.equal(halloweenFour.dossier.cuts.length, 37);
   assert.ok(halloweenFour.dossier.cuts.some((cut) => cut.category === "STRAIGHT TO STEVE'S ASSHOLE"));
+  const heldH2 = routeIndex.sources.find((source) => source.id === "AzrcgoyE7C4");
+  assert.ok(heldH2?.alternateAudio, "held H2 keeps its official podcast edition on the cold route");
+  assert.equal(heldH2.alternateAudio.candidateCount, 43);
+  assert.equal(heldH2.alternateAudio.timestampIsomorphic, false);
+  assert.equal(heldH2.alternateAudio.routes.length, 43);
+  assert.match(heldH2.alternateAudio.enclosureUrl, /^https:\/\/traffic\.megaphone\.fm\//);
+  assert.ok(heldH2.alternateAudio.routes.every((route) => route.clock === "official WWAM podcast clock"));
 });
 
 test("watchalong canon has the complete public source registry", () => {
@@ -255,4 +264,9 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(css, /\.wac-podcast-recovery/);
   assert.match(css, /\.wac-podcast-moment/);
   assert.match(css, /\.wac-podcast-shape/);
+  assert.match(app, /OFFICIAL WWAM PODCAST VARIANT/);
+  assert.match(app, /SEPARATE PODCAST CLOCK/);
+  assert.match(app, /data-alternate-jump/);
+  assert.match(dossierCss, /\.source-dossier-fallback-variant/);
+  assert.match(dossierCss, /\.source-dossier-fallback-variant-grid/);
 });

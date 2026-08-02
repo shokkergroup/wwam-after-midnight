@@ -134,6 +134,59 @@ function excerpt(value, limit = 16) {
   return tokens.length <= limit ? tokens.join(" ") : `${tokens.slice(0, limit).join(" ")}...`;
 }
 
+// Alternate editions are useful evidence, but their clocks are not
+// interchangeable with the canonical YouTube upload. Keep the route index
+// small and explicit: it carries the official podcast link, a playable
+// enclosure when the feed exposes one, and routes that are visibly bound to
+// the podcast clock. It never promotes those seconds into YouTube jumps.
+function alternateAudioMeta(watchPassRecord, canonicalDuration) {
+  const alternate = watchPassRecord?.alternateAudio;
+  if (!alternate) return null;
+  let provenance = null;
+  const provenanceFile = alternate.provenanceFile || watchPassRecord.provenanceFile;
+  if (provenanceFile) {
+    const absolute = path.join(ROOT, provenanceFile);
+    if (fs.existsSync(absolute)) {
+      try { provenance = readJson(absolute); } catch (_error) { provenance = null; }
+    }
+  }
+  const alternateSource = provenance?.alternateSource || {};
+  const media = alternate.media || {};
+  const alignment = alternate.alignment || {};
+  const digest = alternate.listeningDigest || {};
+  const routes = (alternate.candidates || []).map((candidate, index) => ({
+    t: Math.round(Number(candidate.t || 0)),
+    end: Math.round(Number(candidate.end || candidate.t || 0)),
+    category: clean(candidate.category || candidate.label || "PODCAST ROUTE"),
+    label: clean(candidate.label || candidate.category || "PODCAST ROUTE"),
+    score: Number(candidate.score || 0),
+    rank: Number(candidate.rank || index + 1),
+    excerpt: excerpt(normalizeCaptionText(candidate.captionExcerpt || ""), 28),
+    clock: "official WWAM podcast clock",
+    evidenceBasis: "official WWAM podcast variant audio + local transcript; not a canonical YouTube timestamp"
+  }));
+  return {
+    status: alternate.status || "alternate-audio-feature-pilot",
+    label: alternate.label || "OFFICIAL WWAM PODCAST VARIANT // SEPARATE CLOCK",
+    sourceUrl: media.sourceUrl || alternateSource.episodeUrl || null,
+    episodeUrl: alternateSource.episodeUrl || media.sourceUrl || null,
+    enclosureUrl: media.enclosureUrl || alternateSource.enclosureUrl || null,
+    publisher: alternateSource.publisher || "We Watched A Movie Podcast",
+    publishedAt: alternateSource.publishedAt || null,
+    durationSeconds: Number(media.durationSeconds || alternateSource.probedDurationSeconds || 0),
+    canonicalDurationSeconds: Number(canonicalDuration || 0),
+    durationDeltaSeconds: Number(alignment.durationDeltaFromCanonicalSeconds || alternateSource.durationDeltaFromCanonicalSeconds || 0),
+    timestampIsomorphic: media.canonicalTimestampMapping === true && alignment.exactTimestampMappingEstablished === true,
+    candidateCount: routes.length,
+    routes,
+    signalMix: Array.isArray(digest.signalMix) ? digest.signalMix.slice(0, 8) : [],
+    strongest: digest.strongest ? { t: Number(digest.strongest.t || 0), category: clean(digest.strongest.category || "PODCAST ROUTE"), score: Number(digest.strongest.score || 0) } : null,
+    evidence: clean(digest.evidence || alternate.note || "Podcast routes remain bound to the official podcast player."),
+    note: clean(alternate.note || watchPassRecord.note || "This is an official alternate edition; its timestamps remain on its own clock."),
+    provenanceFile: provenanceFile || null
+  };
+}
+
 function normalizeCaptionText(value) {
   return clean(value)
     .replace(/\[(?:\s*[_-]+\s*)+\]/g, " ")
@@ -553,6 +606,7 @@ function episodeFrom(id) {
     ? (guide?.threads || []).slice(0, 10).map((thread) => ({ name: thread.name, mentions: thread.mentions, first: thread.first, peak: thread.peak, cluster: thread.cluster, receipt: excerpt(thread.receipt), kind: thread.kind }))
     : relevantTopics(sourceTopics.length ? sourceTopics : derivedTopicDoors, taxonomy);
   const watchPassRecord = watchPass.episodes?.[id] || null;
+  const alternateAudio = alternateAudioMeta(watchPassRecord, duration);
   const audioCandidates = watchPassRecord && watchPassRecord.status === "audio-feature-pilot"
     ? (watchPassRecord.candidates || [])
     : [];
@@ -637,6 +691,7 @@ function episodeFrom(id) {
     aliases, transcript: Boolean(events.length || deepRecord?.wordsAudited), captioned: Boolean(events.length || deepRecord?.wordsAudited), deepIndexed: Boolean(deepRecord),
     topics, sourceTopics, dossier, metrics: deepRecord?.metrics || null, unhinged: deepRecord?.unhinged || null, verdict: deepRecord?.verdict || null,
     watchPass: watchPassRecord,
+    alternateAudio,
     editorial: deepRecord?.arc ? { arc: deepRecord.arc, moments: allMoments } : { arc: chapters.map((chapter) => ({ chapter: chapter.act, at: chapter.at, dominant: chapter.category })), moments: allMoments }
   };
 }
@@ -867,6 +922,26 @@ const routeIndex = {
     franchiseTitle: episode.franchiseTitle,
     movieKey: episode.movieKey,
     movieTitle: episode.movieTitle,
+    alternateAudio: episode.alternateAudio ? {
+      status: episode.alternateAudio.status,
+      label: episode.alternateAudio.label,
+      sourceUrl: episode.alternateAudio.sourceUrl,
+      episodeUrl: episode.alternateAudio.episodeUrl,
+      enclosureUrl: episode.alternateAudio.enclosureUrl,
+      publisher: episode.alternateAudio.publisher,
+      publishedAt: episode.alternateAudio.publishedAt,
+      durationSeconds: episode.alternateAudio.durationSeconds,
+      canonicalDurationSeconds: episode.alternateAudio.canonicalDurationSeconds,
+      durationDeltaSeconds: episode.alternateAudio.durationDeltaSeconds,
+      timestampIsomorphic: episode.alternateAudio.timestampIsomorphic,
+      candidateCount: episode.alternateAudio.candidateCount,
+      signalMix: episode.alternateAudio.signalMix,
+      strongest: episode.alternateAudio.strongest,
+      evidence: episode.alternateAudio.evidence,
+      note: episode.alternateAudio.note,
+      provenanceFile: episode.alternateAudio.provenanceFile,
+      routes: episode.alternateAudio.routes
+    } : null,
     dossier: episode.dossier ? {
       state: episode.dossier.state,
       summary: episode.dossier.summary,

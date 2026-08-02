@@ -282,9 +282,13 @@
     // hydrated. Load the compact local route index only for that cold route;
     // the homepage keeps the large registry lazy, while direct movie links
     // still receive their complete source-local dossier instead of the legacy shell.
-    if (window.WWAM_WATCHALONG_ROUTE_INDEX || window.WWAM_WATCHALONG_CANON || streamById[sourceId]) return Promise.resolve();
+    // An Atlas/legacy record can exist for the same ID, but that record is
+    // exactly the path that used to hide the richer cold Show Wiki. Always
+    // hydrate the compact Watchalong route index before the fallback render;
+    // it is source-local and small, and the full canon remains lazy.
+    if (window.WWAM_WATCHALONG_ROUTE_INDEX || window.WWAM_WATCHALONG_CANON) return Promise.resolve();
     if (watchalongRouteLoadPromise) return watchalongRouteLoadPromise;
-    watchalongRouteLoadPromise = loadDemoScript("wwam-watchalong-route-index.js?v=1.0.0")
+    watchalongRouteLoadPromise = loadDemoScript("wwam-watchalong-route-index.js?v=1.1.0-podcast-variant")
       .catch(function (error) {
         watchalongRouteLoadPromise = null;
         throw error;
@@ -567,7 +571,7 @@
         }
         return clipLabEngine?null:loadDemoScript("creator-studio-engine.js").then(createClipLab);
       })
-      .then(function () { return loader.loadStyle("source-dossier.css?v=5.37-local-wiki-shell"); })
+      .then(function () { return loader.loadStyle("source-dossier.css?v=5.38-podcast-variant-routes"); })
       .then(function () {
         return loader.load("source-dossier-assets.js?v=1.0.25-fam-ledger");
       })
@@ -752,6 +756,26 @@
     }).filter(Boolean).slice(0, 8);
     var summary = source.dossier && source.dossier.summary || source.summary || source.editorial && source.editorial.whyItMatters || tape.verdict;
     if (!summary) summary = "This local show file is ready with its source, runtime, and bounded route map. Press play, pick a timestamp, and make your own call on the tape.";
+    var alternate = source.alternateAudio && typeof source.alternateAudio === "object" ? source.alternateAudio : null;
+    var alternateRoutes = alternate && Array.isArray(alternate.routes) ? alternate.routes : [];
+    var alternateEnclosure = alternate && /^https?:\/\//i.test(String(alternate.enclosureUrl || "")) ? String(alternate.enclosureUrl) : "";
+    var alternateHref = alternate && (alternate.episodeUrl || alternate.sourceUrl) ? String(alternate.episodeUrl || alternate.sourceUrl) : "";
+    var alternateSection = "";
+    if (alternate && (alternate.candidateCount || alternateHref)) {
+      var alternateDelta = Number(alternate.durationDeltaSeconds || 0);
+      var alternateClock = alternate.timestampIsomorphic ? "TIMELINE MATCH VERIFIED" : "SEPARATE PODCAST CLOCK";
+      var alternateRouteMarkup = alternateRoutes.length ?
+        '<div class="source-dossier-fallback-variant-grid">' + alternateRoutes.map(function (route, index) {
+          return '<button type="button" data-alternate-jump="' + Number(route.t || 0) + '"' + (alternateEnclosure ? ' data-alternate-audio="fallbackAlternateAudio"' : '') + '><b>' + String(index + 1).padStart(2, "0") + '</b><span>' + esc(route.label || route.category || "PODCAST ROUTE") + '</span><time>' + timestamp(Number(route.t || 0)) + '</time><em>' + esc(route.excerpt || "Podcast-clock receipt; listen on the official edition.") + '</em></button>';
+        }).join("") + '</div>' : '<p class="source-dossier-fallback-empty">The official alternate is catalogued, but no bounded podcast route was retained in this public bundle.</p>';
+      alternateSection =
+        '<section class="source-dossier-fallback-variant" id="fallback-variant"><header><div><p class="kicker">OFFICIAL WWAM PODCAST VARIANT</p><h3>' + esc(alternateClock) + '</h3></div><span>' + Number(alternate.candidateCount || alternateRoutes.length || 0) + ' audio-bound route' + (Number(alternate.candidateCount || alternateRoutes.length || 0) === 1 ? "" : "s") + ' // ' + esc(alternate.publisher || "WWAM podcast") + '</span></header>' +
+        '<p class="source-dossier-fallback-variant-copy">This is the same commentary subject in an official WWAM podcast edition. Its seconds belong to the podcast player, not the YouTube player above' + (alternateDelta ? ' (duration drift: ' + Math.abs(alternateDelta).toFixed(2) + 's).' : '.') + ' The local Wiki keeps that boundary visible instead of manufacturing YouTube jumps.</p>' +
+        (alternateEnclosure ? '<audio id="fallbackAlternateAudio" controls preload="metadata" src="' + esc(alternateEnclosure) + '"></audio>' : '') +
+        (alternateHref ? '<a class="source-dossier-fallback-variant-link" href="' + esc(alternateHref) + '" target="_blank" rel="noopener">OPEN THE OFFICIAL PODCAST EDITION ↗</a>' : '') +
+        (alternate.signalMix && alternate.signalMix.length ? '<div class="source-dossier-fallback-variant-signals"><b>LISTENING LANES</b><span>' + alternate.signalMix.map(function (lane) { return esc(lane); }).join(' · ') + '</span></div>' : '') +
+        '<div class="source-dossier-fallback-variant-routes"><div class="source-dossier-fallback-variant-routes-head"><b>THE PODCAST CLOCK</b><span>Click a route to ' + (alternateEnclosure ? 'play it here' : 'open the edition') + '.</span></div>' + alternateRouteMarkup + '</div></section>';
+    }
     var player = window.ShokkerYouTubePlayback && window.ShokkerYouTubePlayback.iframe ?
       window.ShokkerYouTubePlayback.iframe(sourceId, { autoplay: false, start: Number(startTime || 0), title: "WWAM source playback" }) :
       '<iframe src="https://www.youtube.com/embed/' + encodeURIComponent(sourceId) + '?rel=0&playsinline=1" title="WWAM source playback" allowfullscreen></iframe>';
@@ -762,7 +786,7 @@
       '<nav class="source-dossier-fallback-nav" aria-label="Show Wiki shortcuts"><a href="#fallback-player">PLAY</a><a href="#fallback-routes">BEST MOMENTS</a><a href="#fallback-about">ABOUT THIS TAPE</a></nav>' +
       '<section class="source-dossier-fallback-player" id="fallback-player"><div class="modal-player" id="modalPlayer">' + player + '</div><p class="source-dossier-fallback-boundary">PLAYBACK stays inside this page. The official source opens only if you choose the link below.</p></section>' +
       '<section class="source-dossier-fallback-about" id="fallback-about"><p class="kicker">THE SHORT VERSION</p><p>' + esc(summary) + '</p>' +
-      (topics.length ? '<div class="source-dossier-fallback-topics">' + topics.map(function (topic) { return '<span>' + esc(topic) + '</span>'; }).join("") + '</div>' : "") + '</section>' +
+      (topics.length ? '<div class="source-dossier-fallback-topics">' + topics.map(function (topic) { return '<span>' + esc(topic) + '</span>'; }).join("") + '</div>' : "") + '</section>' + alternateSection +
       '<section class="source-dossier-fallback-routes" id="fallback-routes"><header><div><p class="kicker">SOURCE-LOCAL RECEIPTS</p><h3>PRESS PLAY HERE.</h3></div><span>' + moments.length + ' bounded route' + (moments.length === 1 ? "" : "s") + ' // no invented speaker labels</span></header>' +
       (moments.length ? '<div class="source-dossier-fallback-route-grid">' + moments.map(function (moment, index) {
         return '<button type="button" data-fallback-jump="' + moment.at + '" data-fallback-end="' + (moment.end || "") + '"><b>0' + (index + 1) + '</b><span>' + esc(moment.label) + '</span><time>' + timestamp(moment.at) + '</time><em>' + esc(moment.excerpt) + '</em></button>';
@@ -777,6 +801,19 @@
         loadPlayer(sourceId, Number(button.getAttribute("data-fallback-jump") || 0), Number(button.getAttribute("data-fallback-end") || 0) || null);
         var playerNode = document.getElementById("fallback-player");
         if (playerNode) playerNode.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+    document.querySelectorAll("[data-alternate-jump]").forEach(function (button) {
+      button.addEventListener("click", function () {
+        var audioId = button.getAttribute("data-alternate-audio");
+        var audioNode = audioId ? document.getElementById(audioId) : null;
+        if (audioNode) {
+          audioNode.currentTime = Number(button.getAttribute("data-alternate-jump") || 0);
+          var playAttempt = audioNode.play();
+          if (playAttempt && typeof playAttempt.catch === "function") playAttempt.catch(function () {});
+        }
+        var variantNode = document.getElementById("fallback-variant");
+        if (variantNode) variantNode.scrollIntoView({ behavior: "smooth", block: "start" });
       });
     });
     syncBackgroundInert();
