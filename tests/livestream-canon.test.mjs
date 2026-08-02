@@ -96,6 +96,14 @@ test("each source has an honest evidence tier and playable source link", () => {
   const captionFallbacks = canon.episodes.filter((episode) => episode.watchPass?.status === "caption-ledger-pass");
   assert.equal(captionFallbacks.length, 22);
   assert.ok(captionFallbacks.every((episode) => episode.watchPass.candidates.length >= 9 && episode.watchPass.candidates.every((candidate) => !candidate.audio && /canonical audio unavailable/i.test(candidate.evidenceBasis))), "held shows retain caption-only routes without acoustic claims");
+  const captionLaneTotals = captionFallbacks.reduce((totals, episode) => {
+    Object.entries(episode.watchPass.audit.candidateCategories || {}).forEach(([lane, count]) => { totals[lane] = (totals[lane] || 0) + Number(count || 0); });
+    return totals;
+  }, {});
+  assert.ok(captionLaneTotals["STRAIGHT TO STEVE'S ASSHOLE"] >= 100, "caption-only holds retain a real negative-take shelf");
+  assert.ok(captionLaneTotals["WWAM UP IN YA"] >= 40, "caption-only holds retain an explicit vulgarity shelf");
+  assert.ok(captionLaneTotals["CHARACTER SIGNAL"] >= 60, "caption-only holds retain character-cue routes");
+  assert.ok(captionLaneTotals["FAN SIGNAL"] >= 15, "caption-only holds retain fan-callout routes");
   assert.ok(Array.isArray(canon.fanHall) && canon.fanHall.length > 0);
   assert.ok(Array.isArray(canon.characterIndex) && canon.characterIndex.some((entry) => entry.name === "Dr. Loomis"));
   assert.ok(canon.fanHall.every((entry) => entry.receipts > 0 && entry.episodeIds.length > 0));

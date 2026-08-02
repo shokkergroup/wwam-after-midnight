@@ -13,7 +13,7 @@ import json
 import re
 from pathlib import Path
 
-from run_wwam_audio_watch_pass import AUDIO_DIR, DEMO_DIR, candidate_rows, caption_events, caption_window, category_counts, listening_digest, provenance, runtime_target, signal_for, stream_features
+from run_wwam_audio_watch_pass import AUDIO_DIR, DEMO_DIR, SIGNALS, candidate_rows, caption_events, caption_window, category_counts, listening_digest, provenance, runtime_target, stream_features
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -51,6 +51,30 @@ def held_record(episode: dict) -> dict:
     }
 
 
+CAPTION_LANE_PRIORITY = {
+    "WWAM UP IN YA": 7,
+    "STRAIGHT TO STEVE'S ASSHOLE": 6,
+    "FAN SIGNAL": 6,
+    "CHARACTER SIGNAL": 5,
+    "TAKE GETS NUCLEAR": 3,
+    "ROOM BREAK": 0,
+}
+
+
+def caption_signal_for(text: str) -> tuple[str, int]:
+    """Prefer an explicit WWAM lane over a generic exclamation phrase.
+
+    Automatic captions often place "oh my god" or "what the fuck" beside a
+    much more useful signal (a filthy aside, a hard negative, a character
+    cue, or a fan callout). The weighted tie-break keeps the receipt honest
+    while making the category useful to a person browsing the show.
+    """
+    hits = [(label, len(pattern.findall(text))) for label, pattern in SIGNALS if pattern.search(text)]
+    if not hits:
+        return ("OPEN MIC", 0)
+    return max(hits, key=lambda pair: (pair[1] * 4 + CAPTION_LANE_PRIORITY.get(pair[0], 0), pair[1], -next((index for index, item in enumerate(SIGNALS) if item[0] == pair[0]), 999)))
+
+
 def caption_only_candidates(events: list[dict], max_candidates: int = 24) -> list[dict]:
     """Rank caption receipts when YouTube audio cannot be acquired.
 
@@ -61,7 +85,7 @@ def caption_only_candidates(events: list[dict], max_candidates: int = 24) -> lis
     candidates: list[dict] = []
     for index, event in enumerate(events):
         text = event["text"]
-        label, signal_hits = signal_for(text)
+        label, signal_hits = caption_signal_for(text)
         marker = bool(re.search(r"\[(?:laughter|snorts?|crosstalk|applause)\]", text, re.I))
         words = len(text.split())
         if signal_hits == 0 and not marker and words < 10 and "!" not in text:

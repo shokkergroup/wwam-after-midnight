@@ -162,7 +162,7 @@ def stream_features(audio_file: Path) -> dict:
 
 SIGNALS = [
     ("ROOM BREAK", re.compile(r"\[(?:laughter|snorts?|crosstalk)\]|\b(?:oh my god|what the fuck|no way|i'm dying|hilarious|that's funny)\b", re.I)),
-    ("WWAM UP IN YA", re.compile(r"\b(?:fuck|fucking|dick|cock|balls?|cum|fart|shit|bitch|piss|boob|tits?|asshole|boner|poop)\b", re.I)),
+    ("WWAM UP IN YA", re.compile(r"\b(?:fuck|fucking|dick|cock|balls?|cum|fart|shit|bitch|piss|boob|boobs|tits?|asshole|boner|poop|dong|wiener(?:s)?|porn|jizz|horny|sexy)\b", re.I)),
     ("STRAIGHT TO STEVE'S ASSHOLE", re.compile(r"\b(?:hate|hated|worst|terrible|awful|sucks?|stupid|dumb|bullshit|garbage|lazy|weak|ruined|don't like|didn't like|not good)\b", re.I)),
     ("FAN SIGNAL", re.compile(r"super\s*chat|\bdonat(?:e|ed|ion)\b|lee(?:\s+the)?\s+machine|michael\s+part(?:on|in)|chat(?:'s| is) asking|question from (?:the )?chat", re.I)),
     ("CHARACTER SIGNAL", re.compile(r"\b(?:loomis|chall[ie]s|slender\s*man|corey feldman|feldman|michael myers|freddy|jason|chucky|tiffany)\b", re.I)),
