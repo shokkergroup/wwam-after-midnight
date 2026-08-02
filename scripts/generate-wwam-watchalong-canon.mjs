@@ -413,7 +413,15 @@ function episodeFrom(id) {
   const guideCuts = guide?.cuts || [];
   const moments = deepRecord && guide ? (deepRecord.moments || []).map((moment) => ({ ...moment, t: Number(moment.t || 0), end: Number(moment.end || moment.t || 0), excerpt: excerpt(moment.quote || moment.excerpt), reviewStatus: "distilled-editorial-candidate" })) : derived.moments;
   const chapters = deepRecord && guide ? (guide?.chapters || []).map((chapter) => ({ ...chapter, excerpt: excerpt(chapter.excerpt), body: clean(chapter.body) })) : derived.chapters;
-  const topics = deepRecord && guide ? (guide?.threads || []).slice(0, 10).map((thread) => ({ name: thread.name, mentions: thread.mentions, first: thread.first, peak: thread.peak, cluster: thread.cluster, receipt: excerpt(thread.receipt), kind: thread.kind })) : (sourceTopics.length ? sourceTopics : derived.topics);
+  const filmTitleLower = clean(taxonomy.movieTitle).toLowerCase();
+  const filmTitleTokens = filmTitleLower.split(/\s+/).filter((token) => token.length >= 4 && !["this", "that", "the", "with", "from", "full", "movie"].includes(token));
+  const derivedTopicDoors = (derived?.topics || []).filter((topic) => {
+    const name = clean(topic.name).toLowerCase();
+    const mentions = Number(topic.mentions || 0);
+    const titleHit = name.length >= 4 && (filmTitleLower.includes(name) || filmTitleTokens.some((token) => name === token || name.includes(token)));
+    return mentions >= 2 || titleHit;
+  });
+  const topics = deepRecord && guide ? (guide?.threads || []).slice(0, 10).map((thread) => ({ name: thread.name, mentions: thread.mentions, first: thread.first, peak: thread.peak, cluster: thread.cluster, receipt: excerpt(thread.receipt), kind: thread.kind })) : (sourceTopics.length ? sourceTopics : derivedTopicDoors);
   const watchPassRecord = watchPass.episodes?.[id] || null;
   const audioCandidates = watchPassRecord && watchPassRecord.status === "audio-feature-pilot"
     ? (watchPassRecord.candidates || [])
@@ -460,7 +468,7 @@ function episodeFrom(id) {
   const leadLine = strongestMoment
     ? `The cleanest way in is ${formatTimestamp(strongestMoment.t)}, where the map tags a ${strongestMoment.category || "source"} lead.`
     : "No single lead is promoted above the rest.";
-  const topicLine = topicPhrase ? `The conversation keeps circling ${topicPhrase}.` : "The map stays close to the film without forcing a topic label.";
+  const topicLine = topicPhrase ? `The indexed doors hit ${topicPhrase}; use them as jump points, not a claim that the whole conversation stays on those subjects.` : "The map stays close to the film without promoting a side-topic label.";
   const audioLine = audioCuts.length
     ? ` An audio-feature pass adds ${audioCuts.length} ranked intensity routes; it re-ranks caption windows but does not prove a joke, speaker, or visual reaction.`
     : "";

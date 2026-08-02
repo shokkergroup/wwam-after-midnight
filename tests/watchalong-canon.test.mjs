@@ -61,6 +61,8 @@ test("repeated films stay separate while grouping into one movie file", () => {
   assert.equal(halloweenOriginal.repeatCount, 1);
   assert.equal(darkKnight.franchiseKey, "dc");
   assert.equal(canon.episodes.find((episode) => episode.id === "LHK_KKVd8nw")?.franchiseKey, "comedy", "Freddy Got Fingered is not misfiled as Nightmare on Elm Street");
+  assert.equal(canon.episodes.find((episode) => episode.id === "wZqgaLkMq0U")?.topics.length, 0, "one-off caption topic noise is not promoted as a Saved by the Bell subject");
+  assert.equal(canon.episodes.find((episode) => episode.id === "K9qwSM4Eqyw")?.topics.length, 0, "one-off caption topic noise is not promoted as a From Dusk Till Dawn subject");
 });
 
 test("every episode has an official source, evidence state, and playable receipt lane", () => {
