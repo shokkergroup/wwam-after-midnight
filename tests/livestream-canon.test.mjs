@@ -42,6 +42,23 @@ test("livestream canon contains the complete source registry", () => {
   assert.ok(canon.episodes.find((episode) => episode.id === "LVVGdGxTBfI")?.rssAudioPass?.media?.canonicalTimestampMapping === false);
 });
 
+test("repeated livestream headlines receive date-qualified navigation titles", () => {
+  const canon = loadCanon();
+  const groups = new Map();
+  for (const episode of canon.episodes) {
+    const key = episode.title.trim().toLowerCase();
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(episode);
+  }
+  const repeated = [...groups.values()].filter((group) => group.length > 1);
+  assert.ok(repeated.length >= 10);
+  for (const group of repeated) {
+    assert.ok(group.every((episode) => episode.displayTitle && episode.displayTitle.includes(episode.date)));
+    assert.equal(new Set(group.map((episode) => episode.displayTitle)).size, group.length);
+  }
+  assert.equal(canon.episodes.filter((episode) => episode.displayTitle).length, 36);
+});
+
 test("each source has an honest evidence tier and playable source link", () => {
   const canon = loadCanon();
   const allowed = new Set(["distill-dossier", "completion-dossier", "caption-ledger", "source-brief"]);

@@ -468,6 +468,28 @@ const episodes = canonicalMetadata.map((record) => {
   };
 }).sort((left, right) => right.date.localeCompare(left.date) || right.id.localeCompare(left.id));
 
+// Repeated livestream titles are legitimate (the channel reused the same
+// weekly headline), but a title-only card makes two tapes indistinguishable.
+// Keep the source title intact for search and provenance, and add a derived
+// navigation title only when a collision exists. Same-day duplicates receive a
+// short source-id suffix so every card still has a stable human-facing handle.
+const titleGroups = new Map();
+episodes.forEach((episode) => {
+  const key = clean(episode.title).toLowerCase();
+  if (!titleGroups.has(key)) titleGroups.set(key, []);
+  titleGroups.get(key).push(episode);
+});
+titleGroups.forEach((group) => {
+  if (group.length < 2) return;
+  const dateCounts = new Map();
+  group.forEach((episode) => dateCounts.set(episode.date, (dateCounts.get(episode.date) || 0) + 1));
+  group.forEach((episode) => {
+    const sameDay = Number(dateCounts.get(episode.date) || 0) > 1;
+    const suffix = sameDay ? `${episode.date} // TAPE ${episode.id.slice(0, 6)}` : episode.date;
+    episode.displayTitle = `${episode.title} // ${suffix}`;
+  });
+});
+
 const seriesMap = new Map();
 episodes.forEach((episode) => {
   if (!seriesMap.has(episode.seriesKey)) seriesMap.set(episode.seriesKey, { key: episode.seriesKey, title: episode.seriesTitle, episodeIds: [], totalDuration: 0, latestDate: episode.date, formats: new Set() });
