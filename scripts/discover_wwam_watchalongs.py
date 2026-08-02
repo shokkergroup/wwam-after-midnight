@@ -38,13 +38,14 @@ TITLE_PATTERN = re.compile(
 # or members-only) instead of pretending the strict count is exhaustive.
 BROAD_TITLE_PATTERN = re.compile(
     r"(?i)\bcommentary\b|\bwatch\s*(?:along|party|with)\b|\bfull\s+movie\b|"
-    r"riff\.?tv|let(?:'|’)s\s+watch|first\s+time\s+watch|w[ /_-]*video|watching"
+    r"riff\.?tv|let(?:'|’)s\s+watch|first\s+time\s+watch|w[ /_-]*video|watching|"
+    r"movie\s+review\s+marathon"
 )
 
 
 def broad_signal(title: str) -> str:
     text = str(title or "")
-    if re.search(r"(?i)first\s+time\s+watch|reaction|review", text):
+    if re.search(r"(?i)first\s+time\s+watch|reaction|review|movie\s+review\s+marathon", text):
         return "reaction-or-review"
     if re.search(r"(?i)watching\b", text) and not re.search(r"(?i)commentary|full\s+movie|watch\s*(?:along|party)", text):
         return "short-form-watch-lead"
