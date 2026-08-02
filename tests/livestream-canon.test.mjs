@@ -176,6 +176,9 @@ test("livestream canon surface is wired into the page and route shell", () => {
   assert.match(ui, /AUDIO PASSES/);
   assert.match(ui, /CAPTION FALLBACKS/);
   assert.match(ui, /CAPTION-ONLY PASS/);
+  assert.match(ui, /function u\(e,a\)\{return "\?source="/, "bounded livestream jumps use the local Show Wiki route");
+  assert.match(ui, /keepLocalJumpLinksInApp/, "local livestream routes do not open a second external tab");
+  assert.match(ui, /official YouTube player at its bounded timestamp/, "local route copy explains the embedded source boundary");
   assert.match(ui, /THE PODCAST TAPE/);
   assert.match(ui, /data-lvc-rss-seek/);
   assert.match(ui, /LISTEN FOR THE ROOM TO CHANGE/);

@@ -8,7 +8,7 @@ function n(v){return Number(v||0).toLocaleString("en-US")}
 function d(v){var a=c(v).split("-");return a.length===3?a[1]+"/"+a[2]+"/"+a[0]:c(v)||"DATE UNKNOWN"}
 function t(v){v=Math.max(0,Math.round(Number(v)||0));var h=Math.floor(v/3600),mi=Math.floor(v%3600/60),se=v%60;return h?h+":"+String(mi).padStart(2,"0")+":"+String(se).padStart(2,"0"):mi+":"+String(se).padStart(2,"0")}
 function q(v,l){var z=c(v),m=l||210;return z.length<=m?z:z.slice(0,m-1).trimEnd()+"\u2026"}
-function u(e,a){return e.url+(e.url.indexOf("?")>=0?"&":"?")+"t="+Math.max(0,Math.round(Number(a)||0))+"s"}
+function u(e,a){return "?source="+encodeURIComponent(e.id)+"&at="+Math.max(0,Math.round(Number(a)||0))+"&section=wiki#archive"}
 function fl(v){return c(v).replace(/-/g," ").toUpperCase()||"LIVESTREAM"}
 function el(v){return v==="completion-dossier"?"COMPLETION DOSSIER":v==="distill-dossier"?"DISTILL DOSSIER":v==="caption-ledger"?"CAPTION LEDGER":"SOURCE BRIEF"}
 function tt(e){return c(e&&e.displayTitle||e&&e.title||"WWAM SHOW")}
@@ -52,5 +52,8 @@ function rssAudioBlock(e){var w=e.rssAudioPass;if(!w)return"";var id="lvc-rss-au
 var dossierWithRssAudio=dossier;dossier=function(e){var html=dossierWithRssAudio(e);return e.rssAudioPass?html.replace('<div class="lvc-section-label">BEST BIT CANDIDATES // ALL RECEIPTS, RANKED</div>',rssAudioBlock(e)+'<div class="lvc-section-label">BEST BIT CANDIDATES // ALL RECEIPTS, RANKED</div>'):html};
 var bindWithRssAudio=bind;bind=function(){bindWithRssAudio();Array.prototype.forEach.call(root.document.querySelectorAll("[data-lvc-rss-seek]"),function(button){button.addEventListener("click",function(){var audio=root.document.getElementById(button.getAttribute("data-lvc-rss-audio"));if(!audio)return;audio.currentTime=Number(button.getAttribute("data-lvc-rss-seek"))||0;var play=audio.play();if(play&&play.catch)play.catch(function(){});})})};
 render();
-root.WWAMLivestreamCanonUI=Object.freeze({version:"1.0.0",render:render,payload:p});
+root.WWAMLivestreamCanonUI=Object.freeze({version:"1.2.0",render:render,payload:p});
+function keepLocalJumpLinksInApp(){Array.prototype.forEach.call(root.document.querySelectorAll(".lvc-shell a[href^=\"?source=\"]"),function(link){link.removeAttribute("target");link.removeAttribute("rel")});Array.prototype.forEach.call(root.document.querySelectorAll(".lvc-dossier-foot span"),function(note){if(/Every jump opens the official YouTube source/i.test(note.textContent)){note.textContent="Every jump opens the local Show Wiki with the official YouTube player at its bounded timestamp."}})}
+keepLocalJumpLinksInApp();
+if(root.MutationObserver){new root.MutationObserver(keepLocalJumpLinksInApp).observe(m,{childList:true,subtree:true})}
 })(typeof window!=="undefined"?window:globalThis);
