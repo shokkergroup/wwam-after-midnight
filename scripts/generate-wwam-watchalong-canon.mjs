@@ -313,24 +313,59 @@ function watchalongVoiceSummary({ taxonomy, duration, laneCounts, topics, firstM
   const strongestAudio = (audioCuts || []).slice().sort((left, right) => Number(right.score || 0) - Number(left.score || 0))[0] || null;
   const laneText = rankedLanes.slice(0, 3).map(([label, count]) => `${label} (${count})`).join(", ");
   const runtimeRead = duration >= 9000 ? "marathon-length" : duration >= 5400 ? "feature-length" : duration >= 1800 ? "a compact feature" : "a short-form";
-  const opening = {
-    "STRAIGHT TO STEVE'S ASSHOLE": `${title} is ${runtimeRead} ${format} with a target list, and the hate drawer opens early.`,
-    "TAKE GETS NUCLEAR": `The ${title} room does not ease in; it starts ${runtimeRead} and immediately makes the movie defend itself.`,
-    "ROOM BREAK": `${title} starts as ${runtimeRead} ${format} and then keeps finding new ways to lose the room's composure.`,
-    "CHARACTER SIGNAL": `${title} is ${runtimeRead} ${format} with the brakes cut; the commentary keeps wandering into bits and character work.`,
-    "WWAM UP IN YA": `${title} is ${runtimeRead} ${format} where the filthy side roads are part of the destination.`,
-    "FILM READ": `${title} is ${runtimeRead} ${format} with actual movie talk underneath the mess.`,
-    "FAN SIGNAL": `${title} is ${runtimeRead} ${format} with the audience getting a real turn at the wheel.`,
-  }[dominant] || `${title} is ${runtimeRead} ${format} with one eye on the source and one on the room.`;
-  const tone = {
-    "STRAIGHT TO STEVE'S ASSHOLE": "The hate drawer is doing overtime; the tape keeps finding things it would happily mail straight to Steve's Asshole.",
-    "TAKE GETS NUCLEAR": "The takes arrive with a flamethrower, so the movie has to defend itself scene by scene.",
-    "ROOM BREAK": "The room keeps losing its composure, which is usually where the rewatch earns its keep.",
-    "CHARACTER SIGNAL": "The tape keeps stepping sideways into bits and character work instead of behaving like a normal commentary.",
-    "WWAM UP IN YA": "The filthy detours are not background noise here; they are part of the route through the tape.",
-    "FILM READ": "There is real movie talk underneath the mess, even when the booth cannot resist setting it on fire.",
-    "FAN SIGNAL": "The audience gets a turn at the wheel, with fan traffic shaping the room's rhythm.",
-  }[dominant] || "The source stays playful and unpredictable without pretending every timestamp is a finished verdict.";
+  const seed = [...title].reduce((sum, char) => (sum * 31 + char.charCodeAt(0)) % 3, 0);
+  const openingVariants = {
+    "STRAIGHT TO STEVE'S ASSHOLE": [
+      `${title} walks in with the knife already out: it is ${runtimeRead} ${format}, and the complaints find their target fast.`,
+      `The ${title} rewatch arrives carrying a grievance list. It is ${runtimeRead} ${format}, and Steve's Asshole gets work before the room settles.`,
+      `${title} is ${runtimeRead} ${format} with the hate lane taking the first lap; nobody is pretending this is a polite rewatch.`
+    ],
+    "TAKE GETS NUCLEAR": [
+      `The ${title} room comes out swinging. It is ${runtimeRead} ${format}, and the first big receipt makes the movie argue for its life.`,
+      `No gentle warm-up here: ${title} is ${runtimeRead} ${format}, and the tape starts scoring points against the screen.`,
+      `${title} opens like somebody insulted a favorite franchise. It is ${runtimeRead} ${format}, and the booth answers in kind.`
+    ],
+    "ROOM BREAK": [
+      `${title} starts as ${runtimeRead} ${format}, then the room begins coming apart in the fun way.`,
+      `The ${title} tape gets through the setup and promptly loses its composure; this is ${runtimeRead} ${format} with no straight line home.`,
+      `${title} is ${runtimeRead} ${format} until the booth finds a new reason to derail itself, which is where the good stuff starts.`
+    ],
+    "CHARACTER SIGNAL": [
+      `The ${title} watch keeps slipping its leash. It is ${runtimeRead} ${format}, but the real detours are the voices, bits, and character work.`,
+      `${title} is ${runtimeRead} ${format} with the brakes cut; the booth keeps turning movie talk into a little live radio play.`,
+      `The ${title} room cannot leave a character alone. It is ${runtimeRead} ${format} with improv hiding in the margins.`
+    ],
+    "WWAM UP IN YA": [
+      `${title} keeps taking filthy side roads and somehow making them part of the route. It is ${runtimeRead} ${format}.`,
+      `The ${title} tape knows exactly where the respectable conversation ends and the dirty detour begins; this is ${runtimeRead} ${format}.`,
+      `${title} is ${runtimeRead} ${format} with the booth repeatedly opening a trapdoor under the movie and climbing into it.`
+    ],
+    "FILM READ": [
+      `${title} keeps the movie in the room even when the booth starts misbehaving. It is ${runtimeRead} ${format} with an actual point of view.`,
+      `There is a real film argument underneath the mess in ${title}; the tape runs ${runtimeRead} ${format} and does not stay on one lane.`,
+      `${title} is ${runtimeRead} ${format} where the jokes do not erase the movie talk; they make the argument louder.`
+    ],
+    "FAN SIGNAL": [
+      `${title} is ${runtimeRead} ${format} with the audience getting a genuine turn at the wheel, not just a credits roll thank-you.`,
+      `The ${title} room leaves the door open for the fans. It is ${runtimeRead} ${format} with chat traffic changing the rhythm.`,
+      `${title} is ${runtimeRead} ${format} where the fan lane keeps interrupting the booth in the best possible way.`
+    ]
+  };
+  const opening = (openingVariants[dominant] || [
+    `${title} is ${runtimeRead} ${format} with one eye on the source and one on the room.`,
+    `The ${title} tape keeps one hand on the movie and the other on whatever the booth finds funny next.`,
+    `${title} is ${runtimeRead} ${format}; the route is messy, but the mess is part of the evidence.`
+  ])[seed];
+  const toneVariants = {
+    "STRAIGHT TO STEVE'S ASSHOLE": ["The hate lane keeps finding fresh mail for Steve's Asshole.", "The complaints are not decorative; they keep driving the rewatch.", "The tape is happiest when it can point at one more thing and say, absolutely not."],
+    "TAKE GETS NUCLEAR": ["The takes hit hard enough that the movie has to keep answering for itself.", "The booth treats every weak spot like an invitation to kick the door in.", "This is affectionate violence: a rewatch with a flamethrower and a memory."],
+    "ROOM BREAK": ["The room's best evidence is often the moment it forgets to behave.", "Every derailment becomes another route through the tape.", "The laughter is not filler; it is the temperature reading."],
+    "CHARACTER SIGNAL": ["The character work keeps hijacking the official program, and nobody seems eager to stop it.", "The tape keeps wandering into bits instead of behaving like a normal commentary.", "The voices and callbacks are part of the watch, not an afterthought."],
+    "WWAM UP IN YA": ["The filthy detours are not background noise; they are part of the route.", "The booth keeps finding the kind of side road you would not put in a press kit.", "The tape knows the quickest way to a laugh is sometimes straight through the gutter."],
+    "FILM READ": ["The movie argument survives every detour and keeps the page anchored.", "The booth can set the scene on fire without losing the reason it was watching.", "The film talk is sturdy enough to survive the chaos around it."],
+    "FAN SIGNAL": ["Fan traffic changes the room's rhythm instead of sitting politely at the edge.", "The audience is part of the episode's shape, not just a number under the video.", "The fan lane keeps the booth honest, surprised, and occasionally derailed."]
+  };
+  const tone = (toneVariants[dominant] || ["The source stays playful without pretending every timestamp is a finished verdict.", "The route is messy, but every door is bounded to the tape.", "This is a listening lead, not a machine-written verdict."])[seed];
   const topicNames = relevantTopics(topics, taxonomy).map((topic) => topic.name).filter(Boolean).slice(0, 3);
   const topicSentence = topicNames.length
     ? `The subject doors that survive the relevance check are ${topicNames.join(", ")}; they are jump points into the conversation, not a claim that the room stays on one subject.`
@@ -342,7 +377,11 @@ function watchalongVoiceSummary({ taxonomy, duration, laneCounts, topics, firstM
     ? `The audio-feature pass adds ${audioCuts.length} ranked windows, with the strongest acoustic signal at ${strongestAudio ? formatTimestamp(strongestAudio.t) : "the indexed peak"}; that is a browse aid, not proof of a joke, speaker, or visual reaction.`
     : "The page keeps its route receipts caption-led because no matching local audio measurement is available.";
   const secondaryLine = secondary ? ` ${secondary} supplies the next-best pressure point.` : "";
-  return `${opening} It runs ${formatTimestamp(duration)}. ${tone} The route mix is ${laneText || "source receipts"}.${secondaryLine} The cleanest entry is ${openingStop}; the strongest indexed door is ${strongestStop}; and the exit route is ${closingStop}. ${topicSentence} ${audioLine} There are ${allMoments.length} bounded jump points here, so press play at the timestamp before treating any caption fragment as canon.`;
+  const strongestExcerpt = clean(strongestMoment?.excerpt || "");
+  const receiptRead = strongestExcerpt
+    ? `One caption-aligned route at ${strongestStop} starts, "${excerpt(strongestExcerpt, 24)}" That is a listening lead, not a verified quote.`
+    : "No caption fragment is promoted as a quote without a playback check.";
+  return `${opening} It runs ${formatTimestamp(duration)}. ${tone} The route mix is ${laneText || "source receipts"}.${secondaryLine} The cleanest entry is ${openingStop}; the strongest indexed door is ${strongestStop}; and the exit route is ${closingStop}. ${topicSentence} ${receiptRead} ${audioLine} There are ${allMoments.length} bounded jump points here, so press play at the timestamp before treating any caption fragment as canon.`;
 }
 
 function ledgerFanRead(items, finalMoment) {

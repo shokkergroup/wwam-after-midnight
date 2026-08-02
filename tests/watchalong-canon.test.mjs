@@ -210,6 +210,9 @@ test("every episode has an official source, evidence state, and playable receipt
   assert.equal(signs.dossier.caption.sourceKind, "local-whisper-transcript");
   assert.equal(signs.watchPass.status, "audio-feature-pilot");
   assert.ok(signs.watchPass.candidates.length >= 20, "public no-caption source receives an audio/ASR route");
+  const captionLedgers = canon.episodes.filter((episode) => episode.dossier.state === "caption-ledger-dossier");
+  assert.equal(captionLedgers.length, 63);
+  assert.ok(captionLedgers.every((episode) => /caption-aligned route|listening lead/i.test(episode.dossier.summary)), "caption-ledger summaries surface a concrete bounded receipt instead of generic machine boilerplate");
   assert.ok(canon.episodes.some((episode) => episode.watchPass.audit.candidateTarget > 15), "longer watchalongs receive a larger ranked browse set");
   assert.ok(canon.episodes.some((episode) => episode.watchPass.audit.candidateTarget > 48), "dense long tapes exceed the former 48-card ceiling");
   assert.ok(canon.episodes.filter((episode) => episode.duration >= 5400 && episode.watchPass.status === "audio-feature-pilot").every((episode) => episode.watchPass.candidates.length >= 15), "feature-length watchalongs retain at least fifteen audio-ranked routes");
