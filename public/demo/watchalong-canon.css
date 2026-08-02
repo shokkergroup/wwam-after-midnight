@@ -235,7 +235,7 @@
 .wac-episode-footer a:hover,
 .wac-episode-footer button:hover { border-color: var(--canon-hot); color: var(--canon-hot); }
 
-.wac-dossier { margin-top: 1.3rem; border: 1px solid var(--canon-hot); background: linear-gradient(160deg, rgba(255, 44, 131, .1), rgba(0, 0, 0, .22)); }
+.wac-dossier { margin-top: 1.3rem; border: 1px solid var(--canon-hot); background: linear-gradient(160deg, rgba(255, 44, 131, .1), rgba(0, 0, 0, .22)); scroll-margin-top: 5rem; }
 .wac-dossier-head { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(16rem, .65fr); gap: 1.3rem; padding: 1.5rem; border-bottom: 1px solid var(--canon-line); }
 .wac-dossier-head h3 { margin: .3rem 0 .7rem; color: var(--canon-ink); font: 800 clamp(2rem, 4vw, 4rem)/.88 "Arial Narrow", Impact, sans-serif; letter-spacing: -.04em; text-transform: uppercase; }
 .wac-dossier-head p { margin: 0; color: #d4cbcf; font: 500 .86rem/1.55 ui-sans-serif, system-ui, sans-serif; }

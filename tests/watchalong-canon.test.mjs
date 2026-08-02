@@ -267,6 +267,8 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(ui, /data-wac-quick="halloween"/, "Halloween is a first-viewport door");
   assert.match(ui, /data-wac-quick="comedy"/, "the comedy vault is a first-viewport door");
   assert.match(ui, /wacMovieWorlds/, "movie worlds have a stable scroll target");
+  assert.match(ui, /id="wacResultsHead"/, "franchise and movie-file changes have a stable result snap target");
+  assert.match(ui, /results\.scrollIntoView/, "filter changes scroll the visitor to the refreshed episode list");
   assert.match(ui, /wac-audit-lanes/, "audit ledgers remain available after the primary browse path");
   assert.match(ui, /function episodeProofMarkup\(episode\)/, "cards expose the evidence mode and peak signal");
   assert.match(ui, /function peakDoorMarkup\(episode\)/, "audio-backed cards expose a direct local peak route");
@@ -279,6 +281,7 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(css, /\.wac-peak-door/, "cards style the direct peak route");
   assert.match(css, /\.wac-dossier-lane-nav/, "opened dossiers style a visible lane index");
   assert.match(css, /\.wac-signature-lane/, "opened dossiers style grouped signature lanes");
+  assert.match(css, /scroll-margin-top: 5rem/, "dossier snap leaves room for the fixed header");
   assert.match(ui, /data-wac-group/);
   assert.match(ui, /function fanSignalsMarkup\(episode, signals\)/);
   assert.match(ui, /fanSignalsMarkup\(episode, dossier\.fanSignals\)/);

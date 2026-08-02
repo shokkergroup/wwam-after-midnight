@@ -612,7 +612,7 @@
     var selected = episodeById(state.selected);
     var selectedPodcast = podcastByKey(state.selectedPodcast);
     mount.innerHTML = '<div class="wac-shell">' + quickStartMarkup() + franchiseMarkup() + toolsMarkup() + movieFileMarkup() +
-      '<div class="wac-results-head"><h3>' + (state.franchise === "all" ? "THE FULL TAPE LIST" : esc((franchises.filter(function (item) { return item.key === state.franchise; })[0] || {}).title || "FILTERED TAPE LIST")) + '</h3><span>' + number(visible.length) + ' EPISODES // EVERY MOVIE VERSION STAYS VISIBLE</span></div>' +
+      '<div class="wac-results-head" id="wacResultsHead"><h3>' + (state.franchise === "all" ? "THE FULL TAPE LIST" : esc((franchises.filter(function (item) { return item.key === state.franchise; })[0] || {}).title || "FILTERED TAPE LIST")) + '</h3><span>' + number(visible.length) + ' EPISODES // EVERY MOVIE VERSION STAYS VISIBLE</span></div>' +
       '<div class="wac-episode-grid">' + (visible.length ? visible.map(episodeCard).join('') : '<div class="wac-empty">No public watchalong matches that filter. Try another movie, franchise, or format.</div>') + '</div>' + (selected ? dossierMarkup(selected) : '') + (selectedPodcast ? podcastDossierMarkup(selectedPodcast) : '') +
       '<div class="wac-audit-lanes">' + proofMarkup() + coverageLedgerMarkup() + companionShelfMarkup() + edgeAuditMarkup() + podcastRecoveryMarkup() + '</div></div>';
     keepPublicEdgeLinksLocal();
@@ -651,7 +651,12 @@
       });
     });
     Array.prototype.forEach.call(root.document.querySelectorAll("[data-wac-franchise]"), function (button) {
-      button.addEventListener("click", function () { state.franchise = button.getAttribute("data-wac-franchise"); render(); });
+      button.addEventListener("click", function () {
+        state.franchise = button.getAttribute("data-wac-franchise");
+        render();
+        var results = root.document.getElementById("wacResultsHead");
+        if (results && typeof results.scrollIntoView === "function") results.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
     });
     Array.prototype.forEach.call(root.document.querySelectorAll("[data-wac-group]"), function (button) {
       button.addEventListener("click", function () {
@@ -661,6 +666,8 @@
         state.query = group.title;
         state.selected = "";
         render();
+        var results = root.document.getElementById("wacResultsHead");
+        if (results && typeof results.scrollIntoView === "function") results.scrollIntoView({ behavior: "smooth", block: "start" });
       });
     });
     Array.prototype.forEach.call(root.document.querySelectorAll("[data-wac-open]"), function (button) {
@@ -722,5 +729,5 @@
   }
 
   render();
-  root.WWAMWatchalongCanonUI = Object.freeze({ version: "1.5.1", render: render, payload: payload });
+  root.WWAMWatchalongCanonUI = Object.freeze({ version: "1.6.0", render: render, payload: payload });
 })(typeof window !== "undefined" ? window : globalThis);
