@@ -47,12 +47,14 @@ test("repeated films stay separate while grouping into one movie file", () => {
   const halloweenFour = canon.groups.find((group) => group.key === "halloween-4");
   const finalChapter = canon.groups.find((group) => group.key === "friday-the-13th-part-4");
   const halloweenOriginal = canon.groups.find((group) => group.key === "halloween-1978");
+  const darkKnight = canon.episodes.find((episode) => episode.id === "NuGQKLkam_U");
   assert.deepEqual(Array.from(halloweenFour.episodeIds), ["28PfRNKoSCA", "KrBhfGxsJNM"]);
   assert.deepEqual(Array.from(finalChapter.episodeIds), ["kTJXSHz9BXw", "QxJyVaAgZ_Y"]);
   assert.deepEqual(Array.from(halloweenOriginal.episodeIds), ["6VXSBDZ-3WE", "NjH2tcGvmAY"]);
   assert.equal(halloweenFour.repeatCount, 1);
   assert.equal(finalChapter.repeatCount, 1);
   assert.equal(halloweenOriginal.repeatCount, 1);
+  assert.equal(darkKnight.franchiseKey, "dc");
 });
 
 test("every episode has an official source, evidence state, and playable receipt lane", () => {

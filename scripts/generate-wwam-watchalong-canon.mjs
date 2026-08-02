@@ -330,7 +330,7 @@ function titleDerivedTaxonomy(title) {
     [/nightmare\s+on\s+elm|freddy/i, "a-nightmare-on-elm-street", "A Nightmare on Elm Street"],
     [/scream/i, "scream", "Scream"],
     [/child.?s\s+play|chucky/i, "childs-play", "Child's Play / Chucky"],
-    [/batman|superman|justice\s+league/i, "dc", "DC / Batman"],
+    [/batman|superman|justice\s+league|dark\s+knight/i, "dc", "DC / Batman"],
     [/terminator/i, "terminator", "Terminator"],
     [/mortal\s+kombat/i, "mortal-kombat", "Mortal Kombat"],
     [/saved\s+by\s+the\s+bell/i, "saved-by-the-bell", "Saved by the Bell"],
@@ -400,7 +400,11 @@ function episodeFrom(id) {
   const fanSignals = fanSignalCandidates(events, duration);
   const lanePhrase = Object.entries(laneCounts).sort((left, right) => right[1] - left[1]).slice(0, 3).map(([label, count]) => `${label} (${count})`).join(", ");
   const topicPhrase = topics.slice(0, 5).map((topic) => topic.name).filter((name) => name && !/watch\s*party|commentary|watch\s*along/i.test(name)).slice(0, 3).join(", ");
-  const derivedSummary = `This ${taxonomy.type.replace(/-/g, " ")} for ${taxonomy.movieTitle} runs ${formatTimestamp(duration)}. The ${evidenceLabel} flags ${allMoments.length} playable leads${lanePhrase ? ` across ${lanePhrase}` : ""}${topicPhrase ? `, with the conversation repeatedly touching ${topicPhrase}` : ""}. It is a navigation dossier rather than a speaker-diarized transcript: press the timestamp, hear the full exchange, and decide whether the lead earns a place in the permanent cut.`;
+  const leadLine = strongestMoment
+    ? `The cleanest way in is ${formatTimestamp(strongestMoment.t)}, where the map tags a ${strongestMoment.category || "source"} lead.`
+    : "No single lead is promoted above the rest.";
+  const topicLine = topicPhrase ? `The conversation keeps circling ${topicPhrase}.` : "The map stays close to the film without forcing a topic label.";
+  const derivedSummary = `${taxonomy.type === "watch-party" ? "This watch-party tape" : "This commentary tape"} for ${taxonomy.movieTitle} runs ${formatTimestamp(duration)}. The ${evidenceLabel} leaves ${allMoments.length} playable leads on the board${lanePhrase ? ` — ${lanePhrase}` : ""}. ${topicLine} ${leadLine} The source is a jumpable guide to the room, not a speaker-diarized transcript: press play before treating any line as canon.`;
   const summary = guide?.overview || (!events.length && !deepRecord
     ? `This source brief preserves the official upload for ${taxonomy.movieTitle}, but no local caption map was available in this observation. The source remains playable; no timestamps or speaker claims are manufactured.`
     : (deepRecord && !guide
