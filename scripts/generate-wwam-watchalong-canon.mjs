@@ -280,6 +280,21 @@ function captionWindow(events, index, before = 5, after = 10) {
   return deduped.join(" ");
 }
 
+function nearestCaptionContext(events, at, maxDistance = 75) {
+  if (!Array.isArray(events) || !events.length) return null;
+  let nearest = null;
+  events.forEach((event, index) => {
+    const text = clean(event?.text);
+    if (!text) return;
+    const distance = Math.abs(Number(event.t || 0) - Number(at || 0));
+    if (distance > maxDistance || (nearest && distance >= nearest.distance)) return;
+    nearest = { event, index, distance };
+  });
+  if (!nearest) return null;
+  const text = excerpt(normalizeCaptionText(captionWindow(events, nearest.index, 5, 10)), 22);
+  return text ? { text, at: Number(nearest.event.t || 0), distance: Number(nearest.distance.toFixed(1)) } : null;
+}
+
 function ledgerLaneCounts(items) {
   return items.reduce((counts, item) => {
     const key = clean(item.category || item.label || "SOURCE RECEIPT");
@@ -705,6 +720,12 @@ function episodeFrom(id) {
       const category = clean(candidate.category || candidate.label || "AUDIO RECEIPT");
       const subject = clean(nearestTopic?.name || "SOURCE CHECKPOINT");
       const captionExcerpt = excerpt(normalizeCaptionText(candidate.captionExcerpt || ""), 22);
+      const nearbyCaption = captionExcerpt ? null : nearestCaptionContext(events, at);
+      const receiptExcerpt = captionExcerpt
+        ? captionExcerpt
+        : nearbyCaption
+          ? `NEARBY CAPTION CONTEXT // ${nearbyCaption.text}`
+          : "No caption fragment aligned; open the source and listen to this acoustic window.";
       return {
         id: `audio-${Math.round(at)}-${index + 1}`,
         t: Math.round(at),
@@ -712,13 +733,22 @@ function episodeFrom(id) {
         category,
         label: `${category} // ${subject}`,
         score: Number(candidate.score || 0),
-        excerpt: captionExcerpt || "No caption fragment aligned; open the source and listen to this acoustic window.",
+        excerpt: receiptExcerpt,
         captionAligned: Boolean(captionExcerpt),
+        captionContext: Boolean(nearbyCaption),
+        captionContextAt: nearbyCaption?.at || null,
+        captionContextDistance: nearbyCaption?.distance || null,
         topic: nearestTopic?.name || null,
         audioRank: Number(candidate.rank || index + 1),
         audio: candidate.audio || null,
-        evidenceBasis: "canonical YouTube audio + source-local caption alignment",
-        reviewStatus: "audio-feature-candidate; playback remains the authority"
+        evidenceBasis: captionExcerpt
+          ? "canonical YouTube audio + source-local caption alignment"
+          : nearbyCaption
+            ? "canonical YouTube audio + nearby source-local caption context; not exact alignment"
+            : "canonical YouTube audio; no nearby source-local caption context",
+        reviewStatus: nearbyCaption
+          ? "audio-feature-candidate; nearby caption context only; playback remains the authority"
+          : "audio-feature-candidate; playback remains the authority"
       };
     }).filter((candidate) => candidate.excerpt || candidate.t >= 0);
   const alternateCuts = (alternateAudio?.routes || []).map((route, index) => ({

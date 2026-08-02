@@ -224,9 +224,12 @@ test("every episode has an official source, evidence state, and playable receipt
   const audioCuts = audioEnriched.flatMap((episode) => episode.dossier.cuts.filter((cut) => cut.audio));
   assert.ok(audioEnriched.length >= 50, "caption-ledger watchalongs expose their audio-ranked routes in the show dossier");
   assert.ok(audioCuts.length >= 1000, "audio-ranked watchalong routes remain available as bounded dossier receipts");
-  assert.ok(audioCuts.every((cut) => /audio \+ source-local caption alignment/i.test(cut.evidenceBasis) && cut.audioRank > 0), "audio dossier receipts retain their evidence boundary and rank");
+  assert.ok(audioCuts.every((cut) => /audio \+ (?:source-local caption alignment|nearby source-local caption context)/i.test(cut.evidenceBasis) && cut.audioRank > 0), "audio dossier receipts retain their evidence boundary and rank");
   const audioBacked = canon.episodes.filter((episode) => episode.watchPass.status === "audio-feature-pilot");
   const allAudioDossierCuts = audioBacked.flatMap((episode) => episode.dossier.cuts.filter((cut) => cut.audio));
+  const nearbyCaptionContext = allAudioDossierCuts.filter((cut) => cut.captionContext);
+  assert.equal(nearbyCaptionContext.length, 9, "caption-marker peaks retain nearby context without being relabeled as exact alignment");
+  assert.ok(nearbyCaptionContext.every((cut) => /nearby source-local caption context; not exact alignment/i.test(cut.evidenceBasis) && /^NEARBY CAPTION CONTEXT/i.test(cut.excerpt)));
   assert.equal(audioBacked.length, 101, "every acoustically acquired watchalong retains an audio-feature route");
   assert.equal(canon.episodes.filter((episode) => episode.watchPass.status === "caption-ledger-pilot").length, 0, "caption-only fallback is empty when every acquired transcript has a matching audio route");
   assert.ok(allAudioDossierCuts.length >= 2000, "audio-ranked routes are also carried into full editorial dossiers");
