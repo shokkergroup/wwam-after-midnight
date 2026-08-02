@@ -179,7 +179,10 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(html, /wwam-watchalong-canon\.js/);
   assert.match(html, /watchalong-canon\.css/);
   assert.match(html, /PUBLIC WATCHALONG CANON \/\/ 102 SOURCES \/ 91 MOVIE FILES \/\/ \+6 PODCAST RECOVERIES/);
+  assert.match(html, /509 livestreams.*102 public YouTube watchalong sources.*\+6 official podcast recoveries/i);
+  assert.match(html, /509 current-canon livestreams.*108 indexed full-film sources/i);
   assert.doesNotMatch(html, /PUBLIC WATCHALONG CANON \/\/ 50 SOURCES \/ 47 MOVIE FILES/);
+  assert.doesNotMatch(html, /131 livestreams|50 public watchalong sources/i);
   assert.match(html, /THIRTEEN FRANCHISE WORLDS \/\/ NINETY-ONE SOURCES/);
   assert.match(ui, /MOVIE FILES \/\/ REPEATS STAY ATTACHED/);
   assert.match(ui, /data-wac-group/);
