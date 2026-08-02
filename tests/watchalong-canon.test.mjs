@@ -58,6 +58,13 @@ test("watchalong canon has the complete public source registry", () => {
   assert.equal(canon.discovery.broadSignalCounts["watchalong-edit"], 20);
   assert.equal(canon.discovery.broadDiscoveryOmissions.length, 49);
   assert.equal(canon.discovery.broadDiscoveryOmissions.filter((record) => record.availability === "subscriber_only").length, 24);
+  assert.equal(canon.coverageLedger.publicYoutubeCanon, 102);
+  assert.equal(canon.coverageLedger.podcastRecoveries, 6);
+  assert.equal(canon.coverageLedger.heldStrictMembersOnly, 22);
+  assert.equal(canon.coverageLedger.adjacentPublicLeads, 6);
+  assert.equal(canon.coverageLedger.unresolvedEdgeLeads, 19);
+  assert.ok(canon.coverageLedger.crossGenreExamples.some((record) => /Rambo/i.test(record.title)));
+  assert.ok(canon.coverageLedger.crossGenreExamples.some((record) => /Wayne's World/i.test(record.title)));
   assert.ok(canon.discovery.broadDiscoveryOmissions.some((record) => /Watching GHOSTBUSTERS/i.test(record.title)));
   assert.equal(canon.discovery.heldTitleCandidates.length, 22);
   assert.match(canon.discovery.watchedMoviePattern, /we\\s\+watched/i);
@@ -175,6 +182,8 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(ui, /AUDIO FEATURE RANK/);
   assert.match(ui, /ACOUSTIC ONLY/);
   assert.match(ui, /function edgeAuditMarkup\(\)/);
+  assert.match(ui, /function coverageLedgerMarkup\(\)/);
+  assert.match(ui, /MORE THAN 50\. THE AUDIT SAYS HOW MANY/);
   assert.match(ui, /THE OVERLOOKED EDGE/);
   assert.match(ui, /function podcastRecoveryMarkup\(\)/);
   assert.match(ui, /OFFICIAL FEED RECOVERY/);
@@ -190,6 +199,7 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(css, /\.wac-watch-pass/);
   assert.match(css, /\.wac-watch-pass-read/);
   assert.match(css, /\.wac-edge-shelf/);
+  assert.match(css, /\.wac-coverage-ledger/);
   assert.match(css, /\.wac-podcast-recovery/);
   assert.match(css, /\.wac-podcast-moment/);
   assert.match(css, /\.wac-podcast-shape/);

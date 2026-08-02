@@ -90,6 +90,27 @@
     return baseProofMarkup() + '<p class="wac-proof-note"><strong>AUDIO PASS</strong> ' + number((payload.watchPassCoverage || {}).audioAnalyzed) + ' canonical watchalong sources decoded and ranked // ' + number((payload.watchPassCoverage || {}).held) + ' source held. </p><p class="wac-proof-note"><strong>CHANNEL AUDIT</strong> ' + number(scope.channelSnapshotSources) + ' uploads observed in the live channel snapshot // ' + number(stats.sourceCounts && stats.sourceCounts.heldMembersOnly) + ' title-explicit members-only leads held outside public canon. The public list is source-bounded, not a guess at a lifetime total.</p><p class="wac-proof-note"><strong>STRICT LIVE AUDIT</strong> ' + number(discovery.liveStrictCandidateCount || sourceCounts.liveStrictCandidates) + ' strict film-watchalong leads found in the live feed // ' + number(discovery.liveStrictPublicCandidateCount || sourceCounts.liveStrictPublicCandidates) + ' public live leads plus ' + number(sourceCounts.legacyCatalogRetained) + ' legacy catalog sources retained.</p><p class="wac-proof-note"><strong>EDGE AUDIT</strong> ' + number(discovery.broadCandidateCount) + ' broad watch-like titles checked beyond the strict canon signal // ' + number(edgeHeld) + ' members-only leads held and ' + number(edgeAdjacency) + ' review/reaction or short-form leads kept out until a full watchalong source is established.</p>';
   };
 
+  function coverageLedgerMarkup() {
+    var ledger = payload.coverageLedger || {};
+    var examples = Array.isArray(ledger.crossGenreExamples) ? ledger.crossGenreExamples : [];
+    var cards = [
+      [ledger.publicYoutubeCanon, "PUBLIC YOUTUBE WATCHALONGS", "caption-backed or source-dossier canon"],
+      [ledger.podcastRecoveries, "OFFICIAL PODCAST RECOVERIES", "full-film audio sources kept separate"],
+      [ledger.heldStrictMembersOnly, "STRICT HOLDS", "title-explicit, access-limited leads"],
+      [ledger.adjacentPublicLeads, "ADJACENT PUBLIC LEADS", "reactions, reviews, or short-form edges"],
+      [ledger.unresolvedEdgeLeads, "UNRESOLVED EDGE", "older titles needing a fresh source receipt"]
+    ];
+    var cardMarkup = cards.map(function (card) {
+      return '<article><b>' + number(card[0]) + '</b><strong>' + esc(card[1]) + '</strong><span>' + esc(card[2]) + '</span></article>';
+    }).join('');
+    var exampleMarkup = examples.map(function (item) {
+      var href = item.source === 'youtube' ? '?source=' + encodeURIComponent(item.id) + '&section=wiki#archive' : item.url;
+      var target = item.source === 'youtube' ? '' : ' target="_blank" rel="noopener"';
+      return '<a href="' + esc(href) + '"' + target + '><b>' + esc(item.title) + '</b><small>' + esc(item.lane) + ' // ' + esc(item.source) + ' ↗</small></a>';
+    }).join('');
+    return '<section class="wac-coverage-ledger" aria-labelledby="wacCoverageTitle"><header><div><span class="wac-section-label">COVERAGE LEDGER // THE RECEIPT COUNT</span><h3 id="wacCoverageTitle">MORE THAN 50. THE AUDIT SAYS HOW MANY.</h3><p>' + number(ledger.channelUploads) + ' live channel uploads were checked against strict full-film signals and a wider edge search. The result is deliberately split by access and evidence status, so a review never gets quietly sold as a commentary.</p></div><div class="wac-coverage-proof"><b>' + number((ledger.publicYoutubeCanon || 0) + (ledger.podcastRecoveries || 0)) + '</b><span>PLAYABLE FULL-FILM SOURCES</span><small>' + number(ledger.strictCandidates) + ' STRICT LIVE LEADS // ' + number(ledger.broadCandidates) + ' BROAD TITLES CHECKED</small></div></header><div class="wac-coverage-cards">' + cardMarkup + '</div><div class="wac-cross-genre"><div><span class="wac-section-label">CROSS-GENRE PROOF</span><p>Action, comedy, superhero, sci-fi, television, and cult titles are already in the tape—not just slashers.</p></div><div class="wac-cross-genre-list">' + exampleMarkup + '</div></div></section>';
+  }
+
   function edgeAuditMarkup() {
     var discovery = payload.discovery || {};
     var omissions = Array.isArray(discovery.broadDiscoveryOmissions) ? discovery.broadDiscoveryOmissions : [];
@@ -333,7 +354,7 @@
   function render() {
     var visible = visibleEpisodes();
     var selected = episodeById(state.selected);
-    mount.innerHTML = '<div class="wac-shell">' + proofMarkup() + edgeAuditMarkup() + podcastRecoveryMarkup() + toolsMarkup() + franchiseMarkup() + movieFileMarkup() +
+    mount.innerHTML = '<div class="wac-shell">' + proofMarkup() + coverageLedgerMarkup() + edgeAuditMarkup() + podcastRecoveryMarkup() + toolsMarkup() + franchiseMarkup() + movieFileMarkup() +
       '<div class="wac-results-head"><h3>' + (state.franchise === "all" ? "THE FULL TAPE LIST" : esc((franchises.filter(function (item) { return item.key === state.franchise; })[0] || {}).title || "FILTERED TAPE LIST")) + '</h3><span>' + number(visible.length) + ' EPISODES // EVERY MOVIE VERSION STAYS VISIBLE</span></div>' +
       '<div class="wac-episode-grid">' + (visible.length ? visible.map(episodeCard).join('') : '<div class="wac-empty">No public watchalong matches that filter. Try another movie, franchise, or format.</div>') + '</div>' + (selected ? dossierMarkup(selected) : '') + '</div>';
     bind();

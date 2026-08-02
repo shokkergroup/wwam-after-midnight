@@ -15,6 +15,7 @@ import hashlib
 import json
 import os
 import site
+import re
 import urllib.request
 from pathlib import Path
 
@@ -46,6 +47,17 @@ if os.name == "nt":
 from faster_whisper import WhisperModel  # noqa: E402
 
 from run_wwam_audio_watch_pass import candidate_rows, category_counts, runtime_target, stream_features  # noqa: E402
+
+
+TOPIC_TERMS = {
+    "American Psycho": ["Patrick Bateman", "Christian Bale", "Paul Allen", "business card", "Huey Lewis", "serial killer"],
+    "Wayne's World": ["Wayne", "Garth", "Alice Cooper", "Bohemian Rhapsody", "Tia Carrere", "Rob Lowe"],
+    "Planes, Trains and Automobiles": ["Neal", "Del", "John Candy", "Steve Martin", "car rental", "Thanksgiving"],
+    "Once Upon a Time in Hollywood": ["Rick Dalton", "Cliff Booth", "Sharon Tate", "Brad Pitt", "Leonardo DiCaprio", "Manson"],
+    "Death Wish": ["Paul Kersey", "Bruce Willis", "Eli Roth", "vigilante", "Chicago", "remake"],
+    "Predator (1987)": ["Dutch", "Arnold", "Jesse Ventura", "jungle", "Predator", "Billy", "Mac"],
+}
+SPONSOR_OR_INTRO = re.compile(r"(?i)\b(?:daily pay|dailypay|switch your family to|autopay and 5g|america's largest 5g|sponsor(?:ed)? by|thanks for listening to we watched a movie|if you're new to the patreon|welcome back to we watched movie)\b")
 
 
 def load_window(path: Path) -> dict:
@@ -143,13 +155,77 @@ def digest(candidates: list[dict]) -> dict:
     }
 
 
+def topic_doors(title: str, events: list[dict]) -> list[dict]:
+    """Return only source-local, title-specific topic receipts."""
+    terms = TOPIC_TERMS.get(title, [])
+    doors = []
+    for term in terms:
+        hits = [event for event in events if term.lower() in event["text"].lower()]
+        if not hits:
+            continue
+        peak = max(hits, key=lambda event: len(event["text"]))
+        doors.append({"name": term, "mentions": len(hits), "first": round(float(hits[0]["t"]), 1), "peak": round(float(peak["t"]), 1), "receipt": peak["text"]})
+    return sorted(doors, key=lambda item: (-item["mentions"], item["first"]))[:8]
+
+
+def tape_shape(candidates: list[dict], events: list[dict], duration: int) -> dict:
+    """Create four bounded shape cards without inventing a verdict."""
+    chapters = []
+    for index, fraction in enumerate((0.08, 0.32, 0.58, 0.84), 1):
+        target = duration * fraction
+        pool = [candidate for candidate in candidates if abs(float(candidate.get("t") or 0) - target) <= duration * 0.18]
+        candidate = max(pool or candidates, key=lambda item: float(item.get("score") or 0), default=None)
+        if not candidate:
+            continue
+        chapters.append({
+            "chapter": index,
+            "at": candidate["t"],
+            "label": candidate.get("category") or "SOURCE RECEIPT",
+            "excerpt": candidate.get("captionExcerpt") or "Podcast-bound audio receipt available at this position.",
+            "score": candidate.get("score"),
+            "evidenceBasis": "podcast-bound audio candidate",
+        })
+    strongest = max(candidates, key=lambda item: float(item.get("score") or 0), default=None)
+    summary = (
+        f"The podcast tape yields {len(candidates)} bounded routes across a {duration // 60}-minute source. "
+        f"Its highest-ranked source-local signal is {strongest.get('category', 'an open-mic receipt')} at {int(strongest.get('t', 0)) // 60}:{int(strongest.get('t', 0)) % 60:02d}; the cards below are navigation aids, not a human verdict."
+        if strongest else "The podcast tape is playable, but this pass did not retain a safe ranked route."
+    )
+    return {"summary": summary, "chapters": chapters, "topics": []}
+
+
+def refine_candidates(record: dict, candidates: list[dict], target: int) -> list[dict]:
+    """Remove obvious sponsor/opening boilerplate before exposing hot routes.
+
+    The transcript remains private evidence; this only prevents a sponsor read
+    from winning the public "strongest" slot. Movie-specific topic hits receive
+    a small tie-break bonus, never a fabricated category or verdict.
+    """
+    title_terms = [term.lower() for term in TOPIC_TERMS.get(record["movieTitle"], [])]
+    survivors = []
+    for candidate in candidates:
+        text = str(candidate.get("captionExcerpt") or "")
+        if SPONSOR_OR_INTRO.search(text):
+            continue
+        score = float(candidate.get("score") or 0)
+        context_hits = sum(1 for term in title_terms if term in text.lower())
+        if context_hits:
+            candidate["score"] = round(min(99.0, score + min(8.0, context_hits * 2.0)), 1)
+        survivors.append(candidate)
+    survivors = survivors[:target]
+    for rank, candidate in enumerate(survivors, 1):
+        candidate["rank"] = rank
+    return survivors
+
+
 def record_pass(record: dict, model: WhisperModel) -> dict:
     audio_path = download(record)
     segments = transcribe(model, record, audio_path)
     events = events_from_segments(segments)
     audio = stream_features(audio_path)
     target = runtime_target(audio["durationSeconds"], len(events))
-    candidates = candidate_rows(events, audio, max_candidates=target)
+    candidates = candidate_rows(events, audio, max_candidates=min(48, target + 12))
+    candidates = refine_candidates(record, candidates, target)
     for candidate in candidates:
         candidate["evidenceBasis"] = "official WWAM podcast audio + local faster-whisper transcript alignment"
         candidate["reviewStatus"] = "podcast-bound audio candidate; playback remains the authority"
@@ -157,6 +233,8 @@ def record_pass(record: dict, model: WhisperModel) -> dict:
         candidate["canonicalTimestampMapping"] = False
     digest_value = digest(candidates)
     digest_value["evidence"] = "Official WWAM podcast audio was decoded and locally transcribed. All timestamps in this card are bound to the podcast player and must not be copied to a YouTube player."
+    dossier = tape_shape(candidates, events, audio["durationSeconds"])
+    dossier["topics"] = topic_doors(record["movieTitle"], events)
     sha = hashlib.sha256(audio_path.read_bytes()).hexdigest()
     return {
         "key": record["key"],
@@ -167,6 +245,7 @@ def record_pass(record: dict, model: WhisperModel) -> dict:
         "audit": {"transcriptSegments": len(segments), "audioRows": audio["durationSeconds"], "candidateCount": len(candidates), "candidateTarget": target, "candidateCategories": category_counts(candidates), "audioStats": audio["stats"], "sha256": sha},
         "candidates": candidates,
         "listeningDigest": digest_value,
+        "dossier": dossier,
         "evidence": {"type": "official-wwam-podcast-audio-local-whisper", "sourceTitle": record["title"], "sourceDate": record["date"], "timestampPolicy": "podcast player only", "speakerDiarized": False, "canonicalTimestampMapping": False},
     }
 

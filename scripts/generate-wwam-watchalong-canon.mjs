@@ -612,6 +612,33 @@ const excludedWatchalongCandidates = heldTitleCandidates.concat(
     ? "held: YouTube currently reports this upload as members-only; it is not promoted into public canon"
     : "held: title signal needs a stronger source-specific inclusion rule"
 }));
+// Title-led examples that prove this is not a horror-only archive. The lane
+// is navigation metadata, not a claim about a film's complete genre.
+const crossGenreSourceIds = [
+  ["jJ8AQ9MPUy0", "ACTION / WAR"], ["wZqgaLkMq0U", "TELEVISION"], ["uiFBVvWp8r8", "SUPERHERO"],
+  ["rtwpEu7zT24", "FAMILY / CULT"], ["LHK_KKVd8nw", "COMEDY / CULT"], ["rs0Nff3_ZwQ", "SCI-FI / ACTION"],
+  ["NuGQKLkam_U", "SUPERHERO"], ["YXBC7WRF0Y4", "SCI-FI / ACTION"], ["MM8NiLDtWX4", "CRIME / CULT"],
+  ["OSO_cQScRds", "SUPERHERO"], ["feYCMF5zkS0", "SCI-FI / ACTION"], ["0X8Jq7wxfJo", "SUPERHERO"],
+  ["american-psycho-podcast-2023", "PODCAST // PSYCHOLOGICAL"], ["wayne-s-world-podcast-2022", "PODCAST // COMEDY"],
+  ["planes-trains-automobiles-podcast-2020", "PODCAST // COMEDY"], ["once-upon-a-time-in-hollywood-podcast-2020", "PODCAST // CRIME / DRAMA"],
+  ["death-wish-podcast-2018", "PODCAST // ACTION"], ["predator-1987-podcast-2018", "PODCAST // SCI-FI / ACTION"]
+];
+const crossGenreExamples = crossGenreSourceIds.map(([id, lane]) => {
+  const episode = episodes.find((item) => item.id === id);
+  const podcast = podcastOnlyCommentaries.find((item) => item.key === id);
+  return episode ? { id, title: episode.movieTitle || episode.title, lane, source: "youtube", url: episode.url } : podcast ? { id, title: podcast.movieTitle, lane, source: "podcast", url: podcast.sourceUrl || podcast.url } : null;
+}).filter(Boolean);
+const coverageLedger = {
+  channelUploads: discoveryManifest?.channelSnapshotSources || null,
+  broadCandidates: broadDiscoveryCandidates.length,
+  strictCandidates: liveStrictCandidates.length,
+  publicYoutubeCanon: episodes.length,
+  podcastRecoveries: podcastOnlyCommentaries.length,
+  heldStrictMembersOnly: liveStrictHeldCandidates.length,
+  adjacentPublicLeads: broadDiscoveryOmissions.filter((item) => item.availability === "public").length,
+  unresolvedEdgeLeads: broadDiscoveryOmissions.filter((item) => item.availability === "unknown").length,
+  crossGenreExamples
+};
 const payload = {
   schema: "shokker-wwam-watchalong-canon/v1",
   generated: new Date().toISOString(),
@@ -629,6 +656,7 @@ const payload = {
     sourceCounts: { catalogCommentaries: catalog.length, titleCommentaries: titleCandidates.filter((record) => /commentary/i.test(record.title)).length, explicitWatchParties: 2, heldMembersOnly: heldTitleCandidates.length, liveStrictCandidates: liveStrictCandidates.length, liveStrictPublicCandidates: liveStrictPublicCandidates.length, legacyCatalogRetained: legacyCatalogRetained.length, podcastOnlyCommentaries: podcastOnlyCommentaries.length }
   },
   taxonomy: { groups: groups.map((group) => ({ key: group.key, title: group.title, franchiseKey: group.franchiseKey })), aliases: Object.fromEntries(episodes.map((episode) => [episode.id, episode.aliases])) },
+  coverageLedger,
   watchPassCoverage: watchPass.coverage || null,
   podcastCommentaries: podcastOnlyCommentaries,
   franchises, groups, episodes, discovery: {
