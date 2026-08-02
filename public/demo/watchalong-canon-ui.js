@@ -376,12 +376,22 @@
       }).join('') + '</div><footer class="wac-dossier-footer"><a href="' + esc(wikiUrl(episode)) + '">OPEN THIS SHOW&rsquo;S WIKI →</a><a target="_blank" rel="noopener" href="' + esc(episode.url) + '">OPEN OFFICIAL UPLOAD ↗</a><button class="wac-button" type="button" data-wac-close>CLOSE DOSSIER</button></footer></section>';
   }
 
+  function keepPublicEdgeLinksLocal() {
+    Array.prototype.forEach.call(root.document.querySelectorAll(".wac-edge-shelf a[href^=\"?source=\"]"), function (link) {
+      // Adjacent public leads already have a local receipt route. Do not pop
+      // a second tab or send the visitor back to YouTube for the local wiki.
+      link.removeAttribute("target");
+      link.removeAttribute("rel");
+    });
+  }
+
   function render() {
     var visible = visibleEpisodes();
     var selected = episodeById(state.selected);
     mount.innerHTML = '<div class="wac-shell">' + proofMarkup() + coverageLedgerMarkup() + companionShelfMarkup() + edgeAuditMarkup() + podcastRecoveryMarkup() + toolsMarkup() + franchiseMarkup() + movieFileMarkup() +
       '<div class="wac-results-head"><h3>' + (state.franchise === "all" ? "THE FULL TAPE LIST" : esc((franchises.filter(function (item) { return item.key === state.franchise; })[0] || {}).title || "FILTERED TAPE LIST")) + '</h3><span>' + number(visible.length) + ' EPISODES // EVERY MOVIE VERSION STAYS VISIBLE</span></div>' +
       '<div class="wac-episode-grid">' + (visible.length ? visible.map(episodeCard).join('') : '<div class="wac-empty">No public watchalong matches that filter. Try another movie, franchise, or format.</div>') + '</div>' + (selected ? dossierMarkup(selected) : '') + '</div>';
+    keepPublicEdgeLinksLocal();
     bind();
   }
 
