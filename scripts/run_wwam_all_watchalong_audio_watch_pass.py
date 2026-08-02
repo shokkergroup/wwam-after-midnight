@@ -27,6 +27,15 @@ KNOWN_ALTERNATES = {
     }
 }
 
+ALTERNATE_AUDIO_FILES = {
+    "AzrcgoyE7C4": {
+        "file": ROOT / "source-cache" / "audio-alternates" / "AzrcgoyE7C4" / "official-wwam-rss-h2-commentary.mp3",
+        "transcript": ROOT / "source-cache" / "captions" / "AzrcgoyE7C4.alternate.asr.json",
+        "url": "https://podcasters.spotify.com/pod/show/wewatchedamovie/episodes/Rob-Zombies-H2-Commentary-ehti0c",
+        "label": "OFFICIAL WWAM PODCAST VARIANT // AUDIO-BOUND ROUTES",
+    }
+}
+
 
 def load_json_from_window(path: Path) -> dict:
     raw = path.read_text(encoding="utf-8")
@@ -39,6 +48,76 @@ def audio_file_for(video_id: str) -> Path | None:
         if candidate.exists() and candidate.stat().st_size > 1024:
             return candidate
     return None
+
+
+def alternate_audio_file_for(video_id: str) -> dict | None:
+    config = ALTERNATE_AUDIO_FILES.get(video_id)
+    if not config or not config["file"].exists() or config["file"].stat().st_size <= 1024:
+        return None
+    if not config["transcript"].exists():
+        return None
+    return config
+
+
+def alternate_caption_events(config: dict) -> list[dict]:
+    payload = json.loads(config["transcript"].read_text(encoding="utf-8"))
+    return [
+        {
+            "t": max(0.0, float(segment.get("start") or 0)),
+            "end": max(0.05, float(segment.get("end") or segment.get("start") or 0)),
+            "text": str(segment.get("text") or "").strip(),
+            "evidenceType": "official-podcast-variant-local-whisper-transcript",
+        }
+        for segment in payload.get("segments", [])
+        if str(segment.get("text") or "").strip()
+    ]
+
+
+def alternate_audio_record(episode: dict, config: dict) -> dict:
+    events = alternate_caption_events(config)
+    audio = stream_features(config["file"])
+    target = runtime_target(audio["durationSeconds"], len(events))
+    candidates = candidate_rows(events, audio, max_candidates=target)
+    for candidate in candidates:
+        candidate["evidenceBasis"] = "official WWAM podcast variant audio + local faster-whisper transcript alignment"
+        candidate["reviewStatus"] = "official podcast variant candidate; not a canonical YouTube timestamp"
+        candidate["canonicalTimestampMapping"] = False
+    marker_count = sum(bool(re.search(r"\[(?:laughter|snorts?|crosstalk|applause)\]", event["text"], re.I)) for event in events)
+    digest = listening_digest(candidates, audio["stats"], audio_available=True)
+    digest["evidence"] = "Official WWAM podcast-variant audio re-ranks local transcript signals. The variant is 105.61 seconds longer than the canonical YouTube upload, so these times are bound to the podcast player only."
+    return {
+        "status": "alternate-audio-feature-pilot",
+        "label": config["label"],
+        "media": {
+            "sourceUrl": config["url"],
+            "localFile": f"source-cache/audio-alternates/{episode['id']}/official-wwam-rss-h2-commentary.mp3",
+            "container": "mp3",
+            "durationSeconds": audio["durationSeconds"],
+            "audioOnly": True,
+            "canonicalAudioAvailable": False,
+            "alternateAudioAvailable": True,
+            "canonicalTimestampMapping": False,
+        },
+        "alignment": {
+            "status": "non-isomorphic-duration-mismatch",
+            "durationDeltaFromCanonicalSeconds": 105.61,
+            "exactTimestampMappingEstablished": False,
+            "timestampAuthority": "official WWAM podcast variant only",
+        },
+        "audit": {
+            "captionEvents": len(events),
+            "audioRows": audio["durationSeconds"],
+            "laughterOrOverlapMarkers": marker_count,
+            "candidateCount": len(candidates),
+            "candidateTarget": target,
+            "candidateCategories": category_counts(candidates),
+            "audioStats": audio["stats"],
+        },
+        "candidates": candidates,
+        "listeningDigest": digest,
+        "note": "This is an official WWAM podcast variant of the same commentary subject. Its audio was decoded and locally transcribed for bounded variant routes; no timestamp is presented as a canonical YouTube timestamp.",
+        "provenanceFile": "source-cache/audio-alternates/AzrcgoyE7C4/provenance.json",
+    }
 
 
 def runtime_target(duration_seconds: int, caption_events: int = 0) -> int:
@@ -173,6 +252,8 @@ def main() -> None:
     total_audio_seconds = 0
     total_caption_events = 0
     total_candidates = 0
+    alternate_audio_analyzed = 0
+    alternate_candidates = 0
 
     for episode in episodes:
         video_id = episode["id"]
@@ -208,9 +289,26 @@ def main() -> None:
             print(f"{video_id}: caption-only ({len(events)} caption events, {len(output['episodes'][video_id]['candidates'])} candidates)")
             continue
         if not audio_file:
+            prior_alternate = prior.get("alternateAudio") or {}
+            if prior.get("status") == "held-age-restricted" and prior_alternate.get("status") == "alternate-audio-feature-pilot" and alternate_audio_file_for(video_id):
+                output["episodes"][video_id] = prior
+                held += 1
+                alternate_audio_analyzed += 1
+                alternate_candidates += int((prior_alternate.get("audit") or {}).get("candidateCount") or len(prior_alternate.get("candidates") or []))
+                print(f"{video_id}: reused prior official podcast variant receipt")
+                continue
             output["episodes"][video_id] = held_record(episode)
+            alternate_config = alternate_audio_file_for(video_id)
+            if alternate_config:
+                alternate = alternate_audio_record(episode, alternate_config)
+                output["episodes"][video_id]["alternateAudio"] = alternate
+                output["episodes"][video_id]["alternateSource"]["durationSeconds"] = alternate["media"]["durationSeconds"]
+                alternate_audio_analyzed += 1
+                alternate_candidates += len(alternate["candidates"])
+                print(f"{video_id}: held canonical source + {len(alternate['candidates'])} official podcast-variant candidates")
+            else:
+                print(f"{video_id}: held (no canonical audio or caption receipt)")
             held += 1
-            print(f"{video_id}: held (no canonical audio or caption receipt)")
             continue
 
         if not has_transcript:
@@ -249,7 +347,7 @@ def main() -> None:
         total_candidates += len(candidates)
         print(f"{video_id}: {len(events)} caption events, {audio['durationSeconds']} audio rows, {len(candidates)} candidates")
 
-    output["coverage"] = {"watchalongEpisodes": len(episodes), "audioAnalyzed": analyzed, "held": held, "audioSeconds": total_audio_seconds, "captionEvents": total_caption_events, "rankedCandidates": total_candidates}
+    output["coverage"] = {"watchalongEpisodes": len(episodes), "audioAnalyzed": analyzed, "held": held, "alternateAudioAnalyzed": alternate_audio_analyzed, "alternateRankedCandidates": alternate_candidates, "audioSeconds": total_audio_seconds, "captionEvents": total_caption_events, "rankedCandidates": total_candidates}
     js = "window.WWAM_WATCH_PASS_PILOT = " + json.dumps(output, ensure_ascii=False, separators=(",", ":")) + ";\n"
     (DEMO_DIR / "wwam-watch-pass-pilot.js").write_text(js, encoding="utf-8")
     print(f"RESULT watchalongs={len(episodes)} analyzed={analyzed} held={held} candidates={total_candidates}")

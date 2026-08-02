@@ -20,6 +20,7 @@ const watchPass = context.WWAM_WATCH_PASS_PILOT;
 
 test("watchalong canon has the complete public source registry", () => {
   assert.equal(canon.schema, "shokker-wwam-watchalong-canon/v1");
+  assert.match(canon.sourcePolicy, /non-isomorphic/i);
   assert.equal(canon.stats.episodes, 102);
   assert.equal(canon.stats.movieGroups, 91);
   assert.equal(canon.stats.franchises, 13);
@@ -57,6 +58,8 @@ test("watchalong canon has the complete public source registry", () => {
   assert.equal(watchPass.coverage.watchalongEpisodes, 102);
   assert.equal(watchPass.coverage.audioAnalyzed, 100);
   assert.equal(watchPass.coverage.held, 2);
+  assert.equal(watchPass.coverage.alternateAudioAnalyzed, 1);
+  assert.ok(watchPass.coverage.alternateRankedCandidates >= 30);
   assert.ok(watchPass.coverage.rankedCandidates >= 2000);
   assert.equal(canon.watchPassCoverage.audioAnalyzed, 100);
   const latestPilot = watchPass.episodes.LV2rmwEA0w4;
@@ -103,6 +106,9 @@ test("every episode has an official source, evidence state, and playable receipt
   assert.ok(halloween.filter((episode) => episode.watchPass.status === "audio-feature-pilot").every((episode) => episode.watchPass.candidates.length >= 12), "acquired Halloween audio keeps a ranked route");
   assert.equal(heldSource.watchPass.status, "held-age-restricted");
   assert.equal(heldSource.watchPass.candidates.length, 0);
+  assert.equal(heldSource.watchPass.alternateAudio.status, "alternate-audio-feature-pilot");
+  assert.ok(heldSource.watchPass.alternateAudio.candidates.length >= 30);
+  assert.equal(heldSource.watchPass.alternateAudio.alignment.exactTimestampMappingEstablished, false);
   assert.match(heldSource.watchPass.note, /duration drift/i);
   assert.ok(canon.episodes.every((episode) => episode.watchPass), "every watchalong source has a watch-pass record");
   assert.ok(canon.episodes.filter((episode) => episode.watchPass.status === "audio-feature-pilot").every((episode) => episode.watchPass.media.sourceUrl.includes(episode.id)));
@@ -145,6 +151,7 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(ui, /function fanSignalsMarkup\(episode, signals\)/);
   assert.match(ui, /fanSignalsMarkup\(episode, dossier\.fanSignals\)/);
   assert.match(ui, /function watchPassMarkup\(episode\)/);
+  assert.match(ui, /function alternateAudioMarkup\(pass\)/);
   assert.match(ui, /watchCandidateLabel/);
   assert.match(ui, /AUDIO FEATURE RANK/);
   assert.match(ui, /ACOUSTIC ONLY/);

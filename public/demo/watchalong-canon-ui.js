@@ -229,6 +229,24 @@
     return category + ' // ' + topic;
   }
 
+  function alternateAudioMarkup(pass) {
+    var alternate = pass && pass.alternateAudio;
+    if (!alternate) {
+      return '<div class="wac-watch-pass-alternate"><b>' + esc((pass.alternateSource || {}).label || 'ALTERNATE SOURCE') + '</b><a target="_blank" rel="noopener" href="' + esc((pass.alternateSource || {}).url || '#') + '">OPEN OFFICIAL WWAM PODCAST VARIANT â†—</a></div>';
+    }
+    var audit = alternate.audit || {};
+    var stats = audit.audioStats || {};
+    var candidates = Array.isArray(alternate.candidates) ? alternate.candidates : [];
+    var source = (alternate.media || {}).sourceUrl || (pass.alternateSource || {}).url || '#';
+    return '<div class="wac-watch-pass-alternate"><b>' + esc(alternate.label || 'OFFICIAL WWAM PODCAST VARIANT') + '</b><a target="_blank" rel="noopener" href="' + esc(source) + '">OPEN PLAYABLE VARIANT â†—</a><small>' + number(audit.candidateCount) + ' VARIANT ROUTES // ' + esc(durationLabel((alternate.media || {}).durationSeconds)) + ' AUDIO</small></div>' +
+      '<div class="wac-watch-pass-metrics"><span><b>' + number(audit.captionEvents) + '</b>TRANSCRIPT EVENTS</span><span><b>' + number(audit.laughterOrOverlapMarkers) + '</b>LAUGHTER / OVERLAP MARKERS</span><span><b>' + number(audit.candidateCount) + '</b>RANKED VARIANT ROUTES</span><span><b>' + number(stats.energyP90Seconds) + '</b>HIGH-ENERGY SECONDS</span></div>' +
+      '<div class="wac-watch-pass-candidates">' + candidates.map(function (candidate) {
+        var audio = candidate.audio || {};
+        var candidateExcerpt = excerpt(candidate.captionExcerpt, 230) || 'NO TRANSCRIPT FRAGMENT ALIGNED // OPEN THE PODCAST VARIANT AND LISTEN.';
+        return '<a target="_blank" rel="noopener" href="' + esc(source) + '"><header><b>#' + esc(candidate.rank) + ' // ' + esc(candidate.category || candidate.label || 'VARIANT RECEIPT') + '</b><span>' + esc(timestamp(candidate.t)) + ' // SCORE ' + esc(candidate.score) + '</span></header><p>' + esc(candidateExcerpt) + '</p><small>VARIANT AUDIO // ENERGY ' + esc(audio.meanEnergyPercentile) + 'TH PCTL // PEAK ' + esc(audio.peakPercentile) + 'TH PCTL</small></a>';
+      }).join('') + '</div>';
+  }
+
   function watchPassMarkup(episode) {
     var pass = episode.watchPass;
     if (!pass) return '';
@@ -236,7 +254,7 @@
     var stats = audit.audioStats || {};
     var candidates = Array.isArray(pass.candidates) ? pass.candidates : [];
     if (pass.status === 'held-age-restricted') {
-      return '<section class="wac-watch-pass wac-watch-pass-held"><header><div><span class="wac-section-label">' + esc(pass.label || 'HALLOWEEN WATCH PASS // HELD SOURCE') + '</span><h4>THE CANONICAL TAPE IS HELD.</h4><p>' + esc(pass.note || 'The canonical source could not be acquired without authentication.') + '</p></div><a target="_blank" rel="noopener" href="' + esc(episode.url) + '">OPEN YOUTUBE SOURCE ↗</a></header><div class="wac-watch-pass-alternate"><b>' + esc((pass.alternateSource || {}).label || 'ALTERNATE SOURCE') + '</b><a target="_blank" rel="noopener" href="' + esc((pass.alternateSource || {}).url || '#') + '">OPEN OFFICIAL WWAM PODCAST VARIANT ↗</a></div><p class="wac-watch-pass-foot">NO YOUTUBE TIMESTAMP RECEIPTS MANUFACTURED // THE PODCAST VARIANT HAS A NON-ISOMORPHIC TIMELINE.</p></section>';
+      return '<section class="wac-watch-pass wac-watch-pass-held"><header><div><span class="wac-section-label">' + esc(pass.label || 'HALLOWEEN WATCH PASS // HELD SOURCE') + '</span><h4>THE CANONICAL TAPE IS HELD.</h4><p>' + esc(pass.note || 'The canonical source could not be acquired without authentication.') + '</p></div><a target="_blank" rel="noopener" href="' + esc(episode.url) + '">OPEN YOUTUBE SOURCE ↗</a></header>' + alternateAudioMarkup(pass) + '<p class="wac-watch-pass-foot">NO YOUTUBE TIMESTAMP RECEIPTS MANUFACTURED // VARIANT ROUTES ARE BOUND TO THE OFFICIAL PODCAST AUDIO ONLY.</p></section>';
     }
     return '<section class="wac-watch-pass"><header><div><span class="wac-section-label">' + esc(pass.label || 'HALLOWEEN WATCH PASS // AUDIO PILOT') + '</span><h4>LISTEN FOR THE ROOM TO CHANGE.</h4><p>' + esc(pass.note || 'Canonical audio was sampled and aligned to the caption map.') + '</p></div><a target="_blank" rel="noopener" href="' + esc(episode.url) + '">PLAY OFFICIAL SOURCE ↗</a></header><div class="wac-watch-pass-metrics"><span><b>' + number(audit.captionEvents) + '</b>CAPTION EVENTS</span><span><b>' + number(audit.laughterOrOverlapMarkers) + '</b>LAUGHTER / OVERLAP MARKERS</span><span><b>' + number(audit.candidateCount) + '</b>RANKED AUDIO CANDIDATES</span><span><b>' + number(stats.energyP90Seconds) + '</b>HIGH-ENERGY SECONDS</span></div><div class="wac-watch-pass-candidates">' + candidates.map(function (candidate) {
       var audio = candidate.audio || {};
