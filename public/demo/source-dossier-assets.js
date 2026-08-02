@@ -42,7 +42,7 @@
     "wwam-source-dossier-adapter.js?v=1.17.3-audio-pass-no-cap",
     "source-query-engine.js?v=1.6.1-lanes",
     "aftermath-pack-engine.js?v=1.0.0",
-    "source-dossier-ui.js?v=1.31.0-fam-roll-call",
+    "source-dossier-ui.js?v=1.31.1-audio-receipt-badge",
     "wwam-dossier-editorial.js?v=1.3.2-damage-priority",
   ]);
 })(window);

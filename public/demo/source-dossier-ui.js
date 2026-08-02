@@ -814,6 +814,9 @@
 
     function publicReceiptEvidenceLabel(receipt) {
       var evidence = token(clean(receipt.evidenceType) + " " + clean(receipt.evidenceLevel));
+      if (evidence.indexOf("audio-feature-candidate") >= 0) {
+        return "AUDIO-RANKED WINDOW";
+      }
       return evidence.indexOf("caption") >= 0 ?
         "SOURCE TIMESTAMP" : "TIMESTAMP ON FILE";
     }
