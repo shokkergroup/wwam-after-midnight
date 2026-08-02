@@ -176,6 +176,9 @@ test("livestream canon surface is wired into the page and route shell", () => {
   assert.match(ui, /AUDIO DECODED/, "livestream cards visibly disclose locally decoded audio coverage");
   assert.match(ui, /CAPTION ROUTE/, "livestream cards visibly disclose caption-only coverage");
   assert.match(ui, /SOURCE BRIEF/, "livestream cards visibly disclose metadata-only coverage");
+  assert.match(ui, /LISTENING READ/, "livestream dossiers visibly surface their audio-read state");
+  assert.match(ui, /SOURCE-LOCAL ROUTES/, "livestream audio-read state includes bounded route count");
+  assert.match(css, /\.lvc-audio-read/, "livestream audio-read state has a dedicated visual treatment");
   assert.match(html, /id="livestream-canon"/);
   assert.match(html, /wwam-livestream-canon\.js/);
   assert.match(html, /wwam-livestream-audio-pass\.js/);
