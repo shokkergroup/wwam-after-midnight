@@ -864,16 +864,17 @@
     showSourceDossierLoading();
     var fallbackShown = false;
     var renderFallback = function () {
+      // Paint the truthful local shell first. Hydrating the compact route index
+      // is useful enrichment, but it must never sit in front of the only page
+      // a visitor can use when a lazy asset stalls or fails on a cold route.
+      var modal = document.getElementById("tapeModal");
+      if (!modal || !modal.classList.contains("show")) return Promise.resolve(false);
+      fallbackSourceWiki(sourceId, startTime, section);
+      syncSourceRoute(sourceId, startTime, section, settings.routeMode || "push");
       return ensureWatchalongCanonForSource(sourceId).catch(function (error) {
         runtimeDiagnostics.push({at:new Date().toISOString(),operation:"watchalong route hydration",
           sourceId:sourceId,message:error&&error.message?error.message:String(error)});
-      }).then(function () {
-        var modal = document.getElementById("tapeModal");
-        if (!modal || !modal.classList.contains("show")) return false;
-        fallbackSourceWiki(sourceId, startTime, section);
-        syncSourceRoute(sourceId, startTime, section, settings.routeMode || "push");
-        return true;
-      });
+      }).then(function () { return true; });
     };
     var fallbackTimer = window.setTimeout(function () {
       if (fallbackShown || !document.getElementById("tapeModal").classList.contains("show")) return;
