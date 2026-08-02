@@ -112,6 +112,10 @@ test("every episode has an official source, evidence state, and playable receipt
   assert.ok(allAudioDossierCuts.length >= 2000, "audio-ranked routes are also carried into full editorial dossiers");
   assert.equal(canon.episodes.filter((episode) => episode.dossier.state === "full-editorial-dossier" && episode.dossier.cuts.some((cut) => cut.audio)).length, 38, "all full editorial watchalong dossiers expose their audio-ranked routes");
   assert.ok(allAudioDossierCuts.every((cut) => cut.excerpt && !/[\\[]\\s*(?:__+|music|laughter|inaudible|bleep)\\s*[\\]]/i.test(cut.excerpt)), "audio dossier excerpts remove caption-stage marker debris and expose an honest fallback when no caption aligns");
+  canon.episodes.forEach((episode) => {
+    const audio = episode.dossier.cuts.filter((cut) => cut.audio).sort((left, right) => left.t - right.t);
+    for (let index = 1; index < audio.length; index += 1) assert.ok(audio[index].t - audio[index - 1].t >= 18, `${episode.id} audio routes do not stack duplicate windows`);
+  });
 });
 
 test("watchalong canon is reachable from the Watchalongs route", () => {
