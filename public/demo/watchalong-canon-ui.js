@@ -217,7 +217,7 @@
         return '<button type="button" data-wac-podcast-seek="' + esc(item.key) + '" data-wac-podcast-time="' + esc(chapter.at) + '"><b>ACT ' + esc(chapter.chapter) + ' // ' + esc(chapter.label) + '</b><span>' + esc(timestamp(chapter.at)) + '</span><em>' + esc(excerpt(chapter.excerpt, 130)) + '</em></button>';
       }).join('') + '</div>' + ((shape.topics || []).length ? '<div class="wac-podcast-topics">' + shape.topics.slice(0, 6).map(function (topic) { return '<button type="button" data-wac-podcast-seek="' + esc(item.key) + '" data-wac-podcast-time="' + esc(topic.peak) + '"><b>' + esc(topic.name) + '</b><small>' + esc(topic.mentions) + ' MENTIONS // ' + esc(timestamp(topic.peak)) + '</small></button>'; }).join('') + '</div>' : '') + '</div>' : '';
       var passMarkup = pass ? '<div class="wac-podcast-listening-read"><small>LISTENING READ // ' + esc(pass.audit.candidateCount) + ' BOUNDED ROUTES // ' + esc(pass.audit.transcriptSegments) + ' WHISPER SEGMENTS</small><p>' + esc(pass.listeningDigest.headline) + '</p>' + shapeMarkup + '<div class="wac-podcast-hot-list">' + candidateButtons(featured) + '</div>' + (remaining.length ? '<details><summary>SHOW ALL ' + esc(remaining.length) + ' ADDITIONAL ROUTES</summary><div class="wac-podcast-hot-list">' + candidateButtons(remaining) + '</div></details>' : '') + '</div>' : '<div class="wac-podcast-listening-read"><small>LISTENING PASS QUEUED</small><p>Official audio is playable now; bounded audio-ranked receipts will appear after the local listening pass.</p></div>';
-      return '<article class="wac-podcast-card"><div class="wac-podcast-card-head"><span>OFFICIAL WWAM PODCAST</span><b>' + esc(item.movieTitle) + '</b><small>' + esc(dateLabel(item.date)) + ' // ' + esc(durationLabel(item.duration)) + '</small></div><p>' + esc(item.note) + '</p><audio id="wacPodcastAudio-' + esc(item.key) + '" controls preload="none" src="' + esc(item.sourceUrl || item.url) + '"></audio>' + passMarkup + '<div class="wac-podcast-card-foot"><button type="button" class="wac-podcast-open" data-wac-podcast-open="' + esc(item.key) + '">OPEN LOCAL PODCAST WIKI →</button><a target="_blank" rel="noopener" href="' + esc(item.sourceUrl || item.url) + '">OPEN AUDIO SOURCE â†—</a><span>RSS TITLE + RUNTIME VERIFIED</span></div></article>';
+      return '<article class="wac-podcast-card"><div class="wac-podcast-card-head"><span>OFFICIAL WWAM PODCAST</span><b>' + esc(item.movieTitle) + '</b><small>' + esc(dateLabel(item.date)) + ' // ' + esc(durationLabel(item.duration)) + '</small></div><p>' + esc(item.note) + '</p><audio id="wacPodcastAudio-' + esc(item.key) + '" controls preload="none" src="' + esc(item.sourceUrl || item.url) + '"></audio>' + passMarkup + '<div class="wac-podcast-card-foot"><button type="button" class="wac-podcast-open" data-wac-podcast-open="' + esc(item.key) + '">OPEN LOCAL PODCAST WIKI -></button><a target="_blank" rel="noopener" href="' + esc(item.sourceUrl || item.url) + '">OPEN AUDIO SOURCE -></a><span>RSS TITLE + RUNTIME VERIFIED</span></div></article>';
     }).join('') + '</div><footer><strong>LISTENING RULE</strong> Start with the audio player above. When this lane receives a future audio pass, its receipts will remain bound to the podcast file; the archive will never paste a podcast timestamp onto a YouTube player.</footer></section>';
   }
 
@@ -415,13 +415,13 @@
   function alternateAudioMarkup(pass) {
     var alternate = pass && pass.alternateAudio;
     if (!alternate) {
-      return '<div class="wac-watch-pass-alternate"><b>' + esc((pass.alternateSource || {}).label || 'ALTERNATE SOURCE') + '</b><a target="_blank" rel="noopener" href="' + esc((pass.alternateSource || {}).url || '#') + '">OPEN OFFICIAL WWAM PODCAST VARIANT â†—</a></div>';
+      return '<div class="wac-watch-pass-alternate"><b>' + esc((pass.alternateSource || {}).label || 'ALTERNATE SOURCE') + '</b><a target="_blank" rel="noopener" href="' + esc((pass.alternateSource || {}).url || '#') + '">OPEN OFFICIAL WWAM PODCAST VARIANT -></a></div>';
     }
     var audit = alternate.audit || {};
     var stats = audit.audioStats || {};
     var candidates = Array.isArray(alternate.candidates) ? alternate.candidates : [];
     var source = (alternate.media || {}).sourceUrl || (pass.alternateSource || {}).url || '#';
-    return '<div class="wac-watch-pass-alternate"><b>' + esc(alternate.label || 'OFFICIAL WWAM PODCAST VARIANT') + '</b><a target="_blank" rel="noopener" href="' + esc(source) + '">OPEN PLAYABLE VARIANT â†—</a><small>' + number(audit.candidateCount) + ' VARIANT ROUTES // ' + esc(durationLabel((alternate.media || {}).durationSeconds)) + ' AUDIO</small></div>' +
+    return '<div class="wac-watch-pass-alternate"><b>' + esc(alternate.label || 'OFFICIAL WWAM PODCAST VARIANT') + '</b><a target="_blank" rel="noopener" href="' + esc(source) + '">OPEN PLAYABLE VARIANT -></a><small>' + number(audit.candidateCount) + ' VARIANT ROUTES // ' + esc(durationLabel((alternate.media || {}).durationSeconds)) + ' AUDIO</small></div>' +
       '<div class="wac-watch-pass-metrics"><span><b>' + number(audit.captionEvents) + '</b>TRANSCRIPT EVENTS</span><span><b>' + number(audit.laughterOrOverlapMarkers) + '</b>LAUGHTER / OVERLAP MARKERS</span><span><b>' + number(audit.candidateCount) + '</b>RANKED VARIANT ROUTES</span><span><b>' + number(stats.energyP90Seconds) + '</b>HIGH-ENERGY SECONDS</span></div>' +
       '<div class="wac-watch-pass-candidates">' + candidates.map(function (candidate) {
         var audio = candidate.audio || {};
@@ -481,7 +481,7 @@
   watchPassMarkup = function (episode) {
     var pass = episode && episode.watchPass;
     if (pass && /^held-/.test(pass.status || '') && pass.status !== 'held-age-restricted') {
-      return '<section class="wac-watch-pass wac-watch-pass-held"><header><div><span class="wac-section-label">' + esc(pass.label || 'WATCHALONG WATCH PASS // HELD SOURCE') + '</span><h4>THE SOURCE RECEIPT IS HELD.</h4><p>' + esc(pass.note || 'The source could not be acquired in this run. No timestamps were manufactured.') + '</p></div><a target="_blank" rel="noopener" href="' + esc(episode.url) + '">OPEN YOUTUBE SOURCE â†—</a></header><p class="wac-watch-pass-foot">NO TIMESTAMP RECEIPTS MANUFACTURED // PLAYBACK REMAINS THE AUTHORITY.</p></section>';
+      return '<section class="wac-watch-pass wac-watch-pass-held"><header><div><span class="wac-section-label">' + esc(pass.label || 'WATCHALONG WATCH PASS // HELD SOURCE') + '</span><h4>THE SOURCE RECEIPT IS HELD.</h4><p>' + esc(pass.note || 'The source could not be acquired in this run. No timestamps were manufactured.') + '</p></div><a target="_blank" rel="noopener" href="' + esc(episode.url) + '">OPEN YOUTUBE SOURCE -></a></header><p class="wac-watch-pass-foot">NO TIMESTAMP RECEIPTS MANUFACTURED // PLAYBACK REMAINS THE AUTHORITY.</p></section>';
     }
     var rendered = baseWatchPassMarkup(episode);
     if (pass && pass.listeningDigest) {
@@ -495,6 +495,46 @@
     }
     return rendered;
   };
+
+  function signatureLaneKey(label) {
+    var value = clean(label).toUpperCase();
+    if (/STEVE/.test(value)) return 'steve';
+    if (/UP IN YA/.test(value)) return 'up-in-ya';
+    if (/CHARACTER/.test(value)) return 'character';
+    if (/FAN/.test(value)) return 'fan';
+    return '';
+  }
+
+  function signatureLaneTitle(key) {
+    return { steve: "STRAIGHT TO STEVE'S ASSHOLE", 'up-in-ya': 'WWAM UP IN YA', character: 'CHARACTER SIGNAL', fan: 'FAN SIGNAL' }[key] || '';
+  }
+
+  function dossierMomentMarkup(episode, moment) {
+    var podcast = moment.sourceKind === 'podcast-variant';
+    var label = podcast ? 'OPEN PODCAST VARIANT AT ' : 'OPEN LOCAL SOURCE AT ';
+    var action = podcast
+      ? '<button type="button" class="wac-variant-route" data-wac-variant-seek="' + esc(moment.t || 0) + '" data-wac-variant-audio="wacVariantAudio-source">OPEN PODCAST VARIANT AT ' + esc(timestamp(moment.t)) + ' -></button>'
+      : '<a' + receiptTarget(moment) + ' href="' + esc(receiptUrl(episode, moment)) + '">' + label + esc(timestamp(moment.t)) + ' -></a>';
+    return '<article class="wac-moment"><header><span>' + esc(moment.category || moment.label || 'SOURCE RECEIPT') + '</span><span>' + esc(receiptClock(moment) + timestamp(moment.t)) + '</span></header><p>' + esc(moment.excerpt || moment.quote || 'Caption receipt available at this timestamp.') + '</p>' + action + '</article>';
+  }
+
+  function signatureLaneMarkup(episode, moments) {
+    var lanes = { steve: [], 'up-in-ya': [], character: [], fan: [] };
+    moments.forEach(function (moment) {
+      var key = signatureLaneKey(moment.category || moment.label);
+      if (key) lanes[key].push(moment);
+    });
+    var active = Object.keys(lanes).filter(function (key) { return lanes[key].length; });
+    if (!active.length) return '';
+    var nav = '<nav class="wac-dossier-lane-nav" aria-label="WWAM signature lanes">' + active.map(function (key) {
+      return '<a href="#wacLane-' + key + '">' + esc(signatureLaneTitle(key)) + ' <b>' + number(lanes[key].length) + '</b></a>';
+    }).join('') + '</nav>';
+    var sections = active.map(function (key) {
+      var title = signatureLaneTitle(key);
+      return '<section class="wac-signature-lane" id="wacLane-' + key + '"><header><div><span class="wac-section-label">FAST LANE // SOURCE-BOUND RECEIPTS</span><h4>' + esc(title) + '</h4></div><span>' + number(lanes[key].length) + ' RECEIPTS</span></header><div class="wac-moment-grid">' + lanes[key].map(function (moment) { return dossierMomentMarkup(episode, moment); }).join('') + '</div></section>';
+    }).join('');
+    return '<div class="wac-dossier-lanes" id="wacSignatureLanes"><div class="wac-section-label">WWAM SIGNATURE LANES // THE SHORTCUTS PEOPLE ACTUALLY CAME FOR</div>' + nav + sections + '</div>';
+  }
 
   function dossierMarkup(episode) {
     if (!episode) return '';
@@ -534,14 +574,10 @@
     }) : [];
     return '<section class="wac-dossier" id="wacDossier" aria-labelledby="wacDossierTitle"><header class="wac-dossier-head"><div><span class="wac-dossier-kicker">' + esc(episode.franchiseTitle) + ' // ' + esc(stateLabel(episode)) + '</span><h3 id="wacDossierTitle">' + esc(episode.movieTitle) + '</h3><p>' + esc(dossier.summary) + '</p></div><div class="wac-dossier-facts"><span><small>DATE</small><b>' + esc(dateLabel(episode.date)) + '</b></span><span><small>RUNTIME</small><b>' + esc(durationLabel(episode.duration)) + '</b></span><span><small>CAPTION WORDS</small><b>' + number(dossier.caption && dossier.caption.words) + '</b></span><span><small>JUMP RECEIPTS</small><b>' + number(moments.length) + '</b></span></div></header>' +
       '<div class="wac-dossier-note"><strong>EVIDENCE STATUS // </strong>' + esc(dossier.evidenceSummary || 'The source is linked to the official tape. Speaker identity, intent, and current playback availability remain outside this fan archive unless a reviewed guide says otherwise.') + '</div>' +
+      signatureLaneMarkup(episode, moments) +
       '<div class="wac-route-grid">' + routeCard('OPENING READ', route.opening) + routeCard('STRONGEST RECEIPT', route.strongest) + routeCard('CLOSING READ', route.closing) + '</div>' + watchPassMarkup(episode) + chapterMarkup(episode, dossier.chapters) + topicMarkup(episode, episode.topics) + fanReadMarkup(dossier.fanRead) + fanSignalsMarkup(episode, dossier.fanSignals) +
       '<div class="wac-section-label" style="padding:0 1.5rem">EVERY INDEXED RECEIPT // PRESS PLAY AT THE TAPE</div><div class="wac-moment-grid">' + moments.map(function (moment) {
-        var podcast = moment.sourceKind === "podcast-variant";
-        var label = podcast ? "OPEN PODCAST VARIANT AT " : "OPEN SOURCE AT ";
-            var action = podcast
-              ? '<button type="button" class="wac-variant-route" data-wac-variant-seek="' + esc(moment.t || 0) + '" data-wac-variant-audio="wacVariantAudio-source">OPEN PODCAST VARIANT AT ' + esc(timestamp(moment.t)) + ' -></button>'
-              : '<a' + receiptTarget(moment) + ' href="' + esc(receiptUrl(episode, moment)) + '">' + label + esc(timestamp(moment.t)) + ' -></a>';
-            return '<article class="wac-moment"><header><span>' + esc(moment.category || moment.label || 'SOURCE RECEIPT') + '</span><span>' + esc(receiptClock(moment) + timestamp(moment.t)) + '</span></header><p>' + esc(moment.excerpt || moment.quote || 'Caption receipt available at this timestamp.') + '</p>' + action + '</article>';
+        return dossierMomentMarkup(episode, moment);
       }).join('') + '</div><footer class="wac-dossier-footer"><a href="' + esc(wikiUrl(episode)) + '">OPEN THIS SHOW&rsquo;S WIKI -></a><a target="_blank" rel="noopener" href="' + esc(episode.url) + '">OPEN OFFICIAL UPLOAD -></a><button class="wac-button" type="button" data-wac-close>CLOSE DOSSIER</button></footer></section>';
   }
 
@@ -681,5 +717,5 @@
   }
 
   render();
-  root.WWAMWatchalongCanonUI = Object.freeze({ version: "1.4.0", render: render, payload: payload });
+  root.WWAMWatchalongCanonUI = Object.freeze({ version: "1.5.0", render: render, payload: payload });
 })(typeof window !== "undefined" ? window : globalThis);

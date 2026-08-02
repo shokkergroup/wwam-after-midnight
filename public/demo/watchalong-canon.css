@@ -246,6 +246,16 @@
 .wac-dossier-facts b { color: var(--canon-ink); font: 800 1.1rem/1 "Arial Narrow", Impact, sans-serif; }
 .wac-dossier-note { margin: 1rem 1.5rem 0; border-left: 3px solid var(--canon-acid); padding: .8rem 1rem; color: #d8d0d4; background: rgba(203, 255, 40, .045); font: 500 .76rem/1.5 ui-sans-serif, system-ui, sans-serif; }
 .wac-dossier-note strong { color: var(--canon-acid); font: 800 .6rem/1 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .1em; text-transform: uppercase; }
+.wac-dossier-lanes { margin-top: 1.1rem; border-top: 1px solid rgba(255, 44, 131, .28); border-bottom: 1px solid var(--canon-line); padding: 1rem 1.5rem .2rem; background: rgba(0, 0, 0, .17); }
+.wac-dossier-lane-nav { display: flex; flex-wrap: wrap; gap: .45rem; margin: .55rem 0 1rem; }
+.wac-dossier-lane-nav a { border: 1px solid rgba(203, 255, 40, .3); padding: .55rem .65rem; color: var(--canon-ink); background: rgba(203, 255, 40, .04); font: 800 .57rem/1 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .07em; text-decoration: none; text-transform: uppercase; }
+.wac-dossier-lane-nav a:hover { border-color: var(--canon-hot); color: var(--canon-acid); }
+.wac-dossier-lane-nav b { color: var(--canon-acid); }
+.wac-signature-lane { scroll-margin-top: 5rem; margin: 0 0 1rem; border: 1px solid rgba(255, 44, 131, .25); background: rgba(255, 44, 131, .025); }
+.wac-signature-lane > header { display: flex; justify-content: space-between; gap: .8rem; align-items: end; padding: .7rem .8rem; border-bottom: 1px solid var(--canon-line); }
+.wac-signature-lane > header h4 { margin: .25rem 0 0; color: var(--canon-ink); font: 800 1.15rem/1 "Arial Narrow", Impact, sans-serif; letter-spacing: -.02em; text-transform: uppercase; }
+.wac-signature-lane > header > span { color: var(--canon-acid); font: 800 .53rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+.wac-signature-lane .wac-moment-grid { padding-bottom: .8rem; }
 .wac-route-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .7rem; padding: 1.2rem 1.5rem; }
 .wac-route-card { border-top: 2px solid var(--canon-hot); padding-top: .65rem; }
 .wac-route-card small { display: block; color: var(--canon-acid); font: 800 .55rem/1.3 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .11em; text-transform: uppercase; }
