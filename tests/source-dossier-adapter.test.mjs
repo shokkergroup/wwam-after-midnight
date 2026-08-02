@@ -39,6 +39,7 @@ function load() {
     "year-canon-2025-2026.js",
     "archive-recovery-batch1.js",
     "archive-recovery-batch2.js",
+    "wwam-watchalong-route-index.js",
     "title-topic-overrides.js",
     "episode-recap-engine.js",
     "wwam-episode-recap-adapter.js",
@@ -275,6 +276,21 @@ test("livestream audio index routes become a local Show Wiki lane", () => {
   assert.ok(receipt);
   assert.match(receipt.evidenceBasis, /^canonical livestream audio pass/);
   assert.equal(receipt.publicExcerptAllowed, true);
+});
+
+test("held watchalong sources retain a separate playable podcast route map", () => {
+  const { window: runtime, result } = buildFixture(({ input, window }) => {
+    input.watchalongCanon = window.WWAM_WATCHALONG_ROUTE_INDEX;
+  });
+  const source = byId(result, "AzrcgoyE7C4");
+  assert.ok(["metadata-only", "caption-limited"].includes(source.coverage));
+  assert.equal(source.officialAlternate.timestampIsomorphic, false);
+  assert.equal(source.officialAlternate.routes.length, 43);
+  assert.equal(source.officialAlternate.routes[0].at, 63);
+  assert.equal(source.officialAlternate.routes[1].label, "WWAM UP IN YA");
+  const compiled = runtime.ShokkerSourceDossier.create(result).build(source.id);
+  assert.equal(compiled.source.officialAlternate.routes.length, 43);
+  assert.equal(compiled.source.officialAlternate.routes[1].at, 501);
 });
 
 test("canonical format contracts classify all 510 sources without relaxing rights", () => {

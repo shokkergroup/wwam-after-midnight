@@ -10,7 +10,7 @@
    * captions, promote evidence, clear rights, or publish anything.
    */
 
-  var VERSION = "1.16.0";
+  var VERSION = "1.17.0";
   var INPUT_SCHEMA = "shokker-source-dossier-input/v1";
   var DOSSIER_SCHEMA = "shokker-source-dossier/v1";
   var EXPORT_SCHEMA = "shokker-source-dossier-export/v1";
@@ -344,6 +344,45 @@
         path + ".durationDelta"
       );
     }
+    var routes = array(value.routes).map(function (route, index) {
+      if (!isRecord(route)) {
+        fail("INVALID_ALTERNATE_ROUTE", path + ".routes[" + index + "] must be an object.", path + ".routes[" + index + "]");
+      }
+      var at = finiteNumber(
+        route.at != null ? route.at : route.t,
+        path + ".routes[" + index + "].at",
+        0
+      );
+      var end = route.end == null ? at : finiteNumber(
+        route.end,
+        path + ".routes[" + index + "].end",
+        at
+      );
+      return {
+        id: requiredText(route.id || "alternate-route-" + (index + 1),
+          path + ".routes[" + index + "].id", 180),
+        at: at,
+        end: end,
+        category: requiredText(route.category || route.label || "PODCAST ROUTE",
+          path + ".routes[" + index + "].category", 180),
+        label: requiredText(route.label || route.category || "PODCAST ROUTE",
+          path + ".routes[" + index + "].label", 180),
+        score: route.score == null ? 0 : finiteNumber(
+          route.score,
+          path + ".routes[" + index + "].score",
+          0
+        ),
+        rank: route.rank == null ? index + 1 : finiteNumber(
+          route.rank,
+          path + ".routes[" + index + "].rank",
+          1
+        ),
+        excerpt: clean(route.excerpt || route.captionExcerpt, 420),
+        clock: clean(route.clock || "official WWAM podcast clock", 120),
+        evidenceBasis: clean(route.evidenceBasis, 420),
+        reviewStatus: clean(route.reviewStatus, 240)
+      };
+    }).slice(0, 1000);
     return {
       kind: requiredText(value.kind, path + ".kind", 100),
       title: requiredText(value.title, path + ".title", 320),
@@ -362,7 +401,8 @@
         value.evidenceBoundary,
         path + ".evidenceBoundary",
         420
-      )
+      ),
+      routes: routes
     };
   }
 

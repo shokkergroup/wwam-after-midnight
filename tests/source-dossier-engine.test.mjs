@@ -574,6 +574,7 @@ test("preserves a playable official alternate without crossing its timestamp bou
     timestampIsomorphic: false,
     publicPlaybackAllowed: true,
     evidenceBoundary: "Official alternate edit; not a canonical timestamp source.",
+    routes: [],
   };
 
   const engine = runtime().create(input);

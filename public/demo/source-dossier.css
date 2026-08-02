@@ -1799,6 +1799,112 @@
   accent-color: var(--dossier-cyan, #35deff);
 }
 
+.source-dossier-alternate-routes {
+  display: grid;
+  gap: 10px;
+  margin-top: 6px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(53, 222, 255, .2);
+}
+
+.source-dossier-alternate-routes > header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  align-items: end;
+  justify-content: space-between;
+}
+
+.source-dossier-alternate-routes > header div {
+  display: grid;
+  gap: 4px;
+}
+
+.source-dossier-alternate-routes > header span,
+.source-dossier-alternate-routes > header b,
+.source-dossier-alternate-routes > header small {
+  font: 800 8px/1.4 var(--mono, monospace);
+  letter-spacing: .08em;
+}
+
+.source-dossier-alternate-routes > header span {
+  color: var(--dossier-cyan, #35deff);
+}
+
+.source-dossier-alternate-routes > header b {
+  color: #edf9fb;
+}
+
+.source-dossier-alternate-routes > header small {
+  max-width: 430px;
+  color: #71898e;
+  text-align: right;
+}
+
+.source-dossier-alternate-routes > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  max-height: 420px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.source-dossier-alternate-routes button {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 9px;
+  align-items: start;
+  min-height: 64px;
+  padding: 10px;
+  border: 1px solid rgba(53, 222, 255, .22);
+  background: rgba(3, 7, 8, .74);
+  color: #dcecef;
+  text-align: left;
+  cursor: pointer;
+}
+
+.source-dossier-alternate-routes button:hover,
+.source-dossier-alternate-routes button:focus-visible {
+  border-color: var(--dossier-cyan, #35deff);
+  background: rgba(53, 222, 255, .09);
+  outline: none;
+}
+
+.source-dossier-alternate-routes button > b {
+  color: var(--dossier-cyan, #35deff);
+  font: 850 13px/1 var(--mono, monospace);
+}
+
+.source-dossier-alternate-routes button > span {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.source-dossier-alternate-routes strong,
+.source-dossier-alternate-routes time {
+  font: 850 9px/1.25 var(--mono, monospace);
+  letter-spacing: .04em;
+}
+
+.source-dossier-alternate-routes strong {
+  color: #f1fbfd;
+}
+
+.source-dossier-alternate-routes time {
+  color: var(--dossier-cyan, #35deff);
+}
+
+.source-dossier-alternate-routes em {
+  display: -webkit-box;
+  overflow: hidden;
+  color: #8da8ad;
+  font: 500 11px/1.35 var(--body, sans-serif);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
 .source-dossier-alternate-player > footer {
   display: flex;
   flex-wrap: wrap;
@@ -4617,6 +4723,18 @@
     transition-duration: .01ms !important;
     animation-duration: .01ms !important;
     animation-iteration-count: 1 !important;
+  }
+}
+
+@media (max-width: 620px) {
+  .source-dossier-alternate-routes > header small {
+    max-width: none;
+    text-align: left;
+  }
+
+  .source-dossier-alternate-routes > div {
+    grid-template-columns: 1fr;
+    max-height: 520px;
   }
 }
 /* V5.23 // SHOW WIKI EDITORIAL PASS

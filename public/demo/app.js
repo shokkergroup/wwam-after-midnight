@@ -288,7 +288,7 @@
     // it is source-local and small, and the full canon remains lazy.
     if (window.WWAM_WATCHALONG_ROUTE_INDEX || window.WWAM_WATCHALONG_CANON) return Promise.resolve();
     if (watchalongRouteLoadPromise) return watchalongRouteLoadPromise;
-    watchalongRouteLoadPromise = loadDemoScript("wwam-watchalong-route-index.js?v=1.2.0-edge-receipts")
+    watchalongRouteLoadPromise = loadDemoScript("wwam-watchalong-route-index.js?v=1.2.1-alternate-routes")
       .catch(function (error) {
         watchalongRouteLoadPromise = null;
         throw error;
@@ -420,7 +420,8 @@
       popular: popular,
       archiveDeep: archiveDeepStreams,
       watchalongAudioIndex: window.WWAM_WATCH_PASS_PILOT || null,
-      watchalongCanon: window.WWAM_WATCHALONG_CANON || null,
+      watchalongCanon: window.WWAM_WATCHALONG_CANON ||
+        window.WWAM_WATCHALONG_ROUTE_INDEX || null,
       livestreamAudioIndex: window.WWAM_LIVESTREAM_AUDIO_INDEX || null,
       livestreamCanon: window.WWAM_LIVESTREAM_CANON || null,
       titleTopicOverrides: window.WWAM_TITLE_TOPIC_OVERRIDES || null,
@@ -577,7 +578,7 @@
       })
       .then(function () { return loader.loadStyle("source-dossier.css?v=5.38-podcast-variant-routes"); })
       .then(function () {
-        return loader.load("source-dossier-assets.js?v=1.0.27-audio-pass-both-canons");
+        return loader.load("source-dossier-assets.js?v=1.0.28-alternate-podcast-routes");
       })
       .then(function () {
         var assets = window.WWAM_SOURCE_DOSSIER_ASSETS || [];
@@ -593,6 +594,11 @@
         // audio pass even when the visitor deep-links straight into a source
         // before opening the Watchalongs shelf.
         return loader.load("wwam-watch-pass-pilot.js?v=1.0.0-source-dossier-audio");
+      })
+      .then(function () {
+        // The compact route index carries official podcast alternates for
+        // cold Show Wiki links without pulling the 9 MB full movie canon.
+        return loader.load("wwam-watchalong-route-index.js?v=1.2.1-alternate-routes");
       })
       .then(function () {
         // The same source-local listening contract now covers all 509 public

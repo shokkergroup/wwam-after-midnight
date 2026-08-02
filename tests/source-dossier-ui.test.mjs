@@ -2714,6 +2714,10 @@ test("held episode recaps wait on the tape without claiming Feldman approval", (
     timestampIsomorphic: false,
     publicPlaybackAllowed: true,
     evidenceBoundary: "Official alternate edit; not substituted for YouTube timestamps.",
+    routes: [
+      { id: "podcast-route-1", t: 501, end: 509, label: "WWAM UP IN YA", excerpt: "A bounded podcast-clock route." },
+      { id: "podcast-route-2", t: 1090, end: 1102, label: "STRAIGHT TO STEVE'S ASSHOLE", excerpt: "A second bounded route." },
+    ],
   };
   dossier.source.showWiki.episodeRecap = {
     schema: "wwam-feldman-recap/v1",
@@ -2751,6 +2755,9 @@ test("held episode recaps wait on the tape without claiming Feldman approval", (
   assert.match(html, /OFFICIAL WWAM ALTERNATE EDITION/);
   assert.match(html, /PLAYABLE HERE \/\/ TIMELINE KEPT SEPARATE/);
   assert.match(html, /<audio controls preload="none"/);
+  assert.match(html, /PODCAST CLOCK/);
+  assert.match(html, /2 AUDIO-BOUND ROUTES/);
+  assert.match(html, /data-source-dossier-action="play-alternate-route"/);
   assert.match(html, /OPEN OFFICIAL AUDIO/);
   assert.doesNotMatch(html, /PLAY OFFICIAL ALTERNATE/);
   assert.match(html, /SOURCE STATUS<\/small><b>AGE RESTRICTED/);

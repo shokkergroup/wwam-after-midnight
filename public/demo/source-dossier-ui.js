@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.31.0";
+  var VERSION = "1.32.0";
   var DOSSIER_SCHEMA = "shokker-source-dossier/v1";
   var QUERY_SCHEMA = "shokker-source-query/v1";
   var QUERY_RESULT_SCHEMA = "shokker-source-query-result/v1";
@@ -777,6 +777,25 @@
       }
       if (clean(alternate.enclosureUrl) &&
           alternate.timestampIsomorphic === false) {
+        var alternateRoutes = array(alternate.routes).slice().sort(function (left, right) {
+          return number(left.at) - number(right.at) || number(left.rank) - number(right.rank);
+        });
+        var alternateRouteMarkup = alternateRoutes.length ?
+          '<div class="source-dossier-alternate-routes" aria-label="Podcast clock routes"><header><div><span>PODCAST CLOCK</span><b>' +
+          esc(formatNumber(alternateRoutes.length)) + ' AUDIO-BOUND ROUTES</b></div><small>These seconds belong to the official podcast player, not the YouTube cut.</small></header><div>' +
+          alternateRoutes.map(function (route, index) {
+            var at = number(route.at);
+            var end = number(route.end) > at ? number(route.end) : at + 12;
+            var excerpt = clean(route.excerpt);
+            return '<button type="button" data-source-dossier-action="play-alternate-route" data-alternate-at="' +
+              esc(at) + '" data-alternate-end="' + esc(end) + '" aria-label="Play podcast route ' +
+              esc(String(index + 1)) + ' at ' + esc(formatTime(at)) + '"><b>' +
+              esc(String(index + 1).padStart(2, "0")) + '</b><span><strong>' +
+              esc(clean(route.label) || clean(route.category) || "PODCAST ROUTE") +
+              '</strong><time>' + esc(formatTime(at)) + '</time>' +
+              (excerpt ? '<em>' + esc(excerpt) + '</em>' : '') +
+              '</span></button>';
+          }).join("") + '</div></div>' : '';
         return '<section class="source-dossier-player-section is-official-alternate"' +
           sectionAttributes("player") +
           ' aria-labelledby="sourceDossierPlayerTitle"><header><div><span>' +
@@ -791,7 +810,9 @@
           'canonical YouTube timeline. It can play here, but it supplies no ' +
           'YouTube chapters or recap claims.</p><audio controls preload="none" src="' +
           esc(alternate.enclosureUrl) +
-          '" aria-label="Play the official alternate WWAM podcast edition"></audio>' +
+          '" data-source-dossier-alternate-audio ' +
+          'aria-label="Play the official alternate WWAM podcast edition"></audio>' +
+          alternateRouteMarkup +
           '<footer><small>' +
           esc(clean(alternate.evidenceBoundary).toUpperCase()) +
           '</small><a href="' + esc(alternate.episodeUrl) +
@@ -4019,6 +4040,33 @@
         }
         return true;
       }
+      function playAlternateAudio(at, end) {
+        var audio = typeof mount.querySelector === "function" ?
+          mount.querySelector("[data-source-dossier-alternate-audio]") : null;
+        if (!audio) return false;
+        var start = Math.max(0, number(at));
+        var stop = number(end) > start ? number(end) : 0;
+        var begin = function () {
+          try { audio.currentTime = start; } catch {}
+          var attempt = typeof audio.play === "function" ? audio.play() : null;
+          if (attempt && typeof attempt.catch === "function") attempt.catch(function () {});
+        };
+        if (stop && typeof audio.addEventListener === "function") {
+          audio.addEventListener("timeupdate", function haltAtBound() {
+            if (number(audio.currentTime) < stop) return;
+            if (typeof audio.pause === "function") audio.pause();
+            audio.removeEventListener("timeupdate", haltAtBound);
+          });
+        }
+        if (number(audio.readyState) >= 1) begin();
+        else if (typeof audio.addEventListener === "function") {
+          audio.addEventListener("loadedmetadata", begin, { once: true });
+        }
+        if (typeof audio.scrollIntoView === "function") {
+          audio.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+        return true;
+      }
       if (action === "play-source") {
         state.activeReceiptKey = "";
         state.activeReceiptOrigin = "";
@@ -4030,6 +4078,11 @@
           end: null,
           receipt: null
         }));
+      } else if (action === "play-alternate-route") {
+        playAlternateAudio(
+          Number(button.getAttribute("data-alternate-at")),
+          Number(button.getAttribute("data-alternate-end"))
+        );
       } else if (action === "play-guide-cut") {
         var guideAt = Number(button.getAttribute("data-guide-at"));
         var guideEnd = Number(button.getAttribute("data-guide-end"));

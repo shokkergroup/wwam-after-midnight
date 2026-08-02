@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.19.0";
+  var VERSION = "1.20.0";
   var SCHEMA = "shokker-source-dossier-input/v1";
   var PUBLIC_EXCERPT_WORDS = 16;
   var OFFICIAL_WWAM_CHANNEL_ID = "UC6ieEOZW4iXV8TcILJI8k5g";
@@ -18,7 +18,7 @@
   }
 
   function episodeRecords(payload) {
-    var episodes = payload && payload.episodes;
+    var episodes = payload && (payload.episodes || payload.sources);
     if (Array.isArray(episodes)) return episodes;
     if (!episodes || typeof episodes !== "object") return [];
     return Object.keys(episodes).map(function (id) {
@@ -2310,21 +2310,49 @@
     return stableStrings(warnings);
   }
 
-  function officialAlternateFor(archiveStream) {
+  function officialAlternateFor(archiveStream, alternateRecord) {
     var alternate = archiveStream && archiveStream.alternateOfficialSource;
+    var alternateAudio = alternateRecord && alternateRecord.alternateAudio;
+    // The compact watchalong pass carries the full official podcast route
+    // map for the one age-gated H2 source. Keep that map attached to the
+    // normalized alternate without ever treating its clock as YouTube time.
+    if (!alternate && alternateAudio && typeof alternateAudio === "object") {
+      alternate = alternateAudio;
+    }
     if (!alternate || (alternate.timestampIsomorphic !== false &&
         alternate.timestampIsomorphic !== true)) return null;
+    var routes = array(alternateAudio && alternateAudio.routes ||
+      alternate && alternate.routes).map(function (route, index) {
+      return {
+        id: clean(route.id) || "alternate-route-" + (index + 1),
+        at: number(route.t != null ? route.t : route.at),
+        end: number(route.end),
+        category: clean(route.category || route.label) || "PODCAST ROUTE",
+        label: clean(route.label || route.category) || "PODCAST ROUTE",
+        score: number(route.score),
+        rank: number(route.rank) || index + 1,
+        excerpt: clean(route.excerpt || route.captionExcerpt),
+        clock: clean(route.clock) || "official WWAM podcast clock",
+        evidenceBasis: clean(route.evidenceBasis),
+        reviewStatus: clean(route.reviewStatus),
+      };
+    }).filter(function (route) {
+      return Number.isFinite(route.at) && route.at >= 0;
+    });
     return {
-      kind: clean(alternate.kind),
-      title: clean(alternate.title),
+      kind: clean(alternate.kind || alternate.status || "official-podcast-edition"),
+      title: clean(alternate.title || alternate.label || "Official WWAM podcast edition"),
       episodeUrl: clean(alternate.episodeUrl),
       enclosureUrl: clean(alternate.enclosureUrl),
-      duration: number(alternate.duration),
-      canonicalDuration: number(alternate.canonicalYouTubeDuration),
-      durationDelta: number(alternate.durationDelta),
+      duration: number(alternate.duration != null ? alternate.duration : alternate.durationSeconds),
+      canonicalDuration: number(alternate.canonicalDuration != null ? alternate.canonicalDuration : alternate.canonicalDurationSeconds),
+      durationDelta: number(alternate.durationDelta != null ? alternate.durationDelta : alternate.durationDeltaSeconds),
       timestampIsomorphic: alternate.timestampIsomorphic === true,
-      publicPlaybackAllowed: alternate.publicPlaybackAllowed === true,
-      evidenceBoundary: clean(alternate.evidenceBoundary),
+      publicPlaybackAllowed: alternate.publicPlaybackAllowed !== false &&
+        Boolean(clean(alternate.episodeUrl) && clean(alternate.enclosureUrl)),
+      evidenceBoundary: clean(alternate.evidenceBoundary || alternate.evidence ||
+        alternate.note || "Official WWAM podcast edition; not substituted for YouTube timestamps."),
+      routes: routes,
     };
   }
 
@@ -2651,6 +2679,8 @@
       var liveStream = liveById.get(id) || null;
       var popularStream = popularById.get(id) || null;
       var archiveStream = archiveById.get(id) || null;
+      var watchalongEpisode = watchalongById.get(id) ||
+        watchalongPassById.get(id) || null;
       var showcaseSource = showcaseSources.get(id) || null;
       var exactSourceHold = exactSourceHoldFor(archiveStream);
       var overlay = archiveStream || commentaryTape || liveStream || popularStream ||
@@ -2703,7 +2733,7 @@
           showcaseSource && showcaseSource.wordsAudited
         ),
         exactSourceHold: exactSourceHold,
-        officialAlternate: officialAlternateFor(archiveStream),
+        officialAlternate: officialAlternateFor(archiveStream, watchalongEpisode),
         episodeGuide: null,
       };
       source.episodeGuide = episodeGuideForSource(
