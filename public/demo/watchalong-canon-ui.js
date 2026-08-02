@@ -66,7 +66,7 @@
   function proofMarkup() {
     var stats = payload.stats || {};
     return '<div class="wac-proof" aria-label="Watchalong canon proof">' +
-      '<article><b>' + number(stats.episodes) + '</b><span>PUBLIC WATCHALONG SOURCES</span></article>' +
+      '<article><b>' + number(stats.episodes) + '</b><span>CANON WATCHALONG SOURCES</span></article>' +
       '<article><b>' + number(stats.movieGroups) + '</b><span>MOVIE FILES</span></article>' +
       '<article><b>' + number(stats.franchises) + '</b><span>FRANCHISE WORLDS</span></article>' +
       '<article><b>' + number(stats.deepDossiers) + '</b><span>FULL EDITORIAL DOSSIERS</span></article>' +
