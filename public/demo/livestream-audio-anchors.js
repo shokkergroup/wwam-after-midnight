@@ -11,7 +11,15 @@
   function addAnchors() {
     Array.prototype.forEach.call(mount.querySelectorAll(".lvc-audio-pass"), function (pass) {
       if (pass.querySelector(".lvc-listening-anchors") || !pass.querySelector(".lvc-audio-candidates > a")) return;
-      var candidates = Array.prototype.slice.call(pass.querySelectorAll(".lvc-audio-candidates > a")).slice(0, 3);
+      var allCandidates = Array.prototype.slice.call(pass.querySelectorAll(".lvc-audio-candidates > a"));
+      var priority = ["STRAIGHT TO STEVE'S ASSHOLE", "WWAM UP IN YA", "CHARACTER SIGNAL", "FAN SIGNAL", "ROOM BREAK", "TAKE GETS NUCLEAR"];
+      var candidates = [];
+      priority.forEach(function (category) {
+        if (candidates.length >= 3) return;
+        var match = allCandidates.filter(function (source) { return candidates.indexOf(source) < 0 && text(source.querySelector("header b"), "").indexOf(category) >= 0; })[0];
+        if (match) candidates.push(match);
+      });
+      allCandidates.forEach(function (source) { if (candidates.length < 3 && candidates.indexOf(source) < 0) candidates.push(source); });
       var shelf = doc.createElement("section");
       shelf.className = "lvc-listening-anchors";
       shelf.setAttribute("aria-label", "First listening anchors");
