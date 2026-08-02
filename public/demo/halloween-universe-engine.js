@@ -14,6 +14,12 @@
 
   function array(value) { return Array.isArray(value) ? value : []; }
   function clean(value) { return String(value == null ? "" : value).trim(); }
+  function naturalList(values) {
+    var items = array(values).map(clean).filter(Boolean);
+    if (items.length < 2) return items[0] || "";
+    if (items.length === 2) return items[0] + " or " + items[1];
+    return items.slice(0, -1).join(", ") + ", or " + items[items.length - 1];
+  }
   function number(value, fallback) {
     var parsed = Number(value);
     return Number.isFinite(parsed) ? parsed : (fallback == null ? 0 : fallback);
@@ -51,6 +57,50 @@
     labels[EVIDENCE.navigation] = "NAVIGATION ONLY";
     labels[EVIDENCE.held] = "SOURCE HELD";
     return labels[state] || clean(state).toUpperCase() || "EVIDENCE STATE UNKNOWN";
+  }
+
+  function buildEditorialDossier(item, enriched, deepTape, moments, topicDoors, references) {
+    var topics = array(enriched.topics);
+    var topicNames = topics.map(function (topic) { return clean(topic.name); }).filter(Boolean).slice(0, 4);
+    var primaryTopic = topicNames[0] || clean(item.film) || "this tape";
+    var momentList = array(moments);
+    var best = momentList.slice().sort(function (a, b) { return number(b.score, 0) - number(a.score, 0); });
+    var topMoment = best[0] || null;
+    var detour = best.find(function (moment) { return /OUT OF POCKET|BREAKDOWN|UNHINGED|KILL ROOM/i.test(clean(moment.label || moment.category)); }) || topMoment;
+    var legacy = array(enriched.upInYaLegacy);
+    var steve = array(enriched.stevesAsshole);
+    var lastTopic = topics[topics.length - 1] || null;
+    function momentAt(moment) { return number(moment && moment.t, number(moment && moment.start, 0)); }
+    var names = Array.from(new Set(array(references).map(function (reference) { return clean(reference.character); }).filter(Boolean)));
+    var duration = number(item.duration, 0);
+    var durationText = duration >= 3600 ? Math.round(duration / 60) + " minutes" : Math.round(duration / 60) + " minutes";
+    var summary = "Come to " + clean(item.film || item.title) + " for the core conversation; the tape keeps widening into " + naturalList(topicNames.length ? topicNames : ["WWAM's side roads"]) + ". " +
+      "The index gives you " + momentList.length + " replay point" + (momentList.length === 1 ? "" : "s") + " and " + topicDoors.length + " subject door" + (topicDoors.length === 1 ? "" : "s") + " across a " + durationText + " upload.";
+    var evidenceSummary = "Source-bounded read: " + number(enriched.wordsAudited || deepTape.wordsAudited, 0).toLocaleString("en-US") + " caption-mapped words, " + number(enriched.captionEvents, 0).toLocaleString("en-US") + " caption lines, " +
+      "and " + names.length + " named character lane" + (names.length === 1 ? "" : "s") + ". Captions can mishear the room, so every take below stays a jump point until the play button confirms it.";
+    var lovedBody = clean(enriched.verdict || deepTape.verdict);
+    if (!lovedBody) lovedBody = "The source map keeps the strongest defense points close to the film rather than manufacturing a reviewer voice.";
+    var hatedItem = steve[0] || null;
+    var detourBody = detour ? "The tape swerves into " + clean(detour.category || detour.label || "a high-heat aside") + ": \"" + clean(detour.quote || detour.excerpt) + "\"" : "No distinct detour survived the source map yet.";
+    var lastBody = lastTopic ? "The final indexed door is " + clean(lastTopic.name) + ": \"" + clean(lastTopic.receipt) + "\"" : "The source map ends without a separate closing lane.";
+    return {
+      summary: summary,
+      evidenceSummary: evidenceSummary,
+      fanRead: {
+        loved: { label: "WHAT THE TAPE DEFENDED", body: lovedBody, topic: primaryTopic, excerpt: topMoment ? clean(topMoment.quote || topMoment.excerpt) : "", at: topMoment ? momentAt(topMoment) : null, end: topMoment ? momentAt(topMoment) + 14 : null },
+        hated: hatedItem ? { label: "STRAIGHT TO STEVE'S ASSHOLE", body: clean(hatedItem.excerpt || hatedItem.quote), topic: clean(hatedItem.category || "REVIEW QUEUE"), excerpt: clean(hatedItem.excerpt || hatedItem.quote), at: number(hatedItem.t, 0), end: number(hatedItem.t, 0) + 14 } : { label: "STRAIGHT TO STEVE'S ASSHOLE", body: "No source-backed Steve's Asshole candidate is cleared in this cut. The chute stays empty until a listen earns it." },
+        wildestDetour: { label: "WILDEST DETOUR", body: detourBody, topic: detour ? clean(detour.category || detour.label) : "SOURCE MAP", excerpt: detour ? clean(detour.quote || detour.excerpt) : "", at: detour ? momentAt(detour) : null, end: detour ? momentAt(detour) + 14 : null },
+        lastWord: { label: "THE LAST WORD", body: lastBody, topic: lastTopic ? clean(lastTopic.name) : "SOURCE MAP", excerpt: lastTopic ? clean(lastTopic.receipt) : "", at: lastTopic ? number(lastTopic.first, 0) : null, end: lastTopic ? number(lastTopic.first, 0) + 14 : null }
+      },
+      laneCounts: {
+        "BEST MOMENTS": momentList.length,
+        "QUICK JUMPS": topicDoors.length,
+        "CHARACTER REFERENCES": references.length,
+        "UP IN YA": legacy.length,
+        "STRAIGHT TO STEVE'S ASSHOLE": steve.length
+      },
+      audioPass: false
+    };
   }
 
   function create(options) {
@@ -182,6 +232,13 @@
         evidenceLabel: evidenceLabel(held ? EVIDENCE.held : EVIDENCE.machine),
         summary: held ? "The official source remains linked, but no defensible caption map is available." : (clean(enriched.summary || deepTape.verdict) || "Caption-backed commentary dossier."),
         verdict: held ? "" : clean(enriched.verdict || deepTape.verdict),
+        editorialDossier: held ? null : (enriched.dossier ? {
+          summary: clean(enriched.dossier.summary),
+          evidenceSummary: clean(enriched.dossier.evidenceSummary),
+          fanRead: enriched.dossier.fanRead ? clone(enriched.dossier.fanRead) : {},
+          laneCounts: enriched.dossier.laneCounts ? clone(enriched.dossier.laneCounts) : {},
+          audioPass: /audio-feature pass/i.test(clean(enriched.dossier.summary || enriched.dossier.evidenceSummary))
+        } : buildEditorialDossier(item, enriched, deepTape, moments, topicDoors, references)),
         unhinged: held ? 0 : number(enriched.unhinged || deepTape.unhinged, 0),
         wordsAudited: number(enriched.wordsAudited || deepTape.wordsAudited, 0),
         captionEvents: number(enriched.captionEvents, 0),

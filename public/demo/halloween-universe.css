@@ -109,6 +109,27 @@
 .halloween-universe .hu-dossier-nav a { flex: 0 0 auto; padding: .7rem .9rem; border: 1px solid rgba(244,240,230,.18); color: var(--hu-paper); font: 800 .67rem/1 ui-monospace, monospace; text-decoration: none; }
 .halloween-universe .hu-dossier-nav a:hover { color: #071005; background: var(--hu-acid); }
 .halloween-universe .hu-dossier-lane { padding: 3.5rem 0 1rem; scroll-margin-top: 145px; }
+.halloween-universe .hu-editorial-read { margin: 1.25rem 0 1.5rem; padding: 1.35rem; border: 1px solid rgba(216,255,56,.28); background: linear-gradient(135deg, rgba(216,255,56,.08), rgba(255,57,127,.06) 58%, rgba(0,0,0,.2)); scroll-margin-top: 145px; }
+.halloween-universe .hu-editorial-read > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; border-bottom: 1px solid rgba(255,255,255,.12); padding-bottom: .8rem; }
+.halloween-universe .hu-editorial-read h3 { margin: .2rem 0 0; font-size: clamp(1.5rem, 2.7vw, 2.35rem); letter-spacing: .02em; }
+.halloween-universe .hu-editorial-proof { font-size: .62rem; letter-spacing: .12em; color: #d8ff38; border: 1px solid rgba(216,255,56,.45); padding: .45rem .6rem; white-space: nowrap; }
+.halloween-universe .hu-editorial-summary { font-size: 1.08rem; line-height: 1.55; max-width: 70ch; margin: 1rem 0 .5rem; color: #f4ede2; }
+.halloween-universe .hu-editorial-evidence { font-size: .85rem; line-height: 1.5; max-width: 85ch; margin: 0; color: rgba(244,237,226,.72); }
+.halloween-universe .hu-editorial-lanes { display: flex; flex-wrap: wrap; gap: .45rem; margin: 1rem 0; }
+.halloween-universe .hu-editorial-lanes span { font-size: .64rem; letter-spacing: .04em; border: 1px solid rgba(255,255,255,.18); padding: .42rem .55rem; color: rgba(244,237,226,.82); }
+.halloween-universe .hu-editorial-lanes b { color: #ff397f; margin-right: .2rem; }
+.halloween-universe .hu-editorial-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; margin-top: 1rem; }
+.halloween-universe .hu-editorial-lane { border: 1px solid rgba(255,255,255,.13); padding: 1rem; background: rgba(8,8,10,.62); min-height: 10rem; display: flex; flex-direction: column; }
+.halloween-universe .hu-editorial-lane.is-hated { border-color: rgba(255,57,127,.5); }
+.halloween-universe .hu-editorial-lane.is-loved { border-color: rgba(216,255,56,.4); }
+.halloween-universe .hu-editorial-lane.is-wild { border-color: rgba(255,180,70,.48); }
+.halloween-universe .hu-editorial-lane.is-last-word { border-color: rgba(80,210,255,.35); }
+.halloween-universe .hu-editorial-lane-top { display: flex; align-items: center; justify-content: space-between; gap: .5rem; font-size: .68rem; letter-spacing: .08em; color: #d8ff38; }
+.halloween-universe .hu-editorial-lane.is-hated .hu-editorial-lane-top span { color: #ff397f; }
+.halloween-universe .hu-editorial-lane-top b { font-size: .62rem; color: rgba(244,237,226,.58); font-weight: 500; text-align: right; }
+.halloween-universe .hu-editorial-lane p { font-size: .9rem; line-height: 1.45; color: #f4ede2; margin: .75rem 0 .35rem; }
+.halloween-universe .hu-editorial-lane small { font-size: .62rem; letter-spacing: .08em; color: rgba(244,237,226,.52); margin-top: auto; }
+.halloween-universe .hu-editorial-lane .hu-receipt-actions { margin-top: .7rem; }
 .halloween-universe .hu-dossier-lane > header { display: grid; grid-template-columns: 1fr .6fr; gap: 2rem; align-items: end; margin-bottom: 1.5rem; }
 .halloween-universe .hu-dossier-lane > header .hu-eyebrow { grid-column: 1/-1; margin-bottom: -1rem; }
 .halloween-universe .hu-dossier-lane h3 { margin: 0; font: 900 clamp(2.2rem, 4vw, 4.5rem)/.9 Impact, sans-serif; text-transform: uppercase; }
@@ -241,4 +262,11 @@
   .halloween-universe .hu-path-card { grid-template-columns: 76px 1fr; }
   .halloween-universe .hu-path-number { font-size: 2.8rem; }
   .halloween-universe .hu-receipt-actions > * { width: 100%; }
+  .halloween-universe .hu-editorial-read { padding: 1rem; }
+  .halloween-universe .hu-editorial-read > header { display: block; }
+  .halloween-universe .hu-editorial-proof { display: inline-block; margin-top: .7rem; }
+  .halloween-universe .hu-editorial-grid { grid-template-columns: 1fr; }
+  .halloween-universe .hu-editorial-lane { min-height: 0; }
+  .halloween-universe .hu-editorial-lane-top { align-items: flex-start; flex-direction: column; }
+  .halloween-universe .hu-editorial-lane-top b { text-align: left; }
 }

@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.1.3";
+  var VERSION = "1.1.4-editorial-read";
 
   function array(value) { return Array.isArray(value) ? value : []; }
   function clean(value) { return String(value == null ? "" : value).trim(); }
@@ -12,6 +12,12 @@
   }
   function attr(value) { return esc(value); }
   function fmt(value) { return Number(value || 0).toLocaleString("en-US"); }
+  function youtubeUrl(sourceId, start) {
+    var id = clean(sourceId);
+    if (!/^[A-Za-z0-9_-]{11}$/.test(id)) return "";
+    var url = "https://www.youtube.com/watch?v=" + id;
+    return Number(start || 0) > 0 ? url + "&t=" + Math.floor(Number(start)) + "s" : url;
+  }
   function publicProofLabel(item) {
     var state = clean(item && item.evidenceState);
     if (/held/.test(state)) return "WATCH ONLY";
@@ -110,6 +116,48 @@
       '<p>' + esc(item.summary || item.title) + '</p><p class="hu-lineage-base">PAIRS WITH // ' + esc(item.baseFilm || item.film) + '</p>' +
       '<div class="hu-receipt-actions">' + sourceLink(item, "OPEN THIS VERSION") + '</div></div></article>';
   }
+  function editorialLaneCard(film, key, fallbackLabel) {
+    var read = film && film.editorialDossier || {};
+    var fan = read.fanRead || {};
+    var item = fan[key];
+    if (!item || !clean(item.body)) return '';
+    var label = clean(item.label) || fallbackLabel;
+    var laneClass = key === 'hated' ? ' is-hated' : key === 'loved' ? ' is-loved' : key === 'wildestDetour' ? ' is-wild' : ' is-last-word';
+    var playable = item.at != null ? playButton({
+      sourceId: film.id,
+      start: item.at,
+      end: item.end,
+      label: label,
+      url: youtubeUrl(film.id, item.at),
+      playable: true,
+      evidenceState: "machine-surfaced"
+    }, 'PLAY THIS LANE') : '';
+    return '<article class="hu-editorial-lane' + laneClass + '"><div class="hu-editorial-lane-top"><span>' + esc(label) + '</span>' +
+      (item.topic ? '<b>' + esc(item.topic) + '</b>' : '') + '</div><p>' + esc(item.body) + '</p>' +
+      (item.at != null ? '<small>BOUND TO THE TAPE // ' + esc(time(item.at)) + '</small>' : '') +
+      '<div class="hu-receipt-actions">' + playable + '</div></article>';
+  }
+  function editorialReadMarkup(film) {
+    var read = film && film.editorialDossier;
+    if (!read) return '';
+    var cards = [
+      editorialLaneCard(film, 'loved', 'WHAT THE TAPE DEFENDED'),
+      editorialLaneCard(film, 'hated', "STRAIGHT TO STEVE'S ASSHOLE"),
+      editorialLaneCard(film, 'wildestDetour', 'WILDEST DETOUR'),
+      editorialLaneCard(film, 'lastWord', 'THE LAST WORD')
+    ].filter(Boolean);
+    var lanes = Object.keys(read.laneCounts || {}).map(function (label) {
+      return { label: label, count: Number(read.laneCounts[label] || 0) };
+    }).filter(function (item) { return item.count > 0; }).sort(function (a, b) { return b.count - a.count; }).slice(0, 7);
+    var laneMarkup = lanes.length ? '<div class="hu-editorial-lanes" aria-label="Episode lane mix">' + lanes.map(function (lane) {
+      return '<span><b>' + esc(lane.count) + '</b> ' + esc(lane.label) + '</span>';
+    }).join('') + '</div>' : '';
+    return '<section class="hu-editorial-read" id="huEditorialRead"><header><div><p class="hu-eyebrow">THE SHOW, IN HUMAN TERMS</p><h3>THE NIGHT IN ONE LINE</h3></div>' +
+      '<span class="hu-editorial-proof">' + (read.audioPass ? 'AUDIO FEATURE PASS ATTACHED' : 'SOURCE-BOUNDED READ') + '</span></header>' +
+      (read.summary ? '<p class="hu-editorial-summary">' + esc(read.summary) + '</p>' : '') +
+      (read.evidenceSummary ? '<p class="hu-editorial-evidence">' + esc(read.evidenceSummary) + '</p>' : '') + laneMarkup +
+      (cards.length ? '<div class="hu-editorial-grid">' + cards.join('') + '</div>' : '') + '</section>';
+  }
   function selectedFilm(film) {
     if (!film) return "";
     var variantHtml = film.variants.length ? film.variants.map(lineageCard).join("") : '<p class="hu-empty">No other WWAM cut is linked to this tape yet.</p>';
@@ -121,7 +169,8 @@
       '<h2 id="huDossierTitle">' + esc(film.film) + '</h2>' + evidence(film) + '<p class="hu-dossier-summary">' + esc(filmBlurb(film)) + '</p>' +
       '<div class="hu-dossier-stats"><span><b>' + fmt(film.wordsAudited) + '</b>WORDS OF COMMENTARY</span><span><b>' + fmt(film.captionEvents) + '</b>CAPTION LINES</span><span><b>' + film.topicDoors.length + '</b>QUICK JUMPS</span></div>' +
       '<div class="hu-receipt-actions">' + sourceLink(film, "OPEN FULL OFFICIAL TAPE") + '</div></div></div>' +
-      '<div class="hu-dossier-nav"><a href="#huBestMoments">BEST MOMENTS</a><a href="#huSceneDoors">QUICK JUMPS</a><a href="#huCharacterRefs">CHARACTER MENTIONS</a><a href="#huVersions">VERSIONS</a></div>' +
+      '<div class="hu-dossier-nav"><a href="#huEditorialRead">THE READ</a><a href="#huBestMoments">BEST MOMENTS</a><a href="#huSceneDoors">QUICK JUMPS</a><a href="#huCharacterRefs">CHARACTER MENTIONS</a><a href="#huVersions">VERSIONS</a></div>' +
+      editorialReadMarkup(film) +
       '<section class="hu-dossier-lane" id="huBestMoments"><header><p class="hu-eyebrow">START WITH THE GOOD STUFF</p><h3>BEST MOMENTS</h3><p>These are quick ways into the tape. Auto-captions can be messy, so the play button is the final word.</p></header><div class="hu-receipt-grid">' + moments + '</div></section>' +
       '<section class="hu-dossier-lane" id="huSceneDoors"><header><p class="hu-eyebrow">JUMP BY SUBJECT</p><h3>QUICK JUMPS BY SUBJECT</h3><p>Pick a subject and land where that conversation starts.</p></header><div class="hu-receipt-grid">' + topics + '</div></section>' +
       '<section class="hu-dossier-lane" id="huCharacterRefs"><header><p class="hu-eyebrow">LOOMIS, CHALLIS & FRIENDS</p><h3>CHARACTER MENTIONS</h3><p>A name mention is not automatically a character bit. Confirmed performances live in Ask a Character.</p></header><div class="hu-receipt-grid">' + references + '</div></section>' +

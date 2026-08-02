@@ -69,6 +69,17 @@ test("keeps versions and repeat commentaries in explicit lineages", () => {
   assert.ok(original1978.variants[0].anchors.length >= 6);
 });
 
+test("carries the episode-specific human read into every enriched film dossier", () => {
+  const halloween = engine.getFilm("6VXSBDZ-3WE");
+  assert.ok(halloween.editorialDossier);
+  assert.match(halloween.editorialDossier.summary, /Come to Halloween/i);
+  assert.match(halloween.editorialDossier.evidenceSummary, /Source-bounded read/i);
+  assert.match(halloween.editorialDossier.fanRead.hated.label, /STEVE'S ASSHOLE/i);
+  assert.equal(Number(halloween.editorialDossier.laneCounts["STRAIGHT TO STEVE'S ASSHOLE"]), 0);
+  assert.equal(halloween.editorialDossier.audioPass, false);
+  assert.ok(engine.listFilms().filter((film) => film.access === "caption-backed" && film.editorialDossier).length >= 12);
+});
+
 test("holds the unavailable commentary open without manufacturing receipts", () => {
   const held = engine.getFilm("AzrcgoyE7C4");
   assert.equal(held.access, "held");

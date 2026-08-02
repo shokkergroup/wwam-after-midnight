@@ -54,6 +54,12 @@ test("each film expands into a show wiki with playable evidence lanes", () => {
   const markup = ui.renderMarkup(model({ filmId: "6VXSBDZ-3WE" }));
   assert.match(markup, /COMMENTARY WIKI \/\/ TAPE 01/);
   assert.match(markup, /BEST MOMENTS/);
+  assert.match(markup, /THE NIGHT IN ONE LINE/);
+  assert.match(markup, /THE SHOW, IN HUMAN TERMS/);
+  assert.match(markup, /STRAIGHT TO STEVE(?:'|&#39;)S ASSHOLE/);
+  assert.match(markup, /WHAT THE TAPE DEFENDED/);
+  assert.match(markup, /WILDEST DETOUR/);
+    assert.match(markup, /SOURCE-BOUNDED READ/);
   assert.match(markup, /QUICK JUMPS BY SUBJECT/);
   assert.match(markup, /CHARACTER MENTIONS/);
   assert.match(markup, /LOOMIS, CHALLIS & FRIENDS/);
