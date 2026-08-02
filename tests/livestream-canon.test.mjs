@@ -31,6 +31,8 @@ test("livestream canon contains the complete source registry", () => {
   assert.equal(canon.stats.audioPassCoverage.yearCoverage["2023"].audioAnalyzed, 68);
   assert.equal(canon.stats.audioPassCoverage.captionFallback, 154);
   assert.equal(canon.stats.audioPassCoverage.yearCoverage["2021"].captionFallback, 72);
+  assert.equal(canon.stats.rssAudioMirrors, 2);
+  assert.ok(canon.episodes.find((episode) => episode.id === "LVVGdGxTBfI")?.rssAudioPass?.media?.canonicalTimestampMapping === false);
 });
 
 test("each source has an honest evidence tier and playable source link", () => {
@@ -123,6 +125,7 @@ test("livestream canon surface is wired into the page and route shell", () => {
   assert.match(html, /id="livestream-canon"/);
   assert.match(html, /wwam-livestream-canon\.js/);
   assert.match(html, /wwam-livestream-audio-pass\.js/);
+  assert.match(html, /wwam-livestream-rss-audio-pass\.js/);
   assert.match(html, /livestream-canon-ui\.js/);
   assert.match(guided, /"livestream-canon": "shows"/);
   assert.match(guided, /#livestream-canon/);
@@ -143,6 +146,8 @@ test("livestream canon surface is wired into the page and route shell", () => {
   assert.match(ui, /AUDIO PASSES/);
   assert.match(ui, /CAPTION FALLBACKS/);
   assert.match(ui, /CAPTION-ONLY PASS/);
+  assert.match(ui, /THE PODCAST TAPE/);
+  assert.match(ui, /data-lvc-rss-seek/);
   assert.match(ui, /LISTEN FOR THE ROOM TO CHANGE/);
   assert.doesNotMatch(ui, /moments\|\|\[\]\)\.slice\(0,40\)/);
   assert.match(css, /\.lvc-card-grid/);

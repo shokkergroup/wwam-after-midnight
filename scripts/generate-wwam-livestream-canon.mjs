@@ -82,6 +82,9 @@ const watchPilot = loadScript("wwam-watch-pass-pilot.js").WWAM_WATCH_PASS_PILOT 
 const livestreamAudio = fs.existsSync(path.join(DEMO, "wwam-livestream-audio-pass.js"))
   ? loadScript("wwam-livestream-audio-pass.js").WWAM_LIVESTREAM_AUDIO_PASS || { episodes: {}, coverage: null }
   : { episodes: {}, coverage: null };
+const livestreamRssAudio = fs.existsSync(path.join(DEMO, "wwam-livestream-rss-audio-pass.js"))
+  ? loadScript("wwam-livestream-rss-audio-pass.js").WWAM_LIVESTREAM_RSS_AUDIO_PASS || { records: {} }
+  : { records: {} };
 // source-cache/metadata is shared with the watchalong audio acquisition lane.
 // Keep the livestream registry source-bounded: the official atlas plus the
 // original catalog are allowed in; newly acquired movie-commentary metadata
@@ -428,6 +431,7 @@ const episodes = canonicalMetadata.map((record) => {
       return { ...candidate, captionExcerpt: captionExcerpt || "No caption fragment aligned; open the source and listen to this acoustic window.", captionAligned: Boolean(captionExcerpt) };
     })
   } : null;
+  const rssAudioPass = livestreamRssAudio.records?.[id] || null;
   return {
     id, title: clean(record.title), date: dateFrom(record.upload_date), duration: Number(record.duration || 0), durationLabel: clock(record.duration), views: Number(record.view_count || 0),
     thumbnail: record.thumbnail || `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`, url: `https://www.youtube.com/watch?v=${id}`, channel: record.channel || "WeWatchedAMovie", publicSource: true,
@@ -437,7 +441,7 @@ const episodes = canonicalMetadata.map((record) => {
     topics, conversationThreads: conversationThreads(topics), moments, chapters: chapterList, heatmap: existing?.heatmap?.length ? existing.heatmap : heatmap(Number(record.duration || 0), events, moments, topics), fanSignals: normalizeFanSignals(fan),
     recurringBits: recurring, bestBits: bestBits(moments, fan), characterCues: cueList,
     characters: existing?.characters || characters(events), peak: existing?.peak || moments.slice().sort((a, b) => b.score - a.score)[0] || null,
-    yearPass: pass, watchPass,
+    yearPass: pass, watchPass, rssAudioPass,
     dossier: { summary: finalSummary, tapeNote: note, archiveSummary: currentYear === 2026 && existing?.summary ? clean(existing.summary) : null, shape, hook: hotMoment ? { at: Number(hotMoment.t || 0), category: hotMoment.category || hotMoment.label || "SOURCE RECEIPT", excerpt: hotMoment.excerpt || "", evidenceBasis: hotMoment.evidenceBasis || "source-local caption candidate", reviewStatus: hotMoment.reviewStatus || "machine-candidate" } : null, whyItMatters: clean(existing?.editorial?.whyItMatters || `This episode is part of the ${series.label} shelf. Its evidence tier is ${tier}; the official upload remains the authority for delivery, speaker, and intent. Use the bounded receipts as navigation, then play the source before treating the caption surface as a quote.`), evidence, restricted, reviewStatus: tier === "source-brief" ? "held-source-brief" : tier === "completion-dossier" ? "distilled-machine-candidate" : "machine-surfaced" }
   };
 }).sort((left, right) => right.date.localeCompare(left.date) || right.id.localeCompare(left.id));
@@ -513,6 +517,7 @@ const stats = {
   characterCueReceipts: episodes.reduce((sum, episode) => sum + episode.characterCues.reduce((inner, character) => inner + character.receipts.length, 0), 0),
   yearPassEpisodes: episodes.filter((episode) => episode.yearPass).length,
   audioPassCoverage: livestreamAudio.coverage || null,
+  rssAudioMirrors: Object.keys(livestreamRssAudio.records || {}).length,
   firstDate: episodes.at(-1)?.date || null, lastDate: episodes[0]?.date || null, years
 };
 const payload = {
