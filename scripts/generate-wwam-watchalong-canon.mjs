@@ -795,7 +795,12 @@ function companionEpisodeFrom(candidate) {
   const acquired = edgeAcquisitionById.get(candidate.id) || {};
   const metadataRecord = metadataById.get(candidate.id) || acquired || {};
   const taxonomy = explicitExtras.get(candidate.id) || { ...titleDerivedTaxonomy(candidate.title), type: candidate.signal || "companion-source", note: "title-derived companion source" };
-  const events = captionEvents(candidate.id);
+  const directEvents = captionEvents(candidate.id);
+  const edgeEvents = edgeCaptionEvents(candidate.id);
+  const events = directEvents.length ? directEvents : edgeEvents;
+  const captionSourceFile = directEvents.length
+    ? `source-cache/captions/${candidate.id}${fs.existsSync(path.join(CAPTIONS_DIR, `${candidate.id}.json`)) ? ".json" : ".asr.json"}`
+    : edgeEvents.length ? `source-cache/captions/edge-${candidate.id}.en.json3` : null;
   const duration = Number(metadataRecord.duration || candidate.duration || 0);
   const aliases = [taxonomy.movieTitle, taxonomy.franchiseTitle, clean(candidate.title)].filter(Boolean);
   const derived = candidateMoments(events, duration, aliases, taxonomy);
@@ -858,7 +863,7 @@ function companionEpisodeFrom(candidate) {
       chapters: derived.chapters,
       cuts: momentsWithFans,
       route: { opening: firstMoment, strongest: strongestMoment, closing: finalMoment },
-      caption: { words: derived.captionWords, events: events.length, minutes: Math.round((events.at(-1)?.end || duration) / 60), sourceFile: captioned ? `source-cache/captions/${candidate.id}${fs.existsSync(path.join(CAPTIONS_DIR, `${candidate.id}.json`)) ? ".json" : ".asr.json"}` : null, sourceKind: captioned ? (events[0]?.evidenceType || "source-local-transcript") : null }
+      caption: { words: derived.captionWords, events: events.length, minutes: Math.round((events.at(-1)?.end || duration) / 60), sourceFile: captionSourceFile, sourceKind: captioned ? (events[0]?.evidenceType || "source-local-transcript") : null }
     }
   };
 }

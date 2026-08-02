@@ -79,6 +79,10 @@ test("watchalong canon has the complete public source registry", () => {
   const adjacentReview = canon.companionReviews.find((record) => record.id === "jfirLE0reBY");
   assert.equal(adjacentReview.dossier.state, "companion-source-brief");
   assert.equal(adjacentReview.formatBoundary, "ADJACENT REACTION / REVIEW // NOT A FULL-FILM COMMENTARY");
+  const captionedReview = canon.companionReviews.find((record) => record.id === "7efMRH1jr9M");
+  assert.equal(captionedReview.dossier.state, "companion-caption-dossier");
+  assert.ok(captionedReview.dossier.cuts.length >= 9);
+  assert.equal(captionedReview.dossier.caption.sourceFile, "source-cache/captions/edge-7efMRH1jr9M.en.json3");
   const earlyRoute = routeIndex.sources.find((source) => source.id === "a4uOCsmPKD4");
   assert.equal(earlyRoute.dossier.state, "adjacent-source-brief", "edge audit receipts supersede the thinner companion shell on cold routes");
   assert.equal(earlyRoute.formatBoundary, "ADJACENT PUBLIC SOURCE // NOT A FULL-FILM COMMENTARY");
