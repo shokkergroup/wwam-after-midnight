@@ -120,6 +120,10 @@ test("each source has an honest evidence tier and playable source link", () => {
   assert.match(lee.identityBasis, /alias map/i);
   assert.match(michael.identityBasis, /spelling remains unresolved/i);
   assert.ok(canon.episodes.some((episode) => episode.fanSignals.some((signal) => signal.fanEntity === "lee-the-machine" && signal.fanEntityLabel.includes("Bowers"))));
+  const audioCharacterReceipts = canon.episodes.flatMap((episode) => (episode.characterCues || []).flatMap((character) => (character.receipts || []).filter((receipt) => receipt.receiptKind === "audio-character-route")));
+  assert.ok(audioCharacterReceipts.length > 100, "character shelves retain source-local audio routes when the caption names the character");
+  assert.ok(audioCharacterReceipts.every((receipt) => /performance not established/i.test(receipt.evidenceBasis)));
+  assert.ok(canon.episodes.some((episode) => (episode.characterCues || []).some((character) => character.name === "Dr. Loomis" && character.listeningRouteMentions > 0)));
   assert.ok(Array.isArray(canon.characterIndex) && canon.characterIndex.some((entry) => entry.name === "Dr. Loomis"));
   assert.ok(canon.fanHall.every((entry) => entry.receipts > 0 && entry.episodeIds.length > 0));
   assert.ok(canon.episodes.some((episode) => episode.moments.length > 40), "long shows retain more than forty candidates when the tape supports them");
@@ -215,6 +219,7 @@ test("livestream canon surface is wired into the page and route shell", () => {
   assert.match(ui, /RECOGNIZED NAME CUES/);
   assert.match(ui, /donation total/);
   assert.match(ui, /CHARACTER CUES/);
+  assert.match(ui, /AUDIO CHARACTER ROUTE/);
   assert.match(ui, /TAPE HOOK/);
   assert.match(ui, /2026 SECOND PASS/);
   assert.match(ui, /THE ROUTE THROUGH THIS NIGHT/);

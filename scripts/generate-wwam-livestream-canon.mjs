@@ -359,16 +359,20 @@ function characters(events) {
     return hits.length ? { name, mentions: hits.length, first: Math.round(hits[0].t), peak: Math.round(hits[0].t), receipt: excerpt(hits[0].text, 18), evidenceBasis: "source-local automatic caption character cue", reviewStatus: "machine-candidate" } : null;
   }).filter(Boolean);
 }
-function characterCues(events, duration) {
+function characterCues(events, duration, listeningRoutes = []) {
   const receiptLimit = Math.max(4, Math.round((duration || 1) / 600));
   return CHARACTER_DEFS.map((character) => {
     const hits = events.map((event, index) => ({ event, index })).filter((item) => character.pattern.test(item.event.text));
-    if (!hits.length) return null;
+    const routeHits = listeningRoutes.filter((route) => character.pattern.test(route.captionExcerpt || route.excerpt || ""));
+    if (!hits.length && !routeHits.length) return null;
     const ranked = hits.slice().sort((a, b) => words(b.event.text).length - words(a.event.text).length || a.event.t - b.event.t);
+    const captionReceipts = ranked.map((item) => ({ t: Math.round(item.event.t), end: Math.round(item.event.end || item.event.t + 36), excerpt: excerpt(captionWindow(events, item.index), 24), evidenceBasis: "source-local automatic caption character cue", reviewStatus: "machine-candidate", receiptKind: "caption-cue" }));
+    const audioReceipts = routeHits.slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || Number(a.t || 0) - Number(b.t || 0)).map((route) => ({ t: Math.round(route.t || 0), end: Math.round(route.end || route.t || 0), excerpt: excerpt(route.captionExcerpt || route.excerpt || "", 24), evidenceBasis: "canonical audio route + source-local caption character cue; performance not established", reviewStatus: "audio-feature-candidate; playback remains the authority", receiptKind: "audio-character-route" }));
+    const receipts = [...captionReceipts, ...audioReceipts].sort((a, b) => Number(b.receiptKind === "audio-character-route") - Number(a.receiptKind === "audio-character-route") || a.t - b.t).filter((receipt, index, all) => index === all.findIndex((candidate) => Math.abs(candidate.t - receipt.t) < 4)).slice(0, receiptLimit);
     return {
-      key: character.key, name: character.name, mentions: hits.length, first: Math.round(hits[0].event.t), peak: Math.round(ranked[0].event.t),
-      receipts: ranked.slice(0, receiptLimit).map((item) => ({ t: Math.round(item.event.t), end: Math.round(item.event.end || item.event.t + 36), excerpt: excerpt(captionWindow(events, item.index), 24), evidenceBasis: "source-local automatic caption character cue", reviewStatus: "machine-candidate" })),
-      evidenceBasis: "source-local automatic caption character cue; host identity is not diarized", reviewStatus: "machine-candidate"
+      key: character.key, name: character.name, mentions: hits.length + routeHits.length, captionMentions: hits.length, listeningRouteMentions: routeHits.length, first: Math.round((hits[0]?.event?.t ?? routeHits[0]?.t ?? 0)), peak: Math.round((ranked[0]?.event?.t ?? routeHits[0]?.t ?? 0)),
+      receipts,
+      evidenceBasis: routeHits.length ? "source-local caption character cue + bounded audio routes; host identity and performance are not diarized" : "source-local automatic caption character cue; host identity is not diarized", reviewStatus: "machine-candidate"
     };
   }).filter(Boolean);
 }
@@ -494,13 +498,13 @@ const episodes = canonicalMetadata.map((record) => {
     `This ${shape.toLowerCase()} has indexed doors on ${topicRead}. The source-local map surfaces ${moments.length} candidates across ${clock(record.duration)}. ${hookLine} ${fanLine}`
   ][summaryVariant];
   const secondPassSummary = currentYear === 2026
-    ? `The 2026 second pass maps this ${shape.toLowerCase()} through ${topicRead}. It keeps ${topics.length} topic doors, ${moments.length} moment candidates, ${fan.length} ${fan.length === 1 ? "fan-signal receipt" : "fan-signal receipts"}, and ${characterCues(events, Number(record.duration || 0)).reduce((sum, character) => sum + character.receipts.length, 0)} character cue receipts across ${clock(record.duration)}. Start at ${hookLine.replace(/\.$/, "")} and use the scene beats below as a route through the night. Playback remains the authority; captions do not certify a speaker or intent.`
+    ? `The 2026 second pass maps this ${shape.toLowerCase()} through ${topicRead}. It keeps ${topics.length} topic doors, ${moments.length} moment candidates, ${fan.length} ${fan.length === 1 ? "fan-signal receipt" : "fan-signal receipts"}, and ${characterCues(events, Number(record.duration || 0), listeningRoutes).reduce((sum, character) => sum + character.receipts.length, 0)} character cue receipts across ${clock(record.duration)}. Start at ${hookLine.replace(/\.$/, "")} and use the scene beats below as a route through the night. Playback remains the authority; captions do not certify a speaker or intent.`
     : null;
   const summary = clean(existing?.summary || secondPassSummary || (events.length
     ? `${ledgerSummary} Captions are navigation, not a final quote or speaker verdict—open a receipt and hear the full exchange.`
     : `A source brief for ${clean(record.title)}. Metadata is preserved, but no local caption route survived for a responsible episode breakdown.`));
   const evidence = existing?.captionEvidence || { type: events.length ? "youtube-automatic-caption" : "metadata-only", eventsAudited: events.length, speakerDiarized: false, originAttribution: false, reviewStatus: events.length ? "machine-candidate" : "held" };
-  const cueList = characterCues(events, Number(record.duration || 0));
+  const cueList = characterCues(events, Number(record.duration || 0), listeningRoutes);
   const recurring = recurringBits(events, moments, fan, Number(record.duration || 0), listeningRoutes);
   const note = tapeNote(record.title, shape, topics, moments, fan, recurring, cueList, listeningRoutes);
   const generatedSummary = currentYear === 2026 || machineShapedSummary(summary)
