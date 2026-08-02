@@ -95,6 +95,9 @@ test("each source has an honest evidence tier and playable source link", () => {
   assert.equal(ledgerSummaries.some((summary) => /\bA open-line\b/i.test(summary)), false);
   assert.equal(ledgerSummaries.some((summary) => summary.includes("Open the timestamp before treating")), false);
   assert.equal(canon.episodes.some((episode) => /caption trail keeps returning|spends its time bouncing|built around/i.test(`${episode.dossier.summary} ${episode.dossier.tapeNote || ""}`)), false, "livestream copy does not turn topic doors into whole-show claims");
+  const tapeNotes = canon.episodes.map((episode) => episode.dossier.tapeNote || "");
+  assert.equal(tapeNotes.some((note) => /indexed doors|source-local map keeps|loudest recurring lane|cleanest first play|room also leaves/i.test(note)), false, "episode tape notes do not use the old machine-shaped boilerplate");
+  assert.ok(tapeNotes.some((note) => /dominant recurring lane|fan ledger catches/i.test(note)), "episode tape notes retain a human-readable listening read");
   assert.ok(ledgerSummaries.some((summary) => summary.includes("fan-signal receipts")));
 });
 

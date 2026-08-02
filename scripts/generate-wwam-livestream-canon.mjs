@@ -258,11 +258,13 @@ function tapeNote(shape, topics, moments, fan, recurring, characterCues) {
   const hot = moments.slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || Number(a.t || 0) - Number(b.t || 0))[0];
   const characterList = listPhrase(characterCues.slice().sort((a, b) => Number(b.mentions || 0) - Number(a.mentions || 0)).slice(0, 3).map((character) => character.name));
   const fanTypes = Array.from(new Set(fan.map((signal) => signal.signalType))).slice(0, 2);
-  const hook = hot ? `The cleanest first play is ${clock(hot.t)} // ${hot.category}; open that timestamp to hear the exchange` : "There is no bounded first-play hook in this evidence tier";
-  const lane = laneLead ? `The loudest recurring lane is ${laneLead.label} (${laneLead.candidateCount} caption cues).` : "No recurring-bit lane survived this pass.";
-  const fanLine = fan.length ? `The room also leaves ${fan.length} fan-signal receipts${fanTypes.length ? `, including ${listPhrase(fanTypes)}` : ""}.` : "No fan-signal cluster survived this pass.";
+  const frame = /ranking|tier|bracket/i.test(shape) ? "a ranking-room argument" : /q\s*&?\s*a|fan/i.test(shape) ? "a fan-driven open line" : /commentary|watch/i.test(shape) ? "a movie-side conversation" : "a late-night movie desk";
+  const hook = hot ? `The first route worth pressing is ${clock(hot.t)} // ${hot.category}; open the source there and hear the exchange in full.` : "No bounded first-play hook survived this evidence tier.";
+  const laneMood = laneLead?.label === "ROOM BREAK" ? "breakdown territory" : laneLead?.label === "TAKE GETS NUCLEAR" ? "an argumentative register" : laneLead?.label === "WWAM UP IN YA" ? "out-of-pocket territory" : laneLead?.label === "STRAIGHT TO STEVE'S ASSHOLE" ? "a hostile verdict lane" : "a sharp side-channel";
+  const lane = laneLead ? `The dominant recurring lane is ${laneLead.label} (${laneLead.candidateCount} caption cues), which puts the night in ${laneMood}.` : "The recurring-bit lanes stay quiet in this pass.";
+  const fanLine = fan.length ? `The fan ledger catches ${fan.length} signal receipts${fanTypes.length ? `, including ${listPhrase(fanTypes)}` : ""}.` : "No fan-signal cluster survived this pass.";
   const characterLine = characterCues.length ? `Character traffic includes ${characterList}; the captions do not diarize who performed a cue.` : "No character cue was strong enough to retain in the caption map.";
-  return `${shape} indexed doors: ${topicList}. The source-local map keeps ${moments.length} moment candidates on the board. ${lane} ${hook}. ${fanLine} ${characterLine}`;
+  return `${shape} circles ${topicList} and plays like ${frame}. ${lane} ${hook} ${fanLine} ${characterLine}`;
 }
 function normalizeFanSignals(items) {
   return (items || []).map((signal) => ({ ...signal, signalType: clean(signal.signalType || fanSignalType(signal.excerpt || "")) })).filter((signal) => signal.excerpt || Number(signal.t || 0) >= 0);
