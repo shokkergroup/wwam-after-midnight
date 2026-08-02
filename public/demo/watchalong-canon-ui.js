@@ -327,6 +327,21 @@
     }).join('') + '</div>';
   }
 
+  // Keep podcast-clock chapters in the same local player as their receipt
+  // cards. A chapter is navigation, not a reason to bounce the visitor to a
+  // separate podcast tab.
+  function chapterMarkup(episode, chapters) {
+    if (!Array.isArray(chapters) || !chapters.length) return '';
+    return '<div class="wac-section-label" style="padding:0 1.5rem">SHOW ARC // CHAPTERS ARE ROUTES, NOT AI FILLER</div><div class="wac-chapter-grid">' + chapters.map(function (chapter) {
+      var at = Number(chapter.at || chapter.t || 0);
+      var podcast = chapter.sourceKind === 'podcast-variant';
+      var open = podcast
+        ? '<button type="button" class="wac-variant-route" data-wac-variant-seek="' + esc(at) + '" data-wac-variant-audio="wacVariantAudio-source">OPEN PODCAST VARIANT AT ' + esc(timestamp(at)) + ' -></button>'
+        : '<a' + receiptTarget(chapter) + ' href="' + esc(receiptUrl(episode, chapter)) + '">' + (podcast ? 'OPEN PODCAST VARIANT AT ' : 'OPEN SOURCE AT ') + esc(timestamp(at)) + ' -></a>';
+      return '<article class="wac-chapter"><header><span>ACT ' + esc(chapter.act || chapter.chapter || '') + '</span><span>' + esc(receiptClock(chapter) + timestamp(at)) + '</span></header><b>' + esc(chapter.label || chapter.category || 'WATCH ROUTE') + '</b><p>' + esc(excerpt(chapter.body || chapter.excerpt || 'Open the timestamp and hear this stretch of the tape.', 220)) + '</p>' + open + '</article>';
+    }).join('') + '</div>';
+  }
+
   function topicMarkup(episode, topics) {
     if (!Array.isArray(topics) || !topics.length) return '';
     return '<div class="wac-section-label" style="padding:0 1.5rem">TOPIC DOORS // FIRST MENTION + PEAK RECEIPT</div><div class="wac-topic-row">' + topics.slice(0, 10).map(function (topic) {

@@ -230,8 +230,9 @@
 .wac-chapter header { display: flex; justify-content: space-between; gap: .5rem; color: var(--canon-acid); font: 800 .53rem/1.3 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .09em; text-transform: uppercase; }
 .wac-chapter b { display: block; margin: .5rem 0 .35rem; color: var(--canon-ink); font: 800 .84rem/1.05 "Arial Narrow", Impact, sans-serif; text-transform: uppercase; }
 .wac-chapter p { min-height: 3.1rem; margin: 0 0 .65rem; color: var(--canon-dim); font: 500 .68rem/1.4 ui-sans-serif, system-ui, sans-serif; }
-.wac-chapter a { color: var(--canon-hot); font: 800 .55rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .07em; text-decoration: none; text-transform: uppercase; }
-.wac-chapter a:hover { color: var(--canon-acid); }
+.wac-chapter a, .wac-chapter button { color: var(--canon-hot); font: 800 .55rem/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .07em; text-decoration: none; text-transform: uppercase; }
+.wac-chapter button { border: 0; padding: 0; background: transparent; cursor: pointer; text-align: left; }
+.wac-chapter a:hover, .wac-chapter button:hover { color: var(--canon-acid); }
 .wac-topic-row { display: flex; flex-wrap: wrap; gap: .45rem; padding: 0 1.5rem 1.25rem; }
 .wac-topic { display: grid; gap: .25rem; border: 1px solid rgba(203, 255, 40, .24); padding: .55rem .65rem; color: var(--canon-ink); background: rgba(203, 255, 40, .035); text-decoration: none; }
 .wac-topic:hover { border-color: var(--canon-hot); }
