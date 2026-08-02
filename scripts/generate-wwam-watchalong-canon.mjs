@@ -72,6 +72,8 @@ const explicitExtras = new Map([
   ["v4TuS9kqPnM", { franchiseKey: "childs-play", franchiseTitle: "Child's Play / Chucky", movieKey: "childs-play-2", movieTitle: "Child's Play 2", type: "watch-along", note: "edited highlight cut from the full live commentary" }],
   ["9Kql8Y14bAw", { franchiseKey: "uncategorized", franchiseTitle: "Standalone / One-Offs", movieKey: "sinister-2012", movieTitle: "Sinister (2012)", type: "watch-along", note: "Patreon commentary highlight cut" }],
   ["0X8Jq7wxfJo", { franchiseKey: "dc", franchiseTitle: "DC / Batman", movieKey: "the-batman-2022", movieTitle: "The Batman (2022)", type: "watch-along", note: "Patreon commentary highlight cut" }],
+  ["BqIiHSqSM_U", { franchiseKey: "uncategorized", franchiseTitle: "Standalone / One-Offs", movieKey: "candyman-1992", movieTitle: "Candyman (1992)", type: "watch-along", note: "Patreon commentary highlight cut" }],
+  ["NZprZ1gWBIw", { franchiseKey: "halloween", franchiseTitle: "Halloween", movieKey: "halloween-2018", movieTitle: "Halloween (2018)", type: "watch-along", note: "edited highlight cut from the live commentary" }],
   ["KrBhfGxsJNM", { franchiseKey: "halloween", franchiseTitle: "Halloween", movieKey: "halloween-4", movieTitle: "Halloween 4: The Return of Michael Myers", type: "watch-party", note: "2024 public watch-party repeat" }],
   ["QxJyVaAgZ_Y", { franchiseKey: "friday-the-13th", franchiseTitle: "Friday the 13th", movieKey: "friday-the-13th-part-4", movieTitle: "Friday the 13th: The Final Chapter", type: "watch-along", note: "2024 public watch-along repeat" }]
 ]);
@@ -80,7 +82,7 @@ const includedIds = new Set(catalog.map((record) => record.id));
 metadata.forEach((record) => {
   // The public canon must not silently promote member-only uploads. They
   // remain visible in the discovery audit as held leads until access changes.
-  if (record.availability !== "subscriber_only" && /commentary|watch\s*party|watch\s*along|full\s+movie|^\s*we\s+watched\s+(?!a\s+movie(?:\b|'s))(?!.{0,80}\bpodcast\b)(?!.*[,]\s)/i.test(record.title)) {
+  if (record.availability !== "subscriber_only" && /commentary|watch\s*party|watch\s*along|full\s+movie|^\s*we\s+watched\s+(?!a\s+movie(?:\b|'s))(?!.{0,80}\bpodcast\b)(?!.*[,]\s)|^\s*let(?:'|’)?s\s+watch\s+(?!a\s+movie\b)(?!.*\b(?:live|scary\s+videos?|part\s+\d+|together)\b).+/i.test(record.title)) {
     includedIds.add(record.id);
   }
 });
@@ -544,7 +546,7 @@ const franchises = Array.from(franchisesByKey.values()).map((franchise) => ({ ..
 
 // WWAM's early edited watchalong cuts are titled "We Watched <movie>".
 // Exclude generic podcasts/roundups; those remain in the discovery edge lane.
-const titleSignal = /commentary|watch\s*party|watch\s*along|full\s+movie|^\s*we\s+watched\s+(?!a\s+movie(?:\b|'s))(?!.{0,80}\bpodcast\b)(?!.*[,]\s)/i;
+const titleSignal = /commentary|watch\s*party|watch\s*along|full\s+movie|^\s*we\s+watched\s+(?!a\s+movie(?:\b|'s))(?!.{0,80}\bpodcast\b)(?!.*[,]\s)|^\s*let(?:'|’)?s\s+watch\s+(?!a\s+movie\b)(?!.*\b(?:live|scary\s+videos?|part\s+\d+|together)\b).+/i;
 const titleCandidates = metadata.filter((record) => record.availability !== "subscriber_only" && titleSignal.test(record.title));
 const heldTitleCandidates = metadata.filter((record) => record.availability === "subscriber_only" && titleSignal.test(record.title));
 const broadDiscoveryCandidates = Array.isArray(discoveryManifest?.broadCandidates) ? discoveryManifest.broadCandidates : [];
@@ -605,6 +607,7 @@ const payload = {
     channelUrl: discoveryManifest?.channelUrl || "https://www.youtube.com/@WeWatchedAMovie/videos",
     titlePattern: discoveryManifest?.titlePattern || titleSignal.source,
     watchedMoviePattern: discoveryManifest?.watchedMoviePattern || null,
+    letWatchMoviePattern: discoveryManifest?.letWatchMoviePattern || null,
     broadTitlePattern: discoveryManifest?.broadTitlePattern || null,
     channelSnapshotSources: discoveryManifest?.channelSnapshotSources || null,
     explicitCandidateCount: discoveryManifest?.explicitCandidateCount || null,

@@ -37,6 +37,12 @@ TITLE_PATTERN = re.compile(
 WATCHED_MOVIE_PATTERN = re.compile(
     r"(?i)^\s*we\s+watched\s+(?!a\s+movie(?:\b|'s|’s))(?!.{0,80}\bpodcast\b)(?!.*[,]\s).+"
 )
+# A few Patreon highlight cuts use "Let's Watch <film>" instead of the
+# channel's later "We Watched" label. Keep the rule film-specific and leave
+# generic “let's watch”/news titles in the edge audit.
+LET_WATCH_MOVIE_PATTERN = re.compile(
+    r"(?i)^\s*let(?:'|’)?s\s+watch\s+(?!a\s+movie\b)(?!.*\b(?:live|scary\s+videos?|part\s+\d+|together)\b).+"
+)
 # The strict pattern drives public-canon inclusion. This wider pattern is an
 # audit lane only: it catches older naming conventions and lets us explain
 # why a title-looking lead was *not* promoted (review/reaction, short clip,
@@ -101,7 +107,7 @@ def discover() -> tuple[int, list[dict[str, Any]], list[dict[str, Any]]]:
         video_id = str(entry.get("id") or "").strip()
         if not video_id or not BROAD_TITLE_PATTERN.search(title):
             continue
-        watched_movie = bool(WATCHED_MOVIE_PATTERN.search(title))
+        watched_movie = bool(WATCHED_MOVIE_PATTERN.search(title) or LET_WATCH_MOVIE_PATTERN.search(title))
         row = {
             "id": video_id,
             "title": title,
@@ -170,6 +176,7 @@ def main() -> int:
         "channelUrl": CHANNEL_URL,
         "titlePattern": TITLE_PATTERN.pattern,
         "watchedMoviePattern": WATCHED_MOVIE_PATTERN.pattern,
+        "letWatchMoviePattern": LET_WATCH_MOVIE_PATTERN.pattern,
         "broadTitlePattern": BROAD_TITLE_PATTERN.pattern,
         "channelSnapshotSources": channel_count,
         "explicitCandidateCount": len(candidates),
