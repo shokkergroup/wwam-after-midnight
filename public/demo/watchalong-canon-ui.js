@@ -673,5 +673,5 @@
   }
 
   render();
-  root.WWAMWatchalongCanonUI = Object.freeze({ version: "1.2.0", render: render, payload: payload });
+  root.WWAMWatchalongCanonUI = Object.freeze({ version: "1.4.0", render: render, payload: payload });
 })(typeof window !== "undefined" ? window : globalThis);
