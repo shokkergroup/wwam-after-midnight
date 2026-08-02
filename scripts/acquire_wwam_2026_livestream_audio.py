@@ -8,6 +8,7 @@ receipts. A failed acquisition is recorded instead of blocking the batch.
 from __future__ import annotations
 
 import concurrent.futures
+import argparse
 import json
 import subprocess
 from datetime import datetime, timezone
@@ -17,7 +18,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DEMO = ROOT / "public" / "demo"
 AUDIO_DIR = ROOT / "source-cache" / "audio"
-MANIFEST = AUDIO_DIR / "wwam-2026-livestream-acquisition.json"
 YT_DLP = [
     "python", "-m", "yt_dlp",
     "--js-runtimes", r"node:C:\Program Files\nodejs\node.exe",
@@ -70,13 +70,20 @@ def acquire(episode: dict) -> dict:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="Acquire a bounded year shelf of WWAM livestream audio receipts.")
+    parser.add_argument("--year", type=int, default=2026)
+    parser.add_argument("--limit", type=int, default=0, help="Newest-first limit; zero means the full year shelf.")
+    args = parser.parse_args()
+    manifest = AUDIO_DIR / f"wwam-{args.year}-livestream-acquisition.json"
     AUDIO_DIR.mkdir(parents=True, exist_ok=True)
     canon = load_window(DEMO / "wwam-livestream-canon.js")
-    episodes = [episode for episode in canon.get("episodes", []) if str(episode.get("date", "")).startswith("2026")]
-    prior = json.loads(MANIFEST.read_text(encoding="utf-8")) if MANIFEST.exists() else {}
+    episodes = sorted([episode for episode in canon.get("episodes", []) if str(episode.get("date", "")).startswith(str(args.year))], key=lambda episode: str(episode.get("date", "")), reverse=True)
+    if args.limit > 0:
+        episodes = episodes[: args.limit]
+    prior = json.loads(manifest.read_text(encoding="utf-8")) if manifest.exists() else {}
     records = dict(prior.get("records") or {})
     targets = [episode for episode in episodes if not audio_file(episode["id"])]
-    print(f"TARGETS missing_audio={len(targets)} year=2026 episodes={len(episodes)}", flush=True)
+    print(f"TARGETS missing_audio={len(targets)} year={args.year} episodes={len(episodes)}", flush=True)
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
         futures = {executor.submit(acquire, episode): episode for episode in targets}
         for index, future in enumerate(concurrent.futures.as_completed(futures), 1):
@@ -84,13 +91,13 @@ def main() -> None:
             records[result["id"]] = result
             print(f"{index}/{len(targets)} {result['id']}: {result['status']} {result.get('file') or ''}", flush=True)
     payload = {
-        "schema": "wwam/2026-livestream-audio-acquisition/v1",
+        "schema": "wwam/livestream-audio-acquisition/v1",
         "observedAt": datetime.now(timezone.utc).isoformat(),
-        "year": 2026,
+        "year": args.year,
         "canonEpisodes": len(episodes),
         "records": records,
     }
-    MANIFEST.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    manifest.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print("RESULT", json.dumps({"canonEpisodes": len(episodes), "records": len(records), "acquired": sum(r.get("status") == "acquired" for r in records.values())}), flush=True)
 
 

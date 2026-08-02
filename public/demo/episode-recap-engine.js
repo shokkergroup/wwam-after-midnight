@@ -2,7 +2,7 @@
   "use strict";
 
   var SCHEMA = "shokker-episode-recap/v1";
-  var VERSION = "1.9.3";
+  var VERSION = "1.9.4";
 
   function clean(value) {
     return String(value == null ? "" : value).trim();
@@ -190,6 +190,42 @@
       return characterLabels(receipt)[0] || "Named character receipt";
     }
     return displayLabel(receipt && receipt.label) || "Saved checkpoint";
+  }
+
+  function genericFeatureLabel(value) {
+    return /^(?:UP IN YA|OUT OF POCKET|THE ROOM BREAKS|FULL SEND|TAKE GETS NUCLEAR|SOUNDBYTE|REPLAY|STINGER|SAVED MOMENT|MAJOR TOPIC TURN|HORROR BRAIN|KILL ROOM|FRANCHISE FELONY|CHAT DID THIS|TAPE OPEN|TAPE CLOSE|STRAIGHT TO STEVE'?S ASSHOLE|STEVE HATES THIS|FAN SIGNAL|CHARACTER SIGNAL)$/i
+      .test(displayLabel(value));
+  }
+
+  function contextualReceiptLabel(receipt, receipts, context) {
+    var base = receiptDisplayLabel(receipt);
+    if (!genericFeatureLabel(base)) return base;
+    var at = receiptTime(receipt);
+    var topicReceipts = array(receipts).filter(function (candidate) {
+      return candidate !== receipt && receiptKind(candidate) === "topic" &&
+        !genericFeatureLabel(receiptDisplayLabel(candidate));
+    });
+    var nearest = topicReceipts.slice().sort(function (left, right) {
+      var leftDistance = Math.abs(receiptTime(left) - at);
+      var rightDistance = Math.abs(receiptTime(right) - at);
+      return leftDistance - rightDistance ||
+        receiptSignal(right) - receiptSignal(left) ||
+        receiptTime(left) - receiptTime(right);
+    })[0];
+    var subject = nearest && receiptDisplayLabel(nearest);
+    if (!subject) {
+      subject = array(record(context).titleTopics).map(displayLabel).find(function (label) {
+        return label && !genericFeatureLabel(label);
+      });
+    }
+    if (!subject) {
+      var title = clean(record(context).title);
+      subject = title && title.replace(/\s*(?:[-|]\s*)?\bLIVE\b.*$/i, "").trim();
+    }
+    if (!subject || genericFeatureLabel(subject)) {
+      subject = "SOURCE CHECKPOINT";
+    }
+    return base + " // " + subject;
   }
 
   function safeExcerpt(receipt, limit) {
@@ -562,7 +598,7 @@
     }
 
     var selectedFeatures = selected.map(function (receipt) {
-      return Object.assign({}, feature(receipt, duration), {
+      return Object.assign({}, contextualFeature(receipt, duration, receipts, context), {
         kind: receiptKind(receipt),
         category: highlightCategory(receipt, context),
       });
@@ -1689,6 +1725,13 @@
     };
   }
 
+  function contextualFeature(receipt, duration, receipts, context) {
+    var item = feature(receipt, duration);
+    if (!item) return null;
+    item.label = contextualReceiptLabel(receipt, receipts, context);
+    return item;
+  }
+
   function guideFeature(guide, key) {
     var item = record(record(guide).fanRead)[key];
     if (!item || !clean(item.cutId)) return null;
@@ -1736,7 +1779,7 @@
     var selected = array(lane.receiptKeys).map(function (key) {
       return receiptByKey[clean(key)] || null;
     }).filter(Boolean)[0];
-    return feature(selected, duration);
+    return contextualFeature(selected, duration, receipts, context);
   }
 
   function derivedFanRead(receipts, guide, duration, context) {
@@ -1756,14 +1799,14 @@
       return receiptTime(right) - receiptTime(left);
     })[0];
     return {
-      loved: guideFeature(guide, "loved") || feature(loved, duration),
+      loved: guideFeature(guide, "loved") || contextualFeature(loved, duration, receipts, context),
       hated: guideFeature(guide, "hated") ||
         laneFeature(receipts, context, "straight-to-steves-asshole", duration) ||
-        feature(hated, duration),
+        contextualFeature(hated, duration, receipts, context),
       wildestDetour: guideFeature(guide, "wildestDetour") ||
         laneFeature(receipts, context, "up-in-ya", duration) ||
-        feature(wildest, duration),
-      lastWord: guideFeature(guide, "lastWord") || feature(last, duration),
+        contextualFeature(wildest, duration, receipts, context),
+      lastWord: guideFeature(guide, "lastWord") || contextualFeature(last, duration, receipts, context),
     };
   }
 
@@ -2133,7 +2176,7 @@
       sections: sections,
       story: story,
       bestMoments: moments.map(function (receipt) {
-        return feature(receipt, source.duration);
+        return contextualFeature(receipt, source.duration, receipts, context);
       }).filter(Boolean),
       fanRead: derivedFanRead(receipts, guide, source.duration, context),
       caseFile: caseFile(

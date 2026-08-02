@@ -193,6 +193,21 @@
     return '<div class="wac-watch-pass-read"><span class="wac-section-label">LISTENING READ // EVIDENCE MIX</span><strong>' + esc(digest.headline || 'The pass retained bounded source routes.') + '</strong>' + (mix.length ? '<small>' + esc(mix.join(' // ')) + '</small>' : '') + '<p>' + esc(digest.evidence || 'Playback remains the authority.') + '</p></div>';
   }
 
+  function watchCandidateLabel(episode, candidate) {
+    var category = clean(candidate && (candidate.category || candidate.label || 'SOURCE RECEIPT'));
+    var topics = Array.isArray(episode && episode.topics) ? episode.topics : [];
+    var at = Number(candidate && candidate.t || 0);
+    var nearest = topics.slice().sort(function (left, right) {
+      var leftAt = Number(left && (left.peak || left.first || 0));
+      var rightAt = Number(right && (right.peak || right.first || 0));
+      return Math.abs(leftAt - at) - Math.abs(rightAt - at) ||
+        Number(right && right.mentions || 0) - Number(left && left.mentions || 0);
+    })[0];
+    var topic = clean(nearest && nearest.name);
+    if (!topic || /^SOURCE RECEIPT$/i.test(category)) return category || 'SOURCE RECEIPT';
+    return category + ' // ' + topic;
+  }
+
   function watchPassMarkup(episode) {
     var pass = episode.watchPass;
     if (!pass) return '';
@@ -204,7 +219,7 @@
     }
     return '<section class="wac-watch-pass"><header><div><span class="wac-section-label">' + esc(pass.label || 'HALLOWEEN WATCH PASS // AUDIO PILOT') + '</span><h4>LISTEN FOR THE ROOM TO CHANGE.</h4><p>' + esc(pass.note || 'Canonical audio was sampled and aligned to the caption map.') + '</p></div><a target="_blank" rel="noopener" href="' + esc(episode.url) + '">PLAY OFFICIAL SOURCE ↗</a></header><div class="wac-watch-pass-metrics"><span><b>' + number(audit.captionEvents) + '</b>CAPTION EVENTS</span><span><b>' + number(audit.laughterOrOverlapMarkers) + '</b>LAUGHTER / OVERLAP MARKERS</span><span><b>' + number(audit.candidateCount) + '</b>RANKED AUDIO CANDIDATES</span><span><b>' + number(stats.energyP90Seconds) + '</b>HIGH-ENERGY SECONDS</span></div><div class="wac-watch-pass-candidates">' + candidates.map(function (candidate) {
       var audio = candidate.audio || {};
-      return '<a target="_blank" rel="noopener" href="' + esc(sourceUrl(episode, candidate.t)) + '"><header><b>#' + esc(candidate.rank) + ' // ' + esc(candidate.category) + '</b><span>' + esc(timestamp(candidate.t)) + ' // SCORE ' + esc(candidate.score) + '</span></header><p>' + esc(excerpt(candidate.captionExcerpt, 230)) + '</p><small>ENERGY ' + esc(audio.meanEnergyPercentile) + 'TH PCTL // PEAK ' + esc(audio.peakPercentile) + 'TH PCTL // ' + (audio.markerObserved ? 'MARKER OBSERVED' : 'NO MARKER') + '</small></a>';
+      return '<a target="_blank" rel="noopener" href="' + esc(sourceUrl(episode, candidate.t)) + '"><header><b>#' + esc(candidate.rank) + ' // ' + esc(watchCandidateLabel(episode, candidate)) + '</b><span>' + esc(timestamp(candidate.t)) + ' // SCORE ' + esc(candidate.score) + '</span></header><p>' + esc(excerpt(candidate.captionExcerpt, 230)) + '</p><small>ENERGY ' + esc(audio.meanEnergyPercentile) + 'TH PCTL // PEAK ' + esc(audio.peakPercentile) + 'TH PCTL // ' + (audio.markerObserved ? 'MARKER OBSERVED' : 'NO MARKER') + '</small></a>';
     }).join('') + '</div><p class="wac-watch-pass-foot">AUDIO-ONLY PILOT // ACOUSTIC INTENSITY RE-RANKS THE CAPTION CANDIDATES; IT DOES NOT IDENTIFY A SPEAKER OR PROVE A JOKE. PLAYBACK REMAINS THE AUTHORITY.</p></section>';
   }
 

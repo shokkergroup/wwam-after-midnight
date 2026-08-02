@@ -307,12 +307,32 @@ function candidateMoments(events, duration, aliases) {
     .sort((left, right) => right.data.mentions - left.data.mentions)
     .slice(0, 10)
     .map((item) => ({ name: item.name, ...item.data, evidence: { type: events[0]?.evidenceType || "source-local-transcript", timestampStatus: "caption-event", excerptStatus: "short-caption-fragment", speakerStatus: "not-diarized", reviewStatus: "machine-candidate" } }));
+  const contextualCandidates = candidates.map((candidate) => {
+    const generic = /^(?:WWAM UP IN YA|UP IN YA|STRAIGHT TO STEVE'S ASSHOLE|FILM READ|CHARACTER SIGNAL|FAN SIGNAL|OPENING READ|CLOSING READ|WATCH ROUTE)$/i.test(candidate.label || "");
+    if (!generic) return candidate;
+    const hintTerms = [...new Set([
+      ...topicTerms.map((topic) => topic.name),
+      "Michael Myers", "Ghostface", "Jason", "Freddy", "Chucky", "Tiffany",
+      "Dr. Loomis", "Dr. Challis", "Slenderman", "Corey Feldman",
+    ])].sort((left, right) => right.length - left.length);
+    const excerptText = clean(candidate.excerpt);
+    const excerptSubject = hintTerms.find((term) => new RegExp(
+      `\\b${term.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&").replace(/\\s+/g, "\\\\s+")}\\b`, "i"
+    ).test(excerptText));
+    const nearest = topicTerms.slice().sort((left, right) =>
+      Math.abs(Number(left.at || left.peak || left.first || 0) - candidate.t) -
+      Math.abs(Number(right.at || right.peak || right.first || 0) - candidate.t) ||
+      Number(right.mentions || 0) - Number(left.mentions || 0)
+    )[0];
+    const subject = excerptSubject || nearest?.name || aliases[0] || "SOURCE CHECKPOINT";
+    return { ...candidate, label: `${candidate.label} // ${subject}` };
+  });
   const chapters = [0, 1, 2, 3, 4, 5, 6, 7].map((index) => {
     const at = Math.round((duration || events.at(-1).end) * index / 8);
-    const nearest = candidates.slice().sort((left, right) => Math.abs(left.t - at) - Math.abs(right.t - at))[0];
+    const nearest = contextualCandidates.slice().sort((left, right) => Math.abs(left.t - at) - Math.abs(right.t - at))[0];
     return nearest ? { id: `act-${String(index + 1).padStart(2, "0")}`, act: index + 1, label: `${nearest.label} // ${nearest.category}`, at: nearest.t, end: nearest.end, body: `The source-local caption ledger puts ${nearest.label.toLowerCase()} at ${formatTimestamp(nearest.t)}. The jump is a machine candidate; open the tape before treating the line as a final read.`, excerpt: nearest.excerpt, category: nearest.category, cutId: nearest.id, evidenceBasis: nearest.evidenceBasis } : null;
   }).filter(Boolean);
-  return { moments: candidates, topics: topicTerms, chapters, captionWords: words(events.map((event) => event.text).join(" ")).length, captionEvents: events.length };
+  return { moments: contextualCandidates, topics: topicTerms, chapters, captionWords: words(events.map((event) => event.text).join(" ")).length, captionEvents: events.length };
 }
 
 function titleDerivedTaxonomy(title) {
