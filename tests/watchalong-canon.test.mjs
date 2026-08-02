@@ -73,6 +73,15 @@ test("watchalong canon has the complete public source registry", () => {
   assert.ok(canon.companionWatchalongs.some((record) => /DUNKIRK/i.test(record.title)));
   assert.ok(canon.companionWatchalongs.some((record) => /Star Trek/i.test(record.title)));
   assert.ok(canon.companionReviews.some((record) => /LONGLEGS/i.test(record.title)));
+  const earlyCut = canon.companionWatchalongs.find((record) => record.id === "a4uOCsmPKD4");
+  assert.equal(earlyCut.dossier.state, "companion-source-brief");
+  assert.equal(earlyCut.formatBoundary, "EARLY EDITED WATCHALONG // NOT A FULL-FILM COMMENTARY");
+  const adjacentReview = canon.companionReviews.find((record) => record.id === "jfirLE0reBY");
+  assert.equal(adjacentReview.dossier.state, "companion-source-brief");
+  assert.equal(adjacentReview.formatBoundary, "ADJACENT REACTION / REVIEW // NOT A FULL-FILM COMMENTARY");
+  const earlyRoute = routeIndex.sources.find((source) => source.id === "a4uOCsmPKD4");
+  assert.equal(earlyRoute.dossier.state, "adjacent-source-brief", "edge audit receipts supersede the thinner companion shell on cold routes");
+  assert.equal(earlyRoute.formatBoundary, "ADJACENT PUBLIC SOURCE // NOT A FULL-FILM COMMENTARY");
   assert.equal(canon.podcastCommentaries.length, 6);
   assert.ok(canon.podcastCommentaries.some((record) => record.movieTitle === "Wayne's World"));
   assert.ok(canon.podcastCommentaries.some((record) => record.movieTitle === "Predator (1987)"));

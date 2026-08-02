@@ -117,6 +117,7 @@
 .wac-companion-card header span { color: var(--canon-hot); font: 800 .48rem/1.2 ui-monospace, Consolas, monospace; letter-spacing: .08em; text-transform: uppercase; }
 .wac-companion-card header small { color: var(--canon-dim); font: 700 .46rem/1.2 ui-monospace, Consolas, monospace; white-space: nowrap; }
 .wac-companion-card h4 { margin: 0; color: var(--canon-ink); font: 800 .95rem/1.05 "Arial Narrow", Impact, sans-serif; text-transform: uppercase; }
+.wac-companion-card .wac-companion-boundary { flex: none; color: var(--canon-acid); font: 800 .47rem/1.25 ui-monospace, Consolas, monospace; letter-spacing: .06em; text-transform: uppercase; }
 .wac-companion-card p { flex: 1; margin: 0; color: var(--canon-dim); font: 500 .63rem/1.42 ui-sans-serif, system-ui, sans-serif; }
 .wac-companion-card a { color: var(--canon-acid); font: 800 .52rem/1.2 ui-monospace, Consolas, monospace; letter-spacing: .06em; text-decoration: none; text-transform: uppercase; }
 .wac-companion-card a:hover { color: var(--canon-hot); }

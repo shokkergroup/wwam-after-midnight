@@ -785,6 +785,84 @@ const edgeAdjacentSources = edgeAuditData.records
   .filter((record) => record.status === "caption-confirmed-adjacent" || record.status === "public-metadata-only")
   .map(edgeEpisodeFrom);
 
+// Early edited watchalong cuts and review/reaction uploads are not full-film
+// canon, but several of them already have a local caption receipt. Give those
+// rooms the same source-specific shape as the adjacent shelf instead of
+// sending visitors into a generic metadata card. The boundary stays explicit:
+// these are edited/short/reaction sources, and their routes belong only to
+// this upload's clock.
+function companionEpisodeFrom(candidate) {
+  const acquired = edgeAcquisitionById.get(candidate.id) || {};
+  const metadataRecord = metadataById.get(candidate.id) || acquired || {};
+  const taxonomy = explicitExtras.get(candidate.id) || { ...titleDerivedTaxonomy(candidate.title), type: candidate.signal || "companion-source", note: "title-derived companion source" };
+  const events = captionEvents(candidate.id);
+  const duration = Number(metadataRecord.duration || candidate.duration || 0);
+  const aliases = [taxonomy.movieTitle, taxonomy.franchiseTitle, clean(candidate.title)].filter(Boolean);
+  const derived = candidateMoments(events, duration, aliases, taxonomy);
+  const allMoments = derived.moments;
+  const fanSignals = fanSignalCandidates(events, duration);
+  const momentsWithFans = [...allMoments, ...fanSignals].sort((left, right) => left.t - right.t);
+  const laneCounts = ledgerLaneCounts(momentsWithFans);
+  const firstMoment = momentsWithFans[0] || null;
+  const strongestMoment = momentsWithFans.slice().sort((left, right) => Number(right.score || 0) - Number(left.score || 0))[0] || null;
+  const finalMoment = momentsWithFans.slice().sort((left, right) => right.t - left.t)[0] || null;
+  const formatLabel = candidate.signal === "watchalong-edit" ? "edited watchalong cut" : candidate.signal === "short-form-watch-lead" ? "short-form watch lead" : "reaction / review";
+  const boundary = candidate.signal === "watchalong-edit"
+    ? "EARLY EDITED WATCHALONG // NOT A FULL-FILM COMMENTARY"
+    : candidate.signal === "short-form-watch-lead"
+      ? "SHORT-FORM WATCH LEAD // NOT A FULL-FILM COMMENTARY"
+      : "ADJACENT REACTION / REVIEW // NOT A FULL-FILM COMMENTARY";
+  const captioned = events.length > 0;
+  const summary = captioned
+    ? `${watchalongVoiceSummary({ taxonomy: { ...taxonomy, type: taxonomy.type || "watch-along" }, duration, laneCounts, topics: derived.topics, firstMoment, strongestMoment, finalMoment, allMoments: momentsWithFans, audioCuts: [] })} This is a ${formatLabel}, not a full-film commentary; the local map is navigation evidence for this upload only.`
+    : `${clean(candidate.title)} is a ${formatLabel} kept outside the full-film canon. The public metadata is preserved, but this observation has no local caption receipt, so the room stays playable without invented timestamps or fake speaker claims.`;
+  return {
+    id: candidate.id,
+    title: clean(metadataRecord.title || candidate.title),
+    displayTitle: clean(metadataRecord.title || candidate.title),
+    date: dateFrom(metadataRecord.upload_date) || null,
+    duration,
+    durationLabel: formatTimestamp(duration),
+    thumbnail: metadataRecord.thumbnail || `https://i.ytimg.com/vi/${candidate.id}/maxresdefault.jpg`,
+    url: candidate.url || `https://www.youtube.com/watch?v=${candidate.id}`,
+    channel: metadataRecord.channel || "WeWatchedAMovie",
+    channelId: metadataRecord.channel_id || null,
+    topics: derived.topics,
+    sourceTopics: [],
+    signal: candidate.signal,
+    summary,
+    verdict: null,
+    note: taxonomy.note || "Companion public receipt; kept outside the full-film watchalong canon.",
+    availability: metadataRecord.availability || "unresolved",
+    sourceAvailability: metadataRecord.availability || null,
+    publicSource: metadataRecord.availability !== "subscriber_only",
+    franchiseKey: taxonomy.franchiseKey,
+    franchiseTitle: taxonomy.franchiseTitle,
+    movieKey: taxonomy.movieKey,
+    movieTitle: taxonomy.movieTitle,
+    formatBoundary: boundary,
+    companionSource: true,
+    captioned,
+    captionEvents: events.length,
+    status: metadataRecord.availability === "subscriber_only" ? "members-only-hold" : metadataRecord.availability ? "public-companion" : "playability-unresolved",
+    dossier: {
+      state: captioned ? "companion-caption-dossier" : "companion-source-brief",
+      summary,
+      evidenceSummary: captioned
+        ? `Local companion receipt: ${events.length.toLocaleString("en-US")} caption events across ${formatTimestamp(events.at(-1)?.end || duration)}. Routes are bounded to this edited/reaction upload and do not claim a full-film timeline.`
+        : "No local caption receipt is present in this observation. Metadata is preserved without manufacturing a route map.",
+      shape: { runtimeBand: duration >= 1800 ? "FEATURE-LITE" : "SHORT", chapters: derived.chapters.length, threads: derived.topics.length, cuts: momentsWithFans.length },
+      fanRead: captioned ? ledgerFanRead(momentsWithFans, finalMoment) : null,
+      fanSignals,
+      laneCounts,
+      chapters: derived.chapters,
+      cuts: momentsWithFans,
+      route: { opening: firstMoment, strongest: strongestMoment, closing: finalMoment },
+      caption: { words: derived.captionWords, events: events.length, minutes: Math.round((events.at(-1)?.end || duration) / 60), sourceFile: captioned ? `source-cache/captions/${candidate.id}${fs.existsSync(path.join(CAPTIONS_DIR, `${candidate.id}.json`)) ? ".json" : ".asr.json"}` : null, sourceKind: captioned ? (events[0]?.evidenceType || "source-local-transcript") : null }
+    }
+  };
+}
+
 const groupsByKey = new Map();
 episodes.forEach((episode) => {
   if (!groupsByKey.has(episode.movieKey)) groupsByKey.set(episode.movieKey, {
@@ -812,48 +890,10 @@ const broadDiscoveryCandidates = Array.isArray(discoveryManifest?.broadCandidate
 const edgeAcquisitionById = new Map((discoveryManifest?.edgeResults || []).map((record) => [record.id, record]));
 const companionWatchalongs = broadDiscoveryCandidates
   .filter((candidate) => candidate.signal === "watchalong-edit" && !includedIds.has(candidate.id))
-  .map((candidate) => {
-    const acquired = edgeAcquisitionById.get(candidate.id) || {};
-    const source = metadataById.get(candidate.id) || acquired;
-    const availability = source.availability || "unresolved";
-    return {
-      id: candidate.id,
-      title: candidate.title,
-      url: candidate.url,
-      date: dateFrom(source.upload_date) || null,
-      duration: Number(source.duration || candidate.duration || 0),
-      durationLabel: formatTimestamp(Number(source.duration || candidate.duration || 0)),
-      thumbnail: source.thumbnail || `https://i.ytimg.com/vi/${candidate.id}/maxresdefault.jpg`,
-      signal: candidate.signal,
-      availability,
-      publicSource: availability !== "subscriber_only",
-      captionEvents: Number(acquired.captionEvents || 0),
-      status: availability === "subscriber_only" ? "members-only-hold" : availability === "unresolved" ? "playability-unresolved" : "public-companion",
-      evidence: "title-explicit early edited watchalong lead; retained outside the full-film canon until its source format is confirmed",
-    };
-  });
+  .map(companionEpisodeFrom);
 const companionReviews = broadDiscoveryCandidates
   .filter((candidate) => ["reaction-or-review", "short-form-watch-lead"].includes(candidate.signal) && !includedIds.has(candidate.id))
-  .map((candidate) => {
-    const acquired = edgeAcquisitionById.get(candidate.id) || {};
-    const source = metadataById.get(candidate.id) || acquired;
-    const availability = source.availability || "unresolved";
-    return {
-      id: candidate.id,
-      title: candidate.title,
-      url: candidate.url,
-      date: dateFrom(source.upload_date) || null,
-      duration: Number(source.duration || candidate.duration || 0),
-      durationLabel: formatTimestamp(Number(source.duration || candidate.duration || 0)),
-      thumbnail: source.thumbnail || `https://i.ytimg.com/vi/${candidate.id}/maxresdefault.jpg`,
-      signal: candidate.signal,
-      availability,
-      publicSource: availability !== "subscriber_only",
-      captionEvents: Number(acquired.captionEvents || 0),
-      status: availability === "subscriber_only" ? "members-only-hold" : availability === "unresolved" ? "playability-unresolved" : "public-adjacent",
-      evidence: "title-explicit movie reaction/review or short watch lead; not promoted as a full-film commentary",
-    };
-  });
+  .map(companionEpisodeFrom);
 const liveStrictCandidates = broadDiscoveryCandidates.filter((candidate) => candidate.strictTitleMatch);
 const liveStrictHeldCandidates = liveStrictCandidates.filter((candidate) => metadataById.get(candidate.id)?.availability === "subscriber_only");
 const liveStrictPublicCandidates = liveStrictCandidates.filter((candidate) => metadataById.get(candidate.id)?.availability !== "subscriber_only");

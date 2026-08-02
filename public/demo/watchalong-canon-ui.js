@@ -131,7 +131,13 @@
       var source = local ? ('?source=' + encodeURIComponent(item.id) + '&section=wiki#archive') : (item.url || ('https://www.youtube.com/watch?v=' + encodeURIComponent(item.id)));
       var linkAttrs = local ? '' : ' target="_blank" rel="noopener"';
       var linkLabel = local ? 'OPEN LOCAL SHOW WIKI →' : 'OPEN SOURCE ↗';
-      return '<article class="wac-companion-card"><header><span>' + esc(label) + '</span><small>' + esc(dateLabel(item.date)) + ' // ' + esc(durationLabel(item.duration)) + '</small></header><h4>' + esc(item.title) + '</h4><p>' + esc(state) + '. This title stays outside the full-film count until its exact format is confirmed; no fake jump points are attached.</p><a' + linkAttrs + ' href="' + esc(source) + '">' + linkLabel + '</a></article>';
+      var routeCount = Number(item.dossier && item.dossier.cuts && item.dossier.cuts.length || item.captionEvents || 0);
+      var routeNote = routeCount ? routeCount + ' SOURCE-LOCAL ROUTE' + (routeCount === 1 ? '' : 'S') + ' READY' : 'NO LOCAL TIMESTAMP RECEIPT YET';
+      var boundary = item.formatBoundary || 'COMPANION SOURCE // FORMAT KEPT SEPARATE';
+      var copy = routeCount
+        ? state + '. ' + routeNote + ' are attached to this upload only. The page keeps it outside the full-film count without throwing away the good stuff.'
+        : state + '. The title stays outside the full-film count until a source-local receipt is available; the public source remains playable and honestly labeled.';
+      return '<article class="wac-companion-card"><header><span>' + esc(label) + '</span><small>' + esc(dateLabel(item.date)) + ' // ' + esc(durationLabel(item.duration)) + '</small></header><h4>' + esc(item.title) + '</h4><p class="wac-companion-boundary">' + esc(boundary) + '</p><p>' + esc(copy) + '</p><a' + linkAttrs + ' href="' + esc(source) + '">' + linkLabel + '</a></article>';
     }
     var watchMarkup = watchalongs.map(function (item) { return card(item, 'EARLY WATCHED CUT'); }).join('');
     var reviewMarkup = reviews.map(function (item) { return card(item, item.signal === 'short-form-watch-lead' ? 'SHORT WATCH LEAD' : 'REACTION / REVIEW'); }).join('');
