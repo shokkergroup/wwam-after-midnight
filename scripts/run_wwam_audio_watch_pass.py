@@ -169,12 +169,26 @@ SIGNALS = [
     ("TAKE GETS NUCLEAR", re.compile(r"\b(?:obviously|literally|never|always|greatest|insane|ridiculous|unacceptable|wrong|right|point blank|period)\b", re.I)),
 ]
 
+# Explicit WWAM lanes outrank generic exclamations when a caption window hits
+# more than one signal.  Without this tie-break, a line that says "oh my god"
+# while thanking a Super Chat could be mislabeled as ROOM BREAK and disappear
+# from the fan/bit shelves.  The weighting only changes taxonomy; the source
+# timestamp and excerpt remain the same bounded evidence receipt.
+SIGNAL_PRIORITY = {
+    "WWAM UP IN YA": 7,
+    "STRAIGHT TO STEVE'S ASSHOLE": 6,
+    "FAN SIGNAL": 6,
+    "CHARACTER SIGNAL": 5,
+    "TAKE GETS NUCLEAR": 3,
+    "ROOM BREAK": 0,
+}
+
 
 def signal_for(text: str) -> tuple[str, int]:
     hits = [(label, len(pattern.findall(text))) for label, pattern in SIGNALS if pattern.search(text)]
     if not hits:
         return ("OPEN MIC", 0)
-    return max(hits, key=lambda pair: pair[1])
+    return max(hits, key=lambda pair: (pair[1] * 4 + SIGNAL_PRIORITY.get(pair[0], 0), pair[1], SIGNAL_PRIORITY.get(pair[0], 0)))
 
 
 def candidate_rows(events: list[dict], audio: dict, max_candidates: int = 15) -> list[dict]:
@@ -254,8 +268,25 @@ def provenance(video_id: str, date: str, audio_file: Path, duration: int, format
     }
 
 
+def load_existing_watch_pass() -> dict:
+    """Keep the shared watch-pass registry additive across livestream/watchalong runs."""
+    path = DEMO_DIR / "wwam-watch-pass-pilot.js"
+    if not path.exists():
+        return {"schema": "wwam/watch-pass-pilot/v1", "episodes": {}}
+    raw = path.read_text(encoding="utf-8")
+    try:
+        return json.JSONDecoder().raw_decode(raw.split("=", 1)[1].lstrip())[0]
+    except (IndexError, json.JSONDecodeError):
+        return {"schema": "wwam/watch-pass-pilot/v1", "episodes": {}}
+
+
 def main() -> None:
-    output: dict = {"schema": "wwam/watch-pass-pilot/v1", "version": "2026-audio-pilot-01", "status": "audio-feature-pilot", "scope": "latest-three-2026-livestreams", "episodes": {}}
+    output: dict = load_existing_watch_pass()
+    output.setdefault("schema", "wwam/watch-pass-pilot/v1")
+    output["version"] = "2026-audio-pilot-04"
+    output["status"] = "audio-feature-pilot"
+    output["scope"] = "latest-three-2026 + all-watchalongs"
+    output.setdefault("episodes", {})
     for video_id, date in EPISODES:
         audio_file = AUDIO_DIR / f"{video_id}.m4a"
         if not audio_file.exists():

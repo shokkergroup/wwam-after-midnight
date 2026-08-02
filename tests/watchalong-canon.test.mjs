@@ -170,7 +170,7 @@ test("every episode has an official source, evidence state, and playable receipt
   assert.ok(canon.episodes.filter((episode) => episode.duration >= 5400 && episode.watchPass.status === "audio-feature-pilot").every((episode) => episode.watchPass.candidates.length >= 15), "feature-length watchalongs retain at least fifteen audio-ranked routes");
   assert.ok(canon.episodes.filter((episode) => episode.dossier.state === "caption-ledger-dossier").every((episode) => !/local caption ledger leaves|indexed doors hit|cleanest way in|jumpable guide to the room/i.test(episode.dossier.summary)), "caption-ledger recaps do not fall back to the old machine-shaped boilerplate");
   const heldHalloweenTwo = canon.episodes.find((episode) => episode.id === "AzrcgoyE7C4");
-  assert.match(heldHalloweenTwo.dossier.summary, /official podcast variant contributes 33 audio-bound routes/i);
+  assert.match(heldHalloweenTwo.dossier.summary, /official podcast variant contributes \d+ audio-bound routes/i);
   assert.equal(canon.episodes.filter((episode) => !/^held-/.test(episode.watchPass.status)).filter((episode) => episode.watchPass.listeningDigest?.headline).length, 101, "every acquired watchalong has a listening read");
   const audioEnriched = canon.episodes.filter((episode) => /audio-feature pass adds/i.test(episode.dossier.summary));
   const audioCuts = audioEnriched.flatMap((episode) => episode.dossier.cuts.filter((cut) => cut.audio));

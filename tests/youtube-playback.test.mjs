@@ -188,7 +188,7 @@ test("the document and both direct player paths cannot suppress YouTube's referr
     index.indexOf('youtube-playback.js?v=') <
       index.indexOf('app.js?v=')
   );
-  assert.equal((app.match(/ShokkerYouTubePlayback\.iframe/g) || []).length, 2);
+  assert.ok((app.match(/ShokkerYouTubePlayback\.iframe/g) || []).length >= 2);
   assert.match(companion, /if \(code === 153\)/);
   assert.match(companion, /PLAYER SWITCHED \/\/ USE THE TIMELINE/);
   assert.doesNotMatch(

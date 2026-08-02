@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import re
+import sys
 from pathlib import Path
 
 from run_wwam_audio_watch_pass import AUDIO_DIR, DEMO_DIR, candidate_rows, caption_events, category_counts, provenance, stream_features
@@ -241,13 +242,25 @@ def caption_only_record(episode: dict, events: list[dict]) -> dict:
 def main() -> None:
     existing = load_json_from_window(DEMO_DIR / "wwam-watch-pass-pilot.js")
     output = dict(existing)
-    output["version"] = "2026-audio-pilot-03"
+    refresh = "--refresh" in sys.argv
+    output["version"] = "2026-audio-pilot-04"
     output["scope"] = "latest-three-2026 + all-watchalongs"
     output["scopes"] = ["latest-three-2026", "all-watchalongs"]
     output["selectionPolicy"] = "Evidence-scaled ranked browse set with no fixed 48-card ceiling; longer and denser tapes receive more surfaced receipts. This is not a claim that unlisted caption candidates do not exist."
     output.setdefault("episodes", {})
     canon = load_json_from_window(WATCHALONG_FILE)
     episodes = canon.get("episodes", [])
+    if refresh:
+        # Re-decode every locally available tape so classifier improvements
+        # are actually reflected instead of being hidden by the incremental
+        # reuse path.  Missing/held sources are still handled conservatively.
+        # Preserve the separate latest-livestream pilot records in this shared
+        # file; they are not part of the watchalong canon loop below.
+        canon_ids = {episode.get("id") for episode in episodes}
+        output["episodes"] = {
+            video_id: record for video_id, record in output["episodes"].items()
+            if video_id not in canon_ids
+        }
     analyzed = 0
     held = 0
     total_audio_seconds = 0
@@ -275,6 +288,7 @@ def main() -> None:
         )
         if (
             audio_file
+            and not refresh
             and prior.get("status") == "audio-feature-pilot"
             and prior_media.get("canonicalAudioAvailable") is True
             and int((prior.get("audit") or {}).get("candidateTarget") or 0) >= desired_prior_target
