@@ -316,7 +316,7 @@ function normalizeMoments(items, restricted = false) {
       category: clean(moment.category || moment.label || "SOURCE RECEIPT"),
       label: clean(moment.label || moment.category || "SOURCE RECEIPT"),
       score: Number(moment.heat || moment.score || 0),
-      excerpt: clean(moment.excerpt || moment.quote || ""),
+      excerpt: normalizeCaptionText(moment.excerpt || moment.quote || ""),
       evidenceBasis: moment.evidenceBasis || "source-local caption candidate",
       reviewStatus: moment.reviewStatus || "machine-candidate"
     }))

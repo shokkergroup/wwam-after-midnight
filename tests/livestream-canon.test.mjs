@@ -99,6 +99,12 @@ test("audio watch-pass receipts are marker-clean and disclose caption alignment"
   assert.ok(candidates.length >= 1700, "2026 audio pass retains its ranked candidate shelf");
   assert.ok(candidates.every((candidate) => typeof candidate.captionAligned === "boolean" && candidate.captionExcerpt), "each audio candidate discloses whether a caption fragment aligned and has an honest fallback");
   assert.ok(candidates.every((candidate) => !/[\\[]\\s*(?:__+|music|laughter|inaudible|bleep)\\s*[\\]]/i.test(candidate.captionExcerpt || "")), "livestream audio candidates remove caption-stage marker debris");
+  const visibleReceipts = canon.episodes.flatMap((episode) => [
+    ...(episode.moments || []), ...(episode.chapters || []), ...(episode.bestBits || []), ...(episode.fanSignals || []),
+    ...(episode.recurringBits || []).flatMap((lane) => lane.receipts || []), ...(episode.yearPass?.sceneBeats || []),
+    ...(episode.characterCues || []).flatMap((character) => character.receipts || [])
+  ]);
+  assert.ok(visibleReceipts.every((receipt) => !/[\\[]\\s*(?:__+|music|laughter|inaudible|bleep)\\s*[\\]]/i.test(receipt.excerpt || receipt.receipt || "")), "visible livestream receipts remove caption-stage marker debris");
 });
 
 test("livestream canon surface is wired into the page and route shell", () => {
