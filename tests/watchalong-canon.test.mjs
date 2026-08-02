@@ -90,6 +90,9 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(html, /href="#watchalong-canon"/);
   assert.match(html, /wwam-watchalong-canon\.js/);
   assert.match(html, /watchalong-canon\.css/);
+  assert.match(html, /PUBLIC WATCHALONG CANON \/\/ 91 SOURCES \/ 88 MOVIE FILES/);
+  assert.doesNotMatch(html, /PUBLIC WATCHALONG CANON \/\/ 50 SOURCES \/ 47 MOVIE FILES/);
+  assert.match(html, /TWELVE FRANCHISE WORLDS \/\/ NINETY-ONE SOURCES/);
   assert.match(ui, /MOVIE FILES \/\/ REPEATS STAY ATTACHED/);
   assert.match(ui, /data-wac-group/);
   assert.match(ui, /function fanSignalsMarkup\(episode, signals\)/);
