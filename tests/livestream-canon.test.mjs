@@ -114,6 +114,7 @@ test("livestream canon surface is wired into the page and route shell", () => {
   const gate = fs.readFileSync(path.join(root, "public/demo/route-render-gate.js"), "utf8");
   const ui = fs.readFileSync(path.join(root, "public/demo/livestream-canon-ui.js"), "utf8");
   const css = fs.readFileSync(path.join(root, "public/demo/livestream-canon.css"), "utf8");
+  assert.match(ui, /ACOUSTIC ONLY/, "livestream audio routes visibly disclose acoustic-only listening cues");
   assert.match(html, /id="livestream-canon"/);
   assert.match(html, /wwam-livestream-canon\.js/);
   assert.match(html, /wwam-livestream-audio-pass\.js/);
