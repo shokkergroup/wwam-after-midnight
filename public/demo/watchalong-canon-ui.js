@@ -75,6 +75,13 @@
       '</div><p class="wac-proof-note"><strong>EVIDENCE SPLIT</strong> ' + number(stats.deepDossiers) + ' full editorial dossiers // ' + number(stats.captionLedgers) + ' caption-ledger additions // ' + number(stats.sourceBriefs || 0) + ' held source brief. <strong>FAN SIGNAL LEDGER</strong> ' + number(stats.fanSignalReceipts) + ' source-local fan callout receipts across ' + number(stats.episodesWithFanSignals) + ' episodes — Super Chats, memberships, Lee “The Machine,” Michael Parton/Partin, and chat questions stay attached to the tape.</p>';
   }
 
+  var baseProofMarkup = proofMarkup;
+  proofMarkup = function () {
+    var scope = payload.scope || {};
+    var stats = payload.stats || {};
+    return baseProofMarkup() + '<p class="wac-proof-note"><strong>CHANNEL AUDIT</strong> ' + number(scope.channelSnapshotSources) + ' uploads observed in the live channel snapshot // ' + number(stats.sourceCounts && stats.sourceCounts.heldMembersOnly) + ' title-explicit members-only leads held outside public canon. The public list is source-bounded, not a guess at a lifetime total.</p>';
+  };
+
   function toolsMarkup() {
     var typeOptions = ["all", "commentary", "watch-party", "watch-along"].map(function (type) {
       return '<option value="' + esc(type) + '"' + (state.type === type ? " selected" : "") + '>' + (type === "all" ? "ALL WATCHALONG TYPES" : typeLabel(type)) + '</option>';
@@ -187,6 +194,24 @@
       return '<a target="_blank" rel="noopener" href="' + esc(sourceUrl(episode, candidate.t)) + '"><header><b>#' + esc(candidate.rank) + ' // ' + esc(candidate.category) + '</b><span>' + esc(timestamp(candidate.t)) + ' // SCORE ' + esc(candidate.score) + '</span></header><p>' + esc(excerpt(candidate.captionExcerpt, 230)) + '</p><small>ENERGY ' + esc(audio.meanEnergyPercentile) + 'TH PCTL // PEAK ' + esc(audio.peakPercentile) + 'TH PCTL // ' + (audio.markerObserved ? 'MARKER OBSERVED' : 'NO MARKER') + '</small></a>';
     }).join('') + '</div><p class="wac-watch-pass-foot">AUDIO-ONLY PILOT // ACOUSTIC INTENSITY RE-RANKS THE CAPTION CANDIDATES; IT DOES NOT IDENTIFY A SPEAKER OR PROVE A JOKE. PLAYBACK REMAINS THE AUTHORITY.</p></section>';
   }
+
+  // Keep caption-only and held-source states legible without pretending the
+  // acoustic pass ran. The archive still links every receipt to YouTube.
+  var baseWatchPassMarkup = watchPassMarkup;
+  watchPassMarkup = function (episode) {
+    var pass = episode && episode.watchPass;
+    if (pass && /^held-/.test(pass.status || '') && pass.status !== 'held-age-restricted') {
+      return '<section class="wac-watch-pass wac-watch-pass-held"><header><div><span class="wac-section-label">' + esc(pass.label || 'WATCHALONG WATCH PASS // HELD SOURCE') + '</span><h4>THE SOURCE RECEIPT IS HELD.</h4><p>' + esc(pass.note || 'The source could not be acquired in this run. No timestamps were manufactured.') + '</p></div><a target="_blank" rel="noopener" href="' + esc(episode.url) + '">OPEN YOUTUBE SOURCE â†—</a></header><p class="wac-watch-pass-foot">NO TIMESTAMP RECEIPTS MANUFACTURED // PLAYBACK REMAINS THE AUTHORITY.</p></section>';
+    }
+    var rendered = baseWatchPassMarkup(episode);
+    if (pass && pass.status === 'caption-ledger-pilot') {
+      rendered = rendered.replace('LISTEN FOR THE ROOM TO CHANGE.', 'FOLLOW THE CAPTION RECEIPTS.')
+        .replace('<b>0</b>HIGH-ENERGY SECONDS', '<b>—</b>ACOUSTIC PASS HELD')
+        .replace(/ENERGY undefinedTH PCTL \/\/ PEAK undefinedTH PCTL \/\/ NO MARKER/g, 'CAPTION LEDGER // AUDIO NOT AVAILABLE IN THIS PASS')
+        .replace('AUDIO-ONLY PILOT // ACOUSTIC INTENSITY RE-RANKS THE CAPTION CANDIDATES; IT DOES NOT IDENTIFY A SPEAKER OR PROVE A JOKE. PLAYBACK REMAINS THE AUTHORITY.', 'CAPTION-ONLY PILOT // BOUNDED SOURCE RECEIPTS ARE JUMPABLE, BUT NO ACOUSTIC INTENSITY OR SPEAKER IDENTITY IS CLAIMED. PLAYBACK REMAINS THE AUTHORITY.');
+    }
+    return rendered;
+  };
 
   function dossierMarkup(episode) {
     if (!episode) return '';

@@ -7,6 +7,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const PUBLIC_DEMO = path.join(ROOT, "public", "demo");
 const METADATA_DIR = path.join(ROOT, "source-cache", "metadata");
 const CAPTIONS_DIR = path.join(ROOT, "source-cache", "captions");
+const DISCOVERY_MANIFEST_PATH = path.join(ROOT, "source-cache", "wwam-watchalong-discovery.json");
 
 function readJson(file) {
   return JSON.parse(fs.readFileSync(file, "utf8"));
@@ -33,6 +34,7 @@ const guides = guideContext.WWAM_EPISODE_GUIDES || { guides: [] };
 const atlas = atlasContext.WWAM_ARCHIVE_ATLAS || { records: [] };
 const overrides = overridesContext.WWAM_TITLE_TOPIC_OVERRIDES || { topics: [] };
 const watchPass = watchPassContext.WWAM_WATCH_PASS_PILOT || { episodes: {} };
+const discoveryManifest = fs.existsSync(DISCOVERY_MANIFEST_PATH) ? readJson(DISCOVERY_MANIFEST_PATH) : null;
 
 const metadata = fs.readdirSync(METADATA_DIR)
   .filter((file) => file.endsWith(".json"))
@@ -67,7 +69,11 @@ const explicitExtras = new Map([
 
 const includedIds = new Set(catalog.map((record) => record.id));
 metadata.forEach((record) => {
-  if (/commentary/i.test(record.title)) includedIds.add(record.id);
+  // The public canon must not silently promote member-only uploads. They
+  // remain visible in the discovery audit as held leads until access changes.
+  if (record.availability !== "subscriber_only" && /commentary|watch\s*party|watch\s*along|full\s+movie/i.test(record.title)) {
+    includedIds.add(record.id);
+  }
 });
 explicitExtras.forEach((_value, id) => includedIds.add(id));
 
@@ -292,6 +298,32 @@ function candidateMoments(events, duration, aliases) {
   return { moments: candidates, topics: topicTerms, chapters, captionWords: words(events.map((event) => event.text).join(" ")).length, captionEvents: events.length };
 }
 
+function titleDerivedTaxonomy(title) {
+  const source = clean(title);
+  const normalized = source
+    .replace(/\b(first\s+time\s+watch|reaction|live\s+commentary|full\s+video|full\s+movie|full|movie|video|audio|commentary|watch\s*(?:along|party)|on\s+riff\.?tv|w\/\s*video)\b/gi, " ")
+    .replace(/[!]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\s+[-|:]\s*$/, "") || source;
+  const families = [
+    [/hellraiser/i, "hellraiser", "Hellraiser"],
+    [/halloween/i, "halloween", "Halloween"],
+    [/friday\s+the\s+13th|jason/i, "friday-the-13th", "Friday the 13th"],
+    [/nightmare\s+on\s+elm|freddy/i, "a-nightmare-on-elm-street", "A Nightmare on Elm Street"],
+    [/scream/i, "scream", "Scream"],
+    [/child.?s\s+play|chucky/i, "childs-play", "Child's Play / Chucky"],
+    [/batman|superman|justice\s+league/i, "dc", "DC / Batman"],
+    [/terminator/i, "terminator", "Terminator"],
+    [/mortal\s+kombat/i, "mortal-kombat", "Mortal Kombat"],
+    [/saved\s+by\s+the\s+bell/i, "saved-by-the-bell", "Saved by the Bell"],
+    [/rambo/i, "rambo", "Rambo"],
+  ];
+  const family = families.find(([pattern]) => pattern.test(source));
+  if (family) return { franchiseKey: family[1], franchiseTitle: family[2], movieKey: slug(normalized), movieTitle: normalized };
+  return { franchiseKey: "uncategorized", franchiseTitle: "Uncategorized", movieKey: slug(normalized), movieTitle: normalized };
+}
+
 function fallbackTaxonomy(id, metadataRecord, catalogRecord) {
   if (catalogRecord) {
     const canonicalFilm = id === "28PfRNKoSCA" ? { key: "halloween-4", title: "Halloween 4: The Return of Michael Myers" } :
@@ -303,8 +335,7 @@ function fallbackTaxonomy(id, metadataRecord, catalogRecord) {
     };
   }
   if (explicitExtras.has(id)) return explicitExtras.get(id);
-  const title = clean(metadataRecord.title);
-  return { franchiseKey: "uncategorized", franchiseTitle: "Uncategorized", movieKey: slug(title), movieTitle: title, type: "source-watchalong", note: "title-derived source record" };
+  return { ...titleDerivedTaxonomy(metadataRecord.title), type: "source-watchalong", note: "title-derived public source record" };
 }
 
 function episodeFrom(id) {
@@ -350,11 +381,13 @@ function episodeFrom(id) {
   const lanePhrase = Object.entries(laneCounts).sort((left, right) => right[1] - left[1]).slice(0, 3).map(([label, count]) => `${label} (${count})`).join(", ");
   const topicPhrase = topics.slice(0, 5).map((topic) => topic.name).filter((name) => name && !/watch\s*party|commentary|watch\s*along/i.test(name)).slice(0, 3).join(", ");
   const derivedSummary = `This ${taxonomy.type.replace(/-/g, " ")} for ${taxonomy.movieTitle} runs ${formatTimestamp(duration)}. The local caption ledger flags ${allMoments.length} playable leads${lanePhrase ? ` across ${lanePhrase}` : ""}${topicPhrase ? `, with the conversation repeatedly touching ${topicPhrase}` : ""}. It is a navigation dossier rather than a speaker-diarized transcript: press the timestamp, hear the full exchange, and decide whether the lead earns a place in the permanent cut.`;
-  const summary = guide?.overview || (deepRecord && !guide
-    ? `This catalog entry is held as a source brief for ${taxonomy.movieTitle}. The public upload and its archived editorial note are preserved, while the local caption ledger contributes ${allMoments.length} machine-found route receipts. Press play before treating any line as a reviewed quote.`
-    : deepRecord?.verdict || derivedSummary);
+  const summary = guide?.overview || (!events.length && !deepRecord
+    ? `This source brief preserves the official upload for ${taxonomy.movieTitle}, but no local caption map was available in this observation. The source remains playable; no timestamps or speaker claims are manufactured.`
+    : (deepRecord && !guide
+      ? `This catalog entry is held as a source brief for ${taxonomy.movieTitle}. The public upload and its archived editorial note are preserved, while the local caption ledger contributes ${allMoments.length} machine-found route receipts. Press play before treating any line as a reviewed quote.`
+      : deepRecord?.verdict || derivedSummary));
   const dossier = {
-    state: deepRecord && guide ? "full-editorial-dossier" : deepRecord ? "source-brief-dossier" : "caption-ledger-dossier",
+    state: deepRecord && guide ? "full-editorial-dossier" : deepRecord || !events.length ? "source-brief-dossier" : "caption-ledger-dossier",
     summary: clean(summary),
     evidenceSummary: guide?.evidenceSummary || `The source ledger contains ${events.length.toLocaleString("en-US")} caption events and ${(deepRecord?.wordsAudited || derived?.captionWords || 0).toLocaleString("en-US")} caption words. These timestamps are machine-found leads, not speaker-diarized quotes; press play before treating a line as canon.`,
     shape: guide?.shape || { runtimeBand: duration >= 9000 ? "MARATHON" : duration >= 5400 ? "FEATURE" : "SHORT", chapters: chapters.length, threads: topics.length, cuts: allMoments.length },
@@ -370,7 +403,8 @@ function episodeFrom(id) {
     id, title: clean(metadataRecord.title), date, duration, durationLabel: formatTimestamp(duration), views: Number(metadataRecord.view_count || 0),
     thumbnail: metadataRecord.thumbnail || catalogRecord?.thumbnail || `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`,
     url: `https://www.youtube.com/watch?v=${id}`, channel: metadataRecord.channel || "WeWatchedAMovie", channelId: metadataRecord.channel_id || null,
-    publicSource: true, publicSourceBasis: "official cached YouTube metadata + local caption file", availability: atlasRecord?.availability || "public-source-snapshot",
+    publicSource: metadataRecord.availability !== "subscriber_only", publicSourceBasis: "official cached YouTube metadata + local caption file", availability: metadataRecord.availability || atlasRecord?.availability || "public-source-snapshot",
+    sourceAvailability: metadataRecord.availability || null,
     atlasCoverage: atlasRecord?.coverage || (deepRecord ? "catalog-distilled" : "caption-backed-local"), lanes: atlasRecord?.lanes || [],
     type: taxonomy.type, note: taxonomy.note, repeat: !catalogRecord, catalogMember: Boolean(catalogRecord), catalogOrder: catalogRecord?.order || null,
     franchiseKey: taxonomy.franchiseKey, franchiseTitle: taxonomy.franchiseTitle, movieKey: taxonomy.movieKey, movieTitle: taxonomy.movieTitle,
@@ -402,14 +436,26 @@ groups.forEach((group) => {
 });
 const franchises = Array.from(franchisesByKey.values()).map((franchise) => ({ ...franchise, groupCount: franchise.groupKeys.length, episodeCount: franchise.episodeIds.length }));
 
-const titleCandidates = metadata.filter((record) => /commentary|watch party|watch along/i.test(record.title));
-const excludedWatchalongCandidates = metadata.filter((record) => /watch|commentary/i.test(record.title) && !includedIds.has(record.id)).slice(0, 100).map((record) => ({ id: record.id, title: record.title, date: dateFrom(record.upload_date), reason: "title suggests watching or commentary, but no movie-specific watchalong signal was promoted into this canon" }));
+const titleSignal = /commentary|watch\s*party|watch\s*along|full\s+movie/i;
+const titleCandidates = metadata.filter((record) => record.availability !== "subscriber_only" && titleSignal.test(record.title));
+const heldTitleCandidates = metadata.filter((record) => record.availability === "subscriber_only" && titleSignal.test(record.title));
+const excludedWatchalongCandidates = heldTitleCandidates.concat(
+  metadata.filter((record) => titleSignal.test(record.title) && !includedIds.has(record.id) && record.availability !== "subscriber_only")
+).slice(0, 150).map((record) => ({
+  id: record.id,
+  title: record.title,
+  date: dateFrom(record.upload_date),
+  availability: record.availability || "unknown",
+  reason: record.availability === "subscriber_only"
+    ? "held: YouTube currently reports this upload as members-only; it is not promoted into public canon"
+    : "held: title signal needs a stronger source-specific inclusion rule"
+}));
 const payload = {
   schema: "shokker-wwam-watchalong-canon/v1",
   generated: new Date().toISOString(),
-  observedAt: "2026-07-30",
-  sourcePolicy: "Official cached WWAM YouTube metadata and local caption files. Existing curated 39-tape dossiers are retained; title-explicit public commentaries and movie watch parties outside that set are added as caption-ledger or held source-brief dossiers. No speaker, intent, rights, or creator-approval claim is inferred.",
-  scope: { metadataSources: metadata.length, titleCandidates: titleCandidates.length, episodes: episodes.length, captionFiles: fs.readdirSync(CAPTIONS_DIR).filter((file) => file.endsWith(".json")).length },
+  observedAt: discoveryManifest?.observedAt || "2026-07-30",
+  sourcePolicy: "Official cached WWAM YouTube metadata and local caption files. Existing curated 39-tape dossiers are retained; title-explicit public commentaries and movie watch parties outside that set are added as caption-ledger or held source-brief dossiers. Members-only uploads stay in the discovery ledger until access changes. No speaker, intent, rights, or creator-approval claim is inferred.",
+  scope: { metadataSources: metadata.length, channelSnapshotSources: discoveryManifest?.channelSnapshotSources || null, titleCandidates: titleCandidates.length, heldTitleCandidates: heldTitleCandidates.length, episodes: episodes.length, captionFiles: fs.readdirSync(CAPTIONS_DIR).filter((file) => file.endsWith(".json")).length },
   stats: {
     episodes: episodes.length, deepDossiers: episodes.filter((episode) => episode.dossier.state === "full-editorial-dossier").length, captionLedgers: episodes.filter((episode) => episode.dossier.state === "caption-ledger-dossier").length, sourceBriefs: episodes.filter((episode) => episode.dossier.state === "source-brief-dossier").length, nonFullAdditions: episodes.filter((episode) => episode.dossier.state !== "full-editorial-dossier").length,
     franchises: franchises.length, movieGroups: groups.length, repeatedMovies: groups.filter((group) => group.repeatCount > 0).length,
@@ -417,10 +463,19 @@ const payload = {
     fanSignalReceipts: episodes.reduce((sum, episode) => sum + Number(episode.dossier?.fanSignals?.length || 0), 0),
     episodesWithFanSignals: episodes.filter((episode) => Number(episode.dossier?.fanSignals?.length || 0) > 0).length,
     firstDate: episodes[0]?.date || null, lastDate: episodes.at(-1)?.date || null,
-    sourceCounts: { catalogCommentaries: catalog.length, titleCommentaries: titleCandidates.filter((record) => /commentary/i.test(record.title)).length, explicitWatchParties: explicitExtras.size - 9 }
+    sourceCounts: { catalogCommentaries: catalog.length, titleCommentaries: titleCandidates.filter((record) => /commentary/i.test(record.title)).length, explicitWatchParties: 2, heldMembersOnly: heldTitleCandidates.length }
   },
   taxonomy: { groups: groups.map((group) => ({ key: group.key, title: group.title, franchiseKey: group.franchiseKey })), aliases: Object.fromEntries(episodes.map((episode) => [episode.id, episode.aliases])) },
-  franchises, groups, episodes, discovery: { titleCandidates: titleCandidates.map((record) => ({ id: record.id, title: record.title, date: dateFrom(record.upload_date), included: includedIds.has(record.id) })), excludedWatchalongCandidates }
+  franchises, groups, episodes, discovery: {
+    channelUrl: discoveryManifest?.channelUrl || "https://www.youtube.com/@WeWatchedAMovie/videos",
+    titlePattern: discoveryManifest?.titlePattern || titleSignal.source,
+    channelSnapshotSources: discoveryManifest?.channelSnapshotSources || null,
+    explicitCandidateCount: discoveryManifest?.explicitCandidateCount || null,
+    priorCanonCount: discoveryManifest?.priorCanonCount || null,
+    heldTitleCandidates: heldTitleCandidates.map((record) => ({ id: record.id, title: record.title, date: dateFrom(record.upload_date), availability: record.availability, included: false })),
+    titleCandidates: titleCandidates.map((record) => ({ id: record.id, title: record.title, date: dateFrom(record.upload_date), included: includedIds.has(record.id) })),
+    excludedWatchalongCandidates
+  }
 };
 
 const output = `/* Generated by scripts/generate-wwam-watchalong-canon.mjs. Source-bounded WWAM public watchalong registry. */\nwindow.WWAM_WATCHALONG_CANON = ${JSON.stringify(payload)};\n`;

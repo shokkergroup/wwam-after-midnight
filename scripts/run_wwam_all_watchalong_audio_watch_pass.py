@@ -74,6 +74,49 @@ def held_record(episode: dict) -> dict:
     return record
 
 
+def caption_only_record(episode: dict, events: list[dict]) -> dict:
+    """Keep a caption-backed route alive when YouTube withholds media formats.
+
+    This is intentionally not labeled an audio pass: no acoustic intensity is
+    invented. The dossier's bounded caption receipts remain playable through
+    the official source URL, while the missing local audio stays visible in
+    the evidence state.
+    """
+    duration = int(episode.get("duration") or 0)
+    target = runtime_target(duration)
+    cuts = list((episode.get("dossier") or {}).get("cuts") or [])
+    cuts.sort(key=lambda item: (-float(item.get("score") or 0), float(item.get("t") or 0)))
+    candidates = []
+    for rank, cut in enumerate(cuts[:target], start=1):
+        at = int(round(float(cut.get("t") or 0)))
+        excerpt = str(cut.get("excerpt") or cut.get("quote") or "Caption receipt available at this timestamp.")
+        candidates.append({
+            "t": at,
+            "end": int(round(float(cut.get("end") or at + 36))),
+            "category": cut.get("category") or "CAPTION RECEIPT",
+            "label": cut.get("label") or cut.get("category") or "CAPTION RECEIPT",
+            "score": float(cut.get("score") or 0),
+            "captionExcerpt": excerpt,
+            "audio": {"windowSeconds": [at, min(duration or at + 36, at + 36)], "meanEnergyPercentile": None, "peakPercentile": None, "dbSpan": None, "markerObserved": False},
+            "signals": {"captionSignalHits": 1, "captionMarker": False},
+            "evidenceBasis": "source-local automatic caption alignment; audio unavailable",
+            "reviewStatus": "caption-ledger-candidate; playback remains the authority",
+            "rank": rank,
+        })
+    return {
+        "id": episode["id"],
+        "date": episode.get("date") or "unknown",
+        "title": title_for(episode),
+        "status": "caption-ledger-pilot",
+        "label": "HALLOWEEN WATCH PASS // CAPTION PILOT" if episode.get("franchiseKey") == "halloween" else "WATCHALONG WATCH PASS // CAPTION PILOT",
+        "media": {"sourceUrl": episode.get("url") or f"https://www.youtube.com/watch?v={episode['id']}", "audioOnly": True, "canonicalAudioAvailable": False, "captionMapAvailable": True},
+        "audit": {"captionEvents": len(events), "audioRows": 0, "laughterOrOverlapMarkers": 0, "candidateCount": len(candidates), "candidateTarget": target, "audioStats": {}},
+        "candidates": candidates,
+        "note": "The public upload has a source-local caption map, but YouTube did not expose a locally acquirable media format in this run. These are bounded caption leads—not acoustic intensity measurements. Open the official source at each timestamp.",
+        "provenanceFile": None,
+    }
+
+
 def main() -> None:
     existing = load_json_from_window(DEMO_DIR / "wwam-watch-pass-pilot.js")
     output = dict(existing)
@@ -93,13 +136,21 @@ def main() -> None:
     for episode in episodes:
         video_id = episode["id"]
         audio_file = audio_file_for(video_id)
+        caption_path = ROOT / "source-cache" / "captions" / f"{video_id}.json"
+        if not audio_file and caption_path.exists():
+            events = caption_events(video_id)
+            output["episodes"][video_id] = caption_only_record(episode, events)
+            analyzed += 1
+            total_caption_events += len(events)
+            total_candidates += len(output["episodes"][video_id]["candidates"])
+            print(f"{video_id}: caption-only ({len(events)} caption events, {len(output['episodes'][video_id]['candidates'])} candidates)")
+            continue
         if not audio_file:
             output["episodes"][video_id] = held_record(episode)
             held += 1
-            print(f"{video_id}: held (no canonical audio receipt)")
+            print(f"{video_id}: held (no canonical audio or caption receipt)")
             continue
 
-        caption_path = ROOT / "source-cache" / "captions" / f"{video_id}.json"
         if not caption_path.exists():
             output["episodes"][video_id] = held_record(episode)
             output["episodes"][video_id]["status"] = "held-caption-unavailable"
