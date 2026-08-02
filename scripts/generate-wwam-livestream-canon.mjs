@@ -72,17 +72,32 @@ function topicAnchor(events, term) {
 }
 
 const metadata = fs.readdirSync(METADATA_DIR).filter((file) => file.endsWith(".json")).map((file) => readJson(path.join(METADATA_DIR, file)));
+const catalog = loadScript("catalog.js").WWAM_CATALOG || [];
 const atlas = loadScript("archive-atlas-data.js").WWAM_ARCHIVE_ATLAS || { records: [] };
 const completion = loadScript("archive-completion.js").WWAM_ARCHIVE_COMPLETION || { streams: [] };
 const deep = loadScript("archive-deep-distill.js").WWAM_ARCHIVE_DEEP || { streams: [] };
 const fresh = loadScript("livestream-distill.js").WWAM_LIVESTREAMS || { streams: [] };
 const yearCanon = loadScript("year-canon-2025-2026.js").WWAM_YEAR_CANON_2025_2026 || { streams: [] };
 const watchPilot = loadScript("wwam-watch-pass-pilot.js").WWAM_WATCH_PASS_PILOT || { episodes: {} };
+const livestreamAudio = fs.existsSync(path.join(DEMO, "wwam-livestream-audio-pass.js"))
+  ? loadScript("wwam-livestream-audio-pass.js").WWAM_LIVESTREAM_AUDIO_PASS || { episodes: {}, coverage: null }
+  : { episodes: {}, coverage: null };
+// source-cache/metadata is shared with the watchalong audio acquisition lane.
+// Keep the livestream registry source-bounded: the official atlas plus the
+// original catalog are allowed in; newly acquired movie-commentary metadata
+// must not silently turn into livestream episodes just because it exists
+// locally. This preserves the existing 509-source livestream contract while
+// the watchalong registry grows independently.
 const atlasById = new Map((atlas.records || []).map((record) => [record.id, record]));
 const completionById = new Map((completion.streams || []).map((record) => [record.id, record]));
 const deepById = new Map((deep.streams || []).map((record) => [record.id, record]));
 const freshById = new Map((fresh.streams || []).map((record) => [record.id, record]));
 const yearCanonById = new Map((yearCanon.streams || []).map((record) => [record.id, record]));
+const livestreamAllowIds = new Set([
+  ...atlasById.keys(),
+  ...catalog.map((record) => record.id),
+]);
+const canonicalMetadata = metadata.filter((record) => livestreamAllowIds.has(record.id));
 
 const TOPIC_TERMS = [
   "Halloween", "Scream", "Friday the 13th", "A Nightmare on Elm Street", "Chucky", "Child's Play", "Michael Myers", "Freddy", "Jason", "Batman", "Marvel", "DC", "Superman", "Alien", "Predator", "Evil Dead", "Hellraiser", "Texas Chainsaw", "The Conjuring", "Terrifier", "Saw", "Mortal Kombat", "Ghostbusters", "Star Wars", "Jurassic", "Trailers", "Streaming", "Box Office", "Retro Rewind", "Rankings & Lists", "Horror", "Comedy", "Video Games", "Halloween Ends", "Scream 7", "Feldman", "Loomis", "Challis", "Slenderman"
@@ -364,7 +379,7 @@ function yearPass(record, events, topics, moments, fan, recurring, characterCues
     sourceAuthority: "Official WWAM upload; captions are navigation, playback is the authority."
   };
 }
-const episodes = metadata.map((record) => {
+const episodes = canonicalMetadata.map((record) => {
   const id = record.id;
   const events = captionEvents(id);
   const existing = completionById.get(id) || deepById.get(id) || freshById.get(id) || null;
@@ -405,7 +420,7 @@ const episodes = metadata.map((record) => {
   const note = tapeNote(shape, topics, moments, fan, recurring, cueList);
   const finalSummary = currentYear === 2026 ? `${note} This is a machine-surfaced caption map; playback remains the authority.` : summary;
   const pass = yearPass(record, events, topics, moments, fan, recurring, cueList, existing, evidence, yearSnapshot);
-  const watchPass = watchPilot.episodes?.[id] || null;
+  const watchPass = livestreamAudio.episodes?.[id] || watchPilot.episodes?.[id] || null;
   return {
     id, title: clean(record.title), date: dateFrom(record.upload_date), duration: Number(record.duration || 0), durationLabel: clock(record.duration), views: Number(record.view_count || 0),
     thumbnail: record.thumbnail || `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`, url: `https://www.youtube.com/watch?v=${id}`, channel: record.channel || "WeWatchedAMovie", publicSource: true,
@@ -490,12 +505,13 @@ const stats = {
   recurringBitReceipts: episodes.reduce((sum, episode) => sum + episode.recurringBits.reduce((inner, lane) => inner + lane.candidateCount, 0), 0),
   characterCueReceipts: episodes.reduce((sum, episode) => sum + episode.characterCues.reduce((inner, character) => inner + character.receipts.length, 0), 0),
   yearPassEpisodes: episodes.filter((episode) => episode.yearPass).length,
+  audioPassCoverage: livestreamAudio.coverage || null,
   firstDate: episodes.at(-1)?.date || null, lastDate: episodes[0]?.date || null, years
 };
 const payload = {
   schema: "shokker-wwam-livestream-canon/v1", generated: new Date().toISOString(), observedAt: "2026-07-31",
   sourcePolicy: "Every public WWAM source represented in the local official metadata snapshot is retained. Completion and distill artifacts are reused when present; remaining episodes receive bounded caption-ledger routes or a held source brief. Speaker, intent, visual context, rights, and creator approval are never inferred.",
-  scope: { metadataSources: metadata.length, captionFiles: fs.readdirSync(CAPTIONS_DIR).filter((file) => file.endsWith(".json")).length, atlasRecords: atlas.records?.length || 0, completionSources: completion.streams?.length || 0, deepSources: deep.streams?.length || 0, freshSources: fresh.streams?.length || 0, yearCanonSources: yearCanon.streams?.length || 0 },
+  scope: { metadataSources: canonicalMetadata.length, rawMetadataSources: metadata.length, captionFiles: fs.readdirSync(CAPTIONS_DIR).filter((file) => file.endsWith(".json")).length, atlasRecords: atlas.records?.length || 0, completionSources: completion.streams?.length || 0, deepSources: deep.streams?.length || 0, freshSources: fresh.streams?.length || 0, yearCanonSources: yearCanon.streams?.length || 0 },
   stats, series, yearIndex, topicIndex, fanHall, characterIndex, episodes
 };
 fs.writeFileSync(path.join(DEMO, "wwam-livestream-canon.js"), `/* Generated by scripts/generate-wwam-livestream-canon.mjs. */\nwindow.WWAM_LIVESTREAM_CANON = ${JSON.stringify(payload)};\n`);
