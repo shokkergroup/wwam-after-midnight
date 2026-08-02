@@ -426,8 +426,7 @@ function episodeFrom(id) {
   const audioCandidates = watchPassRecord && watchPassRecord.status === "audio-feature-pilot"
     ? (watchPassRecord.candidates || [])
     : [];
-  const audioCuts = !deepRecord || !guide
-    ? audioCandidates.map((candidate, index) => {
+  const audioCuts = audioCandidates.map((candidate, index) => {
       const at = Number(candidate.t || 0);
       const nearestTopic = topics.slice().sort((left, right) =>
         Math.abs(Number(left.peak || left.first || 0) - at) -
@@ -450,12 +449,12 @@ function episodeFrom(id) {
         evidenceBasis: "canonical YouTube audio + source-local caption alignment",
         reviewStatus: "audio-feature-candidate; playback remains the authority"
       };
-    }).filter((candidate) => candidate.excerpt || candidate.t >= 0)
-    : [];
-  const allMoments = deepRecord && guide ? guideCuts.map((cut) => ({
+    }).filter((candidate) => candidate.excerpt || candidate.t >= 0);
+  const editorialMoments = deepRecord && guide ? guideCuts.map((cut) => ({
     id: cut.id, t: Number(cut.t || 0), end: Number(cut.end || cut.t || 0), category: cut.category, label: cut.label || cut.category,
     score: Number(cut.score || 0), excerpt: excerpt(cut.excerpt), topic: cut.topic || null, evidenceBasis: cut.evidenceBasis || "reviewed-guide-cut", reviewStatus: "distilled-editorial-candidate"
-  })) : moments.concat(audioCuts.filter((candidate) => !moments.some((moment) =>
+  })) : moments;
+  const allMoments = editorialMoments.concat(audioCuts.filter((candidate) => !editorialMoments.some((moment) =>
     Math.abs(Number(moment.t || 0) - candidate.t) <= 18
   )));
   const firstMoment = allMoments.slice().sort((left, right) => left.t - right.t)[0] || null;
@@ -478,11 +477,14 @@ function episodeFrom(id) {
     : (deepRecord && !guide
       ? `This catalog entry is held as a source brief for ${taxonomy.movieTitle}. The public upload and its archived editorial note are preserved, while the local caption ledger contributes ${allMoments.length} machine-found route receipts. Press play before treating any line as a reviewed quote.`
       : deepRecord?.verdict || derivedSummary));
+  const evidenceSummary = guide?.evidenceSummary
+    ? `${guide.evidenceSummary}${audioCuts.length ? ` The audio-feature pass contributes ${audioCuts.length} ranked routes; those acoustic windows are browse aids, not speaker or joke proof.` : ""}`
+    : `The source ledger contains ${events.length.toLocaleString("en-US")} ${sourceKind === "local-whisper-transcript" ? "audio transcript segments" : "caption events"} and ${(deepRecord?.wordsAudited || derived?.captionWords || 0).toLocaleString("en-US")} words.${audioCuts.length ? ` The audio-feature pass contributes ${audioCuts.length} ranked routes.` : ""} These timestamps are machine-found leads, not speaker-diarized quotes; press play before treating a line as canon.`;
   const dossier = {
     state: deepRecord && guide ? "full-editorial-dossier" : deepRecord || !events.length ? "source-brief-dossier" : "caption-ledger-dossier",
     summary: clean(summary),
-    evidenceSummary: guide?.evidenceSummary || `The source ledger contains ${events.length.toLocaleString("en-US")} ${sourceKind === "local-whisper-transcript" ? "audio transcript segments" : "caption events"} and ${(deepRecord?.wordsAudited || derived?.captionWords || 0).toLocaleString("en-US")} words.${audioCuts.length ? ` The audio-feature pass contributes ${audioCuts.length} ranked routes.` : ""} These timestamps are machine-found leads, not speaker-diarized quotes; press play before treating a line as canon.`,
-    shape: guide?.shape || { runtimeBand: duration >= 9000 ? "MARATHON" : duration >= 5400 ? "FEATURE" : "SHORT", chapters: chapters.length, threads: topics.length, cuts: allMoments.length },
+    evidenceSummary,
+    shape: guide?.shape ? { ...guide.shape, cuts: allMoments.length } : { runtimeBand: duration >= 9000 ? "MARATHON" : duration >= 5400 ? "FEATURE" : "SHORT", chapters: chapters.length, threads: topics.length, cuts: allMoments.length },
     fanRead: guide?.fanRead || (deepRecord ? null : ledgerFanRead(allMoments, finalMoment)),
     fanSignals,
     laneCounts,
@@ -503,7 +505,7 @@ function episodeFrom(id) {
     aliases, transcript: Boolean(events.length || deepRecord?.wordsAudited), captioned: Boolean(events.length || deepRecord?.wordsAudited), deepIndexed: Boolean(deepRecord),
     topics, sourceTopics, dossier, metrics: deepRecord?.metrics || null, unhinged: deepRecord?.unhinged || null, verdict: deepRecord?.verdict || null,
     watchPass: watchPassRecord,
-    editorial: deepRecord?.arc ? { arc: deepRecord.arc, moments: moments } : { arc: chapters.map((chapter) => ({ chapter: chapter.act, at: chapter.at, dominant: chapter.category })), moments: allMoments }
+    editorial: deepRecord?.arc ? { arc: deepRecord.arc, moments: allMoments } : { arc: chapters.map((chapter) => ({ chapter: chapter.act, at: chapter.at, dominant: chapter.category })), moments: allMoments }
   };
 }
 

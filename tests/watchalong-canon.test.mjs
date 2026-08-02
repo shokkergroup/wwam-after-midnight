@@ -105,6 +105,12 @@ test("every episode has an official source, evidence state, and playable receipt
   assert.ok(audioEnriched.length >= 50, "caption-ledger watchalongs expose their audio-ranked routes in the show dossier");
   assert.ok(audioCuts.length >= 1000, "audio-ranked watchalong routes remain available as bounded dossier receipts");
   assert.ok(audioCuts.every((cut) => /audio \+ source-local caption alignment/i.test(cut.evidenceBasis) && cut.audioRank > 0), "audio dossier receipts retain their evidence boundary and rank");
+  const audioBacked = canon.episodes.filter((episode) => episode.watchPass.status === "audio-feature-pilot");
+  const allAudioDossierCuts = audioBacked.flatMap((episode) => episode.dossier.cuts.filter((cut) => cut.audio));
+  assert.equal(audioBacked.length, 89, "every acoustically acquired watchalong retains an audio-feature route");
+  assert.equal(canon.episodes.filter((episode) => episode.watchPass.status === "caption-ledger-pilot").length, 1, "caption-only fallback remains explicitly separated from the audio-feature routes");
+  assert.ok(allAudioDossierCuts.length >= 2000, "audio-ranked routes are also carried into full editorial dossiers");
+  assert.equal(canon.episodes.filter((episode) => episode.dossier.state === "full-editorial-dossier" && episode.dossier.cuts.some((cut) => cut.audio)).length, 38, "all full editorial watchalong dossiers expose their audio-ranked routes");
 });
 
 test("watchalong canon is reachable from the Watchalongs route", () => {
