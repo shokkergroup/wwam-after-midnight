@@ -129,6 +129,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Decode and rank bounded audio routes for selected WWAM livestream year shelves.")
     parser.add_argument("--year", type=int, action="append", dest="years", help="Year shelf to process; repeat to process more than one. Defaults to 2026.")
     parser.add_argument("--held-only", action="store_true", help="Only revisit episodes without a local canonical audio file; preserve existing audio-feature records.")
+    parser.add_argument("--refresh", action="store_true", help="Re-decode every audio-backed episode in the selected shelves instead of preserving verified records.")
     args = parser.parse_args()
     years = {str(year) for year in (args.years or [2026])}
     canon = load_window(CANON)
@@ -153,6 +154,22 @@ def main() -> None:
         video_id = episode["id"]
         audio = audio_file(video_id)
         events = caption_events(video_id)
+        existing = output["episodes"].get(video_id) or {}
+        # A year queue is normally incremental.  Re-decoding every long live
+        # show on every heartbeat made recovery shelves exceed the command
+        # window and, worse, left no merged registry when the process timed
+        # out.  Keep a verified audio-feature record when its local media
+        # receipt is unchanged; --refresh remains the explicit full-pass lane.
+        if (
+            audio
+            and not args.refresh
+            and not args.held_only
+            and existing.get("status") == "audio-feature-pass"
+            and int((existing.get("audit") or {}).get("audioRows") or 0) > 0
+            and (existing.get("media") or {}).get("localFile") == f"source-cache/audio/{audio.name}"
+        ):
+            print(f"{video_id}: preserved existing audio-feature record", flush=True)
+            continue
         if not audio:
             record = held_record(episode)
             if events:

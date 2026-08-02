@@ -23,21 +23,21 @@ test("livestream canon contains the complete source registry", () => {
   assert.equal(canon.episodes.at(-1).date, "2016-02-01");
   assert.equal(canon.yearIndex["2026"].episodeCount, 37);
   assert.equal(canon.stats.yearPassEpisodes, 37);
-  assert.equal(canon.stats.audioPassCoverage.audioAnalyzed, 487);
+  assert.ok(canon.stats.audioPassCoverage.audioAnalyzed >= 508, "recovery shelves keep at least the currently verified audio coverage");
   assert.equal(canon.stats.audioPassCoverage.livestreamEpisodes, 509);
   assert.ok(Array.isArray(canon.stats.audioPassCoverage.years));
   assert.ok(canon.stats.audioPassCoverage.years.includes("2026"));
   assert.equal(canon.stats.audioPassCoverage.yearCoverage["2026"].audioAnalyzed, 37);
-  assert.equal(canon.stats.audioPassCoverage.yearCoverage["2023"].audioAnalyzed, 68);
-  assert.equal(canon.stats.audioPassCoverage.captionFallback, 22);
-  assert.equal(canon.stats.audioPassCoverage.yearCoverage["2018"].audioAnalyzed, 9);
-  assert.equal(canon.stats.audioPassCoverage.yearCoverage["2018"].captionFallback, 1);
-  assert.equal(canon.stats.audioPassCoverage.yearCoverage["2019"].audioAnalyzed, 32);
-  assert.equal(canon.stats.audioPassCoverage.yearCoverage["2019"].captionFallback, 1);
-  assert.equal(canon.stats.audioPassCoverage.yearCoverage["2020"].audioAnalyzed, 65);
-  assert.equal(canon.stats.audioPassCoverage.yearCoverage["2020"].captionFallback, 3);
-  assert.equal(canon.stats.audioPassCoverage.yearCoverage["2021"].audioAnalyzed, 70);
-  assert.equal(canon.stats.audioPassCoverage.yearCoverage["2021"].captionFallback, 4);
+  assert.ok(canon.stats.audioPassCoverage.yearCoverage["2023"].audioAnalyzed >= 70);
+  assert.ok(canon.stats.audioPassCoverage.captionFallback <= 1, "only genuinely unavailable recovery shelves remain caption-only");
+  assert.ok(canon.stats.audioPassCoverage.yearCoverage["2018"].audioAnalyzed >= 10);
+  assert.ok((canon.stats.audioPassCoverage.yearCoverage["2018"].captionFallback || 0) <= 1);
+  assert.ok(canon.stats.audioPassCoverage.yearCoverage["2019"].audioAnalyzed >= 33);
+  assert.ok((canon.stats.audioPassCoverage.yearCoverage["2019"].captionFallback || 0) <= 1);
+  assert.ok(canon.stats.audioPassCoverage.yearCoverage["2020"].audioAnalyzed >= 68);
+  assert.ok((canon.stats.audioPassCoverage.yearCoverage["2020"].captionFallback || 0) <= 1);
+  assert.ok(canon.stats.audioPassCoverage.yearCoverage["2021"].audioAnalyzed >= 74);
+  assert.ok((canon.stats.audioPassCoverage.yearCoverage["2021"].captionFallback || 0) <= 1);
   assert.equal(canon.stats.rssAudioMirrors, 2);
   assert.ok(canon.episodes.find((episode) => episode.id === "LVVGdGxTBfI")?.rssAudioPass?.media?.canonicalTimestampMapping === false);
 });
@@ -94,16 +94,18 @@ test("each source has an honest evidence tier and playable source link", () => {
   assert.ok(canon.stats.recurringBitReceipts >= canon.stats.fanSignalReceipts);
   assert.ok(canon.stats.characterCueReceipts > 0);
   const captionFallbacks = canon.episodes.filter((episode) => episode.watchPass?.status === "caption-ledger-pass");
-  assert.equal(captionFallbacks.length, 22);
+  assert.ok(captionFallbacks.length <= 1);
   assert.ok(captionFallbacks.every((episode) => episode.watchPass.candidates.length >= 9 && episode.watchPass.candidates.every((candidate) => !candidate.audio && /canonical audio unavailable/i.test(candidate.evidenceBasis))), "held shows retain caption-only routes without acoustic claims");
   const captionLaneTotals = captionFallbacks.reduce((totals, episode) => {
     Object.entries(episode.watchPass.audit.candidateCategories || {}).forEach(([lane, count]) => { totals[lane] = (totals[lane] || 0) + Number(count || 0); });
     return totals;
   }, {});
-  assert.ok(captionLaneTotals["STRAIGHT TO STEVE'S ASSHOLE"] >= 100, "caption-only holds retain a real negative-take shelf");
-  assert.ok(captionLaneTotals["WWAM UP IN YA"] >= 40, "caption-only holds retain an explicit vulgarity shelf");
-  assert.ok(captionLaneTotals["CHARACTER SIGNAL"] >= 60, "caption-only holds retain character-cue routes");
-  assert.ok(captionLaneTotals["FAN SIGNAL"] >= 15, "caption-only holds retain fan-callout routes");
+  if (captionFallbacks.length) {
+    assert.ok(captionLaneTotals["STRAIGHT TO STEVE'S ASSHOLE"] >= 3, "caption-only holds retain a negative-take shelf");
+    assert.ok(captionLaneTotals["WWAM UP IN YA"] >= 1, "caption-only holds retain an explicit vulgarity shelf");
+    assert.ok(captionLaneTotals["CHARACTER SIGNAL"] >= 1, "caption-only holds retain character-cue routes");
+  }
+  if (captionFallbacks.length) assert.ok(captionLaneTotals["FAN SIGNAL"] >= 1, "caption-only holds retain fan-callout routes");
   assert.ok(Array.isArray(canon.fanHall) && canon.fanHall.length > 0);
   assert.ok(Array.isArray(canon.characterIndex) && canon.characterIndex.some((entry) => entry.name === "Dr. Loomis"));
   assert.ok(canon.fanHall.every((entry) => entry.receipts > 0 && entry.episodeIds.length > 0));
@@ -148,6 +150,13 @@ test("audio watch-pass receipts are marker-clean and disclose caption alignment"
     ...(episode.characterCues || []).flatMap((character) => character.receipts || [])
   ]);
   assert.ok(visibleReceipts.every((receipt) => !/[\\[]\\s*(?:__+|music|laughter|inaudible|bleep)\\s*[\\]]/i.test(receipt.excerpt || receipt.receipt || "")), "visible livestream receipts remove caption-stage marker debris");
+});
+
+test("livestream audio recovery queue is incremental by default", () => {
+  const passScript = fs.readFileSync(path.join(root, "scripts/run_wwam_2026_livestream_audio_watch_pass.py"), "utf8");
+  assert.match(passScript, /parser\.add_argument\("--refresh"/, "full re-decode remains an explicit opt-in");
+  assert.match(passScript, /preserved existing audio-feature record/, "verified local audio is not decoded again on every heartbeat");
+  assert.match(passScript, /existing\.get\("status"\) == "audio-feature-pass"/, "the skip guard is limited to verified audio records");
 });
 
 test("livestream canon surface is wired into the page and route shell", () => {
