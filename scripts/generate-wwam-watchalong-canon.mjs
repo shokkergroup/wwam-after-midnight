@@ -835,6 +835,7 @@ function episodeFrom(id) {
     score: Number(route.score || 0),
     excerpt: clean(route.excerpt || "Open the official WWAM podcast variant and listen."),
     clock: "official WWAM podcast clock",
+    sourceClock: "official WWAM podcast clock",
     sourceKind: "podcast-variant",
     sourceUrl: alternateAudio.episodeUrl || alternateAudio.sourceUrl || null,
     audio: route.audio || null,
