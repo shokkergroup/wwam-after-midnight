@@ -39,6 +39,8 @@ test("watchalong canon has the complete public source registry", () => {
   assert.equal(watchPass.coverage.held, 1);
   assert.ok(watchPass.coverage.rankedCandidates >= 2000);
   assert.equal(canon.watchPassCoverage.audioAnalyzed, 90);
+  const latestPilot = watchPass.episodes.LV2rmwEA0w4;
+  assert.ok(latestPilot.audit.candidateCategories["STRAIGHT TO STEVE'S ASSHOLE"] > 0 || latestPilot.audit.candidateCategories["CHARACTER SIGNAL"] > 0, "current-show route selection preserves a recurring WWAM lane");
 });
 
 test("repeated films stay separate while grouping into one movie file", () => {

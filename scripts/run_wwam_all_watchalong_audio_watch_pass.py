@@ -12,7 +12,7 @@ import json
 import re
 from pathlib import Path
 
-from run_wwam_audio_watch_pass import AUDIO_DIR, DEMO_DIR, candidate_rows, caption_events, provenance, stream_features
+from run_wwam_audio_watch_pass import AUDIO_DIR, DEMO_DIR, candidate_rows, caption_events, category_counts, provenance, stream_features
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -150,7 +150,7 @@ def caption_only_record(episode: dict, events: list[dict]) -> dict:
         "status": "caption-ledger-pilot",
         "label": "HALLOWEEN WATCH PASS // ASR PILOT" if asr_only and episode.get("franchiseKey") == "halloween" else ("WATCHALONG WATCH PASS // ASR PILOT" if asr_only else ("HALLOWEEN WATCH PASS // CAPTION PILOT" if episode.get("franchiseKey") == "halloween" else "WATCHALONG WATCH PASS // CAPTION PILOT")),
         "media": {"sourceUrl": episode.get("url") or f"https://www.youtube.com/watch?v={episode['id']}", "audioOnly": True, "canonicalAudioAvailable": False, "captionMapAvailable": True},
-        "audit": {"captionEvents": len(events), "audioRows": 0, "laughterOrOverlapMarkers": 0, "candidateCount": len(candidates), "candidateTarget": target, "audioStats": {}},
+        "audit": {"captionEvents": len(events), "audioRows": 0, "laughterOrOverlapMarkers": 0, "candidateCount": len(candidates), "candidateTarget": target, "candidateCategories": category_counts(candidates), "audioStats": {}},
         "candidates": candidates,
         "listeningDigest": listening_digest(candidates, None, audio_available=False),
         "note": ("The public upload has a local Whisper transcript generated from the canonical audio track, but no YouTube caption map was available. These are bounded transcript leads with no acoustic intensity claim; open the official source at each timestamp." if asr_only else "The public upload has a source-local caption map, but YouTube did not expose a locally acquirable media format in this run. These are bounded caption leads—not acoustic intensity measurements. Open the official source at each timestamp."),
@@ -215,7 +215,7 @@ def main() -> None:
             "status": "audio-feature-pilot",
             "label": label_for(episode),
             "media": {"sourceUrl": episode.get("url") or f"https://www.youtube.com/watch?v={video_id}", "localFile": f"source-cache/audio/{audio_file.name}", "container": container, "durationSeconds": audio["durationSeconds"], "audioOnly": True, "canonicalAudioAvailable": True},
-            "audit": {"captionEvents": len(events), "audioRows": audio["durationSeconds"], "laughterOrOverlapMarkers": marker_count, "candidateCount": len(candidates), "candidateTarget": target, "audioStats": audio["stats"]},
+            "audit": {"captionEvents": len(events), "audioRows": audio["durationSeconds"], "laughterOrOverlapMarkers": marker_count, "candidateCount": len(candidates), "candidateTarget": target, "candidateCategories": category_counts(candidates), "audioStats": audio["stats"]},
             "candidates": candidates,
             "listeningDigest": listening_digest(candidates, audio["stats"], audio_available=True),
             "note": "This pass decoded the canonical audio track at one-second feature resolution and aligned ranked windows to the source-local caption map. It does not assign a speaker, claim a visual reaction, or prove that a candidate is objectively funny; open the official source at each bounded timestamp.",

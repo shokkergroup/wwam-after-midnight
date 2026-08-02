@@ -64,6 +64,14 @@ def listening_digest(candidates: list[dict], *, audio_available: bool = True) ->
     }
 
 
+def category_counts(candidates: list[dict]) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for candidate in candidates:
+        category = str(candidate.get("category") or "OPEN MIC")
+        counts[category] = counts.get(category, 0) + 1
+    return counts
+
+
 def clean(text: object) -> str:
     return re.sub(r"\s+", " ", str(text or "")).strip()
 
@@ -210,7 +218,20 @@ def candidate_rows(events: list[dict], audio: dict, max_candidates: int = 15) ->
         })
     candidates.sort(key=lambda row: (-row["score"], row["t"]))
     picked: list[dict] = []
-    for candidate in candidates:
+    # Preserve the recurring WWAM lanes before filling the rest by score. A
+    # laughter marker can otherwise crowd out every Steve's Asshole or
+    # character receipt in a long show, even when those signals are present.
+    priority_categories = ["STRAIGHT TO STEVE'S ASSHOLE", "CHARACTER SIGNAL", "WWAM UP IN YA", "FAN SIGNAL", "TAKE GETS NUCLEAR", "ROOM BREAK"]
+    ordered = []
+    seen_categories = set()
+    for category in priority_categories:
+        for candidate in candidates:
+            if candidate["category"] == category and candidate not in ordered:
+                ordered.append(candidate)
+                seen_categories.add(category)
+                break
+    ordered.extend(candidate for candidate in candidates if candidate not in ordered)
+    for candidate in ordered:
         if any(abs(candidate["t"] - row["t"]) < 45 for row in picked):
             continue
         picked.append(candidate)
@@ -248,7 +269,7 @@ def main() -> None:
             "date": date,
             "status": "audio-feature-pilot",
             "media": {"sourceUrl": f"https://www.youtube.com/watch?v={video_id}", "localFile": f"source-cache/audio/{video_id}.m4a", "container": "m4a", "durationSeconds": audio["durationSeconds"], "audioOnly": True},
-            "audit": {"captionEvents": len(events), "audioRows": audio["durationSeconds"], "laughterOrOverlapMarkers": sum(bool(re.search(r"\[(?:laughter|snorts?|crosstalk)\]", event["text"], re.I)) for event in events), "candidateCount": len(candidates), "candidateTarget": target, "audioStats": audio["stats"]},
+            "audit": {"captionEvents": len(events), "audioRows": audio["durationSeconds"], "laughterOrOverlapMarkers": sum(bool(re.search(r"\[(?:laughter|snorts?|crosstalk)\]", event["text"], re.I)) for event in events), "candidateCount": len(candidates), "candidateTarget": target, "candidateCategories": category_counts(candidates), "audioStats": audio["stats"]},
             "candidates": candidates,
             "listeningDigest": listening_digest(candidates),
             "note": "This pilot listened to the canonical audio track and used captions only for navigation. It does not claim a human visual watch, speaker diarization, or a definitive joke/intensity judgment; open the official source at each bounded timestamp.",
