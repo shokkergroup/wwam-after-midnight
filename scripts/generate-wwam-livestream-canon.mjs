@@ -563,6 +563,13 @@ episodes.forEach((episode) => episode.characterCues.forEach((character) => {
   const item = characterMap.get(key); item.mentions += character.mentions; item.receipts += character.receipts.length; if (!item.episodeIds.includes(episode.id)) item.episodeIds.push(episode.id); item.firstDate = item.firstDate < episode.date ? item.firstDate : episode.date; item.latestDate = item.latestDate > episode.date ? item.latestDate : episode.date;
 }));
 const characterIndex = Array.from(characterMap.values()).sort((a, b) => b.mentions - a.mentions || a.name.localeCompare(b.name));
+const audioPassCoverage = { ...(livestreamAudio.coverage || {}) };
+const canonicalAudioIds = new Set(Object.entries(livestreamAudio.episodes || {}).filter(([, record]) => record?.status === "audio-feature-pass").map(([id]) => id));
+const alternateAudioIds = new Set(episodes.filter((episode) => episode.rssAudioPass?.status === "rss-audio-feature-pass" && !canonicalAudioIds.has(episode.id)).map((episode) => episode.id));
+audioPassCoverage.alternateAudio = alternateAudioIds.size;
+audioPassCoverage.alternateAudioSeconds = episodes.filter((episode) => alternateAudioIds.has(episode.id)).reduce((sum, episode) => sum + Number(episode.rssAudioPass?.media?.durationSeconds || 0), 0);
+audioPassCoverage.effectiveAudioAnalyzed = Number(audioPassCoverage.audioAnalyzed || 0) + alternateAudioIds.size;
+audioPassCoverage.effectiveHeld = Math.max(0, episodes.length - audioPassCoverage.effectiveAudioAnalyzed);
 const stats = {
   episodes: episodes.length, atlasRecords: atlas.records?.length || 0, latestOutsideAtlas: episodes.filter((episode) => episode.latestOutsideAtlas).length,
   completionDossiers: episodes.filter((episode) => episode.evidenceTier === "completion-dossier").length, distillDossiers: episodes.filter((episode) => episode.evidenceTier === "distill-dossier").length,
@@ -572,7 +579,7 @@ const stats = {
   recurringBitReceipts: episodes.reduce((sum, episode) => sum + episode.recurringBits.reduce((inner, lane) => inner + lane.candidateCount, 0), 0),
   characterCueReceipts: episodes.reduce((sum, episode) => sum + episode.characterCues.reduce((inner, character) => inner + character.receipts.length, 0), 0),
   yearPassEpisodes: episodes.filter((episode) => episode.yearPass).length,
-  audioPassCoverage: livestreamAudio.coverage || null,
+  audioPassCoverage: audioPassCoverage,
   rssAudioMirrors: Object.keys(livestreamRssAudio.records || {}).length,
   firstDate: episodes.at(-1)?.date || null, lastDate: episodes[0]?.date || null, years
 };

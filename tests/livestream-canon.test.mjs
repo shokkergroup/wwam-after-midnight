@@ -39,6 +39,9 @@ test("livestream canon contains the complete source registry", () => {
   assert.ok(canon.stats.audioPassCoverage.yearCoverage["2021"].audioAnalyzed >= 74);
   assert.ok((canon.stats.audioPassCoverage.yearCoverage["2021"].captionFallback || 0) <= 1);
   assert.equal(canon.stats.rssAudioMirrors, 2);
+  assert.equal(canon.stats.audioPassCoverage.alternateAudio, 1);
+  assert.equal(canon.stats.audioPassCoverage.effectiveAudioAnalyzed, 509);
+  assert.equal(canon.stats.audioPassCoverage.effectiveHeld, 0);
   assert.ok(canon.episodes.find((episode) => episode.id === "LVVGdGxTBfI")?.rssAudioPass?.media?.canonicalTimestampMapping === false);
   assert.equal(canon.episodes.filter((episode) => episode.dossier?.audioRead?.mode === "decoded-audio").length, 508);
   assert.equal(canon.episodes.filter((episode) => episode.dossier?.audioRead?.mode === "caption-only").length, 1);
