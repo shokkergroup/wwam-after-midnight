@@ -409,10 +409,42 @@ function episodeFrom(id) {
   const moments = deepRecord && guide ? (deepRecord.moments || []).map((moment) => ({ ...moment, t: Number(moment.t || 0), end: Number(moment.end || moment.t || 0), excerpt: excerpt(moment.quote || moment.excerpt), reviewStatus: "distilled-editorial-candidate" })) : derived.moments;
   const chapters = deepRecord && guide ? (guide?.chapters || []).map((chapter) => ({ ...chapter, excerpt: excerpt(chapter.excerpt), body: clean(chapter.body) })) : derived.chapters;
   const topics = deepRecord && guide ? (guide?.threads || []).slice(0, 10).map((thread) => ({ name: thread.name, mentions: thread.mentions, first: thread.first, peak: thread.peak, cluster: thread.cluster, receipt: excerpt(thread.receipt), kind: thread.kind })) : (sourceTopics.length ? sourceTopics : derived.topics);
+  const watchPassRecord = watchPass.episodes?.[id] || null;
+  const audioCandidates = watchPassRecord && watchPassRecord.status === "audio-feature-pilot"
+    ? (watchPassRecord.candidates || [])
+    : [];
+  const audioCuts = !deepRecord || !guide
+    ? audioCandidates.map((candidate, index) => {
+      const at = Number(candidate.t || 0);
+      const nearestTopic = topics.slice().sort((left, right) =>
+        Math.abs(Number(left.peak || left.first || 0) - at) -
+        Math.abs(Number(right.peak || right.first || 0) - at) ||
+        Number(right.mentions || 0) - Number(left.mentions || 0)
+      )[0];
+      const category = clean(candidate.category || candidate.label || "AUDIO RECEIPT");
+      const subject = clean(nearestTopic?.name || "SOURCE CHECKPOINT");
+      return {
+        id: `audio-${Math.round(at)}-${index + 1}`,
+        t: Math.round(at),
+        end: Math.round(Number(candidate.end || at + 8)),
+        category,
+        label: `${category} // ${subject}`,
+        score: Number(candidate.score || 0),
+        excerpt: excerpt(candidate.captionExcerpt || "", 22),
+        topic: nearestTopic?.name || null,
+        audioRank: Number(candidate.rank || index + 1),
+        audio: candidate.audio || null,
+        evidenceBasis: "canonical YouTube audio + source-local caption alignment",
+        reviewStatus: "audio-feature-candidate; playback remains the authority"
+      };
+    }).filter((candidate) => candidate.excerpt || candidate.t >= 0)
+    : [];
   const allMoments = deepRecord && guide ? guideCuts.map((cut) => ({
     id: cut.id, t: Number(cut.t || 0), end: Number(cut.end || cut.t || 0), category: cut.category, label: cut.label || cut.category,
     score: Number(cut.score || 0), excerpt: excerpt(cut.excerpt), topic: cut.topic || null, evidenceBasis: cut.evidenceBasis || "reviewed-guide-cut", reviewStatus: "distilled-editorial-candidate"
-  })) : moments;
+  })) : moments.concat(audioCuts.filter((candidate) => !moments.some((moment) =>
+    Math.abs(Number(moment.t || 0) - candidate.t) <= 18
+  )));
   const firstMoment = allMoments.slice().sort((left, right) => left.t - right.t)[0] || null;
   const strongestMoment = allMoments.slice().sort((left, right) => Number(right.score || 0) - Number(left.score || 0))[0] || null;
   const finalMoment = allMoments.slice().sort((left, right) => right.t - left.t)[0] || null;
@@ -424,7 +456,10 @@ function episodeFrom(id) {
     ? `The cleanest way in is ${formatTimestamp(strongestMoment.t)}, where the map tags a ${strongestMoment.category || "source"} lead.`
     : "No single lead is promoted above the rest.";
   const topicLine = topicPhrase ? `The conversation keeps circling ${topicPhrase}.` : "The map stays close to the film without forcing a topic label.";
-  const derivedSummary = `${taxonomy.type === "watch-party" ? "This watch-party tape" : "This commentary tape"} for ${taxonomy.movieTitle} runs ${formatTimestamp(duration)}. The ${evidenceLabel} leaves ${allMoments.length} playable leads on the board${lanePhrase ? ` — ${lanePhrase}` : ""}. ${topicLine} ${leadLine} The source is a jumpable guide to the room, not a speaker-diarized transcript: press play before treating any line as canon.`;
+  const audioLine = audioCuts.length
+    ? ` An audio-feature pass adds ${audioCuts.length} ranked intensity routes; it re-ranks caption windows but does not prove a joke, speaker, or visual reaction.`
+    : "";
+  const derivedSummary = `${taxonomy.type === "watch-party" ? "This watch-party tape" : "This commentary tape"} for ${taxonomy.movieTitle} runs ${formatTimestamp(duration)}. The ${evidenceLabel} leaves ${allMoments.length} playable leads on the board${lanePhrase ? ` — ${lanePhrase}` : ""}. ${topicLine} ${leadLine}${audioLine} The source is a jumpable guide to the room, not a speaker-diarized transcript: press play before treating any line as canon.`;
   const summary = guide?.overview || (!events.length && !deepRecord
     ? `This source brief preserves the official upload for ${taxonomy.movieTitle}, but no local caption map was available in this observation. The source remains playable; no timestamps or speaker claims are manufactured.`
     : (deepRecord && !guide
@@ -433,7 +468,7 @@ function episodeFrom(id) {
   const dossier = {
     state: deepRecord && guide ? "full-editorial-dossier" : deepRecord || !events.length ? "source-brief-dossier" : "caption-ledger-dossier",
     summary: clean(summary),
-    evidenceSummary: guide?.evidenceSummary || `The source ledger contains ${events.length.toLocaleString("en-US")} ${sourceKind === "local-whisper-transcript" ? "audio transcript segments" : "caption events"} and ${(deepRecord?.wordsAudited || derived?.captionWords || 0).toLocaleString("en-US")} words. These timestamps are machine-found leads, not speaker-diarized quotes; press play before treating a line as canon.`,
+    evidenceSummary: guide?.evidenceSummary || `The source ledger contains ${events.length.toLocaleString("en-US")} ${sourceKind === "local-whisper-transcript" ? "audio transcript segments" : "caption events"} and ${(deepRecord?.wordsAudited || derived?.captionWords || 0).toLocaleString("en-US")} words.${audioCuts.length ? ` The audio-feature pass contributes ${audioCuts.length} ranked routes.` : ""} These timestamps are machine-found leads, not speaker-diarized quotes; press play before treating a line as canon.`,
     shape: guide?.shape || { runtimeBand: duration >= 9000 ? "MARATHON" : duration >= 5400 ? "FEATURE" : "SHORT", chapters: chapters.length, threads: topics.length, cuts: allMoments.length },
     fanRead: guide?.fanRead || (deepRecord ? null : ledgerFanRead(allMoments, finalMoment)),
     fanSignals,
@@ -454,8 +489,8 @@ function episodeFrom(id) {
     franchiseKey: taxonomy.franchiseKey, franchiseTitle: taxonomy.franchiseTitle, movieKey: taxonomy.movieKey, movieTitle: taxonomy.movieTitle,
     aliases, transcript: Boolean(events.length || deepRecord?.wordsAudited), captioned: Boolean(events.length || deepRecord?.wordsAudited), deepIndexed: Boolean(deepRecord),
     topics, sourceTopics, dossier, metrics: deepRecord?.metrics || null, unhinged: deepRecord?.unhinged || null, verdict: deepRecord?.verdict || null,
-    watchPass: watchPass.episodes?.[id] || null,
-    editorial: deepRecord?.arc ? { arc: deepRecord.arc, moments: moments } : { arc: chapters.map((chapter) => ({ chapter: chapter.act, at: chapter.at, dominant: chapter.category })), moments }
+    watchPass: watchPassRecord,
+    editorial: deepRecord?.arc ? { arc: deepRecord.arc, moments: moments } : { arc: chapters.map((chapter) => ({ chapter: chapter.act, at: chapter.at, dominant: chapter.category })), moments: allMoments }
   };
 }
 

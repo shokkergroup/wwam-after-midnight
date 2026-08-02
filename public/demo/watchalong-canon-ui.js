@@ -248,7 +248,15 @@
     if (!episode) return '';
     var dossier = episode.dossier || {};
     var route = dossier.route || {};
-    var moments = Array.isArray(dossier.cuts) ? dossier.cuts : [];
+    var moments = Array.isArray(dossier.cuts) ? dossier.cuts.map(function (moment) {
+      var rendered = Object.assign({}, moment || {});
+      if (rendered.label) rendered.category = rendered.label;
+      if (rendered.audio) {
+        var peak = rendered.audio.peakPercentile == null ? '—' : rendered.audio.peakPercentile;
+        rendered.excerpt = '[AUDIO FEATURE RANK #' + (rendered.audioRank || '—') + ' // PEAK ' + peak + 'TH PCTL] ' + (rendered.excerpt || '');
+      }
+      return rendered;
+    }) : [];
     return '<section class="wac-dossier" id="wacDossier" aria-labelledby="wacDossierTitle"><header class="wac-dossier-head"><div><span class="wac-dossier-kicker">' + esc(episode.franchiseTitle) + ' // ' + esc(stateLabel(episode)) + '</span><h3 id="wacDossierTitle">' + esc(episode.movieTitle) + '</h3><p>' + esc(dossier.summary) + '</p></div><div class="wac-dossier-facts"><span><small>DATE</small><b>' + esc(dateLabel(episode.date)) + '</b></span><span><small>RUNTIME</small><b>' + esc(durationLabel(episode.duration)) + '</b></span><span><small>CAPTION WORDS</small><b>' + number(dossier.caption && dossier.caption.words) + '</b></span><span><small>JUMP RECEIPTS</small><b>' + number(moments.length) + '</b></span></div></header>' +
       '<div class="wac-dossier-note"><strong>EVIDENCE STATUS // </strong>' + esc(dossier.evidenceSummary || 'The source is linked to the official tape. Speaker identity, intent, and current playback availability remain outside this fan archive unless a reviewed guide says otherwise.') + '</div>' +
       '<div class="wac-route-grid">' + routeCard('OPENING READ', route.opening) + routeCard('STRONGEST RECEIPT', route.strongest) + routeCard('CLOSING READ', route.closing) + '</div>' + watchPassMarkup(episode) + chapterMarkup(episode, dossier.chapters) + topicMarkup(episode, episode.topics) + fanReadMarkup(dossier.fanRead) + fanSignalsMarkup(episode, dossier.fanSignals) +

@@ -97,6 +97,11 @@ test("every episode has an official source, evidence state, and playable receipt
   assert.ok(canon.episodes.some((episode) => episode.watchPass.audit.candidateTarget > 15), "longer watchalongs receive a larger ranked browse set");
   assert.equal(canon.episodes.filter((episode) => !/^held-/.test(episode.watchPass.status)).filter((episode) => episode.watchPass.listeningDigest?.headline).length, 90, "every acquired watchalong has a listening read");
   assert.ok(canon.episodes.filter((episode) => episode.watchPass.status === "caption-ledger-pilot").every((episode) => episode.watchPass.listeningDigest?.mode === "caption-only"), "caption-only tapes disclose their evidence mode");
+  const audioEnriched = canon.episodes.filter((episode) => /audio-feature pass adds/i.test(episode.dossier.summary));
+  const audioCuts = audioEnriched.flatMap((episode) => episode.dossier.cuts.filter((cut) => cut.audio));
+  assert.ok(audioEnriched.length >= 50, "caption-ledger watchalongs expose their audio-ranked routes in the show dossier");
+  assert.ok(audioCuts.length >= 1000, "audio-ranked watchalong routes remain available as bounded dossier receipts");
+  assert.ok(audioCuts.every((cut) => /audio \+ source-local caption alignment/i.test(cut.evidenceBasis) && cut.audioRank > 0), "audio dossier receipts retain their evidence boundary and rank");
 });
 
 test("watchalong canon is reachable from the Watchalongs route", () => {
@@ -112,6 +117,8 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(ui, /function fanSignalsMarkup\(episode, signals\)/);
   assert.match(ui, /fanSignalsMarkup\(episode, dossier\.fanSignals\)/);
   assert.match(ui, /function watchPassMarkup\(episode\)/);
+  assert.match(ui, /watchCandidateLabel/);
+  assert.match(ui, /AUDIO FEATURE RANK/);
   assert.match(ui, /LISTENING READ \/\/ EVIDENCE MIX/);
   assert.match(ui, /AUDIO PASS/);
   assert.match(ui, /HALLOWEEN WATCH PASS/);
