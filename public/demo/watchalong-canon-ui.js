@@ -149,7 +149,7 @@
       var items = omissions.filter(function (item) { return (item.availability || 'unknown') === bucket.key; });
       if (!items.length) return '';
       return '<section class="wac-edge-bucket"><header><div><b>' + esc(bucket.label) + '</b><span>' + number(items.length) + ' LEADS</span></div><p>' + esc(bucket.note) + '</p></header><ul>' + items.map(function (item) {
-        var source = 'https://www.youtube.com/watch?v=' + encodeURIComponent(item.id);
+        var source = bucket.key === 'public' ? ('?source=' + encodeURIComponent(item.id) + '&section=wiki#archive') : 'https://www.youtube.com/watch?v=' + encodeURIComponent(item.id);
         return '<li><a target="_blank" rel="noopener" href="' + esc(source) + '">' + esc(item.title) + ' ↗</a><small>' + esc(item.date || 'DATE UNKNOWN') + ' // ' + esc(item.reason || item.signal || 'edge audit lead') + '</small></li>';
       }).join('') + '</ul></section>';
     }).join('');
