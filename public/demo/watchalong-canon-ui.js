@@ -142,6 +142,8 @@
     var discovery = payload.discovery || {};
     var omissions = Array.isArray(discovery.broadDiscoveryOmissions) ? discovery.broadDiscoveryOmissions : [];
     var edgeReview = discovery.edgeReview || {};
+    var edgeById = {};
+    (Array.isArray(edgeReview.records) ? edgeReview.records : []).forEach(function (record) { edgeById[record.id] = record; });
     if (!omissions.length) return '';
     var buckets = [
       { key: 'subscriber_only', label: 'MEMBERS-ONLY HOLDS', note: 'Full-length commentary signals found in the live channel snapshot, but YouTube currently keeps the source behind membership.' },
@@ -153,7 +155,12 @@
       if (!items.length) return '';
       return '<section class="wac-edge-bucket"><header><div><b>' + esc(bucket.label) + '</b><span>' + number(items.length) + ' LEADS</span></div><p>' + esc(bucket.note) + '</p></header><ul>' + items.map(function (item) {
         var source = bucket.key === 'public' ? ('?source=' + encodeURIComponent(item.id) + '&section=wiki#archive') : 'https://www.youtube.com/watch?v=' + encodeURIComponent(item.id);
-        return '<li><a target="_blank" rel="noopener" href="' + esc(source) + '">' + esc(item.title) + ' ↗</a><small>' + esc(item.date || 'DATE UNKNOWN') + ' // ' + esc(item.reason || item.signal || 'edge audit lead') + '</small></li>';
+        var receipt = edgeById[item.id];
+        var reason = item.reason || item.signal || 'edge audit lead';
+        if (receipt && receipt.captionEvents) reason += ' // ' + number(receipt.captionEvents) + ' CAPTION EVENTS // LOCAL ROUTE MAP';
+        var linkAttrs = bucket.key === 'public' ? '' : ' target="_blank" rel="noopener"';
+        var linkLabel = bucket.key === 'public' ? 'OPEN LOCAL WIKI →' : 'OPEN SOURCE ↗';
+        return '<li><a' + linkAttrs + ' href="' + esc(source) + '">' + esc(item.title) + ' ' + linkLabel + '</a><small>' + esc(item.date || 'DATE UNKNOWN') + ' // ' + esc(reason) + '</small></li>';
       }).join('') + '</ul></section>';
     }).join('');
     return '<details class="wac-edge-shelf"><summary><span>THE OVERLOOKED EDGE // EVERY TITLE CHECKED</span><b>' + number(omissions.length) + ' LEADS OUTSIDE CANON +</b></summary><p class="wac-edge-intro">This is the audit shelf that keeps “more than 50” honest. These are not silently discarded: each lead is named, dated, and linked. Members-only uploads stay held; adjacent public reactions stay adjacent; unresolved pages stay unresolved.</p><div class="wac-edge-grid">' + bucketMarkup + '</div></details>';

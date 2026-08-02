@@ -26,7 +26,11 @@ const podcastAudio = context.WWAM_PODCAST_COMMENTARY_AUDIO;
 
 test("cold-route Show Wiki index mirrors every source and keeps full dossier cuts", () => {
   assert.equal(routeIndex.schema, "shokker-wwam-watchalong-route-index/v1");
-  assert.equal(routeIndex.sources.length, 130);
+  assert.equal(routeIndex.sources.length, 130, "edge sources replace their thinner companion shells without duplicating cold routes");
+  const edgeLonglegs = routeIndex.sources.find((source) => source.id === "7efMRH1jr9M");
+  assert.ok(edgeLonglegs?.edgeAdjacent, "caption-confirmed adjacent sources receive their own cold-route room");
+  assert.equal(edgeLonglegs.formatBoundary, "ADJACENT PUBLIC SOURCE // NOT A FULL-FILM COMMENTARY");
+  assert.ok(edgeLonglegs.dossier.cuts.length >= 9);
   const halloweenFour = routeIndex.sources.find((source) => source.id === "28PfRNKoSCA");
   assert.ok(halloweenFour);
   assert.equal(halloweenFour.dossier.cuts.length, 37);
@@ -60,6 +64,10 @@ test("watchalong canon has the complete public source registry", () => {
   assert.equal(canon.stats.uniqueFilmSources, 108);
   assert.equal(canon.stats.companionWatchalongs, 11);
   assert.equal(canon.stats.companionReviews, 17);
+  assert.equal(canon.stats.edgeAdjacentSources, 25);
+  assert.equal(canon.stats.edgeCaptionConfirmed, 5);
+  assert.equal(canon.edgeAdjacentSources.length, 25);
+  assert.equal(canon.edgeAdjacentSources.filter((source) => source.dossier.caption.events > 0).length, 5);
   assert.equal(canon.companionWatchalongs.length, 11);
   assert.equal(canon.companionReviews.length, 17);
   assert.ok(canon.companionWatchalongs.some((record) => /DUNKIRK/i.test(record.title)));

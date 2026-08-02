@@ -235,6 +235,24 @@ function captionEvents(id) {
   })).filter((event) => event.text);
 }
 
+// Edge receipts use YouTube's archived .en.json3 filename so they can be
+// audited without pretending the upload is a full-film commentary. Keep this
+// parser separate from the canonical caption path: the prefix is part of the
+// evidence boundary and should stay visible in the dossier.
+function edgeCaptionEvents(id) {
+  const captionFile = path.join(CAPTIONS_DIR, `edge-${id}.en.json3`);
+  if (!fs.existsSync(captionFile)) return [];
+  const payload = readJson(captionFile);
+  return (payload.events || []).filter((event) => Array.isArray(event.segs) && event.segs.length)
+    .map((event) => ({
+      t: Math.max(0, Number(event.tStartMs || 0) / 1000),
+      end: Math.max(0, Number(event.tStartMs || 0) / 1000 + Number(event.dDurationMs || 0) / 1000),
+      text: normalizeCaptionText(event.segs.map((segment) => segment && segment.utf8 || "").join("")),
+      evidenceType: "youtube-automatic-caption-edge"
+    }))
+    .filter((event) => event.text);
+}
+
 function captionSourceKind(id) {
   if (fs.existsSync(path.join(CAPTIONS_DIR, `${id}.json`))) return "youtube-automatic-caption";
   if (fs.existsSync(path.join(CAPTIONS_DIR, `${id}.asr.json`))) return "local-whisper-transcript";
@@ -699,6 +717,74 @@ function episodeFrom(id) {
 const episodes = Array.from(includedIds).map(episodeFrom)
   .sort((left, right) => left.date.localeCompare(right.date) || left.title.localeCompare(right.title));
 
+// Public adjacent uploads deserve a real local room even when the archive
+// policy correctly keeps them outside the full-film canon. Caption-confirmed
+// reactions/reviews get bounded jump points; metadata-only leads remain a
+// truthful source brief rather than an empty legacy shell.
+function edgeEpisodeFrom(record) {
+  const metadataRecord = metadataById.get(record.id) || {};
+  const taxonomy = { ...titleDerivedTaxonomy(record.title), type: record.signal || "reaction-or-review", note: "public adjacent source; not promoted to the full-film watchalong canon" };
+  const events = edgeCaptionEvents(record.id);
+  const duration = Number(metadataRecord.duration || record.captionSpanSeconds || 0);
+  const aliases = [taxonomy.movieTitle, taxonomy.franchiseTitle, taxonomy.movieTitle.replace(/\s*\([^)]*\)/g, "")].filter(Boolean);
+  const derived = candidateMoments(events, duration, aliases, taxonomy);
+  const allMoments = derived.moments;
+  const laneCounts = ledgerLaneCounts(allMoments);
+  const firstMoment = allMoments.slice().sort((left, right) => left.t - right.t)[0] || null;
+  const strongestMoment = allMoments.slice().sort((left, right) => Number(right.score || 0) - Number(left.score || 0))[0] || null;
+  const finalMoment = allMoments.slice().sort((left, right) => right.t - left.t)[0] || null;
+  const topicNames = derived.topics.map((topic) => topic.name).slice(0, 4);
+  const evidenceSpan = Number(record.captionSpanSeconds || (events.at(-1)?.end || 0));
+  const formatLabel = record.signal === "reaction-or-review" ? "reaction / review" : record.signal === "short-form-watch-lead" ? "short-form watch lead" : "early edited watchalong cut";
+  const summary = events.length
+    ? `${clean(record.title)} is a public adjacent ${formatLabel}, not a full-film commentary. The local caption receipt covers ${formatTimestamp(evidenceSpan)} of source-local speech and surfaces ${allMoments.length} bounded navigation routes. ${topicNames.length ? `The strongest subject doors are ${topicNames.join(", ")}. ` : "The caption map does not earn a reliable subject label beyond the title. "}The route mix leans ${Object.entries(laneCounts).sort((left, right) => right[1] - left[1]).slice(0, 3).map(([label, count]) => `${label} (${count})`).join(", ") || "source checkpoints"}. Press play before treating any caption fragment as a finished joke, speaker ID, or verdict.`
+    : `${clean(record.title)} is a public adjacent ${formatLabel}, not a full-film commentary. The archive has verified the public metadata but does not yet have a source-local caption receipt, so this room stays a playable source brief with no invented timestamps.`;
+  return {
+    id: record.id,
+    title: clean(record.title),
+    displayTitle: clean(record.title),
+    date: record.date || dateFrom(metadataRecord.upload_date),
+    duration,
+    durationLabel: formatTimestamp(duration),
+    thumbnail: metadataRecord.thumbnail || `https://i.ytimg.com/vi/${record.id}/maxresdefault.jpg`,
+    url: record.url || `https://www.youtube.com/watch?v=${record.id}`,
+    channel: metadataRecord.channel || "WeWatchedAMovie",
+    channelId: metadataRecord.channel_id || null,
+    topics: derived.topics,
+    sourceTopics: [],
+    summary,
+    verdict: null,
+    note: "Adjacent public receipt; kept outside the full-film watchalong canon by policy.",
+    availability: "public-adjacent",
+    sourceAvailability: metadataRecord.availability || "public",
+    franchiseKey: taxonomy.franchiseKey,
+    franchiseTitle: taxonomy.franchiseTitle,
+    movieKey: taxonomy.movieKey,
+    movieTitle: taxonomy.movieTitle,
+    edgeAdjacent: true,
+    formatBoundary: "ADJACENT PUBLIC SOURCE // NOT A FULL-FILM COMMENTARY",
+    dossier: {
+      state: events.length ? "adjacent-caption-dossier" : "adjacent-source-brief",
+      summary,
+      evidenceSummary: events.length
+        ? `Local edge receipt: ${events.length.toLocaleString("en-US")} caption events across ${formatTimestamp(evidenceSpan)}. These routes establish navigation only; the upload remains outside the full-film canon.`
+        : "No local caption receipt is present in this observation. Metadata is preserved without manufacturing a route map.",
+      shape: { runtimeBand: duration >= 1800 ? "FEATURE-LITE" : "SHORT", chapters: derived.chapters.length, threads: derived.topics.length, cuts: allMoments.length },
+      fanRead: null,
+      fanSignals: [],
+      laneCounts,
+      chapters: derived.chapters,
+      cuts: allMoments,
+      route: { opening: firstMoment, strongest: strongestMoment, closing: finalMoment },
+      caption: { words: derived.captionWords, events: events.length, minutes: Math.round(evidenceSpan / 60), sourceFile: events.length ? `source-cache/captions/edge-${record.id}.en.json3` : null, sourceKind: events.length ? "youtube-automatic-caption-edge" : null }
+    }
+  };
+}
+
+const edgeAdjacentSources = edgeAuditData.records
+  .filter((record) => record.status === "caption-confirmed-adjacent" || record.status === "public-metadata-only")
+  .map(edgeEpisodeFrom);
+
 const groupsByKey = new Map();
 episodes.forEach((episode) => {
   if (!groupsByKey.has(episode.movieKey)) groupsByKey.set(episode.movieKey, {
@@ -837,6 +923,8 @@ const coverageLedger = {
   heldStrictMembersOnly: liveStrictHeldCandidates.length,
   companionWatchalongs: companionWatchalongs.length,
   companionReviews: companionReviews.length,
+  edgeAdjacentSources: edgeAdjacentSources.length,
+  edgeCaptionConfirmed: edgeAdjacentSources.filter((item) => item.dossier?.caption?.events > 0).length,
   companionPublic: companionWatchalongs.filter((item) => item.publicSource).length + companionReviews.filter((item) => item.publicSource).length,
   companionHeld: companionWatchalongs.filter((item) => !item.publicSource).length + companionReviews.filter((item) => !item.publicSource).length,
   adjacentPublicLeads: broadDiscoveryOmissions.filter((item) => item.availability === "public").length,
@@ -851,7 +939,7 @@ const payload = {
   sourcePolicy: "Official cached WWAM YouTube metadata plus local caption or audio-transcript receipts. Existing curated 39-tape dossiers are retained; title-explicit public commentaries, movie watch parties, and clearly labeled We Watched <film> highlight edits are added as caption-ledger or source-brief dossiers. Official podcast variants may add variant-bound audio routes only when their timeline is explicitly non-isomorphic; they never substitute for canonical YouTube timestamps. The official RSS audit also preserves six title-explicit, playable podcast-only film commentaries whose YouTube counterparts are absent from the current public snapshot; they remain a separate recovery lane with no invented timestamps. Members-only uploads stay in the discovery ledger until access changes. No speaker, intent, rights, or creator-approval claim is inferred.",
   scope: { metadataSources: metadata.length, channelSnapshotSources: discoveryManifest?.channelSnapshotSources || null, titleCandidates: titleCandidates.length, heldTitleCandidates: heldTitleCandidates.length, episodes: episodes.length, captionFiles: fs.readdirSync(CAPTIONS_DIR).filter((file) => file.endsWith(".json")).length },
   stats: {
-    episodes: episodes.length, deepDossiers: episodes.filter((episode) => episode.dossier.state === "full-editorial-dossier").length, captionLedgers: episodes.filter((episode) => episode.dossier.state === "caption-ledger-dossier").length, sourceBriefs: episodes.filter((episode) => episode.dossier.state === "source-brief-dossier").length, nonFullAdditions: episodes.filter((episode) => episode.dossier.state !== "full-editorial-dossier").length,
+    episodes: episodes.length, deepDossiers: episodes.filter((episode) => episode.dossier.state === "full-editorial-dossier").length, captionLedgers: episodes.filter((episode) => episode.dossier.state === "caption-ledger-dossier").length, sourceBriefs: episodes.filter((episode) => episode.dossier.state === "source-brief-dossier").length, nonFullAdditions: episodes.filter((episode) => episode.dossier.state !== "full-editorial-dossier").length, edgeAdjacentSources: edgeAdjacentSources.length, edgeCaptionConfirmed: edgeAdjacentSources.filter((item) => item.dossier?.caption?.events > 0).length,
     franchises: franchises.length, movieGroups: groups.length, repeatedMovies: groups.filter((group) => group.repeatCount > 0).length, podcastOnlyCommentaries: podcastOnlyCommentaries.length, podcastFeedRecords: podcastFeedCount, uniqueFilmSources: episodes.length + podcastOnlyCommentaries.length, companionWatchalongs: companionWatchalongs.length, companionReviews: companionReviews.length, knownMovieRoomSources: episodes.length + podcastOnlyCommentaries.length + companionWatchalongs.length + companionReviews.length, publicMovieRoomSources: episodes.length + podcastOnlyCommentaries.length + companionWatchalongs.filter((item) => item.publicSource).length + companionReviews.filter((item) => item.publicSource).length,
     totalDurationSeconds: episodes.reduce((sum, episode) => sum + episode.duration, 0), totalViewsSnapshot: episodes.reduce((sum, episode) => sum + episode.views, 0),
     fanSignalReceipts: episodes.reduce((sum, episode) => sum + Number(episode.dossier?.fanSignals?.length || 0), 0),
@@ -863,6 +951,7 @@ const payload = {
   coverageLedger,
   companionWatchalongs,
   companionReviews,
+  edgeAdjacentSources,
   watchPassCoverage: watchPass.coverage || null,
   podcastCommentaries: podcastOnlyCommentaries,
   podcastFeedRecords,
@@ -896,7 +985,10 @@ fs.writeFileSync(path.join(PUBLIC_DEMO, "wwam-watchalong-canon.js"), output);
 // hydrated. Keep a small, source-local route index for that cold path: it
 // carries every dossier cut, but strips the large caption/audio ledgers that
 // the full canon needs only after the visitor enters the Watchalongs room.
-const routeSources = [...episodes, ...companionWatchalongs, ...companionReviews];
+const routeSources = Array.from(new Map(
+  [...episodes, ...companionWatchalongs, ...companionReviews, ...edgeAdjacentSources]
+    .map((source) => [source.id, source])
+).values());
 const routeIndex = {
   schema: "shokker-wwam-watchalong-route-index/v1",
   generated: payload.generated,
@@ -916,6 +1008,8 @@ const routeIndex = {
     summary: episode.summary,
     verdict: episode.verdict,
     note: episode.note,
+    edgeAdjacent: Boolean(episode.edgeAdjacent),
+    formatBoundary: episode.formatBoundary || null,
     availability: episode.availability,
     sourceAvailability: episode.sourceAvailability,
     franchiseKey: episode.franchiseKey,

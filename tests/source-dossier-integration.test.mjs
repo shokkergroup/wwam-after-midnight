@@ -298,7 +298,7 @@ test("fallback show wiki keeps the full local dossier route map", () => {
 
 test("cold source routes hydrate the local Watchalong route index before fallback", () => {
   assert.match(app, /function ensureWatchalongCanonForSource\(sourceId\)/);
-  assert.match(app, /wwam-watchalong-route-index\.js\?v=1\.1\.0-podcast-variant/);
+  assert.match(app, /wwam-watchalong-route-index\.js\?v=1\.2\.0-edge-receipts/);
   assert.match(app, /WWAM_WATCHALONG_ROUTE_INDEX && window\.WWAM_WATCHALONG_ROUTE_INDEX\.sources/);
   assert.match(app, /Prefer the cold-route index\/canon record/);
 });
