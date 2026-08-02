@@ -73,7 +73,7 @@
     function momentAt(moment) { return number(moment && moment.t, number(moment && moment.start, 0)); }
     var names = Array.from(new Set(array(references).map(function (reference) { return clean(reference.character); }).filter(Boolean)));
     var duration = number(item.duration, 0);
-    var durationText = duration >= 3600 ? Math.round(duration / 60) + " minutes" : Math.round(duration / 60) + " minutes";
+    var durationText = Math.max(1, Math.round(duration / 60)) + "-minute";
     var summary = "Come to " + clean(item.film || item.title) + " for the core conversation; the tape keeps widening into " + naturalList(topicNames.length ? topicNames : ["WWAM's side roads"]) + ". " +
       "The index gives you " + momentList.length + " replay point" + (momentList.length === 1 ? "" : "s") + " and " + topicDoors.length + " subject door" + (topicDoors.length === 1 ? "" : "s") + " across a " + durationText + " upload.";
     var evidenceSummary = "Source-bounded read: " + number(enriched.wordsAudited || deepTape.wordsAudited, 0).toLocaleString("en-US") + " caption-mapped words, " + number(enriched.captionEvents, 0).toLocaleString("en-US") + " caption lines, " +
@@ -82,7 +82,7 @@
     if (!lovedBody) lovedBody = "The source map keeps the strongest defense points close to the film rather than manufacturing a reviewer voice.";
     var hatedItem = steve[0] || null;
     var detourBody = detour ? "The tape swerves into " + clean(detour.category || detour.label || "a high-heat aside") + ": \"" + clean(detour.quote || detour.excerpt) + "\"" : "No distinct detour survived the source map yet.";
-    var lastBody = lastTopic ? "The final indexed door is " + clean(lastTopic.name) + ": \"" + clean(lastTopic.receipt) + "\"" : "The source map ends without a separate closing lane.";
+    var lastBody = lastTopic ? "One more indexed door is " + clean(lastTopic.name) + ": \"" + clean(lastTopic.receipt) + "\"" : "The source map ends without a separate closing lane.";
     return {
       summary: summary,
       evidenceSummary: evidenceSummary,
