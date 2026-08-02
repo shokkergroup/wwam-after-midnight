@@ -880,7 +880,7 @@
       if (fallbackShown || !document.getElementById("tapeModal").classList.contains("show")) return;
       fallbackShown = true;
       renderFallback();
-    }, 1800);
+    }, 900);
     return loadSourceDossier().then(function (ui) {
       window.clearTimeout(fallbackTimer);
       if (!sourceDossierEngine.has(sourceId)) {
