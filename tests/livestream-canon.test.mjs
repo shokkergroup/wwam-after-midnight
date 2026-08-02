@@ -125,6 +125,7 @@ test("each source has an honest evidence tier and playable source link", () => {
   assert.equal(tapeNotes.some((note) => /indexed doors|source-local map keeps|loudest recurring lane|cleanest first play|room also leaves/i.test(note)), false, "episode tape notes do not use the old machine-shaped boilerplate");
   assert.ok(tapeNotes.some((note) => /dominant recurring lane|fan ledger catches/i.test(note)), "episode tape notes retain a human-readable listening read");
   assert.ok(ledgerSummaries.some((summary) => /fan traffic is part|retained callouts/i.test(summary)));
+  assert.equal(canon.episodes.some((episode) => /\b1 (?:signal receipts|fan-signal receipts)\b/i.test(`${episode.dossier.summary} ${episode.dossier.tapeNote || ""}`)), false, "single fan receipts use singular grammar");
 });
 
 test("audio watch-pass receipts are marker-clean and disclose caption alignment", () => {

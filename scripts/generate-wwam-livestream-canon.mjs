@@ -262,7 +262,7 @@ function tapeNote(shape, topics, moments, fan, recurring, characterCues) {
   const hook = hot ? `The first route worth pressing is ${clock(hot.t)} // ${hot.category}; open the source there and hear the exchange in full.` : "No bounded first-play hook survived this evidence tier.";
   const laneMood = laneLead?.label === "ROOM BREAK" ? "breakdown territory" : laneLead?.label === "TAKE GETS NUCLEAR" ? "an argumentative register" : laneLead?.label === "WWAM UP IN YA" ? "out-of-pocket territory" : laneLead?.label === "STRAIGHT TO STEVE'S ASSHOLE" ? "a hostile verdict lane" : "a sharp side-channel";
   const lane = laneLead ? `The dominant recurring lane is ${laneLead.label} (${laneLead.candidateCount} caption cues), which puts the night in ${laneMood}.` : "The recurring-bit lanes stay quiet in this pass.";
-  const fanLine = fan.length ? `The fan ledger catches ${fan.length} signal receipts${fanTypes.length ? `, including ${listPhrase(fanTypes)}` : ""}.` : "No fan-signal cluster survived this pass.";
+  const fanLine = fan.length ? `The fan ledger catches ${fan.length} ${fan.length === 1 ? "signal receipt" : "signal receipts"}${fanTypes.length ? `, including ${listPhrase(fanTypes)}` : ""}.` : "No fan-signal cluster survived this pass.";
   const characterLine = characterCues.length ? `Character traffic includes ${characterList}; the captions do not diarize who performed a cue.` : "No character cue was strong enough to retain in the caption map.";
   return `${shape} circles ${topicList} and plays like ${frame}. ${lane} ${hook} ${fanLine} ${characterLine}`;
 }
@@ -424,7 +424,7 @@ const episodes = canonicalMetadata.map((record) => {
   const currentYear = Number(String(record.upload_date || "").slice(0, 4) || 0);
   const summaryVariant = Array.from(id).reduce((total, character) => total + character.charCodeAt(0), 0) % 4;
   const hookLine = hotMoment ? `The first door worth pressing is ${clock(hotMoment.t)} // ${hotLane || hotMoment.category}; open that timestamp to hear the exchange.` : "No bounded tape hook survived this evidence tier.";
-  const fanLine = fan.length ? `The file also keeps ${fan.length} fan-signal receipts in the room.` : "No fan-signal cluster was retained in this ledger.";
+  const fanLine = fan.length ? `The file also keeps ${fan.length} ${fan.length === 1 ? "fan-signal receipt" : "fan-signal receipts"} in the room.` : "No fan-signal cluster was retained in this ledger.";
   const ledgerSummary = [
     `${lead} from ${dateFrom(record.upload_date)}. The caption map opens on ${topicRead}, with ${moments.length} timestamp candidates across ${clock(record.duration)}. ${hookLine} ${fanLine}`,
     `If you are dropping into this ${shape.toLowerCase()}, start with ${topicRead}. The ledger marks ${moments.length} places to press play across ${clock(record.duration)}; ${hookLine} ${fanLine}`,
@@ -432,7 +432,7 @@ const episodes = canonicalMetadata.map((record) => {
     `This ${shape.toLowerCase()} has indexed doors on ${topicRead}. The source-local map surfaces ${moments.length} candidates across ${clock(record.duration)}. ${hookLine} ${fanLine}`
   ][summaryVariant];
   const secondPassSummary = currentYear === 2026
-    ? `The 2026 second pass maps this ${shape.toLowerCase()} through ${topicRead}. It keeps ${topics.length} topic doors, ${moments.length} moment candidates, ${fan.length} fan-signal receipts, and ${characterCues(events, Number(record.duration || 0)).reduce((sum, character) => sum + character.receipts.length, 0)} character cue receipts across ${clock(record.duration)}. Start at ${hookLine.replace(/\.$/, "")} and use the scene beats below as a route through the night. Playback remains the authority; captions do not certify a speaker or intent.`
+    ? `The 2026 second pass maps this ${shape.toLowerCase()} through ${topicRead}. It keeps ${topics.length} topic doors, ${moments.length} moment candidates, ${fan.length} ${fan.length === 1 ? "fan-signal receipt" : "fan-signal receipts"}, and ${characterCues(events, Number(record.duration || 0)).reduce((sum, character) => sum + character.receipts.length, 0)} character cue receipts across ${clock(record.duration)}. Start at ${hookLine.replace(/\.$/, "")} and use the scene beats below as a route through the night. Playback remains the authority; captions do not certify a speaker or intent.`
     : null;
   const summary = clean(existing?.summary || secondPassSummary || (events.length
     ? `${ledgerSummary} Captions are navigation, not a final quote or speaker verdict—open a receipt and hear the full exchange.`
