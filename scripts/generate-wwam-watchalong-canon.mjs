@@ -442,7 +442,7 @@ function episodeFrom(id) {
         category,
         label: `${category} // ${subject}`,
         score: Number(candidate.score || 0),
-        excerpt: excerpt(candidate.captionExcerpt || "", 22),
+        excerpt: excerpt(normalizeCaptionText(candidate.captionExcerpt || ""), 22),
         topic: nearestTopic?.name || null,
         audioRank: Number(candidate.rank || index + 1),
         audio: candidate.audio || null,

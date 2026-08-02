@@ -111,6 +111,7 @@ test("every episode has an official source, evidence state, and playable receipt
   assert.equal(canon.episodes.filter((episode) => episode.watchPass.status === "caption-ledger-pilot").length, 1, "caption-only fallback remains explicitly separated from the audio-feature routes");
   assert.ok(allAudioDossierCuts.length >= 2000, "audio-ranked routes are also carried into full editorial dossiers");
   assert.equal(canon.episodes.filter((episode) => episode.dossier.state === "full-editorial-dossier" && episode.dossier.cuts.some((cut) => cut.audio)).length, 38, "all full editorial watchalong dossiers expose their audio-ranked routes");
+  assert.ok(allAudioDossierCuts.every((cut) => !/[\\[]\\s*(?:__+|music|laughter|inaudible|bleep)\\s*[\\]]/i.test(cut.excerpt || "")), "audio dossier excerpts remove caption-stage marker debris");
 });
 
 test("watchalong canon is reachable from the Watchalongs route", () => {
