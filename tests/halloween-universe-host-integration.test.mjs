@@ -35,7 +35,7 @@ test("Halloween Universe is a contextual, lazy Watchalongs destination", () => {
   const uiAt = section.indexOf("halloween-universe-ui.js");
   assert.ok(dataAt >= 0 && dataAt < enrichmentAt && enrichmentAt < engineAt && engineAt < uiAt);
   assert.match(guided, /"halloween-universe": "watchalongs"/);
-  assert.match(guided, /watchalongs: \["#watchalongs-hub", "#halloween-universe", "#comedy-vault", "#franchises", "#autopsies"\]/);
+  assert.match(guided, /watchalongs: \["#watchalongs-hub", "#halloween-universe", "#comedy-vault", "#watchalong-canon"\]/);
   assert.match(editorialCss, /\.wwam-route-local-nav a\s*\{[\s\S]*?min-height:\s*84px;/);
   assert.doesNotMatch(section, /\b(?:price|pricing|buy|purchase|revenue|sales)\b/i);
 });

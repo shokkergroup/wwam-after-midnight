@@ -31,10 +31,11 @@
   var primaryViewSelectors = {
     home: [".wwam-editorial-hero", ".wwam-pick-your-poison", ".guided-home"],
     shows: ["#shows-hub", "#livewire", "#archive", "#livestream-canon"],
-    // Put the visitor's actual choice in front: movie worlds first, the audit
-    // ledger second. The 102-source ledger is still one click away, but it no
-    // longer blocks the obvious Halloween / comedy / franchise entry points.
-    watchalongs: ["#watchalongs-hub", "#franchises", "#halloween-universe", "#comedy-vault", "#watchalong-canon", "#autopsies"],
+    // One canonical shelf owns the watchalong archive. The older 39-tape
+    // franchise/autopsy surfaces remain in the HTML for legacy deep links, but
+    // are hidden from the guided route so visitors never see two competing
+    // counts or duplicate movie files.
+    watchalongs: ["#watchalongs-hub", "#halloween-universe", "#comedy-vault", "#watchalong-canon"],
     characters: ["#characters-hub", "#characters", "#lore"],
     fam: ["#fam-hall"],
     ask: ["#ask"],
@@ -119,11 +120,11 @@
         title: "PICK A MOVIE.<br><em>ENTER ITS WORLD.</em>",
         copy: "Choose a franchise or a one-off commentary. The movie context, WWAM versions, playable moments, and source record stay in one place.",
         links: [
-          ["#franchises", "watchalongs", "ALL COMMENTARIES", "Halloween, Friday, Scream, Elm Street"],
+          ["#watchalong-canon", "watchalongs", "ALL COMMENTARIES", "102 sources, every movie world"],
           ["#halloween-universe", "watchalongs", "HALLOWEEN UNIVERSE", "WWAM's deepest franchise map"],
           ["#comedy-vault", "watchalongs", "COMEDY SHELF", "Scary Movie, Waiting, Harold & Kumar"],
           ["#watchalong-canon", "watchalongs", "PUBLIC WATCHALONG CANON", "Every movie cut, repeat, and source dossier"],
-          ["#autopsies", "watchalongs", "COMMENTARY WIKIS", "Open the individual movie files"]
+          ["#watchalong-canon", "watchalongs", "COMMENTARY WIKIS", "Open a movie file or show Wiki"]
         ]
       },
       {
@@ -233,6 +234,13 @@
     var sourceId = new URLSearchParams(location.search).get("source");
     if (sourceId) return "dossier";
     return journeyByTarget[target] || "home";
+  }
+
+  function normalizeTarget(target) {
+    // Preserve old bookmarks while sending them to the one canonical
+    // watchalong shelf. The retired static surfaces must never become a
+    // second, stale archive again.
+    return ({ franchises: "watchalong-canon", autopsies: "watchalong-canon" })[target] || target;
   }
 
   function routeScrollTop(target) {
@@ -346,6 +354,17 @@
       var blockers = targetIndex < 0 ? [] : sections.slice(0, targetIndex + 1).filter(function (section) {
         return section.dataset.guidedHidden !== "true" && section.hasAttribute("data-feature-scripts");
       });
+      // Opening Watchalongs is an intentional choice, not a reason to make
+      // visitors scroll through a row of skeletons. Hydrate the three visible
+      // shelves immediately; the legacy 39-tape surfaces are not part of this
+      // route anymore. The loader still runs these serially, so the page can
+      // paint the hub while the large source ledger arrives in the background.
+      if (active === "watchalongs" && isRouteHome) {
+        ["halloween-universe", "comedy-vault", "watchalong-canon"].forEach(function (id) {
+          var eager = document.getElementById(id);
+          if (eager && blockers.indexOf(eager) < 0 && eager.dataset.guidedHidden !== "true" && eager.hasAttribute("data-feature-scripts")) blockers.push(eager);
+        });
+      }
       requestAnimationFrame(function () {
         move(routeOptions.behavior === "auto" ? "auto" : "smooth");
         if (routeOptions.focus) focusRouteTarget(target);
@@ -478,7 +497,7 @@
     });
 
     window.addEventListener("hashchange", function () {
-      var target = (location.hash || "#top").slice(1);
+      var target = normalizeTarget((location.hash || "#top").slice(1));
       setJourney(journeyFromLocation(), target, { behavior: "auto" });
     });
   }
@@ -491,7 +510,7 @@
     tuckEditorTools();
     wireHomeSearch();
     wireNavigation();
-    var initialTarget = (location.hash || "#top").slice(1);
+    var initialTarget = normalizeTarget((location.hash || "#top").slice(1));
     setJourney(journeyFromLocation(), initialTarget, { behavior: "auto" });
   }
 

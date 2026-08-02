@@ -14,7 +14,7 @@ test("the fan-facing shell exposes five plain destinations and no competing room
   const shell = read("guided-shell.js");
   const css = read("wwam-editorial-v2.css");
 
-  assert.match(html, /wwam-editorial-v2\.css\?v=1\.2\.4-signature-wayfinder/);
+  assert.match(html, /wwam-editorial-v2\.css\?v=1\.2\.6-single-watchalong-shelf/);
   assert.match(html, /href="#shows-hub"[^>]*>SHOWS<\/a>/);
   assert.match(html, /href="#watchalongs-hub"[^>]*>WATCHALONGS<\/a>/);
   assert.match(html, /href="#best-bits"[^>]*>BEST BITS<\/a>/);

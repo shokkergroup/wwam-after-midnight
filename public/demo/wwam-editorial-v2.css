@@ -1190,26 +1190,20 @@ body[data-guided-detail="true"] .wwam-route-hub-copy > span {
 body[data-guided-detail="true"] .wwam-route-local-nav { margin-top: 20px; }
 
 /* The commentary shelf is a chooser, not a data dump. Keep the two fastest
-   doors (franchise and comedy) ahead of the audit ledger when this route is
-   active, while retaining every section and its deep link. */
+   doors (Halloween and comedy) ahead of the one canonical audit ledger when
+   this route is active; legacy duplicate shelves stay out of the journey. */
 body[data-guided-journey="watchalongs"] main { display: flex; flex-direction: column; }
 body[data-guided-journey="watchalongs"] main > #watchalongs-hub { order: 1; }
-body[data-guided-journey="watchalongs"] main > #franchises { order: 2; }
-body[data-guided-journey="watchalongs"] main > #halloween-universe { order: 3; }
-body[data-guided-journey="watchalongs"] main > #comedy-vault { order: 4; }
-body[data-guided-journey="watchalongs"] main > #watchalong-canon { order: 5; }
-body[data-guided-journey="watchalongs"] main > #autopsies { order: 6; }
+body[data-guided-journey="watchalongs"] main > #halloween-universe { order: 2; }
+body[data-guided-journey="watchalongs"] main > #comedy-vault { order: 3; }
+body[data-guided-journey="watchalongs"] main > #watchalong-canon { order: 4; }
 body[data-guided-journey="watchalongs"] .wwam-route-local-nav { position: sticky; top: 70px; z-index: 8; }
-body[data-guided-journey="watchalongs"] #franchises,
 body[data-guided-journey="watchalongs"] #halloween-universe,
 body[data-guided-journey="watchalongs"] #comedy-vault,
-body[data-guided-journey="watchalongs"] #watchalong-canon,
-body[data-guided-journey="watchalongs"] #autopsies { scroll-margin-top: 118px; }
+body[data-guided-journey="watchalongs"] #watchalong-canon { scroll-margin-top: 118px; }
 
 body[data-guided-journey="shows"] #livewire,
 body[data-guided-journey="shows"] #archive,
-body[data-guided-journey="watchalongs"] #franchises,
-body[data-guided-journey="watchalongs"] #autopsies,
 body[data-guided-journey="characters"] #characters,
 body[data-guided-journey="characters"] #lore,
 body[data-guided-journey="highlights"] #upinya,
