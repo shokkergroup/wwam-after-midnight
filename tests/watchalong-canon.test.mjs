@@ -33,8 +33,12 @@ test("cold-route Show Wiki index mirrors every source and keeps full dossier cut
   assert.ok(edgeLonglegs.dossier.cuts.length >= 9);
   const halloweenFour = routeIndex.sources.find((source) => source.id === "28PfRNKoSCA");
   assert.ok(halloweenFour);
-  assert.equal(halloweenFour.dossier.cuts.length, 37);
+  assert.ok(halloweenFour.dossier.cuts.length >= 37, "deep dossiers can grow when source-local lane supplements uncover additional playable receipts");
   assert.ok(halloweenFour.dossier.cuts.some((cut) => cut.category === "STRAIGHT TO STEVE'S ASSHOLE"));
+  const deepWatchalongs = canon.episodes.filter((episode) => episode.deepIndexed && Number(episode.dossier?.caption?.events || 0) > 0);
+  assert.equal(deepWatchalongs.length, 38);
+  assert.ok(deepWatchalongs.every((episode) => episode.dossier.cuts.some((cut) => cut.category === "UP IN YA")), "deep watchalongs retain explicit vulgarity doors");
+  assert.ok(deepWatchalongs.every((episode) => episode.dossier.cuts.some((cut) => cut.category === "CHARACTER SIGNAL")), "deep watchalongs retain character doors");
   const heldH2 = routeIndex.sources.find((source) => source.id === "AzrcgoyE7C4");
   assert.ok(heldH2?.alternateAudio, "held H2 keeps its official podcast edition on the cold route");
   assert.equal(heldH2.alternateAudio.candidateCount, 43);

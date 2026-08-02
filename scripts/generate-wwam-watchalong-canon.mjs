@@ -771,7 +771,16 @@ function episodeFrom(id) {
     id: cut.id, t: Number(cut.t || 0), end: Number(cut.end || cut.t || 0), category: cut.category, label: cut.label || cut.category,
     score: Number(cut.score || 0), excerpt: excerpt(cut.excerpt), topic: cut.topic || null, evidenceBasis: cut.evidenceBasis || "reviewed-guide-cut", reviewStatus: "distilled-editorial-candidate"
   })) : moments;
-  const allMoments = editorialMoments.concat(audioCuts.filter((candidate) => !editorialMoments.some((moment) =>
+  // Deep dossiers have a curated guide, but the guide is not the whole tape.
+  // Re-run the source-local lane detector for the explicit WWAM shelves so a
+  // long commentary does not lose every vulgarity/character cue simply because
+  // the editorial pack chose different highlight labels. These are additive
+  // machine candidates, never promoted to human-reviewed quotes.
+  const laneSupplement = deepRecord && guide
+    ? candidateMoments(events, duration, aliases, taxonomy).moments.filter((candidate) => /^(?:UP IN YA|STRAIGHT TO STEVE'S ASSHOLE|CHARACTER SIGNAL|FAN SIGNAL)$/i.test(candidate.category || ""))
+    : [];
+  const editorialAndLane = editorialMoments.concat(laneSupplement.filter((candidate) => !editorialMoments.some((moment) => Math.abs(Number(moment.t || 0) - candidate.t) <= 18)));
+  const allMoments = editorialAndLane.concat(audioCuts.filter((candidate) => !editorialAndLane.some((moment) =>
     Math.abs(Number(moment.t || 0) - candidate.t) <= 18
   )), alternateCuts);
   const dossierChapters = chapters.length ? chapters : alternateChapterRoutes(alternateCuts, alternateAudio?.media?.durationSeconds || duration);
