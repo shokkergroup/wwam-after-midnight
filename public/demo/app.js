@@ -735,6 +735,11 @@
         label: String(moment.label || moment.category || "INDEXED ROUTE"),
         excerpt: boundedExcerpt(moment.excerpt || moment.quote || moment.captionExcerpt || "Source-local receipt; press play to hear the tape."),
         heat: Number(moment.heat || moment.score || moment.audioRank || 0),
+        sourceKind: moment.sourceKind || null,
+        sourceClock: moment.sourceClock || null,
+        sourceUrl: moment.sourceUrl || null,
+        segmentKind: moment.segmentKind || null,
+        reviewStatus: moment.reviewStatus || null,
       };
     }).filter(function (moment) {
       if (!moment.at || seen[moment.at]) return false;
@@ -750,7 +755,12 @@
     var title = source.displayTitle || source.film || source.title || "WWAM SOURCE";
     var date = source.date ? shortDate(source.date) : "SOURCE DATE HELD";
     var total = Number(source.durationSeconds != null ? source.durationSeconds : source.duration) || 0;
-    var moments = fallbackSourceMoments(sourceId, source);
+    // Podcast-variant receipts have their own in-page audio shelf below. Do
+    // not duplicate them into the YouTube jump rail, where their seconds would
+    // look like canonical video timestamps.
+    var moments = fallbackSourceMoments(sourceId, source).filter(function (moment) {
+      return moment.sourceKind !== "podcast-variant";
+    });
     var topics = (Array.isArray(source.topics) ? source.topics : []).map(function (topic) {
       return typeof topic === "string" ? topic : topic && (topic.name || topic.label);
     }).filter(Boolean).slice(0, 8);

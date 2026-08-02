@@ -134,6 +134,52 @@ function excerpt(value, limit = 16) {
   return tokens.length <= limit ? tokens.join(" ") : `${tokens.slice(0, limit).join(" ")}...`;
 }
 
+// Podcast enclosures sometimes begin with a baked-in sponsor read or show
+// intro. The acoustic ranker can quite reasonably call that loud speech a
+// "bit"; the Wiki must not. Keep the receipt playable, but label the boundary
+// so a visitor never mistakes an ad for WWAM canon. This is intentionally
+// narrow: only explicit ad/intro language near the opening is reclassified.
+function podcastBoundaryKind(candidate) {
+  const text = normalizeCaptionText(candidate?.captionExcerpt || candidate?.excerpt || "");
+  const at = Number(candidate?.t || 0);
+  if (at > 240) return null;
+  if (/(?:capable device required|coverage not available|some uses may require|at ctmobile\.com|ctmobile\.com|this episode is brought to you|use promo code|sponsored by|download the app)/i.test(text)) {
+    return "podcast-ad-or-intro";
+  }
+  return null;
+}
+
+function podcastSignalMix(routes) {
+  const counts = routes.reduce((map, route) => {
+    const category = clean(route.category || route.label || "PODCAST ROUTE");
+    map[category] = (map[category] || 0) + 1;
+    return map;
+  }, {});
+  return Object.entries(counts)
+    .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
+    .map(([category, count]) => `${category} (${count})`);
+}
+
+function normalizePodcastCandidate(candidate, index) {
+  const boundary = podcastBoundaryKind(candidate);
+  const category = boundary ? "PODCAST AD / INTRO" : clean(candidate.category || candidate.label || "PODCAST ROUTE");
+  const label = boundary ? "PODCAST AD / INTRO" : clean(candidate.label || candidate.category || "PODCAST ROUTE");
+  return {
+    ...candidate,
+    id: clean(candidate.id || `podcast-route-${index + 1}`),
+    category,
+    label,
+    segmentKind: boundary || "commentary-candidate",
+    navigationQuality: boundary ? "ad-boundary" : "commentary-route",
+    evidenceBasis: boundary
+      ? "official WWAM podcast variant audio + local transcript; ad/intro boundary detected; not a canonical YouTube timestamp"
+      : "official WWAM podcast variant audio + local transcript; not a canonical YouTube timestamp",
+    reviewStatus: boundary
+      ? "podcast-boundary; do not cite as a WWAM bit; playback remains the authority"
+      : "audio-feature-candidate; podcast playback remains the authority"
+  };
+}
+
 // Alternate editions are useful evidence, but their clocks are not
 // interchangeable with the canonical YouTube upload. Keep the route index
 // small and explicit: it carries the official podcast link, a playable
@@ -154,17 +200,24 @@ function alternateAudioMeta(watchPassRecord, canonicalDuration) {
   const media = alternate.media || {};
   const alignment = alternate.alignment || {};
   const digest = alternate.listeningDigest || {};
-  const routes = (alternate.candidates || []).map((candidate, index) => ({
+  const routes = (alternate.candidates || []).map((candidate, index) => {
+    const normalized = normalizePodcastCandidate(candidate, index);
+    return {
+    id: normalized.id,
     t: Math.round(Number(candidate.t || 0)),
     end: Math.round(Number(candidate.end || candidate.t || 0)),
-    category: clean(candidate.category || candidate.label || "PODCAST ROUTE"),
-    label: clean(candidate.label || candidate.category || "PODCAST ROUTE"),
+    category: normalized.category,
+    label: normalized.label,
     score: Number(candidate.score || 0),
     rank: Number(candidate.rank || index + 1),
     excerpt: excerpt(normalizeCaptionText(candidate.captionExcerpt || ""), 28),
     clock: "official WWAM podcast clock",
-    evidenceBasis: "official WWAM podcast variant audio + local transcript; not a canonical YouTube timestamp"
-  }));
+    segmentKind: normalized.segmentKind,
+    navigationQuality: normalized.navigationQuality,
+    evidenceBasis: normalized.evidenceBasis,
+    reviewStatus: normalized.reviewStatus,
+    audio: candidate.audio || null
+  }; });
   return {
     status: alternate.status || "alternate-audio-feature-pilot",
     label: alternate.label || "OFFICIAL WWAM PODCAST VARIANT // SEPARATE CLOCK",
@@ -179,7 +232,7 @@ function alternateAudioMeta(watchPassRecord, canonicalDuration) {
     timestampIsomorphic: media.canonicalTimestampMapping === true && alignment.exactTimestampMappingEstablished === true,
     candidateCount: routes.length,
     routes,
-    signalMix: Array.isArray(digest.signalMix) ? digest.signalMix.slice(0, 8) : [],
+    signalMix: podcastSignalMix(routes).slice(0, 8),
     strongest: digest.strongest ? { t: Number(digest.strongest.t || 0), category: clean(digest.strongest.category || "PODCAST ROUTE"), score: Number(digest.strongest.score || 0) } : null,
     evidence: clean(digest.evidence || alternate.note || "Podcast routes remain bound to the official podcast player."),
     note: clean(alternate.note || watchPassRecord.note || "This is an official alternate edition; its timestamps remain on its own clock."),
@@ -609,8 +662,10 @@ function alternateChapterRoutes(routes, duration) {
       cutId: route.id,
       sourceKind: "podcast-variant",
       sourceClock: "official WWAM podcast clock",
-      evidenceBasis: "official WWAM podcast variant audio + local transcript; not a canonical YouTube timestamp",
-      reviewStatus: "audio-feature-candidate; podcast playback remains the authority"
+      segmentKind: route.segmentKind || "commentary-candidate",
+      navigationQuality: route.navigationQuality || "commentary-route",
+      evidenceBasis: route.evidenceBasis || "official WWAM podcast variant audio + local transcript; not a canonical YouTube timestamp",
+      reviewStatus: route.reviewStatus || "audio-feature-candidate; podcast playback remains the authority"
     };
   }).filter(Boolean);
 }
@@ -707,6 +762,26 @@ function episodeFrom(id) {
     : relevantTopics(sourceTopics.length ? sourceTopics : derivedTopicDoors, taxonomy);
   const watchPassRecord = watchPass.episodes?.[id] || null;
   const alternateAudio = alternateAudioMeta(watchPassRecord, duration);
+  // Carry the same boundary labels into the held-source watch-pass card. The
+  // UI reads this raw pass for its playable alternate shelf, while the dossier
+  // below reads the compact `alternateAudio` routes.
+  const normalizedWatchPass = watchPassRecord && alternateAudio && watchPassRecord.alternateAudio
+    ? {
+        ...watchPassRecord,
+        alternateAudio: {
+          ...watchPassRecord.alternateAudio,
+          candidates: alternateAudio.routes.map((route) => ({
+            ...route,
+            captionExcerpt: route.excerpt,
+            excerpt: route.excerpt
+          })),
+          listeningDigest: {
+            ...(watchPassRecord.alternateAudio.listeningDigest || {}),
+            signalMix: alternateAudio.signalMix
+          }
+        }
+      }
+    : watchPassRecord;
   const audioCandidates = watchPassRecord && watchPassRecord.status === "audio-feature-pilot"
     ? (watchPassRecord.candidates || [])
     : [];
@@ -764,8 +839,10 @@ function episodeFrom(id) {
     sourceUrl: alternateAudio.episodeUrl || alternateAudio.sourceUrl || null,
     audio: route.audio || null,
     audioRank: Number(route.rank || index + 1),
-    evidenceBasis: "official WWAM podcast variant audio + local transcript; not a canonical YouTube timestamp",
-    reviewStatus: "audio-feature-candidate; podcast playback remains the authority"
+    segmentKind: route.segmentKind || "commentary-candidate",
+    navigationQuality: route.navigationQuality || "commentary-route",
+    evidenceBasis: route.evidenceBasis || "official WWAM podcast variant audio + local transcript; not a canonical YouTube timestamp",
+    reviewStatus: route.reviewStatus || "audio-feature-candidate; podcast playback remains the authority"
   }));
   const editorialMoments = deepRecord && guide ? guideCuts.map((cut) => ({
     id: cut.id, t: Number(cut.t || 0), end: Number(cut.end || cut.t || 0), category: cut.category, label: cut.label || cut.category,
@@ -831,7 +908,7 @@ function episodeFrom(id) {
     franchiseKey: taxonomy.franchiseKey, franchiseTitle: taxonomy.franchiseTitle, movieKey: taxonomy.movieKey, movieTitle: taxonomy.movieTitle,
     aliases, transcript: Boolean(events.length || deepRecord?.wordsAudited), captioned: Boolean(events.length || deepRecord?.wordsAudited), deepIndexed: Boolean(deepRecord),
     topics, sourceTopics, dossier, metrics: deepRecord?.metrics || null, unhinged: deepRecord?.unhinged || null, verdict: deepRecord?.verdict || null,
-    watchPass: watchPassRecord,
+    watchPass: normalizedWatchPass,
     alternateAudio,
     editorial: deepRecord?.arc ? { arc: deepRecord.arc, moments: allMoments } : { arc: dossierChapters.map((chapter) => ({ chapter: chapter.act, at: chapter.at, dominant: chapter.category })), moments: allMoments }
   };
@@ -1216,7 +1293,14 @@ const routeIndex = {
         score: cut.score,
         excerpt: cut.excerpt,
         topic: cut.topic,
-        audioRank: cut.audioRank
+        audioRank: cut.audioRank,
+        sourceKind: cut.sourceKind || null,
+        sourceClock: cut.sourceClock || null,
+        sourceUrl: cut.sourceUrl || null,
+        segmentKind: cut.segmentKind || null,
+        navigationQuality: cut.navigationQuality || null,
+        evidenceBasis: cut.evidenceBasis || null,
+        reviewStatus: cut.reviewStatus || null
       }))
     } : null
   }))

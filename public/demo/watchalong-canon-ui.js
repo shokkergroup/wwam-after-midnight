@@ -375,6 +375,34 @@
       }).join('') + '</div>';
   }
 
+  // Final alternate-audio declaration: held sources get an in-page player and
+  // source-local seek buttons. The explicit ad/intro marker survives here so
+  // a loud sponsor read cannot masquerade as a WWAM bit.
+  function alternateAudioMarkup(pass, episode) {
+    var alternate = pass && pass.alternateAudio;
+    if (!alternate) {
+      return '<div class="wac-watch-pass-alternate"><b>' + esc((pass.alternateSource || {}).label || 'ALTERNATE SOURCE') + '</b><a target="_blank" rel="noopener" href="' + esc((pass.alternateSource || {}).url || '#') + '">OPEN OFFICIAL WWAM PODCAST VARIANT</a></div>';
+    }
+    var audit = alternate.audit || {};
+    var stats = audit.audioStats || {};
+    var candidates = Array.isArray(alternate.candidates) ? alternate.candidates : [];
+    var source = (alternate.media || {}).sourceUrl || (pass.alternateSource || {}).url || '#';
+    var audioId = 'wacVariantAudio-source';
+    var playable = /^https?:\/\//i.test(String(source || ''));
+    var player = playable ? '<audio id="' + audioId + '" controls preload="metadata" src="' + esc(source) + '"></audio>' : '';
+    var cards = candidates.map(function (candidate) {
+      var audio = candidate.audio || {};
+      var boundary = candidate.segmentKind === 'podcast-ad-or-intro';
+      var body = '<header><b>#' + esc(candidate.rank) + ' // ' + esc(candidate.category || candidate.label || 'VARIANT RECEIPT') + '</b><span>' + esc(timestamp(candidate.t)) + ' // SCORE ' + esc(candidate.score) + '</span></header><p>' + esc(excerpt(candidate.captionExcerpt || candidate.excerpt, 230) || 'NO TRANSCRIPT FRAGMENT ALIGNED // OPEN THE PODCAST VARIANT AND LISTEN.') + '</p><small>' + (boundary ? 'AD / INTRO BOUNDARY // NOT A WWAM BIT // ' : '') + 'VARIANT AUDIO // ENERGY ' + esc(audio.meanEnergyPercentile) + 'TH PCTL // PEAK ' + esc(audio.peakPercentile) + 'TH PCTL</small>';
+      return playable
+        ? '<button type="button" class="wac-variant-route' + (boundary ? ' wac-variant-boundary' : '') + '" data-wac-variant-seek="' + esc(candidate.t || 0) + '" data-wac-variant-audio="' + audioId + '">' + body + '</button>'
+        : '<a target="_blank" rel="noopener" href="' + esc(source) + '">' + body + '</a>';
+    }).join('');
+    return '<div class="wac-watch-pass-alternate"><b>' + esc(alternate.label || 'OFFICIAL WWAM PODCAST VARIANT') + '</b>' + player + '<a target="_blank" rel="noopener" href="' + esc(source) + '">OPEN PLAYABLE VARIANT</a><small>' + number(audit.candidateCount) + ' VARIANT ROUTES // ' + esc(durationLabel((alternate.media || {}).durationSeconds)) + ' AUDIO // PODCAST CLOCK ONLY</small></div>' +
+      '<div class="wac-watch-pass-metrics"><span><b>' + number(audit.captionEvents) + '</b>TRANSCRIPT EVENTS</span><span><b>' + number(audit.laughterOrOverlapMarkers) + '</b>LAUGHTER / OVERLAP MARKERS</span><span><b>' + number(audit.candidateCount) + '</b>RANKED VARIANT ROUTES</span><span><b>' + number(stats.energyP90Seconds) + '</b>HIGH-ENERGY SECONDS</span></div>' +
+      '<div class="wac-watch-pass-candidates">' + cards + '</div>';
+  }
+
   function watchPassMarkup(episode) {
     var pass = episode.watchPass;
     if (!pass) return '';
@@ -555,6 +583,17 @@
         var play = audio.play();
         if (play && typeof play.catch === "function") play.catch(function () {});
         var dossier = root.document.getElementById("wacPodcastDossier");
+        if (dossier) dossier.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+    Array.prototype.forEach.call(root.document.querySelectorAll("[data-wac-variant-seek]"), function (button) {
+      button.addEventListener("click", function () {
+        var audio = root.document.getElementById(button.getAttribute("data-wac-variant-audio") || "wacVariantAudio-source");
+        if (!audio) return;
+        audio.currentTime = Math.max(0, Number(button.getAttribute("data-wac-variant-seek")) || 0);
+        var play = audio.play();
+        if (play && typeof play.catch === "function") play.catch(function () {});
+        var dossier = root.document.getElementById("wacDossier");
         if (dossier) dossier.scrollIntoView({ behavior: "smooth", block: "start" });
       });
     });

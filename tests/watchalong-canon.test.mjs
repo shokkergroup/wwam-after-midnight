@@ -46,6 +46,10 @@ test("cold-route Show Wiki index mirrors every source and keeps full dossier cut
   assert.equal(heldH2.alternateAudio.routes.length, 43);
   assert.match(heldH2.alternateAudio.enclosureUrl, /^https:\/\/traffic\.megaphone\.fm\//);
   assert.ok(heldH2.alternateAudio.routes.every((route) => route.clock === "official WWAM podcast clock"));
+  assert.equal(heldH2.alternateAudio.routes[0].category, "PODCAST AD / INTRO");
+  assert.equal(heldH2.alternateAudio.routes[0].segmentKind, "podcast-ad-or-intro");
+  assert.match(heldH2.alternateAudio.routes[0].reviewStatus, /do not cite as a WWAM bit/i);
+  assert.ok(heldH2.dossier.cuts.every((cut) => cut.sourceKind === "podcast-variant" || cut.sourceKind == null));
 });
 
 test("watchalong canon has the complete public source registry", () => {
@@ -197,6 +201,8 @@ test("every episode has an official source, evidence state, and playable receipt
   assert.equal(heldSource.watchPass.alternateAudio.status, "alternate-audio-feature-pilot");
   assert.ok(heldSource.watchPass.alternateAudio.candidates.length >= 30);
   assert.equal(heldSource.watchPass.alternateAudio.alignment.exactTimestampMappingEstablished, false);
+  assert.equal(heldSource.watchPass.alternateAudio.candidates[0].category, "PODCAST AD / INTRO");
+  assert.equal(heldSource.watchPass.alternateAudio.candidates[0].segmentKind, "podcast-ad-or-intro");
   assert.match(heldSource.watchPass.note, /duration drift/i);
   assert.equal(heldSource.dossier.cuts.length, 43, "the held H2 keeps every bounded podcast route in its local dossier");
   assert.equal(heldSource.dossier.chapters.length, 8, "the held H2 receives a source-local podcast arc instead of an empty chapter shelf");
@@ -261,7 +267,7 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(ui, /function fanSignalsMarkup\(episode, signals\)/);
   assert.match(ui, /fanSignalsMarkup\(episode, dossier\.fanSignals\)/);
   assert.match(ui, /function watchPassMarkup\(episode\)/);
-  assert.match(ui, /function alternateAudioMarkup\(pass\)/);
+  assert.match(ui, /function alternateAudioMarkup\(pass(?:, episode)?\)/);
   assert.match(ui, /watchCandidateLabel/);
   assert.match(ui, /AUDIO FEATURE RANK/);
   assert.match(ui, /ACOUSTIC ONLY/);
@@ -279,6 +285,10 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(ui, /function keepLocalReceiptLinks\(\)/, "bounded watchalong receipts stay in the local Show Wiki route");
   assert.match(ui, /function receiptUrl\(episode, item\)/, "variant receipts have an explicit source URL lane");
   assert.match(ui, /OPEN PODCAST VARIANT AT/, "variant-clock receipts are labeled instead of masquerading as YouTube jumps");
+  assert.match(ui, /data-wac-variant-seek/, "held podcast variants have in-page playable seek controls");
+  assert.match(ui, /AD \/ INTRO BOUNDARY/, "podcast ad boundaries remain visibly separate from WWAM bits");
+  assert.match(app, /sourceKind: moment\.sourceKind/, "cold-route receipts retain their source clock metadata");
+  assert.match(app, /Podcast-variant receipts have their own in-page audio shelf/, "cold-route YouTube rails do not duplicate podcast-clock cuts");
   assert.match(ui, /PODCAST CLOCK \/\//, "variant-clock headers expose their own clock");
   assert.match(ui, /a\[href\^=\\"\?source=/, "local receipt cleanup covers dossier links");
   assert.match(ui, /\.wac-edge-shelf a\[href\^=\\"\?source=/, "the local edge selector is scoped to the adjacent shelf");
