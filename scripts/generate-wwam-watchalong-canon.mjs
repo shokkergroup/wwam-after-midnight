@@ -533,6 +533,34 @@ function candidateMoments(events, duration, aliases, taxonomy = {}) {
   return { moments: contextualCandidates, topics: topicTerms, chapters, captionWords: words(events.map((event) => event.text).join(" ")).length, captionEvents: events.length };
 }
 
+function alternateChapterRoutes(routes, duration) {
+  if (!routes.length) return [];
+  const count = Math.min(8, Math.max(4, Math.ceil(routes.length / 6)));
+  const used = new Set();
+  return Array.from({ length: count }, (_, index) => {
+    const target = (Number(duration || 0) * index) / count;
+    const route = routes.filter((item) => !used.has(item.id)).slice().sort((left, right) => Math.abs(Number(left.t || 0) - target) - Math.abs(Number(right.t || 0) - target))[0]
+      || routes.slice().sort((left, right) => Math.abs(Number(left.t || 0) - target) - Math.abs(Number(right.t || 0) - target))[0];
+    if (!route) return null;
+    used.add(route.id);
+    return {
+      id: `podcast-act-${String(index + 1).padStart(2, "0")}`,
+      act: index + 1,
+      label: `${clean(route.label || route.category || "PODCAST ROUTE")} // PODCAST CLOCK`,
+      at: Number(route.t || 0),
+      end: Number(route.end || route.t || 0),
+      body: `The official WWAM podcast variant opens this stretch at ${formatTimestamp(route.t)} on its own clock. The route is playable evidence, not a YouTube timestamp.`,
+      excerpt: clean(route.excerpt || "Open the official podcast variant and listen."),
+      category: clean(route.category || route.label || "PODCAST ROUTE"),
+      cutId: route.id,
+      sourceKind: "podcast-variant",
+      sourceClock: "official WWAM podcast clock",
+      evidenceBasis: "official WWAM podcast variant audio + local transcript; not a canonical YouTube timestamp",
+      reviewStatus: "audio-feature-candidate; podcast playback remains the authority"
+    };
+  }).filter(Boolean);
+}
+
 function titleDerivedTaxonomy(title) {
   const source = clean(title);
   const normalized = source
@@ -654,13 +682,30 @@ function episodeFrom(id) {
         reviewStatus: "audio-feature-candidate; playback remains the authority"
       };
     }).filter((candidate) => candidate.excerpt || candidate.t >= 0);
+  const alternateCuts = (alternateAudio?.routes || []).map((route, index) => ({
+    id: `podcast-${Math.round(Number(route.t || 0))}-${index + 1}`,
+    t: Number(route.t || 0),
+    end: Number(route.end || route.t || 0),
+    category: clean(route.category || route.label || "PODCAST ROUTE"),
+    label: clean(route.label || route.category || "PODCAST ROUTE"),
+    score: Number(route.score || 0),
+    excerpt: clean(route.excerpt || "Open the official WWAM podcast variant and listen."),
+    clock: "official WWAM podcast clock",
+    sourceKind: "podcast-variant",
+    sourceUrl: alternateAudio.episodeUrl || alternateAudio.sourceUrl || null,
+    audio: route.audio || null,
+    audioRank: Number(route.rank || index + 1),
+    evidenceBasis: "official WWAM podcast variant audio + local transcript; not a canonical YouTube timestamp",
+    reviewStatus: "audio-feature-candidate; podcast playback remains the authority"
+  }));
   const editorialMoments = deepRecord && guide ? guideCuts.map((cut) => ({
     id: cut.id, t: Number(cut.t || 0), end: Number(cut.end || cut.t || 0), category: cut.category, label: cut.label || cut.category,
     score: Number(cut.score || 0), excerpt: excerpt(cut.excerpt), topic: cut.topic || null, evidenceBasis: cut.evidenceBasis || "reviewed-guide-cut", reviewStatus: "distilled-editorial-candidate"
   })) : moments;
   const allMoments = editorialMoments.concat(audioCuts.filter((candidate) => !editorialMoments.some((moment) =>
     Math.abs(Number(moment.t || 0) - candidate.t) <= 18
-  )));
+  )), alternateCuts);
+  const dossierChapters = chapters.length ? chapters : alternateChapterRoutes(alternateCuts, alternateAudio?.media?.durationSeconds || duration);
   const firstMoment = allMoments.slice().sort((left, right) => left.t - right.t)[0] || null;
   const strongestMoment = allMoments.slice().sort((left, right) => Number(right.score || 0) - Number(left.score || 0))[0] || null;
   const finalMoment = allMoments.slice().sort((left, right) => right.t - left.t)[0] || null;
@@ -688,11 +733,11 @@ function episodeFrom(id) {
     state: deepRecord && guide ? "full-editorial-dossier" : deepRecord || !events.length ? "source-brief-dossier" : "caption-ledger-dossier",
     summary: clean(summary),
     evidenceSummary,
-    shape: guide?.shape ? { ...guide.shape, cuts: allMoments.length } : { runtimeBand: duration >= 9000 ? "MARATHON" : duration >= 5400 ? "FEATURE" : "SHORT", chapters: chapters.length, threads: topics.length, cuts: allMoments.length },
+    shape: guide?.shape ? { ...guide.shape, cuts: allMoments.length } : { runtimeBand: duration >= 9000 ? "MARATHON" : duration >= 5400 ? "FEATURE" : "SHORT", chapters: dossierChapters.length, threads: topics.length, cuts: allMoments.length },
     fanRead: guide?.fanRead || (deepRecord ? null : ledgerFanRead(allMoments, finalMoment)),
     fanSignals,
     laneCounts,
-    chapters,
+    chapters: dossierChapters,
     cuts: allMoments,
     route: { opening: firstMoment, strongest: strongestMoment, closing: finalMoment },
     caption: { words: deepRecord?.wordsAudited || derived?.captionWords || 0, events: events.length, minutes: deepRecord?.captionMinutes || Math.round(duration / 60), sourceFile: captionSourceFile, sourceKind }
@@ -710,7 +755,7 @@ function episodeFrom(id) {
     topics, sourceTopics, dossier, metrics: deepRecord?.metrics || null, unhinged: deepRecord?.unhinged || null, verdict: deepRecord?.verdict || null,
     watchPass: watchPassRecord,
     alternateAudio,
-    editorial: deepRecord?.arc ? { arc: deepRecord.arc, moments: allMoments } : { arc: chapters.map((chapter) => ({ chapter: chapter.act, at: chapter.at, dominant: chapter.category })), moments: allMoments }
+    editorial: deepRecord?.arc ? { arc: deepRecord.arc, moments: allMoments } : { arc: dossierChapters.map((chapter) => ({ chapter: chapter.act, at: chapter.at, dominant: chapter.category })), moments: allMoments }
   };
 }
 

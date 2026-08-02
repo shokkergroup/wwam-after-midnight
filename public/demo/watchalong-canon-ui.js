@@ -40,6 +40,18 @@
     var seconds = Math.max(0, Math.round(Number(at) || 0));
     return "?source=" + sourceId + "&at=" + seconds + "&section=wiki#archive";
   }
+  function receiptUrl(episode, item) {
+    if (item && item.sourceKind === "podcast-variant") {
+      return (episode && episode.alternateAudio && (episode.alternateAudio.episodeUrl || episode.alternateAudio.sourceUrl)) || item.sourceUrl || "#";
+    }
+    return sourceUrl(episode, item && item.t);
+  }
+  function receiptTarget(item) {
+    return item && item.sourceKind === "podcast-variant" ? ' target="_blank" rel="noopener"' : '';
+  }
+  function receiptClock(item) {
+    return item && item.sourceKind === "podcast-variant" ? "PODCAST CLOCK // " : "";
+  }
   function wikiUrl(episode) { return "?source=" + encodeURIComponent(episode.id) + "&section=wiki#archive"; }
   function stateLabel(episode) {
     if (episode.dossier && episode.dossier.state === "full-editorial-dossier") return "FULL DOSSIER";
@@ -303,6 +315,18 @@
     }).join('') + '</div>';
   }
 
+  // Variant-clock chapters are rendered by this final declaration so a held
+  // YouTube source never receives a fake local timestamp route.
+  function chapterMarkup(episode, chapters) {
+    if (!Array.isArray(chapters) || !chapters.length) return '';
+    return '<div class="wac-section-label" style="padding:0 1.5rem">SHOW ARC // CHAPTERS ARE ROUTES, NOT AI FILLER</div><div class="wac-chapter-grid">' + chapters.map(function (chapter) {
+      var at = Number(chapter.at || chapter.t || 0);
+      var podcast = chapter.sourceKind === "podcast-variant";
+      var label = podcast ? "OPEN PODCAST VARIANT AT " : "OPEN SOURCE AT ";
+      return '<article class="wac-chapter"><header><span>ACT ' + esc(chapter.act || chapter.chapter || '') + '</span><span>' + esc(receiptClock(chapter) + timestamp(at)) + '</span></header><b>' + esc(chapter.label || chapter.category || 'WATCH ROUTE') + '</b><p>' + esc(excerpt(chapter.body || chapter.excerpt || 'Open the timestamp and hear this stretch of the tape.', 220)) + '</p><a' + receiptTarget(chapter) + ' href="' + esc(receiptUrl(episode, chapter)) + '">' + label + esc(timestamp(at)) + ' -></a></article>';
+    }).join('') + '</div>';
+  }
+
   function topicMarkup(episode, topics) {
     if (!Array.isArray(topics) || !topics.length) return '';
     return '<div class="wac-section-label" style="padding:0 1.5rem">TOPIC DOORS // FIRST MENTION + PEAK RECEIPT</div><div class="wac-topic-row">' + topics.slice(0, 10).map(function (topic) {
@@ -408,6 +432,31 @@
       '<div class="wac-section-label" style="padding:0 1.5rem">EVERY INDEXED RECEIPT // PRESS PLAY AT THE TAPE</div><div class="wac-moment-grid">' + moments.map(function (moment) {
         return '<article class="wac-moment"><header><span>' + esc(moment.category || moment.label || 'SOURCE RECEIPT') + '</span><span>' + esc(timestamp(moment.t)) + '</span></header><p>' + esc(moment.excerpt || moment.quote || 'Caption receipt available at this timestamp.') + '</p><a target="_blank" rel="noopener" href="' + esc(sourceUrl(episode, moment.t)) + '">OPEN SOURCE AT ' + esc(timestamp(moment.t)) + ' ↗</a></article>';
       }).join('') + '</div><footer class="wac-dossier-footer"><a href="' + esc(wikiUrl(episode)) + '">OPEN THIS SHOW&rsquo;S WIKI →</a><a target="_blank" rel="noopener" href="' + esc(episode.url) + '">OPEN OFFICIAL UPLOAD ↗</a><button class="wac-button" type="button" data-wac-close>CLOSE DOSSIER</button></footer></section>';
+  }
+
+  // The final dossier renderer keeps podcast-variant receipts on their own
+  // source-local clock and never turns them into YouTube timestamps.
+  function dossierMarkup(episode) {
+    if (!episode) return '';
+    var dossier = episode.dossier || {};
+    var route = dossier.route || {};
+    var moments = Array.isArray(dossier.cuts) ? dossier.cuts.map(function (moment) {
+      var rendered = Object.assign({}, moment || {});
+      if (rendered.label) rendered.category = rendered.label;
+      if (rendered.audio) {
+        var peak = rendered.audio.peakPercentile == null ? '-' : rendered.audio.peakPercentile;
+        rendered.excerpt = '[AUDIO FEATURE RANK #' + (rendered.audioRank || '-') + ' // PEAK ' + peak + 'TH PCTL] ' + (rendered.excerpt || '');
+      }
+      return rendered;
+    }) : [];
+    return '<section class="wac-dossier" id="wacDossier" aria-labelledby="wacDossierTitle"><header class="wac-dossier-head"><div><span class="wac-dossier-kicker">' + esc(episode.franchiseTitle) + ' // ' + esc(stateLabel(episode)) + '</span><h3 id="wacDossierTitle">' + esc(episode.movieTitle) + '</h3><p>' + esc(dossier.summary) + '</p></div><div class="wac-dossier-facts"><span><small>DATE</small><b>' + esc(dateLabel(episode.date)) + '</b></span><span><small>RUNTIME</small><b>' + esc(durationLabel(episode.duration)) + '</b></span><span><small>CAPTION WORDS</small><b>' + number(dossier.caption && dossier.caption.words) + '</b></span><span><small>JUMP RECEIPTS</small><b>' + number(moments.length) + '</b></span></div></header>' +
+      '<div class="wac-dossier-note"><strong>EVIDENCE STATUS // </strong>' + esc(dossier.evidenceSummary || 'The source is linked to the official tape. Speaker identity, intent, and current playback availability remain outside this fan archive unless a reviewed guide says otherwise.') + '</div>' +
+      '<div class="wac-route-grid">' + routeCard('OPENING READ', route.opening) + routeCard('STRONGEST RECEIPT', route.strongest) + routeCard('CLOSING READ', route.closing) + '</div>' + watchPassMarkup(episode) + chapterMarkup(episode, dossier.chapters) + topicMarkup(episode, episode.topics) + fanReadMarkup(dossier.fanRead) + fanSignalsMarkup(episode, dossier.fanSignals) +
+      '<div class="wac-section-label" style="padding:0 1.5rem">EVERY INDEXED RECEIPT // PRESS PLAY AT THE TAPE</div><div class="wac-moment-grid">' + moments.map(function (moment) {
+        var podcast = moment.sourceKind === "podcast-variant";
+        var label = podcast ? "OPEN PODCAST VARIANT AT " : "OPEN SOURCE AT ";
+        return '<article class="wac-moment"><header><span>' + esc(moment.category || moment.label || 'SOURCE RECEIPT') + '</span><span>' + esc(receiptClock(moment) + timestamp(moment.t)) + '</span></header><p>' + esc(moment.excerpt || moment.quote || 'Caption receipt available at this timestamp.') + '</p><a' + receiptTarget(moment) + ' href="' + esc(receiptUrl(episode, moment)) + '">' + label + esc(timestamp(moment.t)) + ' -></a></article>';
+      }).join('') + '</div><footer class="wac-dossier-footer"><a href="' + esc(wikiUrl(episode)) + '">OPEN THIS SHOW&rsquo;S WIKI -></a><a target="_blank" rel="noopener" href="' + esc(episode.url) + '">OPEN OFFICIAL UPLOAD -></a><button class="wac-button" type="button" data-wac-close>CLOSE DOSSIER</button></footer></section>';
   }
 
   function keepPublicEdgeLinksLocal() {

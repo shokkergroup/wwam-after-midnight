@@ -194,6 +194,10 @@ test("every episode has an official source, evidence state, and playable receipt
   assert.ok(heldSource.watchPass.alternateAudio.candidates.length >= 30);
   assert.equal(heldSource.watchPass.alternateAudio.alignment.exactTimestampMappingEstablished, false);
   assert.match(heldSource.watchPass.note, /duration drift/i);
+  assert.equal(heldSource.dossier.cuts.length, 43, "the held H2 keeps every bounded podcast route in its local dossier");
+  assert.equal(heldSource.dossier.chapters.length, 8, "the held H2 receives a source-local podcast arc instead of an empty chapter shelf");
+  assert.ok(heldSource.dossier.cuts.every((cut) => cut.sourceKind === "podcast-variant" && /not a canonical YouTube timestamp/i.test(cut.evidenceBasis)));
+  assert.ok(heldSource.dossier.chapters.every((chapter) => chapter.sourceKind === "podcast-variant" && chapter.sourceClock === "official WWAM podcast clock"));
   const recoveredSource = canon.episodes.find((episode) => episode.id === "tGsSV60FmX0");
   assert.equal(recoveredSource.dossier.state, "caption-ledger-dossier");
   assert.equal(recoveredSource.watchPass.status, "audio-feature-pilot");
@@ -263,6 +267,9 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(ui, /edgeReview/);
   assert.match(ui, /function keepPublicEdgeLinksLocal\(\)/, "public edge leads stay in the local app route");
   assert.match(ui, /function keepLocalReceiptLinks\(\)/, "bounded watchalong receipts stay in the local Show Wiki route");
+  assert.match(ui, /function receiptUrl\(episode, item\)/, "variant receipts have an explicit source URL lane");
+  assert.match(ui, /OPEN PODCAST VARIANT AT/, "variant-clock receipts are labeled instead of masquerading as YouTube jumps");
+  assert.match(ui, /PODCAST CLOCK \/\//, "variant-clock headers expose their own clock");
   assert.match(ui, /a\[href\^=\\"\?source=/, "local receipt cleanup covers dossier links");
   assert.match(ui, /\.wac-edge-shelf a\[href\^=\\"\?source=/, "the local edge selector is scoped to the adjacent shelf");
   assert.match(ui, /link\.removeAttribute\("target"\)/, "public edge leads do not open a second tab");
