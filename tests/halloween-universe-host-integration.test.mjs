@@ -27,7 +27,7 @@ test("Halloween Universe is a contextual, lazy Watchalongs destination", () => {
   assert.match(watchalongsHub, /href="#halloween-universe"[^>]+data-journey-link="watchalongs"/);
   assert.match(section, /aria-labelledby="halloweenUniverseTitle"/);
   assert.match(section, /id="halloweenUniverseMount"/);
-  assert.match(section, /data-feature-styles="halloween-universe\.css\?v=1\.1\.0"/);
+  assert.match(section, /data-feature-styles="halloween-universe\.css\?v=1\.1\.1-snap-safe"/);
 
   const dataAt = section.indexOf("halloween-acquired-distill.js");
   const enrichmentAt = section.indexOf("halloween-commentary-enrichment.js");

@@ -18,6 +18,10 @@
 }
 
 html { scroll-padding-top: 122px; }
+.wwam-route-hub,
+.halloween-universe,
+.comedy-vault,
+.watchalong-canon { scroll-margin-top: 92px; }
 body {
   background:
     radial-gradient(circle at 18% 12%, rgba(255, 47, 120, .045), transparent 28rem),

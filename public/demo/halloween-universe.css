@@ -94,7 +94,7 @@
 .halloween-universe .hu-proof-nav { color: #80d9ff; }
 .halloween-universe .hu-proof-held { color: var(--hu-red); }
 .halloween-universe .hu-proof-machine { color: #c6b5ff; }
-.halloween-universe .hu-dossier { animation: hu-in .24s ease both; }
+.halloween-universe .hu-dossier { animation: hu-in .24s ease both; scroll-margin-top: 92px; }
 @keyframes hu-in { from { opacity: 0; transform: translateY(8px); } }
 .halloween-universe .hu-dossier-hero { display: grid; grid-template-columns: minmax(320px, .85fr) minmax(360px, 1.15fr); min-height: 500px; margin: calc(clamp(2rem, 4vw, 4.5rem) * -1) calc(clamp(2rem, 4vw, 4.5rem) * -1) 0; background: var(--hu-panel); border-bottom: 1px solid var(--hu-line); }
 .halloween-universe .hu-dossier-image { min-height: 430px; overflow: hidden; }
@@ -105,10 +105,10 @@
 .halloween-universe .hu-dossier-stats { display: flex; flex-wrap: wrap; gap: 1.7rem; margin: 1.5rem 0; }
 .halloween-universe .hu-dossier-stats span { color: #96988f; font: 750 .63rem/1.4 ui-monospace, monospace; }
 .halloween-universe .hu-dossier-stats b { display: block; margin-bottom: .25rem; color: var(--hu-acid); font: 900 1.7rem/1 Impact, sans-serif; }
-.halloween-universe .hu-dossier-nav { position: sticky; z-index: 10; top: 218px; display: flex; gap: .5rem; padding: .8rem 0; background: rgba(7,8,7,.96); overflow-x: auto; }
+.halloween-universe .hu-dossier-nav { position: sticky; z-index: 10; top: 77px; display: flex; gap: .5rem; padding: .8rem 0; background: rgba(7,8,7,.96); overflow-x: auto; }
 .halloween-universe .hu-dossier-nav a { flex: 0 0 auto; padding: .7rem .9rem; border: 1px solid rgba(244,240,230,.18); color: var(--hu-paper); font: 800 .67rem/1 ui-monospace, monospace; text-decoration: none; }
 .halloween-universe .hu-dossier-nav a:hover { color: #071005; background: var(--hu-acid); }
-.halloween-universe .hu-dossier-lane { padding: 3.5rem 0 1rem; scroll-margin-top: 160px; }
+.halloween-universe .hu-dossier-lane { padding: 3.5rem 0 1rem; scroll-margin-top: 145px; }
 .halloween-universe .hu-dossier-lane > header { display: grid; grid-template-columns: 1fr .6fr; gap: 2rem; align-items: end; margin-bottom: 1.5rem; }
 .halloween-universe .hu-dossier-lane > header .hu-eyebrow { grid-column: 1/-1; margin-bottom: -1rem; }
 .halloween-universe .hu-dossier-lane h3 { margin: 0; font: 900 clamp(2.2rem, 4vw, 4.5rem)/.9 Impact, sans-serif; text-transform: uppercase; }
