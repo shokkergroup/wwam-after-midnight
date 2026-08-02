@@ -8,6 +8,7 @@ authority.
 
 from __future__ import annotations
 
+import argparse
 import json
 import re
 from pathlib import Path
@@ -34,12 +35,13 @@ def audio_file(video_id: str) -> Path | None:
 
 
 def held_record(episode: dict) -> dict:
+    year = str(episode.get("date") or "unknown")[:4]
     return {
         "id": episode["id"],
         "date": episode.get("date") or "unknown",
         "title": episode.get("title") or episode["id"],
         "status": "held-source-unavailable",
-        "label": "2026 LIVESTREAM WATCH PASS // HELD SOURCE",
+        "label": f"{year} LIVESTREAM WATCH PASS // HELD SOURCE",
         "media": {"sourceUrl": episode.get("url") or f"https://www.youtube.com/watch?v={episode['id']}", "audioOnly": True, "canonicalAudioAvailable": False},
         "audit": {"captionEvents": 0, "audioRows": 0, "candidateCount": 0, "candidateTarget": 0, "candidateCategories": {}, "audioStats": {}},
         "candidates": [],
@@ -50,15 +52,20 @@ def held_record(episode: dict) -> dict:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="Decode and rank bounded audio routes for selected WWAM livestream year shelves.")
+    parser.add_argument("--year", type=int, action="append", dest="years", help="Year shelf to process; repeat to process more than one. Defaults to 2026.")
+    args = parser.parse_args()
+    years = {str(year) for year in (args.years or [2026])}
     canon = load_window(CANON)
-    episodes = [episode for episode in canon.get("episodes", []) if str(episode.get("date", "")).startswith("2026")]
+    episodes = [episode for episode in canon.get("episodes", []) if str(episode.get("date", ""))[:4] in years]
+    prior: dict = load_window(OUTPUT) if OUTPUT.exists() else {}
     output: dict = {
         "schema": "wwam/livestream-audio-pass/v1",
-        "version": "2026-livestream-audio-01",
+        "version": "livestream-audio-02",
         "status": "audio-feature-pass",
-        "scope": "all-public-2026-livestreams",
+        "scope": "merged-public-livestream-year-shelves",
         "selectionPolicy": "Runtime- and caption-density-scaled routes with recurring WWAM lanes preserved before score fill; not an exhaustive transcript or human final cut.",
-        "episodes": {},
+        "episodes": dict(prior.get("episodes") or {}),
     }
     analyzed = 0
     held = 0
@@ -93,7 +100,7 @@ def main() -> None:
             "date": episode.get("date") or "unknown",
             "title": episode.get("title") or video_id,
             "status": "audio-feature-pass",
-            "label": "2026 LIVESTREAM WATCH PASS // AUDIO",
+            "label": f"{str(episode.get('date') or 'unknown')[:4]} LIVESTREAM WATCH PASS // AUDIO",
             "media": {"sourceUrl": episode.get("url") or f"https://www.youtube.com/watch?v={video_id}", "localFile": f"source-cache/audio/{audio.name}", "container": audio.suffix.lstrip("."), "durationSeconds": features["durationSeconds"], "audioOnly": True, "canonicalAudioAvailable": True},
             "audit": {"captionEvents": len(events), "audioRows": features["durationSeconds"], "laughterOrOverlapMarkers": marker_count, "candidateCount": len(candidates), "candidateTarget": target, "candidateCategories": category_counts(candidates), "audioStats": features["stats"]},
             "candidates": candidates,
@@ -113,7 +120,34 @@ def main() -> None:
         total_caption_events += len(events)
         total_candidates += len(candidates)
         print(f"{video_id}: {len(events)} caption events, {features['durationSeconds']} audio rows, {len(candidates)} candidates", flush=True)
-    output["coverage"] = {"year": 2026, "livestreamEpisodes": len(episodes), "audioAnalyzed": analyzed, "held": held, "audioSeconds": total_audio_seconds, "captionEvents": total_caption_events, "rankedCandidates": total_candidates}
+    records = output["episodes"]
+    year_coverage: dict[str, dict] = {}
+    for episode in canon.get("episodes", []):
+        year = str(episode.get("date") or "unknown")[:4]
+        record = records.get(episode["id"])
+        if not record:
+            continue
+        bucket = year_coverage.setdefault(year, {"livestreamEpisodes": 0, "audioAnalyzed": 0, "held": 0, "audioSeconds": 0, "captionEvents": 0, "rankedCandidates": 0})
+        bucket["livestreamEpisodes"] += 1
+        if record.get("status") == "audio-feature-pass":
+            bucket["audioAnalyzed"] += 1
+        else:
+            bucket["held"] += 1
+        audit = record.get("audit") or {}
+        bucket["audioSeconds"] += int(audit.get("audioRows") or 0)
+        bucket["captionEvents"] += int(audit.get("captionEvents") or 0)
+        bucket["rankedCandidates"] += int(audit.get("candidateCount") or 0)
+    output["coverage"] = {
+        "years": sorted(year_coverage),
+        "livestreamEpisodes": len(canon.get("episodes", [])),
+        "audioAnalyzed": sum(bucket["audioAnalyzed"] for bucket in year_coverage.values()),
+        "held": sum(bucket["held"] for bucket in year_coverage.values()),
+        "audioSeconds": sum(bucket["audioSeconds"] for bucket in year_coverage.values()),
+        "captionEvents": sum(bucket["captionEvents"] for bucket in year_coverage.values()),
+        "rankedCandidates": sum(bucket["rankedCandidates"] for bucket in year_coverage.values()),
+        "yearCoverage": year_coverage,
+        "lastProcessedYears": sorted(years),
+    }
     OUTPUT.write_text("window.WWAM_LIVESTREAM_AUDIO_PASS = " + json.dumps(output, ensure_ascii=False, separators=(",", ":")) + ";\n", encoding="utf-8")
     print("RESULT", json.dumps(output["coverage"]), flush=True)
 

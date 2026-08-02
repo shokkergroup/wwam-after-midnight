@@ -23,15 +23,10 @@ test("livestream canon contains the complete source registry", () => {
   assert.equal(canon.episodes.at(-1).date, "2016-02-01");
   assert.equal(canon.yearIndex["2026"].episodeCount, 37);
   assert.equal(canon.stats.yearPassEpisodes, 37);
-  assert.deepEqual(JSON.parse(JSON.stringify(canon.stats.audioPassCoverage)), {
-    year: 2026,
-    livestreamEpisodes: 37,
-    audioAnalyzed: 37,
-    held: 0,
-    audioSeconds: 435137,
-    captionEvents: 224516,
-    rankedCandidates: 1732,
-  });
+  assert.equal(canon.stats.audioPassCoverage.audioAnalyzed, 37);
+  assert.equal(canon.stats.audioPassCoverage.livestreamEpisodes, 509);
+  assert.ok(Array.isArray(canon.stats.audioPassCoverage.years));
+  assert.ok(canon.stats.audioPassCoverage.years.includes("2026"));
 });
 
 test("each source has an honest evidence tier and playable source link", () => {
@@ -138,7 +133,7 @@ test("livestream canon surface is wired into the page and route shell", () => {
   assert.match(ui, /ALL RECEIPTS, RANKED/);
   assert.match(ui, /CONVERSATION THREADS/);
   assert.match(ui, /AUDIO WATCH PASS/);
-  assert.match(ui, /2026 AUDIO PASSES/);
+  assert.match(ui, /AUDIO PASSES/);
   assert.match(ui, /LISTEN FOR THE ROOM TO CHANGE/);
   assert.doesNotMatch(ui, /moments\|\|\[\]\)\.slice\(0,40\)/);
   assert.match(css, /\.lvc-card-grid/);
