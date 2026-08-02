@@ -112,6 +112,14 @@ test("each source has an honest evidence tier and playable source link", () => {
   }
   if (captionFallbacks.length) assert.ok(captionLaneTotals["FAN SIGNAL"] >= 1, "caption-only holds retain fan-callout routes");
   assert.ok(Array.isArray(canon.fanHall) && canon.fanHall.length > 0);
+  assert.ok(Array.isArray(canon.fanHallPeople), "repeat fan aliases get their own honest people lane");
+  const lee = canon.fanHallPeople.find((entry) => entry.key === "lee-the-machine");
+  const michael = canon.fanHallPeople.find((entry) => entry.key === "michael-parton-partin");
+  assert.ok(lee && lee.receipts > 0 && lee.episodeIds.length > 0);
+  assert.ok(michael && michael.receipts > 0 && michael.episodeIds.length > 0);
+  assert.match(lee.identityBasis, /alias map/i);
+  assert.match(michael.identityBasis, /spelling remains unresolved/i);
+  assert.ok(canon.episodes.some((episode) => episode.fanSignals.some((signal) => signal.fanEntity === "lee-the-machine" && signal.fanEntityLabel.includes("Bowers"))));
   assert.ok(Array.isArray(canon.characterIndex) && canon.characterIndex.some((entry) => entry.name === "Dr. Loomis"));
   assert.ok(canon.fanHall.every((entry) => entry.receipts > 0 && entry.episodeIds.length > 0));
   assert.ok(canon.episodes.some((episode) => episode.moments.length > 40), "long shows retain more than forty candidates when the tape supports them");
@@ -204,6 +212,8 @@ test("livestream canon surface is wired into the page and route shell", () => {
   assert.match(ui, /NEW SINCE ATLAS/);
   assert.match(ui, /RECURRING BITS/);
   assert.match(ui, /WWAM FAM HALL/);
+  assert.match(ui, /RECOGNIZED NAME CUES/);
+  assert.match(ui, /donation total/);
   assert.match(ui, /CHARACTER CUES/);
   assert.match(ui, /TAPE HOOK/);
   assert.match(ui, /2026 SECOND PASS/);
@@ -223,6 +233,7 @@ test("livestream canon surface is wired into the page and route shell", () => {
   assert.match(ui, /LISTEN FOR THE ROOM TO CHANGE/);
   assert.doesNotMatch(ui, /moments\|\|\[\]\)\.slice\(0,40\)/);
   assert.match(css, /\.lvc-card-grid/);
+  assert.match(css, /\.lvc-fan-people/);
   assert.match(css, /\.lvc-new/);
   assert.match(css, /\.lvc-audio-pass/);
 });

@@ -206,7 +206,11 @@ function fanSignals(events, duration) {
     if (picked.length >= max || picked.some((other) => Math.abs(other.event.t - item.event.t) < 55)) return;
     picked.push(item);
   });
-  return picked.map((item) => ({ id: `fan-${Math.round(item.event.t)}`, t: Math.round(item.event.t), end: Math.round(item.event.end || item.event.t + 36), category: "FAN SIGNAL", label: "FAN SIGNAL", signalType: fanSignalType(item.event.text), score: 78, excerpt: excerpt(captionWindow(events, item.index), 24), evidenceBasis: "source-local automatic caption fan-callout cluster", reviewStatus: "machine-candidate" }));
+  return picked.map((item) => {
+    const sourceExcerpt = excerpt(captionWindow(events, item.index), 24);
+    const identity = fanIdentity(sourceExcerpt) || fanIdentity(item.event.text);
+    return { id: `fan-${Math.round(item.event.t)}`, t: Math.round(item.event.t), end: Math.round(item.event.end || item.event.t + 36), category: "FAN SIGNAL", label: "FAN SIGNAL", signalType: fanSignalType(item.event.text), fanEntity: identity?.key || null, fanEntityLabel: identity?.label || null, fanEntityMatch: identity?.match || null, fanIdentityBasis: identity?.identityBasis || null, score: 78, excerpt: sourceExcerpt, evidenceBasis: "source-local automatic caption fan-callout cluster", reviewStatus: "machine-candidate" };
+  });
 }
 function fanSignalType(text) {
   const value = clean(text);
@@ -215,6 +219,19 @@ function fanSignalType(text) {
   if (/super\s*chat|donat(?:e|ed|ion)/i.test(value)) return "SUPER CHAT / DONATION CUE";
   if (/member|membership/i.test(value)) return "MEMBERSHIP CUE";
   return "CHAT / FAN CALLOUT";
+}
+// Captions reduce names to nicknames or flip a surname. Keep this alias map
+// explicit and small so the Fam Hall is useful without becoming an identity or
+// donation ledger.
+function fanIdentity(text) {
+  const value = clean(text);
+  if (/\blee(?:\s+the)?\s+machine\b|\blee\s+bowers\b/i.test(value)) {
+    return { key: "lee-the-machine", label: 'Lee "The Machine" Bowers', match: "Lee / The Machine / Bowers", identityBasis: "explicit WWAM alias map + caption cue" };
+  }
+  if (/\bmichael\s+part(?:on|in)\b/i.test(value)) {
+    return { key: "michael-parton-partin", label: "Michael Parton / Partin", match: "Parton / Partin", identityBasis: "caption surname-variant cue; spelling remains unresolved" };
+  }
+  return null;
 }
 function laneLabelMatches(value, laneLabel) {
   const candidate = clean(value).toLowerCase();
@@ -589,6 +606,18 @@ episodes.forEach((episode) => episode.fanSignals.forEach((signal) => {
   const item = fanHallMap.get(key); item.receipts += 1; if (!item.episodeIds.includes(episode.id)) item.episodeIds.push(episode.id); item.firstDate = item.firstDate < episode.date ? item.firstDate : episode.date; item.latestDate = item.latestDate > episode.date ? item.latestDate : episode.date;
 }));
 const fanHall = Array.from(fanHallMap.values()).sort((a, b) => b.receipts - a.receipts || a.label.localeCompare(b.label));
+const fanPeopleMap = new Map();
+episodes.forEach((episode) => episode.fanSignals.forEach((signal) => {
+  if (!signal.fanEntity) return;
+  if (!fanPeopleMap.has(signal.fanEntity)) fanPeopleMap.set(signal.fanEntity, { key: signal.fanEntity, label: signal.fanEntityLabel, receipts: 0, episodeIds: [], firstDate: episode.date, latestDate: episode.date, matches: new Set(), identityBasis: signal.fanIdentityBasis });
+  const item = fanPeopleMap.get(signal.fanEntity);
+  item.receipts += 1;
+  if (!item.episodeIds.includes(episode.id)) item.episodeIds.push(episode.id);
+  if (signal.fanEntityMatch) item.matches.add(signal.fanEntityMatch);
+  item.firstDate = item.firstDate < episode.date ? item.firstDate : episode.date;
+  item.latestDate = item.latestDate > episode.date ? item.latestDate : episode.date;
+}));
+const fanHallPeople = Array.from(fanPeopleMap.values()).map((item) => ({ ...item, matches: Array.from(item.matches) })).sort((a, b) => b.receipts - a.receipts || a.label.localeCompare(b.label));
 const characterMap = new Map();
 episodes.forEach((episode) => episode.characterCues.forEach((character) => {
   const key = character.key;
@@ -620,7 +649,7 @@ const payload = {
   schema: "shokker-wwam-livestream-canon/v1", generated: new Date().toISOString(), observedAt: "2026-07-31",
   sourcePolicy: "Every public WWAM source represented in the local official metadata snapshot is retained. Completion and distill artifacts are reused when present; remaining episodes receive bounded caption-ledger routes or a held source brief. Speaker, intent, visual context, rights, and creator approval are never inferred.",
   scope: { metadataSources: canonicalMetadata.length, rawMetadataSources: metadata.length, captionFiles: fs.readdirSync(CAPTIONS_DIR).filter((file) => file.endsWith(".json")).length, atlasRecords: atlas.records?.length || 0, completionSources: completion.streams?.length || 0, deepSources: deep.streams?.length || 0, freshSources: fresh.streams?.length || 0, yearCanonSources: yearCanon.streams?.length || 0 },
-  stats, series, yearIndex, topicIndex, fanHall, characterIndex, episodes
+  stats, series, yearIndex, topicIndex, fanHall, fanHallPeople, characterIndex, episodes
 };
 fs.writeFileSync(path.join(DEMO, "wwam-livestream-canon.js"), `/* Generated by scripts/generate-wwam-livestream-canon.mjs. */\nwindow.WWAM_LIVESTREAM_CANON = ${JSON.stringify(payload)};\n`);
 console.log(`Generated ${episodes.length} livestream episodes; ${stats.completionDossiers} completion dossiers, ${stats.distillDossiers} distill dossiers, ${stats.captionLedgers} caption ledgers, ${stats.sourceBriefs} source briefs.`);
