@@ -345,7 +345,7 @@ const LANE_DEFS = [
   { key: "fan-signal", label: "FAN SIGNAL", category: "FAN SIGNAL", pattern: /super ?chat|\bdonat(?:e|ed|ion)\b|lee(?:\s+the)?\s+machine|michael\s+part(?:on|in)|chat(?:'s| is) asking|question from (?:the )?chat|(?:thanks|welcome|appreciate|thank you).{0,45}(?:member|membership)|(?:new|another|our) member|(?:member|membership).{0,45}(?:joined|join|thanks|thank|gift)/i }
 ];
 
-function candidateMoments(events, duration, aliases) {
+function candidateMoments(events, duration, aliases, taxonomy = {}) {
   if (!events.length) return { moments: [], topics: [], chapters: [], captionWords: 0, captionEvents: 0 };
   const candidates = [];
   const seenByLane = new Map();
@@ -396,7 +396,24 @@ function candidateMoments(events, duration, aliases) {
     });
   });
   candidates.sort((left, right) => left.t - right.t);
-  const topicTerms = [...new Set([...aliases, "Halloween", "Scream", "Friday the 13th", "A Nightmare on Elm Street", "Child's Play", "Chucky", "Pet Sematary"])]
+  // Do not let a generic show intro such as "Halloween Horror Month" turn
+  // every unrelated movie into a Halloween dossier. Franchise terms belong to
+  // the taxonomy that earned them; standalone titles rely on their own aliases.
+  const franchiseTerms = {
+    halloween: ["Halloween", "Michael Myers"],
+    "friday-the-13th": ["Friday the 13th", "Jason"],
+    scream: ["Scream", "Ghostface"],
+    "a-nightmare-on-elm-street": ["A Nightmare on Elm Street", "Freddy"],
+    "childs-play": ["Child's Play", "Chucky", "Tiffany"],
+    hellraiser: ["Hellraiser", "Pinhead"],
+    dc: ["Batman", "Bruce Wayne", "Riddler", "Joker", "Superman"],
+    terminator: ["Terminator", "John Connor"],
+    rambo: ["Rambo"],
+    "saved-by-the-bell": ["Saved by the Bell"],
+    "pet-sematary": ["Pet Sematary"],
+    comedy: ["Freddy Got Fingered", "Tom Green"],
+  }[taxonomy.franchiseKey] || [];
+  const topicTerms = [...new Set([...aliases, ...franchiseTerms])]
     .map((term) => ({ name: term, data: topicAnchor(events, [term]) }))
     .filter((item) => item.data)
     .sort((left, right) => right.data.mentions - left.data.mentions)
@@ -419,7 +436,10 @@ function candidateMoments(events, duration, aliases) {
       Math.abs(Number(right.at || right.peak || right.first || 0) - candidate.t) ||
       Number(right.mentions || 0) - Number(left.mentions || 0)
     )[0];
-    const subject = excerptSubject || nearest?.name || aliases[0] || "SOURCE CHECKPOINT";
+    // If the caption window never names the film or a verified topic, keep the
+    // route generic. A title-derived label would look polished but imply a
+    // source mention that the tape never actually gave us.
+    const subject = excerptSubject || nearest?.name || "SOURCE CHECKPOINT";
     return { ...candidate, label: `${candidate.label} // ${subject}` };
   });
   const chapters = [0, 1, 2, 3, 4, 5, 6, 7].map((index) => {
@@ -504,7 +524,7 @@ function episodeFrom(id) {
   // A deep record without a matching human guide is still useful when the local
   // caption ledger can provide bounded route receipts. Keep the evidence state
   // honest, but do not leave the episode as an empty shell.
-  const derived = (!deepRecord || !guide) ? candidateMoments(events, duration, aliases) : null;
+  const derived = (!deepRecord || !guide) ? candidateMoments(events, duration, aliases, taxonomy) : null;
   const sourceTopics = (overrideById.get(id) || []).map((topic) => ({ name: topic.label, first: topic.firstAt, peak: topic.peakAt, mentions: topic.mentions, receipt: excerpt(topic.excerpt), evidenceBasis: topic.evidenceBasis }));
   const guideCuts = guide?.cuts || [];
   const moments = deepRecord && guide ? (deepRecord.moments || []).map((moment) => ({ ...moment, t: Number(moment.t || 0), end: Number(moment.end || moment.t || 0), excerpt: excerpt(moment.quote || moment.excerpt), reviewStatus: "distilled-editorial-candidate" })) : derived.moments;
