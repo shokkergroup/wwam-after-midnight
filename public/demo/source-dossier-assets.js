@@ -36,7 +36,7 @@
     "episode-editorial-packs-wave12.js?v=1.0.0-full-tape",
     "episode-editorial-packs-wave13.js?v=1.0.0-full-tape",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
-    "episode-recap-engine.js?v=1.9.8-story-reel-cap",
+    "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.3.2-safe-topic-doors",
     "source-dossier-engine.js?v=1.17.0-alternate-podcast-routes",
     "wwam-livestream-asr-excerpts.js?v=1.0.5-low-signal-filter",
