@@ -268,8 +268,12 @@
 .source-dossier-fallback-route-grid button time { color: #d8d0d8; font: 700 10px/1 var(--mono,"IBM Plex Mono",monospace); }
 .source-dossier-fallback-route-grid button em { grid-column: 2 / -1; color: #aca3ac; font: 500 12px/1.45 var(--body,"DM Sans",sans-serif); }
 .source-dossier-fallback-lane-legend { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 18px; }
-.source-dossier-fallback-lane-legend span { display: inline-flex; align-items: center; gap: 7px; padding: 8px 10px; color: #ded7df; border: 1px solid rgba(201,255,24,.26); background: rgba(201,255,24,.04); font: 800 9px/1.2 var(--mono,"IBM Plex Mono",monospace); letter-spacing: .04em; }
+.source-dossier-fallback-lane-legend button { display: inline-flex; align-items: center; gap: 7px; padding: 8px 10px; color: #ded7df; border: 1px solid rgba(201,255,24,.26); background: rgba(201,255,24,.04); font: 800 9px/1.2 var(--mono,"IBM Plex Mono",monospace); letter-spacing: .04em; cursor: pointer; transition: border-color .18s ease, background .18s ease, color .18s ease; }
+.source-dossier-fallback-lane-legend button:hover, .source-dossier-fallback-lane-legend button:focus-visible { color: #fff; border-color: #c9ff18; background: rgba(201,255,24,.1); outline: none; }
+.source-dossier-fallback-lane-legend button.is-active { color: #09080a; border-color: #c9ff18; background: #c9ff18; }
+.source-dossier-fallback-lane-legend button.is-active b { color: #09080a; }
 .source-dossier-fallback-lane-legend b { color: #c9ff18; font-size: 11px; }
+.source-dossier-fallback-route-grid button[hidden] { display: none; }
 .source-dossier-fallback-empty { color: #aaa1aa; font: 500 13px/1.6 var(--body,"DM Sans",sans-serif); }
 .source-dossier-fallback-foot { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 17px clamp(20px,3vw,34px); border-top: 1px solid rgba(246,240,231,.12); }
 .source-dossier-fallback-foot span { color: #7e767e; font: 700 9px/1 var(--mono,"IBM Plex Mono",monospace); letter-spacing: .07em; }

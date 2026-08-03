@@ -295,7 +295,9 @@ test("fallback show wiki keeps the full local dossier route map", () => {
   });
   assert.equal(routes.length, 21);
   assert.equal(routes[0].at, 100);
+  assert.equal(routes[0].lane, "WWAM UP IN YA");
   assert.equal(routes.at(-1).at, 900);
+  assert.equal(routes.at(-1).lane, "STRAIGHT TO STEVE'S ASSHOLE");
   assert.match(routes.at(-1).excerpt, /later route/i);
   const sameSecondDifferentLanes = fallbackSourceMoments("ABCDEFGHIJK", {
     dossier: { cuts: [
@@ -371,6 +373,8 @@ test("cold source routes paint the local fallback before optional Watchalong hyd
   assert.match(app, /transcript window/);
   assert.match(app, /String\(index \+ 1\)\.padStart\(2, "0"\)/);
   assert.match(app, /source-dossier-fallback-lane-legend/);
+  assert.match(app, /data-fallback-filter/);
+  assert.match(app, /data-fallback-lane/);
   assert.match(sourceDossierCss, /\.source-dossier-fallback-lane-legend/);
   assert.match(app, /WWAM_WATCHALONG_ROUTE_INDEX && window\.WWAM_WATCHALONG_ROUTE_INDEX\.sources/);
   assert.match(app, /Prefer the cold-route index\/canon record/);

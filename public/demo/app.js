@@ -801,6 +801,7 @@
       return {
         at: Number.isFinite(at) ? Math.max(0, Math.round(at)) : 0,
         end: Number.isFinite(Number(moment.end)) ? Math.round(Number(moment.end)) : null,
+        lane: String(moment.category || moment.lane || moment.label || "INDEXED ROUTE"),
         label: String(moment.label || moment.category || "INDEXED ROUTE"),
         excerpt: boundedExcerpt(moment.excerpt || moment.quote || moment.captionExcerpt || "Source-local receipt; press play to hear the tape."),
         heat: Number(moment.heat || moment.score || moment.audioRank || 0),
@@ -814,7 +815,7 @@
       // Keep distinct lanes at the same second. A UP IN YA route and a
       // Steve's Asshole route can share an audio boundary; collapsing them
       // by timestamp made the cold Show Wiki quietly lose a category.
-      var key = moment.at + "|" + String(moment.label || "").toLowerCase();
+      var key = moment.at + "|" + String(moment.lane || moment.label || "").toLowerCase();
       if (!moment.at || seen[key]) return false;
       seen[key] = true;
       return true;
@@ -847,13 +848,17 @@
     ];
     var fallbackLaneCounts = {};
     moments.forEach(function (moment) {
-      var lane = String(moment.label || "").trim();
+      var lane = String(moment.lane || moment.label || "").trim();
       if (lane) fallbackLaneCounts[lane] = Number(fallbackLaneCounts[lane] || 0) + 1;
     });
-    var fallbackLaneLegend = fallbackLaneOrder.filter(function (lane) {
+    var fallbackLaneNames = fallbackLaneOrder.filter(function (lane) {
       return fallbackLaneCounts[lane];
-    }).map(function (lane) {
-      return '<span><b>' + Number(fallbackLaneCounts[lane]) + '</b>' + esc(lane) + '</span>';
+    });
+    Object.keys(fallbackLaneCounts).sort().forEach(function (lane) {
+      if (fallbackLaneNames.indexOf(lane) < 0) fallbackLaneNames.push(lane);
+    });
+    var fallbackLaneLegend = fallbackLaneNames.map(function (lane) {
+      return '<button type="button" data-fallback-filter="' + esc(lane) + '" aria-pressed="false"><b>' + Number(fallbackLaneCounts[lane]) + '</b><span>' + esc(lane) + '</span></button>';
     }).join("");
     var topics = (Array.isArray(source.topics) ? source.topics : []).map(function (topic) {
       return typeof topic === "string" ? topic : topic && (topic.name || topic.label);
@@ -892,9 +897,9 @@
       '<section class="source-dossier-fallback-about" id="fallback-about"><p class="kicker">THE SHORT VERSION</p><p>' + esc(summary) + '</p>' +
       (topics.length ? '<div class="source-dossier-fallback-topics">' + topics.map(function (topic) { return '<span>' + esc(topic) + '</span>'; }).join("") + '</div>' : "") + '</section>' + alternateSection +
       '<section class="source-dossier-fallback-routes" id="fallback-routes"><header><div><p class="kicker">SOURCE-LOCAL RECEIPTS</p><h3>PRESS PLAY HERE.</h3></div><span>' + moments.length + ' bounded route' + (moments.length === 1 ? "" : "s") + ' // no invented speaker labels' + (whisperCount ? ' // ' + whisperCount + ' transcript window' + (whisperCount === 1 ? '' : 's') : '') + '</span></header>' +
-      (fallbackLaneLegend ? '<div class="source-dossier-fallback-lane-legend" aria-label="Available listening lanes">' + fallbackLaneLegend + '</div>' : '') +
+      (moments.length ? '<div class="source-dossier-fallback-lane-legend" aria-label="Filter source-local lanes"><button type="button" class="is-all is-active" data-fallback-filter="" aria-pressed="true"><b>' + moments.length + '</b><span>ALL LANES</span></button>' + fallbackLaneLegend + '</div>' : '') +
       (moments.length ? '<div class="source-dossier-fallback-route-grid">' + moments.map(function (moment, index) {
-        return '<button type="button" data-fallback-jump="' + moment.at + '" data-fallback-end="' + (moment.end || "") + '"><b>' + String(index + 1).padStart(2, "0") + '</b><span>' + esc(moment.label) + '</span><time>' + timestamp(moment.at) + '</time><em>' + esc(moment.excerpt) + '</em></button>';
+        return '<button type="button" data-fallback-jump="' + moment.at + '" data-fallback-end="' + (moment.end || "") + '" data-fallback-lane="' + esc(moment.lane || moment.label) + '"><b>' + String(index + 1).padStart(2, "0") + '</b><span>' + esc(moment.label) + '</span><time>' + timestamp(moment.at) + '</time><em>' + esc(moment.excerpt) + '</em></button>';
       }).join("") + '</div>' : '<p class="source-dossier-fallback-empty">This source has no safe timestamp receipt in the local bundle yet. The source link remains honest and playable.</p>') + '</section>' +
       '<footer class="source-dossier-fallback-foot"><span>LOCAL WIKI // ' + esc(sourceId) + '</span><a href="' + sourceHref + '" target="_blank" rel="noopener">OPEN THE FULL EPISODE ON YOUTUBE ↗</a></footer></article>';
     var modal = document.getElementById("tapeModal");
@@ -906,6 +911,20 @@
         loadPlayer(sourceId, Number(button.getAttribute("data-fallback-jump") || 0), Number(button.getAttribute("data-fallback-end") || 0) || null);
         var playerNode = document.getElementById("fallback-player");
         if (playerNode) playerNode.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+    var fallbackRouteButtons = Array.prototype.slice.call(document.querySelectorAll("[data-fallback-lane]"));
+    document.querySelectorAll("[data-fallback-filter]").forEach(function (button) {
+      button.addEventListener("click", function () {
+        var requested = String(button.getAttribute("data-fallback-filter") || "");
+        document.querySelectorAll("[data-fallback-filter]").forEach(function (filterButton) {
+          var active = String(filterButton.getAttribute("data-fallback-filter") || "") === requested;
+          filterButton.classList.toggle("is-active", active);
+          filterButton.setAttribute("aria-pressed", active ? "true" : "false");
+        });
+        fallbackRouteButtons.forEach(function (routeButton) {
+          routeButton.hidden = Boolean(requested && routeButton.getAttribute("data-fallback-lane") !== requested);
+        });
       });
     });
     document.querySelectorAll("[data-alternate-jump]").forEach(function (button) {
