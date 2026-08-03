@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.20.0";
+  var VERSION = "1.20.1";
   var SCHEMA = "shokker-source-dossier-input/v1";
   var PUBLIC_EXCERPT_WORDS = 16;
   var OFFICIAL_WWAM_CHANNEL_ID = "UC6ieEOZW4iXV8TcILJI8k5g";
@@ -2345,7 +2345,15 @@
       episodeUrl: clean(alternate.episodeUrl),
       enclosureUrl: clean(alternate.enclosureUrl),
       duration: number(alternate.duration != null ? alternate.duration : alternate.durationSeconds),
-      canonicalDuration: number(alternate.canonicalDuration != null ? alternate.canonicalDuration : alternate.canonicalDurationSeconds),
+       // The archive-completion manifest calls the source-side reference clock
+       // `canonicalYouTubeDuration`; older compact passes called it
+       // `canonicalDurationSeconds`. Normalize both spellings at the boundary
+       // so one malformed alias cannot blank every rich show wiki.
+       canonicalDuration: number(
+         alternate.canonicalDuration != null ? alternate.canonicalDuration :
+         (alternate.canonicalDurationSeconds != null ? alternate.canonicalDurationSeconds :
+         alternate.canonicalYouTubeDuration)
+       ),
       durationDelta: number(alternate.durationDelta != null ? alternate.durationDelta : alternate.durationDeltaSeconds),
       timestampIsomorphic: alternate.timestampIsomorphic === true,
       publicPlaybackAllowed: alternate.publicPlaybackAllowed !== false &&

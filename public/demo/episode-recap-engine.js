@@ -2,7 +2,7 @@
   "use strict";
 
   var SCHEMA = "shokker-episode-recap/v1";
-  var VERSION = "1.9.4";
+  var VERSION = "1.9.8";
 
   function clean(value) {
     return String(value == null ? "" : value).trim();
@@ -912,6 +912,28 @@
       var characters = chunk.filter(function (receipt) {
         return receiptKind(receipt) === "character";
       });
+      // The public recap contract allows at most twelve evidence keys per
+      // story reel. A long chapter can legitimately contain dozens of local
+      // receipts, so keep a chronologically distributed sample here while
+      // leaving the full receipt ledger intact for the detailed lanes below.
+      var boundedReceiptKeys = [];
+      var seenReceiptKeys = {};
+      var chunkKeys = chunk.map(function (receipt) { return clean(receipt.key); })
+        .filter(function (key) {
+          if (!key || seenReceiptKeys[key]) return false;
+          seenReceiptKeys[key] = true;
+          return true;
+        });
+      if (chunkKeys.length <= 12) {
+        boundedReceiptKeys = chunkKeys;
+      } else {
+        for (var sampleIndex = 0; sampleIndex < 12; sampleIndex += 1) {
+          var sampleAt = Math.round(sampleIndex * (chunkKeys.length - 1) / 11);
+          if (boundedReceiptKeys.indexOf(chunkKeys[sampleAt]) < 0) {
+            boundedReceiptKeys.push(chunkKeys[sampleAt]);
+          }
+        }
+      }
       return {
         id: clean(chapter.id) || "act-" + String(index + 1).padStart(2, "0"),
         ordinal: index + 1,
@@ -939,9 +961,7 @@
           topics: topics.length,
           characters: characters.length,
         },
-        receiptKeys: chunk.map(function (receipt) {
-          return clean(receipt.key);
-        }),
+        receiptKeys: boundedReceiptKeys,
         guideCutId: clean(chapter.cutId),
         evidenceBasis: clean(chapter.evidenceBasis) ||
           "full-caption-guide-chapter-with-chronological-receipt-group",
@@ -1425,6 +1445,11 @@
     if (guideChapterCount) {
       segmentCount = Math.max(segmentCount, Math.min(10, guideChapterCount));
     }
+    // The dossier contract caps each reel at twelve receipt keys while also
+    // requiring the story union to account for every registered receipt. Give
+    // long tapes enough reels to satisfy both rules instead of silently
+    // dropping evidence from the written chronology.
+    segmentCount = Math.max(segmentCount, Math.ceil(receipts.length / 12));
     segmentCount = Math.max(1, Math.min(segmentCount, receipts.length));
     var segments = [];
     var usedStorySubjects = {};
@@ -1597,6 +1622,31 @@
       }).slice(0, 3).sort(function (left, right) {
         return number(left.at) - number(right.at);
       });
+      var storyTopicEvidence = topics.map(function (receipt) {
+        var metricReceipt =
+          canonicalTopicByLabel[receiptDisplayLabel(receipt).toLowerCase()] ||
+          receipt;
+        var mentions = optionalNumber(metricReceipt.topicMentions);
+        var firstAt = optionalNumber(metricReceipt.topicFirstAt);
+        var peakAt = optionalNumber(metricReceipt.topicPeakAt);
+        return {
+          receiptKey: clean(receipt.key),
+          label: receiptDisplayLabel(receipt),
+          at: receiptTime(receipt),
+          end: receiptEnd(receipt, duration),
+          mentions: mentions == null ? 0 : Math.max(0, Math.round(mentions)),
+          firstAt: firstAt == null ? receiptTime(receipt) : Math.max(0, firstAt),
+          peakAt: peakAt == null ? receiptTime(receipt) : Math.max(0, peakAt),
+          metricBasis: clean(metricReceipt.topicMetricBasis),
+        };
+      }).sort(function (left, right) {
+        return right.mentions - left.mentions ||
+          left.firstAt - right.firstAt ||
+          left.label.localeCompare(right.label);
+      }).slice(0, 4);
+      var storyMomentEvidence = topReceipts(moments, 2).map(function (receipt) {
+        return feature(receipt, duration);
+      }).filter(Boolean);
       segments.push({
         id: "reel-" + String(segmentIndex + 1).padStart(2, "0"),
         ordinal: segmentIndex + 1,
@@ -1611,32 +1661,9 @@
         anchorSupportsPrimary: anchorSupportsPrimary,
         anchorSubject: anchorSubject,
         topicLabels: topicLabels,
-        topicEvidence: topics.map(function (receipt) {
-          var metricReceipt =
-            canonicalTopicByLabel[receiptDisplayLabel(receipt).toLowerCase()] ||
-            receipt;
-          var mentions = optionalNumber(metricReceipt.topicMentions);
-          var firstAt = optionalNumber(metricReceipt.topicFirstAt);
-          var peakAt = optionalNumber(metricReceipt.topicPeakAt);
-          return {
-            receiptKey: clean(receipt.key),
-            label: receiptDisplayLabel(receipt),
-            at: receiptTime(receipt),
-            end: receiptEnd(receipt, duration),
-            mentions: mentions == null ? 0 : Math.max(0, Math.round(mentions)),
-            firstAt: firstAt == null ? receiptTime(receipt) : Math.max(0, firstAt),
-            peakAt: peakAt == null ? receiptTime(receipt) : Math.max(0, peakAt),
-            metricBasis: clean(metricReceipt.topicMetricBasis),
-          };
-        }).sort(function (left, right) {
-          return right.mentions - left.mentions ||
-            left.firstAt - right.firstAt ||
-            left.label.localeCompare(right.label);
-        }),
+        topicEvidence: storyTopicEvidence,
         momentLabels: momentLabels,
-        momentEvidence: topReceipts(moments, 2).map(function (receipt) {
-          return feature(receipt, duration);
-        }).filter(Boolean),
+        momentEvidence: storyMomentEvidence,
         evidenceTrail: evidenceTrail,
         characterLabels: characterLabelList,
         threadLabels: orderedStrings(threadLabels),

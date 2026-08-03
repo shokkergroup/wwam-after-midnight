@@ -573,6 +573,12 @@ test("dossier CSS brands cold routes immediately while heavy scripts remain lazy
       `${asset} cache key must match its exported runtime VERSION`,
     );
   }
+  const sourceDossierAdapter = read("wwam-source-dossier-adapter.js");
+  assert.match(
+    sourceDossierAdapter,
+    /canonicalDurationSeconds[^\n]+canonicalYouTubeDuration|canonicalYouTubeDuration/,
+    "official podcast alternates must accept the archive manifest's canonicalYouTubeDuration alias",
+  );
   assert.match(loader, /loadDemoScript\("creator-studio-engine\.js"\)\.then\(createClipLab\)/);
   assert.doesNotMatch(loader, /createCreatorEngines/);
   const scriptList = sourceDossierAssets
