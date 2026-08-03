@@ -60,7 +60,7 @@ test("livestream listening doors prefer verified Whisper excerpts", () => {
 
 test("local Whisper routes never fall back to stale automatic-caption text", () => {
   const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-livestream-canon.mjs"), "utf8");
-  assert.match(generator, /localWhisper \? \(captionWindowAt\(events, candidate\.t\) \|\| \"No local transcript window aligned/);
+  assert.match(generator, /localWhisper\s*\?\s*\(captionWindowAt\(events, candidate\.t\) \|\| \"No local transcript window aligned/);
   assert.match(generator, /canonical audio route; local Whisper window unavailable at this timestamp/);
   assert.match(generator, /localWhisper \? captionWindowAt\(events, candidate\.t\) : \"\"/);
 });
