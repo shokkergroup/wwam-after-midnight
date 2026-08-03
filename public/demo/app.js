@@ -1794,7 +1794,10 @@
     var machineShaped = /automatic[- ]caption|machine[- ]surfaced|source[- ]local|caption[- ](?:backed|derived|ledger)|speaker(?:s)?\s+(?:unverified|not confirmed)|evidence|receipt|transcript window|playback remains the authority/i.test(raw) ||
       /(?:^|\s)(?:>>+|-->|<\/?(?:c|v|lang)\b)/i.test(raw) ||
       /\b([A-Za-z][A-Za-z'-]*)\s+\1(?:\s+\1)+\b/i.test(raw);
-    if (raw && raw.length >= 70 && raw.length <= 420 && !machineShaped) return raw;
+    // Curated watchalong reads are intentionally richer than the old one-line
+    // fallback. Keep a generous ceiling so the visitor sees the actual route
+    // read instead of being silently downgraded to generic boilerplate.
+    if (raw && raw.length >= 70 && raw.length <= 900 && !machineShaped) return raw;
 
     var topicNames = (Array.isArray(topics) ? topics : []).map(function (topic) {
       return typeof topic === "string" ? topic : topic && (topic.name || topic.label);
