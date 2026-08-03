@@ -32,11 +32,33 @@ function clock(seconds) {
   return h ? `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}` : `${m}:${String(s).padStart(2, "0")}`;
 }
 function normalizeCaptionText(value) {
-  return clean(value).replace(/\[(?:\s*[_-]+\s*)+\]/g, " ")
+  let text = clean(value).replace(/\[(?:\s*[_-]+\s*)+\]/g, " ")
     .replace(/\[(?:music|applause|laughter|inaudible|bleep)\]/gi, " ")
-    .replace(/[_]+/g, " ").replace(/\s+([,.!?])/g, "$1").replace(/\s{2,}/g, " ").trim();
+    .replace(/[_]+/g, " ")
+    .replace(/[»>]{1,3}(?=\s)/g, " ")
+    .replace(/â€™/g, "'").replace(/â€œ|â€/g, '"').replace(/â€”|â€“/g, "—")
+    .replace(/\s+([,.!?])/g, "$1").replace(/\s{2,}/g, " ").trim();
+  // Whisper and automatic captions occasionally stutter the same token over
+  // several adjacent segments. Keep a genuine repeated phrase, but collapse
+  // obvious decoder runs before the text reaches a visitor-facing card.
+  for (let pass = 0; pass < 4; pass += 1) {
+    text = text.replace(/\b([A-Za-z][A-Za-z'’-]*)\b(?:\s+\1\b){2,}/gi, "$1");
+  }
+  return text.replace(/\s{2,}/g, " ").trim();
 }
 function captionEvents(id) {
+  const asrFile = path.join(CAPTIONS_DIR, `${id}.asr.json`);
+  if (fs.existsSync(asrFile)) {
+    const payload = readJson(asrFile);
+    return (payload.segments || [])
+      .map((segment) => ({
+        t: Math.max(0, Number(segment.start || 0)),
+        end: Math.max(0, Number(segment.end || segment.start || 0)),
+        text: normalizeCaptionText(segment.text),
+        evidenceType: "local-whisper-transcript"
+      }))
+      .filter((event) => event.text);
+  }
   const file = path.join(CAPTIONS_DIR, `${id}.json`);
   if (!fs.existsSync(file)) return [];
   const payload = readJson(file);
@@ -45,6 +67,7 @@ function captionEvents(id) {
       t: Math.max(0, Number(event.tStartMs || 0) / 1000),
       end: Math.max(0, Number(event.tStartMs || 0) / 1000 + Number(event.dDurationMs || 0) / 1000),
       text: normalizeCaptionText(event.segs.map((segment) => segment && segment.utf8 || "").join("")),
+      evidenceType: "youtube-automatic-caption",
     })).filter((event) => event.text);
 }
 function captionWindow(events, index, before = 5, after = 12) {
@@ -201,10 +224,18 @@ function derivedMoments(events, duration, restricted = false) {
     for (const item of picked) output.push({
       id: `${lane.key}-${Math.round(item.event.t)}`, t: Math.round(item.event.t), end: Math.round(item.event.end || item.event.t + 36),
       category: lane.label, label: lane.label, score: Math.min(99, 62 + Math.min(28, words(item.event.text).length)),
-      excerpt: excerpt(captionWindow(events, item.index), 24), evidenceBasis: "source-local automatic caption lane cluster", reviewStatus: "machine-candidate"
+      excerpt: excerpt(captionWindow(events, item.index), 24), evidenceBasis: events.some((event) => event.evidenceType === "local-whisper-transcript") ? "source-local Whisper transcript lane cluster" : "source-local automatic caption lane cluster", reviewStatus: "machine-candidate"
     });
   }
   return output.sort((a, b) => a.t - b.t);
+}
+function mergeTranscriptMoments(primary, transcriptMoments) {
+  const merged = [...(primary || [])];
+  for (const candidate of transcriptMoments || []) {
+    if (merged.some((existing) => Math.abs(Number(existing.t || 0) - Number(candidate.t || 0)) < 28)) continue;
+    merged.push(candidate);
+  }
+  return merged.sort((left, right) => Number(left.t || 0) - Number(right.t || 0));
 }
 function fanSignals(events, duration) {
   const lane = LANE_DEFS.find((item) => item.key === "fan");
@@ -311,11 +342,11 @@ function tapeNote(title, shape, topics, moments, fan, recurring, characterCues, 
   const characterList = listPhrase(characterCues.slice().sort((a, b) => Number(b.mentions || 0) - Number(a.mentions || 0)).slice(0, 3).map((character) => character.name));
   const fanTypes = Array.from(new Set(fan.map((signal) => signal.signalType))).slice(0, 2);
   const frame = contentFrame(title, shape, topics);
-  const hook = hot ? `The first ${moments.length ? "caption" : "listening"} route worth pressing is ${clock(hot.t)} // ${hot.category}; open the source there and hear the exchange in full.` : "No bounded first-play hook survived this evidence tier.";
+  const hook = hot ? `The first door worth pressing is ${clock(hot.t)} // ${hot.category}; open the source there and hear the exchange in full.` : "No bounded first-play hook survived this evidence tier.";
   const laneMood = laneLead?.label === "ROOM BREAK" ? "breakdown territory" : laneLead?.label === "TAKE GETS NUCLEAR" ? "an argumentative register" : laneLead?.label === "WWAM UP IN YA" ? "out-of-pocket territory" : laneLead?.label === "STRAIGHT TO STEVE'S ASSHOLE" ? "a hostile verdict lane" : "a sharp side-channel";
-  const lane = laneLead ? `The dominant recurring lane is ${laneLead.label} (${laneLead.candidateCount} caption cues), which puts the night in ${laneMood}.` : "The recurring-bit lanes stay quiet in this pass.";
-  const fanLine = fan.length ? `The fan ledger catches ${fan.length} ${fan.length === 1 ? "signal receipt" : "signal receipts"}${fanTypes.length ? `, including ${listPhrase(fanTypes)}` : ""}.` : "No fan-signal cluster survived this pass.";
-  const characterLine = characterCues.length ? `Character traffic includes ${characterList}; the captions do not diarize who performed a cue.` : "No character cue was strong enough to retain in this pass.";
+  const lane = laneLead ? `The dominant recurring lane is ${laneLead.label} (${laneLead.candidateCount} surfaced moments), which puts the night in ${laneMood}.` : "The recurring-bit lanes stay quiet in this pass.";
+  const fanLine = fan.length ? `The audience leaves ${fan.length} ${fan.length === 1 ? "fan callout" : "fan callouts"}${fanTypes.length ? `, including ${listPhrase(fanTypes)}` : ""}.` : "No fan-callout cluster survived this pass.";
+  const characterLine = characterCues.length ? `Character traffic includes ${characterList}; the page cannot prove who performed each cue.` : "No character cue was strong enough to retain in this pass.";
   return `${shape} circles ${topicList} and plays like ${frame}. ${lane} ${hook} ${fanLine} ${characterLine}`;
 }
 function machineShapedSummary(value) {
@@ -591,11 +622,21 @@ const episodes = canonicalMetadata.map((record) => {
   const editorialPack = editorialPackById.get(id) || null;
   const editorialPackBound = editorialPack && Number(editorialPack.evidence?.duration || 0) === Number(record.duration || 0);
   const events = captionEvents(id);
+  const localWhisper = events.some((event) => event.evidenceType === "local-whisper-transcript");
   const existing = completionById.get(id) || deepById.get(id) || freshById.get(id) || null;
   const mode = existing?.contentMode || inferMode(record.title);
   const restricted = RESTRICTED_MODES.has(mode) && existing && existing.moments && existing.moments.length === 0;
-  const topics = normalizeTopics(existing?.topics || derivedTopics(events, record.title));
-  const moments = normalizeMoments(existing?.moments, restricted).length ? normalizeMoments(existing?.moments, restricted) : derivedMoments(events, Number(record.duration || 0), restricted);
+  const existingTopics = normalizeTopics(existing?.topics);
+  const existingMoments = normalizeMoments(existing?.moments, restricted);
+  // Once a verified local Whisper ledger exists, rebuild machine-surfaced
+  // topics and moments from that transcript. Human editorial packs remain
+  // authoritative; older caption-derived moments do not get to hide a better
+  // source just because they were generated first.
+  const topics = localWhisper && !editorialPackBound ? derivedTopics(events, record.title) : (existingTopics.length ? existingTopics : derivedTopics(events, record.title));
+  const transcriptMoments = localWhisper ? derivedMoments(events, Number(record.duration || 0), restricted) : [];
+  const moments = localWhisper
+    ? mergeTranscriptMoments(existingMoments, transcriptMoments)
+    : (existingMoments.length ? existingMoments : transcriptMoments);
   const fan = fanSignals(events, Number(record.duration || 0));
   const chapterList = chapters(Number(record.duration || 0), moments, topics, restricted);
   const yearSnapshot = yearCanonById.get(id) || null;
@@ -641,7 +682,14 @@ const episodes = canonicalMetadata.map((record) => {
   const summary = clean(editorialPackBound ? editorialPack.overview : existing?.summary || secondPassSummary || (events.length
     ? `${ledgerSummary} Captions are navigation, not a final quote or speaker verdict—open a receipt and hear the full exchange.`
     : `A source brief for ${clean(record.title)}. Metadata is preserved, but no local caption route survived for a responsible episode breakdown.`));
-  const evidence = existing?.captionEvidence || { type: events.length ? "youtube-automatic-caption" : "metadata-only", eventsAudited: events.length, speakerDiarized: false, originAttribution: false, reviewStatus: events.length ? "machine-candidate" : "held" };
+  const evidence = {
+    ...(existing?.captionEvidence || {}),
+    type: localWhisper ? "local-whisper-transcript" : existing?.captionEvidence?.type || (events.length ? "youtube-automatic-caption" : "metadata-only"),
+    eventsAudited: events.length || Number(existing?.captionEvidence?.eventsAudited || 0),
+    speakerDiarized: false,
+    originAttribution: false,
+    reviewStatus: events.length ? "machine-candidate" : (existing?.captionEvidence?.reviewStatus || "held")
+  };
   const cueList = characterCues(events, Number(record.duration || 0), listeningRoutes);
   const recurring = recurringBits(events, moments, fan, Number(record.duration || 0), listeningRoutes);
   const note = tapeNote(record.title, shape, topics, moments, fan, recurring, cueList, listeningRoutes);

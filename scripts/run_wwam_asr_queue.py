@@ -18,6 +18,7 @@ CAPTIONS = ROOT / "source-cache" / "captions"
 SELECTOR = ROOT / "scripts" / "select_wwam_asr_queue.mjs"
 EXCERPT_GENERATOR = ROOT / "scripts" / "generate_wwam_livestream_asr_excerpts.py"
 WATCHALONG_CANON_GENERATOR = ROOT / "scripts" / "generate-wwam-watchalong-canon.mjs"
+LIVESTREAM_CANON_GENERATOR = ROOT / "scripts" / "generate-wwam-livestream-canon.mjs"
 DEMO = ROOT / "public" / "demo"
 
 
@@ -178,6 +179,11 @@ def main() -> None:
             # source-cache with no public Watchalong refresh behind it.
             if str(row.get("kind") or "").lower() == "watchalong":
                 subprocess.run(["node", str(WATCHALONG_CANON_GENERATOR)], cwd=ROOT, check=True)
+            elif str(row.get("kind") or "").lower() == "livestream":
+                # The visible livestream canon must consume the verified local
+                # ledger, not only the separate listening overlay. This keeps
+                # summaries, topic doors, and moment cards source-aligned.
+                subprocess.run(["node", str(LIVESTREAM_CANON_GENERATOR)], cwd=ROOT, check=True)
     print("[queue] bounded batch run complete; generated excerpts are ready for audit/commit", flush=True)
 
 

@@ -2,6 +2,8 @@ $ErrorActionPreference = "Continue"
 $work = "C:\Users\Ricky's PC\Documents\Shokker YouTube WIKIS\WWAM Demo"
 $generated = Join-Path $work "public\demo\wwam-livestream-asr-excerpts.js"
 $watchalongGenerated = Join-Path $work "public\demo\wwam-watchalong-canon.js"
+$livestreamGenerated = Join-Path $work "public\demo\wwam-livestream-canon.js"
+$livestreamColdGenerated = Join-Path $work "public\demo\wwam-livestream-cold-index.js"
 $queueFile = Join-Path $work "source-cache\wwam-asr-queue.json"
 $log = Join-Path $work ".codex-asr-publication.log"
 Set-Location -LiteralPath $work
@@ -76,7 +78,13 @@ function Publish-IfChanged {
   $watchalongHash = if (Test-Path -LiteralPath $watchalongGenerated) {
     (Get-FileHash -LiteralPath $watchalongGenerated -Algorithm SHA256).Hash
   } else { "missing" }
-  $combinedHash = "$hash|$watchalongHash"
+  $livestreamHash = if (Test-Path -LiteralPath $livestreamGenerated) {
+    (Get-FileHash -LiteralPath $livestreamGenerated -Algorithm SHA256).Hash
+  } else { "missing" }
+  $livestreamColdHash = if (Test-Path -LiteralPath $livestreamColdGenerated) {
+    (Get-FileHash -LiteralPath $livestreamColdGenerated -Algorithm SHA256).Hash
+  } else { "missing" }
+  $combinedHash = "$hash|$watchalongHash|$livestreamHash|$livestreamColdHash"
   if (-not $LastHash.Value) { $LastHash.Value = $combinedHash; return }
   if ($combinedHash -eq $LastHash.Value) { return }
 
@@ -86,7 +94,7 @@ function Publish-IfChanged {
     Write-RunLog "Pages build failed // will retry on next poll"
     return
   }
-  git add -- public/demo/wwam-livestream-asr-excerpts.js public/demo/wwam-watchalong-canon.js public/demo/wwam-watchalong-route-index.js public/demo/index.html
+  git add -- public/demo/wwam-livestream-asr-excerpts.js public/demo/wwam-watchalong-canon.js public/demo/wwam-watchalong-route-index.js public/demo/wwam-livestream-canon.js public/demo/wwam-livestream-cold-index.js public/demo/index.html
   $staged = git diff --cached --name-only
   $published = $false
   if ($staged) {
