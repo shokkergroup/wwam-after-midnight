@@ -391,7 +391,7 @@ function tapeNote(title, shape, topics, moments, fan, recurring, characterCues, 
 }
 function machineShapedSummary(value) {
   const text = clean(value);
-  return !text || /(?:This completion pass maps|A bracket-and-ranking night from|A trailer-and-news night from|A movie watchalong from|A fan-mail night from|A spoiler-heavy review night from|An open-line movie-news night from|caption map opens on|timestamp candidates across|If you are dropping into this|The shape of the night is|has indexed doors on|The 2026 second pass maps|This is a machine-surfaced caption map|Ranked #\d+ among eligible archived livestreams|Selected #\d+ by the frozen Archive Atlas|Automatic captions support timestamped|Its caption map concentrates on|side conversations keep finding new trouble|turns .* into a long night of movie talk|keeps widening whenever somebody says|the takes keep catching fire|the rankings out and the gloves off)/i.test(text);
+  return !text || /(?:This completion pass maps|A bracket-and-ranking night from|A trailer-and-news night from|A movie watchalong from|A fan-mail night from|A spoiler-heavy review night from|An open-line movie-news night from|caption map opens on|timestamp candidates across|If you are dropping into this|The shape of the night is|has indexed doors on|The 2026 second pass maps|This is a machine-surfaced caption map|Ranked #\d+ among eligible archived livestreams|Selected #\d+ by the frozen Archive Atlas|Automatic captions support timestamped|Its caption map concentrates on|side conversations keep finding new trouble|turns .* into a long night of movie talk|keeps widening whenever somebody says|the takes keep catching fire|the rankings out and the gloves off|argument with receipts|The local route rail gives you|WWAM's fingerprints show up as|The chat is not background noise here|Character-shaped callbacks include|A separate listening pass marks|The text can point to the moment|The recap points you at the moment|One source receipt at)/i.test(text);
 }
 function machineShapedWhyItMatters(value) {
   const text = clean(value);
@@ -432,6 +432,7 @@ function humanMomentLabel(value) {
   return labels[label] || label || "the first big turn";
 }
 function voiceSummaryV2(title, date, shape, topics, moments, fan, recurring, characterCues, evidenceTier, listeningRoutes = []) {
+  const variant = voiceVariant(title, date);
   const topicList = listPhrase(topics.slice(0, 4).map((topic) => topic.name));
   const routeMoments = moments.length ? moments : listeningRoutes;
   const hot = routeMoments.slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || Number(a.t || 0) - Number(b.t || 0))[0];
@@ -461,8 +462,16 @@ function voiceSummaryV2(title, date, shape, topics, moments, fan, recurring, cha
   }).filter((item) => item.text && item.tokenCount >= 8 && !/^(?:No local transcript window aligned|No caption fragment aligned|Title signal only|open the source before treating)/i.test(item.text));
   const receiptCandidate = receiptOptions.sort((a, b) => b.score - a.score || Number(a.at || 0) - Number(b.at || 0))[0];
   const receiptLine = receiptCandidate
-    ? `One line caught at ${clock(receiptCandidate.at || 0)} gives the tone: “${excerpt(receiptCandidate.text, 22)}”`
-    : "The transcript does not leave a safe short quote here, so the player remains the first source of tone";
+    ? [
+      `The cleanest bit of tape I found starts at ${clock(receiptCandidate.at || 0)}: “${excerpt(receiptCandidate.text, 22)}”`,
+      `At ${clock(receiptCandidate.at || 0)}, the transcript catches the show's temperature: “${excerpt(receiptCandidate.text, 22)}”`,
+      `For a quick taste, press ${clock(receiptCandidate.at || 0)}: “${excerpt(receiptCandidate.text, 22)}”`
+    ][variant]
+    : [
+      "The transcript does not leave a safe short quote here, so the player remains the first source of tone",
+      "There is no clean short line to print here; the player is the honest way to catch the tone",
+      "No short transcript line survives cleanly enough to quote, so start with the tape itself"
+    ][variant];
   const frame = contentFrame(title, shape, topics);
   const cleanTitle = clean(title);
   const opening = frame === "a ranking-night argument"
@@ -483,23 +492,51 @@ function voiceSummaryV2(title, date, shape, topics, moments, fan, recurring, cha
     ? `${moments.length ? "The best first jump is" : "The best first listening stop is"} ${clock(hot.t)}, where ${humanMomentLabel(hot.category || "the first big turn")}.`
     : "Start with the chapter rail and let the tape choose the first detour.";
   const routeLine = routeMoments.length
-    ? `The local route rail gives you ${routeMoments.length} playable doors into this upload.`
-    : "The local page keeps the topic doors and the full official player.";
+    ? [
+      `${routeMoments.length} jump-in points are wired into the page.`,
+      `The page has ${routeMoments.length} timestamped ways in.`,
+      `You can drop into this tape at ${routeMoments.length} marked points.`
+    ][variant]
+    : [
+      "The page keeps the topic doors and the full official player together.",
+      "Use the topic doors first; the full official player is right beside them.",
+      "There is no extra timestamp rail yet, so the topic doors are the best way in."
+    ][variant];
   const laneLine = laneNames.length
-    ? `WWAM's fingerprints show up as ${listPhrase(laneNames)}.`
-    : "No recurring WWAM lane is strong enough to headline this pass.";
+    ? [
+      `The house specialties here are ${listPhrase(laneNames)}.`,
+      `The WWAM fingerprints are ${listPhrase(laneNames)}.`,
+      `The recurring bits that keep surfacing: ${listPhrase(laneNames)}.`
+    ][variant]
+    : "No recurring WWAM bit is strong enough to headline this pass.";
   const fanLine = fan.length
-    ? `The chat is not background noise here: ${fan.length} fan callout${fan.length === 1 ? "" : "s"}${fanTypes.length ? `, including ${listPhrase(fanTypes).replace(/ CUE/g, "")}` : ""}.`
-    : "The fan lane stays quiet on this tape.";
+    ? [
+      `Chat leaves ${fan.length} fan callout${fan.length === 1 ? "" : "s"}${fanTypes.length ? ` in the mix, including ${listPhrase(fanTypes).replace(/ CUE/g, "")}` : ""}.`,
+      `Fan traffic adds ${fan.length} callout${fan.length === 1 ? "" : "s"}${fanTypes.length ? `, from ${listPhrase(fanTypes).replace(/ CUE/g, "")}` : ""}.`,
+      `The audience gets ${fan.length} callout${fan.length === 1 ? "" : "s"}${fanTypes.length ? `, including ${listPhrase(fanTypes).replace(/ CUE/g, "")}` : ""}.`
+    ][variant]
+    : ["Chat stays quiet on this tape.", "The fan lane stays quiet here.", "This one keeps the audience lane subdued."][variant];
   const characterLine = characterCues.length
-    ? `Character-shaped callbacks include ${characterList}; open the surrounding exchange, not just the keyword.`
+    ? [
+      `The recurring cast drops in through ${characterList}; open the surrounding exchange, not just the keyword.`,
+      `${characterList} all make the character roll call; open the surrounding exchange, not just the keyword.`,
+      `The character traffic runs through ${characterList}; the surrounding exchange is the bit, not the keyword alone.`
+    ][variant]
     : "No recurring-character bit takes over this tape.";
   const listeningLine = listeningRoutes.length
-    ? `The listening shelf adds ${listeningRoutes.length} more doors; use the player to judge the timing and the joke.`
+    ? [
+      `The audio pass adds ${listeningRoutes.length} more doors; use the player to judge the timing and the joke.`,
+      `I found ${listeningRoutes.length} extra places to press play; the delivery decides whether the bit lands.`,
+      `There are ${listeningRoutes.length} additional listening doors here; let the tape supply the timing.`
+    ][variant]
     : "There is no separate audio-ranked lane attached to this file yet.";
   const tierLine = evidenceTier === "source-brief"
     ? "This one stays compact until a stronger local receipt arrives."
-    : "The recap points you at the moment; the delivery still belongs to the tape.";
+    : [
+      "Use the recap as the map; the delivery still belongs to the tape.",
+      "The paragraph gets you there; the tape does the rest.",
+      "Read this as a route, then listen for the delivery."
+    ][variant];
   return `${opening} ${topicLine} ${receiptLine}. ${route} ${routeLine} ${laneLine} ${fanLine} ${characterLine} ${listeningLine} ${tierLine}`;
 }
 
