@@ -597,7 +597,7 @@ function bestBits(moments, fan, listeningRoutes = [], audioCandidates = []) {
   });
   return routes.slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || Number(a.t || 0) - Number(b.t || 0)).map((moment, index) => ({
     rank: index + 1, t: Number(moment.t || 0), end: Number(moment.end || moment.t || 0), category: clean(moment.category || moment.label || "SOURCE RECEIPT"),
-    label: clean(moment.label || moment.category || "SOURCE RECEIPT"), excerpt: safeExcerpt(moment.excerpt || moment.quote || moment.captionExcerpt || "", 16), captionAligned: moment.captionAligned === false ? false : Boolean(moment.captionAligned), score: Number(moment.score || 0),
+    label: clean(moment.label || moment.category || "SOURCE RECEIPT"), excerpt: safeExcerpt(moment.excerpt || moment.quote || moment.captionExcerpt || "", 16), captionAligned: moment.captionAligned === false ? false : moment.captionAligned === true ? true : null, score: Number(moment.score || 0),
     evidenceBasis: moment.evidenceBasis || "source-local listening route", reviewStatus: moment.reviewStatus || "machine-candidate"
   })).filter((moment) => moment.excerpt || moment.captionAligned === false);
 }
