@@ -2548,6 +2548,59 @@
         esc(guide.basis) + '. Every jump stays bound to this upload. Automatic captions do not ' +
         'establish which host spoke or whether a line came from the movie audio.</p></details></section>';
     }
+
+    function showWikiAudioListeningMarkup(dossier, compact) {
+      var source = dossier.source;
+      var receipts = array(source.receipts).filter(function (receipt) {
+        return clean(receipt && receipt.evidenceType).toLowerCase() ===
+          "audio-feature-candidate";
+      }).slice().sort(function (left, right) {
+        return number(right.signalScore) - number(left.signalScore) ||
+          number(left.at) - number(right.at);
+      });
+      if (!receipts.length) return "";
+
+      var categoryCounts = {};
+      receipts.forEach(function (receipt) {
+        var category = clean(receipt.label) || "LISTENING SPIKE";
+        categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+      });
+      var categoryMarkup = Object.keys(categoryCounts).sort(function (left, right) {
+        return categoryCounts[right] - categoryCounts[left] || left.localeCompare(right);
+      }).map(function (category) {
+        return '<span><b>' + esc(categoryCounts[category]) + '</b>' +
+          esc(category) + '</span>';
+      }).join("");
+      var visible = compact ? receipts.slice(0, 6) : receipts;
+      var cardMarkup = visible.map(function (receipt, index) {
+        var time = formatTime(receipt.at);
+        var score = number(receipt.signalScore);
+        var scoreLabel = Number.isFinite(score) && score > 0 ?
+          ' // AUDIO RANK ' + esc(Math.round(score)) : '';
+        return '<article><header><span>#' + esc(String(index + 1).padStart(2, "0")) +
+          ' // ' + esc(clean(receipt.label) || "LISTENING SPIKE") +
+          '</span><time>' + esc(time) + '</time></header><p>&ldquo;' +
+          esc(cleanCaptionExcerpt(receipt.excerpt)) +
+          '&rdquo;</p><button type="button" data-source-dossier-action="play-receipt" ' +
+          'data-receipt-key="' + esc(receipt.key) + '" aria-label="Play audio listening window at ' +
+          esc(time) + '">&#9654; PLAY THIS WINDOW</button><small>' +
+          'SOURCE-LOCAL AUDIO PASS' + scoreLabel +
+          '</small></article>';
+      }).join("");
+      var omitted = receipts.length - visible.length;
+      return '<section class="source-dossier-listening-pass" id="sourceDossierListeningPass" ' +
+        'data-source-listening-count="' + esc(receipts.length) + '"><header><div><span>' +
+        'THE TAPE // LISTENING PASS</span><h4>HEAR THE WINDOWS THE AUDIO PASS FOUND.</h4></div>' +
+        '<b>' + esc(receipts.length) + ' RANKED WINDOWS</b></header><p class="source-dossier-listening-intro">' +
+        'This is the source-local audio re-rank: loudness, caption alignment, and recurring WWAM signals decide where to start. ' +
+        'It does not pretend to know who spoke, what was on camera, or whether a line is objectively funny. Press play and let the tape decide.</p>' +
+        '<div class="source-dossier-listening-counts">' + categoryMarkup + '</div><div class="source-dossier-listening-grid">' +
+        cardMarkup + '</div>' + (omitted > 0 ? '<footer><b>' + esc(omitted) +
+          ' MORE WINDOWS IN THE FULL FILE.</b> ' + (compact ?
+          'Open the full deep dive to hear every ranked stop.' :
+          'Every ranked window remains attached to this exact upload.') +
+          '</footer>' : '') + '</section>';
+    }
     function showWikiLaneMarkup(dossier, lane, index, seenReceipts, compact) {
       var receipts = showWikiLaneReceipts(dossier, lane);
       var displayedReceipts = compact ?
@@ -2723,11 +2776,13 @@
            * episode guide, category lanes, and act chronicle.
            */
           body += showWikiEpisodeRecapMarkup(dossier, compact) +
+            showWikiAudioListeningMarkup(dossier, compact) +
             showWikiFamMarkup(dossier);
         } else {
           body += (hasEpisodeRecap(dossier) ?
             showWikiEpisodeRecapMarkup(dossier, compact) :
             showWikiRecapMarkup(dossier, compact)) +
+            showWikiAudioListeningMarkup(dossier, compact) +
             showWikiFamMarkup(dossier) +
             showWikiFanReadMarkup(dossier, compact) +
             ((!compact || !hasEpisodeRecap(dossier)) ?

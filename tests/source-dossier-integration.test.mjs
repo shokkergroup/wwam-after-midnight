@@ -585,6 +585,11 @@ test("dossier CSS brands cold routes immediately while heavy scripts remain lazy
     /audio-feature-candidate[\s\S]*audio-listening-navigation/,
     "restricted commentaries must retain source-local audio listening doors",
   );
+  assert.match(
+    sourceDossierUi,
+    /showWikiAudioListeningMarkup[\s\S]*audio-feature-candidate[\s\S]*data-source-dossier-action=\"play-receipt\"/,
+    "every Show Wiki must render source-local ranked listening windows as playable receipts",
+  );
   assert.doesNotMatch(
     sourceDossierUi,
     /\bnormalized\s*\(/,
