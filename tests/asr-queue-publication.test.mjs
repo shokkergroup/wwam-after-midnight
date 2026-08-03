@@ -68,6 +68,13 @@ test("public receipt audit rejects clipped summary quotes", () => {
   assert.match(audit, /dossier\.summary/);
 });
 
+test("public receipt audit rejects duplicate best-bit routes", () => {
+  const audit = fs.readFileSync(path.join(root, "scripts", "audit-wwam-public-receipts.mjs"), "utf8");
+  assert.match(audit, /function inspectRouteUniqueness/);
+  assert.match(audit, /duplicate-route/);
+  assert.match(audit, /inspectRouteUniqueness\(episode\.bestBits, id, "bestBits"/);
+});
+
 test("livestream listening doors prefer verified Whisper excerpts", () => {
   const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-livestream-canon.mjs"), "utf8");
   assert.match(generator, /captionWindowAt\(events, candidate\.t\)/);

@@ -64,6 +64,15 @@ function inspectSummaryProse(value, sourceId, field, failures) {
   }
 }
 
+function inspectRouteUniqueness(items, sourceId, field, failures) {
+  const seen = new Set();
+  for (const item of items || []) {
+    const key = `${Math.round(Number(item?.t || 0))}|${clean(item?.category || item?.label || "SOURCE RECEIPT")}`;
+    if (seen.has(key)) failures.push({ sourceId, field, kind: "duplicate-route", text: key });
+    seen.add(key);
+  }
+}
+
 function inspectLivestream(data, failures) {
   for (const episode of data.episodes || []) {
     const id = episode.id;
@@ -74,6 +83,7 @@ function inspectLivestream(data, failures) {
     for (const item of episode.chapters || []) inspect(item.excerpt, id, "chapters.excerpt", failures);
     for (const item of episode.fanSignals || []) inspect(item.excerpt, id, "fanSignals.excerpt", failures);
     for (const item of episode.bestBits || []) inspect(item.excerpt, id, "bestBits.excerpt", failures);
+    inspectRouteUniqueness(episode.bestBits, id, "bestBits", failures);
     for (const lane of episode.recurringBits || []) for (const item of lane.receipts || []) inspect(item.excerpt, id, "recurringBits.receipts.excerpt", failures);
     for (const character of episode.characterCues || []) for (const item of character.receipts || []) inspect(item.excerpt, id, "characterCues.receipts.excerpt", failures);
     for (const item of episode.watchPass?.candidates || []) {
