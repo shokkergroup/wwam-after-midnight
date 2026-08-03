@@ -16,6 +16,41 @@ function Queue-Running {
     Where-Object { $_.CommandLine -match 'run_wwam_asr_queue\.py' })
 }
 
+function Queue-ProcessIds {
+  return @(Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
+    Where-Object { $_.CommandLine -match 'run_wwam_asr_queue\.py' } |
+    Select-Object -ExpandProperty ProcessId)
+}
+
+function Test-QueueStall {
+  param(
+    [ref]$LastCpu,
+    [ref]$LastProgress,
+    [int]$QuietMinutes = 45
+  )
+  $ids = Queue-ProcessIds
+  if (-not $ids) { return $false }
+  $process = Get-Process -Id $ids[0] -ErrorAction SilentlyContinue
+  $logItem = Get-Item -LiteralPath $log -ErrorAction SilentlyContinue
+  $cpu = if ($process) { [double]($process.CPU) } else { 0 }
+  $logTime = if ($logItem) { $logItem.LastWriteTimeUtc } else { [datetime]::MinValue.ToUniversalTime() }
+  $progressed = $false
+  if ($null -eq $LastCpu.Value -or $cpu -gt ([double]$LastCpu.Value + 0.5)) { $progressed = $true }
+  if ($logTime -gt ([datetime]$LastProgress.Value).ToUniversalTime()) { $progressed = $true }
+  if ($progressed) {
+    $LastCpu.Value = $cpu
+    $LastProgress.Value = Get-Date
+    return $false
+  }
+  $quietFor = ((Get-Date) - $LastProgress.Value).TotalMinutes
+  if ($quietFor -lt $QuietMinutes) { return $false }
+  Write-RunLog ("ASR watchdog // no CPU/log progress for {0:N1} minutes // stopping queue worker for retry" -f $quietFor)
+  foreach ($id in $ids) {
+    Stop-Process -Id ([int]$id) -Force -ErrorAction SilentlyContinue
+  }
+  return $true
+}
+
 function Remaining-Sources {
   if (-not (Test-Path -LiteralPath $queueFile)) { return 0 }
   try {
@@ -64,10 +99,16 @@ function Publish-IfChanged {
 }
 
 $lastHash = ""
+$lastQueueCpu = $null
+$lastQueueProgress = Get-Date
 Write-RunLog "forever ASR supervisor active"
 while ($true) {
   while (Queue-Running) {
     Publish-IfChanged ([ref]$lastHash)
+    if (Test-QueueStall ([ref]$lastQueueCpu) ([ref]$lastQueueProgress)) {
+      Start-Sleep -Seconds 5
+      break
+    }
     Start-Sleep -Seconds 30
   }
 

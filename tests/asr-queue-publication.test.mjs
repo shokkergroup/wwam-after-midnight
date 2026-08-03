@@ -21,3 +21,10 @@ test("overnight publisher ships both livestream and watchalong audio artifacts",
   assert.match(supervisor, /wwam-watchalong-route-index\.js/);
   assert.match(supervisor, /combinedHash/);
 });
+
+test("overnight supervisor retries a genuinely stalled queue worker", () => {
+  assert.match(supervisor, /function Test-QueueStall/);
+  assert.match(supervisor, /no CPU\/log progress/);
+  assert.match(supervisor, /Stop-Process -Id/);
+  assert.match(supervisor, /QuietMinutes = 45/);
+});
