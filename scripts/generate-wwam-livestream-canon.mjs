@@ -333,13 +333,13 @@ function whyItMattersRead(title, series, tier, shape, topics, moments, audioCand
     : "the topic and chapter rails are the best way in";
   const lane = audioSignalMix[0] || recurring.slice().sort((left, right) => Number(right.candidateCount || 0) - Number(left.candidateCount || 0))[0]?.label || "OPEN MIC";
   const lead = audioStrongest || moments.slice().sort((left, right) => Number(right.score || 0) - Number(left.score || 0))[0] || null;
-  const leadLine = lead ? `The first stop I would make is ${clock(lead.t)} for ${humanMomentLabel(lead.category || lead.label || "SOURCE RECEIPT")}.` : "There is no single loudest moment, so start with the chapter rail.";
+  const leadLine = lead ? `The first stop I would make is ${clock(lead.t)}, where ${humanMomentLabel(lead.category || lead.label || "SOURCE RECEIPT")}.` : "There is no single loudest moment, so start with the chapter rail.";
   const topicList = listPhrase(topics.slice(0, 3).map((topic) => topic.name));
-  const fanLine = fan.length ? `the chat leaves ${fan.length} fan callout${fan.length === 1 ? "" : "s"} in the mix` : "the chat stays quiet on this tape";
+  const fanLine = fan.length ? `The chat leaves ${fan.length} fan callout${fan.length === 1 ? "" : "s"} in the mix` : "The chat stays quiet on this tape";
   const characterList = listPhrase(characterCues.slice().sort((left, right) => Number(right.mentions || 0) - Number(left.mentions || 0)).slice(0, 3).map((character) => character.name));
   const characterLine = characterCues.length ? `The character traffic runs through ${characterList}; open the surrounding exchange to hear the bit land.` : "No recurring character bit rises above the rest here.";
-  const audioLine = decodedAudio && audioCandidates.length ? `The listening pass adds ${audioCandidates.length} more places to jump in, with ${lane.toLowerCase()} doing the heavy lifting.` : audioCandidates.length ? `The caption-aligned pass adds ${audioCandidates.length} more places to jump in.` : "There is no extra listening lane attached to this one yet.";
-  return `${title} earns a place in the ${series.label} shelf because ${routeLine} around ${topicList}. ${leadLine} ${fanLine}, and ${characterLine} ${audioLine} Press play when you want the timing and delivery that a recap cannot fake.`;
+  const audioLine = decodedAudio && audioCandidates.length ? `The listening pass adds ${audioCandidates.length} more places to jump in; its busiest lane is ${lane.toLowerCase()}.` : audioCandidates.length ? `The caption-aligned pass adds ${audioCandidates.length} more places to jump in.` : "There is no extra listening lane attached to this one yet.";
+  return `${title} earns a place in the ${series.label} shelf because ${routeLine} around ${topicList}. ${leadLine} ${fanLine}. ${characterLine} ${audioLine} Press play when you want the timing and delivery that a recap cannot fake.`;
 }
 function voiceVariant(title, date) {
   return Array.from(`${title}|${date}`).reduce((sum, character) => sum + character.charCodeAt(0), 0) % 3;
@@ -388,10 +388,10 @@ function voiceSummaryV2(title, date, shape, topics, moments, fan, recurring, cha
               : `${cleanTitle} is ${date}'s open-line movie-news room.`;
   const topicLine = topicList ? `The conversation keeps circling ${topicList}.` : "The conversation keeps its subject spine loose.";
   const route = hot
-    ? `${moments.length ? "The best first jump is" : "The best first listening stop is"} ${clock(hot.t)} for ${humanMomentLabel(hot.category || "the first big turn")}.`
+    ? `${moments.length ? "The best first jump is" : "The best first listening stop is"} ${clock(hot.t)}, where ${humanMomentLabel(hot.category || "the first big turn")}.`
     : "Start with the chapter rail and let the tape choose the first detour.";
   const routeLine = routeMoments.length
-    ? `The local route rail keeps ${routeMoments.length} playable doors into this upload.`
+    ? `The local route rail gives you ${routeMoments.length} playable doors into this upload.`
     : "The local page keeps the topic doors and the full official player.";
   const laneLine = laneNames.length
     ? `WWAM's fingerprints show up as ${listPhrase(laneNames)}.`
