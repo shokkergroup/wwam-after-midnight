@@ -4,6 +4,7 @@ $generated = Join-Path $work "public\demo\wwam-livestream-asr-excerpts.js"
 $watchalongGenerated = Join-Path $work "public\demo\wwam-watchalong-canon.js"
 $livestreamGenerated = Join-Path $work "public\demo\wwam-livestream-canon.js"
 $livestreamColdGenerated = Join-Path $work "public\demo\wwam-livestream-cold-index.js"
+$transcriptAudit = Join-Path $work "scripts\audit-wwam-transcript-publication.mjs"
 $queueFile = Join-Path $work "source-cache\wwam-asr-queue.json"
 $log = Join-Path $work ".codex-asr-publication.log"
 Set-Location -LiteralPath $work
@@ -93,6 +94,13 @@ function Publish-IfChanged {
   if ($buildExit -ne 0) {
     Write-RunLog "Pages build failed // will retry on next poll"
     return
+  }
+  if (Test-Path -LiteralPath $transcriptAudit) {
+    $auditExit = Run-Logged "node" @($transcriptAudit, "--strict")
+    if ($auditExit -ne 0) {
+      Write-RunLog "transcript publication audit failed // leaving hash retryable"
+      return
+    }
   }
   git add -- public/demo/wwam-livestream-asr-excerpts.js public/demo/wwam-watchalong-canon.js public/demo/wwam-watchalong-route-index.js public/demo/wwam-livestream-canon.js public/demo/wwam-livestream-cold-index.js public/demo/index.html
   $staged = git diff --cached --name-only

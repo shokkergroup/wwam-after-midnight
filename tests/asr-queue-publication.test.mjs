@@ -27,6 +27,8 @@ test("overnight publisher ships both livestream and watchalong audio artifacts",
   assert.match(supervisor, /wwam-livestream-cold-index\.js/);
   assert.match(supervisor, /wwam-watchalong-canon\.js/);
   assert.match(supervisor, /wwam-watchalong-route-index\.js/);
+  assert.match(supervisor, /audit-wwam-transcript-publication\.mjs/);
+  assert.match(supervisor, /transcript publication audit failed/);
   assert.match(supervisor, /combinedHash/);
 });
 
