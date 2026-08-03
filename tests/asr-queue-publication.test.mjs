@@ -15,8 +15,16 @@ test("ASR queue refreshes the matching canon for watchalong transcripts", () => 
   assert.match(queue, /generate-wwam-watchalong-canon\.mjs/);
 });
 
+test("ASR queue refreshes the visible livestream canon for livestream transcripts", () => {
+  assert.match(queue, /LIVESTREAM_CANON_GENERATOR/);
+  assert.match(queue, /row\.get\("kind"\).*livestream/i);
+  assert.match(queue, /generate-wwam-livestream-canon\.mjs/);
+});
+
 test("overnight publisher ships both livestream and watchalong audio artifacts", () => {
   assert.match(supervisor, /wwam-livestream-asr-excerpts\.js/);
+  assert.match(supervisor, /wwam-livestream-canon\.js/);
+  assert.match(supervisor, /wwam-livestream-cold-index\.js/);
   assert.match(supervisor, /wwam-watchalong-canon\.js/);
   assert.match(supervisor, /wwam-watchalong-route-index\.js/);
   assert.match(supervisor, /combinedHash/);
