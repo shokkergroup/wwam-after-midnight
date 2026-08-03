@@ -505,7 +505,13 @@ function voiceSummaryV2(title, date, shape, topics, moments, fan, recurring, cha
             : frame === "a movie-side conversation"
               ? `${cleanTitle} settles into a movie-side conversation on ${date}.`
               : `${cleanTitle} is ${date}'s open-line movie-news room.`;
-  const topicLine = topicList ? `The tape moves through ${topicList}.` : "The tape keeps its subject spine loose.";
+  const topicLine = topicList
+    ? [
+      `The night ricochets through ${topicList}.`,
+      `The conversation keeps looping back to ${topicList}.`,
+      `The room jumps between ${topicList}, with the detours left in.`
+    ][variant]
+    : "The tape keeps its subject spine loose.";
   const route = hot
     ? `${moments.length ? "The best first jump is" : "The best first listening stop is"} ${clock(hot.t)}, where ${humanMomentLabel(hot.category || "the first big turn")}.`
     : "Start with the chapter rail and let the tape choose the first detour.";
