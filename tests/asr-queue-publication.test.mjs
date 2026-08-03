@@ -107,7 +107,7 @@ test("visitor-facing recap quotes strip non-speech Whisper stage cues and vary t
   assert.match(generator, /repeatedPhrases === 0/);
   assert.match(generator, /function quoteExcerpt\(value, limit = 22\)/);
   assert.match(generator, /const substantive = sentenceList\.find/);
-  assert.match(generator, /quoteExcerpt\(receiptCandidate\.text, 22\)/);
+  assert.match(generator, /safeExcerpt\(receiptCandidate\.text, 16\)/);
   assert.match(generator, /const vividHits =/);
   assert.match(generator, /const adminHits =/);
   assert.ok(generator.includes("!/\\.\\.\\.$/.test(item.text)"));
@@ -152,6 +152,8 @@ test("recap prose prefers bounded audio receipts over noisy topic fragments", ()
   const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-livestream-canon.mjs"), "utf8");
   assert.match(generator, /const routeMoments = listeningRoutes\.length \? listeningRoutes : moments/);
   assert.match(generator, /hot\.excerpt \|\| hot\.captionExcerpt/);
+  assert.match(generator, /let text = safeExcerpt\(item\.text, 16\)/);
+  assert.match(generator, /safeExcerpt\(receiptCandidate\.text, 16\)/);
 });
 
 test("watchalong listening cuts prefer local Whisper context", () => {

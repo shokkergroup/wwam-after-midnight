@@ -545,7 +545,7 @@ function voiceSummaryV2(title, date, shape, topics, moments, fan, recurring, cha
     hot ? { text: hot.excerpt || hot.captionExcerpt, at: hot.t, weight: Number(hot.score || 0) } : null,
     ...topics.map((item) => ({ text: item?.receipt, at: item?.at, weight: Number(item?.mentions || 0) }))
   ].filter(Boolean).map((item) => {
-    let text = normalizeCaptionText(item.text);
+    let text = safeExcerpt(item.text, 16);
     text = text.replace(/^(?:yeah|and|but|so|well|just|i mean|you know)\s+/i, "");
     text = text.replace(/^(?:[.…]+\s*)+/, "");
     if (text) text = `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
@@ -573,9 +573,9 @@ function voiceSummaryV2(title, date, shape, topics, moments, fan, recurring, cha
   const receiptCandidate = receiptOptions.sort((a, b) => b.score - a.score || Number(a.at || 0) - Number(b.at || 0))[0];
   const receiptLine = receiptCandidate
     ? [
-      `The cleanest bit of tape I found starts at ${clock(receiptCandidate.at || 0)}: “${quoteExcerpt(receiptCandidate.text, 22)}”`,
-      `At ${clock(receiptCandidate.at || 0)}, the transcript catches the show's temperature: “${quoteExcerpt(receiptCandidate.text, 22)}”`,
-      `For a quick taste, press ${clock(receiptCandidate.at || 0)}: “${quoteExcerpt(receiptCandidate.text, 22)}”`
+      `The cleanest bit of tape I found starts at ${clock(receiptCandidate.at || 0)}: “${safeExcerpt(receiptCandidate.text, 16)}”`,
+      `At ${clock(receiptCandidate.at || 0)}, the transcript catches the show's temperature: “${safeExcerpt(receiptCandidate.text, 16)}”`,
+      `For a quick taste, press ${clock(receiptCandidate.at || 0)}: “${safeExcerpt(receiptCandidate.text, 16)}”`
     ][variant]
     : [
       "The transcript does not leave a safe short quote here, so the player remains the first source of tone",
