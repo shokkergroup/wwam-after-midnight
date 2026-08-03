@@ -75,6 +75,14 @@ test("public receipt audit rejects duplicate best-bit routes", () => {
   assert.match(audit, /inspectRouteUniqueness\(episode\.bestBits, id, "bestBits"/);
 });
 
+test("livestream Show Wiki separates acoustic-only cues into an expandable shelf", () => {
+  const ui = fs.readFileSync(path.join(root, "public", "demo", "livestream-canon-ui.js"), "utf8");
+  assert.match(ui, /function bestGrid\(e,a\)/);
+  assert.match(ui, /lvc-best-audio-only/);
+  assert.match(ui, /AUDIO-ONLY CUES \/\/ PRESS PLAY/);
+  assert.match(ui, /captionAligned!==false/);
+});
+
 test("livestream listening doors prefer verified Whisper excerpts", () => {
   const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-livestream-canon.mjs"), "utf8");
   assert.match(generator, /captionWindowAt\(events, candidate\.t\)/);
