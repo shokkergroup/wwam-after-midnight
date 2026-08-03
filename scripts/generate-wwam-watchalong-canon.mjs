@@ -509,6 +509,9 @@ function ledgerFanRead(items, finalMoment) {
 
 function fanSignalCandidates(events, duration) {
   if (!events.length) return [];
+  const evidenceBasis = events.some((event) => event.evidenceType === "local-whisper-transcript")
+    ? "source-local Whisper transcript fan-callout cluster"
+    : "source-local automatic caption fan-callout cluster";
     const isFanSignal = (text) => /super\s*chat|\bdonat(?:e|ed|ion)\b|lee(?:\s+the)?\s+machine|michael\s+part(?:on|in)|chat(?:'s| is) asking|question from (?:the )?chat|(?:thanks|welcome|appreciate|thank you).{0,45}(?:member|membership)|(?:new|another|our) member|(?:member|membership).{0,45}(?:joined|join|thanks|thank|gift)/i.test(text);
   const ranked = events.map((event, index) => {
     if (!isFanSignal(event.text)) return null;
@@ -530,7 +533,7 @@ function fanSignalCandidates(events, duration) {
     label: "FAN SIGNAL",
     score: candidate.score,
     excerpt: excerpt(captionWindow(events, candidate.index), 24),
-    evidenceBasis: "source-local automatic caption fan-callout cluster",
+    evidenceBasis,
     reviewStatus: "machine-candidate"
   }));
 }
@@ -562,6 +565,9 @@ const LANE_DEFS = [
 
 function candidateMoments(events, duration, aliases, taxonomy = {}) {
   if (!events.length) return { moments: [], topics: [], chapters: [], captionWords: 0, captionEvents: 0 };
+  const localWhisper = events.some((event) => event.evidenceType === "local-whisper-transcript");
+  const evidenceBasis = localWhisper ? "source-local Whisper transcript keyword cluster" : "source-local automatic caption keyword cluster";
+  const routeEvidenceBasis = localWhisper ? "source-local Whisper transcript route checkpoint" : "source-local caption route checkpoint";
   const candidates = [];
   const seenByLane = new Map();
   const dynamicPerLane = Math.max(3, Math.min(9, Math.round((duration || 1) / 1800)));
@@ -588,7 +594,7 @@ function candidateMoments(events, duration, aliases, taxonomy = {}) {
       label: lane.label,
       score: candidate.score,
       excerpt: excerpt(captionWindow(events, candidate.index), 22),
-      evidenceBasis: "source-local automatic caption keyword cluster",
+      evidenceBasis,
       reviewStatus: "machine-candidate"
     }));
   });
@@ -606,7 +612,7 @@ function candidateMoments(events, duration, aliases, taxonomy = {}) {
       label: index === 0 ? "OPENING READ" : index === 3 ? "CLOSING READ" : "WATCH ROUTE",
       score: 62,
       excerpt: excerpt(captionWindow(events, events.indexOf(nearest)), 22),
-      evidenceBasis: "source-local caption route checkpoint",
+      evidenceBasis: routeEvidenceBasis,
       reviewStatus: "machine-candidate"
     });
   });

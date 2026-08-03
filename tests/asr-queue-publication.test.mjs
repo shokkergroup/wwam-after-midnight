@@ -81,3 +81,10 @@ test("visible canon audit rejects stale automatic-caption lanes", () => {
   assert.match(audit, /visible-canon-still-automatic-caption/);
   assert.match(audit, /episode\.conversationThreads/);
 });
+
+test("watchalong keyword and fan lanes preserve Whisper provenance", () => {
+  const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-watchalong-canon.mjs"), "utf8");
+  assert.match(generator, /source-local Whisper transcript keyword cluster/);
+  assert.match(generator, /source-local Whisper transcript fan-callout cluster/);
+  assert.match(generator, /source-local Whisper transcript route checkpoint/);
+});
