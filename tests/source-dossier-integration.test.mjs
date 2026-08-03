@@ -392,6 +392,8 @@ test("cold source routes paint the local fallback before optional Watchalong hyd
   assert.match(app, /wwam-livestream-asr-excerpts\.js\?v=1\.0\.3-expanding-whisper/);
   assert.match(app, /wwam-livestream-fallback-index\.js\?v=1\.0\.0-category-lanes/);
   assert.match(app, /WWAM_LIVESTREAM_FALLBACK_INDEX/);
+  assert.match(app, /WWAM_YEAR_CANON_2025_2026 && window\.WWAM_YEAR_CANON_2025_2026\.streams/);
+  assert.match(app, /WWAM_ARCHIVE_COMPLETION && window\.WWAM_ARCHIVE_COMPLETION\.streams/);
   assert.match(app, /LISTENING \/\/ TRANSCRIPT WINDOW/);
   assert.match(app, /transcript window/);
   assert.match(app, /String\(index \+ 1\)\.padStart\(2, "0"\)/);

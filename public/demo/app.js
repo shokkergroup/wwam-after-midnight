@@ -734,6 +734,10 @@
       window.WWAM_WATCHALONG_CANON && window.WWAM_WATCHALONG_CANON.companionReviews,
       window.WWAM_WATCHALONG_CANON && window.WWAM_WATCHALONG_CANON.discovery && window.WWAM_WATCHALONG_CANON.discovery.broadDiscoveryOmissions,
       window.WWAM_LIVESTREAM_CANON && window.WWAM_LIVESTREAM_CANON.episodes,
+      window.WWAM_YEAR_CANON_2025_2026 && window.WWAM_YEAR_CANON_2025_2026.streams,
+      window.WWAM_ARCHIVE_COMPLETION && window.WWAM_ARCHIVE_COMPLETION.streams,
+      window.WWAM_ARCHIVE_RECOVERY_BATCH1 && window.WWAM_ARCHIVE_RECOVERY_BATCH1.streams,
+      window.WWAM_ARCHIVE_RECOVERY_BATCH2 && window.WWAM_ARCHIVE_RECOVERY_BATCH2.streams,
       window.WWAM_ARCHIVE_ATLAS && window.WWAM_ARCHIVE_ATLAS.records,
     ];
     var indexed = null;
