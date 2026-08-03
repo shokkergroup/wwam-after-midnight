@@ -40,7 +40,7 @@
     "wwam-episode-recap-adapter.js?v=2.4.0-play-bound-story",
     "source-dossier-engine.js?v=1.17.0-alternate-podcast-routes",
     "wwam-livestream-asr-excerpts.js?v=1.0.5-low-signal-filter",
-    "wwam-source-dossier-adapter.js?v=1.21.0-asr-excerpt-overlay",
+    "wwam-source-dossier-adapter.js?v=1.22.0-asr-excerpt-overlay",
     "source-query-engine.js?v=1.6.1-lanes",
     "aftermath-pack-engine.js?v=1.0.0",
     "source-dossier-ui.js?v=1.32.6-caption-marker-quarantine",

@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.21.0";
+  var VERSION = "1.22.0";
   var SCHEMA = "shokker-source-dossier-input/v1";
   var PUBLIC_EXCERPT_WORDS = 16;
   var OFFICIAL_WWAM_CHANNEL_ID = "UC6ieEOZW4iXV8TcILJI8k5g";
@@ -759,7 +759,9 @@
         "No caption fragment aligned; open the source and listen to this audio-ranked window.";
       var score = boundedSignal(candidate.score);
       var candidateBasis = clean(candidate.evidenceBasis);
-      var excerptBasis = asrExcerpt ?
+      var sourceUsesWhisper = clean(source.captionSourceKind).toLowerCase() ===
+        "local-whisper-transcript";
+      var excerptBasis = asrExcerpt || sourceUsesWhisper ?
         "local faster-whisper transcript excerpt aligned to the audio-ranked timestamp" :
         "local source caption fragment aligned to the audio-ranked timestamp";
       return normalizedReceipt(
@@ -2775,6 +2777,11 @@
         ),
         exactSourceHold: exactSourceHold,
         officialAlternate: officialAlternateFor(archiveStream, watchalongEpisode),
+        captionSourceKind: clean(
+          watchalongEpisode && watchalongEpisode.dossier &&
+          watchalongEpisode.dossier.caption &&
+          watchalongEpisode.dossier.caption.sourceKind
+        ),
         episodeGuide: null,
       };
       source.episodeGuide = episodeGuideForSource(
