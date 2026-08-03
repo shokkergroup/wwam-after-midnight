@@ -159,8 +159,11 @@ test("each source has an honest evidence tier and playable source link", () => {
   assert.equal(ledgerSummaries.some((summary) => /\bA open-line\b/i.test(summary)), false);
   assert.equal(ledgerSummaries.some((summary) => summary.includes("Open the timestamp before treating")), false);
   assert.equal(canon.episodes.some((episode) => /caption trail keeps returning|spends its time bouncing|built around/i.test(`${episode.dossier.summary} ${episode.dossier.tapeNote || ""}`)), false, "livestream copy does not turn topic doors into whole-show claims");
+  assert.equal(canon.episodes.some((episode) => /side conversations keep finding new trouble|turns .* into a long night of movie talk|keeps widening whenever somebody says|the takes keep catching fire|the rankings out and the gloves off/i.test(episode.dossier.summary)), false, "livestream summaries do not reuse the retired generic mold");
+  assert.equal(new Set(canon.episodes.map((episode) => episode.dossier.summary.split(/(?<=\\.)\\s+/).slice(0, 2).join(" "))).size, canon.episodes.length, "each livestream has a source-specific opening read");
   assert.ok(canon.episodes.every((episode) => episode.dossier.audioRead && Number.isInteger(episode.dossier.audioRead.routeCount)), "every show exposes an explicit listening-read state");
-  assert.ok(canon.episodes.filter((episode) => episode.dossier.audioRead.mode === "decoded-audio").every((episode) => /playable doors|listening stop/i.test(episode.dossier.summary)), "decoded audio state is reflected in the show read without machine-room copy");
+  const decodedMachineReads = canon.episodes.filter((episode) => episode.dossier.audioRead.mode === "decoded-audio" && episode.dossier.editorialRead !== true);
+  assert.ok(decodedMachineReads.every((episode) => /playable doors|listening stop/i.test(episode.dossier.summary)), "decoded machine-audio state is reflected in the show read without machine-room copy");
   const heldCaptionEpisode = canon.episodes.find((episode) => episode.id === "LVVGdGxTBfI");
   assert.ok(heldCaptionEpisode && heldCaptionEpisode.dossier.audioRead.mode === "caption-only", "the held source keeps its caption-only boundary in structured evidence");
   assert.equal(/decoded audio pass/i.test(heldCaptionEpisode.dossier.summary), false, "caption-only source is never described as decoded audio");

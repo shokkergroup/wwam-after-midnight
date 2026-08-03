@@ -79,6 +79,15 @@ const deep = loadScript("archive-deep-distill.js").WWAM_ARCHIVE_DEEP || { stream
 const fresh = loadScript("livestream-distill.js").WWAM_LIVESTREAMS || { streams: [] };
 const yearCanon = loadScript("year-canon-2025-2026.js").WWAM_YEAR_CANON_2025_2026 || { streams: [] };
 const watchPilot = loadScript("wwam-watch-pass-pilot.js").WWAM_WATCH_PASS_PILOT || { episodes: {} };
+const editorialPackById = new Map();
+for (const file of fs.readdirSync(DEMO).filter((name) => /^episode-editorial-packs(?:-recent|-wave\d+)?\.js$/.test(name))) {
+  const registry = loadScript(file).WWAM_EPISODE_EDITORIAL_PACKS || { sources: {} };
+  for (const [sourceId, pack] of Object.entries(registry.sources || {})) {
+    if (pack && pack.sourceId === sourceId && pack.reviewState === "full-tape-human-editorial-read") {
+      editorialPackById.set(sourceId, pack);
+    }
+  }
+}
 const livestreamAudio = fs.existsSync(path.join(DEMO, "wwam-livestream-audio-pass.js"))
   ? loadScript("wwam-livestream-audio-pass.js").WWAM_LIVESTREAM_AUDIO_PASS || { episodes: {}, coverage: null }
   : { episodes: {}, coverage: null };
@@ -311,7 +320,7 @@ function tapeNote(title, shape, topics, moments, fan, recurring, characterCues, 
 }
 function machineShapedSummary(value) {
   const text = clean(value);
-  return !text || /(?:This completion pass maps|A bracket-and-ranking night from|A trailer-and-news night from|A movie watchalong from|A fan-mail night from|A spoiler-heavy review night from|An open-line movie-news night from|caption map opens on|timestamp candidates across|If you are dropping into this|The shape of the night is|has indexed doors on|The 2026 second pass maps|This is a machine-surfaced caption map|Ranked #\d+ among eligible archived livestreams|Selected #\d+ by the frozen Archive Atlas|Automatic captions support timestamped|Its caption map concentrates on)/i.test(text);
+  return !text || /(?:This completion pass maps|A bracket-and-ranking night from|A trailer-and-news night from|A movie watchalong from|A fan-mail night from|A spoiler-heavy review night from|An open-line movie-news night from|caption map opens on|timestamp candidates across|If you are dropping into this|The shape of the night is|has indexed doors on|The 2026 second pass maps|This is a machine-surfaced caption map|Ranked #\d+ among eligible archived livestreams|Selected #\d+ by the frozen Archive Atlas|Automatic captions support timestamped|Its caption map concentrates on|side conversations keep finding new trouble|turns .* into a long night of movie talk|keeps widening whenever somebody says|the takes keep catching fire|the rankings out and the gloves off)/i.test(text);
 }
 function machineShapedWhyItMatters(value) {
   const text = clean(value);
@@ -348,6 +357,44 @@ function humanMomentLabel(value) {
   };
   return labels[label] || label || "the first big turn";
 }
+function voiceSummaryV2(title, date, shape, topics, moments, fan, recurring, characterCues, evidenceTier, listeningRoutes = []) {
+  const topicList = listPhrase(topics.slice(0, 4).map((topic) => topic.name));
+  const routeMoments = moments.length ? moments : listeningRoutes;
+  const hot = routeMoments.slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || Number(a.t || 0) - Number(b.t || 0))[0];
+  const characterList = listPhrase(characterCues.slice().sort((a, b) => Number(b.mentions || 0) - Number(a.mentions || 0)).slice(0, 3).map((character) => character.name));
+  const fanTypes = Array.from(new Set(fan.map((signal) => signal.signalType))).slice(0, 2);
+  const laneNames = recurring.slice()
+    .sort((a, b) => Number(b.candidateCount || 0) - Number(a.candidateCount || 0))
+    .slice(0, 3)
+    .map((lane) => lane.label)
+    .filter(Boolean);
+  const frame = contentFrame(title, shape, topics);
+  const opening = `${clean(title)} is ${frame} from ${date}.`;
+  const topicLine = topicList ? `Its clearest subject spine is ${topicList}.` : "The subject spine stays deliberately loose.";
+  const route = hot
+    ? `${moments.length ? "The best first jump is" : "The best first listening stop is"} ${clock(hot.t)} for ${humanMomentLabel(hot.category || "the first big turn")}.`
+    : "Start with the chapter rail and let the tape choose the first detour.";
+  const routeLine = routeMoments.length
+    ? `The page keeps ${routeMoments.length} playable doors, each tied to this upload.`
+    : "The page keeps the topic doors and the full official player.";
+  const laneLine = laneNames.length
+    ? `The recurring WWAM lanes are ${listPhrase(laneNames)}.`
+    : "No recurring WWAM lane is strong enough to headline this pass.";
+  const fanLine = fan.length
+    ? `The chat is part of the show too: ${fan.length} fan callout${fan.length === 1 ? "" : "s"}${fanTypes.length ? `, including ${listPhrase(fanTypes).replace(/ CUE/g, "")}` : ""}.`
+    : "The fan lane stays quiet on this tape.";
+  const characterLine = characterCues.length
+    ? `The recurring-character traffic includes ${characterList}; open the surrounding exchange, not just the keyword.`
+    : "No recurring-character bit takes over this tape.";
+  const listeningLine = listeningRoutes.length
+    ? `The audio lane adds ${listeningRoutes.length} candidate windows; those are invitations to listen, not claims about who spoke or what should be funny.`
+    : "There is no separate audio-ranked lane attached to this file yet.";
+  const tierLine = evidenceTier === "source-brief"
+    ? "This one stays compact until a stronger local receipt arrives."
+    : "Press play for the delivery and timing that the text can only point toward.";
+  return `${opening} ${topicLine} ${route} ${routeLine} ${laneLine} ${fanLine} ${characterLine} ${listeningLine} ${tierLine}`;
+}
+
 function voiceSummary(title, date, shape, topics, moments, fan, recurring, characterCues, evidenceTier, listeningRoutes = []) {
   const topicList = listPhrase(topics.slice(0, 4).map((topic) => topic.name));
   const laneLead = recurring.slice().sort((a, b) => Number(b.candidateCount || 0) - Number(a.candidateCount || 0))[0];
@@ -525,6 +572,8 @@ function yearPass(record, events, topics, moments, fan, recurring, characterCues
 }
 const episodes = canonicalMetadata.map((record) => {
   const id = record.id;
+  const editorialPack = editorialPackById.get(id) || null;
+  const editorialPackBound = editorialPack && Number(editorialPack.evidence?.duration || 0) === Number(record.duration || 0);
   const events = captionEvents(id);
   const existing = completionById.get(id) || deepById.get(id) || freshById.get(id) || null;
   const mode = existing?.contentMode || inferMode(record.title);
@@ -573,7 +622,7 @@ const episodes = canonicalMetadata.map((record) => {
   const secondPassSummary = currentYear === 2026
     ? `The 2026 second pass maps this ${shape.toLowerCase()} through ${topicRead}. It keeps ${topics.length} topic doors, ${moments.length} moment candidates, ${fan.length} ${fan.length === 1 ? "fan-signal receipt" : "fan-signal receipts"}, and ${characterCues(events, Number(record.duration || 0), listeningRoutes).reduce((sum, character) => sum + character.receipts.length, 0)} character cue receipts across ${clock(record.duration)}. Start at ${hookLine.replace(/\.$/, "")} and use the scene beats below as a route through the night. Playback remains the authority; captions do not certify a speaker or intent.`
     : null;
-  const summary = clean(existing?.summary || secondPassSummary || (events.length
+  const summary = clean(editorialPackBound ? editorialPack.overview : existing?.summary || secondPassSummary || (events.length
     ? `${ledgerSummary} Captions are navigation, not a final quote or speaker verdict—open a receipt and hear the full exchange.`
     : `A source brief for ${clean(record.title)}. Metadata is preserved, but no local caption route survived for a responsible episode breakdown.`));
   const evidence = existing?.captionEvidence || { type: events.length ? "youtube-automatic-caption" : "metadata-only", eventsAudited: events.length, speakerDiarized: false, originAttribution: false, reviewStatus: events.length ? "machine-candidate" : "held" };
@@ -581,14 +630,16 @@ const episodes = canonicalMetadata.map((record) => {
   const recurring = recurringBits(events, moments, fan, Number(record.duration || 0), listeningRoutes);
   const note = tapeNote(record.title, shape, topics, moments, fan, recurring, cueList, listeningRoutes);
   const generatedSummary = currentYear === 2026 || machineShapedSummary(summary)
-    ? voiceSummary(record.title, dateFrom(record.upload_date), shape, topics, moments, fan, recurring, cueList, tier, listeningRoutes)
+    ? voiceSummaryV2(record.title, dateFrom(record.upload_date), shape, topics, moments, fan, recurring, cueList, tier, listeningRoutes)
     : summary;
   // Keep the visitor-facing summary conversational and compact. Acoustic
   // method/evidence belongs in audioRead and tapeNote; appending it here made
   // every livestream card end with the same machine-room disclaimer.
-  const finalSummary = clean(generatedSummary);
+  const finalSummary = clean(editorialPackBound ? editorialPack.overview : generatedSummary);
   const existingWhyItMatters = existing?.editorial?.whyItMatters;
-  const whyItMatters = machineShapedWhyItMatters(existingWhyItMatters)
+  const whyItMatters = editorialPackBound && clean(editorialPack.deck)
+    ? clean(editorialPack.deck)
+    : machineShapedWhyItMatters(existingWhyItMatters)
     ? whyItMattersRead(record.title, series, tier, shape, topics, moments, audioCandidates, audioStrongest, audioSignalMix, fan, cueList, recurring, decodedAudio)
     : clean(existingWhyItMatters);
   const pass = yearPass(record, events, topics, moments, fan, recurring, cueList, existing, evidence, yearSnapshot);
@@ -610,7 +661,7 @@ const episodes = canonicalMetadata.map((record) => {
     recurringBits: recurring, bestBits: bestBits(moments, fan, listeningRoutes), characterCues: cueList,
     characters: existing?.characters || characters(events), peak: existing?.peak || moments.slice().sort((a, b) => b.score - a.score)[0] || null,
     yearPass: pass, watchPass, rssAudioPass,
-    dossier: { summary: finalSummary, tapeNote: clean(`${note} ${audioLine}`), archiveSummary: currentYear === 2026 && existing?.summary ? clean(existing.summary) : null, shape, hook: hotMoment ? { at: Number(hotMoment.t || 0), category: hotMoment.category || hotMoment.label || "SOURCE RECEIPT", excerpt: hotMoment.excerpt || "", evidenceBasis: hotMoment.evidenceBasis || "source-local caption candidate", reviewStatus: hotMoment.reviewStatus || "machine-candidate" } : null, audioRead: watchPassRaw ? { mode: decodedAudio ? "decoded-audio" : "caption-only", routeCount: audioCandidates.length, strongest: audioStrongest ? { t: Number(audioStrongest.t || 0), category: audioStrongest.category || audioStrongest.label || "SOURCE RECEIPT", score: Number(audioStrongest.score || 0) } : null, signalMix: audioSignalMix.slice(0, 8), evidence: decodedAudio ? "Decoded canonical audio re-ranked source-local windows; playback remains the authority." : "Caption-only source-local routes; no acoustic intensity claim is made." } : null, whyItMatters, evidence, restricted, reviewStatus: tier === "source-brief" ? "held-source-brief" : tier === "completion-dossier" ? "distilled-machine-candidate" : "machine-surfaced" }
+     dossier: { summary: finalSummary, tapeNote: clean(`${note} ${audioLine}`), archiveSummary: currentYear === 2026 && existing?.summary ? clean(existing.summary) : null, shape, hook: hotMoment ? { at: Number(hotMoment.t || 0), category: hotMoment.category || hotMoment.label || "SOURCE RECEIPT", excerpt: hotMoment.excerpt || "", evidenceBasis: hotMoment.evidenceBasis || "source-local caption candidate", reviewStatus: hotMoment.reviewStatus || "machine-candidate" } : null, audioRead: watchPassRaw ? { mode: decodedAudio ? "decoded-audio" : "caption-only", routeCount: audioCandidates.length, strongest: audioStrongest ? { t: Number(audioStrongest.t || 0), category: audioStrongest.category || audioStrongest.label || "SOURCE RECEIPT", score: Number(audioStrongest.score || 0) } : null, signalMix: audioSignalMix.slice(0, 8), evidence: decodedAudio ? "Decoded canonical audio re-ranked source-local windows; playback remains the authority." : "Caption-only source-local routes; no acoustic intensity claim is made." } : null, whyItMatters, evidence, restricted, editorialRead: Boolean(editorialPackBound), reviewStatus: editorialPackBound ? "full-tape-human-editorial-read" : tier === "source-brief" ? "held-source-brief" : tier === "completion-dossier" ? "distilled-machine-candidate" : "machine-surfaced" }
   };
 }).sort((left, right) => right.date.localeCompare(left.date) || right.id.localeCompare(left.id));
 
