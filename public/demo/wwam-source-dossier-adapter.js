@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.20.2";
+  var VERSION = "1.21.0";
   var SCHEMA = "shokker-source-dossier-input/v1";
   var PUBLIC_EXCERPT_WORDS = 16;
   var OFFICIAL_WWAM_CHANNEL_ID = "UC6ieEOZW4iXV8TcILJI8k5g";
@@ -729,6 +729,15 @@
     return null;
   }
 
+  function localWhisperExcerpt(source, candidate, index) {
+    var registry = record(root.WWAM_LIVESTREAM_ASR_EXCERPTS);
+    var sourceRecord = record(record(registry.sources)[source.id]);
+    var entry = record(array(sourceRecord.candidates)[index]);
+    if (!clean(entry.excerpt)) return null;
+    if (Math.abs(number(entry.t) - number(candidate.t)) > 5) return null;
+    return entry;
+  }
+
   function sourceAudioPassReceipts(source, watchalongById, livestreamById) {
     var selected = sourceAudioPass(source, watchalongById, livestreamById);
     var pass = selected && selected.pass;
@@ -743,11 +752,16 @@
       var requestedEnd = Math.max(at + 8, number(candidate.end));
       var end = Math.min(source.duration, requestedEnd);
       var category = clean(candidate.category || candidate.label || "LISTENING SPIKE");
-      var alignedExcerpt = clean(candidate.captionExcerpt || candidate.excerpt);
+      var asrExcerpt = localWhisperExcerpt(source, candidate, index);
+      var alignedExcerpt = clean(asrExcerpt && asrExcerpt.excerpt) ||
+        clean(candidate.captionExcerpt || candidate.excerpt);
       var excerpt = alignedExcerpt ||
         "No caption fragment aligned; open the source and listen to this audio-ranked window.";
       var score = boundedSignal(candidate.score);
       var candidateBasis = clean(candidate.evidenceBasis);
+      var excerptBasis = asrExcerpt ?
+        "local faster-whisper transcript excerpt aligned to the audio-ranked timestamp" :
+        "local source caption fragment aligned to the audio-ranked timestamp";
       return normalizedReceipt(
         {
           id: source.id + ":audio-pass:" + Math.floor(at) + ":" + index,
@@ -764,7 +778,7 @@
           evidenceLevel: "machine",
           evidenceType: "audio-feature-candidate",
           evidenceBasis: "canonical " + selected.origin +
-            " audio pass; " + (candidateBasis ||
+            " audio pass; " + excerptBasis + "; " + (candidateBasis ||
               "local audio ranked against the source caption clock"),
           reviewState: "audio-feature-candidate; playback remains the authority",
           publicExcerptAllowed: Boolean(alignedExcerpt),

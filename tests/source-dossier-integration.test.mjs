@@ -526,6 +526,7 @@ test("dossier CSS brands cold routes immediately while heavy scripts remain lazy
     "episode-recap-engine.js",
     "wwam-episode-recap-adapter.js",
     "source-dossier-engine.js",
+    "wwam-livestream-asr-excerpts.js",
     "wwam-source-dossier-adapter.js",
     "source-query-engine.js",
     "aftermath-pack-engine.js",
@@ -575,6 +576,7 @@ test("dossier CSS brands cold routes immediately while heavy scripts remain lazy
     );
   }
   const sourceDossierAdapter = read("wwam-source-dossier-adapter.js");
+  const asrExcerptIndex = read("wwam-livestream-asr-excerpts.js");
   assert.match(
     sourceDossierAdapter,
     /canonicalDurationSeconds[^\n]+canonicalYouTubeDuration|canonicalYouTubeDuration/,
@@ -584,6 +586,16 @@ test("dossier CSS brands cold routes immediately while heavy scripts remain lazy
     sourceDossierAdapter,
     /audio-feature-candidate[\s\S]*audio-listening-navigation/,
     "restricted commentaries must retain source-local audio listening doors",
+  );
+  assert.match(
+    sourceDossierAdapter,
+    /localWhisperExcerpt[\s\S]*faster-whisper transcript excerpt aligned/,
+    "Show Wiki audio receipts must consume bounded local Whisper excerpts when available",
+  );
+  assert.match(
+    asrExcerptIndex,
+    /wwam-livestream-asr-excerpts\/v1[\s\S]*publicExcerptWordLimit/,
+    "the ASR overlay must declare its bounded public excerpt policy",
   );
   assert.match(
     sourceDossierUi,
