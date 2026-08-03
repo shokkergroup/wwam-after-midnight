@@ -299,6 +299,8 @@ test("Whisper transcript cue doors become playable secondary listening receipts"
     window.WWAM_LIVESTREAM_ASR_EXCERPTS = {
       sources: {
         LV2rmwEA0w4: {
+          coverageMode: "ranked-audio-windows",
+          coverageWindowCount: 1,
           candidates: [{
             t: 7,
             excerpt: "The aligned audio window has a clean source-local transcript.",
@@ -325,6 +327,7 @@ test("Whisper transcript cue doors become playable secondary listening receipts"
   assert.equal(cue.end, 52);
   assert.equal(cue.publicExcerptAllowed, true);
   assert.match(cue.evidenceBasis, /secondary discovery door/);
+  assert.match(cue.evidenceBasis, /bounded local faster-whisper transcript window/);
   assert.equal(
     source.showWiki.lanes.find((lane) => lane.id === "audio-pass").receiptKeys.length,
     2,

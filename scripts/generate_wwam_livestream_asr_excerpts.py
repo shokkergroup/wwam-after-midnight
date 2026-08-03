@@ -220,6 +220,8 @@ def main() -> None:
             "model": ledger.get("model"),
             "audioSha256": ledger.get("audioSha256"),
             "generatedAt": ledger.get("generatedAt"),
+            "coverageMode": ledger.get("coverageMode") or "full-source",
+            "coverageWindowCount": int(ledger.get("coverageWindowCount") or 1),
             "speakerDiarized": False,
             "visualContextVerified": False,
             "candidates": candidates,

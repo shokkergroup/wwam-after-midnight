@@ -804,6 +804,7 @@ test("dossier CSS brands cold routes immediately while heavy scripts remain lazy
     "the ASR overlay must declare its bounded public excerpt policy",
   );
   assert.match(asrExcerptIndex, /source-local-whisper-text-cue/, "the ASR overlay must retain secondary transcript-led doors beyond the acoustic shortlist");
+  assert.match(asrExcerptIndex, /coverageMode/, "the ASR overlay must disclose whether Whisper coverage is full-source or windowed");
   assert.match(asrExcerptIndex, /secondary transcript-cue doors/, "the ASR overlay must label transcript-led doors as secondary listening leads");
   const asrSandbox = { window: {} };
   vm.runInNewContext(asrExcerptIndex, asrSandbox, { filename: "wwam-livestream-asr-excerpts.js" });

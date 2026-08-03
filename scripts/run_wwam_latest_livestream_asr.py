@@ -97,6 +97,8 @@ def transcribe_one(model, video_id: str, clip_timestamps="0") -> dict:
         "audioSha256": hashlib.sha256(audio.read_bytes()).hexdigest(),
         "model": MODEL_NAME,
         "language": "en",
+        "coverageMode": "ranked-audio-windows" if windowed else "full-source",
+        "coverageWindowCount": window_count if windowed else 1,
         "speakerDiarized": False,
         "visualContextVerified": False,
         "publicExcerptWordLimit": 16,

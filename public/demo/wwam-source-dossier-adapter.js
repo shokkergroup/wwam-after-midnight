@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.23.0";
+  var VERSION = "1.24.0";
   var SCHEMA = "shokker-source-dossier-input/v1";
   var PUBLIC_EXCERPT_WORDS = 16;
   var OFFICIAL_WWAM_CHANNEL_ID = "UC6ieEOZW4iXV8TcILJI8k5g";
@@ -750,7 +750,9 @@
     });
     var entry = entries[0];
     if (!entry || Math.abs(number(entry.t) - target) > 5) return null;
-    return entry;
+    return Object.assign({}, entry, {
+      coverageMode: clean(sourceRecord.coverageMode) || "full-source",
+    });
   }
 
   function localWhisperTextCueReceipts(source, selected, audioReceipts) {
@@ -789,7 +791,10 @@
           evidenceLevel: "machine",
           evidenceType: "audio-feature-candidate",
           evidenceBasis: "canonical " + selected.origin +
-            " audio pass; local faster-whisper transcript cue; secondary discovery door; playback remains the authority",
+            " audio pass; " + (clean(sourceRecord.coverageMode) === "ranked-audio-windows" ?
+              "bounded local faster-whisper transcript window cue" :
+              "local faster-whisper transcript cue") +
+            "; secondary discovery door; playback remains the authority",
           reviewState: "audio-feature-candidate; transcript cue; playback remains the authority",
           publicExcerptAllowed: true,
           signalScore: score,
@@ -823,7 +828,9 @@
       var sourceUsesWhisper = clean(source.captionSourceKind).toLowerCase() ===
         "local-whisper-transcript";
       var excerptBasis = asrExcerpt || sourceUsesWhisper ?
-        "local faster-whisper transcript excerpt aligned to the audio-ranked timestamp" :
+        ((asrExcerpt && asrExcerpt.coverageMode === "ranked-audio-windows") ?
+          "bounded local faster-whisper transcript window aligned to the audio-ranked timestamp" :
+          "local faster-whisper transcript excerpt aligned to the audio-ranked timestamp") :
         "local source caption fragment aligned to the audio-ranked timestamp";
       return normalizedReceipt(
         {

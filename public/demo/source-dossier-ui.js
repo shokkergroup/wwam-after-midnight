@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.33.0";
+  var VERSION = "1.34.0";
   var DOSSIER_SCHEMA = "shokker-source-dossier/v1";
   var QUERY_SCHEMA = "shokker-source-query/v1";
   var QUERY_RESULT_SCHEMA = "shokker-source-query-result/v1";
@@ -2618,6 +2618,9 @@
       var asrReceiptCount = receipts.filter(function (receipt) {
         return /faster-whisper transcript excerpt/i.test(clean(receipt.evidenceBasis));
       }).length;
+      var boundedWhisperPass = receipts.some(function (receipt) {
+        return /bounded local faster-whisper transcript window/i.test(clean(receipt.evidenceBasis));
+      });
       var whisperBackedSource = clean(source.captionSourceKind).toLowerCase() ===
         "local-whisper-transcript";
       var whisperPassVisible = asrReceiptCount > 0 || whisperBackedSource;
@@ -2661,7 +2664,9 @@
            'HEAR THE WINDOWS THE AUDIO PASS FOUND.') + '</h4></div>' +
         '<b>' + esc(receipts.length) + ' RANKED WINDOWS</b></header><p class="source-dossier-listening-intro">' +
          (whisperPassVisible ?
-           'This source has a bounded local Whisper transcript aligned to its audio-ranked windows. ' :
+           (boundedWhisperPass ?
+             'This source has a local Whisper transcript sampled around ranked audio windows. ' :
+             'This source has a bounded local Whisper transcript aligned to its audio-ranked windows. ') :
           'This is the source-local audio re-rank: loudness, caption alignment, and recurring WWAM signals decide where to start. ') +
         'It does not pretend to know who spoke, what was on camera, or whether a line is objectively funny. Press play and let the tape decide.</p>' +
         '<div class="source-dossier-listening-counts">' + categoryMarkup + '</div><div class="source-dossier-listening-grid">' +

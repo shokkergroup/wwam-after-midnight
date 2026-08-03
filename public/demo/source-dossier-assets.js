@@ -40,10 +40,10 @@
     "wwam-episode-recap-adapter.js?v=2.4.0-play-bound-story",
     "source-dossier-engine.js?v=1.17.0-alternate-podcast-routes",
     "wwam-livestream-asr-excerpts.js?v=1.0.5-low-signal-filter",
-    "wwam-source-dossier-adapter.js?v=1.23.0-transcript-cue-doors",
+    "wwam-source-dossier-adapter.js?v=1.24.0-windowed-whisper-boundary",
     "source-query-engine.js?v=1.6.1-lanes",
     "aftermath-pack-engine.js?v=1.0.0",
-    "source-dossier-ui.js?v=1.33.0-transcript-cue-labels",
+    "source-dossier-ui.js?v=1.34.0-windowed-whisper-copy",
     "wwam-dossier-editorial.js?v=1.3.2-damage-priority",
   ]);
 })(window);
