@@ -26,6 +26,7 @@
     "pilot:halloween-audio": "python scripts/run_wwam_halloween_audio_watch_pass.py && npm run generate:watchalong-canon",
     "pilot:latest-audio": "python scripts/run_wwam_audio_watch_pass.py && npm run generate:livestream-canon",
     "pilot:latest-livestream-asr": "python scripts/run_wwam_latest_livestream_asr.py && python scripts/generate_wwam_livestream_asr_excerpts.py && npm run build:pages",
+    "pilot:asr-queue": "python scripts/run_wwam_asr_queue.py --batches 3 --batch-size 3",
     "audit:asr-queue": "node scripts/select_wwam_asr_queue.mjs",
     "pilot:livestream-rss-audio": "python scripts/run_wwam_livestream_rss_audio_pass.py && npm run generate:livestream-canon",
     "generate:livestream-canon": "node scripts/generate-wwam-livestream-canon.mjs",
