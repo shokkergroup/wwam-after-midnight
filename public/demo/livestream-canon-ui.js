@@ -7,7 +7,7 @@ function x(v){return c(v).replace(/[&<>"']/g,function(k){return{"&":"&amp;","<":
 function n(v){return Number(v||0).toLocaleString("en-US")}
 function d(v){var a=c(v).split("-");return a.length===3?a[1]+"/"+a[2]+"/"+a[0]:c(v)||"DATE UNKNOWN"}
 function t(v){v=Math.max(0,Math.round(Number(v)||0));var h=Math.floor(v/3600),mi=Math.floor(v%3600/60),se=v%60;return h?h+":"+String(mi).padStart(2,"0")+":"+String(se).padStart(2,"0"):mi+":"+String(se).padStart(2,"0")}
-function q(v,l){var z=c(v),m=l||210;return z.length<=m?z:z.slice(0,m-1).trimEnd()+"\u2026"}
+function q(v,l){var z=c(v),m=l||210;if(z.length<=m)return z;var cut=z.slice(0,m),last=Math.max(cut.lastIndexOf("."),cut.lastIndexOf("!"),cut.lastIndexOf("?"));if(last>=Math.min(72,m-1))return cut.slice(0,last+1).trim();var bounded=cut.replace(/\s+\S*$/," ").trim();return (bounded||cut.slice(0,m-1).trim())+"."}
 function receipt(v,l){var z=c(v).replace(/>>\s*/g,"").replace(/\[(?:laughter|music|applause|inaudible|crosstalk|\s*[_-]+\s*)\]/gi," ").replace(/\b(?:uh|um|er)\b/gi," ").replace(/\b(\w+)(?:\s+\1\b)+/gi,"$1").replace(/\s+/g," ").trim();return q(z,l||210)}
 function routeQuote(z){z=z||{};var evidence=c(z.evidenceBasis).toLowerCase(),raw=receipt(z.excerpt||z.quote||z.captionExcerpt,150),w=(raw.match(/[a-z0-9']+/gi)||[]);if(!/local whisper/.test(evidence)||!raw||/no local transcript|no caption fragment|navigation only|open the source/i.test(raw)||w.length<4)return"";if(/\b(\w+\s+\w+)(?:\s+(?:the|a|an|and|or|to|of|in|on|for|with|it|is|was|that|this))?\s+\1\b/i.test(raw))return"";if(w.length>9&&w.filter(function(v){return /^(?:uh|um|er|ah|like)$/i.test(v)}).length/w.length>.28)return"";return raw}
 function navCopy(z){z=z||{};var review=c(z.reviewStatus).toLowerCase(),evidence=c(z.evidenceBasis).toLowerCase(),kind=c(z.sourceKind).toLowerCase(),reviewed=/human|editor|creator|verified|curated/.test(review),machine=!reviewed||/machine-candidate|caption|audio-feature-candidate|transcript|playback remains the authority/.test(review)||/machine|caption|automatic|transcript|audio pass/.test(evidence)||/local-whisper|audio-pass|caption|transcript/.test(kind),quote=routeQuote(z);if(quote)return'“'+quote+'” // indexed at '+t(z.at||z.t||0)+'; press play to hear it in context.';if(!machine)return receipt(z.excerpt||z.quote||z.captionExcerpt)||"Open the source at this receipt.";var lane=c(z.category||z.label||"source lane").toLowerCase(),copy={"straight to steve's asshole":"Steve's Asshole take","wwam up in ya":"UP IN YA bit","character signal":"character signal","fan signal":"fan callout","take gets nuclear":"nuclear take","full send":"full-send take","room break":"room-break moment","the room breaks":"room-break moment","listening // transcript window":"transcript window","listening // text-cue window":"transcript text-cue window"}[lane]||lane,topic=c(z.topic||z.name);return(topic?topic+" discussion":copy)+" is indexed at "+t(z.at||z.t||0)+". Press play for the exact exchange; this is navigation, not a finished quote."}
@@ -83,4 +83,13 @@ function humanizeVisibleShell(){
 }
 humanizeVisibleShell();
 if(root.MutationObserver){new root.MutationObserver(humanizeVisibleShell).observe(m,{childList:true,subtree:true})}
+function repairVisibleReceipts(){
+  Array.prototype.forEach.call(root.document.querySelectorAll(".lvc-shell *"),function(node){
+    if(node.children&&node.children.length)return;
+    var text=node.textContent||"",fixed=text.replace(/â€œ/g,"“").replace(/â€/g,"”").replace(/â€¦/g,"…").replace(/â†’/g,"→");
+    if(fixed!==text)node.textContent=fixed;
+  });
+}
+repairVisibleReceipts();
+if(root.MutationObserver){new root.MutationObserver(repairVisibleReceipts).observe(m,{childList:true,subtree:true})}
 })(typeof window!=="undefined"?window:globalThis);
