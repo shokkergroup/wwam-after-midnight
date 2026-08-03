@@ -354,6 +354,10 @@ test("the compact livestream fallback index is bounded and category-aware", () =
   assert.ok(latest.some((candidate) => candidate.category === "STRAIGHT TO STEVE'S ASSHOLE"));
   assert.ok(latest.some((candidate) => candidate.category === "FAN SIGNAL"));
   assert.ok(latest.every((candidate) => candidate.sourceKind === "audio-pass"));
+  for (const episode of Object.values(payload.episodes)) {
+    const keys = episode.candidates.map((candidate) => `${candidate.t}|${candidate.category}`);
+    assert.equal(new Set(keys).size, keys.length, `${episode.id} must preserve distinct category lanes at one second`);
+  }
 });
 
 test("cold source routes paint the local fallback before optional Watchalong hydration", () => {

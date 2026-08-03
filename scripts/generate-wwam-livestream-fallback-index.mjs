@@ -51,18 +51,19 @@ function selectCandidates(candidates) {
     .sort((a, b) => b.score - a.score || a.t - b.t);
   const selected = [];
   const used = new Set();
+  const keyFor = (candidate) => `${candidate.t}|${candidate.category}`;
   for (const lane of laneOrder) {
-    const hit = normalized.find((candidate) => candidate.category === lane && !used.has(candidate.t));
+    const hit = normalized.find((candidate) => candidate.category === lane && !used.has(keyFor(candidate)));
     if (hit) {
       selected.push(hit);
-      used.add(hit.t);
+      used.add(keyFor(hit));
     }
   }
   for (const candidate of normalized) {
     if (selected.length >= 10) break;
-    if (used.has(candidate.t)) continue;
+    if (used.has(keyFor(candidate))) continue;
     selected.push(candidate);
-    used.add(candidate.t);
+    used.add(keyFor(candidate));
   }
   return selected.sort((a, b) => a.t - b.t);
 }
