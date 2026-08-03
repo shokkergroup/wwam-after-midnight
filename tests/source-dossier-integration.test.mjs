@@ -358,8 +358,8 @@ test("fallback Show Wiki keeps unreviewed caption fragments out of public prose"
     label: "FULL SEND",
     excerpt: "good movie. >> Yeah, that shit's so overblown, dude.",
   });
-  assert.match(machineCopy, /full-send take is indexed at 1320s/i);
-  assert.match(machineCopy, /caption is navigation only/i);
+  assert.match(machineCopy, /full-send take starts at 1320s/i);
+  assert.match(machineCopy, /press play to hear the full exchange/i);
   assert.doesNotMatch(machineCopy, /good movie|overblown/i);
 
   const reviewedCopy = fallbackMomentDescription({

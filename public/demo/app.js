@@ -1755,7 +1755,7 @@
         "the room breaks": "room-break moment",
         "listening // transcript window": "transcript window",
       }[lane] || lane;
-      return (topic ? topic + " discussion" : laneCopy) + " is indexed at " + timestamp(moment.at) + ". Press play for the actual exchange; the caption is navigation only.";
+      return (topic ? topic + " discussion" : laneCopy) + " starts at " + timestamp(moment.at) + ". Press play to hear the full exchange.";
     }
     return cleanedCaptionReceipt(moment.excerpt) || "Bounded source receipt; press play to hear the tape.";
   }
