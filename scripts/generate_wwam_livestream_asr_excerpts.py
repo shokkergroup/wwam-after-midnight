@@ -34,11 +34,16 @@ def bounded_excerpt(text: str, limit: int = 16) -> str:
     # Prefer an intact short sentence; it reads better and avoids presenting a
     # clipped ASR breath as a finished quote.
     sentences = re.split(r"(?<=[.!?])\s+", text)
-    intact = [sentence.strip() for sentence in sentences if len(words(sentence)) <= limit]
+    intact = [
+        sentence.strip() for sentence in sentences
+        if len(words(sentence)) <= limit and re.search(r"[.!?][\"']?$", sentence.strip())
+    ]
     if intact:
         return max(intact, key=lambda sentence: len(words(sentence)))
-    tokens = text.split()
-    return " ".join(tokens[:limit]).rstrip(" ,;:")
+    # A trailing Whisper fragment is still useful to the player, but it is not
+    # finished public copy. Leave the excerpt blank and preserve the exact
+    # audio timestamp instead of publishing a clipped sentence.
+    return ""
 
 
 def excerpt_for(segments: list[dict], at: float) -> dict:
