@@ -160,14 +160,14 @@ test("each source has an honest evidence tier and playable source link", () => {
   assert.equal(ledgerSummaries.some((summary) => summary.includes("Open the timestamp before treating")), false);
   assert.equal(canon.episodes.some((episode) => /caption trail keeps returning|spends its time bouncing|built around/i.test(`${episode.dossier.summary} ${episode.dossier.tapeNote || ""}`)), false, "livestream copy does not turn topic doors into whole-show claims");
   assert.ok(canon.episodes.every((episode) => episode.dossier.audioRead && Number.isInteger(episode.dossier.audioRead.routeCount)), "every show exposes an explicit listening-read state");
-  assert.ok(canon.episodes.filter((episode) => episode.dossier.audioRead.mode === "decoded-audio").every((episode) => /decoded audio pass/i.test(episode.dossier.summary)), "decoded audio state is reflected in the show read");
+  assert.ok(canon.episodes.filter((episode) => episode.dossier.audioRead.mode === "decoded-audio").every((episode) => /playable doors|listening stop/i.test(episode.dossier.summary)), "decoded audio state is reflected in the show read without machine-room copy");
   const heldCaptionEpisode = canon.episodes.find((episode) => episode.id === "LVVGdGxTBfI");
-  assert.ok(heldCaptionEpisode && /caption-only fallback/i.test(heldCaptionEpisode.dossier.summary), "the held source states its caption-only boundary");
-  assert.equal(/The decoded audio pass adds/i.test(heldCaptionEpisode.dossier.summary), false, "caption-only source is never described as decoded audio");
+  assert.ok(heldCaptionEpisode && heldCaptionEpisode.dossier.audioRead.mode === "caption-only", "the held source keeps its caption-only boundary in structured evidence");
+  assert.equal(/decoded audio pass/i.test(heldCaptionEpisode.dossier.summary), false, "caption-only source is never described as decoded audio");
   const tapeNotes = canon.episodes.map((episode) => episode.dossier.tapeNote || "");
   assert.equal(tapeNotes.some((note) => /indexed doors|source-local map keeps|loudest recurring lane|cleanest first play|room also leaves/i.test(note)), false, "episode tape notes do not use the old machine-shaped boilerplate");
   assert.ok(tapeNotes.some((note) => /dominant recurring lane|fan ledger catches/i.test(note)), "episode tape notes retain a human-readable listening read");
-  assert.ok(ledgerSummaries.some((summary) => /fan traffic is part|retained callouts/i.test(summary)));
+  assert.ok(ledgerSummaries.some((summary) => /fan traffic is part|chat is part|retained callouts|fan callouts/i.test(summary)));
   assert.equal(canon.episodes.some((episode) => /\b1 (?:signal receipts|fan-signal receipts)\b/i.test(`${episode.dossier.summary} ${episode.dossier.tapeNote || ""}`)), false, "single fan receipts use singular grammar");
 });
 

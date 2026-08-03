@@ -306,7 +306,7 @@ function tapeNote(title, shape, topics, moments, fan, recurring, characterCues, 
   const laneMood = laneLead?.label === "ROOM BREAK" ? "breakdown territory" : laneLead?.label === "TAKE GETS NUCLEAR" ? "an argumentative register" : laneLead?.label === "WWAM UP IN YA" ? "out-of-pocket territory" : laneLead?.label === "STRAIGHT TO STEVE'S ASSHOLE" ? "a hostile verdict lane" : "a sharp side-channel";
   const lane = laneLead ? `The dominant recurring lane is ${laneLead.label} (${laneLead.candidateCount} caption cues), which puts the night in ${laneMood}.` : "The recurring-bit lanes stay quiet in this pass.";
   const fanLine = fan.length ? `The fan ledger catches ${fan.length} ${fan.length === 1 ? "signal receipt" : "signal receipts"}${fanTypes.length ? `, including ${listPhrase(fanTypes)}` : ""}.` : "No fan-signal cluster survived this pass.";
-  const characterLine = characterCues.length ? `Character traffic includes ${characterList}; the captions do not diarize who performed a cue.` : "No character cue was strong enough to retain in the caption map.";
+  const characterLine = characterCues.length ? `Character traffic includes ${characterList}; the captions do not diarize who performed a cue.` : "No character cue was strong enough to retain in this pass.";
   return `${shape} circles ${topicList} and plays like ${frame}. ${lane} ${hook} ${fanLine} ${characterLine}`;
 }
 function machineShapedSummary(value) {
@@ -315,22 +315,22 @@ function machineShapedSummary(value) {
 }
 function machineShapedWhyItMatters(value) {
   const text = clean(value);
-  return !text || /(?:final canonical shows without an episode recap|recovered caption map now supplies|This episode is part of the .* shelf\. Its evidence tier is .*Use the bounded receipts as navigation|This source is a source-linked machine index)/i.test(text);
+  return !text || /(?:final canonical shows without an episode recap|recovered caption map now supplies|This episode is part of the .* shelf\. Its evidence tier is .*Use the bounded receipts as navigation|This source is a source-linked machine index|Ranked #\d+ among eligible archived livestreams|Selected #\d+ by the frozen Archive Atlas|caption map concentrates on|Frozen Atlas priority|source-linked machine index)/i.test(text);
 }
 function whyItMattersRead(title, series, tier, shape, topics, moments, audioCandidates, audioStrongest, audioSignalMix, fan, characterCues, recurring, decodedAudio) {
   const routeCount = Math.max(moments.length, audioCandidates.length);
   const routeLine = routeCount
-    ? `${routeCount} bounded route${routeCount === 1 ? "" : "s"} remain attached to the source`
-    : "the topic and chapter rails remain the honest entry points";
+    ? `There are ${routeCount} playable door${routeCount === 1 ? "" : "s"} attached to the source`
+    : "the topic and chapter rails are the honest entry points";
   const lane = audioSignalMix[0] || recurring.slice().sort((left, right) => Number(right.candidateCount || 0) - Number(left.candidateCount || 0))[0]?.label || "OPEN MIC";
   const lead = audioStrongest || moments.slice().sort((left, right) => Number(right.score || 0) - Number(left.score || 0))[0] || null;
-  const leadLine = lead ? `The ranked lead is ${clock(lead.t)} // ${lead.category || lead.label || "SOURCE RECEIPT"}.` : "No single ranked lead clears the evidence boundary.";
+  const leadLine = lead ? `The standout door is ${clock(lead.t)} // ${lead.category || lead.label || "SOURCE RECEIPT"}.` : "There is no single standout door, so start with the chapter rail.";
   const topicList = listPhrase(topics.slice(0, 3).map((topic) => topic.name));
-  const fanLine = fan.length ? `${fan.length} fan-signal receipt${fan.length === 1 ? "" : "s"} stay in the file` : "no fan-signal cluster cleared the source-local threshold";
+  const fanLine = fan.length ? `${fan.length} fan callout${fan.length === 1 ? "" : "s"} stay in the room` : "no clear fan callout cluster surfaced in this pass";
   const characterList = listPhrase(characterCues.slice().sort((left, right) => Number(right.mentions || 0) - Number(left.mentions || 0)).slice(0, 3).map((character) => character.name));
-  const characterLine = characterCues.length ? `Character traffic includes ${characterList}; performance is not diarized.` : "No character cue cleared the source-local threshold.";
-  const audioLine = decodedAudio && audioCandidates.length ? `Decoded audio contributes ${audioCandidates.length} listening routes.` : audioCandidates.length ? `Caption-bound listening routes contribute ${audioCandidates.length} navigation leads.` : "No decoded audio route is attached in this pass.";
-  return `${title} is worth opening in the ${series.label} shelf because ${routeLine} around ${topicList}. ${leadLine} The evidence mix leans ${lane}; ${fanLine}, and ${characterLine} ${audioLine} Tier: ${tier}. Playback remains the authority for delivery, speaker, intent, and the joke that actually lands.`;
+  const characterLine = characterCues.length ? `Character traffic includes ${characterList}; open the surrounding exchange to hear who is actually doing the bit.` : "No character cue cleared the page's confidence bar.";
+  const audioLine = decodedAudio && audioCandidates.length ? `The listening pass adds ${audioCandidates.length} extra doors and leans ${lane}.` : audioCandidates.length ? `The caption-aligned listening lane adds ${audioCandidates.length} extra doors.` : "No extra listening lane is attached in this pass.";
+  return `${title} earns a place in the ${series.label} shelf because ${routeLine} around ${topicList}. ${leadLine} ${fanLine}, and ${characterLine} ${audioLine} Press play for the timing, delivery, and context that text cannot carry.`;
 }
 function voiceSummary(title, date, shape, topics, moments, fan, recurring, characterCues, evidenceTier, listeningRoutes = []) {
   const topicList = listPhrase(topics.slice(0, 4).map((topic) => topic.name));
@@ -341,11 +341,22 @@ function voiceSummary(title, date, shape, topics, moments, fan, recurring, chara
   const fanTypes = Array.from(new Set(fan.map((signal) => signal.signalType))).slice(0, 2);
   const frame = contentFrame(title, shape, topics);
   const mood = laneLead?.label === "ROOM BREAK" ? "the room keeps losing its composure" : laneLead?.label === "TAKE GETS NUCLEAR" ? "the takes keep catching fire" : laneLead?.label === "WWAM UP IN YA" ? "the conversation gets gloriously filthy" : laneLead?.label === "STRAIGHT TO STEVE'S ASSHOLE" ? "the verdict lane gets mean" : "the side conversations keep widening";
-  const route = hot ? `Your best first ${moments.length ? "caption" : "listening"} stop is ${clock(hot.t)} // ${hot.category}; press play there and let the full exchange establish the context.` : "There is no honest single hook in this evidence tier, so the route stays chapter-first.";
-  const fanLine = fan.length ? `The fan traffic is part of the show too: ${fan.length} retained callout${fan.length === 1 ? "" : "s"}${fanTypes.length ? ` across ${listPhrase(fanTypes)}` : ""}.` : "No fan callout cluster survived the source-local ledger.";
-  const characterLine = characterCues.length ? `Character traffic includes ${characterList}, but captions do not prove who was performing the bit.` : "No character cue cleared the source-local threshold.";
-  const evidenceLine = evidenceTier === "source-brief" ? "This one stays a source brief until a playable local receipt appears." : "The routes are machine-surfaced navigation aids, not speaker-diarized quotes or a claim that every funny beat has been found.";
-  return `${clean(title)} is ${frame} from ${date}. It circles ${topicList} while ${mood}. ${route} ${fanLine} ${characterLine} ${evidenceLine}`;
+  const route = hot
+    ? `${moments.length ? "Start at" : "Your best first listening stop is"} ${clock(hot.t)} for ${String(hot.category || "the first big turn").toLowerCase()}; the whole exchange is waiting behind that door.`
+    : "Start with the chapter rail and let the room choose the first detour.";
+  const fanLine = fan.length
+    ? `The chat is part of the show too: ${fan.length} fan callout${fan.length === 1 ? "" : "s"}${fanTypes.length ? `, including ${listPhrase(fanTypes)}` : ""}.`
+    : "The fan lane stays quiet on this tape.";
+  const characterLine = characterCues.length
+    ? `The recurring-character traffic includes ${characterList}; open those doors for the surrounding bit, not just the keyword.`
+    : "No recurring-character bit clears the page's confidence bar here.";
+  const routeLine = routeMoments.length
+    ? `There are ${routeMoments.length} playable doors in the local file.`
+    : "The local file keeps the topic doors and the full official player.";
+  const tierLine = evidenceTier === "source-brief"
+    ? "This one is deliberately compact until a stronger local receipt arrives."
+    : "The page keeps the route honest: press play for the delivery, timing, and speaker context.";
+  return `${clean(title)} is ${frame} from ${date}. It circles ${topicList} while ${mood}. ${route} ${routeLine} ${fanLine} ${characterLine} ${tierLine}`;
 }
 function normalizeFanSignals(items) {
   return (items || []).map((signal) => ({ ...signal, signalType: clean(signal.signalType || fanSignalType(signal.excerpt || "")) })).filter((signal) => signal.excerpt || Number(signal.t || 0) >= 0);
@@ -497,10 +508,10 @@ const episodes = canonicalMetadata.map((record) => {
     ? watchPassRaw.listeningDigest.signalMix
     : Object.entries(watchPassRaw?.audit?.candidateCategories || {}).sort((left, right) => Number(right[1]) - Number(left[1])).map(([label, count]) => `${label} (${count})`);
   const audioLine = decodedAudio && audioCandidates.length
-    ? `The decoded audio pass adds ${audioCandidates.length} listening routes; its strongest acoustic lane is ${clock(audioStrongest?.t || 0)} // ${audioStrongest?.category || "SOURCE RECEIPT"}. ${audioSignalMix.length ? `The mix leans ${audioSignalMix.slice(0, 3).join(", ")}.` : ""} That is an evidence-backed browse cue, not proof of a joke, speaker, or visual reaction.`
+    ? `The listening pass adds ${audioCandidates.length} extra doors; its strongest lane lands at ${clock(audioStrongest?.t || 0)} // ${audioStrongest?.category || "SOURCE RECEIPT"}. ${audioSignalMix.length ? `The room leans ${audioSignalMix.slice(0, 3).join(", ")}.` : ""}`
     : watchPassRaw && audioCandidates.length
-      ? `The caption-only fallback retains ${audioCandidates.length} source-local routes; its strongest caption lane is ${clock(audioStrongest?.t || 0)} // ${audioStrongest?.category || "SOURCE RECEIPT"}. These are navigation cues only because no decoded audio pass is attached.`
-      : "No decoded audio pass is attached to this file; caption routes remain navigation only.";
+      ? `The caption-aligned listening lane retains ${audioCandidates.length} extra doors, led by ${clock(audioStrongest?.t || 0)} // ${audioStrongest?.category || "SOURCE RECEIPT"}.`
+      : "No extra listening lane is attached to this file yet.";
   const topicNames = topics.slice(0, 3).map((topic) => topic.name);
   const topicRead = topicNames.length === 1 ? topicNames[0] : topicNames.length === 2 ? `${topicNames[0]} and ${topicNames[1]}` : topicNames.length > 2 ? `${topicNames.slice(0, -1).join(", ")}, and ${topicNames.at(-1)}` : "the night's open mic";
   const lead = mode === "ranking-show" ? "A bracket-and-ranking night" : mode === "trailer-reaction" ? "A trailer-and-news night" : mode === "movie-commentary" ? "A movie watchalong" : mode === "q-and-a" ? "A fan-mail night" : mode === "spoiler-review" ? "A spoiler-heavy review night" : "An open-line movie-news night";
@@ -529,7 +540,10 @@ const episodes = canonicalMetadata.map((record) => {
   const generatedSummary = currentYear === 2026 || machineShapedSummary(summary)
     ? voiceSummary(record.title, dateFrom(record.upload_date), shape, topics, moments, fan, recurring, cueList, tier, listeningRoutes)
     : summary;
-  const finalSummary = clean(`${generatedSummary} ${audioLine}`);
+  // Keep the visitor-facing summary conversational and compact. Acoustic
+  // method/evidence belongs in audioRead and tapeNote; appending it here made
+  // every livestream card end with the same machine-room disclaimer.
+  const finalSummary = clean(generatedSummary);
   const existingWhyItMatters = existing?.editorial?.whyItMatters;
   const whyItMatters = machineShapedWhyItMatters(existingWhyItMatters)
     ? whyItMattersRead(record.title, series, tier, shape, topics, moments, audioCandidates, audioStrongest, audioSignalMix, fan, cueList, recurring, decodedAudio)
