@@ -770,7 +770,7 @@
       }).map(function (candidate) {
         return {
           at: candidate.t,
-          label: "WHISPER // LISTENING WINDOW",
+          label: "LISTENING // TRANSCRIPT WINDOW",
           excerpt: candidate.excerpt,
           score: 74,
           sourceKind: "local-whisper",
