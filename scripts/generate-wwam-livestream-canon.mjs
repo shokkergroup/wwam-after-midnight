@@ -625,7 +625,11 @@ const episodes = canonicalMetadata.map((record) => {
   const localWhisper = events.some((event) => event.evidenceType === "local-whisper-transcript");
   const existing = completionById.get(id) || deepById.get(id) || freshById.get(id) || null;
   const mode = existing?.contentMode || inferMode(record.title);
-  const restricted = RESTRICTED_MODES.has(mode) && existing && existing.moments && existing.moments.length === 0;
+  // A verified local Whisper ledger is a stronger source boundary than the
+  // older empty machine record. Let it produce bounded commentary moments for
+  // trailer reactions and watch-parties; keep the conservative hold only when
+  // no local audio receipt exists yet.
+  const restricted = RESTRICTED_MODES.has(mode) && !localWhisper && existing && existing.moments && existing.moments.length === 0;
   const existingTopics = normalizeTopics(existing?.topics);
   const existingMoments = normalizeMoments(existing?.moments, restricted);
   // Once a verified local Whisper ledger exists, rebuild machine-surfaced
