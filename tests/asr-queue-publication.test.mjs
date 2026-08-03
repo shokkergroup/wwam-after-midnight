@@ -122,3 +122,12 @@ test("watchalong keyword and fan lanes preserve Whisper provenance", () => {
   assert.match(generator, /source-local Whisper transcript fan-callout cluster/);
   assert.match(generator, /source-local Whisper transcript route checkpoint/);
 });
+
+test("audio route pickers reserve multiple WWAM-native lanes before score fill", () => {
+  const livestreamPass = fs.readFileSync(path.join(root, "scripts", "run_wwam_2026_livestream_audio_watch_pass.py"), "utf8");
+  const sharedPass = fs.readFileSync(path.join(root, "scripts", "run_wwam_audio_watch_pass.py"), "utf8");
+  assert.match(livestreamPass, /anchor_quota = 3 if max_candidates >= 24 else 2/);
+  assert.match(sharedPass, /anchor_quota = 3 if max_candidates >= 24 else 2/);
+  assert.match(livestreamPass, /from run_wwam_audio_watch_pass import/);
+  assert.match(sharedPass, /candidate\["category"\] == category/);
+});

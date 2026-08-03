@@ -266,13 +266,9 @@ def candidate_rows(events: list[dict], audio: dict, max_candidates: int = 15) ->
     # character receipt in a long show, even when those signals are present.
     priority_categories = ["STRAIGHT TO STEVE'S ASSHOLE", "CHARACTER SIGNAL", "WWAM UP IN YA", "FAN SIGNAL", "TAKE GETS NUCLEAR", "ROOM BREAK"]
     ordered = []
-    seen_categories = set()
+    anchor_quota = 3 if max_candidates >= 24 else 2
     for category in priority_categories:
-        for candidate in candidates:
-            if candidate["category"] == category and candidate not in ordered:
-                ordered.append(candidate)
-                seen_categories.add(category)
-                break
+        ordered.extend([candidate for candidate in candidates if candidate["category"] == category and candidate not in ordered][:anchor_quota])
     ordered.extend(candidate for candidate in candidates if candidate not in ordered)
     for candidate in ordered:
         if any(abs(candidate["t"] - row["t"]) < 45 for row in picked):

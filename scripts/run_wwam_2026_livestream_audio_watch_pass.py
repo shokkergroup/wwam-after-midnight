@@ -107,10 +107,13 @@ def caption_only_candidates(events: list[dict], max_candidates: int = 24) -> lis
     candidates.sort(key=lambda row: (-row["score"], row["t"]))
     priority_categories = ["STRAIGHT TO STEVE'S ASSHOLE", "CHARACTER SIGNAL", "WWAM UP IN YA", "FAN SIGNAL", "TAKE GETS NUCLEAR", "ROOM BREAK"]
     ordered: list[dict] = []
+    # Keep the audio pass from becoming a laughter-only shelf on long shows.
+    # Reserve a few of each available channel-native lane before score-filling
+    # the remaining routes; total route count is unchanged and the source
+    # timestamp/audio evidence remains the authority.
+    anchor_quota = 3 if max_candidates >= 24 else 2
     for category in priority_categories:
-        first = next((candidate for candidate in candidates if candidate["category"] == category), None)
-        if first is not None:
-            ordered.append(first)
+        ordered.extend([candidate for candidate in candidates if candidate["category"] == category and candidate not in ordered][:anchor_quota])
     ordered.extend(candidate for candidate in candidates if candidate not in ordered)
     picked: list[dict] = []
     for candidate in ordered:
@@ -212,13 +215,9 @@ def main() -> None:
             "media": {"sourceUrl": episode.get("url") or f"https://www.youtube.com/watch?v={video_id}", "localFile": f"source-cache/audio/{audio.name}", "container": audio.suffix.lstrip("."), "durationSeconds": features["durationSeconds"], "audioOnly": True, "canonicalAudioAvailable": True},
             "audit": {"captionEvents": len(events), "audioRows": features["durationSeconds"], "laughterOrOverlapMarkers": marker_count, "candidateCount": len(candidates), "candidateTarget": target, "candidateCategories": category_counts(candidates), "audioStats": features["stats"]},
             "candidates": candidates,
-            "listeningDigest": {
-                "mode": "audio-feature",
-                "headline": f"Audio re-ranking retained {len(candidates)} bounded routes across {', '.join(f'{key} ({value})' for key, value in sorted(category_counts(candidates).items(), key=lambda item: (-item[1], item[0]))[:4]) or 'the caption map'}.",
-                "signalMix": [f"{key} ({value})" for key, value in sorted(category_counts(candidates).items(), key=lambda item: (-item[1], item[0]))[:4]],
-                "strongest": (lambda strongest: {"t": strongest.get("t"), "category": strongest.get("category"), "score": strongest.get("score")} if strongest else None)(max(candidates, key=lambda item: float(item.get("score") or 0), default=None)),
-                "evidence": "Acoustic energy re-ranks caption signals; it does not prove a joke, speaker, or visual reaction.",
-            },
+            # Keep the public listening read consistent with the shared picker:
+            # expose a few explicit WWAM doorways, not only the dominant lane.
+            "listeningDigest": listening_digest(candidates, audio_available=True),
             "note": "This pass decoded the canonical audio track at one-second feature resolution and aligned ranked windows to the source-local caption map. It does not assign a speaker, claim a visual reaction, or prove that a candidate is objectively funny; open the official source at each bounded timestamp.",
             "provenanceFile": f"source-cache/audio/{video_id}.provenance.json",
         }
@@ -228,6 +227,15 @@ def main() -> None:
         total_caption_events += len(events)
         total_candidates += len(candidates)
         print(f"{video_id}: {len(events)} caption events, {features['durationSeconds']} audio rows, {len(candidates)} candidates", flush=True)
+    # Rehydrate digests even for records preserved by the incremental path. This
+    # lets a picker/UI improvement land without needlessly decoding the archive
+    # a second time, while leaving every timestamped candidate untouched.
+    for record in output["episodes"].values():
+        if record.get("candidates"):
+            record["listeningDigest"] = listening_digest(
+                record["candidates"],
+                audio_available=record.get("status") == "audio-feature-pass",
+            )
     records = output["episodes"]
     year_coverage: dict[str, dict] = {}
     for episode in canon.get("episodes", []):
