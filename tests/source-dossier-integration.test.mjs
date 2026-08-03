@@ -15,6 +15,7 @@ const atlasUi = read("archive-atlas-ui.js");
 const sourceDossierAssets = read("source-dossier-assets.js");
 const sourceDossierUi = read("source-dossier-ui.js");
 const livestreamFallbackIndex = read("wwam-livestream-fallback-index.js");
+const sourceDossierCss = read("source-dossier.css");
 
 function runtimeVersion(file) {
   const version = read(file).match(/\bvar VERSION = "(\d+\.\d+\.\d+)"/)?.[1];
@@ -369,6 +370,8 @@ test("cold source routes paint the local fallback before optional Watchalong hyd
   assert.match(app, /LISTENING \/\/ TRANSCRIPT WINDOW/);
   assert.match(app, /transcript window/);
   assert.match(app, /String\(index \+ 1\)\.padStart\(2, "0"\)/);
+  assert.match(app, /source-dossier-fallback-lane-legend/);
+  assert.match(sourceDossierCss, /\.source-dossier-fallback-lane-legend/);
   assert.match(app, /WWAM_WATCHALONG_ROUTE_INDEX && window\.WWAM_WATCHALONG_ROUTE_INDEX\.sources/);
   assert.match(app, /Prefer the cold-route index\/canon record/);
   assert.ok(app.indexOf("fallbackSourceWiki(sourceId, startTime, section);") < app.indexOf("return ensureWatchalongCanonForSource(sourceId)"), "a stalled hydration cannot block the immediate local fallback shell");

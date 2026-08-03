@@ -835,6 +835,26 @@
       return moment.sourceKind !== "podcast-variant";
     });
     var whisperCount = moments.filter(function (moment) { return moment.sourceKind === "local-whisper"; }).length;
+    var fallbackLaneOrder = [
+      "STRAIGHT TO STEVE'S ASSHOLE",
+      "WWAM UP IN YA",
+      "CHARACTER SIGNAL",
+      "FAN SIGNAL",
+      "TAKE GETS NUCLEAR",
+      "FULL SEND",
+      "ROOM BREAK",
+      "LISTENING // TRANSCRIPT WINDOW",
+    ];
+    var fallbackLaneCounts = {};
+    moments.forEach(function (moment) {
+      var lane = String(moment.label || "").trim();
+      if (lane) fallbackLaneCounts[lane] = Number(fallbackLaneCounts[lane] || 0) + 1;
+    });
+    var fallbackLaneLegend = fallbackLaneOrder.filter(function (lane) {
+      return fallbackLaneCounts[lane];
+    }).map(function (lane) {
+      return '<span><b>' + Number(fallbackLaneCounts[lane]) + '</b>' + esc(lane) + '</span>';
+    }).join("");
     var topics = (Array.isArray(source.topics) ? source.topics : []).map(function (topic) {
       return typeof topic === "string" ? topic : topic && (topic.name || topic.label);
     }).filter(Boolean).slice(0, 8);
@@ -872,6 +892,7 @@
       '<section class="source-dossier-fallback-about" id="fallback-about"><p class="kicker">THE SHORT VERSION</p><p>' + esc(summary) + '</p>' +
       (topics.length ? '<div class="source-dossier-fallback-topics">' + topics.map(function (topic) { return '<span>' + esc(topic) + '</span>'; }).join("") + '</div>' : "") + '</section>' + alternateSection +
       '<section class="source-dossier-fallback-routes" id="fallback-routes"><header><div><p class="kicker">SOURCE-LOCAL RECEIPTS</p><h3>PRESS PLAY HERE.</h3></div><span>' + moments.length + ' bounded route' + (moments.length === 1 ? "" : "s") + ' // no invented speaker labels' + (whisperCount ? ' // ' + whisperCount + ' transcript window' + (whisperCount === 1 ? '' : 's') : '') + '</span></header>' +
+      (fallbackLaneLegend ? '<div class="source-dossier-fallback-lane-legend" aria-label="Available listening lanes">' + fallbackLaneLegend + '</div>' : '') +
       (moments.length ? '<div class="source-dossier-fallback-route-grid">' + moments.map(function (moment, index) {
         return '<button type="button" data-fallback-jump="' + moment.at + '" data-fallback-end="' + (moment.end || "") + '"><b>' + String(index + 1).padStart(2, "0") + '</b><span>' + esc(moment.label) + '</span><time>' + timestamp(moment.at) + '</time><em>' + esc(moment.excerpt) + '</em></button>';
       }).join("") + '</div>' : '<p class="source-dossier-fallback-empty">This source has no safe timestamp receipt in the local bundle yet. The source link remains honest and playable.</p>') + '</section>' +
