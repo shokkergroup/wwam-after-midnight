@@ -3177,6 +3177,19 @@ test("caption excerpts drop only leading YouTube speaker markers across cards an
   assert.doesNotMatch(mount.innerHTML, /&gt;&gt;|>>/);
 });
 
+test("caption transport debris stays playable navigation instead of becoming prose", () => {
+  const dossier = makeDossier();
+  dossier.source.receipts[2].excerpt =
+    "The argument turns here. >> Then the decoder keeps going >> and breaks.";
+  dossier.source.receipts[4].excerpt = "Penis penis penis penis.";
+  const { ui, mount } = setup(dossier);
+  ui.render("SOURCE00001", { fullFile: true });
+
+  assert.doesNotMatch(mount.innerHTML, /The argument turns here|Penis penis/);
+  assert.match(mount.innerHTML, /JUMP TO 03:22/);
+  assert.match(mount.innerHTML, /JUMP TO 05:44/);
+});
+
 test("deep-linked player view resets the modal and focuses its short heading without scroll drift", () => {
   for (const [section, sectionId, headingId] of [
     ["player", "sourceDossierPlayerSection", "sourceDossierPlayerTitle"],

@@ -595,7 +595,7 @@
       })
       .then(function () { return loader.loadStyle("source-dossier.css?v=5.40-listening-pass-copy-filter"); })
       .then(function () {
-        return loader.load("source-dossier-assets.js?v=1.0.28-alternate-podcast-routes");
+        return loader.load("source-dossier-assets.js?v=1.0.29-caption-marker-quarantine");
       })
       .then(function () {
         var assets = window.WWAM_SOURCE_DOSSIER_ASSETS || [];

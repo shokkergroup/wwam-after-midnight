@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.32.5";
+  var VERSION = "1.32.6";
   var DOSSIER_SCHEMA = "shokker-source-dossier/v1";
   var QUERY_SCHEMA = "shokker-source-query/v1";
   var QUERY_RESULT_SCHEMA = "shokker-source-query-result/v1";
@@ -57,7 +57,25 @@
   }
 
   function cleanCaptionExcerpt(value) {
-    var text = clean(value)
+    /*
+     * A caption window is allowed to be a map to the tape, not a counterfeit
+     * quote.  Preserve the coordinate when a source caption still carries
+     * cue markers or a looped decoding artifact; stripping those markers and
+     * printing the remainder made fragments such as “Penis penis penis” look
+     * like finished WWAM copy.  Human/editorial excerpts do not contain these
+     * transport markers, so this is a narrow quarantine rather than a blanket
+     * caption ban.
+     */
+    var raw = clean(value);
+    var cueMarkers = raw.match(/>>+/g) || [];
+    var leadingMarkerRemainder = raw.replace(/^(?:\s*>>\s*)+/, "");
+    if (cueMarkers.length > 2 || />>+/.test(leadingMarkerRemainder) ||
+        /(?:^|\s)(?:-->|<\/?(?:c|v|lang)\b)/i.test(raw) ||
+        /\[(?:bleep|laughter|music|applause|cheering)\]/i.test(raw) ||
+        /\b([A-Za-z][A-Za-z'-]*)\s+\1(?:\s+\1)+\b/i.test(raw)) {
+      return "";
+    }
+    var text = raw
       .replace(/^(?:\s*>>\s*)+/, "")
       .replace(/>>/g, " ")
       .replace(/\[(?:laughter|music|applause|cheering)\]/gi, " ")
