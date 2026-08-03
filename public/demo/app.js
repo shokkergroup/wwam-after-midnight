@@ -998,9 +998,14 @@
         (alternate.signalMix && alternate.signalMix.length ? '<div class="source-dossier-fallback-variant-signals"><b>LISTENING LANES</b><span>' + alternate.signalMix.map(function (lane) { return esc(lane); }).join(' · ') + '</span></div>' : '') +
         '<div class="source-dossier-fallback-variant-routes"><div class="source-dossier-fallback-variant-routes-head"><b>THE PODCAST CLOCK</b><span>Click a route to ' + (alternateEnclosure ? 'play it here' : 'open the edition') + '.</span></div>' + alternateRouteMarkup + '</div></section>';
     }
+    // Playback construction belongs to the reviewed identity/referrer helper.
+    // Do not keep a second direct-iframe fallback here: it bypasses the hosted
+    // bridge and is exactly what caused the sporadic YouTube 153/player-config
+    // failures on cold routes. If the helper is genuinely unavailable, leave a
+    // truthful reload message instead of manufacturing an unverified player.
     var player = window.ShokkerYouTubePlayback && window.ShokkerYouTubePlayback.iframe ?
       window.ShokkerYouTubePlayback.iframe(sourceId, { autoplay: false, start: Number(startTime || 0), title: "WWAM source playback" }) :
-      '<iframe src="https://www.youtube.com/embed/' + encodeURIComponent(sourceId) + '?rel=0&playsinline=1" title="WWAM source playback" allowfullscreen></iframe>';
+      '<div class="source-dossier-fallback-player-unavailable" role="status">THE ON-PAGE PLAYER IS STILL LOADING. RELOAD THIS SHOW WIKI TO PLAY THE VERIFIED SOURCE.</div>';
     var sourceHref = "https://www.youtube.com/watch?v=" + encodeURIComponent(sourceId);
     document.getElementById("modalContent").innerHTML =
       '<article class="source-dossier source-dossier-fallback" data-fallback-source="' + esc(sourceId) + '">' +
