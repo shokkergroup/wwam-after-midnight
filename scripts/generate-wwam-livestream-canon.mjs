@@ -569,9 +569,9 @@ function voiceSummaryV2(title, date, shape, topics, moments, fan, recurring, cha
     : ["Chat stays quiet on this tape.", "The fan lane stays quiet here.", "This one keeps the audience lane subdued."][variant];
   const characterLine = characterCues.length
     ? [
-      `The recurring cast drops in through ${characterList}; open the surrounding exchange, not just the keyword.`,
-      `${characterList} all make the character roll call; open the surrounding exchange, not just the keyword.`,
-      `The character traffic runs through ${characterList}; the surrounding exchange is the bit, not the keyword alone.`
+      `The recurring cast drops in through ${characterList}; the timestamped door is where the callback earns its laugh.`,
+      `${characterList} all make the character roll call; use the clip, not just the keyword, to catch the performance.`,
+      `The character traffic runs through ${characterList}; the bit lives in the exchange around the cue.`
     ][variant]
     : "No recurring-character bit takes over this tape.";
   const listeningLine = listeningRoutes.length
