@@ -84,6 +84,15 @@ test("existing machine moments are refreshed from the local transcript", () => {
   assert.match(generator, /source-local Whisper transcript alignment/);
 });
 
+test("visitor-facing recap quotes strip non-speech Whisper stage cues and vary their voice", () => {
+  const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-livestream-canon.mjs"), "utf8");
+  assert.match(generator, /snorts\?\|coughs\?\|sighs\?/);
+  assert.match(generator, /The cleanest bit of tape I found starts at/);
+  assert.match(generator, /For a quick taste, press/);
+  assert.match(generator, /The house specialties here are/);
+  assert.match(generator, /Fan traffic adds/);
+});
+
 test("watchalong listening cuts prefer local Whisper context", () => {
   const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-watchalong-canon.mjs"), "utf8");
   assert.match(generator, /whisperContext/);

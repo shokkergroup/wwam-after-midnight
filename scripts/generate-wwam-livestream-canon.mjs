@@ -33,7 +33,7 @@ function clock(seconds) {
 }
 function normalizeCaptionText(value) {
   let text = clean(value).replace(/\[(?:\s*[_-]+\s*)+\]/g, " ")
-    .replace(/\[(?:music|applause|laughter|inaudible|bleep)\]/gi, " ")
+    .replace(/\[(?:music|applause|laughter|laughs?|inaudible|bleep|snorts?|coughs?|sighs?|gasps?|crying|breathing|clears?\s+throat|chuckles?)\]/gi, " ")
     .replace(/[_]+/g, " ")
     .replace(/[»>]{1,3}(?=\s)/g, " ")
     .replace(/â€™/g, "'").replace(/â€œ|â€/g, '"').replace(/â€”|â€“/g, "—")
