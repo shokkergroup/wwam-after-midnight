@@ -25,9 +25,9 @@ function trimDanglingClause(value) {
   // publish as prose. Keep the complete main clause and let the player carry
   // the rest of the exchange.
   const trimmed = text
-    .replace(/\s+(?:because|since|although|while|when|if|which|that|who)\s+(?:i|you|he|she|we|they)\s+[a-z0-9'â€™-]+\s*$/i, "")
-    .replace(/\s+(?:because|since|although|while|when|if|which|that|who)\s*$/i, "")
-    .replace(/\s+(?:in|on|at|for|with|to|of|from)\s+(?:so|the|a|an|this|that|it|one)\s*$/i, "")
+    .replace(/\s+(?:because|since|although|while|when|if|which|that|who)\s+(?:i|you|he|she|we|they)\s+[a-z0-9'â€™-]+\s*\.?\s*$/i, "")
+    .replace(/\s+(?:because|since|although|while|when|if|which|that|who)\s*\.?\s*$/i, "")
+    .replace(/\s+(?:in|on|at|for|with|to|of|from)\s+(?:so|the|a|an|this|that|it|one)\s*\.?\s*$/i, "")
     .trim();
   return trimmed || text;
 }

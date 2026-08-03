@@ -134,9 +134,9 @@ function trimDanglingClause(value) {
   // "...because I hate." Keep the complete main clause and leave the rest
   // for the player at the source timestamp.
   const trimmed = text
-    .replace(/\s+(?:because|since|although|while|when|if|which|that|who)\s+(?:i|you|he|she|we|they)\s+[a-z0-9'â€™-]+\s*$/i, "")
-    .replace(/\s+(?:because|since|although|while|when|if|which|that|who)\s*$/i, "")
-    .replace(/\s+(?:in|on|at|for|with|to|of|from)\s+(?:so|the|a|an|this|that|it|one)\s*$/i, "")
+    .replace(/\s+(?:because|since|although|while|when|if|which|that|who)\s+(?:i|you|he|she|we|they)\s+[a-z0-9'â€™-]+\s*\.?\s*$/i, "")
+    .replace(/\s+(?:because|since|although|while|when|if|which|that|who)\s*\.?\s*$/i, "")
+    .replace(/\s+(?:in|on|at|for|with|to|of|from)\s+(?:so|the|a|an|this|that|it|one)\s*\.?\s*$/i, "")
     .trim();
   return trimmed || text;
 }
