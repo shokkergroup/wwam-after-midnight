@@ -143,6 +143,7 @@ test("public moment and receipt shelves use the sentence-safe excerpt path", () 
   assert.match(generator, /function isLikelyFragment\(value\)/);
   assert.match(generator, /function sanitizePublicExcerpt\(value\)/);
   assert.match(generator, /dangling\s+\/\/\s+quote/);
+  assert.match(generator, /\.replace\(\/\[,:;\]\\s\*\\\.\$\/, "\."\)/);
   assert.match(generator, /isLikelyFragment\(cased\)/);
   assert.match(generator, /refreshMachineMomentExcerpt/);
   assert.match(generator, /const refreshedExistingMoments = events\.length/);

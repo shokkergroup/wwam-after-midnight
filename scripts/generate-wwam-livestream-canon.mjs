@@ -74,6 +74,10 @@ function sanitizePublicExcerpt(value) {
   let text = clean(value)
     .replace(/^\s*["”]\s*/, "")
     .replace(/\s+([,.!?])/g, "$1")
+    // Whisper sometimes leaves a comma/colon before the sentence terminator
+    // ("which you guys,."). Keep the words, but make the public receipt
+    // read like normal punctuation instead of decoder debris.
+    .replace(/[,:;]\s*\.$/, ".")
     .replace(/\s{2,}/g, " ")
     .trim();
   // Caption windows routinely stop inside a quoted sentence. A dangling
