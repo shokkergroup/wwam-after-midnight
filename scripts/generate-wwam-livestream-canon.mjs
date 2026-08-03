@@ -22,6 +22,24 @@ function excerpt(value, limit = 20) {
   const tokens = words(String(value).replace(/\s*\n\s*/g, " "));
   return tokens.length <= limit ? tokens.join(" ") : `${tokens.slice(0, limit).join(" ")}...`;
 }
+function quoteExcerpt(value, limit = 22) {
+  const text = clean(value);
+  const sentenceList = text.match(/[^.!?]+[.!?](?:\s|$)/g)?.map((sentence) => sentence.trim()) || [];
+  const substantive = sentenceList.find((sentence) => {
+    const adminOnly = /\b(?:streamyard|chat|internet|subscribe|microphone|camera|technical|screen|audio|live chat|can you see|are we live)\b/i.test(sentence)
+      && !/\b(?:fuck|fucking|shit|dick|ass|bitch|suck|horror|halloween|loomis|challis|freddy|jason|scream|terrifier|michael|movie|kill|dead|garbage|poop)\b/i.test(sentence);
+    return words(sentence).length >= 8 && !adminOnly;
+  });
+  if (substantive) return substantive;
+  const sentence = sentenceList.find((candidate) => words(candidate).length >= 8);
+  if (sentence) return sentence;
+  const tokens = words(text);
+  if (tokens.length <= limit) return tokens.join(" ");
+  const clipped = tokens.slice(0, limit).join(" ")
+    .replace(/\s+(?:the|a|an|and|or|but|to|of|in|on|for|with|from|that|this|it|i|you|he|she|we|they)$/i, "")
+    .trim();
+  return clipped || tokens.slice(0, limit).join(" ");
+}
 function dateFrom(value) {
   const text = clean(value);
   return /^\d{8}$/.test(text) ? `${text.slice(0, 4)}-${text.slice(4, 6)}-${text.slice(6, 8)}` : text || null;
@@ -381,7 +399,11 @@ function contentFrame(title, shape, topics = []) {
 function tapeNote(title, shape, topics, moments, fan, recurring, characterCues, listeningRoutes = []) {
   const topicList = listPhrase(topics.slice(0, 4).map((topic) => topic.name));
   const laneLead = recurring.slice().sort((a, b) => Number(b.candidateCount || 0) - Number(a.candidateCount || 0))[0];
-  const routeMoments = moments.length ? moments : listeningRoutes;
+  // When decoded audio has been analyzed, its bounded routes are the strongest
+  // source-local receipts for the prose. The legacy/topic moment list can carry
+  // a loose automatic-caption fragment even when a cleaner aligned audio route
+  // exists, which is exactly the kind of machine-smell we refuse to print.
+  const routeMoments = listeningRoutes.length ? listeningRoutes : moments;
   const hot = routeMoments.slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || Number(a.t || 0) - Number(b.t || 0))[0];
   const characterList = listPhrase(characterCues.slice().sort((a, b) => Number(b.mentions || 0) - Number(a.mentions || 0)).slice(0, 3).map((character) => character.name));
   const fanTypes = Array.from(new Set(fan.map((signal) => signal.signalType))).slice(0, 2);
@@ -438,7 +460,9 @@ function humanMomentLabel(value) {
 function voiceSummaryV2(title, date, shape, topics, moments, fan, recurring, characterCues, evidenceTier, listeningRoutes = []) {
   const variant = voiceVariant(title, date);
   const topicList = listPhrase(topics.slice(0, 4).map((topic) => topic.name));
-  const routeMoments = moments.length ? moments : listeningRoutes;
+  // Prefer decoded-audio routes when available: they are bounded to the
+  // canonical source and carry the strongest aligned transcript window.
+  const routeMoments = listeningRoutes.length ? listeningRoutes : moments;
   const hot = routeMoments.slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || Number(a.t || 0) - Number(b.t || 0))[0];
   const characterList = listPhrase(characterCues.slice().sort((a, b) => Number(b.mentions || 0) - Number(a.mentions || 0)).slice(0, 3).map((character) => character.name));
   const fanTypes = Array.from(new Set(fan.map((signal) => signal.signalType))).slice(0, 2);
@@ -453,7 +477,7 @@ function voiceSummaryV2(title, date, shape, topics, moments, fan, recurring, cha
   // title-only topic signals; when no nearby receipt exists we simply omit
   // the quote instead of inventing connective tissue.
   const receiptOptions = [
-    hot ? { text: hot.excerpt, at: hot.t, weight: Number(hot.score || 0) } : null,
+    hot ? { text: hot.excerpt || hot.captionExcerpt, at: hot.t, weight: Number(hot.score || 0) } : null,
     ...topics.map((item) => ({ text: item?.receipt, at: item?.at, weight: Number(item?.mentions || 0) }))
   ].filter(Boolean).map((item) => {
     let text = normalizeCaptionText(item.text);
@@ -476,14 +500,17 @@ function voiceSummaryV2(title, date, shape, topics, moments, fan, recurring, cha
     const punctuationBonus = /[.!?]/.test(text) ? 3 : 0;
     const quality = Math.max(0, Math.min(30, tokenCount * 1.5 + punctuationBonus - fillerPenalty - fragmentPenalty));
     const startsFragment = /^(?:are|is|was|were|and|but|because|so|then|which|that)\b/i.test(text);
-    return { ...item, text, tokenCount, fillerWords, repeatedPhrases, startsFragment, score: quality * 100 + Math.min(10, Number(item.weight || 0)) };
-  }).filter((item) => item.text && item.tokenCount >= 8 && item.fillerWords <= 2 && item.repeatedPhrases === 0 && !item.startsFragment && item.score >= 1000 && !/^(?:No local transcript window aligned|No caption fragment aligned|Title signal only|open the source before treating)/i.test(item.text));
+    const vividHits = (text.match(/\b(?:fuck|fucking|shit|dick|ass|bitch|suck|sucks|horror|halloween|loomis|challis|freddy|jason|scream|terrifier|michael|movie|kill|dead|garbage|poop)\b/gi) || []).length;
+    const adminHits = (text.match(/\b(?:streamyard|chat|internet|subscribe|microphone|camera|technical|screen|audio|live chat|can you see|are we live)\b/gi) || []).length;
+    const editorialVibe = Math.min(120, vividHits * 12) - adminHits * 70;
+    return { ...item, text, tokenCount, fillerWords, repeatedPhrases, startsFragment, vividHits, adminHits, score: quality * 100 + Math.min(10, Number(item.weight || 0)) + editorialVibe };
+  }).filter((item) => item.text && item.tokenCount >= 8 && item.fillerWords <= 2 && item.repeatedPhrases === 0 && !item.startsFragment && !/\.\.\.$/.test(item.text) && !(item.adminHits > 0 && item.vividHits === 0) && item.score >= 1000 && !/^(?:No local transcript window aligned|No caption fragment aligned|Title signal only|open the source before treating)/i.test(item.text));
   const receiptCandidate = receiptOptions.sort((a, b) => b.score - a.score || Number(a.at || 0) - Number(b.at || 0))[0];
   const receiptLine = receiptCandidate
     ? [
-      `The cleanest bit of tape I found starts at ${clock(receiptCandidate.at || 0)}: “${excerpt(receiptCandidate.text, 22)}”`,
-      `At ${clock(receiptCandidate.at || 0)}, the transcript catches the show's temperature: “${excerpt(receiptCandidate.text, 22)}”`,
-      `For a quick taste, press ${clock(receiptCandidate.at || 0)}: “${excerpt(receiptCandidate.text, 22)}”`
+      `The cleanest bit of tape I found starts at ${clock(receiptCandidate.at || 0)}: “${quoteExcerpt(receiptCandidate.text, 22)}”`,
+      `At ${clock(receiptCandidate.at || 0)}, the transcript catches the show's temperature: “${quoteExcerpt(receiptCandidate.text, 22)}”`,
+      `For a quick taste, press ${clock(receiptCandidate.at || 0)}: “${quoteExcerpt(receiptCandidate.text, 22)}”`
     ][variant]
     : [
       "The transcript does not leave a safe short quote here, so the player remains the first source of tone",
