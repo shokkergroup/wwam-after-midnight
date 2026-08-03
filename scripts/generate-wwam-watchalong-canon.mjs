@@ -397,7 +397,10 @@ function watchalongVoiceSummary({ taxonomy, duration, laneCounts, topics, firstM
   };
   const laneName = (label) => laneNames[label] || clean(label).toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase());
   const laneText = rankedLanes.slice(0, 3).map(([label, count]) => `${count} ${laneName(label)}`).join(", ");
-  const runtimeRead = duration >= 9000 ? "marathon-length" : duration >= 5400 ? "feature-length" : duration >= 1800 ? "a compact feature" : "a short-form";
+  // Keep the article attached to the runtime noun. The old form produced
+  // visitor copy such as “is marathon-length watch-party,” which reads like a
+  // machine label instead of a person describing the show.
+  const runtimeRead = duration >= 9000 ? "a marathon" : duration >= 5400 ? "a feature-length" : duration >= 1800 ? "a compact" : "a short";
   const seed = [...title].reduce((sum, char) => (sum * 31 + char.charCodeAt(0)) % 3, 0);
   const openingVariants = {
     "STRAIGHT TO STEVE'S ASSHOLE": [
@@ -452,9 +455,11 @@ function watchalongVoiceSummary({ taxonomy, duration, laneCounts, topics, firstM
   };
   const tone = (toneVariants[dominant] || ["The source stays playful without pretending every timestamp is a finished verdict.", "The route is messy, but every door is bounded to the tape.", "This is a listening lead, not a machine-written verdict."])[seed];
   const topicNames = relevantTopics(topics, taxonomy).map((topic) => topic.name).filter(Boolean).slice(0, 3);
-  const topicSentence = topicNames.length
-    ? `The recurring subjects are ${topicNames.join(", ")}; they anchor the talk without pretending the room stays in one straight line.`
-    : "The movie stays at the center even when the conversation takes the scenic route.";
+  const topicSentence = topicNames.length === 1
+    ? `They keep circling back to ${topicNames[0]}, even when the room takes a side road.`
+    : topicNames.length > 1
+      ? `They keep circling back to ${topicNames.join(", ")}, even when the room takes a side road.`
+      : "The movie stays at the center even when the conversation takes the scenic route.";
   const strongestStop = strongestMoment ? `${formatTimestamp(strongestMoment.t)} for ${laneName(strongestMoment.category || "the hottest turn")}` : "the strongest moment on the page";
   const openingStop = firstMoment ? `${formatTimestamp(firstMoment.t)} for ${laneName(firstMoment.category || "the opening read")}` : "the opening minute";
   const closingStop = finalMoment ? `${formatTimestamp(finalMoment.t)} for ${laneName(finalMoment.category || "the closing read")}` : "the closing stretch";
@@ -462,9 +467,13 @@ function watchalongVoiceSummary({ taxonomy, duration, laneCounts, topics, firstM
     ? `Start at ${openingStop}, jump to ${strongestStop} when you want the temperature spike, and leave through ${closingStop}.`
     : "Open the player and let the room show you where to go next.";
   const audioLine = audioCuts.length
-    ? `The audio-feature pass adds ${audioCuts.length} extra places to tap into the room.`
+    ? `The listening shelf adds ${audioCuts.length} extra places to tap into the room.`
     : "Every door on this page stays tied to the playable episode.";
-  const secondaryLine = secondary ? ` The other pressure point is ${laneName(secondary)}.` : "";
+  const secondaryLine = secondary && secondary !== dominant
+    ? secondary === "STRAIGHT TO STEVE'S ASSHOLE"
+      ? " Steve's Asshole keeps resurfacing."
+      : ` The ${laneName(secondary)} lane keeps resurfacing.`
+    : "";
   const listeningLead = strongestMoment
     ? `The best listening lead lands at ${formatTimestamp(strongestMoment.t)}; open it to hear the exchange in context.`
     : "Open a door and hear the exchange in context.";
