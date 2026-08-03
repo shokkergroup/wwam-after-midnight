@@ -872,7 +872,17 @@ test("dossier CSS brands cold routes immediately while heavy scripts remain lazy
     ?.map((asset) => asset.slice(1, -1).split("?")[0]);
   assert.deepEqual(["source-dossier-assets.js"].concat(scriptList), dossierScripts);
   assert.match(loader, /return promise\.then\(function \(\) \{ return loader\.load\(source\); \}\)/);
+  assert.match(
+    app,
+    /function buildRevisionAssetUrl[\s\S]*meta\[name="wwam-build-revision"\][\s\S]*build=/,
+    "cold Show Wiki lazy scripts must carry the published build revision",
+  );
   assert.match(featureLoader, /function loadStyle\(/);
+  assert.match(
+    featureLoader,
+    /function buildRevisionUrl[\s\S]*wwam-build-revision[\s\S]*build=/,
+    "feature-loader assets must carry the published build revision",
+  );
   assert.match(
     featureLoader,
     /WWAMFeatureLoader\s*=\s*Object\.freeze\(\{[\s\S]*loadStyle:\s*loadStyle/,

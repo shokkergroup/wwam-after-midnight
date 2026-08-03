@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -31,8 +32,24 @@ fs.writeFileSync(path.join(outputDir, ".nojekyll"), "", "utf8");
 const canonicalUrl = `${pagesBase}wiki/index.html`;
 const socialImageUrl = `${pagesBase}og.png`;
 const wikiIndexPath = path.join(wikiDir, "index.html");
+const revisionInputs = [
+  "app.js",
+  "feature-loader.js",
+  "source-dossier-assets.js",
+  "wwam-livestream-asr-excerpts.js",
+  "wwam-watchalong-canon.js",
+].map((file) => fs.readFileSync(path.join(sourceDir, file)));
+const buildRevision = crypto
+  .createHash("sha256")
+  .update(Buffer.concat(revisionInputs))
+  .digest("hex")
+  .slice(0, 12);
 let wikiIndex = fs.readFileSync(wikiIndexPath, "utf8");
 wikiIndex = wikiIndex
+  .replace(
+    /<meta name="wwam-build-revision" content="[^"]*">/,
+    `<meta name="wwam-build-revision" content="${buildRevision}">`,
+  )
   .replace(
     "  <meta property=\"og:title\"",
     `  <link rel="canonical" href="${canonicalUrl}">\n  <meta property="og:url" content="${canonicalUrl}">\n  <meta property="og:title"`,

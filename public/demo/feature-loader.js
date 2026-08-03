@@ -8,8 +8,13 @@
     function listFor(e, t) {
         return clean(e && e.getAttribute(t)).split(",").map(clean).filter(Boolean);
     }
+    function buildRevisionUrl(e) {
+        var t = document.querySelector('meta[name="wwam-build-revision"]'),
+            r = t && clean(t.getAttribute("content"));
+        return r && !/(?:^|[?&])build=/.test(e) ? e + (e.indexOf("?") >= 0 ? "&" : "?") + "build=" + encodeURIComponent(r) : e;
+    }
     function loadAsset(e, r) {
-        var n = clean(e), a = (r ? "style:" : "script:") + n;
+        var n = buildRevisionUrl(clean(e)), a = (r ? "style:" : "script:") + n;
         return n ? (t[a] || (t[a] = new Promise(function(e, o) {
             var i = function findAsset(e, t) {
                 var r = t ? document.querySelectorAll('link[rel~="stylesheet"]') : document.scripts, n = t ? "href" : "src";

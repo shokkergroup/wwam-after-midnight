@@ -252,7 +252,17 @@
     return archiveDeepLoadPromise;
   }
 
+  function buildRevisionAssetUrl(source) {
+    var url = String(source || "");
+    var meta = document.querySelector('meta[name="wwam-build-revision"]');
+    var revision = meta && meta.getAttribute("content");
+    if (!revision || /(?:^|[?&])build=/.test(url)) return url;
+    return url + (url.indexOf("?") >= 0 ? "&" : "?") +
+      "build=" + encodeURIComponent(revision);
+  }
+
   function loadDemoScript(source) {
+    source = buildRevisionAssetUrl(source);
     return new Promise(function (resolve, reject) {
       var script = document.querySelector('script[data-lazy-source="' + source + '"]');
       if (script) {
