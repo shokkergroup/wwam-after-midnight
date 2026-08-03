@@ -292,7 +292,7 @@
     } else if (watchalongRouteLoadPromise) {
       routeReady = watchalongRouteLoadPromise;
     } else {
-      watchalongRouteLoadPromise = loadDemoScript("wwam-watchalong-route-index.js?v=1.2.1-alternate-routes")
+      watchalongRouteLoadPromise = loadDemoScript("wwam-watchalong-route-index.js?v=1.2.2-conversational-summaries")
         .catch(function (error) {
           watchalongRouteLoadPromise = null;
           throw error;
@@ -615,7 +615,7 @@
       .then(function () {
         // The compact route index carries official podcast alternates for
         // cold Show Wiki links without pulling the 9 MB full movie canon.
-        return loader.load("wwam-watchalong-route-index.js?v=1.2.1-alternate-routes");
+        return loader.load("wwam-watchalong-route-index.js?v=1.2.2-conversational-summaries");
       })
       .then(function () {
         // The same source-local listening contract now covers all 509 public

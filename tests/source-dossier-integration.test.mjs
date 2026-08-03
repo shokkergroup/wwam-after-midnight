@@ -434,7 +434,7 @@ test("the compact livestream fallback index is bounded and category-aware", () =
 
 test("cold source routes paint the local fallback before optional Watchalong hydration", () => {
   assert.match(app, /function ensureWatchalongCanonForSource\(sourceId\)/);
-  assert.match(app, /wwam-watchalong-route-index\.js\?v=1\.2\.1-alternate-routes/);
+  assert.match(app, /wwam-watchalong-route-index\.js\?v=1\.2\.2-conversational-summaries/);
   assert.match(app, /wwam-livestream-asr-excerpts\.js\?v=1\.0\.5-low-signal-filter/);
   assert.match(app, /wwam-livestream-fallback-index\.js\?v=1\.0\.0-category-lanes/);
   assert.match(app, /WWAM_LIVESTREAM_FALLBACK_INDEX/);
