@@ -580,7 +580,8 @@ function bestBits(moments, fan, listeningRoutes = [], audioCandidates = []) {
   // doors in BEST BITS anyway: the UI renders them as “press play” routes,
   // never as invented dialogue. Otherwise a show with dozens of ranked audio
   // candidates falsely looks like it has no best bits at all.
-  const acousticRoutes = audioCandidates.map((candidate) => ({
+  const coveredAudioKeys = new Set(listeningRoutes.map((route) => `${Math.round(Number(route.t || 0))}|${clean(route.category || route.label || "SOURCE RECEIPT")}`));
+  const acousticRoutes = audioCandidates.filter((candidate) => !coveredAudioKeys.has(`${Math.round(Number(candidate.t || 0))}|${clean(candidate.category || candidate.label || "SOURCE RECEIPT")}`)).map((candidate) => ({
     ...candidate,
     excerpt: "",
     captionExcerpt: "",

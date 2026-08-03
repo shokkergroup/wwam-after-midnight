@@ -159,6 +159,7 @@ test("best-bits keeps acoustic-only doors visible without inventing quotes", () 
   const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-livestream-canon.mjs"), "utf8");
   assert.match(generator, /function bestBits\(moments, fan, listeningRoutes = \[\], audioCandidates = \[\]\)/);
   assert.match(generator, /A caption-ledger episode can already have a real audio watch pass/);
+  assert.match(generator, /coveredAudioKeys = new Set\(listeningRoutes\.map/);
   assert.match(generator, /captionAligned: false/);
   assert.match(generator, /moment\.excerpt \|\| moment\.captionAligned === false/);
   assert.match(generator, /bestBits\(moments, fan, listeningRoutes, audioCandidates\)/);
