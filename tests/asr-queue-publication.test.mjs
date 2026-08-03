@@ -246,3 +246,11 @@ test("cold Show Wiki shelves reserve native lanes before chronological fill", ()
   assert.match(generator, /COLD_ROUTE_PRIORITY/);
   assert.match(generator, /chooseDiverseColdCuts\(cuts, 12\)/);
 });
+
+test("watchalong publication keeps special broadcasts visible and bounds nearby caption context", () => {
+  const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-watchalong-canon.mjs"), "utf8");
+  assert.match(generator, /sdiVxLTq67Q/);
+  assert.match(generator, /anniversary broadcast; retained as a companion source/);
+  assert.match(generator, /excerpt\(context\.text, 16\)/);
+  assert.match(generator, /excerpt\(`NEARBY CAPTION CONTEXT \/\/ \$\{nearbyCaption\.text\}`, 16\)/);
+});
