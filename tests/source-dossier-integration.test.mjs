@@ -612,6 +612,11 @@ test("dossier CSS brands cold routes immediately while heavy scripts remain lazy
     /sourceDossierListeningPass[\s\S]*LISTENING PASS/,
     "Show Wiki local navigation must expose the listening pass as a first-class destination",
   );
+  assert.match(
+    sourceDossierUi,
+    /data-source-listening-asr-count[\s\S]*WHISPER-ALIGNED LISTENING PASS/,
+    "Show Wiki listening rails must disclose when local Whisper alignment has improved the excerpt",
+  );
   assert.doesNotMatch(
     sourceDossierUi,
     /\bnormalized\s*\(/,

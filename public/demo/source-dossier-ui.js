@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.32.4";
+  var VERSION = "1.32.5";
   var DOSSIER_SCHEMA = "shokker-source-dossier/v1";
   var QUERY_SCHEMA = "shokker-source-query/v1";
   var QUERY_RESULT_SCHEMA = "shokker-source-query-result/v1";
@@ -2591,6 +2591,9 @@
       if (!receipts.length) return "";
 
       var categoryCounts = {};
+      var asrReceiptCount = receipts.filter(function (receipt) {
+        return /faster-whisper transcript excerpt/i.test(clean(receipt.evidenceBasis));
+      }).length;
       receipts.forEach(function (receipt) {
         var category = clean(receipt.label) || "LISTENING SPIKE";
         categoryCounts[category] = (categoryCounts[category] || 0) + 1;
@@ -2622,10 +2625,16 @@
       }).join("");
       var omitted = receipts.length - visible.length;
       return '<section class="source-dossier-listening-pass" id="sourceDossierListeningPass" ' +
-        'data-source-listening-count="' + esc(receipts.length) + '"><header><div><span>' +
-        'THE TAPE // LISTENING PASS</span><h4>HEAR THE WINDOWS THE AUDIO PASS FOUND.</h4></div>' +
+        'data-source-listening-count="' + esc(receipts.length) + '" data-source-listening-asr-count="' +
+        esc(asrReceiptCount) + '"><header><div><span>' +
+        (asrReceiptCount ? 'THE TAPE // WHISPER-ALIGNED LISTENING PASS' :
+          'THE TAPE // LISTENING PASS') + '</span><h4>' +
+        (asrReceiptCount ? 'HEAR THE WINDOWS, THEN FOLLOW THE CLEANER TRANSCRIPT.' :
+          'HEAR THE WINDOWS THE AUDIO PASS FOUND.') + '</h4></div>' +
         '<b>' + esc(receipts.length) + ' RANKED WINDOWS</b></header><p class="source-dossier-listening-intro">' +
-        'This is the source-local audio re-rank: loudness, caption alignment, and recurring WWAM signals decide where to start. ' +
+        (asrReceiptCount ?
+          'This source has a bounded local Whisper transcript aligned to its audio-ranked windows. ' :
+          'This is the source-local audio re-rank: loudness, caption alignment, and recurring WWAM signals decide where to start. ') +
         'It does not pretend to know who spoke, what was on camera, or whether a line is objectively funny. Press play and let the tape decide.</p>' +
         '<div class="source-dossier-listening-counts">' + categoryMarkup + '</div><div class="source-dossier-listening-grid">' +
         cardMarkup + '</div>' + (omitted > 0 ? '<footer><b>' + esc(omitted) +
