@@ -896,6 +896,25 @@
       .sort(function (a, b) { return a.at - b.at; });
   }
 
+  function fallbackMomentIsEditorial(moment) {
+    moment = moment || {};
+    var review = String(moment.reviewStatus || "").toLowerCase();
+    var sourceKind = String(moment.sourceKind || "").toLowerCase();
+    return /human|editor|creator|verified|curated/.test(review) ||
+      /editorial/.test(sourceKind);
+  }
+
+  function fallbackRouteButtonMarkup(moment, index) {
+    var editorial = fallbackMomentIsEditorial(moment);
+    return '<button type="button" data-fallback-jump="' + moment.at +
+      '" data-fallback-end="' + (moment.end || "") +
+      '" data-fallback-lane="' + esc(moment.lane || moment.label) +
+      '" data-fallback-review="' + (editorial ? "editorial" : "discovery") +
+      '"><b>' + String(index + 1).padStart(2, "0") +
+      '</b><span>' + esc(moment.label) + '</span><time>' + timestamp(moment.at) +
+      '</time><em>' + esc(fallbackMomentDescription(moment)) + '</em></button>';
+  }
+
   function fallbackSourceWiki(sourceId, startTime, section) {
     var source = fallbackSourceRecord(sourceId);
     var tape = tapeById[sourceId] || {};
@@ -907,6 +926,10 @@
     // look like canonical video timestamps.
     var moments = fallbackSourceMoments(sourceId, source).filter(function (moment) {
       return moment.sourceKind !== "podcast-variant";
+    });
+    var editorialMoments = moments.filter(fallbackMomentIsEditorial);
+    var discoveryMoments = moments.filter(function (moment) {
+      return !fallbackMomentIsEditorial(moment);
     });
     var whisperCount = moments.filter(function (moment) { return moment.sourceKind === "local-whisper"; }).length;
     var fallbackLaneOrder = [
@@ -984,11 +1007,9 @@
       '<section class="source-dossier-fallback-player" id="fallback-player"><div class="modal-player" id="modalPlayer">' + player + '</div><p class="source-dossier-fallback-boundary">PLAYBACK stays inside this page. The official source opens only if you choose the link below.</p></section>' +
       '<section class="source-dossier-fallback-about" id="fallback-about"><p class="kicker">THE SHORT VERSION</p><p>' + esc(summary) + '</p>' +
       (topics.length ? '<div class="source-dossier-fallback-topics">' + topics.map(function (topic) { return '<span>' + esc(topic) + '</span>'; }).join("") + '</div>' : "") + '</section>' + alternateSection +
-      '<section class="source-dossier-fallback-routes" id="fallback-routes"><header><div><p class="kicker">PLAYABLE MOMENTS</p><h3>PRESS PLAY HERE.</h3></div><span>' + moments.length + ' saved moment' + (moments.length === 1 ? '' : 's') + ' // each jump opens the show' + (whisperCount ? ' // ' + whisperCount + ' extra listening door' + (whisperCount === 1 ? '' : 's') : '') + '</span></header>' +
+      '<section class="source-dossier-fallback-routes" id="fallback-routes"><header><div><p class="kicker">PLAYABLE MOMENTS</p><h3>' + (editorialMoments.length ? "START WITH THE EDITOR'S CUT." : "PRESS PLAY HERE.") + '</h3></div><span>' + (editorialMoments.length ? editorialMoments.length + ' edited door' + (editorialMoments.length === 1 ? '' : 's') + ' // ' + discoveryMoments.length + ' audio discovery door' + (discoveryMoments.length === 1 ? '' : 's') : moments.length + ' saved moment' + (moments.length === 1 ? '' : 's')) + ' // each jump opens the show' + (whisperCount ? ' // ' + whisperCount + ' transcript door' + (whisperCount === 1 ? '' : 's') : '') + '</span></header>' +
       (moments.length ? '<div class="source-dossier-fallback-lane-legend" aria-label="Filter playable lanes"><button type="button" class="is-all is-active" data-fallback-filter="" aria-pressed="true"><b>' + moments.length + '</b><span>ALL LANES</span></button>' + fallbackLaneLegend + '</div>' : '') +
-      (moments.length ? '<div class="source-dossier-fallback-route-grid">' + moments.map(function (moment, index) {
-        return '<button type="button" data-fallback-jump="' + moment.at + '" data-fallback-end="' + (moment.end || "") + '" data-fallback-lane="' + esc(moment.lane || moment.label) + '"><b>' + String(index + 1).padStart(2, "0") + '</b><span>' + esc(moment.label) + '</span><time>' + timestamp(moment.at) + '</time><em>' + esc(fallbackMomentDescription(moment)) + '</em></button>';
-      }).join("") + '</div>' : '<p class="source-dossier-fallback-empty">This source has no safe timestamp receipt in the local bundle yet. The source link remains honest and playable.</p>') + '</section>' +
+      (moments.length ? (editorialMoments.length ? '<section class="source-dossier-fallback-editorial-cut" aria-labelledby="fallback-editorial-title"><header><div><p class="kicker">FULL-TAPE HUMAN READ</p><h4 id="fallback-editorial-title">THE EDITOR\'S CUT</h4></div><span>' + editorialMoments.length + ' story door' + (editorialMoments.length === 1 ? '' : 's') + '</span></header><div class="source-dossier-fallback-route-grid">' + editorialMoments.map(function (moment, index) { return fallbackRouteButtonMarkup(moment, index); }).join("") + '</div></section>' : '') + (discoveryMoments.length ? '<details class="source-dossier-fallback-discovery"' + (editorialMoments.length ? '' : ' open') + '><summary><span>AUDIO DISCOVERY PASS // OPEN THE UNREVIEWED WINDOWS</span><b>' + discoveryMoments.length + ' doors</b></summary><p>These stops are ranked from the source-local audio/caption pass. They are real play coordinates, not finished jokes or speaker claims. Press play, keep what lands, and promote only the moments worth a human read.</p><div class="source-dossier-fallback-route-grid">' + discoveryMoments.map(function (moment, index) { return fallbackRouteButtonMarkup(moment, index); }).join("") + '</div></details>' : '') : '<p class="source-dossier-fallback-empty">This source has no safe timestamp receipt in the local bundle yet. The source link remains honest and playable.</p>') + '</section>' +
       '<footer class="source-dossier-fallback-foot"><span>LOCAL WIKI // ' + esc(sourceId) + '</span><a href="' + sourceHref + '" target="_blank" rel="noopener">OPEN THE FULL EPISODE ON YOUTUBE ↗</a></footer></article>';
     var modal = document.getElementById("tapeModal");
     modal.setAttribute("aria-busy", "false");
@@ -1013,6 +1034,12 @@
         fallbackRouteButtons.forEach(function (routeButton) {
           routeButton.hidden = Boolean(requested && routeButton.getAttribute("data-fallback-lane") !== requested);
         });
+        if (requested) {
+          var discoveryShelf = document.querySelector(".source-dossier-fallback-discovery");
+          if (discoveryShelf && Array.prototype.some.call(discoveryShelf.querySelectorAll("[data-fallback-lane]"), function (routeButton) {
+            return routeButton.getAttribute("data-fallback-lane") === requested;
+          })) discoveryShelf.open = true;
+        }
       });
     });
     document.querySelectorAll("[data-alternate-jump]").forEach(function (button) {

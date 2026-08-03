@@ -269,6 +269,18 @@
 .source-dossier-fallback-route-grid button > span { color: #c9ff18; font: 800 9px/1.2 var(--mono,"IBM Plex Mono",monospace); letter-spacing: .06em; }
 .source-dossier-fallback-route-grid button time { color: #d8d0d8; font: 700 10px/1 var(--mono,"IBM Plex Mono",monospace); }
 .source-dossier-fallback-route-grid button em { grid-column: 2 / -1; color: #aca3ac; font: 500 12px/1.45 var(--body,"DM Sans",sans-serif); }
+.source-dossier-fallback-editorial-cut { margin: 20px 0 22px; padding: 18px; border: 1px solid rgba(255,34,126,.42); background: linear-gradient(135deg, rgba(255,34,126,.09), rgba(18,16,21,.88)); }
+.source-dossier-fallback-editorial-cut > header { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 14px; }
+.source-dossier-fallback-editorial-cut h4 { margin: 5px 0 0; color: #fff4ed; font: 400 clamp(28px,3vw,44px)/.9 var(--display,"Bebas Neue",sans-serif); }
+.source-dossier-fallback-editorial-cut > header > span { color: #ff76ad; font: 800 9px/1.4 var(--mono,"IBM Plex Mono",monospace); text-align: right; }
+.source-dossier-fallback-discovery { margin-top: 18px; border-top: 1px solid rgba(246,240,231,.15); border-bottom: 1px solid rgba(246,240,231,.15); }
+.source-dossier-fallback-discovery > summary { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 15px 0; color: #c9ff18; cursor: pointer; list-style: none; font: 800 10px/1.3 var(--mono,"IBM Plex Mono",monospace); letter-spacing: .06em; }
+.source-dossier-fallback-discovery > summary::-webkit-details-marker { display: none; }
+.source-dossier-fallback-discovery > summary::after { content: "+"; color: #ff227e; font-size: 18px; }
+.source-dossier-fallback-discovery[open] > summary::after { content: "−"; }
+.source-dossier-fallback-discovery > summary b { color: #a9a0aa; font-size: 9px; white-space: nowrap; }
+.source-dossier-fallback-discovery > p { max-width: 72ch; margin: 0 0 16px; color: #a9a0aa; font: 500 12px/1.6 var(--body,"DM Sans",sans-serif); }
+.source-dossier-fallback-discovery .source-dossier-fallback-route-grid { padding-bottom: 18px; }
 .source-dossier-fallback-lane-legend { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 18px; }
 .source-dossier-fallback-lane-legend button { display: inline-flex; align-items: center; gap: 7px; padding: 8px 10px; color: #ded7df; border: 1px solid rgba(201,255,24,.26); background: rgba(201,255,24,.04); font: 800 9px/1.2 var(--mono,"IBM Plex Mono",monospace); letter-spacing: .04em; cursor: pointer; transition: border-color .18s ease, background .18s ease, color .18s ease; }
 .source-dossier-fallback-lane-legend button:hover, .source-dossier-fallback-lane-legend button:focus-visible { color: #fff; border-color: #c9ff18; background: rgba(201,255,24,.1); outline: none; }
@@ -289,6 +301,9 @@
   .source-dossier-fallback-routes > header { display: block; }
   .source-dossier-fallback-routes > header > span { display: block; margin-top: 10px; text-align: left; }
   .source-dossier-fallback-route-grid { grid-template-columns: 1fr; }
+  .source-dossier-fallback-editorial-cut > header { display: block; }
+  .source-dossier-fallback-editorial-cut > header > span { display: block; margin-top: 10px; text-align: left; }
+  .source-dossier-fallback-discovery > summary { align-items: flex-start; }
   .source-dossier-fallback-variant > header { display: block; }
   .source-dossier-fallback-variant > header > span { display: block; margin-top: 10px; text-align: left; }
   .source-dossier-fallback-variant-grid { grid-template-columns: 1fr; max-height: none; }
