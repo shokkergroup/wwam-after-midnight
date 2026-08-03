@@ -377,7 +377,7 @@ function relevantTopics(items, taxonomy) {
   return (items || []).filter((topic) => topicIsRelevant(topic, taxonomy)).slice(0, 6);
 }
 
-function watchalongVoiceSummary({ taxonomy, duration, laneCounts, topics, firstMoment, strongestMoment, finalMoment, allMoments, audioCuts }) {
+function watchalongVoiceSummary({ taxonomy, duration, laneCounts, topics, firstMoment, strongestMoment, strongestRouteMoment, finalMoment, allMoments, audioCuts }) {
   const title = clean(taxonomy.movieTitle) || "this source";
   const format = taxonomy.type === "watch-party" ? "watch-party" : taxonomy.type === "watch-along" ? "watch-along" : "commentary";
   const rankedLanes = Object.entries(laneCounts).sort((left, right) => right[1] - left[1]);
@@ -460,7 +460,8 @@ function watchalongVoiceSummary({ taxonomy, duration, laneCounts, topics, firstM
     : topicNames.length > 1
       ? `They keep circling back to ${topicNames.join(", ")}, even when the room takes a side road.`
       : "The movie stays at the center even when the conversation takes the scenic route.";
-  const strongestStop = strongestMoment ? `${formatTimestamp(strongestMoment.t)} for ${laneName(strongestMoment.category || "the hottest turn")}` : "the strongest moment on the page";
+  const routePeak = strongestRouteMoment || strongestMoment;
+  const strongestStop = routePeak ? `${formatTimestamp(routePeak.t)} for ${laneName(routePeak.category || "the hottest turn")}` : "the strongest moment on the page";
   const openingStop = firstMoment ? `${formatTimestamp(firstMoment.t)} for ${laneName(firstMoment.category || "the opening read")}` : "the opening minute";
   const closingStop = finalMoment ? `${formatTimestamp(finalMoment.t)} for ${laneName(finalMoment.category || "the closing read")}` : "the closing stretch";
   const routeLine = allMoments.length
@@ -474,8 +475,8 @@ function watchalongVoiceSummary({ taxonomy, duration, laneCounts, topics, firstM
       ? " Steve's Asshole keeps resurfacing."
       : ` The ${laneName(secondary)} lane keeps resurfacing.`
     : "";
-  const listeningLead = strongestMoment
-    ? `The best listening lead lands at ${formatTimestamp(strongestMoment.t)}; open it to hear the exchange in context.`
+  const listeningLead = routePeak
+    ? `The best listening lead lands at ${formatTimestamp(routePeak.t)}; open it to hear the exchange in context.`
     : "Open a door and hear the exchange in context.";
   return `${opening} It runs ${formatTimestamp(duration)} and is ${runtimeRead} ${format}. ${tone} The biggest lanes are ${laneText || "the movie and the room"}.${secondaryLine} ${topicSentence} ${routeLine} ${listeningLead} This page gives you ${allMoments.length} clickable moments, so you can skip the setup and drop straight into the good stuff. ${audioLine}`;
 }
@@ -892,10 +893,18 @@ function episodeFrom(id) {
   const dossierChapters = chapters.length ? chapters : alternateChapterRoutes(alternateCuts, alternateAudio?.media?.durationSeconds || duration);
   const firstMoment = allMoments.slice().sort((left, right) => left.t - right.t)[0] || null;
   const strongestMoment = allMoments.slice().sort((left, right) => Number(right.score || 0) - Number(left.score || 0))[0] || null;
+  // Do not narrate the same timestamp as both the opening door and the
+  // strongest turn. A distinct second stop makes short or highly concentrated
+  // episodes read like a route a person would actually recommend.
+  const strongestRouteMoment = allMoments
+    .slice()
+    .sort((left, right) => Number(right.score || 0) - Number(left.score || 0))
+    .find((moment) => !firstMoment || Math.abs(Number(moment.t || 0) - Number(firstMoment.t || 0)) >= 24)
+    || strongestMoment;
   const finalMoment = allMoments.slice().sort((left, right) => right.t - left.t)[0] || null;
   const laneCounts = ledgerLaneCounts(allMoments);
   const fanSignals = fanSignalCandidates(events, duration);
-  const derivedSummary = watchalongVoiceSummary({ taxonomy, duration, laneCounts, topics, firstMoment, strongestMoment, finalMoment, allMoments, audioCuts });
+  const derivedSummary = watchalongVoiceSummary({ taxonomy, duration, laneCounts, topics, firstMoment, strongestMoment, strongestRouteMoment, finalMoment, allMoments, audioCuts });
   const alternateRouteCount = Number(watchPassRecord?.alternateAudio?.candidates?.length || 0);
   const strongestAudio = audioCuts.slice().sort((left, right) => Number(right.score || 0) - Number(left.score || 0))[0] || null;
   const audioSummarySuffix = audioCuts.length && guide?.overview
