@@ -19,6 +19,8 @@ test("ASR queue refreshes the visible livestream canon for livestream transcript
   assert.match(queue, /LIVESTREAM_CANON_GENERATOR/);
   assert.match(queue, /row\.get\("kind"\).*livestream/i);
   assert.match(queue, /generate-wwam-livestream-canon\.mjs/);
+  assert.match(queue, /TRANSCRIPT_PUBLICATION_AUDIT/);
+  assert.match(queue, /audit-wwam-transcript-publication\.mjs/);
 });
 
 test("overnight publisher ships both livestream and watchalong audio artifacts", () => {

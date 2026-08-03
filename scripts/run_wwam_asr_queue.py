@@ -19,6 +19,7 @@ SELECTOR = ROOT / "scripts" / "select_wwam_asr_queue.mjs"
 EXCERPT_GENERATOR = ROOT / "scripts" / "generate_wwam_livestream_asr_excerpts.py"
 WATCHALONG_CANON_GENERATOR = ROOT / "scripts" / "generate-wwam-watchalong-canon.mjs"
 LIVESTREAM_CANON_GENERATOR = ROOT / "scripts" / "generate-wwam-livestream-canon.mjs"
+TRANSCRIPT_PUBLICATION_AUDIT = ROOT / "scripts" / "audit-wwam-transcript-publication.mjs"
 DEMO = ROOT / "public" / "demo"
 
 
@@ -184,6 +185,11 @@ def main() -> None:
                 # ledger, not only the separate listening overlay. This keeps
                 # summaries, topic doors, and moment cards source-aligned.
                 subprocess.run(["node", str(LIVESTREAM_CANON_GENERATOR)], cwd=ROOT, check=True)
+            # Do not let a successful audio decode masquerade as a finished
+            # public episode. The audit compares every local ledger against
+            # the visible canon and fails the tranche if this source is still
+            # stale, empty, or attached to the wrong evidence lane.
+            subprocess.run(["node", str(TRANSCRIPT_PUBLICATION_AUDIT), "--strict"], cwd=ROOT, check=True)
     print("[queue] bounded batch run complete; generated excerpts are ready for audit/commit", flush=True)
 
 
