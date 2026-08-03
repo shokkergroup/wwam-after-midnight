@@ -437,6 +437,8 @@ test("cold source routes paint the local fallback before optional Watchalong hyd
   assert.match(app, /wwam-watchalong-route-index\.js\?v=1\.2\.2-conversational-summaries/);
   assert.match(app, /raw\.length <= 900/, "rich route reads are allowed to reach the visitor-facing Show Wiki");
   assert.match(app, /_editorialPack/, "cold routes retain human editorial packs");
+  assert.match(app, /var summaryCandidate = editorialPack && \(editorialPack\.overview \|\| editorialPack\.deck\) \|\|/, "human editorial prose outranks machine cold-route summaries");
+  assert.match(app, /source-dossier-fallback-editorial-headline/, "cold routes expose the human editorial hook above the playable doors");
   assert.match(html, /episode-editorial-packs\.js\?v=1\.0\.2-cold-fallback/, "flagship editorial pack is available before lazy dossier assets");
   assert.match(html, /episode-editorial-packs-recent\.js\?v=1\.0\.3-cold-fallback/, "newest editorial packs are available before lazy dossier assets");
   assert.match(html, /wwam-livestream-cold-index\.js\?v=1\.0\.1-human-cold-routes/, "livestream cold routes have a compact local index");
@@ -452,6 +454,7 @@ test("cold source routes paint the local fallback before optional Watchalong hyd
   assert.match(app, /data-fallback-filter/);
   assert.match(app, /data-fallback-lane/);
   assert.match(sourceDossierCss, /\.source-dossier-fallback-lane-legend/);
+  assert.match(sourceDossierCss, /\.source-dossier-fallback-editorial-headline/);
   assert.match(app, /WWAM_WATCHALONG_ROUTE_INDEX && window\.WWAM_WATCHALONG_ROUTE_INDEX\.sources/);
   assert.match(app, /Prefer the cold-route index\/canon record/);
   assert.match(app, /var hydrated = fallbackSourceRecord\(sourceId\);[\s\S]*hasHydratedRecord/);

@@ -940,11 +940,19 @@
     if (!topics.length && editorialPack && Array.isArray(editorialPack.topics)) topics = editorialPack.topics.map(function (topic) {
       return typeof topic === "string" ? topic : topic && (topic.name || topic.label);
     }).filter(Boolean).slice(0, 8);
-    var summaryCandidate = source.dossier && source.dossier.summary ||
-      editorialPack && (editorialPack.overview || editorialPack.deck) ||
+    // A verified human editorial read is the visitor-facing truth for a cold
+    // route. The compact dossier may still carry a machine-shaped summary for
+    // search and routing, but it must not outrank the full-tape prose when the
+    // editorial pack is present.
+    var summaryCandidate = editorialPack && (editorialPack.overview || editorialPack.deck) ||
+      source.dossier && source.dossier.summary ||
       source.summary ||
       source.editorial && source.editorial.whyItMatters || tape.verdict;
     var summary = fallbackNaturalSummary(source, topics, moments, summaryCandidate);
+    var editorialHeadline = editorialPack && String(editorialPack.headline || "").trim();
+    var editorialHeadlineMarkup = editorialHeadline ?
+      '<p class="source-dossier-fallback-editorial-headline"><span>EDITORIAL READ // FULL TAPE</span>' +
+      esc(editorialHeadline) + '</p>' : "";
     var alternate = source.alternateAudio && typeof source.alternateAudio === "object" ? source.alternateAudio : null;
     var alternateRoutes = alternate && Array.isArray(alternate.routes) ? alternate.routes : [];
     var alternateEnclosure = alternate && /^https?:\/\//i.test(String(alternate.enclosureUrl || "")) ? String(alternate.enclosureUrl) : "";
@@ -971,7 +979,7 @@
     var sourceHref = "https://www.youtube.com/watch?v=" + encodeURIComponent(sourceId);
     document.getElementById("modalContent").innerHTML =
       '<article class="source-dossier source-dossier-fallback" data-fallback-source="' + esc(sourceId) + '">' +
-      '<header class="source-dossier-fallback-head"><div><p class="kicker">WWAM AFTER MIDNIGHT // SHOW WIKI</p><h2 id="sourceDossierTitle">' + esc(title) + '</h2><p>' + esc(date) + ' // ' + esc(total ? duration(total) : "RUNTIME HELD") + '</p></div><span>' + esc(source.formatBoundary || "PLAY THIS EDIT. THE BEST DOORS ARE BELOW.") + '</span></header>' +
+      '<header class="source-dossier-fallback-head"><div><p class="kicker">WWAM AFTER MIDNIGHT // SHOW WIKI</p><h2 id="sourceDossierTitle">' + esc(title) + '</h2><p>' + esc(date) + ' // ' + esc(total ? duration(total) : "RUNTIME HELD") + '</p>' + editorialHeadlineMarkup + '</div><span>' + esc(source.formatBoundary || "PLAY THIS EDIT. THE BEST DOORS ARE BELOW.") + '</span></header>' +
       '<nav class="source-dossier-fallback-nav" aria-label="Show Wiki shortcuts"><a href="#fallback-player">PLAY</a><a href="#fallback-routes">BEST MOMENTS</a><a href="#fallback-about">ABOUT THIS TAPE</a></nav>' +
       '<section class="source-dossier-fallback-player" id="fallback-player"><div class="modal-player" id="modalPlayer">' + player + '</div><p class="source-dossier-fallback-boundary">PLAYBACK stays inside this page. The official source opens only if you choose the link below.</p></section>' +
       '<section class="source-dossier-fallback-about" id="fallback-about"><p class="kicker">THE SHORT VERSION</p><p>' + esc(summary) + '</p>' +

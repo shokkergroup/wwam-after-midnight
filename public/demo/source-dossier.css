@@ -227,6 +227,8 @@
 .source-dossier-fallback-head h2 { max-width: 14ch; margin: 8px 0 12px; font: 400 clamp(42px,6vw,82px)/.86 var(--display,"Bebas Neue",sans-serif); }
 .source-dossier-fallback-head p:last-child { margin: 0; color: #9f96a0; font: 700 10px/1.4 var(--mono,"IBM Plex Mono",monospace); letter-spacing: .08em; }
 .source-dossier-fallback-head > span { align-self: end; color: #c9ff18; font: 800 10px/1.5 var(--mono,"IBM Plex Mono",monospace); letter-spacing: .08em; }
+.source-dossier-fallback-editorial-headline { max-width: 68ch; margin: 18px 0 0; color: #f5f0e9; font: 800 clamp(16px,2vw,25px)/1.08 var(--display,"Bebas Neue",sans-serif); letter-spacing: .025em; text-wrap: balance; }
+.source-dossier-fallback-editorial-headline span { display: block; margin-bottom: 7px; color: #c9ff18; font: 800 9px/1.2 var(--mono,"IBM Plex Mono",monospace); letter-spacing: .14em; }
 .source-dossier-fallback-nav { position: sticky; top: 0; z-index: 4; display: flex; gap: 1px; padding: 1px; background: rgba(246,240,231,.16); border-bottom: 1px solid rgba(246,240,231,.16); }
 .source-dossier-fallback-nav a { flex: 1; padding: 13px 15px; color: #f5f0e9; background: #111015; font: 800 10px/1 var(--mono,"IBM Plex Mono",monospace); letter-spacing: .08em; text-align: center; text-decoration: none; }
 .source-dossier-fallback-nav a:hover { color: #c9ff18; background: rgba(201,255,24,.08); }
