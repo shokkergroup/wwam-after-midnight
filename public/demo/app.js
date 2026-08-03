@@ -942,6 +942,7 @@
       "TAKE GETS NUCLEAR",
       "FULL SEND",
       "ROOM BREAK",
+      "LISTENING // TEXT-CUE WINDOW",
       "LISTENING // TRANSCRIPT WINDOW",
     ];
     var fallbackLaneCounts = {};
@@ -1862,6 +1863,7 @@
         "full send": "full-send take",
         "room break": "room-break moment",
         "the room breaks": "room-break moment",
+        "listening // text-cue window": "Whisper text cue",
         "listening // transcript window": "transcript window",
       }[lane] || lane;
       var caption = cleanedCaptionReceipt(moment.excerpt);
