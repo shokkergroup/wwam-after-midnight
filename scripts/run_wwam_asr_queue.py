@@ -14,6 +14,7 @@ from run_wwam_latest_livestream_asr import audio_path, install_cuda_dll_search_p
 
 ROOT = Path(__file__).resolve().parents[1]
 QUEUE = ROOT / "source-cache" / "wwam-asr-queue.json"
+CAPTIONS = ROOT / "source-cache" / "captions"
 SELECTOR = ROOT / "scripts" / "select_wwam_asr_queue.mjs"
 EXCERPT_GENERATOR = ROOT / "scripts" / "generate_wwam_livestream_asr_excerpts.py"
 WATCHALONG_CANON_GENERATOR = ROOT / "scripts" / "generate-wwam-watchalong-canon.mjs"
