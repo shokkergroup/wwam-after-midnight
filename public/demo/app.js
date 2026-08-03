@@ -734,6 +734,7 @@
       window.WWAM_WATCHALONG_CANON && window.WWAM_WATCHALONG_CANON.companionReviews,
       window.WWAM_WATCHALONG_CANON && window.WWAM_WATCHALONG_CANON.discovery && window.WWAM_WATCHALONG_CANON.discovery.broadDiscoveryOmissions,
       window.WWAM_LIVESTREAM_CANON && window.WWAM_LIVESTREAM_CANON.episodes,
+      window.WWAM_LIVESTREAM_COLD_INDEX && window.WWAM_LIVESTREAM_COLD_INDEX.episodes && Object.values(window.WWAM_LIVESTREAM_COLD_INDEX.episodes),
       window.WWAM_YEAR_CANON_2025_2026 && window.WWAM_YEAR_CANON_2025_2026.streams,
       window.WWAM_ARCHIVE_COMPLETION && window.WWAM_ARCHIVE_COMPLETION.streams,
       window.WWAM_ARCHIVE_RECOVERY_BATCH1 && window.WWAM_ARCHIVE_RECOVERY_BATCH1.streams,
