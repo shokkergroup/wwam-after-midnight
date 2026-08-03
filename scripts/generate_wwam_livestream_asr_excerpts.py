@@ -27,6 +27,16 @@ def words(text: str) -> list[str]:
     return re.findall(r"[A-Za-z0-9]+(?:['-][A-Za-z0-9]+)*", text)
 
 
+LOW_SIGNAL_SENTENCES = {
+    "you know what i mean",
+    "well it happens to the best of us",
+    "i don't know",
+    "what do you mean",
+    "yeah i know",
+    "okay i know",
+}
+
+
 def bounded_excerpt(text: str, limit: int = 16) -> str:
     text = " ".join(str(text or "").split()).strip()
     if not text:
@@ -41,6 +51,14 @@ def bounded_excerpt(text: str, limit: int = 16) -> str:
         if len(sentence_words) < 5 or len(sentence_words) > limit or not re.search(r"[.!?][\"']?$", sentence):
             continue
         normalized = [word.lower() for word in sentence_words]
+        # A complete sentence is not automatically a useful moment. These
+        # are common conversational acknowledgements that make a public card
+        # feel padded and tell the listener nothing about the door behind it.
+        # Keep the timestamp available, but wait for a sentence with an
+        # actual opinion, joke, question, or bit.
+        low_signal = re.sub(r"[^a-z0-9' ]+", "", sentence.lower()).strip()
+        if low_signal in LOW_SIGNAL_SENTENCES:
+            continue
         # Whisper can make a clause look finished by inheriting punctuation
         # from the next window. Do not publish obvious conditional fragments,
         # filler openings, or a short repeated-word stutter as if it were a
@@ -141,6 +159,7 @@ def main() -> None:
             "no dangling clause endings",
             "no adjacent repeated tokens",
             "no known Whisper hallucination tails",
+            "low-signal conversational acknowledgements are not promoted",
         ],
         "sources": sources,
     }
