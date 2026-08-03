@@ -40,6 +40,20 @@ function quoteExcerpt(value, limit = 22) {
     .trim();
   return clipped || tokens.slice(0, limit).join(" ");
 }
+// Public receipts should read like bounded doors, not raw decoder fragments.
+// Keep the underlying ledger untouched for evidence while applying one
+// sentence-safe cleanup path to moments, fan cues, character cues, and topic
+// shelves.
+function safeExcerpt(value, limit = 20) {
+  const normalized = normalizeCaptionText(value)
+    .replace(/(?:\s*\.{3,}|\u2026)\s*$/g, "")
+    .trim();
+  const text = quoteExcerpt(normalized, limit)
+    .replace(/(?:\s*\.{3,}|\u2026)\s*$/g, "")
+    .trim();
+  if (!text) return "";
+  return `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
+}
 function dateFrom(value) {
   const text = clean(value);
   return /^\d{8}$/.test(text) ? `${text.slice(0, 4)}-${text.slice(4, 6)}-${text.slice(6, 8)}` : text || null;
@@ -127,11 +141,12 @@ function captionWindowAt(events, seconds, maxDistance = 42) {
 }
 function refreshMachineMomentExcerpt(moment, events) {
   if (!events.length || moment?.reviewStatus === "full-tape-human-editorial-read") return moment;
-  const localExcerpt = excerpt(captionWindowAt(events, moment.t), 24);
+  const localExcerpt = safeExcerpt(captionWindowAt(events, moment.t), 24);
+  const localWhisper = events.some((event) => event.evidenceType === "local-whisper-transcript");
   return {
     ...moment,
     excerpt: localExcerpt || "No local transcript window aligned; open the player at this timestamp.",
-    evidenceBasis: "source-local Whisper transcript alignment",
+    evidenceBasis: localWhisper ? "source-local Whisper transcript alignment" : "source-local automatic caption alignment",
     reviewStatus: "machine-candidate"
   };
 }
@@ -147,7 +162,7 @@ function topicAnchor(events, term) {
   const hits = events.map((event, index) => ({ event, index })).filter(({ event }) => pattern.test(event.text));
   if (!hits.length) return null;
   const peak = hits.slice().sort((a, b) => b.event.text.length - a.event.text.length || a.event.t - b.event.t)[0];
-  return { name: term, mentions: hits.length, first: hits[0].event.t, peak: peak.event.t, cluster: Math.min(24, hits.length), receipt: excerpt(captionWindow(events, peak.index), 20), at: Math.round(peak.event.t) };
+  return { name: term, mentions: hits.length, first: hits[0].event.t, peak: peak.event.t, cluster: Math.min(24, hits.length), receipt: safeExcerpt(captionWindow(events, peak.index), 20), at: Math.round(peak.event.t) };
 }
 
 const metadata = fs.readdirSync(METADATA_DIR).filter((file) => file.endsWith(".json")).map((file) => readJson(path.join(METADATA_DIR, file)));
@@ -280,7 +295,7 @@ function derivedMoments(events, duration, restricted = false) {
     for (const item of picked) output.push({
       id: `${lane.key}-${Math.round(item.event.t)}`, t: Math.round(item.event.t), end: Math.round(item.event.end || item.event.t + 36),
       category: lane.label, label: lane.label, score: Math.min(99, 62 + Math.min(28, words(item.event.text).length)),
-      excerpt: excerpt(captionWindow(events, item.index), 24), evidenceBasis: events.some((event) => event.evidenceType === "local-whisper-transcript") ? "source-local Whisper transcript lane cluster" : "source-local automatic caption lane cluster", reviewStatus: "machine-candidate"
+      excerpt: safeExcerpt(captionWindow(events, item.index), 24), evidenceBasis: events.some((event) => event.evidenceType === "local-whisper-transcript") ? "source-local Whisper transcript lane cluster" : "source-local automatic caption lane cluster", reviewStatus: "machine-candidate"
     });
   }
   return output.sort((a, b) => a.t - b.t);
@@ -306,7 +321,7 @@ function fanSignals(events, duration) {
     picked.push(item);
   });
   return picked.map((item) => {
-    const sourceExcerpt = excerpt(captionWindow(events, item.index), 24);
+    const sourceExcerpt = safeExcerpt(captionWindow(events, item.index), 24);
     const identity = fanIdentity(sourceExcerpt) || fanIdentity(item.event.text);
     return { id: `fan-${Math.round(item.event.t)}`, t: Math.round(item.event.t), end: Math.round(item.event.end || item.event.t + 36), category: "FAN SIGNAL", label: "FAN SIGNAL", signalType: fanSignalType(item.event.text), fanEntity: identity?.key || null, fanEntityLabel: identity?.label || null, fanEntityMatch: identity?.match || null, fanIdentityBasis: identity?.identityBasis || null, score: 78, excerpt: sourceExcerpt, evidenceBasis, reviewStatus: "machine-candidate" };
   });
@@ -352,7 +367,7 @@ function recurringBits(events, moments, fan, duration, listeningRoutes = []) {
     const ranked = hits.slice().sort((a, b) => words(b.text).length - words(a.text).length || a.t - b.t);
     const receipts = ranked.slice(0, receiptLimit).map((item) => ({
       t: Math.round(item.t), end: Math.round(item.end || item.t + 36),
-      excerpt: excerpt(item.index >= 0 ? captionWindow(events, item.index) : item.text, 24),
+      excerpt: safeExcerpt(item.index >= 0 ? captionWindow(events, item.index) : item.text, 24),
       signalType: item.signalType || null, evidenceBasis: eventEvidenceBasis, reviewStatus: "machine-candidate"
     }));
     const laneMoments = moments.filter((moment) => laneLabelMatches(moment.category || moment.label, lane.label));
@@ -653,7 +668,7 @@ function chapters(duration, moments, topics, restricted = false, routeEvidenceBa
     const target = Math.round((duration || 1) * index / 8);
     const route = moments.length ? moments.slice().sort((a, b) => Math.abs(a.t - target) - Math.abs(b.t - target))[0] : topics.slice().sort((a, b) => Math.abs((a.at || a.peak || 0) - target) - Math.abs((b.at || b.peak || 0) - target))[0];
     if (!route) continue;
-    output.push({ id: `act-${String(index + 1).padStart(2, "0")}`, act: index + 1, at: Math.round(route.t ?? route.at ?? route.peak ?? target), end: Math.round(route.end ?? route.at ?? route.peak ?? target), label: route.label || route.category || route.name || "WATCH ROUTE", category: route.category || "TOPIC DOOR", excerpt: restricted ? "Topic-navigation checkpoint; excerpt withheld for this content mode." : excerpt(route.excerpt || route.receipt || "Open the source at this chapter checkpoint.", 24), body: restricted ? "The archive preserves this chapter as a source-local route without manufacturing a quote or visual claim." : `The tape's ${String(route.label || route.category || route.name || "route").toLowerCase()} lane surfaces here. Open the timestamp and hear the full exchange.`, evidenceBasis: restricted ? "restricted topic checkpoint" : routeEvidenceBasis });
+    output.push({ id: `act-${String(index + 1).padStart(2, "0")}`, act: index + 1, at: Math.round(route.t ?? route.at ?? route.peak ?? target), end: Math.round(route.end ?? route.at ?? route.peak ?? target), label: route.label || route.category || route.name || "WATCH ROUTE", category: route.category || "TOPIC DOOR", excerpt: restricted ? "Topic-navigation checkpoint; excerpt withheld for this content mode." : safeExcerpt(route.excerpt || route.receipt || "Open the source at this chapter checkpoint.", 24), body: restricted ? "The archive preserves this chapter as a source-local route without manufacturing a quote or visual claim." : `The tape's ${String(route.label || route.category || route.name || "route").toLowerCase()} lane surfaces here. Open the timestamp and hear the full exchange.`, evidenceBasis: restricted ? "restricted topic checkpoint" : routeEvidenceBasis });
   }
   return output;
 }
@@ -675,7 +690,7 @@ function characters(events) {
   return ["Dr. Loomis", "Dr. Challis", "Slenderman", "Corey Feldman", "Michael Myers", "Freddy", "Jason", "Chucky"].map((name) => {
     const pattern = new RegExp(name.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&"), "i");
     const hits = events.filter((event) => pattern.test(event.text));
-    return hits.length ? { name, mentions: hits.length, first: Math.round(hits[0].t), peak: Math.round(hits[0].t), receipt: excerpt(hits[0].text, 18), evidenceBasis, reviewStatus: "machine-candidate" } : null;
+    return hits.length ? { name, mentions: hits.length, first: Math.round(hits[0].t), peak: Math.round(hits[0].t), receipt: safeExcerpt(hits[0].text, 18), evidenceBasis, reviewStatus: "machine-candidate" } : null;
   }).filter(Boolean);
 }
 function characterCues(events, duration, listeningRoutes = []) {
@@ -687,8 +702,8 @@ function characterCues(events, duration, listeningRoutes = []) {
     const routeHits = listeningRoutes.filter((route) => character.pattern.test(route.captionExcerpt || route.excerpt || ""));
     if (!hits.length && !routeHits.length) return null;
     const ranked = hits.slice().sort((a, b) => words(b.event.text).length - words(a.event.text).length || a.event.t - b.event.t);
-    const captionReceipts = ranked.map((item) => ({ t: Math.round(item.event.t), end: Math.round(item.event.end || item.event.t + 36), excerpt: excerpt(captionWindow(events, item.index), 24), evidenceBasis: captionEvidenceBasis, reviewStatus: "machine-candidate", receiptKind: "caption-cue" }));
-    const audioReceipts = routeHits.slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || Number(a.t || 0) - Number(b.t || 0)).map((route) => ({ t: Math.round(route.t || 0), end: Math.round(route.end || route.t || 0), excerpt: excerpt(route.captionExcerpt || route.excerpt || "", 24), evidenceBasis: localWhisper ? "canonical audio route + source-local Whisper transcript character cue; performance not established" : "canonical audio route + source-local caption character cue; performance not established", reviewStatus: "audio-feature-candidate; playback remains the authority", receiptKind: "audio-character-route" }));
+    const captionReceipts = ranked.map((item) => ({ t: Math.round(item.event.t), end: Math.round(item.event.end || item.event.t + 36), excerpt: safeExcerpt(captionWindow(events, item.index), 24), evidenceBasis: captionEvidenceBasis, reviewStatus: "machine-candidate", receiptKind: "caption-cue" }));
+    const audioReceipts = routeHits.slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || Number(a.t || 0) - Number(b.t || 0)).map((route) => ({ t: Math.round(route.t || 0), end: Math.round(route.end || route.t || 0), excerpt: safeExcerpt(route.captionExcerpt || route.excerpt || "", 24), evidenceBasis: localWhisper ? "canonical audio route + source-local Whisper transcript character cue; performance not established" : "canonical audio route + source-local caption character cue; performance not established", reviewStatus: "audio-feature-candidate; playback remains the authority", receiptKind: "audio-character-route" }));
     const receipts = [...captionReceipts, ...audioReceipts].sort((a, b) => Number(b.receiptKind === "audio-character-route") - Number(a.receiptKind === "audio-character-route") || a.t - b.t).filter((receipt, index, all) => index === all.findIndex((candidate) => Math.abs(candidate.t - receipt.t) < 4)).slice(0, receiptLimit);
     return {
       key: character.key, name: character.name, mentions: hits.length + routeHits.length, captionMentions: hits.length, listeningRouteMentions: routeHits.length, first: Math.round((hits[0]?.event?.t ?? routeHits[0]?.t ?? 0)), peak: Math.round((ranked[0]?.event?.t ?? routeHits[0]?.t ?? 0)),
@@ -708,7 +723,7 @@ function normalizeMoments(items, restricted = false) {
       category: clean(moment.category || moment.label || "SOURCE RECEIPT"),
       label: clean(moment.label || moment.category || "SOURCE RECEIPT"),
       score: Number(moment.heat || moment.score || 0),
-      excerpt: normalizeCaptionText(moment.excerpt || moment.quote || ""),
+      excerpt: safeExcerpt(moment.excerpt || moment.quote || "", 24),
       evidenceBasis: moment.evidenceBasis || "source-local caption candidate",
       reviewStatus: moment.reviewStatus || "machine-candidate"
     }))
@@ -740,7 +755,7 @@ function yearPass(record, events, topics, moments, fan, recurring, characterCues
     const label = clean(topic?.name || moment?.category || moment?.label || "OPEN ROOM");
     const at = Math.round(Number(moment?.t ?? topic?.at ?? topic?.peak ?? from) || from);
     const lane = clean(moment?.category || moment?.label || "TOPIC DOOR");
-    const routeExcerpt = excerpt(moment?.excerpt || topic?.receipt || "", 18);
+    const routeExcerpt = safeExcerpt(moment?.excerpt || topic?.receipt || "", 18);
     return {
       act: index + 1, from, to, at, label, lane,
       topic: topic?.name || null,
@@ -795,7 +810,7 @@ const episodes = canonicalMetadata.map((record) => {
   // source just because they were generated first.
   const topics = localWhisper && !editorialPackBound ? derivedTopics(events, record.title) : (existingTopics.length ? existingTopics : derivedTopics(events, record.title));
   const transcriptMoments = localWhisper ? derivedMoments(events, Number(record.duration || 0), restricted) : [];
-  const refreshedExistingMoments = localWhisper
+  const refreshedExistingMoments = events.length
     ? existingMoments.map((moment) => refreshMachineMomentExcerpt(moment, events))
     : existingMoments;
   const moments = localWhisper
@@ -815,7 +830,7 @@ const episodes = canonicalMetadata.map((record) => {
     // Once a verified Whisper ledger exists, put that transcript on the
     // clickable route so the listening shelf cannot reintroduce stale or
     // mangled caption text while the main dossier is already clean.
-    excerpt: normalizeCaptionText(localWhisper
+    excerpt: safeExcerpt(localWhisper
       ? (captionWindowAt(events, candidate.t) || "No local transcript window aligned; open the player at this timestamp.")
       : (candidate.captionExcerpt || candidate.excerpt || "")),
     evidenceBasis: localWhisper && captionWindowAt(events, candidate.t)
@@ -1094,7 +1109,7 @@ episodes.forEach((episode) => {
     })),
   ].filter((cut) => Number.isFinite(Number(cut.at)) && Number(cut.at) > 0 && (cut.excerpt || cut.label));
   const boundedCuts = chooseDiverseColdCuts(cuts, 12)
-    .map((cut) => ({ ...cut, excerpt: excerpt(cut.excerpt || "", 14) }));
+    .map((cut) => ({ ...cut, excerpt: safeExcerpt(cut.excerpt || "", 14) }));
   coldEpisodes[episode.id] = {
     id: episode.id, title: episode.title, date: episode.date, duration: episode.duration,
     durationLabel: episode.durationLabel, topics: (episode.topics || []).slice(0, 8).map((topic) => ({
