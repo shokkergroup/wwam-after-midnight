@@ -65,22 +65,31 @@ def bounded_excerpt(text: str, limit: int = 16) -> str:
 
 
 def excerpt_for(segments: list[dict], at: float) -> dict:
-    nearby = [
+    window = [
         segment for segment in segments
         if float(segment.get("end", 0)) >= at - 5 and float(segment.get("start", 0)) <= at + 18
     ]
-    nearby.sort(key=lambda segment: (abs(float(segment.get("start", 0)) - at), float(segment.get("start", 0))))
+    # Whisper ledgers are chronological, but selecting by distance first can
+    # splice the closest clauses together in the wrong order. Keep the public
+    # copy conversational by joining speech in source order; use proximity
+    # only to choose the small, exact playback receipt set below.
+    nearby = sorted(window, key=lambda segment: float(segment.get("start", 0)))
     text = bounded_excerpt(" ".join(str(segment.get("text") or "") for segment in nearby))
+    receipt_segments = sorted(
+        window,
+        key=lambda segment: (abs(float(segment.get("start", 0)) - at), float(segment.get("start", 0))),
+    )[:4]
+    receipt_segments.sort(key=lambda segment: float(segment.get("start", 0)))
     refs = [
         {
             "start": round(float(segment.get("start", 0)), 3),
             "end": round(float(segment.get("end", 0)), 3),
         }
-        for segment in nearby[:4]
+        for segment in receipt_segments
     ]
     return {
         "excerpt": text,
-        "segmentCount": len(nearby),
+        "segmentCount": len(window),
         "segmentRefs": refs,
         "evidenceType": "local-whisper-transcript",
         "excerptWordLimit": 16,
