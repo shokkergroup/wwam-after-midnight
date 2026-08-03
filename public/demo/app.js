@@ -5655,7 +5655,26 @@
       try { targetId = decodeURIComponent(encodedTarget); } catch (error) {}
       var routeTarget = targetId ? document.getElementById(targetId) : null;
       if (routeTarget) {
-        setTimeout(function () { routeTarget.scrollIntoView(); }, 50);
+        // The guided shell can remove several large shelves after this first
+        // paint. A native hash jump before that reflow leaves deep links such
+        // as #watchalong-canon visibly stranded below the sticky header. Give
+        // the shell first refusal, then perform one measured alignment after
+        // it has settled; the fallback keeps legacy/no-shell pages usable.
+        var alignInitialTarget = function () {
+          var header = document.querySelector(".wwam-site-header");
+          var headerBottom = header ? Math.max(0, header.getBoundingClientRect().bottom) : 0;
+          var currentTop = window.pageYOffset || document.documentElement.scrollTop || 0;
+          var top = currentTop + routeTarget.getBoundingClientRect().top - headerBottom - 16;
+          window.scrollTo({ top: Math.max(0, Math.round(top)), left: 0, behavior: "auto" });
+        };
+        setTimeout(function () {
+          if (document.documentElement.classList.contains("guided-shell-ready")) alignInitialTarget();
+          else routeTarget.scrollIntoView();
+          // Lazy feature hydration and guided shelf visibility can still
+          // change the target's document offset; re-align once after that
+          // first layout settles without pinning the visitor indefinitely.
+          setTimeout(alignInitialTarget, 220);
+        }, 50);
       } else {
         focusSoon("#top");
       }

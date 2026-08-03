@@ -259,6 +259,8 @@ test("direct links wait for the advisory and short overlays remain operable", ()
   assert.match(app, /String\(location\.hash \|\| ""\)\.replace\(\/\^#\/, ""\)/);
   assert.match(app, /document\.getElementById\(targetId\)/);
   assert.match(app, /routeTarget\.scrollIntoView\(\)/);
+  assert.match(app, /guided-shell-ready/);
+  assert.match(app, /setTimeout\(alignInitialTarget, 220\)/);
   assert.match(app, /else \{\s*focusSoon\("#top"\);\s*\}/);
   assert.doesNotMatch(
     app,
