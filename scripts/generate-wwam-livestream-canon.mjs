@@ -24,6 +24,14 @@ function excerpt(value, limit = 20) {
 }
 function quoteExcerpt(value, limit = 22) {
   const text = clean(value);
+  const boundedSentence = (sentence) => {
+    const sentenceWords = words(sentence);
+    if (sentenceWords.length <= limit) return sentence.trim();
+    const clippedSentence = sentenceWords.slice(0, limit).join(" ")
+      .replace(/\s+(?:the|a|an|and|or|but|to|of|in|on|for|with|from|that|this|it|i|you|he|she|we|they)$/i, "")
+      .trim();
+    return /[.!?]$/.test(clippedSentence) ? clippedSentence : `${clippedSentence}.`;
+  };
   // Captions often splice speaker markers or bracketed sound cues directly
   // after punctuation ("that. >> Yeah" / "that. [laughter]"). Split on a
   // punctuation boundary followed by a plausible sentence starter instead of
@@ -36,9 +44,9 @@ function quoteExcerpt(value, limit = 22) {
       && !/\b(?:fuck|fucking|shit|dick|ass|bitch|suck|horror|halloween|loomis|challis|freddy|jason|scream|terrifier|michael|movie|kill|dead|garbage|poop)\b/i.test(sentence);
     return words(sentence).length >= 8 && !adminOnly;
   });
-  if (substantive) return substantive;
+  if (substantive) return boundedSentence(substantive);
   const sentence = sentenceList.find((candidate) => words(candidate).length >= 8);
-  if (sentence) return sentence;
+  if (sentence) return boundedSentence(sentence);
   const tokens = words(text);
   if (tokens.length <= limit) return tokens.join(" ");
   const clipped = tokens.slice(0, limit).join(" ")
@@ -55,7 +63,11 @@ function safeExcerpt(value, limit = 20) {
   const normalized = normalizeCaptionText(value)
     .replace(/(?:\s*\.{3,}|\u2026)\s*$/g, "")
     .trim();
-  const text = quoteExcerpt(normalized, limit)
+  // The public transcript policy is intentionally tighter than the internal
+  // ledger. Sixteen words is enough to identify the bit while preventing a
+  // raw Whisper paragraph from becoming a wall of run-on text in the UI.
+  const publicLimit = Math.min(16, Math.max(8, Number(limit) || 20));
+  const text = quoteExcerpt(normalized, publicLimit)
     .replace(/(?:\s*\.{3,}|\u2026)\s*$/g, "")
     .trim();
   if (!text) return "";
@@ -406,7 +418,7 @@ function bestBits(moments, fan, listeningRoutes = []) {
   });
   return routes.slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || Number(a.t || 0) - Number(b.t || 0)).map((moment, index) => ({
     rank: index + 1, t: Number(moment.t || 0), end: Number(moment.end || moment.t || 0), category: clean(moment.category || moment.label || "SOURCE RECEIPT"),
-    label: clean(moment.label || moment.category || "SOURCE RECEIPT"), excerpt: clean(moment.excerpt || moment.quote || moment.captionExcerpt || ""), score: Number(moment.score || 0),
+    label: clean(moment.label || moment.category || "SOURCE RECEIPT"), excerpt: safeExcerpt(moment.excerpt || moment.quote || moment.captionExcerpt || "", 16), score: Number(moment.score || 0),
     evidenceBasis: moment.evidenceBasis || "source-local listening route", reviewStatus: moment.reviewStatus || "machine-candidate"
   }));
 }
