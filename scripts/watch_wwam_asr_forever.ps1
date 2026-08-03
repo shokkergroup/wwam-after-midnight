@@ -96,7 +96,9 @@ function Publish-IfChanged {
     return
   }
   if (Test-Path -LiteralPath $transcriptAudit) {
+    Write-RunLog "transcript publication audit // running"
     $auditExit = Run-Logged "node" @($transcriptAudit, "--strict")
+    Write-RunLog ("transcript publication audit // exit {0}" -f $auditExit)
     if ($auditExit -ne 0) {
       Write-RunLog "transcript publication audit failed // leaving hash retryable"
       return
