@@ -89,6 +89,8 @@ function safeExcerpt(value, limit = 20) {
   // ledger. Sixteen words is enough to identify the bit while preventing a
   // raw Whisper paragraph from becoming a wall of run-on text in the UI.
   const publicLimit = Math.min(16, Math.max(8, Number(limit) || 20));
+  const publicWindow = words(normalized).slice(0, publicLimit).join(" ");
+  if (!/[.!?](?:\s|$)/.test(publicWindow)) return "";
   const text = quoteExcerpt(normalized, publicLimit)
     .replace(/(?:\s*\.{3,}|\u2026)\s*$/g, "")
     .trim();
@@ -992,13 +994,14 @@ const episodes = canonicalMetadata.map((record) => {
     })
   } : null;
   const rssAudioPass = livestreamRssAudio.records?.[id] || null;
+  const publicTopics = topics.map(({ rawReceipt, ...topic }) => topic);
   return {
     id, title: clean(record.title), date: dateFrom(record.upload_date), duration: Number(record.duration || 0), durationLabel: clock(record.duration), views: Number(record.view_count || 0),
     thumbnail: record.thumbnail || `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`, url: `https://www.youtube.com/watch?v=${id}`, channel: record.channel || "WeWatchedAMovie", publicSource: true,
     format: mode, seriesKey: series.key, seriesTitle: series.label, year: Number(String(record.upload_date || "").slice(0, 4) || 0),
     sourceInAtlas: atlasById.has(id), latestOutsideAtlas: !atlasById.has(id), atlasCoverage: atlasById.get(id)?.coverage || null, archiveLanes: atlasById.get(id)?.lanes || [],
     evidenceTier: tier, captioned: Boolean(events.length || existing?.captioned), wordsAudited: Number(existing?.wordsAudited || words(events.map((event) => event.text).join(" ")).length),
-    topics, conversationThreads: conversationThreads(topics, localWhisper), moments, chapters: chapterList, heatmap: existing?.heatmap?.length ? existing.heatmap : heatmap(Number(record.duration || 0), events, moments, topics), fanSignals: normalizeFanSignals(fan),
+    topics: publicTopics, conversationThreads: conversationThreads(publicTopics, localWhisper), moments, chapters: chapterList, heatmap: existing?.heatmap?.length ? existing.heatmap : heatmap(Number(record.duration || 0), events, moments, publicTopics), fanSignals: normalizeFanSignals(fan),
     recurringBits: recurring, bestBits: bestBits(moments, fan, listeningRoutes), characterCues: cueList,
     characters: existing?.characters || characters(events), peak: existing?.peak || moments.slice().sort((a, b) => b.score - a.score)[0] || null,
     yearPass: pass, watchPass, rssAudioPass,

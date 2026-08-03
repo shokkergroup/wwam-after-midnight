@@ -114,6 +114,8 @@ test("visitor-facing recap quotes strip non-speech Whisper stage cues and vary t
   assert.match(generator, /fillerWords <= 2/);
   assert.match(generator, /repeatedPhrases === 0/);
   assert.match(generator, /function quoteExcerpt\(value, limit = 22\)/);
+  assert.match(generator, /const publicWindow = words\(normalized\)\.slice\(0, publicLimit\)\.join\(" "\)/);
+  assert.match(generator, /if \(!\/\[\.!\?\]\(\?:\\s\|\$\)\/.test\(publicWindow\)\) return ""/);
   assert.match(generator, /const substantive = sentenceList\.find/);
   assert.match(generator, /safeExcerpt\(receiptCandidate\.text, 16\)/);
   assert.match(generator, /const vividHits =/);
