@@ -347,16 +347,16 @@ function voiceVariant(title, date) {
 function humanMomentLabel(value) {
   const label = clean(value).toLowerCase();
   const labels = {
-    "take gets nuclear": "a take gets nuclear",
+    "take gets nuclear": "the take gets nuclear",
     "room break": "the room breaks",
     "the room breaks": "the room breaks",
-    "wwam up in ya": "an Up In Ya detour",
-    "up in ya": "an Up In Ya detour",
-    "straight to steve's asshole": "a Straight to Steve's Asshole verdict",
-    "steve's asshole": "a Straight to Steve's Asshole verdict",
-    "fan signal": "a fan callout",
-    "character signal": "a character callback",
-    "full send": "a full-send stretch"
+    "wwam up in ya": "Up In Ya takes over",
+    "up in ya": "Up In Ya takes over",
+    "straight to steve's asshole": "the verdict goes Straight to Steve's Asshole",
+    "steve's asshole": "the verdict goes Straight to Steve's Asshole",
+    "fan signal": "the chat gets a fan callout",
+    "character signal": "a character callback lands",
+    "full send": "the show goes full send"
   };
   return labels[label] || label || "the first big turn";
 }
