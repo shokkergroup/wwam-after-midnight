@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.32.1";
+  var VERSION = "1.32.2";
   var DOSSIER_SCHEMA = "shokker-source-dossier/v1";
   var QUERY_SCHEMA = "shokker-source-query/v1";
   var QUERY_RESULT_SCHEMA = "shokker-source-query-result/v1";
@@ -84,6 +84,22 @@
         startsMidBreath && !hasPunctuation && words.length < 12) {
       return "";
     }
+    return text;
+  }
+
+  function listeningCaptionExcerpt(value) {
+    var text = cleanCaptionExcerpt(value);
+    if (!text) return "";
+    var words = text.match(/[A-Za-z0-9]+(?:['-][A-Za-z0-9]+)*/g) || [];
+    var finished = /[.!?][\"']?$/.test(text);
+    var breathStart = /^(?:yeah|uh+|um+|and|but|so|well|like)\b/i.test(text);
+    /*
+     * The listening pass is a navigation aid, not a quote generator. A
+     * caption window that starts mid-breath and trails off is useful to the
+     * player but looks like broken prose on a fan-facing page. Keep complete
+     * fragments; otherwise let the timestamp do the talking.
+     */
+    if (!finished && (breathStart || words.length < 16)) return "";
     return text;
   }
 
@@ -2575,13 +2591,16 @@
       var cardMarkup = visible.map(function (receipt, index) {
         var time = formatTime(receipt.at);
         var score = number(receipt.signalScore);
+        var excerpt = listeningCaptionExcerpt(receipt.excerpt);
         var scoreLabel = Number.isFinite(score) && score > 0 ?
           ' // AUDIO RANK ' + esc(Math.round(score)) : '';
         return '<article><header><span>#' + esc(String(index + 1).padStart(2, "0")) +
           ' // ' + esc(clean(receipt.label) || "LISTENING SPIKE") +
-          '</span><time>' + esc(time) + '</time></header><p>&ldquo;' +
-          esc(cleanCaptionExcerpt(receipt.excerpt)) +
-          '&rdquo;</p><button type="button" data-source-dossier-action="play-receipt" ' +
+          '</span><time>' + esc(time) + '</time></header><p class="' +
+          (excerpt ? 'source-dossier-listening-excerpt' : 'source-dossier-listening-excerpt is-audio-only') +
+          '">' + (excerpt ? '&ldquo;' + esc(excerpt) + '&rdquo;' :
+            'AUTO-RANKED AUDIO WINDOW. PRESS PLAY AND DECIDE FOR YOURSELF.') +
+          '</p><button type="button" data-source-dossier-action="play-receipt" ' +
           'data-receipt-key="' + esc(receipt.key) + '" aria-label="Play audio listening window at ' +
           esc(time) + '">&#9654; PLAY THIS WINDOW</button><small>' +
           'SOURCE-LOCAL AUDIO PASS' + scoreLabel +

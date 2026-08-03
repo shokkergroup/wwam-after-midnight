@@ -1,4 +1,4 @@
-/* V5.39 // PER-SHOW WIKI - listening pass rail + official podcast variant routes */
+/* V5.40 // PER-SHOW WIKI - listening pass copy filter + official podcast variant routes */
 
 .source-dossier-loading:not(.source-dossier-error) {
   display: grid;
@@ -7367,6 +7367,16 @@
   margin: 0;
   color: #e8dfe4;
   font: 540 13px/1.5 var(--body, sans-serif);
+}
+
+.source-dossier-listening-grid > article > p.is-audio-only {
+  display: grid;
+  min-height: 72px;
+  align-items: center;
+  color: #a79ca4;
+  font: 800 9px/1.45 var(--mono, monospace);
+  letter-spacing: .06em;
+  text-transform: uppercase;
 }
 
 .source-dossier-listening-grid > article > button {

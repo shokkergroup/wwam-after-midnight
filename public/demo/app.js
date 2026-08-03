@@ -576,7 +576,7 @@
         }
         return clipLabEngine?null:loadDemoScript("creator-studio-engine.js").then(createClipLab);
       })
-      .then(function () { return loader.loadStyle("source-dossier.css?v=5.39-listening-pass-rail"); })
+      .then(function () { return loader.loadStyle("source-dossier.css?v=5.40-listening-pass-copy-filter"); })
       .then(function () {
         return loader.load("source-dossier-assets.js?v=1.0.28-alternate-podcast-routes");
       })
