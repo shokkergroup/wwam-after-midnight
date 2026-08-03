@@ -241,13 +241,21 @@ function alternateAudioMeta(watchPassRecord, canonicalDuration) {
 }
 
 function normalizeCaptionText(value) {
-  return clean(value)
+  let text = clean(value)
     .replace(/\[(?:\s*[_-]+\s*)+\]/g, " ")
     .replace(/\[(?:music|applause|laughter|inaudible|bleep)\]/gi, " ")
     .replace(/[_]+/g, " ")
+    .replace(/[Â»>]{1,3}(?=\s)/g, " ")
+    .replace(/Ã¢â‚¬â„¢/g, "'").replace(/Ã¢â‚¬Å“|Ã¢â‚¬Â/g, '"').replace(/Ã¢â‚¬â€|Ã¢â‚¬â€œ/g, "â€”")
     .replace(/\s+([,.!?])/g, "$1")
     .replace(/\s{2,}/g, " ")
     .trim();
+  // Keep an intentional two-word stutter, but collapse the decoder runs
+  // that repeat a token four or more times across adjacent Whisper windows.
+  for (let pass = 0; pass < 4; pass += 1) {
+    text = text.replace(/\b([A-Za-z][A-Za-z'â€™-]*)\b(?:\s+\1\b){3,}/gi, "$1 $1");
+  }
+  return text.replace(/\s{2,}/g, " ").trim();
 }
 
 function dateFrom(value) {
