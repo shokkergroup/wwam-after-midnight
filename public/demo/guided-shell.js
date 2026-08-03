@@ -346,6 +346,8 @@
       };
       var target = document.getElementById(targetId);
       var targetSection = target && target.closest ? target.closest("main > section") : null;
+      var hubId = routeHubIds[active];
+      var isRouteHome = !targetId || targetId === hubId;
       var sections = Array.prototype.slice.call(document.querySelectorAll("main > section"));
       var targetIndex = targetSection ? sections.indexOf(targetSection) : -1;
       var visibleBeforeTarget = targetIndex < 0 ? [] : sections.slice(0, targetIndex).filter(function (section) {
@@ -450,6 +452,16 @@
           }, 120);
         });
       }
+      // A pointer click intentionally releases the longer route pin so the
+      // visitor can scroll immediately. That release can happen before the
+      // browser finishes collapsing hidden shelves, leaving a clicked
+      // doorway low under the sticky header. One bounded correction keeps
+      // click routes and copied deep links equally crisp without trapping the
+      // reader in an auto-scroll loop.
+      window.setTimeout(function () {
+        if (document.body.dataset.guidedTarget !== (targetId || "top")) return;
+        move("auto");
+      }, 320);
     }
   }
 

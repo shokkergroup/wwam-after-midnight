@@ -28,12 +28,15 @@ test("route landing survives lazy section growth but yields immediately to the v
   const journey = shell.slice(start, end);
 
   assert.match(journey, /new ResizeObserver/);
+  assert.match(journey, /var isRouteHome = !targetId \|\| targetId === hubId/);
   assert.match(journey, /routeObserver\.observe\(section\)/);
   assert.match(journey, /WWAMFeatureLoader\.hydrate\(section\)/);
   assert.match(journey, /addEventListener\("wheel", releaseRoutePin/);
   assert.match(journey, /addEventListener\("touchstart", releaseRoutePin/);
   assert.match(journey, /addEventListener\("pointerdown", releaseRoutePin/);
   assert.match(journey, /5000/);
+  assert.match(journey, /dataset\.guidedTarget !== \(targetId \|\| "top"\)/);
+  assert.match(journey, /setTimeout\(function \(\) \{[\s\S]*?move\("auto"\);[\s\S]*?\}, 320\)/);
   assert.doesNotMatch(journey, /12000/);
 });
 
@@ -43,5 +46,5 @@ test("primary route clicks avoid the browser's competing native anchor jump and 
   assert.match(shell, /target\.focus\(\{ preventScroll: true \}\)/);
   assert.match(shell, /setJourney\(journeyFromLocation\(\), initialTarget, \{ behavior: "auto" \}\)/);
   assert.match(html, /guided-shell\.css\?v=1\.0\.2-coherent/);
-  assert.match(html, /guided-shell\.js\?v=1\.3\.1-single-watchalong-shelf/);
+  assert.match(html, /guided-shell\.js\?v=1\.3\.2-click-route-realign/);
 });
