@@ -574,14 +574,37 @@ function recurringBits(events, moments, fan, duration, listeningRoutes = []) {
   }).filter(Boolean);
 }
 function bestBits(moments, fan, listeningRoutes = [], audioCandidates = []) {
-  const seen = new Set();
+  const routeKey = (moment) => `${Math.round(Number(moment?.t || 0))}|${clean(moment?.category || moment?.label || "SOURCE RECEIPT")}`;
+  const routeRank = (moment) => {
+    const evidence = clean(moment?.evidenceBasis || "").toLowerCase();
+    const excerptPresent = Boolean(clean(moment?.excerpt || moment?.quote || moment?.captionExcerpt));
+    let rank = 0;
+    // A local Whisper route is the most trustworthy public navigation source,
+    // even when the exact window is acoustic-only and therefore has no quote.
+    if (/whisper/.test(evidence)) rank += 5;
+    if (moment?.captionAligned === true) rank += 4;
+    if (excerptPresent) rank += 2;
+    if (/canonical audio/.test(evidence)) rank += 1;
+    return rank;
+  };
   // A caption-ledger episode can already have a real audio watch pass while
   // its caption window is too weak to print as a quote. Keep those acoustic
   // doors in BEST BITS anyway: the UI renders them as “press play” routes,
   // never as invented dialogue. Otherwise a show with dozens of ranked audio
   // candidates falsely looks like it has no best bits at all.
-  const coveredAudioKeys = new Set(listeningRoutes.filter((route) => route.captionAligned === true).map((route) => `${Math.round(Number(route.t || 0))}|${clean(route.category || route.label || "SOURCE RECEIPT")}`));
-  const acousticRoutes = audioCandidates.filter((candidate) => !coveredAudioKeys.has(`${Math.round(Number(candidate.t || 0))}|${clean(candidate.category || candidate.label || "SOURCE RECEIPT")}`)).map((candidate) => ({
+  // Reserve every timestamp/lane already represented by the listening shelf,
+  // not only caption-aligned routes. Otherwise a Whisper acoustic-only door is
+  // immediately duplicated by the stale automatic-caption candidate at the
+  // same instant.
+  const listeningKeys = new Set(listeningRoutes.map(routeKey));
+  const coveredAudioKeys = new Set(listeningRoutes.filter((route) => route.captionAligned === true).map(routeKey));
+  const acousticSeen = new Set();
+  const acousticRoutes = audioCandidates.filter((candidate) => {
+    const key = routeKey(candidate);
+    if (listeningKeys.has(key) || coveredAudioKeys.has(key) || acousticSeen.has(key)) return false;
+    acousticSeen.add(key);
+    return true;
+  }).map((candidate) => ({
     ...candidate,
     excerpt: "",
     captionExcerpt: "",
@@ -589,12 +612,15 @@ function bestBits(moments, fan, listeningRoutes = [], audioCandidates = []) {
     evidenceBasis: candidate.evidenceBasis || "canonical audio route; playback remains the authority",
     reviewStatus: candidate.reviewStatus || "audio-feature-candidate; playback remains the authority"
   }));
-  const routes = moments.concat(fan, listeningRoutes, acousticRoutes).filter((moment) => {
-    const key = `${Math.round(Number(moment.t || 0))}|${clean(moment.category || moment.label || "SOURCE RECEIPT")}|${clean(moment.excerpt || moment.quote || moment.captionExcerpt || "").slice(0, 80)}`;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
+  const routeMap = new Map();
+  moments.concat(fan, listeningRoutes, acousticRoutes).forEach((moment) => {
+    const key = routeKey(moment);
+    const previous = routeMap.get(key);
+    if (!previous || routeRank(moment) > routeRank(previous) || (routeRank(moment) === routeRank(previous) && Number(moment.score || 0) > Number(previous.score || 0))) {
+      routeMap.set(key, moment);
+    }
   });
+  const routes = Array.from(routeMap.values());
   return routes.slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || Number(a.t || 0) - Number(b.t || 0)).map((moment, index) => ({
     rank: index + 1, t: Number(moment.t || 0), end: Number(moment.end || moment.t || 0), category: clean(moment.category || moment.label || "SOURCE RECEIPT"),
     label: clean(moment.label || moment.category || "SOURCE RECEIPT"), excerpt: safeExcerpt(moment.excerpt || moment.quote || moment.captionExcerpt || "", 16), captionAligned: moment.captionAligned === false ? false : moment.captionAligned === true ? true : null, score: Number(moment.score || 0),

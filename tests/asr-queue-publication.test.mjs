@@ -167,6 +167,15 @@ test("best-bits keeps acoustic-only doors visible without inventing quotes", () 
   assert.match(generator, /bestBits\(moments, fan, listeningRoutes, audioCandidates\)/);
 });
 
+test("best-bits collapses duplicate timestamp lanes and prefers local evidence", () => {
+  const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-livestream-canon.mjs"), "utf8");
+  assert.match(generator, /const routeKey =/);
+  assert.match(generator, /const routeRank =/);
+  assert.match(generator, /const listeningKeys = new Set\(listeningRoutes\.map\(routeKey\)\)/);
+  assert.match(generator, /const routeMap = new Map\(\)/);
+  assert.match(generator, /routeRank\(moment\) > routeRank\(previous\)/);
+});
+
 test("sentence-safe receipts preserve punctuation across caption speaker markers", () => {
   const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-livestream-canon.mjs"), "utf8");
   assert.match(generator, /punctuation boundary followed by a plausible sentence starter/);
