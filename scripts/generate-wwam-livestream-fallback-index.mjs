@@ -80,7 +80,7 @@ for (const [id, episode] of Object.entries(json.episodes || {})) {
 
 const payload = {
   schema: "shokker-wwam-livestream-fallback-index/v1",
-  generated: new Date().toISOString(),
+  generated: json.generated || json.generatedAt || json.version || "livestream-audio-pass",
   policy: "Small source-local category lane index; audio windows remain candidates and playback remains authoritative.",
   laneOrder,
   maxCandidatesPerEpisode: 10,
