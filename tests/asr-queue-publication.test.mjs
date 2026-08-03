@@ -36,3 +36,11 @@ test("overnight supervisor retries a genuinely stalled queue worker", () => {
   assert.match(supervisor, /Stop-Process -Id/);
   assert.match(supervisor, /QuietMinutes = 45/);
 });
+
+test("transcript publication audit checks both visible canons", () => {
+  const audit = fs.readFileSync(path.join(root, "scripts", "audit-wwam-transcript-publication.mjs"), "utf8");
+  assert.match(audit, /wwam-livestream-canon\.js/);
+  assert.match(audit, /wwam-watchalong-canon\.js/);
+  assert.match(audit, /public-page-not-using-local-whisper/);
+  assert.match(audit, /TRANSCRIPT PUBLICATION GATE: PASS/);
+});
