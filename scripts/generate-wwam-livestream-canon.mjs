@@ -320,17 +320,33 @@ function machineShapedWhyItMatters(value) {
 function whyItMattersRead(title, series, tier, shape, topics, moments, audioCandidates, audioStrongest, audioSignalMix, fan, characterCues, recurring, decodedAudio) {
   const routeCount = Math.max(moments.length, audioCandidates.length);
   const routeLine = routeCount
-    ? `There are ${routeCount} playable door${routeCount === 1 ? "" : "s"} attached to the source`
-    : "the topic and chapter rails are the honest entry points";
+    ? `${routeCount} jump-in point${routeCount === 1 ? "" : "s"} wait on the page`
+    : "the topic and chapter rails are the best way in";
   const lane = audioSignalMix[0] || recurring.slice().sort((left, right) => Number(right.candidateCount || 0) - Number(left.candidateCount || 0))[0]?.label || "OPEN MIC";
   const lead = audioStrongest || moments.slice().sort((left, right) => Number(right.score || 0) - Number(left.score || 0))[0] || null;
-  const leadLine = lead ? `The standout door is ${clock(lead.t)} // ${lead.category || lead.label || "SOURCE RECEIPT"}.` : "There is no single standout door, so start with the chapter rail.";
+  const leadLine = lead ? `The first stop I would make is ${clock(lead.t)} for ${humanMomentLabel(lead.category || lead.label || "SOURCE RECEIPT")}.` : "There is no single loudest moment, so start with the chapter rail.";
   const topicList = listPhrase(topics.slice(0, 3).map((topic) => topic.name));
-  const fanLine = fan.length ? `${fan.length} fan callout${fan.length === 1 ? "" : "s"} stay in the room` : "no clear fan callout cluster surfaced in this pass";
+  const fanLine = fan.length ? `the chat leaves ${fan.length} fan callout${fan.length === 1 ? "" : "s"} in the mix` : "the chat stays quiet on this tape";
   const characterList = listPhrase(characterCues.slice().sort((left, right) => Number(right.mentions || 0) - Number(left.mentions || 0)).slice(0, 3).map((character) => character.name));
-  const characterLine = characterCues.length ? `Character traffic includes ${characterList}; open the surrounding exchange to hear who is actually doing the bit.` : "No character cue cleared the page's confidence bar.";
-  const audioLine = decodedAudio && audioCandidates.length ? `The listening pass adds ${audioCandidates.length} extra doors and leans ${lane}.` : audioCandidates.length ? `The caption-aligned listening lane adds ${audioCandidates.length} extra doors.` : "No extra listening lane is attached in this pass.";
-  return `${title} earns a place in the ${series.label} shelf because ${routeLine} around ${topicList}. ${leadLine} ${fanLine}, and ${characterLine} ${audioLine} Press play for the timing, delivery, and context that text cannot carry.`;
+  const characterLine = characterCues.length ? `The character traffic runs through ${characterList}; open the surrounding exchange to hear the bit land.` : "No recurring character bit rises above the rest here.";
+  const audioLine = decodedAudio && audioCandidates.length ? `The listening pass adds ${audioCandidates.length} more places to jump in, with ${lane.toLowerCase()} doing the heavy lifting.` : audioCandidates.length ? `The caption-aligned pass adds ${audioCandidates.length} more places to jump in.` : "There is no extra listening lane attached to this one yet.";
+  return `${title} earns a place in the ${series.label} shelf because ${routeLine} around ${topicList}. ${leadLine} ${fanLine}, and ${characterLine} ${audioLine} Press play when you want the timing and delivery that a recap cannot fake.`;
+}
+function voiceVariant(title, date) {
+  return Array.from(`${title}|${date}`).reduce((sum, character) => sum + character.charCodeAt(0), 0) % 3;
+}
+function humanMomentLabel(value) {
+  const label = clean(value).toLowerCase();
+  const labels = {
+    "take gets nuclear": "a take gets nuclear",
+    "room break": "the room breaks",
+    "the room breaks": "the room breaks",
+    "wwam up in ya": "an Up In Ya detour",
+    "straight to steve's asshole": "a Straight to Steve's Asshole verdict",
+    "fan signal": "a fan callout",
+    "full send": "a full-send stretch"
+  };
+  return labels[label] || label || "the first big turn";
 }
 function voiceSummary(title, date, shape, topics, moments, fan, recurring, characterCues, evidenceTier, listeningRoutes = []) {
   const topicList = listPhrase(topics.slice(0, 4).map((topic) => topic.name));
@@ -341,22 +357,49 @@ function voiceSummary(title, date, shape, topics, moments, fan, recurring, chara
   const fanTypes = Array.from(new Set(fan.map((signal) => signal.signalType))).slice(0, 2);
   const frame = contentFrame(title, shape, topics);
   const mood = laneLead?.label === "ROOM BREAK" ? "the room keeps losing its composure" : laneLead?.label === "TAKE GETS NUCLEAR" ? "the takes keep catching fire" : laneLead?.label === "WWAM UP IN YA" ? "the conversation gets gloriously filthy" : laneLead?.label === "STRAIGHT TO STEVE'S ASSHOLE" ? "the verdict lane gets mean" : "the side conversations keep widening";
+  const variant = voiceVariant(title, date);
+  const frameText = String(frame).replace(/^an? /i, "");
+  const openerSets = /ranking-night/i.test(frame)
+    ? [
+      `${clean(title)} is a ranking-night argument from ${date}; nobody came to quietly agree.`,
+      `On ${date}, ${clean(title)} turns a simple ranking into the kind of argument WWAM does best.`,
+      `${clean(title)} lands on ${date} with the rankings out and the gloves off.`
+    ]
+    : /fan-driven/i.test(frame)
+      ? [
+        `${clean(title)} is a fan-powered open line from ${date}, with the room taking requests as it goes.`,
+        `On ${date}, ${clean(title)} lets the audience steer the conversation into its best side streets.`,
+        `${clean(title)} is the kind of ${frameText} where the chat is part of the cast.`
+      ]
+      : /spoiler-review/i.test(frame)
+        ? [
+          `${clean(title)} is a spoiler-review hang from ${date}; the polite version of the take did not make the edit.`,
+          `On ${date}, ${clean(title)} pulls the spoiler curtain back and lets the verdicts get loud.`,
+          `${clean(title)} arrives on ${date} with spoilers, hard opinions, and very little patience.`
+        ]
+        : [
+          `${clean(title)} is ${frame} from ${date}, and the side conversations keep finding new trouble.`,
+          `On ${date}, ${clean(title)} turns ${frame} into a long night of movie talk and sudden detours.`,
+          `${clean(title)} is ${frame} that keeps widening whenever somebody says “one more thing.”`
+        ];
+  const opening = openerSets[variant];
+  const topicLine = topicList ? `The route runs through ${topicList}` : "The route stays loose";
   const route = hot
-    ? `${moments.length ? "Start at" : "Your best first listening stop is"} ${clock(hot.t)} for ${String(hot.category || "the first big turn").toLowerCase()}; the whole exchange is waiting behind that door.`
+    ? `${moments.length ? "For the quickest temperature check, jump to" : "Your best first listening stop is"} ${clock(hot.t)} for ${humanMomentLabel(hot.category || "the first big turn")}.`
     : "Start with the chapter rail and let the room choose the first detour.";
   const fanLine = fan.length
-    ? `The chat is part of the show too: ${fan.length} fan callout${fan.length === 1 ? "" : "s"}${fanTypes.length ? `, including ${listPhrase(fanTypes)}` : ""}.`
+    ? `The chat is part of the show too: ${fan.length} fan callout${fan.length === 1 ? "" : "s"}${fanTypes.length ? `, including ${listPhrase(fanTypes).replace(/ CUE/g, "")}` : ""}.`
     : "The fan lane stays quiet on this tape.";
   const characterLine = characterCues.length
-    ? `The recurring-character traffic includes ${characterList}; open those doors for the surrounding bit, not just the keyword.`
-    : "No recurring-character bit clears the page's confidence bar here.";
+    ? `The recurring-character traffic includes ${characterList}; open the surrounding exchange, not just the keyword.`
+    : "No recurring-character bit takes over this tape.";
   const routeLine = routeMoments.length
-    ? `There are ${routeMoments.length} playable doors in the local file.`
-    : "The local file keeps the topic doors and the full official player.";
+    ? `The page marks ${routeMoments.length} playable doors—places to jump straight into the tape.`
+    : "The page keeps the topic doors and the full official player.";
   const tierLine = evidenceTier === "source-brief"
-    ? "This one is deliberately compact until a stronger local receipt arrives."
-    : "The page keeps the route honest: press play for the delivery, timing, and speaker context.";
-  return `${clean(title)} is ${frame} from ${date}. It circles ${topicList} while ${mood}. ${route} ${routeLine} ${fanLine} ${characterLine} ${tierLine}`;
+    ? "This one stays compact until a stronger local receipt arrives."
+    : "Press play for the delivery and timing that the text can only point toward.";
+  return `${opening} ${topicLine} while ${mood}. ${route} ${routeLine} ${fanLine} ${characterLine} ${tierLine}`;
 }
 function normalizeFanSignals(items) {
   return (items || []).map((signal) => ({ ...signal, signalType: clean(signal.signalType || fanSignalType(signal.excerpt || "")) })).filter((signal) => signal.excerpt || Number(signal.t || 0) >= 0);
