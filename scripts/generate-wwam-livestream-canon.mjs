@@ -369,7 +369,7 @@ function whyItMattersRead(title, series, tier, shape, topics, moments, audioCand
   const fanLine = fan.length ? `The chat leaves ${fan.length} fan callout${fan.length === 1 ? "" : "s"} in the mix` : "The chat stays quiet on this tape";
   const characterList = listPhrase(characterCues.slice().sort((left, right) => Number(right.mentions || 0) - Number(left.mentions || 0)).slice(0, 3).map((character) => character.name));
   const characterLine = characterCues.length ? `The character traffic runs through ${characterList}; open the surrounding exchange to hear the bit land.` : "No recurring character bit rises above the rest here.";
-  const audioLine = decodedAudio && audioCandidates.length ? `The listening pass adds ${audioCandidates.length} more places to jump in; its busiest lane is ${lane.toLowerCase()}.` : audioCandidates.length ? `The caption-aligned pass adds ${audioCandidates.length} more places to jump in.` : "There is no extra listening lane attached to this one yet.";
+  const audioLine = decodedAudio && audioCandidates.length ? `The listening pass adds ${audioCandidates.length} more places to jump in; its busiest lane is ${lane.toLowerCase()}.` : audioCandidates.length ? `The listening shelf adds ${audioCandidates.length} more places to jump in.` : "There is no extra listening lane attached to this one yet.";
   return `${title} earns a place in the ${series.label} shelf because ${routeLine} around ${topicList}. ${leadLine} ${fanLine}. ${characterLine} ${audioLine} Press play when you want the timing and delivery that a recap cannot fake.`;
 }
 function voiceVariant(title, date) {
@@ -659,7 +659,7 @@ const episodes = canonicalMetadata.map((record) => {
   const audioLine = decodedAudio && audioCandidates.length
     ? `The listening pass adds ${audioCandidates.length} extra doors; its strongest lane lands at ${clock(audioStrongest?.t || 0)} // ${audioStrongest?.category || "SOURCE RECEIPT"}. ${audioSignalMix.length ? `The room leans ${audioSignalMix.slice(0, 3).join(", ")}.` : ""}`
     : watchPassRaw && audioCandidates.length
-      ? `The caption-aligned listening lane retains ${audioCandidates.length} extra doors, led by ${clock(audioStrongest?.t || 0)} // ${audioStrongest?.category || "SOURCE RECEIPT"}.`
+      ? `The listening shelf retains ${audioCandidates.length} extra doors, led by ${clock(audioStrongest?.t || 0)} // ${audioStrongest?.category || "SOURCE RECEIPT"}.`
       : "No extra listening lane is attached to this file yet.";
   const topicNames = topics.slice(0, 3).map((topic) => topic.name);
   const topicRead = topicNames.length === 1 ? topicNames[0] : topicNames.length === 2 ? `${topicNames[0]} and ${topicNames[1]}` : topicNames.length > 2 ? `${topicNames.slice(0, -1).join(", ")}, and ${topicNames.at(-1)}` : "the night's open mic";
