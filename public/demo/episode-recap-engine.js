@@ -2,7 +2,7 @@
   "use strict";
 
   var SCHEMA = "shokker-episode-recap/v1";
-  var VERSION = "1.9.8";
+  var VERSION = "1.9.9";
 
   function clean(value) {
     return String(value == null ? "" : value).trim();
@@ -1554,8 +1554,14 @@
       var chunkStart = chunk.reduce(function (earliest, receipt) {
         return Math.min(earliest, storyTime(receipt));
       }, storyTime(chunk[0]));
+      var previousStorySubject = segments.length ?
+        clean(segments[segments.length - 1].primarySubject) : "";
       var primarySubject = subjectCandidates.find(function (label) {
-        return !usedStorySubjects[label.toLowerCase()];
+        var key = label.toLowerCase();
+        return !usedStorySubjects[key] &&
+          key !== previousStorySubject.toLowerCase();
+      }) || subjectCandidates.find(function (label) {
+        return label.toLowerCase() !== previousStorySubject.toLowerCase();
       }) || subjectCandidates[0] || fallbackNarrativeSubject(
         [receiptDisplayLabel(strongestAnchor)].concat(momentLabels),
         chunkStart
