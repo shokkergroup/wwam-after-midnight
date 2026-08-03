@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.32.6";
+  var VERSION = "1.32.7";
   var DOSSIER_SCHEMA = "shokker-source-dossier/v1";
   var QUERY_SCHEMA = "shokker-source-query/v1";
   var QUERY_RESULT_SCHEMA = "shokker-source-query-result/v1";
@@ -2612,6 +2612,9 @@
       var asrReceiptCount = receipts.filter(function (receipt) {
         return /faster-whisper transcript excerpt/i.test(clean(receipt.evidenceBasis));
       }).length;
+      var whisperBackedSource = clean(source.captionSourceKind).toLowerCase() ===
+        "local-whisper-transcript";
+      var whisperPassVisible = asrReceiptCount > 0 || whisperBackedSource;
       receipts.forEach(function (receipt) {
         var category = clean(receipt.label) || "LISTENING SPIKE";
         categoryCounts[category] = (categoryCounts[category] || 0) + 1;
@@ -2645,13 +2648,13 @@
       return '<section class="source-dossier-listening-pass" id="sourceDossierListeningPass" ' +
         'data-source-listening-count="' + esc(receipts.length) + '" data-source-listening-asr-count="' +
         esc(asrReceiptCount) + '"><header><div><span>' +
-        (asrReceiptCount ? 'THE TAPE // WHISPER-ALIGNED LISTENING PASS' :
-          'THE TAPE // LISTENING PASS') + '</span><h4>' +
-        (asrReceiptCount ? 'HEAR THE WINDOWS, THEN FOLLOW THE CLEANER TRANSCRIPT.' :
-          'HEAR THE WINDOWS THE AUDIO PASS FOUND.') + '</h4></div>' +
+         (whisperPassVisible ? 'THE TAPE // WHISPER-ALIGNED LISTENING PASS' :
+           'THE TAPE // LISTENING PASS') + '</span><h4>' +
+         (whisperPassVisible ? 'HEAR THE WINDOWS, THEN FOLLOW THE CLEANER TRANSCRIPT.' :
+           'HEAR THE WINDOWS THE AUDIO PASS FOUND.') + '</h4></div>' +
         '<b>' + esc(receipts.length) + ' RANKED WINDOWS</b></header><p class="source-dossier-listening-intro">' +
-        (asrReceiptCount ?
-          'This source has a bounded local Whisper transcript aligned to its audio-ranked windows. ' :
+         (whisperPassVisible ?
+           'This source has a bounded local Whisper transcript aligned to its audio-ranked windows. ' :
           'This is the source-local audio re-rank: loudness, caption alignment, and recurring WWAM signals decide where to start. ') +
         'It does not pretend to know who spoke, what was on camera, or whether a line is objectively funny. Press play and let the tape decide.</p>' +
         '<div class="source-dossier-listening-counts">' + categoryMarkup + '</div><div class="source-dossier-listening-grid">' +

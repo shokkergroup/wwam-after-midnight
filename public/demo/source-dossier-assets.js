@@ -43,7 +43,7 @@
     "wwam-source-dossier-adapter.js?v=1.22.0-asr-excerpt-overlay",
     "source-query-engine.js?v=1.6.1-lanes",
     "aftermath-pack-engine.js?v=1.0.0",
-    "source-dossier-ui.js?v=1.32.6-caption-marker-quarantine",
+    "source-dossier-ui.js?v=1.32.7-whisper-source-state",
     "wwam-dossier-editorial.js?v=1.3.2-damage-priority",
   ]);
 })(window);
