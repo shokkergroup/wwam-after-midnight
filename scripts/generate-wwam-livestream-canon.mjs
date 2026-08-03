@@ -86,7 +86,7 @@ function captionWindow(events, index, before = 5, after = 12) {
   });
   return deduped.join(" ");
 }
-function captionWindowAt(events, seconds) {
+function captionWindowAt(events, seconds, maxDistance = 42) {
   if (!events.length) return "";
   let nearest = 0;
   let distance = Infinity;
@@ -97,15 +97,18 @@ function captionWindowAt(events, seconds) {
       distance = nextDistance;
     }
   });
+  // A bounded Whisper ledger intentionally skips long quiet stretches. Do
+  // not borrow a sentence from the nearest unrelated window just to fill a
+  // card; that creates the same misleading caption drift we are removing.
+  if (distance > maxDistance) return "";
   return captionWindow(events, nearest);
 }
 function refreshMachineMomentExcerpt(moment, events) {
-  if (!events.length || moment?.reviewStatus !== "machine-candidate") return moment;
+  if (!events.length || moment?.reviewStatus === "full-tape-human-editorial-read") return moment;
   const localExcerpt = excerpt(captionWindowAt(events, moment.t), 24);
-  if (!localExcerpt) return moment;
   return {
     ...moment,
-    excerpt: localExcerpt,
+    excerpt: localExcerpt || "No local transcript window aligned; open the player at this timestamp.",
     evidenceBasis: "source-local Whisper transcript alignment",
     reviewStatus: "machine-candidate"
   };
@@ -550,26 +553,31 @@ function heatmap(duration, events, moments, topics) {
   });
 }
 function characters(events) {
+  const evidenceBasis = events.some((event) => event.evidenceType === "local-whisper-transcript")
+    ? "source-local Whisper transcript character cue"
+    : "source-local automatic caption character cue";
   return ["Dr. Loomis", "Dr. Challis", "Slenderman", "Corey Feldman", "Michael Myers", "Freddy", "Jason", "Chucky"].map((name) => {
     const pattern = new RegExp(name.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&"), "i");
     const hits = events.filter((event) => pattern.test(event.text));
-    return hits.length ? { name, mentions: hits.length, first: Math.round(hits[0].t), peak: Math.round(hits[0].t), receipt: excerpt(hits[0].text, 18), evidenceBasis: "source-local automatic caption character cue", reviewStatus: "machine-candidate" } : null;
+    return hits.length ? { name, mentions: hits.length, first: Math.round(hits[0].t), peak: Math.round(hits[0].t), receipt: excerpt(hits[0].text, 18), evidenceBasis, reviewStatus: "machine-candidate" } : null;
   }).filter(Boolean);
 }
 function characterCues(events, duration, listeningRoutes = []) {
   const receiptLimit = Math.max(4, Math.round((duration || 1) / 600));
+  const localWhisper = events.some((event) => event.evidenceType === "local-whisper-transcript");
+  const captionEvidenceBasis = localWhisper ? "source-local Whisper transcript character cue" : "source-local automatic caption character cue";
   return CHARACTER_DEFS.map((character) => {
     const hits = events.map((event, index) => ({ event, index })).filter((item) => character.pattern.test(item.event.text));
     const routeHits = listeningRoutes.filter((route) => character.pattern.test(route.captionExcerpt || route.excerpt || ""));
     if (!hits.length && !routeHits.length) return null;
     const ranked = hits.slice().sort((a, b) => words(b.event.text).length - words(a.event.text).length || a.event.t - b.event.t);
-    const captionReceipts = ranked.map((item) => ({ t: Math.round(item.event.t), end: Math.round(item.event.end || item.event.t + 36), excerpt: excerpt(captionWindow(events, item.index), 24), evidenceBasis: "source-local automatic caption character cue", reviewStatus: "machine-candidate", receiptKind: "caption-cue" }));
-    const audioReceipts = routeHits.slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || Number(a.t || 0) - Number(b.t || 0)).map((route) => ({ t: Math.round(route.t || 0), end: Math.round(route.end || route.t || 0), excerpt: excerpt(route.captionExcerpt || route.excerpt || "", 24), evidenceBasis: "canonical audio route + source-local caption character cue; performance not established", reviewStatus: "audio-feature-candidate; playback remains the authority", receiptKind: "audio-character-route" }));
+    const captionReceipts = ranked.map((item) => ({ t: Math.round(item.event.t), end: Math.round(item.event.end || item.event.t + 36), excerpt: excerpt(captionWindow(events, item.index), 24), evidenceBasis: captionEvidenceBasis, reviewStatus: "machine-candidate", receiptKind: "caption-cue" }));
+    const audioReceipts = routeHits.slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || Number(a.t || 0) - Number(b.t || 0)).map((route) => ({ t: Math.round(route.t || 0), end: Math.round(route.end || route.t || 0), excerpt: excerpt(route.captionExcerpt || route.excerpt || "", 24), evidenceBasis: localWhisper ? "canonical audio route + source-local Whisper transcript character cue; performance not established" : "canonical audio route + source-local caption character cue; performance not established", reviewStatus: "audio-feature-candidate; playback remains the authority", receiptKind: "audio-character-route" }));
     const receipts = [...captionReceipts, ...audioReceipts].sort((a, b) => Number(b.receiptKind === "audio-character-route") - Number(a.receiptKind === "audio-character-route") || a.t - b.t).filter((receipt, index, all) => index === all.findIndex((candidate) => Math.abs(candidate.t - receipt.t) < 4)).slice(0, receiptLimit);
     return {
       key: character.key, name: character.name, mentions: hits.length + routeHits.length, captionMentions: hits.length, listeningRouteMentions: routeHits.length, first: Math.round((hits[0]?.event?.t ?? routeHits[0]?.t ?? 0)), peak: Math.round((ranked[0]?.event?.t ?? routeHits[0]?.t ?? 0)),
       receipts,
-      evidenceBasis: routeHits.length ? "source-local caption character cue + bounded audio routes; host identity and performance are not diarized" : "source-local automatic caption character cue; host identity is not diarized", reviewStatus: "machine-candidate"
+      evidenceBasis: routeHits.length ? `${captionEvidenceBasis} + bounded audio routes; host identity and performance are not diarized` : `${captionEvidenceBasis}; host identity is not diarized`, reviewStatus: "machine-candidate"
     };
   }).filter(Boolean);
 }
@@ -690,11 +698,13 @@ const episodes = canonicalMetadata.map((record) => {
     // clickable route so the listening shelf cannot reintroduce stale or
     // mangled caption text while the main dossier is already clean.
     excerpt: normalizeCaptionText(localWhisper
-      ? (captionWindowAt(events, candidate.t) || candidate.captionExcerpt || candidate.excerpt || "")
+      ? (captionWindowAt(events, candidate.t) || "No local transcript window aligned; open the player at this timestamp.")
       : (candidate.captionExcerpt || candidate.excerpt || "")),
     evidenceBasis: localWhisper && captionWindowAt(events, candidate.t)
       ? "canonical audio + source-local Whisper transcript alignment"
-      : candidate.evidenceBasis || "source-local listening route",
+      : localWhisper
+        ? "canonical audio route; local Whisper window unavailable at this timestamp"
+        : candidate.evidenceBasis || "source-local listening route",
     reviewStatus: candidate.reviewStatus || "machine-candidate"
   }));
   const decodedAudio = watchPassRaw?.status === "audio-feature-pass" && watchPassRaw?.media?.canonicalAudioAvailable !== false;
@@ -756,8 +766,18 @@ const episodes = canonicalMetadata.map((record) => {
   const watchPass = watchPassRaw ? {
     ...watchPassRaw,
     candidates: (watchPassRaw.candidates || []).map((candidate) => {
-      const captionExcerpt = normalizeCaptionText(candidate.captionExcerpt || "");
-      return { ...candidate, captionExcerpt: captionExcerpt || "No caption fragment aligned; open the source and listen to this acoustic window.", captionAligned: Boolean(captionExcerpt) };
+      const localExcerpt = localWhisper ? captionWindowAt(events, candidate.t) : "";
+      const captionExcerpt = normalizeCaptionText(localWhisper ? localExcerpt : (candidate.captionExcerpt || ""));
+      return {
+        ...candidate,
+        captionExcerpt: captionExcerpt || (localWhisper ? "No local transcript window aligned; open the player at this timestamp." : "No caption fragment aligned; open the source and listen to this acoustic window."),
+        captionAligned: Boolean(captionExcerpt),
+        evidenceBasis: localWhisper && captionExcerpt
+          ? "canonical audio + source-local Whisper transcript alignment"
+          : localWhisper
+            ? "canonical audio route; local Whisper window unavailable at this timestamp"
+            : candidate.evidenceBasis || "source-local listening route"
+      };
     })
   } : null;
   const rssAudioPass = livestreamRssAudio.records?.[id] || null;
