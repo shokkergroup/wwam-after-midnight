@@ -286,14 +286,25 @@
     // exactly the path that used to hide the richer cold Show Wiki. Always
     // hydrate the compact Watchalong route index before the fallback render;
     // it is source-local and small, and the full canon remains lazy.
-    if (window.WWAM_WATCHALONG_ROUTE_INDEX || window.WWAM_WATCHALONG_CANON) return Promise.resolve();
-    if (watchalongRouteLoadPromise) return watchalongRouteLoadPromise;
-    watchalongRouteLoadPromise = loadDemoScript("wwam-watchalong-route-index.js?v=1.2.1-alternate-routes")
-      .catch(function (error) {
-        watchalongRouteLoadPromise = null;
-        throw error;
-      });
-    return watchalongRouteLoadPromise;
+    var routeReady;
+    if (window.WWAM_WATCHALONG_ROUTE_INDEX || window.WWAM_WATCHALONG_CANON) {
+      routeReady = Promise.resolve();
+    } else if (watchalongRouteLoadPromise) {
+      routeReady = watchalongRouteLoadPromise;
+    } else {
+      watchalongRouteLoadPromise = loadDemoScript("wwam-watchalong-route-index.js?v=1.2.1-alternate-routes")
+        .catch(function (error) {
+          watchalongRouteLoadPromise = null;
+          throw error;
+        });
+      routeReady = watchalongRouteLoadPromise;
+    }
+    // The bounded Whisper excerpt lane is tiny compared with the full dossier
+    // and gives the cold shell real listening receipts while the larger bundle
+    // is still loading. It never carries speaker, visual, or intent claims.
+    var whisperReady = window.WWAM_LIVESTREAM_ASR_EXCERPTS ? Promise.resolve() :
+      loadDemoScript("wwam-livestream-asr-excerpts.js?v=1.0.0-latest-local-whisper");
+    return Promise.all([routeReady, whisperReady]);
   }
 
   function loadArchiveAtlas() {
@@ -748,6 +759,25 @@
     if (source.episodeGuide && Array.isArray(source.episodeGuide.cuts)) raw = raw.concat(source.episodeGuide.cuts);
     if (source.editorial && Array.isArray(source.editorial.cuts)) raw = raw.concat(source.editorial.cuts);
     if (source.watchPass && Array.isArray(source.watchPass.candidates)) raw = raw.concat(source.watchPass.candidates);
+    var whisperRegistry = typeof window !== "undefined" ? window.WWAM_LIVESTREAM_ASR_EXCERPTS : null;
+    var whisperSource = whisperRegistry && whisperRegistry.sources && whisperRegistry.sources[sourceId];
+    if (whisperSource && Array.isArray(whisperSource.candidates)) {
+      // Only publish complete, bounded excerpts in the fallback rail. Empty
+      // candidates remain useful as private alignment data, but showing them as
+      // if they were quotes makes a cold route feel machine-made.
+      raw = raw.concat(whisperSource.candidates.filter(function (candidate) {
+        return candidate && String(candidate.excerpt || "").trim();
+      }).map(function (candidate) {
+        return {
+          at: candidate.t,
+          label: "WHISPER // LISTENING WINDOW",
+          excerpt: candidate.excerpt,
+          score: 74,
+          sourceKind: "local-whisper",
+          reviewStatus: "machine-candidate-unreviewed",
+        };
+      }));
+    }
     var seen = {};
     return raw.map(function (moment) {
       var at = Number(moment.at != null ? moment.at : moment.t);
@@ -874,7 +904,19 @@
       return ensureWatchalongCanonForSource(sourceId).catch(function (error) {
         runtimeDiagnostics.push({at:new Date().toISOString(),operation:"watchalong route hydration",
           sourceId:sourceId,message:error&&error.message?error.message:String(error)});
-      }).then(function () { return true; });
+      }).then(function () {
+        // Repaint once, after the compact route/Whisper assets arrive, so a
+        // cold shell gains its bounded listening receipts without waiting on
+        // the full dossier. The player remains inside the page.
+        var whisperSource = window.WWAM_LIVESTREAM_ASR_EXCERPTS &&
+          window.WWAM_LIVESTREAM_ASR_EXCERPTS.sources &&
+          window.WWAM_LIVESTREAM_ASR_EXCERPTS.sources[sourceId];
+        if (whisperSource && Array.isArray(whisperSource.candidates) &&
+            whisperSource.candidates.some(function (candidate) { return candidate && String(candidate.excerpt || "").trim(); })) {
+          fallbackSourceWiki(sourceId, startTime, section);
+        }
+        return true;
+      });
     };
     var fallbackTimer = window.setTimeout(function () {
       if (fallbackShown || !document.getElementById("tapeModal").classList.contains("show")) return;

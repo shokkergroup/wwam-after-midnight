@@ -304,9 +304,37 @@ test("fallback show wiki keeps the full local dossier route map", () => {
   assert.equal(sameSecondDifferentLanes.length, 2);
 });
 
+test("fallback show wiki promotes bounded Whisper excerpts without publishing empty fragments", () => {
+  const fallbackSourceMoments = evaluateNamed("fallbackSourceMoments", {
+    tapeById: {},
+    boundedExcerpt(value) {
+      return String(value).slice(0, 240);
+    },
+    window: {
+      WWAM_LIVESTREAM_ASR_EXCERPTS: {
+        sources: {
+          ABCDEFGHIJK: {
+            candidates: [
+              { t: 120, excerpt: "A complete local transcript window." },
+              { t: 180, excerpt: "" },
+            ],
+          },
+        },
+      },
+    },
+  });
+  const routes = fallbackSourceMoments("ABCDEFGHIJK", {});
+  assert.equal(routes.length, 1);
+  assert.equal(routes[0].at, 120);
+  assert.equal(routes[0].label, "WHISPER // LISTENING WINDOW");
+  assert.match(routes[0].excerpt, /complete local transcript/i);
+});
+
 test("cold source routes paint the local fallback before optional Watchalong hydration", () => {
   assert.match(app, /function ensureWatchalongCanonForSource\(sourceId\)/);
   assert.match(app, /wwam-watchalong-route-index\.js\?v=1\.2\.1-alternate-routes/);
+  assert.match(app, /wwam-livestream-asr-excerpts\.js\?v=1\.0\.0-latest-local-whisper/);
+  assert.match(app, /WHISPER \/\/ LISTENING WINDOW/);
   assert.match(app, /WWAM_WATCHALONG_ROUTE_INDEX && window\.WWAM_WATCHALONG_ROUTE_INDEX\.sources/);
   assert.match(app, /Prefer the cold-route index\/canon record/);
   assert.ok(app.indexOf("fallbackSourceWiki(sourceId, startTime, section);") < app.indexOf("return ensureWatchalongCanonForSource(sourceId)"), "a stalled hydration cannot block the immediate local fallback shell");
