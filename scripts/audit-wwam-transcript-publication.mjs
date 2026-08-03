@@ -30,12 +30,17 @@ function statusFor(kind, episode) {
     if (caption.sourceKind !== "local-whisper-transcript") return "public-page-not-using-local-whisper";
     if (!Number(caption.events || 0)) return "local-whisper-events-empty";
     if (!Number(episode.dossier?.shape?.cuts || 0)) return "local-whisper-dossier-empty";
+    if ((episode.dossier?.cuts || []).some((cut) => /automatic caption/i.test(String(cut.evidenceBasis || "")))) return "visible-canon-still-automatic-caption";
     return "ready";
   }
   const evidence = episode.dossier?.evidence || {};
   if (evidence.type !== "local-whisper-transcript") return "public-page-not-using-local-whisper";
   if (!Number(evidence.eventsAudited || 0)) return "local-whisper-events-empty";
   if (!Array.isArray(episode.moments) || !episode.moments.length) return "local-whisper-dossier-empty";
+  const visibleLanes = [episode.bestBits, episode.fanSignals, episode.recurringBits, episode.conversationThreads]
+    .flatMap((lane) => Array.isArray(lane) ? lane : [])
+    .flatMap((item) => Array.isArray(item?.receipts) ? [item, ...item.receipts] : [item]);
+  if (visibleLanes.some((item) => /automatic caption/i.test(String(item?.evidenceBasis || "")))) return "visible-canon-still-automatic-caption";
   return "ready";
 }
 

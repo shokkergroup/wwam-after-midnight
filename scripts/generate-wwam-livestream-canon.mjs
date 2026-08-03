@@ -590,9 +590,10 @@ function normalizeMoments(items, restricted = false) {
     }))
     .filter((moment) => moment.excerpt || moment.t >= 0);
 }
-function conversationThreads(topics) {
+function conversationThreads(topics, localWhisper = false) {
+  const evidenceBasis = localWhisper ? "source-local Whisper transcript topic anchor" : "source-local automatic caption topic anchor";
   return topics.slice().sort((a, b) => Number(a.first || a.at || 0) - Number(b.first || b.at || 0) || Number(b.mentions || 0) - Number(a.mentions || 0)).map((topic, index) => ({
-    rank: index + 1, name: topic.name, first: Number(topic.first || topic.at || 0), peak: Number(topic.peak || topic.at || topic.first || 0), mentions: Number(topic.mentions || 0), receipt: clean(topic.receipt || "Open the source at this topic door."), evidenceBasis: "source-local automatic caption topic anchor", reviewStatus: "machine-candidate"
+    rank: index + 1, name: topic.name, first: Number(topic.first || topic.at || 0), peak: Number(topic.peak || topic.at || topic.first || 0), mentions: Number(topic.mentions || 0), receipt: clean(topic.receipt || "Open the source at this topic door."), evidenceBasis, reviewStatus: "machine-candidate"
   }));
 }
 function yearPass(record, events, topics, moments, fan, recurring, characterCues, existing, evidence, yearSnapshot) {
@@ -766,7 +767,7 @@ const episodes = canonicalMetadata.map((record) => {
     format: mode, seriesKey: series.key, seriesTitle: series.label, year: Number(String(record.upload_date || "").slice(0, 4) || 0),
     sourceInAtlas: atlasById.has(id), latestOutsideAtlas: !atlasById.has(id), atlasCoverage: atlasById.get(id)?.coverage || null, archiveLanes: atlasById.get(id)?.lanes || [],
     evidenceTier: tier, captioned: Boolean(events.length || existing?.captioned), wordsAudited: Number(existing?.wordsAudited || words(events.map((event) => event.text).join(" ")).length),
-    topics, conversationThreads: conversationThreads(topics), moments, chapters: chapterList, heatmap: existing?.heatmap?.length ? existing.heatmap : heatmap(Number(record.duration || 0), events, moments, topics), fanSignals: normalizeFanSignals(fan),
+    topics, conversationThreads: conversationThreads(topics, localWhisper), moments, chapters: chapterList, heatmap: existing?.heatmap?.length ? existing.heatmap : heatmap(Number(record.duration || 0), events, moments, topics), fanSignals: normalizeFanSignals(fan),
     recurringBits: recurring, bestBits: bestBits(moments, fan, listeningRoutes), characterCues: cueList,
     characters: existing?.characters || characters(events), peak: existing?.peak || moments.slice().sort((a, b) => b.score - a.score)[0] || null,
     yearPass: pass, watchPass, rssAudioPass,
