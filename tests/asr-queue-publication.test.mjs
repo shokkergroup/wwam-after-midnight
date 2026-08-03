@@ -57,6 +57,13 @@ test("transcript publication audit checks both visible canons", () => {
   assert.match(audit, /TRANSCRIPT PUBLICATION GATE: PASS/);
 });
 
+test("public receipt audit rejects clipped summary quotes", () => {
+  const audit = fs.readFileSync(path.join(root, "scripts", "audit-wwam-public-receipts.mjs"), "utf8");
+  assert.match(audit, /function inspectSummaryProse/);
+  assert.match(audit, /clipped-summary-quote/);
+  assert.match(audit, /dossier\.summary/);
+});
+
 test("livestream listening doors prefer verified Whisper excerpts", () => {
   const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-livestream-canon.mjs"), "utf8");
   assert.match(generator, /captionWindowAt\(events, candidate\.t\)/);

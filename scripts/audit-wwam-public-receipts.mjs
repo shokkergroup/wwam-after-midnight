@@ -32,9 +32,32 @@ function inspect(value, sourceId, field, failures) {
   if (/(?:\.{3,}|\u2026)\s*$/.test(text)) failures.push({ sourceId, field, kind: "trailing-ellipsis", text });
 }
 
+function inspectSummaryProse(value, sourceId, field, failures) {
+  const text = clean(value);
+  if (!text) return;
+  // Summaries are intentionally longer than receipts. Audit only the quoted
+  // transcript lines embedded inside them; those are the places where a hard
+  // clip can make an otherwise useful dossier read like gibberish.
+  const matches = text.matchAll(/[\u201c"]([^\u201d"]{8,180})[\u201d"]/g);
+  for (const match of matches) {
+    const quote = clean(match[1]);
+    if (/\b(?:this|that|it)\s+is\s+(?:a|an|the)\s+[a-z0-9'â€™-]+\.?$/i.test(quote)
+      || /\b(?:because|since|although|while|when|if)\s*\.?$/i.test(quote)
+      || /\b(?:in|on|at|for|with|to|of|from)\s+(?:so|the|a|an|this|that|it|one)\.?$/i.test(quote)) {
+      failures.push({ sourceId, field, kind: "clipped-summary-quote", text: quote });
+    }
+    if (/\[(?:screaming|yelling|shouting|laughter|music|inaudible|bleep)\]|(?:^|\s)>>(?=\s|$)/i.test(quote)) {
+      failures.push({ sourceId, field, kind: "summary-stage-marker", text: quote });
+    }
+  }
+}
+
 function inspectLivestream(data, failures) {
   for (const episode of data.episodes || []) {
     const id = episode.id;
+    inspectSummaryProse(episode.dossier?.summary, id, "dossier.summary", failures);
+    inspectSummaryProse(episode.dossier?.tapeNote, id, "dossier.tapeNote", failures);
+    inspectSummaryProse(episode.dossier?.whyItMatters, id, "dossier.whyItMatters", failures);
     for (const item of episode.moments || []) inspect(item.excerpt, id, "moments.excerpt", failures);
     for (const item of episode.chapters || []) inspect(item.excerpt, id, "chapters.excerpt", failures);
     for (const item of episode.fanSignals || []) inspect(item.excerpt, id, "fanSignals.excerpt", failures);
@@ -51,6 +74,7 @@ function inspectLivestream(data, failures) {
 function inspectWatchalong(data, failures) {
   for (const episode of data.episodes || []) {
     const id = episode.id;
+    inspectSummaryProse(episode.dossier?.summary, id, "dossier.summary", failures);
     for (const item of episode.dossier?.cuts || []) inspect(item.excerpt, id, "dossier.cuts.excerpt", failures);
     for (const item of episode.dossier?.chapters || []) inspect(item.excerpt, id, "dossier.chapters.excerpt", failures);
     for (const item of episode.dossier?.fanSignals || []) inspect(item.excerpt, id, "dossier.fanSignals.excerpt", failures);
