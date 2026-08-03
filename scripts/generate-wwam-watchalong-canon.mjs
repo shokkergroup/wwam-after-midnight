@@ -378,78 +378,92 @@ function watchalongVoiceSummary({ taxonomy, duration, laneCounts, topics, firstM
   const rankedLanes = Object.entries(laneCounts).sort((left, right) => right[1] - left[1]);
   const dominant = rankedLanes[0]?.[0] || "SOURCE RECEIPT";
   const secondary = rankedLanes[1]?.[0] || null;
-  const strongestAudio = (audioCuts || []).slice().sort((left, right) => Number(right.score || 0) - Number(left.score || 0))[0] || null;
-  const laneText = rankedLanes.slice(0, 3).map(([label, count]) => `${label} (${count})`).join(", ");
+  const laneNames = {
+    "STRAIGHT TO STEVE'S ASSHOLE": "Steve's Asshole",
+    "TAKE GETS NUCLEAR": "nuclear takes",
+    "ROOM BREAK": "room breaks",
+    "CHARACTER SIGNAL": "character bits",
+    "WWAM UP IN YA": "dirty detours",
+    "FILM READ": "movie talk",
+    "FAN SIGNAL": "fan callouts",
+    "FULL SEND": "full-send chaos",
+    "WATCH ROUTE": "watch-route stops",
+    "CLOSING READ": "closing reads"
+  };
+  const laneName = (label) => laneNames[label] || clean(label).toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase());
+  const laneText = rankedLanes.slice(0, 3).map(([label, count]) => `${count} ${laneName(label)}`).join(", ");
   const runtimeRead = duration >= 9000 ? "marathon-length" : duration >= 5400 ? "feature-length" : duration >= 1800 ? "a compact feature" : "a short-form";
   const seed = [...title].reduce((sum, char) => (sum * 31 + char.charCodeAt(0)) % 3, 0);
   const openingVariants = {
     "STRAIGHT TO STEVE'S ASSHOLE": [
-      `${title} walks in with the knife already out: it is ${runtimeRead} ${format}, and the complaints find their target fast.`,
-      `The ${title} rewatch arrives carrying a grievance list. It is ${runtimeRead} ${format}, and Steve's Asshole gets work before the room settles.`,
-      `${title} is ${runtimeRead} ${format} with the hate lane taking the first lap; nobody is pretending this is a polite rewatch.`
+      `${title} walks in with the knife already out, and the complaints find their target fast.`,
+      `The ${title} rewatch arrives carrying a grievance list; Steve's Asshole gets work before the room settles.`,
+      `${title} starts with the hate lane taking the first lap. Nobody is pretending this is a polite rewatch.`
     ],
     "TAKE GETS NUCLEAR": [
-      `The ${title} room comes out swinging. It is ${runtimeRead} ${format}, and the first big receipt makes the movie argue for its life.`,
-      `No gentle warm-up here: ${title} is ${runtimeRead} ${format}, and the tape starts scoring points against the screen.`,
-      `${title} opens like somebody insulted a favorite franchise. It is ${runtimeRead} ${format}, and the booth answers in kind.`
+      `The ${title} room comes out swinging; the first big take makes the movie argue for its life.`,
+      `There is no gentle warm-up here. ${title} starts scoring points against the screen.`,
+      `${title} opens like somebody insulted a favorite franchise, and the booth answers in kind.`
     ],
     "ROOM BREAK": [
-      `${title} starts as ${runtimeRead} ${format}, then the room begins coming apart in the fun way.`,
-      `The ${title} tape gets through the setup and promptly loses its composure; this is ${runtimeRead} ${format} with no straight line home.`,
-      `${title} is ${runtimeRead} ${format} until the booth finds a new reason to derail itself, which is where the good stuff starts.`
+      `${title} gets through the setup and then the room starts coming apart in the fun way.`,
+      `The ${title} tape loses its composure early; there is no straight line home.`,
+      `${title} stays on course only until the booth finds a new reason to derail itself.`
     ],
     "CHARACTER SIGNAL": [
-      `The ${title} watch keeps slipping its leash. It is ${runtimeRead} ${format}, but the real detours are the voices, bits, and character work.`,
-      `${title} is ${runtimeRead} ${format} with the brakes cut; the booth keeps turning movie talk into a little live radio play.`,
-      `The ${title} room cannot leave a character alone. It is ${runtimeRead} ${format} with improv hiding in the margins.`
+      `The ${title} watch keeps slipping its leash; the real detours are the voices, bits, and character work.`,
+      `${title} has the brakes cut, turning movie talk into a little live radio play.`,
+      `The ${title} room cannot leave a character alone. Improv keeps sneaking into the margins.`
     ],
     "WWAM UP IN YA": [
-      `${title} keeps taking filthy side roads and somehow making them part of the route. It is ${runtimeRead} ${format}.`,
-      `The ${title} tape knows exactly where the respectable conversation ends and the dirty detour begins; this is ${runtimeRead} ${format}.`,
-      `${title} is ${runtimeRead} ${format} with the booth repeatedly opening a trapdoor under the movie and climbing into it.`
+      `${title} keeps taking filthy side roads and somehow making them part of the route.`,
+      `The ${title} tape knows exactly where the respectable conversation ends and the dirty detour begins.`,
+      `${title} repeatedly opens a trapdoor under the movie and climbs into it.`
     ],
     "FILM READ": [
-      `${title} keeps the movie in the room even when the booth starts misbehaving. It is ${runtimeRead} ${format} with an actual point of view.`,
-      `There is a real film argument underneath the mess in ${title}; the tape runs ${runtimeRead} ${format} and does not stay on one lane.`,
-      `${title} is ${runtimeRead} ${format} where the jokes do not erase the movie talk; they make the argument louder.`
+      `${title} keeps the movie in the room even when the booth starts misbehaving. There is an actual point of view here.`,
+      `There is a real film argument underneath the mess in ${title}; the conversation refuses to stay on one lane.`,
+      `The jokes in ${title} do not erase the movie talk; they make the argument louder.`
     ],
     "FAN SIGNAL": [
-      `${title} is ${runtimeRead} ${format} with the audience getting a genuine turn at the wheel, not just a credits roll thank-you.`,
-      `The ${title} room leaves the door open for the fans. It is ${runtimeRead} ${format} with chat traffic changing the rhythm.`,
-      `${title} is ${runtimeRead} ${format} where the fan lane keeps interrupting the booth in the best possible way.`
+      `${title} gives the audience a genuine turn at the wheel, not just a credits-roll thank-you.`,
+      `The ${title} room leaves the door open for the fans, and chat changes the rhythm.`,
+      `${title} lets the fan lane interrupt the booth in the best possible way.`
     ]
   };
   const opening = (openingVariants[dominant] || [
-    `${title} is ${runtimeRead} ${format} with one eye on the source and one on the room.`,
-    `The ${title} tape keeps one hand on the movie and the other on whatever the booth finds funny next.`,
-    `${title} is ${runtimeRead} ${format}; the route is messy, but the mess is part of the evidence.`
+      `${title} keeps one eye on the movie and one on whatever the booth finds funny next.`,
+    `The ${title} tape keeps the movie moving while the room looks for its next bit.`,
+    `${title} is a messy, funny rewatch with more than one way into it.`
   ])[seed];
   const toneVariants = {
     "STRAIGHT TO STEVE'S ASSHOLE": ["The hate lane keeps finding fresh mail for Steve's Asshole.", "The complaints are not decorative; they keep driving the rewatch.", "The tape is happiest when it can point at one more thing and say, absolutely not."],
-    "TAKE GETS NUCLEAR": ["The takes hit hard enough that the movie has to keep answering for itself.", "The booth treats every weak spot like an invitation to kick the door in.", "This is affectionate violence: a rewatch with a flamethrower and a memory."],
-    "ROOM BREAK": ["The room's best evidence is often the moment it forgets to behave.", "Every derailment becomes another route through the tape.", "The laughter is not filler; it is the temperature reading."],
-    "CHARACTER SIGNAL": ["The character work keeps hijacking the official program, and nobody seems eager to stop it.", "The tape keeps wandering into bits instead of behaving like a normal commentary.", "The voices and callbacks are part of the watch, not an afterthought."],
-    "WWAM UP IN YA": ["The filthy detours are not background noise; they are part of the route.", "The booth keeps finding the kind of side road you would not put in a press kit.", "The tape knows the quickest way to a laugh is sometimes straight through the gutter."],
-    "FILM READ": ["The movie argument survives every detour and keeps the page anchored.", "The booth can set the scene on fire without losing the reason it was watching.", "The film talk is sturdy enough to survive the chaos around it."],
+    "TAKE GETS NUCLEAR": ["The takes hit hard enough that the movie has to keep answering for itself.", "Every weak spot gets an invitation to kick the door in.", "This is affectionate violence: a rewatch with a flamethrower and a memory."],
+    "ROOM BREAK": ["The room's best moments arrive when it forgets to behave.", "Every derailment becomes another way through the tape.", "The laughter is not filler; it is the temperature reading."],
+    "CHARACTER SIGNAL": ["The character work hijacks the program, and nobody seems eager to stop it.", "The tape keeps wandering into bits instead of behaving like a normal commentary.", "The voices and callbacks are part of the watch, not an afterthought."],
+    "WWAM UP IN YA": ["The filthy detours are not background noise; they are part of the route.", "The booth keeps finding the kind of side road you would not put in a press kit.", "The quickest way to a laugh is sometimes straight through the gutter."],
+    "FILM READ": ["The movie argument survives every detour and keeps the page anchored.", "The booth can set the scene on fire without losing why it was watching.", "The film talk is sturdy enough to survive the chaos around it."],
     "FAN SIGNAL": ["Fan traffic changes the room's rhythm instead of sitting politely at the edge.", "The audience is part of the episode's shape, not just a number under the video.", "The fan lane keeps the booth honest, surprised, and occasionally derailed."]
   };
   const tone = (toneVariants[dominant] || ["The source stays playful without pretending every timestamp is a finished verdict.", "The route is messy, but every door is bounded to the tape.", "This is a listening lead, not a machine-written verdict."])[seed];
   const topicNames = relevantTopics(topics, taxonomy).map((topic) => topic.name).filter(Boolean).slice(0, 3);
   const topicSentence = topicNames.length
-    ? `The subject doors that survive the relevance check are ${topicNames.join(", ")}; they are jump points into the conversation, not a claim that the room stays on one subject.`
-    : "No side-topic label is promoted above the film itself; that keeps the page from turning caption noise into fake lore.";
-  const strongestStop = strongestMoment ? `${formatTimestamp(strongestMoment.t)} (${strongestMoment.category || "SOURCE RECEIPT"})` : "the strongest indexed route";
-  const openingStop = firstMoment ? `${formatTimestamp(firstMoment.t)} (${firstMoment.category || "SOURCE RECEIPT"})` : "the opening minute";
-  const closingStop = finalMoment ? `${formatTimestamp(finalMoment.t)} (${finalMoment.category || "SOURCE RECEIPT"})` : "the closing stretch";
+    ? `The recurring subjects are ${topicNames.join(", ")}; they anchor the talk without pretending the room stays in one straight line.`
+    : "The movie stays at the center even when the conversation takes the scenic route.";
+  const strongestStop = strongestMoment ? `${formatTimestamp(strongestMoment.t)} for ${laneName(strongestMoment.category || "the hottest turn")}` : "the strongest moment on the page";
+  const openingStop = firstMoment ? `${formatTimestamp(firstMoment.t)} for ${laneName(firstMoment.category || "the opening read")}` : "the opening minute";
+  const closingStop = finalMoment ? `${formatTimestamp(finalMoment.t)} for ${laneName(finalMoment.category || "the closing read")}` : "the closing stretch";
+  const routeLine = allMoments.length
+    ? `Start at ${openingStop}, jump to ${strongestStop} when you want the temperature spike, and leave through ${closingStop}.`
+    : "Open the player and let the room show you where to go next.";
   const audioLine = audioCuts.length
-    ? `The audio-feature pass adds ${audioCuts.length} ranked windows, with the strongest acoustic signal at ${strongestAudio ? formatTimestamp(strongestAudio.t) : "the indexed peak"}; that is a browse aid, not proof of a joke, speaker, or visual reaction.`
-    : "The page keeps its route receipts caption-led because no matching local audio measurement is available.";
-  const secondaryLine = secondary ? ` ${secondary} supplies the next-best pressure point.` : "";
-  const strongestExcerpt = clean(strongestMoment?.excerpt || "");
-  const receiptRead = strongestExcerpt
-    ? `One caption-aligned route at ${strongestStop} starts, "${excerpt(strongestExcerpt, 24)}" That is a listening lead, not a verified quote.`
-    : "No caption fragment is promoted as a quote without a playback check.";
-  return `${opening} It runs ${formatTimestamp(duration)}. ${tone} The route mix is ${laneText || "source receipts"}.${secondaryLine} The cleanest entry is ${openingStop}; the strongest indexed door is ${strongestStop}; and the exit route is ${closingStop}. ${topicSentence} ${receiptRead} ${audioLine} There are ${allMoments.length} bounded jump points here, so press play at the timestamp before treating any caption fragment as canon.`;
+    ? `The audio-feature pass adds ${audioCuts.length} extra places to tap into the room.`
+    : "Every door on this page stays tied to the playable episode.";
+  const secondaryLine = secondary ? ` The other pressure point is ${laneName(secondary)}.` : "";
+  const listeningLead = strongestMoment
+    ? `The best listening lead lands at ${formatTimestamp(strongestMoment.t)}; open it to hear the exchange in context.`
+    : "Open a door and hear the exchange in context.";
+  return `${opening} It runs ${formatTimestamp(duration)} and is ${runtimeRead} ${format}. ${tone} The biggest lanes are ${laneText || "the movie and the room"}.${secondaryLine} ${topicSentence} ${routeLine} ${listeningLead} This page gives you ${allMoments.length} clickable moments, so you can skip the setup and drop straight into the good stuff. ${audioLine}`;
 }
 
 function ledgerFanRead(items, finalMoment) {
@@ -460,13 +474,13 @@ function ledgerFanRead(items, finalMoment) {
   });
   const lane = (category, label) => {
     const item = byCategory.get(category);
-    return item ? { label, at: item.t, topic: item.category || category, body: `The caption ledger flags this as a ${label.toLowerCase()} lead: ${item.excerpt || "open the source jump for the full exchange."}` } : null;
+    return item ? { label, at: item.t, topic: item.category || category, body: `${label} shows up here. Tap in at ${formatTimestamp(item.t)} and hear the whole exchange before deciding whether it belongs in the permanent WWAM canon.` } : null;
   };
   return {
     loved: lane("FILM READ", "FILM READ"),
     hated: lane("STRAIGHT TO STEVE'S ASSHOLE", "STRAIGHT TO STEVE'S ASSHOLE"),
     wildestDetour: lane("UP IN YA", "WWAM UP IN YA"),
-    lastWord: finalMoment ? { label: "LAST WORD", at: finalMoment.t, topic: finalMoment.category || "CLOSING READ", body: `The last indexed receipt lands here: ${finalMoment.excerpt || "open the source jump and hear where the show leaves you."}` } : null
+    lastWord: finalMoment ? { label: "LAST WORD", at: finalMoment.t, topic: finalMoment.category || "CLOSING READ", body: `The show leaves through this door at ${formatTimestamp(finalMoment.t)}. Open it and hear where the room actually lands.` } : null
   };
 }
 
@@ -873,7 +887,14 @@ function episodeFrom(id) {
   const audioSummarySuffix = audioCuts.length && guide?.overview
     ? ` The audio-feature pass adds ${audioCuts.length} ranked browse windows, with its strongest acoustic signal at ${strongestAudio ? formatTimestamp(strongestAudio.t) : "the indexed peak"}; those windows are navigation aids, not speaker or joke proof.`
     : "";
-  const summary = guide?.overview ? `${clean(guide.overview)}${audioSummarySuffix}` : (!events.length && !deepRecord
+  // Older guide overviews were written in internal audit shorthand. They are
+  // useful evidence, but phrases such as "caption catches", "three-stop cut",
+  // and "audio-feature pass" make the public Show Wiki sound like a debug log.
+  // Keep that material in evidenceSummary and use the conversational route
+  // read for the visitor-facing paragraph.
+  const guideOverview = clean(guide?.overview || "");
+  const guideOverviewNeedsRewrite = /caption(?: catches|[- ]aligned)|three-stop|source cut|audio-feature|ranked (?:browse )?windows?|bounded|source ledger|evidence map|listening lead|machine|route receipts|without forcing a verdict|calling-card moment|single clip|the short route|closing path|fades out|signs off|last honest read/i.test(guideOverview);
+  const summary = guideOverview && !guideOverviewNeedsRewrite ? `${guideOverview}${audioSummarySuffix}` : (!events.length && !deepRecord
     ? (alternateRouteCount
       ? `This source brief preserves the official upload for ${taxonomy.movieTitle}, which is currently held for unauthenticated YouTube playback. The official WWAM podcast variant remains playable with ${alternateRouteCount} bounded audio routes in its own source-local clock; those routes are not pasted onto YouTube.`
       : `This source brief preserves the official upload for ${taxonomy.movieTitle}, but no local caption map was available in this observation. The source remains playable; no timestamps or speaker claims are manufactured.`)
@@ -881,7 +902,7 @@ function episodeFrom(id) {
       ? (alternateRouteCount
         ? `This catalog entry is held as a source brief for ${taxonomy.movieTitle}. The canonical YouTube source is currently held, while the official podcast variant contributes ${alternateRouteCount} audio-bound routes on its own clock; no YouTube timestamp is manufactured.`
         : `This catalog entry is held as a source brief for ${taxonomy.movieTitle}. The public upload and its archived editorial note are preserved, while the local caption ledger contributes ${allMoments.length} machine-found route receipts. Press play before treating any line as a reviewed quote.`)
-      : deepRecord?.verdict || derivedSummary));
+      : guide ? derivedSummary : deepRecord?.verdict || derivedSummary));
   const evidenceSummary = guide?.evidenceSummary
     ? `${guide.evidenceSummary}${audioCuts.length ? ` The audio-feature pass contributes ${audioCuts.length} ranked routes; those acoustic windows are browse aids, not speaker or joke proof.` : ""}`
     : `The source ledger contains ${events.length.toLocaleString("en-US")} ${sourceKind === "local-whisper-transcript" ? "audio transcript segments" : "caption events"} and ${(deepRecord?.wordsAudited || derived?.captionWords || 0).toLocaleString("en-US")} words.${audioCuts.length ? ` The audio-feature pass contributes ${audioCuts.length} ranked routes.` : ""}${alternateRouteCount ? ` The official podcast variant contributes ${alternateRouteCount} audio-bound routes on its own clock; no YouTube mapping is claimed.` : ""} These timestamps are machine-found leads, not speaker-diarized quotes; press play before treating a line as canon.`;
