@@ -584,9 +584,9 @@ function voiceSummaryV2(title, date, shape, topics, moments, fan, recurring, cha
   const tierLine = evidenceTier === "source-brief"
     ? "This one stays compact until a stronger local receipt arrives."
     : [
-      "Use the recap as the map; the delivery still belongs to the tape.",
-      "The paragraph gets you there; the tape does the rest.",
-      "Read this as a route, then listen for the delivery."
+      `${humanMomentLabel(hot?.category || "the first big turn").replace(/^./, (character) => character.toUpperCase())} is the doorway; stay for the turn after it.`,
+      `Start with the timestamp, then widen the window until the bit lands.`,
+      `The route points at the moment; the full exchange supplies the punchline.`
     ][variant];
   return `${opening} ${topicLine} ${receiptLine}. ${route} ${routeLine} ${laneLine} ${fanLine} ${characterLine} ${listeningLine} ${tierLine}`;
 }

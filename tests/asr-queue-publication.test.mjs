@@ -91,6 +91,9 @@ test("visitor-facing recap quotes strip non-speech Whisper stage cues and vary t
   assert.match(generator, /For a quick taste, press/);
   assert.match(generator, /The house specialties here are/);
   assert.match(generator, /Fan traffic adds/);
+  assert.match(generator, /The route points at the moment/);
+  assert.match(generator, /Start with the timestamp/);
+  assert.match(generator, /humanMomentLabel\(hot\?\.category \|\| "the first big turn"\)\.replace/);
   assert.match(generator, /fillerWords <= 2/);
   assert.match(generator, /repeatedPhrases === 0/);
   assert.match(generator, /function quoteExcerpt\(value, limit = 22\)/);
