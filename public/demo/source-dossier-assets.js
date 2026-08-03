@@ -42,7 +42,7 @@
     "wwam-source-dossier-adapter.js?v=1.20.2-restricted-audio-doors",
     "source-query-engine.js?v=1.6.1-lanes",
     "aftermath-pack-engine.js?v=1.0.0",
-    "source-dossier-ui.js?v=1.32.2-audio-listening-pass-copy-filter",
+    "source-dossier-ui.js?v=1.32.4-audio-listening-pass-nav",
     "wwam-dossier-editorial.js?v=1.3.2-damage-priority",
   ]);
 })(window);

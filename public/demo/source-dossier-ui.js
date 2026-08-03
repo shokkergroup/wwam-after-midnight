@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.32.2";
+  var VERSION = "1.32.4";
   var DOSSIER_SCHEMA = "shokker-source-dossier/v1";
   var QUERY_SCHEMA = "shokker-source-query/v1";
   var QUERY_RESULT_SCHEMA = "shokker-source-query-result/v1";
@@ -1178,6 +1178,13 @@
               sourceBrief ? "SOURCE BRIEF" : "RECAP"
         });
       }
+      var audioListeningCount = array(dossier.source.receipts).filter(function (receipt) {
+        return clean(receipt && receipt.evidenceType).toLowerCase() ===
+          "audio-feature-candidate";
+      }).length;
+      if (!sourceBrief && audioListeningCount) {
+        links.push({ id: "sourceDossierListeningPass", label: "LISTENING PASS" });
+      }
       links.push({ id: "sourceDossierWwamFam", label: "FAM ROLL CALL" });
       if (!sourceBrief && showWikiHasFanRead(dossier)) {
         links.push({ id: "sourceDossierFanRead", label: "FAN READ" });
@@ -1260,6 +1267,13 @@
           hasEpisodeRecap(dossier) ? "RECAP STATUS" :
             sourceBrief ? "SOURCE BRIEF" : "SUMMARY"
       );
+      var audioListeningCount = array(dossier.source.receipts).filter(function (receipt) {
+        return clean(receipt && receipt.evidenceType).toLowerCase() ===
+          "audio-feature-candidate";
+      }).length;
+      if (!sourceBrief && audioListeningCount) {
+        add("sourceDossierListeningPass", "LISTENING PASS");
+      }
       add("sourceDossierWwamFam", "FAM ROLL CALL");
       if (!sourceBrief && recapHasHighlights) {
         add("sourceDossierFeldmanBest", "HIGHLIGHTS");

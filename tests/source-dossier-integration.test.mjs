@@ -595,6 +595,11 @@ test("dossier CSS brands cold routes immediately while heavy scripts remain lazy
     /function listeningCaptionExcerpt[\s\S]*AUTO-RANKED AUDIO WINDOW\. PRESS PLAY AND DECIDE FOR YOURSELF\./,
     "listening rails must quarantine broken auto-caption fragments instead of presenting them as quotes",
   );
+  assert.match(
+    sourceDossierUi,
+    /sourceDossierListeningPass[\s\S]*LISTENING PASS/,
+    "Show Wiki local navigation must expose the listening pass as a first-class destination",
+  );
   assert.doesNotMatch(
     sourceDossierUi,
     /\bnormalized\s*\(/,
