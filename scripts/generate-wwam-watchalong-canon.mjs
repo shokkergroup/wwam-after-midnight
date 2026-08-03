@@ -136,6 +136,11 @@ function trimDanglingClause(value) {
   const trimmed = text.replace(/\s+(?:because|since|although|while|when|if|which|that|who)\s+(?:i|you|he|she|we|they)\s+[a-z0-9'â€™-]+\s*$/i, "").trim();
   return trimmed || text;
 }
+function isLikelyFragment(value) {
+  const text = clean(value);
+  return /\b(?:this|that|it)\s+is\s+(?:a|an|the)\s+[a-z0-9'â€™-]+\.?$/i.test(text)
+    || /\b(?:because|since|although|while|when|if|which|that|who)\s+(?:i|you|he|she|we|they)\s+[a-z0-9'â€™-]+\.?$/i.test(text);
+}
 
 function excerpt(value, limit = 16) {
   const normalized = normalizeCaptionText(value)
@@ -163,6 +168,8 @@ function excerpt(value, limit = 16) {
   for (let pass = 0; pass < 3; pass += 1) {
     cased = cased.replace(/\b([A-Za-z0-9][A-Za-z0-9'-]*)\s+([A-Za-z0-9][A-Za-z0-9'-]*)\s+\1\s+\2\b/gi, "$1 $2");
   }
+  cased = trimDanglingClause(cased);
+  if (isLikelyFragment(cased)) return "";
   return /[.!?]$/.test(cased) ? cased : `${cased}.`;
 }
 
