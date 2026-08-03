@@ -573,9 +573,22 @@ function recurringBits(events, moments, fan, duration, listeningRoutes = []) {
     };
   }).filter(Boolean);
 }
-function bestBits(moments, fan, listeningRoutes = []) {
+function bestBits(moments, fan, listeningRoutes = [], audioCandidates = []) {
   const seen = new Set();
-  const routes = moments.concat(fan, listeningRoutes).filter((moment) => {
+  // A caption-ledger episode can already have a real audio watch pass while
+  // its caption window is too weak to print as a quote. Keep those acoustic
+  // doors in BEST BITS anyway: the UI renders them as “press play” routes,
+  // never as invented dialogue. Otherwise a show with dozens of ranked audio
+  // candidates falsely looks like it has no best bits at all.
+  const acousticRoutes = audioCandidates.map((candidate) => ({
+    ...candidate,
+    excerpt: "",
+    captionExcerpt: "",
+    captionAligned: false,
+    evidenceBasis: candidate.evidenceBasis || "canonical audio route; playback remains the authority",
+    reviewStatus: candidate.reviewStatus || "audio-feature-candidate; playback remains the authority"
+  }));
+  const routes = moments.concat(fan, listeningRoutes, acousticRoutes).filter((moment) => {
     const key = `${Math.round(Number(moment.t || 0))}|${clean(moment.category || moment.label || "SOURCE RECEIPT")}|${clean(moment.excerpt || moment.quote || moment.captionExcerpt || "").slice(0, 80)}`;
     if (seen.has(key)) return false;
     seen.add(key);
@@ -585,7 +598,7 @@ function bestBits(moments, fan, listeningRoutes = []) {
     rank: index + 1, t: Number(moment.t || 0), end: Number(moment.end || moment.t || 0), category: clean(moment.category || moment.label || "SOURCE RECEIPT"),
     label: clean(moment.label || moment.category || "SOURCE RECEIPT"), excerpt: safeExcerpt(moment.excerpt || moment.quote || moment.captionExcerpt || "", 16), score: Number(moment.score || 0),
     evidenceBasis: moment.evidenceBasis || "source-local listening route", reviewStatus: moment.reviewStatus || "machine-candidate"
-  })).filter((moment) => moment.excerpt);
+  })).filter((moment) => moment.excerpt || moment.captionAligned === false);
 }
 function listPhrase(items) {
   const names = items.filter(Boolean).map(clean).filter(Boolean);
@@ -1140,7 +1153,7 @@ const episodes = canonicalMetadata.map((record) => {
     sourceInAtlas: atlasById.has(id), latestOutsideAtlas: !atlasById.has(id), atlasCoverage: atlasById.get(id)?.coverage || null, archiveLanes: atlasById.get(id)?.lanes || [],
     evidenceTier: tier, captioned: Boolean(events.length || existing?.captioned), wordsAudited: Number(existing?.wordsAudited || words(events.map((event) => event.text).join(" ")).length),
     topics: publicTopics, conversationThreads: conversationThreads(publicTopics, localWhisper), moments, chapters: chapterList, heatmap: existing?.heatmap?.length ? existing.heatmap : heatmap(Number(record.duration || 0), events, moments, publicTopics), fanSignals: normalizeFanSignals(fan),
-    recurringBits: recurring, bestBits: bestBits(moments, fan, listeningRoutes), characterCues: cueList,
+    recurringBits: recurring, bestBits: bestBits(moments, fan, listeningRoutes, audioCandidates), characterCues: cueList,
     characters: existing?.characters || characters(events), peak: existing?.peak || moments.slice().sort((a, b) => b.score - a.score)[0] || null,
     yearPass: pass, watchPass, rssAudioPass,
      dossier: { summary: finalSummary, tapeNote: clean(`${note} ${audioLine}`), archiveSummary: currentYear === 2026 && existing?.summary ? refreshArchiveSummary(existing.summary, localWhisper) : null, shape, hook: hotMoment ? { at: Number(hotMoment.t || 0), category: hotMoment.category || hotMoment.label || "SOURCE RECEIPT", excerpt: hotMoment.excerpt || "", evidenceBasis: hotMoment.evidenceBasis || "source-local caption candidate", reviewStatus: hotMoment.reviewStatus || "machine-candidate" } : null, audioRead: watchPassRaw ? { mode: decodedAudio ? "decoded-audio" : "caption-only", routeCount: audioCandidates.length, strongest: audioStrongest ? { t: Number(audioStrongest.t || 0), category: audioStrongest.category || audioStrongest.label || "SOURCE RECEIPT", score: Number(audioStrongest.score || 0) } : null, signalMix: audioSignalMix.slice(0, 8), evidence: decodedAudio ? "Decoded canonical audio re-ranked source-local windows; playback remains the authority." : "Caption-only source-local routes; no acoustic intensity claim is made." } : null, whyItMatters, evidence, restricted, editorialRead: Boolean(editorialPackBound), reviewStatus: editorialPackBound ? "full-tape-human-editorial-read" : tier === "source-brief" ? "held-source-brief" : tier === "completion-dossier" ? "distilled-machine-candidate" : "machine-surfaced" }

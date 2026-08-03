@@ -125,7 +125,7 @@ test("visitor-facing recap quotes strip non-speech Whisper stage cues and vary t
   assert.match(generator, /const fillerCount =/);
   assert.match(generator, /function isNoisyTranscript\(value\)/);
   assert.match(generator, /if \(isNoisyTranscript\(cased\)\) return ""/);
-  assert.match(generator, /\}\)\)\.filter\(\(moment\) => moment\.excerpt\);/);
+  assert.match(generator, /\}\)\)\.filter\(\(moment\) => moment\.excerpt \|\| moment\.captionAligned === false\);/);
   assert.match(generator, /const substantive = sentenceList\.filter/);
   assert.match(generator, /safeExcerpt\(receiptCandidate\.text, 16\)/);
   assert.match(generator, /const vividHits =/);
@@ -153,6 +153,15 @@ test("public moment and receipt shelves use the sentence-safe excerpt path", () 
   assert.match(generator, /function bestBits[\s\S]*excerpt: safeExcerpt\(moment\.excerpt \|\| moment\.quote \|\| moment\.captionExcerpt \|\| "", 16\)/);
   assert.match(generator, /\.filter\(\(moment\) => moment\.excerpt && !isWeakPublicReceipt\(moment\.excerpt\)\)/);
   assert.match(generator, /source-local automatic caption alignment/);
+});
+
+test("best-bits keeps acoustic-only doors visible without inventing quotes", () => {
+  const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-livestream-canon.mjs"), "utf8");
+  assert.match(generator, /function bestBits\(moments, fan, listeningRoutes = \[\], audioCandidates = \[\]\)/);
+  assert.match(generator, /A caption-ledger episode can already have a real audio watch pass/);
+  assert.match(generator, /captionAligned: false/);
+  assert.match(generator, /moment\.excerpt \|\| moment\.captionAligned === false/);
+  assert.match(generator, /bestBits\(moments, fan, listeningRoutes, audioCandidates\)/);
 });
 
 test("sentence-safe receipts preserve punctuation across caption speaker markers", () => {
