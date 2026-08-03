@@ -86,6 +86,30 @@ function captionWindow(events, index, before = 5, after = 12) {
   });
   return deduped.join(" ");
 }
+function captionWindowAt(events, seconds) {
+  if (!events.length) return "";
+  let nearest = 0;
+  let distance = Infinity;
+  events.forEach((event, index) => {
+    const nextDistance = Math.abs(Number(event.t || 0) - Number(seconds || 0));
+    if (nextDistance < distance) {
+      nearest = index;
+      distance = nextDistance;
+    }
+  });
+  return captionWindow(events, nearest);
+}
+function refreshMachineMomentExcerpt(moment, events) {
+  if (!events.length || moment?.reviewStatus !== "machine-candidate") return moment;
+  const localExcerpt = excerpt(captionWindowAt(events, moment.t), 24);
+  if (!localExcerpt) return moment;
+  return {
+    ...moment,
+    excerpt: localExcerpt,
+    evidenceBasis: "source-local Whisper transcript alignment",
+    reviewStatus: "machine-candidate"
+  };
+}
 function topicAnchor(events, term) {
   const pattern = new RegExp(`\\b${term.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&").replace(/\\s+/g, "\\s+")}\\b`, "i");
   const hits = events.map((event, index) => ({ event, index })).filter(({ event }) => pattern.test(event.text));
@@ -638,8 +662,11 @@ const episodes = canonicalMetadata.map((record) => {
   // source just because they were generated first.
   const topics = localWhisper && !editorialPackBound ? derivedTopics(events, record.title) : (existingTopics.length ? existingTopics : derivedTopics(events, record.title));
   const transcriptMoments = localWhisper ? derivedMoments(events, Number(record.duration || 0), restricted) : [];
+  const refreshedExistingMoments = localWhisper
+    ? existingMoments.map((moment) => refreshMachineMomentExcerpt(moment, events))
+    : existingMoments;
   const moments = localWhisper
-    ? mergeTranscriptMoments(existingMoments, transcriptMoments)
+    ? mergeTranscriptMoments(refreshedExistingMoments, transcriptMoments)
     : (existingMoments.length ? existingMoments : transcriptMoments);
   const fan = fanSignals(events, Number(record.duration || 0));
   const chapterList = chapters(Number(record.duration || 0), moments, topics, restricted);
@@ -651,8 +678,16 @@ const episodes = canonicalMetadata.map((record) => {
   const audioCandidates = Array.isArray(watchPassRaw?.candidates) ? watchPassRaw.candidates : [];
   const listeningRoutes = audioCandidates.map((candidate) => ({
     ...candidate,
-    excerpt: normalizeCaptionText(candidate.captionExcerpt || candidate.excerpt || ""),
-    evidenceBasis: candidate.evidenceBasis || "source-local listening route",
+    // The audio pass was originally aligned to YouTube automatic captions.
+    // Once a verified Whisper ledger exists, put that transcript on the
+    // clickable route so the listening shelf cannot reintroduce stale or
+    // mangled caption text while the main dossier is already clean.
+    excerpt: normalizeCaptionText(localWhisper
+      ? (captionWindowAt(events, candidate.t) || candidate.captionExcerpt || candidate.excerpt || "")
+      : (candidate.captionExcerpt || candidate.excerpt || "")),
+    evidenceBasis: localWhisper && captionWindowAt(events, candidate.t)
+      ? "canonical audio + source-local Whisper transcript alignment"
+      : candidate.evidenceBasis || "source-local listening route",
     reviewStatus: candidate.reviewStatus || "machine-candidate"
   }));
   const decodedAudio = watchPassRaw?.status === "audio-feature-pass" && watchPassRaw?.media?.canonicalAudioAvailable !== false;

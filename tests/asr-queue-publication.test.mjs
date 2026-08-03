@@ -46,3 +46,16 @@ test("transcript publication audit checks both visible canons", () => {
   assert.match(audit, /public-page-not-using-local-whisper/);
   assert.match(audit, /TRANSCRIPT PUBLICATION GATE: PASS/);
 });
+
+test("livestream listening doors prefer verified Whisper excerpts", () => {
+  const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-livestream-canon.mjs"), "utf8");
+  assert.match(generator, /captionWindowAt\(events, candidate\.t\)/);
+  assert.match(generator, /canonical audio \+ source-local Whisper transcript alignment/);
+});
+
+test("existing machine moments are refreshed from the local transcript", () => {
+  const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-livestream-canon.mjs"), "utf8");
+  assert.match(generator, /refreshMachineMomentExcerpt/);
+  assert.match(generator, /refreshedExistingMoments/);
+  assert.match(generator, /source-local Whisper transcript alignment/);
+});
