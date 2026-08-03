@@ -838,13 +838,15 @@
       raw = raw.concat(whisperSource.candidates.filter(function (candidate) {
         return candidate && String(candidate.excerpt || "").trim();
       }).map(function (candidate) {
+        var textCue = candidate.selectionKind === "source-local-whisper-text-cue";
         return {
           at: candidate.t,
-          label: "LISTENING // TRANSCRIPT WINDOW",
+          label: textCue ? "LISTENING // TEXT-CUE WINDOW" : "LISTENING // TRANSCRIPT WINDOW",
           excerpt: candidate.excerpt,
           score: 74,
           sourceKind: "local-whisper",
-          reviewStatus: "machine-candidate-unreviewed",
+          segmentKind: textCue ? "transcript-text-cue" : "audio-ranked-transcript-alignment",
+          reviewStatus: textCue ? "machine-candidate-unreviewed; transcript cue" : "machine-candidate-unreviewed",
         };
       }));
     }
