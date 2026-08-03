@@ -2345,15 +2345,15 @@
       episodeUrl: clean(alternate.episodeUrl),
       enclosureUrl: clean(alternate.enclosureUrl),
       duration: number(alternate.duration != null ? alternate.duration : alternate.durationSeconds),
-       // The archive-completion manifest calls the source-side reference clock
-       // `canonicalYouTubeDuration`; older compact passes called it
-       // `canonicalDurationSeconds`. Normalize both spellings at the boundary
-       // so one malformed alias cannot blank every rich show wiki.
-       canonicalDuration: number(
-         alternate.canonicalDuration != null ? alternate.canonicalDuration :
-         (alternate.canonicalDurationSeconds != null ? alternate.canonicalDurationSeconds :
-         alternate.canonicalYouTubeDuration)
-       ),
+      // The archive-completion manifest calls the source-side reference clock
+      // `canonicalYouTubeDuration`; older compact passes called it
+      // `canonicalDurationSeconds`. Normalize both spellings at the boundary
+      // so one malformed alias cannot blank every rich show wiki.
+      canonicalDuration: number(
+        alternate.canonicalDuration != null ? alternate.canonicalDuration :
+        (alternate.canonicalDurationSeconds != null ? alternate.canonicalDurationSeconds :
+        alternate.canonicalYouTubeDuration)
+      ),
       durationDelta: number(alternate.durationDelta != null ? alternate.durationDelta : alternate.durationDeltaSeconds),
       timestampIsomorphic: alternate.timestampIsomorphic === true,
       publicPlaybackAllowed: alternate.publicPlaybackAllowed !== false &&
