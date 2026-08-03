@@ -887,7 +887,7 @@ function episodeFrom(id) {
         // bounded to the same readable receipt policy as the dossier cuts.
         candidates: (watchPassRecord.candidates || []).map((candidate) => {
           const context = sourceKind === "local-whisper-transcript" ? nearestCaptionContext(events, candidate.t) : null;
-          const text = context?.text || excerpt(normalizeCaptionText(candidate.captionExcerpt || candidate.excerpt || ""), 16);
+          const text = context?.text ? excerpt(context.text, 16) : excerpt(normalizeCaptionText(candidate.captionExcerpt || candidate.excerpt || ""), 16);
           return { ...candidate, captionExcerpt: text, excerpt: text };
         }),
         ...(alternateAudio && watchPassRecord.alternateAudio ? {
@@ -921,12 +921,14 @@ function episodeFrom(id) {
       // Prefer the verified local Whisper window over the older automatic
       // caption fragment on every clickable audio door.
       const whisperContext = sourceKind === "local-whisper-transcript" ? nearestCaptionContext(events, at) : null;
-      const captionExcerpt = whisperContext?.text || (sourceKind === "local-whisper-transcript" ? "" : excerpt(normalizeCaptionText(candidate.captionExcerpt || ""), 22));
+      const captionExcerpt = whisperContext?.text
+        ? excerpt(whisperContext.text, 16)
+        : (sourceKind === "local-whisper-transcript" ? "" : excerpt(normalizeCaptionText(candidate.captionExcerpt || ""), 16));
       const nearbyCaption = whisperContext || (captionExcerpt ? null : nearestCaptionContext(events, at));
       const receiptExcerpt = captionExcerpt
         ? captionExcerpt
         : nearbyCaption
-          ? `NEARBY CAPTION CONTEXT // ${nearbyCaption.text}`
+          ? excerpt(`NEARBY CAPTION CONTEXT // ${nearbyCaption.text}`, 16)
           : "No caption fragment aligned; open the source and listen to this acoustic window.";
       return {
         id: `audio-${Math.round(at)}-${index + 1}`,
@@ -962,7 +964,7 @@ function episodeFrom(id) {
     category: clean(route.category || route.label || "PODCAST ROUTE"),
     label: clean(route.label || route.category || "PODCAST ROUTE"),
     score: Number(route.score || 0),
-    excerpt: clean(route.excerpt || "Open the official WWAM podcast variant and listen."),
+    excerpt: excerpt(route.excerpt || "Open the official WWAM podcast variant and listen.", 16) || "Open the official WWAM podcast variant and listen.",
     clock: "official WWAM podcast clock",
     sourceClock: "official WWAM podcast clock",
     sourceKind: "podcast-variant",

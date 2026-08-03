@@ -82,7 +82,7 @@ test("local Whisper routes never fall back to stale automatic-caption text", () 
 
 test("livestream watch-pass candidates use the bounded public receipt path", () => {
   const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-livestream-canon.mjs"), "utf8");
-  assert.match(generator, /const captionExcerpt = safeExcerpt\(localWhisper \? localExcerpt : \(candidate\.captionExcerpt \|\| ""\), 16\)/);
+  assert.match(generator, /const captionExcerpt = localWhisper\s*\n\s*\? captionExcerptAt\(events, candidate\.t, 16\)/);
   assert.match(generator, /excerpt: captionExcerpt \|\| \(localWhisper/);
 });
 
@@ -114,9 +114,14 @@ test("visitor-facing recap quotes strip non-speech Whisper stage cues and vary t
   assert.match(generator, /fillerWords <= 2/);
   assert.match(generator, /repeatedPhrases === 0/);
   assert.match(generator, /function quoteExcerpt\(value, limit = 22\)/);
+  assert.match(generator, /function collapseRepeatedPhrases\(value\)/);
+  assert.match(generator, /text = collapseRepeatedPhrases\(text\)/);
   assert.match(generator, /const publicWindow = words\(normalized\)\.slice\(0, publicLimit\)\.join\(" "\)/);
   assert.match(generator, /if \(!\/\[\.!\?\]\(\?:\\s\|\$\)\/.test\(publicWindow\)\) return ""/);
-  assert.match(generator, /const substantive = sentenceList\.find/);
+  assert.match(generator, /const fillerCount =/);
+  assert.match(generator, /function isNoisyTranscript\(value\)/);
+  assert.match(generator, /if \(isNoisyTranscript\(cased\)\) return ""/);
+  assert.match(generator, /const substantive = sentenceList\.filter/);
   assert.match(generator, /safeExcerpt\(receiptCandidate\.text, 16\)/);
   assert.match(generator, /const vividHits =/);
   assert.match(generator, /const adminHits =/);
@@ -133,7 +138,7 @@ test("public moment and receipt shelves use the sentence-safe excerpt path", () 
   assert.match(generator, /function isLikelyFragment\(value\)/);
   assert.match(generator, /refreshMachineMomentExcerpt/);
   assert.match(generator, /const refreshedExistingMoments = events\.length/);
-  assert.match(generator, /excerpt: safeExcerpt\(captionWindow\(events, item\.index\), 24\)/);
+  assert.match(generator, /excerpt: bestCaptionExcerpt\(captionWindow\(events, item\.index\)/);
   assert.match(generator, /excerpt: safeExcerpt\(route\.captionExcerpt \|\| route\.excerpt \|\| "", 24\)/);
   assert.match(generator, /excerpt: safeExcerpt\(moment\.excerpt \|\| moment\.quote \|\| "", 24\)/);
   assert.match(generator, /function bestBits[\s\S]*excerpt: safeExcerpt\(moment\.excerpt \|\| moment\.quote \|\| moment\.captionExcerpt \|\| "", 16\)/);

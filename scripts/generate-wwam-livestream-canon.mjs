@@ -18,6 +18,28 @@ function loadScript(file) {
 }
 function clean(value) { return String(value == null ? "" : value).replace(/\s+/g, " ").trim(); }
 function words(value) { return clean(value).split(/\s+/).filter(Boolean); }
+function collapseRepeatedPhrases(value) {
+  const tokens = clean(value).split(/\s+/).filter(Boolean);
+  const key = (token) => token.toLowerCase().replace(/^[^a-z0-9]+|[^a-z0-9]+$/gi, "");
+  const filler = new Set(["uh", "um", "er", "like"]);
+  for (let size = 7; size >= 2; size -= 1) {
+    for (let index = 0; index + size * 2 <= tokens.length; index += 1) {
+      const left = tokens.slice(index, index + size).map(key);
+      const right = tokens.slice(index + size, index + size * 2).map(key);
+      if (left.every(Boolean) && left.join("|") === right.join("|")) {
+        tokens.splice(index + size, size);
+        index = Math.max(-1, index - size);
+      } else if (index + size + 1 + size <= tokens.length && filler.has(key(tokens[index + size]))) {
+        const bridged = tokens.slice(index + size + 1, index + size + 1 + size).map(key);
+        if (left.every(Boolean) && left.join("|") === bridged.join("|")) {
+          tokens.splice(index + size, size + 1);
+          index = Math.max(-1, index - size);
+        }
+      }
+    }
+  }
+  return tokens.join(" ");
+}
 function trimDanglingClause(value) {
   const text = clean(value);
   // A hard public word bound can cut a sentence just after a subordinate
@@ -32,11 +54,18 @@ function trimDanglingClause(value) {
   return trimmed || text;
 }
 function isLikelyFragment(value) {
-  if (/\b(?:and|but|or|because|since|although|while|when|if|which|that|who|with|for|to|of|about|using|like|as)\.?\s*$/i.test(clean(value))) return true;
+  const text = clean(value);
+  if (/^(?:no local transcript window aligned|no caption fragment aligned|title signal only|open the source before treating)/i.test(text)) return true;
+  if (/\b(?:and|but|or|because|since|although|while|when|if|which|that|who|with|for|to|of|about|using|like|as|all)\.?\s*$/i.test(text)) return true;
   if (/\b(?:can|could|should|would|will|did|does|do|is|are)\s+[a-z][a-z'-]*\.?\s*$/i.test(clean(value))) return true;
   if (/\b(?:that|this|it)\s+(?:makes?|was|is|are|does|did|will|would|could|should|can|have|has|had)\.?\s*$/i.test(clean(value))) return true;
   if (/\b(?:i|you|he|she|we|they)\s+(?:was|were|am|is|are|have|has|had|did|do|does|will|would|could|should|can|makes?)\.?\s*$/i.test(clean(value))) return true;
-  const text = clean(value);
+  if (/\b(?:i'd|i'll|i'm|you're|he's|she's|we're|they're)\s+(?:be|been|being|was|were|am|is|are|have|has|had|did|do|does|will|would|could|should|can)\.?\s*$/i.test(text)) return true;
+  if (/\b(?:i|you|he|she|we|they)\s+(?:said|says|told|asked|thought|felt|wanted|tried|made|doing|going)\.?\s*$/i.test(text)) return true;
+  if (/\b(?:is|are|was|were|be|been|being|have|has|had|will|would|could|should|can|do|does|did|going|trying|want|wanted|need|needs)\.?\s*$/i.test(text)) return true;
+  if (/\b(?:so|but|and|yeah|well|like)\s*,?\s+(?:so|but|and|yeah|well|like)\b/i.test(text)) return true;
+  if ((text.match(/\b(?:so|but|and|yeah|well|like)\b/gi) || []).length >= 3) return true;
+  if (/\b(?:hate|love|like|want|need|know|think|believe|feel|see|say|tell|make|put|give|take|get|go|come)\.?\s*$/i.test(text)) return true;
   return /\b(?:this|that|it)\s+is\s+(?:a|an|the)\s+[a-z0-9'â€™-]+\.?$/i.test(text)
     || /\b(?:because|since|although|while|when|if|which|that|who)\s+(?:i|you|he|she|we|they)\s+[a-z0-9'â€™-]+\.?$/i.test(text);
 }
@@ -61,13 +90,14 @@ function quoteExcerpt(value, limit = 22) {
   // substantive sentence rather than falling through to a punctuation-free
   // token slice that reads like decoder sludge.
   const sentenceList = text.match(/[^.!?]+[.!?](?=\s*(?:>>\s*)?[A-Z0-9"'“‘])/g)?.map((sentence) => sentence.trim()) || [];
-  const substantive = sentenceList.find((sentence) => {
+  const substantive = sentenceList.filter((sentence) => {
     const adminOnly = /\b(?:streamyard|chat|internet|subscribe|microphone|camera|technical|screen|audio|live chat|can you see|are we live)\b/i.test(sentence)
       && !/\b(?:fuck|fucking|shit|dick|ass|bitch|suck|horror|halloween|loomis|challis|freddy|jason|scream|terrifier|michael|movie|kill|dead|garbage|poop)\b/i.test(sentence);
-    return words(sentence).length >= 8 && !adminOnly;
-  });
-  if (substantive) return boundedSentence(substantive);
-  const sentence = sentenceList.find((candidate) => words(candidate).length >= 8);
+    return words(sentence).length >= 8 && !adminOnly && !isLikelyFragment(sentence);
+  }).sort((left, right) => excerptQuality(right) - excerptQuality(left))[0];
+  if (substantive && excerptQuality(substantive) >= 5) return boundedSentence(substantive);
+  const sentence = sentenceList.filter((candidate) => words(candidate).length >= 4 && !isLikelyFragment(candidate))
+    .sort((left, right) => excerptQuality(right) - excerptQuality(left))[0];
   if (sentence) return boundedSentence(sentence);
   const tokens = words(text);
   if (tokens.length <= limit) return tokens.join(" ");
@@ -104,8 +134,15 @@ function safeExcerpt(value, limit = 20) {
   for (let pass = 0; pass < 3; pass += 1) {
     cased = cased.replace(/\b([A-Za-z0-9][A-Za-z0-9'-]*)\s+([A-Za-z0-9][A-Za-z0-9'-]*)\s+\1\s+\2\b/gi, "$1 $2");
   }
+  cased = cased.replace(/^(?:uh|um|er|like)\s*[,.]?\s+/i, "");
+  const casedWords = words(cased);
+  const fillerCount = (cased.match(/\b(?:uh|um|er|like|you know|i mean)\b/gi) || []).length;
+  if (casedWords.length >= 8 && fillerCount >= 3 && fillerCount / casedWords.length >= 0.18) return "";
+  if (/[,.]\s*\.$/.test(cased)) return "";
   cased = trimDanglingClause(cased);
   if (isLikelyFragment(cased)) return "";
+  if (isNoisyTranscript(cased)) return "";
+  if (excerptQuality(cased) <= 5) return "";
   return /[.!?]$/.test(cased) ? cased : `${cased}.`;
 }
 function dateFrom(value) {
@@ -140,21 +177,10 @@ function normalizeCaptionText(value) {
   for (let pass = 0; pass < 3; pass += 1) {
     text = text.replace(/\b([A-Za-z0-9][A-Za-z0-9'-]*)\s+([A-Za-z0-9][A-Za-z0-9'-]*)\s+\1\s+\2\b/gi, "$1 $2");
   }
+  text = collapseRepeatedPhrases(text);
   return text.replace(/\s{2,}/g, " ").trim();
 }
-function captionEvents(id) {
-  const asrFile = path.join(CAPTIONS_DIR, `${id}.asr.json`);
-  if (fs.existsSync(asrFile)) {
-    const payload = readJson(asrFile);
-    return (payload.segments || [])
-      .map((segment) => ({
-        t: Math.max(0, Number(segment.start || 0)),
-        end: Math.max(0, Number(segment.end || segment.start || 0)),
-        text: normalizeCaptionText(segment.text),
-        evidenceType: "local-whisper-transcript"
-      }))
-      .filter((event) => event.text);
-  }
+function automaticCaptionEvents(id) {
   const file = path.join(CAPTIONS_DIR, `${id}.json`);
   if (!fs.existsSync(file)) return [];
   const payload = readJson(file);
@@ -166,7 +192,37 @@ function captionEvents(id) {
       evidenceType: "youtube-automatic-caption",
     })).filter((event) => event.text);
 }
-function captionWindow(events, index, before = 5, after = 12) {
+function captionEvents(id) {
+  const asrFile = path.join(CAPTIONS_DIR, `${id}.asr.json`);
+  if (fs.existsSync(asrFile)) {
+    const payload = readJson(asrFile);
+    const automatic = automaticCaptionEvents(id);
+    const asrEvents = (payload.segments || [])
+      .map((segment) => ({
+        t: Math.max(0, Number(segment.start || 0)),
+        end: Math.max(0, Number(segment.end || segment.start || 0)),
+        text: normalizeCaptionText(segment.text),
+        evidenceType: "local-whisper-transcript"
+      }))
+      .filter((event) => event.text);
+    // Keep the local Whisper line as the evidence authority, but retain a
+    // time-aligned automatic-caption window as a repair candidate when the
+    // Whisper decoder stutters or drops a short phrase. This is not mixed
+    // provenance: the public card still labels the route as local Whisper.
+    return asrEvents.map((event) => {
+      if (!automatic.length) return event;
+      let nearest = 0;
+      let distance = Infinity;
+      automatic.forEach((candidate, index) => {
+        const nextDistance = Math.abs(Number(candidate.t || 0) - Number(event.t || 0));
+        if (nextDistance < distance) { nearest = index; distance = nextDistance; }
+      });
+      return { ...event, fallbackText: captionWindow(automatic, nearest) };
+    });
+  }
+  return automaticCaptionEvents(id);
+}
+function captionWindow(events, index, before = 5, after = 12, field = "text") {
   const anchor = events[index];
   if (!anchor) return "";
   const lines = [];
@@ -174,7 +230,7 @@ function captionWindow(events, index, before = 5, after = 12) {
     const event = events[cursor];
     if (event.t < anchor.t - before || event.t > anchor.t + after) continue;
     if (lines.length && event.t - events[cursor - 1].t > 6) continue;
-    lines.push(event.text);
+    lines.push(event[field] || (field === "fallbackText" ? "" : event.text));
   }
   const deduped = [];
   lines.join(" ").split(/\s+/).forEach((token) => {
@@ -182,7 +238,7 @@ function captionWindow(events, index, before = 5, after = 12) {
   });
   return deduped.join(" ");
 }
-function captionWindowAt(events, seconds, maxDistance = 42) {
+function captionWindowAt(events, seconds, maxDistance = 42, field = "text") {
   if (!events.length) return "";
   let nearest = 0;
   let distance = Infinity;
@@ -197,11 +253,51 @@ function captionWindowAt(events, seconds, maxDistance = 42) {
   // not borrow a sentence from the nearest unrelated window just to fill a
   // card; that creates the same misleading caption drift we are removing.
   if (distance > maxDistance) return "";
-  return captionWindow(events, nearest);
+  if (field === "fallbackText") return clean(events[nearest]?.fallbackText || "");
+  return captionWindow(events, nearest, 5, 12, field);
+}
+function excerptQuality(value) {
+  const text = clean(value);
+  if (!text || /^(?:no local transcript window aligned|no caption fragment aligned|title signal only)/i.test(text)) return -100;
+  const tokenCount = words(text).length;
+  let score = Math.min(18, tokenCount);
+  if (/[.!?]$/.test(text)) score += 5;
+  if (/[,.]\s*\.$/.test(text)) score -= 8;
+  if (/\b(?:uh|um|er|like|you know|i mean)\b/gi.test(text)) score -= 1;
+  if (/\b(?:i|you|we|they|he|she)\b(?:\s+[a-z'-]+){0,6}\s+\b(?:i|you|we|they|he|she)\b/i.test(text)) score -= 10;
+  if (/\b(?:the|a|an)\s+(?:the|a|an)\b/i.test(text)) score -= 8;
+  if (/\b(?:the|a|an)\s+(?:pause|movie|film|show|thing)\s+the\b/i.test(text)) score -= 10;
+  if (/\b(?:better never|never if|if they put)\b/i.test(text)) score -= 12;
+  if (/\b(?:so|but|and|yeah|well|like)\s*,?\s+(?:so|but|and|yeah|well|like)\b/i.test(text)) score -= 12;
+  if (/^(?:and then|then|someone says|somebody says)\b/i.test(text)) score -= 12;
+  if (/\b(?:welcome to|hello|hi there|hey there)\b/i.test(text)) score -= 8;
+  if (/\b(?:says|asks|asked)\s*[,:]?\s*["“]/i.test(text)) score -= 6;
+  if (tokenCount <= 4 && !/\b(?:fuck|shit|ass|dick|bitch|horror|movie|film|love|hate|terrible|great)\b/i.test(text)) score -= 4;
+  return score;
+}
+function isNoisyTranscript(value) {
+  const text = clean(value);
+  return [
+    /\b(?:he|she|it|they|we|you|i)(?:'s|'re|'m)?\s+(?:a|an|the)\s+(?:all|by|with|to|from)\b/i,
+    /\b(?:want to|trying to|going to)\s+(?:your|my|his|her|their)\b/i,
+    /\b(?:from their pov, from their|getting woke with the|nonp prejudice|is ruth)\b/i,
+    /\b(?:and|but|so)\s+(?:he|she|they|we|it)\s+(?:up|down|out|off)\s+(?:that|the)\b/i,
+    /\b(?:like|so|yeah|well)\b.*\b(?:like|so|yeah|well)\b.*\b(?:like|so|yeah|well)\b/i,
+  ].some((pattern) => pattern.test(text));
+}
+function bestCaptionExcerpt(primary, fallback, limit = 24) {
+  const candidates = [primary, fallback].map((value) => safeExcerpt(value, limit)).filter(Boolean);
+  if (!candidates.length) return "";
+  return candidates.slice().sort((left, right) => excerptQuality(right) - excerptQuality(left) || words(right).length - words(left).length)[0];
+}
+function captionExcerptAt(events, seconds, limit = 24) {
+  const primary = captionWindowAt(events, seconds, 42, "text");
+  const fallback = captionWindowAt(events, seconds, 42, "fallbackText");
+  return bestCaptionExcerpt(primary, fallback, limit);
 }
 function refreshMachineMomentExcerpt(moment, events) {
   if (!events.length || moment?.reviewStatus === "full-tape-human-editorial-read") return moment;
-  const localExcerpt = safeExcerpt(captionWindowAt(events, moment.t), 24);
+  const localExcerpt = captionExcerptAt(events, moment.t, 24);
   const localWhisper = events.some((event) => event.evidenceType === "local-whisper-transcript");
   return {
     ...moment,
@@ -223,7 +319,8 @@ function topicAnchor(events, term) {
   if (!hits.length) return null;
   const peak = hits.slice().sort((a, b) => b.event.text.length - a.event.text.length || a.event.t - b.event.t)[0];
   const rawReceipt = captionWindow(events, peak.index);
-  return { name: term, mentions: hits.length, first: hits[0].event.t, peak: peak.event.t, cluster: Math.min(24, hits.length), rawReceipt, receipt: safeExcerpt(rawReceipt, 20), at: Math.round(peak.event.t) };
+  const fallbackReceipt = captionWindow(events, peak.index, 5, 12, "fallbackText");
+  return { name: term, mentions: hits.length, first: hits[0].event.t, peak: peak.event.t, cluster: Math.min(24, hits.length), rawReceipt, receipt: bestCaptionExcerpt(rawReceipt, fallbackReceipt, 20), at: Math.round(peak.event.t) };
 }
 
 const metadata = fs.readdirSync(METADATA_DIR).filter((file) => file.endsWith(".json")).map((file) => readJson(path.join(METADATA_DIR, file)));
@@ -356,7 +453,7 @@ function derivedMoments(events, duration, restricted = false) {
     for (const item of picked) output.push({
       id: `${lane.key}-${Math.round(item.event.t)}`, t: Math.round(item.event.t), end: Math.round(item.event.end || item.event.t + 36),
       category: lane.label, label: lane.label, score: Math.min(99, 62 + Math.min(28, words(item.event.text).length)),
-      excerpt: safeExcerpt(captionWindow(events, item.index), 24), evidenceBasis: events.some((event) => event.evidenceType === "local-whisper-transcript") ? "source-local Whisper transcript lane cluster" : "source-local automatic caption lane cluster", reviewStatus: "machine-candidate"
+      excerpt: bestCaptionExcerpt(captionWindow(events, item.index), captionWindow(events, item.index, 5, 12, "fallbackText"), 24), evidenceBasis: events.some((event) => event.evidenceType === "local-whisper-transcript") ? "source-local Whisper transcript lane cluster" : "source-local automatic caption lane cluster", reviewStatus: "machine-candidate"
     });
   }
   return output.sort((a, b) => a.t - b.t);
@@ -382,7 +479,7 @@ function fanSignals(events, duration) {
     picked.push(item);
   });
   return picked.map((item) => {
-    const sourceExcerpt = safeExcerpt(captionWindow(events, item.index), 24);
+    const sourceExcerpt = bestCaptionExcerpt(captionWindow(events, item.index), captionWindow(events, item.index, 5, 12, "fallbackText"), 24);
     const identity = fanIdentity(sourceExcerpt) || fanIdentity(item.event.text);
     return { id: `fan-${Math.round(item.event.t)}`, t: Math.round(item.event.t), end: Math.round(item.event.end || item.event.t + 36), category: "FAN SIGNAL", label: "FAN SIGNAL", signalType: fanSignalType(item.event.text), fanEntity: identity?.key || null, fanEntityLabel: identity?.label || null, fanEntityMatch: identity?.match || null, fanIdentityBasis: identity?.identityBasis || null, score: 78, excerpt: sourceExcerpt, evidenceBasis, reviewStatus: "machine-candidate" };
   });
@@ -428,7 +525,7 @@ function recurringBits(events, moments, fan, duration, listeningRoutes = []) {
     const ranked = hits.slice().sort((a, b) => words(b.text).length - words(a.text).length || a.t - b.t);
     const receipts = ranked.slice(0, receiptLimit).map((item) => ({
       t: Math.round(item.t), end: Math.round(item.end || item.t + 36),
-      excerpt: safeExcerpt(item.index >= 0 ? captionWindow(events, item.index) : item.text, 24),
+      excerpt: item.index >= 0 ? bestCaptionExcerpt(captionWindow(events, item.index), captionWindow(events, item.index, 5, 12, "fallbackText"), 24) : safeExcerpt(item.text, 24),
       signalType: item.signalType || null, evidenceBasis: eventEvidenceBasis, reviewStatus: "machine-candidate"
     }));
     const laneMoments = moments.filter((moment) => laneLabelMatches(moment.category || moment.label, lane.label));
@@ -769,7 +866,7 @@ function characterCues(events, duration, listeningRoutes = []) {
     const routeHits = listeningRoutes.filter((route) => character.pattern.test(route.captionExcerpt || route.excerpt || ""));
     if (!hits.length && !routeHits.length) return null;
     const ranked = hits.slice().sort((a, b) => words(b.event.text).length - words(a.event.text).length || a.event.t - b.event.t);
-    const captionReceipts = ranked.map((item) => ({ t: Math.round(item.event.t), end: Math.round(item.event.end || item.event.t + 36), excerpt: safeExcerpt(captionWindow(events, item.index), 24), evidenceBasis: captionEvidenceBasis, reviewStatus: "machine-candidate", receiptKind: "caption-cue" }));
+    const captionReceipts = ranked.map((item) => ({ t: Math.round(item.event.t), end: Math.round(item.event.end || item.event.t + 36), excerpt: bestCaptionExcerpt(captionWindow(events, item.index), captionWindow(events, item.index, 5, 12, "fallbackText"), 24), evidenceBasis: captionEvidenceBasis, reviewStatus: "machine-candidate", receiptKind: "caption-cue" }));
     const audioReceipts = routeHits.slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || Number(a.t || 0) - Number(b.t || 0)).map((route) => ({ t: Math.round(route.t || 0), end: Math.round(route.end || route.t || 0), excerpt: safeExcerpt(route.captionExcerpt || route.excerpt || "", 24), evidenceBasis: localWhisper ? "canonical audio route + source-local Whisper transcript character cue; performance not established" : "canonical audio route + source-local caption character cue; performance not established", reviewStatus: "audio-feature-candidate; playback remains the authority", receiptKind: "audio-character-route" }));
     const receipts = [...captionReceipts, ...audioReceipts].sort((a, b) => Number(b.receiptKind === "audio-character-route") - Number(a.receiptKind === "audio-character-route") || a.t - b.t).filter((receipt, index, all) => index === all.findIndex((candidate) => Math.abs(candidate.t - receipt.t) < 4)).slice(0, receiptLimit);
     return {
@@ -895,6 +992,9 @@ const episodes = canonicalMetadata.map((record) => {
     const rawExcerpt = localWhisper
       ? captionWindowAt(events, candidate.t)
       : (candidate.captionExcerpt || candidate.excerpt || "");
+    const repairedExcerpt = localWhisper
+      ? captionExcerptAt(events, candidate.t, 24)
+      : safeExcerpt(rawExcerpt, 24);
     return {
     ...candidate,
     rawExcerpt,
@@ -902,7 +1002,7 @@ const episodes = canonicalMetadata.map((record) => {
     // Once a verified Whisper ledger exists, put that transcript on the
     // clickable route so the listening shelf cannot reintroduce stale or
     // mangled caption text while the main dossier is already clean.
-    excerpt: safeExcerpt(rawExcerpt || "No local transcript window aligned; open the player at this timestamp."),
+    excerpt: repairedExcerpt || "No local transcript window aligned; open the player at this timestamp.",
     evidenceBasis: localWhisper && rawExcerpt
       ? "canonical audio + source-local Whisper transcript alignment"
       : localWhisper
@@ -979,7 +1079,9 @@ const episodes = canonicalMetadata.map((record) => {
     ...watchPassRaw,
     candidates: (watchPassRaw.candidates || []).map((candidate) => {
       const localExcerpt = localWhisper ? captionWindowAt(events, candidate.t) : "";
-      const captionExcerpt = safeExcerpt(localWhisper ? localExcerpt : (candidate.captionExcerpt || ""), 16);
+      const captionExcerpt = localWhisper
+        ? captionExcerptAt(events, candidate.t, 16)
+        : safeExcerpt(candidate.captionExcerpt || "", 16);
       return {
         ...candidate,
         captionExcerpt: captionExcerpt || (localWhisper ? "No local transcript window aligned; open the player at this timestamp." : "No caption fragment aligned; open the source and listen to this acoustic window."),
