@@ -663,6 +663,11 @@ test("dossier CSS brands cold routes immediately while heavy scripts remain lazy
     "the ASR overlay must declare its bounded public excerpt policy",
   );
   assert.match(
+    asrExcerptIndex,
+    /LV2rmwEA0w4[\s\S]*iz0WFhe6LYM/,
+    "the latest-two listening pass must publish both completed newest livestream ledgers",
+  );
+  assert.match(
     sourceDossierUi,
     /showWikiAudioListeningMarkup[\s\S]*audio-feature-candidate[\s\S]*data-source-dossier-action=\"play-receipt\"/,
     "every Show Wiki must render source-local ranked listening windows as playable receipts",
