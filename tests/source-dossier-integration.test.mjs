@@ -449,6 +449,8 @@ test("cold source routes paint the local fallback before optional Watchalong hyd
   assert.match(sourceDossierCss, /\.source-dossier-fallback-lane-legend/);
   assert.match(app, /WWAM_WATCHALONG_ROUTE_INDEX && window\.WWAM_WATCHALONG_ROUTE_INDEX\.sources/);
   assert.match(app, /Prefer the cold-route index\/canon record/);
+  assert.match(app, /var hydrated = fallbackSourceRecord\(sourceId\);[\s\S]*hasHydratedRecord/);
+  assert.match(app, /if \(hasHydratedRecord\) \{[\s\S]*fallbackSourceWiki\(sourceId, startTime, section\);/);
   assert.ok(app.indexOf("fallbackSourceWiki(sourceId, startTime, section);") < app.indexOf("return ensureWatchalongCanonForSource(sourceId)"), "a stalled hydration cannot block the immediate local fallback shell");
 });
 

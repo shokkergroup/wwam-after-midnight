@@ -999,11 +999,12 @@
         // Repaint once, after the compact route/Whisper assets arrive, so a
         // cold shell gains its bounded listening receipts without waiting on
         // the full dossier. The player remains inside the page.
-        var whisperSource = window.WWAM_LIVESTREAM_ASR_EXCERPTS &&
-          window.WWAM_LIVESTREAM_ASR_EXCERPTS.sources &&
-          window.WWAM_LIVESTREAM_ASR_EXCERPTS.sources[sourceId];
-        if (whisperSource && Array.isArray(whisperSource.candidates) &&
-            whisperSource.candidates.some(function (candidate) { return candidate && String(candidate.excerpt || "").trim(); })) {
+        var hydrated = fallbackSourceRecord(sourceId);
+        var hasHydratedRecord = hydrated &&
+          String(hydrated.title || hydrated.displayTitle || "").trim() !== "WWAM SOURCE" &&
+          (Array.isArray(hydrated.moments) || Array.isArray(hydrated.bestMoments) ||
+            hydrated.dossier || hydrated.episodeGuide || hydrated.editorial || hydrated.watchPass);
+        if (hasHydratedRecord) {
           fallbackSourceWiki(sourceId, startTime, section);
         }
         return true;
