@@ -42,7 +42,10 @@ def main() -> None:
         print(f"[queue] batch {batch + 1} // {', '.join(ids)}", flush=True)
         for source_id in ids:
             transcribe_one(model, source_id)
-        subprocess.run([sys.executable, str(EXCERPT_GENERATOR)], cwd=ROOT, check=True)
+            # Publish the bounded navigation layer as soon as this source is
+            # complete. A neighboring three-hour source should not hold back
+            # a finished ledger from reaching the public Wiki.
+            subprocess.run([sys.executable, str(EXCERPT_GENERATOR)], cwd=ROOT, check=True)
     print("[queue] bounded batch run complete; generated excerpts are ready for audit/commit", flush=True)
 
 
