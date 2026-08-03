@@ -752,6 +752,15 @@
 
   function fallbackSourceMoments(sourceId, source) {
     var tape = tapeById[sourceId] || {};
+    var cleanReceipt = function (value) {
+      return String(value || "")
+        .replace(/>>\s*/g, "")
+        .replace(/\[(?:laughter|music|applause|inaudible|crosstalk)\]/gi, " ")
+        .replace(/\b(?:uh|um|er)\b/gi, " ")
+        .replace(/\b(\w+)(?:\s+\1\b)+/gi, "$1")
+        .replace(/\s+/g, " ")
+        .trim();
+    };
     var raw = [];
     if (Array.isArray(tape.moments)) raw = raw.concat(tape.moments);
     if (Array.isArray(source.moments)) raw = raw.concat(source.moments);
@@ -803,7 +812,8 @@
         end: Number.isFinite(Number(moment.end)) ? Math.round(Number(moment.end)) : null,
         lane: String(moment.category || moment.lane || moment.label || "INDEXED ROUTE"),
         label: String(moment.label || moment.category || "INDEXED ROUTE"),
-        excerpt: boundedExcerpt(moment.excerpt || moment.quote || moment.captionExcerpt || "Source-local receipt; press play to hear the tape."),
+        topic: String(moment.topic || moment.thread || ""),
+        excerpt: boundedExcerpt(cleanReceipt(moment.excerpt || moment.quote || moment.captionExcerpt || "Source-local receipt; press play to hear the tape.")),
         heat: Number(moment.heat || moment.score || moment.audioRank || 0),
         sourceKind: moment.sourceKind || null,
         sourceClock: moment.sourceClock || null,
@@ -899,7 +909,7 @@
       '<section class="source-dossier-fallback-routes" id="fallback-routes"><header><div><p class="kicker">SOURCE-LOCAL RECEIPTS</p><h3>PRESS PLAY HERE.</h3></div><span>' + moments.length + ' bounded route' + (moments.length === 1 ? "" : "s") + ' // no invented speaker labels' + (whisperCount ? ' // ' + whisperCount + ' transcript window' + (whisperCount === 1 ? '' : 's') : '') + '</span></header>' +
       (moments.length ? '<div class="source-dossier-fallback-lane-legend" aria-label="Filter source-local lanes"><button type="button" class="is-all is-active" data-fallback-filter="" aria-pressed="true"><b>' + moments.length + '</b><span>ALL LANES</span></button>' + fallbackLaneLegend + '</div>' : '') +
       (moments.length ? '<div class="source-dossier-fallback-route-grid">' + moments.map(function (moment, index) {
-        return '<button type="button" data-fallback-jump="' + moment.at + '" data-fallback-end="' + (moment.end || "") + '" data-fallback-lane="' + esc(moment.lane || moment.label) + '"><b>' + String(index + 1).padStart(2, "0") + '</b><span>' + esc(moment.label) + '</span><time>' + timestamp(moment.at) + '</time><em>' + esc(moment.excerpt) + '</em></button>';
+        return '<button type="button" data-fallback-jump="' + moment.at + '" data-fallback-end="' + (moment.end || "") + '" data-fallback-lane="' + esc(moment.lane || moment.label) + '"><b>' + String(index + 1).padStart(2, "0") + '</b><span>' + esc(moment.label) + '</span><time>' + timestamp(moment.at) + '</time><em>' + esc(fallbackMomentDescription(moment)) + '</em></button>';
       }).join("") + '</div>' : '<p class="source-dossier-fallback-empty">This source has no safe timestamp receipt in the local bundle yet. The source link remains honest and playable.</p>') + '</section>' +
       '<footer class="source-dossier-fallback-foot"><span>LOCAL WIKI // ' + esc(sourceId) + '</span><a href="' + sourceHref + '" target="_blank" rel="noopener">OPEN THE FULL EPISODE ON YOUTUBE ↗</a></footer></article>';
     var modal = document.getElementById("tapeModal");
@@ -1700,6 +1710,27 @@
   function boundedExcerpt(value) {
     var words = String(value || "").trim().split(/\s+/).filter(Boolean);
     return words.length > 16 ? words.slice(0, 16).join(" ") + " …" : words.join(" ");
+  }
+
+  function cleanedCaptionReceipt(value) {
+    return String(value || "")
+      .replace(/>>\s*/g, "")
+      .replace(/\[(?:laughter|music|applause|inaudible|crosstalk)\]/gi, " ")
+      .replace(/\b(?:uh|um|er)\b/gi, " ")
+      .replace(/\b(\w+)(?:\s+\1\b)+/gi, "$1")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function fallbackMomentDescription(moment) {
+    var review = String(moment.reviewStatus || "").toLowerCase();
+    var machine = moment.sourceKind === "local-whisper" || /machine-candidate|caption/.test(review);
+    if (machine) {
+      var topic = String(moment.topic || "").trim();
+      var lane = String(moment.label || moment.lane || "source lane").trim().toLowerCase();
+      return (topic ? topic + " discussion" : lane) + " is indexed at " + timestamp(moment.at) + ". Press play for the actual exchange; the caption is navigation only.";
+    }
+    return cleanedCaptionReceipt(moment.excerpt) || "Bounded source receipt; press play to hear the tape.";
   }
 
   function displayQuote(value) {
