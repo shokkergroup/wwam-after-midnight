@@ -88,14 +88,29 @@ function Publish-IfChanged {
   }
   git add -- public/demo/wwam-livestream-asr-excerpts.js public/demo/wwam-watchalong-canon.js public/demo/wwam-watchalong-route-index.js public/demo/index.html
   $staged = git diff --cached --name-only
+  $published = $false
   if ($staged) {
     $commitExit = Run-Logged "git" @("commit", "-m", "Publish queued ASR batch")
     if ($commitExit -eq 0) {
       $pushExit = Run-Logged "git" @("push", "origin", "main")
-      if ($pushExit -eq 0) { Write-RunLog "batch published" }
+      if ($pushExit -eq 0) {
+        Write-RunLog "batch published"
+        $published = $true
+      } else {
+        Write-RunLog ("batch push failed with code {0} // leaving hash retryable" -f $pushExit)
+      }
+    } else {
+      Write-RunLog ("batch commit failed with code {0} // leaving hash retryable" -f $commitExit)
     }
+  } else {
+    # Another publication process may have committed the same generated bundle
+    # while this supervisor was building. Treat a clean tree as published, but
+    # never swallow a failed commit or push as if it succeeded.
+    $published = $true
   }
-  $LastHash.Value = $combinedHash
+  if ($published) {
+    $LastHash.Value = $combinedHash
+  }
 }
 
 $lastHash = ""
