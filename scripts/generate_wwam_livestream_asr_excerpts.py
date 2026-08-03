@@ -91,6 +91,12 @@ def bounded_excerpt(text: str, limit: int = 16) -> str:
         # hallucinated tail. These are navigation coordinates, not quotes.
         if re.search(r"\b([A-Za-z][A-Za-z'-]*)\s+\1\b", sentence, re.I):
             continue
+        # Punctuation can hide the same stutter from the simple whitespace
+        # check above (for example, “my, my, my theme song”). Keep the exact
+        # audio receipt, but do not make a visibly garbled line the visitor's
+        # first description of a listening door.
+        if re.search(r"\b([A-Za-z][A-Za-z'-]*)\s*(?:[,;:]\s*|\s+)\1\b", sentence, re.I):
+            continue
         if re.search(r"\b(?:did\s+a\s+good|one\s+section|not\s+allowed\s+to|you're\s+not\s+allowed\s+to)\b", sentence, re.I):
             continue
         if any(normalized[index:index + 2] == normalized[next_index:next_index + 2]
@@ -233,7 +239,7 @@ def main() -> None:
         "qualityRules": [
             "minimum five words",
             "no dangling clause endings",
-            "no adjacent repeated tokens",
+            "no adjacent or punctuation-separated repeated tokens",
             "no known Whisper hallucination tails",
             "low-signal conversational acknowledgements are not promoted",
             "transcript-only text cues are secondary listening leads, never editorial picks",
