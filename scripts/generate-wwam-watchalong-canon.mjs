@@ -60,6 +60,7 @@ const catalogById = new Map(catalog.map((record) => [record.id, record]));
 // These are the two later, movie-specific live events that were in the public
 // source snapshot but outside the original 39-film catalog.
 const explicitExtras = new Map([
+  ["sdiVxLTq67Q", { franchiseKey: "wwam-specials", franchiseTitle: "WWAM Specials", movieKey: "wwam-10-year-anniversary", movieTitle: "WWAM 10-Year Anniversary Celebration", type: "special-event", note: "anniversary broadcast; retained as a companion source rather than misclassified as a film commentary" }],
   ["NjH2tcGvmAY", { franchiseKey: "halloween", franchiseTitle: "Halloween", movieKey: "halloween-1978", movieTitle: "Halloween (1978)", type: "commentary", note: "2019 repeat commentary cut" }],
   ["b5zdTJsgHmw", { franchiseKey: "pet-sematary", franchiseTitle: "Pet Sematary", movieKey: "pet-sematary-1989", movieTitle: "Pet Sematary (1989)", type: "commentary", note: "one-off commentary" }],
   ["Lllp-P-euww", { franchiseKey: "childs-play", franchiseTitle: "Child's Play / Chucky", movieKey: "childs-play-1988", movieTitle: "Child's Play (1988)", type: "commentary", note: "original Child's Play cut" }],
