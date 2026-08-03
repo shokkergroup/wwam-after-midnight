@@ -40,6 +40,7 @@ test("overnight supervisor retries a genuinely stalled queue worker", () => {
   assert.match(supervisor, /no CPU\/log progress/);
   assert.match(supervisor, /Stop-Process -Id/);
   assert.match(supervisor, /QuietMinutes = 45/);
+  assert.match(supervisor, /--batch-size\", \"4\"/);
 });
 
 test("overnight supervisor refuses competing instances", () => {

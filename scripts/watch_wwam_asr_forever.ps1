@@ -166,7 +166,9 @@ while ($true) {
   # Keep each tranche short so a new evidence policy or faster bounded-window
   # transcription path takes effect on the next restart instead of remaining
   # trapped inside a long-lived model process.
-  $exit = Run-Logged "python" @("scripts/run_wwam_asr_queue.py", "--batches", "1", "--batch-size", "3")
+  # Four sources per model load keeps the CUDA worker busy longer while still
+  # leaving bounded heartbeats for the 45-minute stall watchdog.
+  $exit = Run-Logged "python" @("scripts/run_wwam_asr_queue.py", "--batches", "1", "--batch-size", "4")
   if ($exit -ne 0) {
     Write-RunLog ("queued tranche exited with code {0} // retrying after 60 seconds" -f $exit)
     Start-Sleep -Seconds 60
