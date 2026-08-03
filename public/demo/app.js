@@ -1724,11 +1724,34 @@
 
   function fallbackMomentDescription(moment) {
     var review = String(moment.reviewStatus || "").toLowerCase();
-    var machine = moment.sourceKind === "local-whisper" || /machine-candidate|caption/.test(review);
+    var evidence = String(moment.evidenceBasis || "").toLowerCase();
+    var sourceKind = String(moment.sourceKind || "").toLowerCase();
+    // A cold source can arrive from an older tape bundle without an explicit
+    // reviewStatus. Those excerpts are still machine-shaped caption receipts,
+    // not finished editorial copy. Keep them out of the public prose lane
+    // unless a human/editor/creator review state is explicit.
+    var reviewed = /human|editor|creator|verified|curated/.test(review);
+    var machine = !reviewed ||
+      moment.sourceKind === "local-whisper" ||
+      /machine-candidate|caption|audio-feature-candidate|playback remains the authority|transcript/.test(review) ||
+      /machine|caption|automatic|transcript|audio pass/.test(evidence) ||
+      /local-whisper|audio-pass|caption|transcript/.test(sourceKind);
     if (machine) {
       var topic = String(moment.topic || "").trim();
-      var lane = String(moment.label || moment.lane || "source lane").trim().toLowerCase();
-      return (topic ? topic + " discussion" : lane) + " is indexed at " + timestamp(moment.at) + ". Press play for the actual exchange; the caption is navigation only.";
+      var rawLane = String(moment.label || moment.lane || "source lane").trim();
+      var lane = rawLane.toLowerCase();
+      var laneCopy = {
+        "straight to steve's asshole": "Steve's Asshole take",
+        "wwam up in ya": "UP IN YA bit",
+        "character signal": "character signal",
+        "fan signal": "fan callout",
+        "take gets nuclear": "nuclear take",
+        "full send": "full-send take",
+        "room break": "room-break moment",
+        "the room breaks": "room-break moment",
+        "listening // transcript window": "transcript window",
+      }[lane] || lane;
+      return (topic ? topic + " discussion" : laneCopy) + " is indexed at " + timestamp(moment.at) + ". Press play for the actual exchange; the caption is navigation only.";
     }
     return cleanedCaptionReceipt(moment.excerpt) || "Bounded source receipt; press play to hear the tape.";
   }

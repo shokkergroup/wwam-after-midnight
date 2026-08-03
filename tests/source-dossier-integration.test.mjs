@@ -348,6 +348,29 @@ test("fallback show wiki promotes bounded Whisper excerpts without publishing em
   assert.equal(routes[1].label, "STRAIGHT TO STEVE'S ASSHOLE");
 });
 
+test("fallback Show Wiki keeps unreviewed caption fragments out of public prose", () => {
+  const fallbackMomentDescription = evaluateNamed("fallbackMomentDescription", {
+    timestamp(value) { return `${value}s`; },
+    cleanedCaptionReceipt(value) { return String(value || "").replace(/>>\s*/g, "").trim(); },
+  });
+  const machineCopy = fallbackMomentDescription({
+    at: 1320,
+    label: "FULL SEND",
+    excerpt: "good movie. >> Yeah, that shit's so overblown, dude.",
+  });
+  assert.match(machineCopy, /full-send take is indexed at 1320s/i);
+  assert.match(machineCopy, /caption is navigation only/i);
+  assert.doesNotMatch(machineCopy, /good movie|overblown/i);
+
+  const reviewedCopy = fallbackMomentDescription({
+    at: 1440,
+    label: "FULL SEND",
+    excerpt: "The hosts commit to the bit until the whole room folds.",
+    reviewStatus: "human-reviewed",
+  });
+  assert.match(reviewedCopy, /hosts commit to the bit/i);
+});
+
 test("the compact livestream fallback index is bounded and category-aware", () => {
   const payload = JSON.parse(livestreamFallbackIndex.match(/= (\{[\s\S]+\});\s*$/)[1]);
   assert.equal(payload.schema, "shokker-wwam-livestream-fallback-index/v1");
