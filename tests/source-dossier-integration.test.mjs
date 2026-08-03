@@ -15,6 +15,7 @@ const atlasUi = read("archive-atlas-ui.js");
 const sourceDossierAssets = read("source-dossier-assets.js");
 const sourceDossierUi = read("source-dossier-ui.js");
 const livestreamFallbackIndex = read("wwam-livestream-fallback-index.js");
+const livestreamColdIndex = read("wwam-livestream-cold-index.js");
 const sourceDossierCss = read("source-dossier.css");
 
 function runtimeVersion(file) {
@@ -430,6 +431,20 @@ test("the compact livestream fallback index is bounded and category-aware", () =
     const keys = episode.candidates.map((candidate) => `${candidate.t}|${candidate.category}`);
     assert.equal(new Set(keys).size, keys.length, `${episode.id} must preserve distinct category lanes at one second`);
   }
+});
+
+test("cold livestream routes keep the conversational canon read", () => {
+  const sandbox = { window: {} };
+  vm.runInNewContext(livestreamColdIndex, sandbox);
+  const christmas = sandbox.window.WWAM_LIVESTREAM_COLD_INDEX.episodes.QMYgsEfPMg0;
+  assert.ok(christmas, "the Christmas 2025 route stays in the compact index");
+  assert.match(christmas.dossier.summary, /three-hour Christmas party/i);
+  assert.equal(christmas.summary, christmas.dossier.summary);
+  assert.doesNotMatch(
+    christmas.dossier.summary,
+    /caption map concentrates on|This ranking night maps|source-linked machine index/i,
+    "cold route prose must not fall back to the old metadata boilerplate",
+  );
 });
 
 test("cold source routes paint the local fallback before optional Watchalong hydration", () => {
