@@ -831,8 +831,11 @@ function episodeFrom(id) {
       )[0];
       const category = clean(candidate.category || candidate.label || "AUDIO RECEIPT");
       const subject = clean(nearestTopic?.name || "SOURCE CHECKPOINT");
-      const captionExcerpt = excerpt(normalizeCaptionText(candidate.captionExcerpt || ""), 22);
-      const nearbyCaption = captionExcerpt ? null : nearestCaptionContext(events, at);
+      // Prefer the verified local Whisper window over the older automatic
+      // caption fragment on every clickable audio door.
+      const whisperContext = sourceKind === "local-whisper-transcript" ? nearestCaptionContext(events, at) : null;
+      const captionExcerpt = whisperContext?.text || (sourceKind === "local-whisper-transcript" ? "" : excerpt(normalizeCaptionText(candidate.captionExcerpt || ""), 22));
+      const nearbyCaption = whisperContext || (captionExcerpt ? null : nearestCaptionContext(events, at));
       const receiptExcerpt = captionExcerpt
         ? captionExcerpt
         : nearbyCaption
@@ -853,8 +856,10 @@ function episodeFrom(id) {
         topic: nearestTopic?.name || null,
         audioRank: Number(candidate.rank || index + 1),
         audio: candidate.audio || null,
-        evidenceBasis: captionExcerpt
-          ? "canonical YouTube audio + source-local caption alignment"
+        evidenceBasis: whisperContext
+          ? "canonical YouTube audio + source-local Whisper transcript alignment"
+          : captionExcerpt
+            ? "canonical YouTube audio + source-local caption alignment"
           : nearbyCaption
             ? "canonical YouTube audio + nearby source-local caption context; not exact alignment"
             : "canonical YouTube audio; no nearby source-local caption context",

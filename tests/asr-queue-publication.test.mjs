@@ -62,3 +62,10 @@ test("existing machine moments are refreshed from the local transcript", () => {
   assert.match(generator, /refreshedExistingMoments/);
   assert.match(generator, /source-local Whisper transcript alignment/);
 });
+
+test("watchalong listening cuts prefer local Whisper context", () => {
+  const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-watchalong-canon.mjs"), "utf8");
+  assert.match(generator, /whisperContext/);
+  assert.match(generator, /sourceKind === "local-whisper-transcript"/);
+  assert.match(generator, /canonical YouTube audio \+ source-local Whisper transcript alignment/);
+});
