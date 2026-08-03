@@ -873,8 +873,8 @@
     var topics = (Array.isArray(source.topics) ? source.topics : []).map(function (topic) {
       return typeof topic === "string" ? topic : topic && (topic.name || topic.label);
     }).filter(Boolean).slice(0, 8);
-    var summary = source.dossier && source.dossier.summary || source.summary || source.editorial && source.editorial.whyItMatters || tape.verdict;
-    if (!summary) summary = "This local show file is ready with its source, runtime, and bounded route map. Press play, pick a timestamp, and make your own call on the tape.";
+    var summaryCandidate = source.dossier && source.dossier.summary || source.summary || source.editorial && source.editorial.whyItMatters || tape.verdict;
+    var summary = fallbackNaturalSummary(source, topics, moments, summaryCandidate);
     var alternate = source.alternateAudio && typeof source.alternateAudio === "object" ? source.alternateAudio : null;
     var alternateRoutes = alternate && Array.isArray(alternate.routes) ? alternate.routes : [];
     var alternateEnclosure = alternate && /^https?:\/\//i.test(String(alternate.enclosureUrl || "")) ? String(alternate.enclosureUrl) : "";
@@ -1754,6 +1754,35 @@
       return (topic ? topic + " discussion" : laneCopy) + " is indexed at " + timestamp(moment.at) + ". Press play for the actual exchange; the caption is navigation only.";
     }
     return cleanedCaptionReceipt(moment.excerpt) || "Bounded source receipt; press play to hear the tape.";
+  }
+
+  function fallbackNaturalSummary(source, topics, moments, candidate) {
+    var raw = String(candidate || "").replace(/\s+/g, " ").trim();
+    var machineShaped = /automatic[- ]caption|machine[- ]surfaced|source[- ]local|caption[- ](?:backed|derived|ledger)|speaker(?:s)?\s+(?:unverified|not confirmed)|evidence|receipt|transcript window|playback remains the authority/i.test(raw) ||
+      /(?:^|\s)(?:>>+|-->|<\/?(?:c|v|lang)\b)/i.test(raw) ||
+      /\b([A-Za-z][A-Za-z'-]*)\s+\1(?:\s+\1)+\b/i.test(raw);
+    if (raw && raw.length >= 70 && raw.length <= 420 && !machineShaped) return raw;
+
+    var topicNames = (Array.isArray(topics) ? topics : []).map(function (topic) {
+      return typeof topic === "string" ? topic : topic && (topic.name || topic.label);
+    }).filter(Boolean).map(function (topic) { return String(topic).trim(); }).slice(0, 4);
+    var first = (Array.isArray(moments) ? moments : []).filter(function (moment) {
+      return Number.isFinite(Number(moment.at)) && Number(moment.at) > 0;
+    })[0] || null;
+    var title = String(source && (source.displayTitle || source.title) || "WWAM night").trim();
+    var lowerTitle = title.toLowerCase();
+    var format = /watch|commentary|movie/i.test(lowerTitle) ? "A WWAM commentary night" :
+      /tier|ranking|list/i.test(lowerTitle) ? "A WWAM ranking-room night" :
+        "A WWAM live-room night";
+    var subject = topicNames.length ?
+      " built around " + topicNames.join(", ") :
+      " with the conversation allowed to wander";
+    var door = first ?
+      " The first local door is " + String(first.label || first.lane || "a saved moment") +
+        " at " + timestamp(first.at) + "." :
+      " The local player is ready when you are.";
+    return format + subject + "." + door +
+      " Press play to hear the jokes, arguments, and side quests for yourself.";
   }
 
   function displayQuote(value) {
