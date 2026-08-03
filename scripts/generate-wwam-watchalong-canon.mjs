@@ -928,6 +928,37 @@ function fallbackTaxonomy(id, metadataRecord, catalogRecord) {
   return { ...titleDerivedTaxonomy(metadataRecord.title), type: "source-watchalong", note: "title-derived public source record" };
 }
 
+// Caption ledgers often say the film title in a shortened or slightly mangled
+// form ("Black Christmas" instead of "Let's Watch BLACK CHRISTMAS", "Save by
+// the Bell" instead of "Saved By The Bell Season 5 THE FIGHT"). Keep the
+// source boundary honest while giving the topic ledger the same human-readable
+// handles a person would use when searching the tape.
+function titleAliasTerms(taxonomy) {
+  const raw = clean(taxonomy?.movieTitle);
+  const normalized = raw
+    .replace(/^\s*(?:let'?s|lets|we)\s+watch(?:\s+a)?(?:\s+movie)?\s*/i, "")
+    .replace(/\b(?:full|video|movie|audio|commentary|watch\s*(?:along|party)|on\s+riff\.?tv)\b/gi, " ")
+    .replace(/\bseason\s+\d+\b/gi, " ")
+    .replace(/\s*[|:,-]\s*$/, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  const stop = new Set([
+    "a", "an", "and", "the", "of", "to", "on", "in", "for", "from", "with",
+    "this", "that", "full", "movie", "video", "audio", "commentary", "watch",
+    "watched", "watchalong", "watch-party", "live", "season", "episode", "part",
+    "together", "special", "specials", "year", "celebration", "lets", "let's", "we"
+  ]);
+  const tokens = normalized
+    .replace(/[()\[\]{}]/g, " ")
+    .split(/\s+/)
+    .map((token) => token.replace(/^[^A-Za-z0-9]+|[^A-Za-z0-9'-]+$/g, ""))
+    .filter((token) => token.length >= 4 && !stop.has(token.toLowerCase()));
+  const aliases = [raw, normalized, taxonomy?.franchiseTitle];
+  if (tokens.length >= 2) aliases.push(tokens.join(" "));
+  tokens.forEach((token) => aliases.push(token));
+  return [...new Set(aliases.map(clean).filter(Boolean))];
+}
+
 function episodeFrom(id) {
   const catalogRecord = catalogById.get(id);
   const metadataRecord = metadataById.get(id) || (catalogRecord ? {
@@ -952,7 +983,7 @@ function episodeFrom(id) {
   const sourceKind = captionSourceKind(id);
   const evidenceLabel = sourceKind === "local-whisper-transcript" ? "local Whisper audio transcript" : "local caption ledger";
   const captionSourceFile = sourceKind === "local-whisper-transcript" ? `source-cache/captions/${id}.asr.json` : `source-cache/captions/${id}.json`;
-  const aliases = [taxonomy.movieTitle, taxonomy.franchiseTitle, taxonomy.movieTitle.replace(/\s*\([^)]*\)/g, "")].filter(Boolean);
+  const aliases = titleAliasTerms(taxonomy);
   // A deep record without a matching human guide is still useful when the local
   // caption ledger can provide bounded route receipts. Keep the evidence state
   // honest, but do not leave the episode as an empty shell.
