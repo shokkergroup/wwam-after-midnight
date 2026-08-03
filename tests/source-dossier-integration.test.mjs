@@ -384,6 +384,35 @@ test("quality-gated Whisper excerpts win over same-second placeholder receipts",
   assert.match(routes[0].excerpt, /how many fucking times/i);
 });
 
+test("cold-route Whisper text cues retain bounded playback ends and their score", () => {
+  const fallbackSourceMoments = evaluateNamed("fallbackSourceMoments", {
+    tapeById: {},
+    boundedExcerpt(value) {
+      return String(value).trim();
+    },
+    window: {
+      WWAM_LIVESTREAM_ASR_EXCERPTS: {
+        sources: {
+          ABCDEFGHIJK: {
+            candidates: [{
+              t: 320,
+              excerpt: "The clean transcript cue keeps the exact exchange attached.",
+              selectionKind: "source-local-whisper-text-cue",
+              selectionScore: 57,
+              segmentRefs: [{ start: 315, end: 334 }],
+            }],
+          },
+        },
+      },
+    },
+  });
+  const routes = fallbackSourceMoments("ABCDEFGHIJK", {});
+  assert.equal(routes.length, 1);
+  assert.equal(routes[0].label, "LISTENING // TEXT-CUE WINDOW");
+  assert.equal(routes[0].end, 334);
+  assert.equal(routes[0].heat, 57);
+});
+
 test("fallback Show Wiki keeps unreviewed caption fragments out of public prose", () => {
   const fallbackMomentDescription = evaluateNamed("fallbackMomentDescription", {
     timestamp(value) { return `${value}s`; },

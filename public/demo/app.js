@@ -839,11 +839,18 @@
         return candidate && String(candidate.excerpt || "").trim();
       }).map(function (candidate) {
         var textCue = candidate.selectionKind === "source-local-whisper-text-cue";
+        var refs = Array.isArray(candidate.segmentRefs) ? candidate.segmentRefs : [];
+        var lastRef = refs.length ? refs[refs.length - 1] : null;
+        var candidateEnd = Number(candidate.end);
+        if (!Number.isFinite(candidateEnd) || candidateEnd <= Number(candidate.t || 0)) {
+          candidateEnd = Number(lastRef && lastRef.end);
+        }
         return {
           at: candidate.t,
+          end: Number.isFinite(candidateEnd) && candidateEnd > Number(candidate.t || 0) ? candidateEnd : null,
           label: textCue ? "LISTENING // TEXT-CUE WINDOW" : "LISTENING // TRANSCRIPT WINDOW",
           excerpt: candidate.excerpt,
-          score: 74,
+          score: Number(candidate.selectionScore || candidate.audioRank || 74),
           sourceKind: "local-whisper",
           segmentKind: textCue ? "transcript-text-cue" : "audio-ranked-transcript-alignment",
           reviewStatus: textCue ? "machine-candidate-unreviewed; transcript cue" : "machine-candidate-unreviewed",
