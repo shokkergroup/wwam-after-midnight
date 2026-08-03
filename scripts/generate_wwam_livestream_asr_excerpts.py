@@ -208,8 +208,18 @@ def derived_text_candidates(segments: list[dict], existing_times: list[float], l
 
 def main() -> None:
     audio_pass = load_js_json(DEMO / "wwam-livestream-audio-pass.js")
+    # The queue is intentionally broader than the livestream audio-pass
+    # registry: it also listens to watchalongs.  Build the public overlay from
+    # every verified local ledger so a completed watchalong cannot disappear
+    # simply because it is not in the livestream-only ranking file.
+    ranked_episodes = audio_pass.get("episodes") or {}
+    ledger_ids = {
+        path.name.removesuffix(".asr.json")
+        for path in CAPTIONS.glob("*.asr.json")
+    }
     sources = {}
-    for source_id, episode in (audio_pass.get("episodes") or {}).items():
+    for source_id in sorted(set(ranked_episodes) | ledger_ids):
+        episode = ranked_episodes.get(source_id) or {}
         ledger_path = CAPTIONS / f"{source_id}.asr.json"
         if not ledger_path.exists():
             continue
