@@ -128,6 +128,15 @@ function words(value) {
   return clean(value).split(/\s+/).filter(Boolean);
 }
 
+function trimDanglingClause(value) {
+  const text = clean(value);
+  // Do not publish a hard-clipped subordinate clause such as
+  // "...because I hate." Keep the complete main clause and leave the rest
+  // for the player at the source timestamp.
+  const trimmed = text.replace(/\s+(?:because|since|although|while|when|if|which|that|who)\s+(?:i|you|he|she|we|they)\s+[a-z0-9'â€™-]+\s*$/i, "").trim();
+  return trimmed || text;
+}
+
 function excerpt(value, limit = 16) {
   const normalized = normalizeCaptionText(value)
     .replace(/(?:\s*\.{3,}|\u2026)\s*$/g, "")
@@ -138,7 +147,7 @@ function excerpt(value, limit = 16) {
   const bounded = (sentence) => {
     const sentenceWords = words(sentence);
     if (sentenceWords.length <= publicLimit) return sentence.trim();
-    const clipped = sentenceWords.slice(0, publicLimit).join(" ")
+    const clipped = trimDanglingClause(sentenceWords.slice(0, publicLimit).join(" "))
       .replace(/\s+(?:the|a|an|and|or|but|to|of|in|on|for|with|from|that|this|it|i|you|he|she|we|they)$/i, "")
       .trim();
     return /[.!?]$/.test(clipped) ? clipped : `${clipped}.`;

@@ -119,6 +119,7 @@ test("public moment and receipt shelves use the sentence-safe excerpt path", () 
   assert.match(generator, /function safeExcerpt\(value, limit = 20\)/);
   assert.match(generator, /const publicLimit = Math\.min\(16, Math\.max\(8, Number\(limit\) \|\| 20\)\)/);
   assert.match(generator, /const boundedSentence = \(sentence\) =>/);
+  assert.match(generator, /function trimDanglingClause\(value\)/);
   assert.match(generator, /refreshMachineMomentExcerpt/);
   assert.match(generator, /const refreshedExistingMoments = events\.length/);
   assert.match(generator, /excerpt: safeExcerpt\(captionWindow\(events, item\.index\), 24\)/);
@@ -132,7 +133,7 @@ test("sentence-safe receipts preserve punctuation across caption speaker markers
   const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-livestream-canon.mjs"), "utf8");
   assert.match(generator, /punctuation boundary followed by a plausible sentence starter/);
   assert.match(generator, /\?=\\s\*\(\?:>>\\s\*\)\?\[A-Z0-9/);
-  assert.match(generator, /const bounded = clipped \|\| tokens\.slice\(0, limit\)\.join\(" "\);/);
+  assert.match(generator, /const bounded = trimDanglingClause\(clipped \|\| tokens\.slice\(0, limit\)\.join\(" "\)\);/);
   assert.match(generator, /return \/\[.!\?\]\$\/\.test\(bounded\) \? bounded : `\$\{bounded\}\.\`;/);
   assert.match(generator, /replace\(\/\\s\*>>\\s\*\/g, ""\)/);
   assert.match(generator, /two-token decoder stutter/);
@@ -154,6 +155,7 @@ test("recap prose prefers bounded audio receipts over noisy topic fragments", ()
 
 test("watchalong listening cuts prefer local Whisper context", () => {
   const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-watchalong-canon.mjs"), "utf8");
+  assert.match(generator, /function trimDanglingClause\(value\)/);
   assert.match(generator, /whisperContext/);
   assert.match(generator, /sourceKind === "local-whisper-transcript"/);
   assert.match(generator, /canonical YouTube audio \+ source-local Whisper transcript alignment/);

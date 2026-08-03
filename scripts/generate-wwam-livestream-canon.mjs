@@ -18,6 +18,15 @@ function loadScript(file) {
 }
 function clean(value) { return String(value == null ? "" : value).replace(/\s+/g, " ").trim(); }
 function words(value) { return clean(value).split(/\s+/).filter(Boolean); }
+function trimDanglingClause(value) {
+  const text = clean(value);
+  // A hard public word bound can cut a sentence just after a subordinate
+  // clause ("...because I hate."). That is not a caption error we should
+  // publish as prose. Keep the complete main clause and let the player carry
+  // the rest of the exchange.
+  const trimmed = text.replace(/\s+(?:because|since|although|while|when|if|which|that|who)\s+(?:i|you|he|she|we|they)\s+[a-z0-9'â€™-]+\s*$/i, "").trim();
+  return trimmed || text;
+}
 function excerpt(value, limit = 20) {
   const tokens = words(String(value).replace(/\s*\n\s*/g, " "));
   return tokens.length <= limit ? tokens.join(" ") : `${tokens.slice(0, limit).join(" ")}...`;
@@ -27,7 +36,7 @@ function quoteExcerpt(value, limit = 22) {
   const boundedSentence = (sentence) => {
     const sentenceWords = words(sentence);
     if (sentenceWords.length <= limit) return sentence.trim();
-    const clippedSentence = sentenceWords.slice(0, limit).join(" ")
+    const clippedSentence = trimDanglingClause(sentenceWords.slice(0, limit).join(" "))
       .replace(/\s+(?:the|a|an|and|or|but|to|of|in|on|for|with|from|that|this|it|i|you|he|she|we|they)$/i, "")
       .trim();
     return /[.!?]$/.test(clippedSentence) ? clippedSentence : `${clippedSentence}.`;
@@ -52,7 +61,7 @@ function quoteExcerpt(value, limit = 22) {
   const clipped = tokens.slice(0, limit).join(" ")
     .replace(/\s+(?:the|a|an|and|or|but|to|of|in|on|for|with|from|that|this|it|i|you|he|she|we|they)$/i, "")
     .trim();
-  const bounded = clipped || tokens.slice(0, limit).join(" ");
+  const bounded = trimDanglingClause(clipped || tokens.slice(0, limit).join(" "));
   return /[.!?]$/.test(bounded) ? bounded : `${bounded}.`;
 }
 // Public receipts should read like bounded doors, not raw decoder fragments.
