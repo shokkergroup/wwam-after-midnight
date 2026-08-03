@@ -44,6 +44,10 @@ function normalizeCaptionText(value) {
   for (let pass = 0; pass < 4; pass += 1) {
     text = text.replace(/\b([A-Za-z][A-Za-z'’-]*)\b(?:\s+\1\b){3,}/gi, "$1 $1");
   }
+  // Whisper can leave a two-token decoder stutter in a bounded window. Keep
+  // the audio as the authority, but collapse the obvious duplicate before a
+  // transcript line is promoted into visitor-facing prose.
+  text = text.replace(/\b([A-Za-z][A-Za-z'-]*)\b(?:\s+\1\b)+/gi, "$1");
   return text.replace(/\s{2,}/g, " ").trim();
 }
 function captionEvents(id) {
@@ -391,7 +395,7 @@ function tapeNote(title, shape, topics, moments, fan, recurring, characterCues, 
 }
 function machineShapedSummary(value) {
   const text = clean(value);
-  return !text || /(?:This completion pass maps|A bracket-and-ranking night from|A trailer-and-news night from|A movie watchalong from|A fan-mail night from|A spoiler-heavy review night from|An open-line movie-news night from|caption map opens on|timestamp candidates across|If you are dropping into this|The shape of the night is|has indexed doors on|The 2026 second pass maps|This is a machine-surfaced caption map|Ranked #\d+ among eligible archived livestreams|Selected #\d+ by the frozen Archive Atlas|Automatic captions support timestamped|Its caption map concentrates on|side conversations keep finding new trouble|turns .* into a long night of movie talk|keeps widening whenever somebody says|the takes keep catching fire|the rankings out and the gloves off|argument with receipts|The local route rail gives you|WWAM's fingerprints show up as|The chat is not background noise here|Character-shaped callbacks include|A separate listening pass marks|The text can point to the moment|The recap points you at the moment|One source receipt at)/i.test(text);
+  return !text || /(?:This completion pass maps|A bracket-and-ranking night from|A trailer-and-news night from|A movie watchalong from|A fan-mail night from|A spoiler-heavy review night from|An open-line movie-news night from|caption map opens on|timestamp candidates across|If you are dropping into this|The shape of the night is|has indexed doors on|The 2026 second pass maps|This is a machine-surfaced caption map|Ranked #\d+ among eligible archived livestreams|Selected #\d+ by the frozen Archive Atlas|Automatic captions support timestamped|Its caption map concentrates on|side conversations keep finding new trouble|turns .* into a long night of movie talk|keeps widening whenever somebody says|the takes keep catching fire|the rankings out and the gloves off|argument with receipts|The local route rail gives you|WWAM's fingerprints show up as|The chat is not background noise here|Character-shaped callbacks include|A separate listening pass marks|The text can point to the moment|The recap points you at the moment|One source receipt at|The cleanest bit of tape I found starts at|the transcript catches the show's temperature|For a quick taste, press)/i.test(text);
 }
 function machineShapedWhyItMatters(value) {
   const text = clean(value);
@@ -454,12 +458,26 @@ function voiceSummaryV2(title, date, shape, topics, moments, fan, recurring, cha
   ].filter(Boolean).map((item) => {
     let text = normalizeCaptionText(item.text);
     text = text.replace(/^(?:yeah|and|but|so|well|just|i mean|you know)\s+/i, "");
+    text = text.replace(/^(?:[.…]+\s*)+/, "");
     if (text) text = `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
-    const tokenCount = words(text).length;
-    const fillerPenalty = /^(?:the|a|an|this|that|it|he|she|we|they)\b/i.test(text) ? 2 : 0;
-    const fragmentPenalty = /\.\.\.$/.test(text) ? 1 : 0;
-    return { ...item, text, tokenCount, score: Number(item.weight || 0) + Math.min(24, tokenCount) * 2 - fillerPenalty - fragmentPenalty };
-  }).filter((item) => item.text && item.tokenCount >= 8 && !/^(?:No local transcript window aligned|No caption fragment aligned|Title signal only|open the source before treating)/i.test(item.text));
+    const tokenList = words(text).map((token) => token.toLowerCase());
+    const tokenCount = tokenList.length;
+    const fillerWords = (text.toLowerCase().match(/\b(?:uh|um|like|yeah|you know|i mean|okay|just)\b/g) || []).length;
+    const repeatedWords = (text.match(/\b([A-Za-z][A-Za-z'-]*)\b\s+\1\b/gi) || []).length;
+    const repeatedPhrases = [2, 3].reduce((total, size) => {
+      let hits = 0;
+      for (let index = 0; index + size * 2 <= tokenList.length; index += 1) {
+        if (tokenList.slice(index, index + size).join(" ") === tokenList.slice(index + size, index + size * 2).join(" ")) hits += 1;
+      }
+      return total + hits;
+    }, 0);
+    const fillerPenalty = fillerWords * 4 + repeatedWords * 8 + repeatedPhrases * 10 + (/^(?:the|a|an|this|that|it|he|she|we|they)\b/i.test(text) ? 2 : 0);
+    const fragmentPenalty = /\.\.\.$/.test(text) ? 4 : 0;
+    const punctuationBonus = /[.!?]/.test(text) ? 3 : 0;
+    const quality = Math.max(0, Math.min(30, tokenCount * 1.5 + punctuationBonus - fillerPenalty - fragmentPenalty));
+    const startsFragment = /^(?:are|is|was|were|and|but|because|so|then|which|that)\b/i.test(text);
+    return { ...item, text, tokenCount, fillerWords, repeatedPhrases, startsFragment, score: quality * 100 + Math.min(10, Number(item.weight || 0)) };
+  }).filter((item) => item.text && item.tokenCount >= 8 && item.fillerWords <= 3 && item.repeatedPhrases === 0 && !item.startsFragment && item.score >= 1000 && !/^(?:No local transcript window aligned|No caption fragment aligned|Title signal only|open the source before treating)/i.test(item.text));
   const receiptCandidate = receiptOptions.sort((a, b) => b.score - a.score || Number(a.at || 0) - Number(b.at || 0))[0];
   const receiptLine = receiptCandidate
     ? [
