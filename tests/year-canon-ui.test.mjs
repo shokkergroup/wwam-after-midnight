@@ -148,8 +148,28 @@ test("the year shelf reduces raw excerpts and profanity-bearing labels without o
   assert.doesNotMatch(visible, /fuck|shit|asshole/i);
   assert.match(visible, /••••/);
   assert.match(visible, /Assignment Night stays visible/);
-  assert.match(ui, /displayText\(best\.excerpt, doc\)/);
+  assert.match(ui, /displayText\(momentExcerpt\(best\), doc\)/);
   assert.match(ui, /displayText\("STEVE\\'S ASSHOLE", doc\)/);
+});
+
+test("the year shelf turns caption transport and repetition into playable doors", () => {
+  const unsafe = languageApi.momentExcerpt({
+    label: "FULL SEND", at: 312,
+    excerpt: "factor to really reboot the the universe like he tried to do. >> Penis penis penis."
+  });
+  assert.equal(unsafe, "FULL SEND is indexed at 5:12. Press play for the actual exchange.");
+
+  const marker = languageApi.momentExcerpt({
+    label: "THE ROOM BREAKS", at: 841,
+    excerpt: ">> I can't go tomorrow. >> [BLEEP] >> No, I can't tell."
+  });
+  assert.equal(marker, "THE ROOM BREAKS is indexed at 14:01. Press play for the actual exchange.");
+
+  const safe = languageApi.momentExcerpt({
+    label: "UP IN YA", at: 90,
+    excerpt: "That trailer just detonated the whole conversation in thirty seconds."
+  });
+  assert.equal(safe, "That trailer just detonated the whole conversation in thirty seconds.");
 });
 
 test("the year shelf repaints when reduced-language mode changes", () => {

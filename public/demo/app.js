@@ -238,7 +238,7 @@
       "year-canon-2025-2026.js?v=1.0.0","archive-recovery-batch1.js?v=1.0.0",
       "archive-recovery-batch2.js?v=1.0.0",
       "archive-completion.js?v=1.0.1-receipt-bound",
-      "year-canon-ui.js?v=1.2.0-recovered",
+      "year-canon-ui.js?v=1.3.0-caption-safe",
       "archive-deep-engine.js","archive-deep-portfolio.js",
     ].reduce(function(p,s){return p.then(function(){return loadDemoScript(s);});},
       Promise.resolve()).then(createArchiveDeep)

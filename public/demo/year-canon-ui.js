@@ -6,6 +6,7 @@
   root.WWAMYearCanonUI = Object.freeze({
     applyRecoveryOverlay: applyRecoveryOverlay,
     displayText: displayText,
+    momentExcerpt: momentExcerpt,
     observeLanguage: observeLanguage
   });
   if (!doc) return;
@@ -88,6 +89,17 @@
     if (names.length < 2) return names[0] || "";
     if (names.length === 2) return names[0] + " and " + names[1];
     return names.slice(0, -1).join(", ") + ", and " + names[names.length - 1];
+  }
+
+  function momentExcerpt(moment) {
+    var raw = clean(moment && moment.excerpt);
+    var transport = /(?:^|\s)(?:>>+|-->|<\/?(?:c|v|lang)\b)|\[(?:BLEEP|laughter|music|applause|cheering)\]/i.test(raw);
+    var repeated = /\b([A-Za-z][A-Za-z'-]*)\s+\1(?:\s+\1)+\b/i.test(raw);
+    var machineRoom = /automatic[- ]caption|machine[- ]surfaced|source[- ]local|caption[- ](?:backed|derived|ledger)|speaker(?:s)?\s+(?:unverified|not confirmed)|evidence|receipt/i.test(raw);
+    if (raw && raw.length >= 28 && !transport && !repeated && !machineRoom) return raw;
+    var label = clean(moment && (moment.label || moment.category)) || "This saved moment";
+    var at = time(moment && moment.at);
+    return label + " is indexed at " + at + ". Press play for the actual exchange.";
   }
 
   function cloneMeta(value) {
@@ -310,7 +322,7 @@
       ? '<a class="year-canon-moment" href="' + esc(route(show, best.at, "player")) + '">' +
           '<span>START WITH THIS MOMENT</span><b>' + esc(displayText(best.label, doc)) +
           ' // ' + time(best.at) + '</b><p>&ldquo;' +
-          esc(displayText(best.excerpt, doc)) +
+          esc(displayText(momentExcerpt(best), doc)) +
           '&rdquo;</p><i>PLAY THIS PART &rarr;</i></a>'
       : '<div class="year-canon-moment is-empty"><span>WATCH THIS SHOW</span><b>NO QUICK JUMP YET</b>' +
           '<p>' + (show.wikiState === "source-brief"
