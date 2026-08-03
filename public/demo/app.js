@@ -1117,11 +1117,18 @@
         return true;
       });
     };
-    var fallbackTimer = window.setTimeout(function () {
-      if (fallbackShown || !document.getElementById("tapeModal").classList.contains("show")) return;
+    // Paint the local, playable shell immediately. The full dossier can keep
+    // hydrating behind it, but a cold route should never make a visitor wait
+    // behind a spinner while the large archive bundle is fetched.
+    var fallbackTimer = null;
+    try {
       fallbackShown = true;
       renderFallback();
-    }, 900);
+    } catch (error) {
+      fallbackShown = false;
+      runtimeDiagnostics.push({at:new Date().toISOString(),operation:"immediate source shell",
+        sourceId:sourceId,message:error&&error.message?error.message:String(error)});
+    }
     return loadSourceDossier().then(function (ui) {
       window.clearTimeout(fallbackTimer);
       if (!sourceDossierEngine.has(sourceId)) {
