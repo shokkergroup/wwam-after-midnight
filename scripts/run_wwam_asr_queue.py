@@ -16,6 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 QUEUE = ROOT / "source-cache" / "wwam-asr-queue.json"
 SELECTOR = ROOT / "scripts" / "select_wwam_asr_queue.mjs"
 EXCERPT_GENERATOR = ROOT / "scripts" / "generate_wwam_livestream_asr_excerpts.py"
+WATCHALONG_CANON_GENERATOR = ROOT / "scripts" / "generate-wwam-watchalong-canon.mjs"
 
 
 def validate_ledger(source_id: str, payload: dict) -> None:
@@ -60,13 +61,19 @@ def main() -> None:
             return
         ids = [str(row["id"]) for row in rows]
         print(f"[queue] batch {batch + 1} // {', '.join(ids)}", flush=True)
-        for source_id in ids:
+        for row in rows:
+            source_id = str(row["id"])
             payload = transcribe_one(model, source_id)
             validate_ledger(source_id, payload)
             # Publish the bounded navigation layer as soon as this source is
             # complete. A neighboring three-hour source should not hold back
             # a finished ledger from reaching the public Wiki.
             subprocess.run([sys.executable, str(EXCERPT_GENERATOR)], cwd=ROOT, check=True)
+            # Watchalongs use a separate canon and route adapter from
+            # livestreams. Do not leave a finished commentary transcript in
+            # source-cache with no public Watchalong refresh behind it.
+            if str(row.get("kind") or "").lower() == "watchalong":
+                subprocess.run(["node", str(WATCHALONG_CANON_GENERATOR)], cwd=ROOT, check=True)
     print("[queue] bounded batch run complete; generated excerpts are ready for audit/commit", flush=True)
 
 
