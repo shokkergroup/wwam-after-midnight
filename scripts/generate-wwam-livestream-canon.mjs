@@ -89,7 +89,7 @@ function clock(seconds) {
 }
 function normalizeCaptionText(value) {
   let text = clean(value).replace(/\[(?:\s*[_-]+\s*)+\]/g, " ")
-    .replace(/\[(?:music|applause|laughter|laughs?|inaudible|bleep|snorts?|coughs?|sighs?|gasps?|crying|breathing|clears?\s+throat|chuckles?)\]/gi, " ")
+    .replace(/\[(?:music|applause|laughter|laughs?|screaming|yelling|shouting|inaudible|bleep|snorts?|coughs?|sighs?|gasps?|crying|breathing|clears?\s+throat|chuckles?)\]/gi, " ")
     .replace(/[_]+/g, " ")
     .replace(/[»>]{1,3}(?=\s)/g, " ")
     .replace(/â€™/g, "'").replace(/â€œ|â€/g, '"').replace(/â€”|â€“/g, "—")
@@ -107,7 +107,9 @@ function normalizeCaptionText(value) {
   // A second common stutter repeats a short phrase rather than one token
   // ("there was there was", "not only not only"). Collapse only an exact
   // adjacent pair so intentional emphasis elsewhere remains intact.
-  text = text.replace(/\b([A-Za-z][A-Za-z'-]*)\s+([A-Za-z][A-Za-z'-]*)\s+\1\s+\2\b/gi, "$1 $2");
+  for (let pass = 0; pass < 3; pass += 1) {
+    text = text.replace(/\b([A-Za-z0-9][A-Za-z0-9'-]*)\s+([A-Za-z0-9][A-Za-z0-9'-]*)\s+\1\s+\2\b/gi, "$1 $2");
+  }
   return text.replace(/\s{2,}/g, " ").trim();
 }
 function captionEvents(id) {
