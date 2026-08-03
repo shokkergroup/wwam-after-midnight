@@ -113,6 +113,13 @@ function refreshMachineMomentExcerpt(moment, events) {
     reviewStatus: "machine-candidate"
   };
 }
+function refreshArchiveSummary(value, localWhisper) {
+  const text = clean(value);
+  if (!localWhisper || !text) return text;
+  return text
+    .replace(/Automatic captions support/gi, "The local Whisper transcript supports")
+    .replace(/caption map/gi, "transcript map");
+}
 function topicAnchor(events, term) {
   const pattern = new RegExp(`\\b${term.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&").replace(/\\s+/g, "\\s+")}\\b`, "i");
   const hits = events.map((event, index) => ({ event, index })).filter(({ event }) => pattern.test(event.text));
@@ -739,7 +746,11 @@ const episodes = canonicalMetadata.map((record) => {
     ? `${ledgerSummary} Captions are navigation, not a final quote or speaker verdict—open a receipt and hear the full exchange.`
     : `A source brief for ${clean(record.title)}. Metadata is preserved, but no local caption route survived for a responsible episode breakdown.`));
   const evidence = {
-    ...(existing?.captionEvidence || {}),
+    ...(localWhisper ? {} : (existing?.captionEvidence || {})),
+    track: localWhisper ? "Local Whisper transcript (source audio)" : (existing?.captionEvidence?.track || "English YouTube automatic captions (JSON3)"),
+    sourceFile: localWhisper ? `source-cache/captions/${id}.asr.json` : (existing?.captionEvidence?.sourceFile || `source-cache/captions/${id}.json`),
+    engine: localWhisper ? "faster-whisper" : (existing?.captionEvidence?.engine || "youtube"),
+    model: localWhisper ? "large-v3-turbo" : (existing?.captionEvidence?.model || ""),
     type: localWhisper ? "local-whisper-transcript" : existing?.captionEvidence?.type || (events.length ? "youtube-automatic-caption" : "metadata-only"),
     eventsAudited: events.length || Number(existing?.captionEvidence?.eventsAudited || 0),
     speakerDiarized: false,
@@ -791,7 +802,7 @@ const episodes = canonicalMetadata.map((record) => {
     recurringBits: recurring, bestBits: bestBits(moments, fan, listeningRoutes), characterCues: cueList,
     characters: existing?.characters || characters(events), peak: existing?.peak || moments.slice().sort((a, b) => b.score - a.score)[0] || null,
     yearPass: pass, watchPass, rssAudioPass,
-     dossier: { summary: finalSummary, tapeNote: clean(`${note} ${audioLine}`), archiveSummary: currentYear === 2026 && existing?.summary ? clean(existing.summary) : null, shape, hook: hotMoment ? { at: Number(hotMoment.t || 0), category: hotMoment.category || hotMoment.label || "SOURCE RECEIPT", excerpt: hotMoment.excerpt || "", evidenceBasis: hotMoment.evidenceBasis || "source-local caption candidate", reviewStatus: hotMoment.reviewStatus || "machine-candidate" } : null, audioRead: watchPassRaw ? { mode: decodedAudio ? "decoded-audio" : "caption-only", routeCount: audioCandidates.length, strongest: audioStrongest ? { t: Number(audioStrongest.t || 0), category: audioStrongest.category || audioStrongest.label || "SOURCE RECEIPT", score: Number(audioStrongest.score || 0) } : null, signalMix: audioSignalMix.slice(0, 8), evidence: decodedAudio ? "Decoded canonical audio re-ranked source-local windows; playback remains the authority." : "Caption-only source-local routes; no acoustic intensity claim is made." } : null, whyItMatters, evidence, restricted, editorialRead: Boolean(editorialPackBound), reviewStatus: editorialPackBound ? "full-tape-human-editorial-read" : tier === "source-brief" ? "held-source-brief" : tier === "completion-dossier" ? "distilled-machine-candidate" : "machine-surfaced" }
+     dossier: { summary: finalSummary, tapeNote: clean(`${note} ${audioLine}`), archiveSummary: currentYear === 2026 && existing?.summary ? refreshArchiveSummary(existing.summary, localWhisper) : null, shape, hook: hotMoment ? { at: Number(hotMoment.t || 0), category: hotMoment.category || hotMoment.label || "SOURCE RECEIPT", excerpt: hotMoment.excerpt || "", evidenceBasis: hotMoment.evidenceBasis || "source-local caption candidate", reviewStatus: hotMoment.reviewStatus || "machine-candidate" } : null, audioRead: watchPassRaw ? { mode: decodedAudio ? "decoded-audio" : "caption-only", routeCount: audioCandidates.length, strongest: audioStrongest ? { t: Number(audioStrongest.t || 0), category: audioStrongest.category || audioStrongest.label || "SOURCE RECEIPT", score: Number(audioStrongest.score || 0) } : null, signalMix: audioSignalMix.slice(0, 8), evidence: decodedAudio ? "Decoded canonical audio re-ranked source-local windows; playback remains the authority." : "Caption-only source-local routes; no acoustic intensity claim is made." } : null, whyItMatters, evidence, restricted, editorialRead: Boolean(editorialPackBound), reviewStatus: editorialPackBound ? "full-tape-human-editorial-read" : tier === "source-brief" ? "held-source-brief" : tier === "completion-dossier" ? "distilled-machine-candidate" : "machine-surfaced" }
   };
 }).sort((left, right) => right.date.localeCompare(left.date) || right.id.localeCompare(left.id));
 

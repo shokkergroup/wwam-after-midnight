@@ -70,6 +70,13 @@ test("local Whisper routes never fall back to stale automatic-caption text", () 
   assert.match(generator, /localWhisper \? captionWindowAt\(events, candidate\.t\) : \"\"/);
 });
 
+test("local Whisper evidence replaces legacy caption provenance", () => {
+  const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-livestream-canon.mjs"), "utf8");
+  assert.match(generator, /localWhisper \? \{\} : \(existing\?\.captionEvidence \|\| \{\}\)/);
+  assert.match(generator, /Local Whisper transcript \(source audio\)/);
+  assert.match(generator, /refreshArchiveSummary/);
+});
+
 test("existing machine moments are refreshed from the local transcript", () => {
   const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-livestream-canon.mjs"), "utf8");
   assert.match(generator, /refreshMachineMomentExcerpt/);
