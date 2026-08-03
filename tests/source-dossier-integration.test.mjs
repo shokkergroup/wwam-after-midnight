@@ -348,9 +348,45 @@ test("fallback show wiki promotes bounded Whisper excerpts without publishing em
   assert.equal(routes[1].label, "STRAIGHT TO STEVE'S ASSHOLE");
 });
 
+test("quality-gated Whisper excerpts win over same-second placeholder receipts", () => {
+  const fallbackSourceMoments = evaluateNamed("fallbackSourceMoments", {
+    tapeById: {},
+    boundedExcerpt(value) {
+      return String(value).trim();
+    },
+    window: {
+      WWAM_LIVESTREAM_ASR_EXCERPTS: {
+        sources: {
+          ABCDEFGHIJK: {
+            candidates: [{
+              t: 1350,
+              excerpt: "By the way, how many fucking times are we going to kill off Professor X, dude?",
+            }],
+          },
+        },
+      },
+    },
+  });
+  const routes = fallbackSourceMoments("ABCDEFGHIJK", {
+    dossier: {
+      cuts: [{
+        t: 1350,
+        category: "LISTENING // TRANSCRIPT WINDOW",
+        label: "LISTENING // TRANSCRIPT WINDOW",
+        excerpt: "Source-local receipt; press play to hear the tape.",
+        reviewStatus: "machine-candidate-unreviewed",
+      }],
+    },
+  });
+  assert.equal(routes.length, 1);
+  assert.equal(routes[0].sourceKind, "local-whisper");
+  assert.match(routes[0].excerpt, /how many fucking times/i);
+});
+
 test("fallback Show Wiki keeps unreviewed caption fragments out of public prose", () => {
   const fallbackMomentDescription = evaluateNamed("fallbackMomentDescription", {
     timestamp(value) { return `${value}s`; },
+    boundedExcerpt(value) { return String(value || "").trim(); },
     cleanedCaptionReceipt(value) { return String(value || "").replace(/>>\s*/g, "").trim(); },
   });
   const machineCopy = fallbackMomentDescription({
@@ -369,6 +405,16 @@ test("fallback Show Wiki keeps unreviewed caption fragments out of public prose"
     reviewStatus: "human-reviewed",
   });
   assert.match(reviewedCopy, /hosts commit to the bit/i);
+
+  const qualityWhisperCopy = fallbackMomentDescription({
+    at: 1350,
+    label: "LISTENING // TRANSCRIPT WINDOW",
+    sourceKind: "local-whisper",
+    excerpt: "By the way, how many fucking times are we going to kill off Professor X, dude?",
+    reviewStatus: "machine-candidate-unreviewed",
+  });
+  assert.match(qualityWhisperCopy, /how many fucking times/i);
+  assert.match(qualityWhisperCopy, /starts at 1350s/i);
 });
 
 test("the compact livestream fallback index is bounded and category-aware", () => {

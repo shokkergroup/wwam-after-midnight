@@ -809,7 +809,8 @@
       }));
     }
     var seen = {};
-    return raw.map(function (moment) {
+    var deduped = [];
+    raw.map(function (moment) {
       var at = Number(moment.at != null ? moment.at : moment.t);
       return {
         at: Number.isFinite(at) ? Math.max(0, Math.round(at)) : 0,
@@ -830,10 +831,28 @@
       // Steve's Asshole route can share an audio boundary; collapsing them
       // by timestamp made the cold Show Wiki quietly lose a category.
       var key = moment.at + "|" + String(moment.lane || moment.label || "").toLowerCase();
-      if (!moment.at || seen[key]) return false;
-      seen[key] = true;
+      if (!moment.at) return false;
+      if (seen[key] != null) {
+        var previousIndex = seen[key];
+        var previous = deduped[previousIndex];
+        var currentExcerpt = String(moment.excerpt || "").trim();
+        var previousExcerpt = String(previous && previous.excerpt || "").trim();
+        var currentIsQualityAudio = moment.sourceKind === "local-whisper" && currentExcerpt.split(/\s+/).filter(Boolean).length >= 5;
+        var previousIsQualityAudio = previous && previous.sourceKind === "local-whisper" && previousExcerpt.split(/\s+/).filter(Boolean).length >= 5;
+        // Older dossier ledgers often reserve the same timestamp with a
+        // generic placeholder. Prefer a bounded, quality-gated local Whisper
+        // excerpt when it arrives later; otherwise keep the first editorial
+        // receipt so stable lane counts and ordering do not drift.
+        if (currentIsQualityAudio && !previousIsQualityAudio && (!previousExcerpt || /source-local receipt|press play to hear the tape|transcript window starts at/i.test(previousExcerpt))) {
+          deduped[previousIndex] = moment;
+        }
+        return false;
+      }
+      seen[key] = deduped.length;
+      deduped.push(moment);
       return true;
-    }).sort(function (a, b) { return (b.heat - a.heat) || (a.at - b.at); })
+    });
+    return deduped.sort(function (a, b) { return (b.heat - a.heat) || (a.at - b.at); })
       .sort(function (a, b) { return a.at - b.at; });
   }
 
@@ -1755,6 +1774,15 @@
         "the room breaks": "room-break moment",
         "listening // transcript window": "transcript window",
       }[lane] || lane;
+      var caption = cleanedCaptionReceipt(moment.excerpt);
+      // Quality-gated local Whisper excerpts are useful navigation copy when
+      // the ledger has a complete, bounded line. Keep the lane honest (it is
+      // still a transcript window) while letting the reader see why the door
+      // might be worth opening instead of hiding every line behind a generic
+      // audit sentence.
+      if (sourceKind === "local-whisper" && caption.split(/\s+/).filter(Boolean).length >= 5) {
+        return "“" + boundedExcerpt(caption) + "” starts at " + timestamp(moment.at) + ". Press play to hear the full exchange.";
+      }
       return (topic ? topic + " discussion" : laneCopy) + " starts at " + timestamp(moment.at) + ". Press play to hear the full exchange.";
     }
     return cleanedCaptionReceipt(moment.excerpt) || "Bounded source receipt; press play to hear the tape.";
