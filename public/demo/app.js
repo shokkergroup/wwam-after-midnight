@@ -858,7 +858,7 @@
         return {
           at: candidate.t,
           end: Number.isFinite(candidateEnd) && candidateEnd > Number(candidate.t || 0) ? candidateEnd : null,
-          label: textCue ? "LISTENING // TEXT-CUE WINDOW" : "LISTENING // TRANSCRIPT WINDOW",
+          label: textCue ? "TAPE DOOR // TALKING POINT" : "TAPE DOOR // CONTEXT CLIP",
           excerpt: candidate.excerpt,
           score: Number(candidate.selectionScore || candidate.audioRank || 74),
           sourceKind: "local-whisper",
@@ -959,8 +959,8 @@
       "TAKE GETS NUCLEAR",
       "FULL SEND",
       "ROOM BREAK",
-      "LISTENING // TEXT-CUE WINDOW",
-      "LISTENING // TRANSCRIPT WINDOW",
+      "TAPE DOOR // TALKING POINT",
+      "TAPE DOOR // CONTEXT CLIP",
     ];
     var fallbackLaneCounts = {};
     moments.forEach(function (moment) {
@@ -1880,8 +1880,8 @@
         "full send": "full-send take",
         "room break": "room-break moment",
         "the room breaks": "room-break moment",
-        "listening // text-cue window": "Whisper text cue",
-        "listening // transcript window": "transcript window",
+        "tape door // talking point": "talking point",
+        "tape door // context clip": "context clip",
       }[lane] || lane;
       var caption = cleanedCaptionReceipt(moment.excerpt);
       // Quality-gated local Whisper excerpts are useful navigation copy when
