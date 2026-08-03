@@ -304,7 +304,13 @@
     // is still loading. It never carries speaker, visual, or intent claims.
     var whisperReady = window.WWAM_LIVESTREAM_ASR_EXCERPTS ? Promise.resolve() :
       loadDemoScript("wwam-livestream-asr-excerpts.js?v=1.0.0-latest-local-whisper");
-    return Promise.all([routeReady, whisperReady]);
+    // This compact category index is generated from the audited audio pass,
+    // not from a new model guess. It exposes the strongest Steve's Asshole,
+    // UP IN YA, character, fan, and room-break lanes without shipping the
+    // private 18 MB ledger to every cold route.
+    var audioLaneReady = window.WWAM_LIVESTREAM_FALLBACK_INDEX ? Promise.resolve() :
+      loadDemoScript("wwam-livestream-fallback-index.js?v=1.0.0-category-lanes");
+    return Promise.all([routeReady, whisperReady, audioLaneReady]);
   }
 
   function loadArchiveAtlas() {
@@ -759,6 +765,17 @@
     if (source.episodeGuide && Array.isArray(source.episodeGuide.cuts)) raw = raw.concat(source.episodeGuide.cuts);
     if (source.editorial && Array.isArray(source.editorial.cuts)) raw = raw.concat(source.editorial.cuts);
     if (source.watchPass && Array.isArray(source.watchPass.candidates)) raw = raw.concat(source.watchPass.candidates);
+    var audioLaneRegistry = typeof window !== "undefined" ? window.WWAM_LIVESTREAM_FALLBACK_INDEX : null;
+    var audioLaneEpisode = audioLaneRegistry && audioLaneRegistry.episodes && audioLaneRegistry.episodes[sourceId];
+    if (audioLaneEpisode && Array.isArray(audioLaneEpisode.candidates)) {
+      raw = raw.concat(audioLaneEpisode.candidates.map(function (candidate) {
+        return Object.assign({}, candidate, {
+          at: candidate.t,
+          sourceKind: "audio-pass",
+          reviewStatus: candidate.reviewStatus || "audio-feature-candidate; playback remains the authority",
+        });
+      }));
+    }
     var whisperRegistry = typeof window !== "undefined" ? window.WWAM_LIVESTREAM_ASR_EXCERPTS : null;
     var whisperSource = whisperRegistry && whisperRegistry.sources && whisperRegistry.sources[sourceId];
     if (whisperSource && Array.isArray(whisperSource.candidates)) {

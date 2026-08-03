@@ -14,6 +14,7 @@ const featureLoader = read("feature-loader.js");
 const atlasUi = read("archive-atlas-ui.js");
 const sourceDossierAssets = read("source-dossier-assets.js");
 const sourceDossierUi = read("source-dossier-ui.js");
+const livestreamFallbackIndex = read("wwam-livestream-fallback-index.js");
 
 function runtimeVersion(file) {
   const version = read(file).match(/\bvar VERSION = "(\d+\.\d+\.\d+)"/)?.[1];
@@ -321,19 +322,46 @@ test("fallback show wiki promotes bounded Whisper excerpts without publishing em
           },
         },
       },
+      WWAM_LIVESTREAM_FALLBACK_INDEX: {
+        episodes: {
+          ABCDEFGHIJK: {
+            candidates: [{
+              t: 240,
+              category: "STRAIGHT TO STEVE'S ASSHOLE",
+              label: "STRAIGHT TO STEVE'S ASSHOLE",
+              captionExcerpt: "A source-local Steve's Asshole candidate.",
+              score: 88,
+            }],
+          },
+        },
+      },
     },
   });
   const routes = fallbackSourceMoments("ABCDEFGHIJK", {});
-  assert.equal(routes.length, 1);
+  assert.equal(routes.length, 2);
   assert.equal(routes[0].at, 120);
   assert.equal(routes[0].label, "LISTENING // TRANSCRIPT WINDOW");
   assert.match(routes[0].excerpt, /complete local transcript/i);
+  assert.equal(routes[1].label, "STRAIGHT TO STEVE'S ASSHOLE");
+});
+
+test("the compact livestream fallback index is bounded and category-aware", () => {
+  const payload = JSON.parse(livestreamFallbackIndex.match(/= (\{[\s\S]+\});\s*$/)[1]);
+  assert.equal(payload.schema, "shokker-wwam-livestream-fallback-index/v1");
+  assert.equal(Object.keys(payload.episodes).length, 509);
+  assert.ok(Object.values(payload.episodes).every((episode) => episode.candidates.length <= 10));
+  const latest = payload.episodes.LV2rmwEA0w4.candidates;
+  assert.ok(latest.some((candidate) => candidate.category === "STRAIGHT TO STEVE'S ASSHOLE"));
+  assert.ok(latest.some((candidate) => candidate.category === "FAN SIGNAL"));
+  assert.ok(latest.every((candidate) => candidate.sourceKind === "audio-pass"));
 });
 
 test("cold source routes paint the local fallback before optional Watchalong hydration", () => {
   assert.match(app, /function ensureWatchalongCanonForSource\(sourceId\)/);
   assert.match(app, /wwam-watchalong-route-index\.js\?v=1\.2\.1-alternate-routes/);
   assert.match(app, /wwam-livestream-asr-excerpts\.js\?v=1\.0\.0-latest-local-whisper/);
+  assert.match(app, /wwam-livestream-fallback-index\.js\?v=1\.0\.0-category-lanes/);
+  assert.match(app, /WWAM_LIVESTREAM_FALLBACK_INDEX/);
   assert.match(app, /LISTENING \/\/ TRANSCRIPT WINDOW/);
   assert.match(app, /transcript window/);
   assert.match(app, /String\(index \+ 1\)\.padStart\(2, "0"\)/);
