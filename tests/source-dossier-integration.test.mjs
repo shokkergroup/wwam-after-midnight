@@ -765,6 +765,11 @@ test("dossier CSS brands cold routes immediately while heavy scripts remain lazy
     "Show Wiki audio receipts must consume bounded local Whisper excerpts when available",
   );
   assert.match(
+    sourceDossierAdapter,
+    /function record\(value\)[\s\S]*localWhisperTextCueReceipts[\s\S]*secondary discovery door/,
+    "Show Wiki adapter must safely expose transcript-led secondary listening doors",
+  );
+  assert.match(
     asrExcerptIndex,
     /wwam-livestream-asr-excerpts\/v1[\s\S]*publicExcerptWordLimit/,
     "the ASR overlay must declare its bounded public excerpt policy",
@@ -819,6 +824,12 @@ test("dossier CSS brands cold routes immediately while heavy scripts remain lazy
     /data-source-listening-asr-count[\s\S]*WHISPER-ALIGNED LISTENING PASS/,
     "Show Wiki listening rails must disclose when local Whisper alignment has improved the excerpt",
   );
+  assert.match(
+    sourceDossierUi,
+    /SOURCE-LOCAL WHISPER TEXT CUE/,
+    "Show Wiki listening rails must label transcript cues as secondary discovery doors",
+  );
+  assert.match(sourceDossierUi, /SECONDARY DISCOVERY DOOR/);
   assert.doesNotMatch(
     sourceDossierUi,
     /\bnormalized\s*\(/,

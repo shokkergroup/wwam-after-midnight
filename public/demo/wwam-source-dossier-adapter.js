@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.22.0";
+  var VERSION = "1.23.0";
   var SCHEMA = "shokker-source-dossier-input/v1";
   var PUBLIC_EXCERPT_WORDS = 16;
   var OFFICIAL_WWAM_CHANNEL_ID = "UC6ieEOZW4iXV8TcILJI8k5g";
@@ -28,6 +28,10 @@
 
   function clean(value) {
     return String(value == null ? "" : value).replace(/\s+/g, " ").trim();
+  }
+
+  function record(value) {
+    return value && typeof value === "object" ? value : {};
   }
 
   function normalized(value) {
@@ -729,13 +733,70 @@
     return null;
   }
 
-  function localWhisperExcerpt(source, candidate, index) {
+  function localWhisperSourceRecord(source) {
     var registry = record(root.WWAM_LIVESTREAM_ASR_EXCERPTS);
-    var sourceRecord = record(record(registry.sources)[source.id]);
-    var entry = record(array(sourceRecord.candidates)[index]);
-    if (!clean(entry.excerpt)) return null;
-    if (Math.abs(number(entry.t) - number(candidate.t)) > 5) return null;
+    return record(record(registry.sources)[source.id]);
+  }
+
+  function localWhisperExcerpt(source, candidate) {
+    var sourceRecord = localWhisperSourceRecord(source);
+    var target = number(candidate && candidate.t);
+    var entries = array(sourceRecord.candidates).filter(function (entry) {
+      return clean(entry && entry.selectionKind) !==
+        "source-local-whisper-text-cue" && clean(entry && entry.excerpt);
+    }).sort(function (left, right) {
+      return Math.abs(number(left.t) - target) -
+        Math.abs(number(right.t) - target);
+    });
+    var entry = entries[0];
+    if (!entry || Math.abs(number(entry.t) - target) > 5) return null;
     return entry;
+  }
+
+  function localWhisperTextCueReceipts(source, selected, audioReceipts) {
+    var sourceRecord = localWhisperSourceRecord(source);
+    var cues = array(sourceRecord.candidates).filter(function (candidate) {
+      var at = numberOrNull(candidate && candidate.t);
+      return clean(candidate && candidate.selectionKind) ===
+        "source-local-whisper-text-cue" && clean(candidate && candidate.excerpt) &&
+        at != null && at >= 0 && at <= source.duration;
+    }).filter(function (candidate) {
+      var at = number(candidate.t);
+      return !array(audioReceipts).some(function (receipt) {
+        return Math.abs(number(receipt.at) - at) < 24;
+      });
+    });
+    return cues.map(function (candidate, index) {
+      var at = Math.max(0, number(candidate.t));
+      var refs = array(candidate.segmentRefs);
+      var lastRef = refs.length ? refs[refs.length - 1] : null;
+      var inferredEnd = number(lastRef && lastRef.end);
+      var end = inferredEnd > at ? inferredEnd : at + 12;
+      var score = boundedSignal(candidate.selectionScore);
+      return normalizedReceipt(
+        {
+          id: source.id + ":asr-text-cue:" + Math.floor(at) + ":" + index,
+          t: at,
+          end: Math.min(source.duration, end),
+          type: "audio-feature-candidate",
+          label: "TRANSCRIPT CUE",
+          excerpt: candidate.excerpt,
+        },
+        source,
+        {
+          kind: "moment",
+          label: "TRANSCRIPT CUE",
+          evidenceLevel: "machine",
+          evidenceType: "audio-feature-candidate",
+          evidenceBasis: "canonical " + selected.origin +
+            " audio pass; local faster-whisper transcript cue; secondary discovery door; playback remains the authority",
+          reviewState: "audio-feature-candidate; transcript cue; playback remains the authority",
+          publicExcerptAllowed: true,
+          signalScore: score,
+          signalBasis: score == null ? null : "local-whisper-text-cue-score",
+        }
+      );
+    });
   }
 
   function sourceAudioPassReceipts(source, watchalongById, livestreamById) {
@@ -747,12 +808,12 @@
       var at = numberOrNull(candidate && candidate.t);
       return at != null && at >= 0 && at <= source.duration;
     });
-    return candidates.map(function (candidate, index) {
+    var receipts = candidates.map(function (candidate, index) {
       var at = Math.max(0, number(candidate.t));
       var requestedEnd = Math.max(at + 8, number(candidate.end));
       var end = Math.min(source.duration, requestedEnd);
       var category = clean(candidate.category || candidate.label || "LISTENING SPIKE");
-      var asrExcerpt = localWhisperExcerpt(source, candidate, index);
+      var asrExcerpt = localWhisperExcerpt(source, candidate);
       var alignedExcerpt = clean(asrExcerpt && asrExcerpt.excerpt) ||
         clean(candidate.captionExcerpt || candidate.excerpt);
       var excerpt = alignedExcerpt ||
@@ -789,6 +850,7 @@
         }
       );
     });
+    return receipts.concat(localWhisperTextCueReceipts(source, selected, receipts));
   }
 
   function timelineReceipts(source, overlay) {

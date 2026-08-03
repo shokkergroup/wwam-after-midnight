@@ -278,6 +278,59 @@ test("livestream audio index routes become a local Show Wiki lane", () => {
   assert.equal(receipt.publicExcerptAllowed, true);
 });
 
+test("Whisper transcript cue doors become playable secondary listening receipts", () => {
+  const { result } = buildFixture(({ input, window }) => {
+    input.livestreamAudioIndex = {
+      episodes: [{
+        id: "LV2rmwEA0w4",
+        watchPass: {
+          status: "audio-feature-pass",
+          candidates: [{
+            t: 7,
+            end: 15,
+            category: "FAN SIGNAL",
+            score: 87,
+            captionExcerpt: "A source-local livestream audio route with aligned captions.",
+            evidenceBasis: "canonical livestream audio + source-local caption alignment",
+          }],
+        },
+      }],
+    };
+    window.WWAM_LIVESTREAM_ASR_EXCERPTS = {
+      sources: {
+        LV2rmwEA0w4: {
+          candidates: [{
+            t: 7,
+            excerpt: "The aligned audio window has a clean source-local transcript.",
+            selectionKind: "audio-ranked-alignment",
+          }, {
+            t: 40,
+            end: 52,
+            excerpt: "That take goes completely off the rails in the best way.",
+            selectionKind: "source-local-whisper-text-cue",
+            selectionScore: 44,
+          }],
+        },
+      },
+    };
+  });
+  const source = byId(result, "LV2rmwEA0w4");
+  const receipts = source.receipts.filter((receipt) =>
+    receipt.evidenceType === "audio-feature-candidate"
+  );
+  assert.equal(receipts.length, 2);
+  const cue = receipts.find((receipt) => receipt.reviewState.includes("transcript cue"));
+  assert.ok(cue);
+  assert.equal(cue.at, 40);
+  assert.equal(cue.end, 52);
+  assert.equal(cue.publicExcerptAllowed, true);
+  assert.match(cue.evidenceBasis, /secondary discovery door/);
+  assert.equal(
+    source.showWiki.lanes.find((lane) => lane.id === "audio-pass").receiptKeys.length,
+    2,
+  );
+});
+
 test("held watchalong sources retain a separate playable podcast route map", () => {
   const { window: runtime, result } = buildFixture(({ input, window }) => {
     input.watchalongCanon = window.WWAM_WATCHALONG_ROUTE_INDEX;

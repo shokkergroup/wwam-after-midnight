@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.32.7";
+  var VERSION = "1.33.0";
   var DOSSIER_SCHEMA = "shokker-source-dossier/v1";
   var QUERY_SCHEMA = "shokker-source-query/v1";
   var QUERY_RESULT_SCHEMA = "shokker-source-query-result/v1";
@@ -870,6 +870,9 @@
     function publicReceiptEvidenceLabel(receipt) {
       var evidence = token(clean(receipt.evidenceType) + " " + clean(receipt.evidenceLevel));
       if (evidence.indexOf("audio-feature-candidate") >= 0) {
+        if (token(clean(receipt.reviewState) + " " + clean(receipt.evidenceBasis)).indexOf("transcript-cue") >= 0) {
+          return "WHISPER TEXT CUE";
+        }
         return "AUDIO-RANKED WINDOW";
       }
       return evidence.indexOf("caption") >= 0 ?
@@ -878,6 +881,9 @@
 
     function publicReceiptReviewLabel(receipt) {
       var review = token(receipt.reviewState);
+      if (review.indexOf("transcript-cue") >= 0) {
+        return "SECONDARY DISCOVERY DOOR";
+      }
       return review.indexOf("human") >= 0 || review.indexOf("editor") >= 0 ?
         "EDITOR REVIEWED" : "TIMESTAMP ON FILE";
     }
@@ -2630,6 +2636,7 @@
         var time = formatTime(receipt.at);
         var score = number(receipt.signalScore);
         var excerpt = listeningCaptionExcerpt(receipt.excerpt);
+        var transcriptCue = token(clean(receipt.reviewState) + " " + clean(receipt.evidenceBasis)).indexOf("transcript-cue") >= 0;
         var scoreLabel = Number.isFinite(score) && score > 0 ?
           ' // AUDIO RANK ' + esc(Math.round(score)) : '';
         return '<article><header><span>#' + esc(String(index + 1).padStart(2, "0")) +
@@ -2641,7 +2648,7 @@
           '</p><button type="button" data-source-dossier-action="play-receipt" ' +
           'data-receipt-key="' + esc(receipt.key) + '" aria-label="Play audio listening window at ' +
           esc(time) + '">&#9654; PLAY THIS WINDOW</button><small>' +
-          'SOURCE-LOCAL AUDIO PASS' + scoreLabel +
+          (transcriptCue ? 'SOURCE-LOCAL WHISPER TEXT CUE' : 'SOURCE-LOCAL AUDIO PASS') + scoreLabel +
           '</small></article>';
       }).join("");
       var omitted = receipts.length - visible.length;
