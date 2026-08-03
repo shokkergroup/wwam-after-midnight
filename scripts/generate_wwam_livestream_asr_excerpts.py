@@ -82,7 +82,9 @@ def bounded_excerpt(text: str, limit: int = 16) -> str:
         if normalized[-1] in {
             "a", "an", "the", "to", "of", "and", "but", "for", "with", "in", "on",
             "at", "is", "are", "was", "were", "be", "been", "being", "did", "does",
-            "do", "that", "which", "because", "if", "when", "like",
+            "do", "that", "which", "because", "if", "when", "like", "st", "dr", "mr",
+            "ms", "jr", "sr", "etc", "don't", "cant", "can't", "won't", "didn't",
+            "isn't", "aren't", "wasn't", "weren't", "couldn't", "wouldn't", "shouldn't",
         }:
             continue
         # Whisper occasionally produces an adjacent stutter or a recognizable
