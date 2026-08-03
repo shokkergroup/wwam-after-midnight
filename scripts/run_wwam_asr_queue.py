@@ -108,6 +108,30 @@ def validate_ledger(source_id: str, payload: dict) -> None:
     print(f"[verify] {source_id} // {len(segments)} valid segments // audio SHA match", flush=True)
 
 
+def normalize_tail_overrun(source_id: str, payload: dict) -> bool:
+    """Clamp a Whisper tail that runs past the verified media duration.
+
+    Windowed decoding can let the final segment inherit a few seconds from a
+    padded window. If the segment begins inside the real tape, preserving its
+    text while clamping only the end to ``durationSeconds`` is safer than
+    losing the whole source. Segments that start outside the tape still fail
+    closed in ``validate_ledger``.
+    """
+    duration = float(payload.get("durationSeconds") or 0)
+    changed = False
+    for segment in payload.get("segments") or []:
+        start = float(segment.get("start") or 0)
+        end = float(segment.get("end") or 0)
+        if duration > 0 and start <= duration and end > duration:
+            segment["end"] = round(duration, 3)
+            changed = True
+    if changed:
+        ledger_path = CAPTIONS / f"{source_id}.asr.json"
+        ledger_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        print(f"[normalize] {source_id} // clamped tail segment(s) to {duration:.3f}s", flush=True)
+    return changed
+
+
 def refresh_queue() -> dict:
     subprocess.run(["node", str(SELECTOR)], cwd=ROOT, check=True)
     return json.loads(QUEUE.read_text(encoding="utf-8"))
@@ -142,6 +166,7 @@ def main() -> None:
                     flush=True,
                 )
             payload = transcribe_one(model, source_id, clip_timestamps=clip_timestamps)
+            normalize_tail_overrun(source_id, payload)
             validate_ledger(source_id, payload)
             # Publish the bounded navigation layer as soon as this source is
             # complete. A neighboring three-hour source should not hold back
