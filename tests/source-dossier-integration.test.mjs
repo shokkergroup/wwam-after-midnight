@@ -754,6 +754,8 @@ test("dossier CSS brands cold routes immediately while heavy scripts remain lazy
     /wwam-livestream-asr-excerpts\/v1[\s\S]*publicExcerptWordLimit/,
     "the ASR overlay must declare its bounded public excerpt policy",
   );
+  assert.match(asrExcerptIndex, /source-local-whisper-text-cue/, "the ASR overlay must retain secondary transcript-led doors beyond the acoustic shortlist");
+  assert.match(asrExcerptIndex, /secondary transcript-cue doors/, "the ASR overlay must label transcript-led doors as secondary listening leads");
   const asrSandbox = { window: {} };
   vm.runInNewContext(asrExcerptIndex, asrSandbox, { filename: "wwam-livestream-asr-excerpts.js" });
   const publicAsrExcerpts = Object.values(asrSandbox.window.WWAM_LIVESTREAM_ASR_EXCERPTS.sources || {})
@@ -761,6 +763,12 @@ test("dossier CSS brands cold routes immediately while heavy scripts remain lazy
     .map((candidate) => String(candidate.excerpt || ""))
     .filter(Boolean);
   assert.ok(publicAsrExcerpts.length > 0, "the published ASR overlay must retain usable excerpts");
+  assert.ok(
+    Object.values(asrSandbox.window.WWAM_LIVESTREAM_ASR_EXCERPTS.sources || {})
+      .flatMap((source) => source.candidates || [])
+      .some((candidate) => candidate.selectionKind === "source-local-whisper-text-cue"),
+    "the published ASR overlay must include at least one transcript-led discovery door",
+  );
   for (const excerpt of publicAsrExcerpts) {
     assert.ok(excerpt.split(/\s+/).length >= 5, `ASR excerpt is too short: ${excerpt}`);
     assert.doesNotMatch(excerpt, /\b([A-Za-z][A-Za-z'-]*)\s+\1\b/i, `ASR adjacent stutter leaked: ${excerpt}`);
