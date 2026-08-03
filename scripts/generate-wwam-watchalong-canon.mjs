@@ -557,6 +557,25 @@ function ledgerFanRead(items, finalMoment) {
   };
 }
 
+function sanitizeFanRead(value) {
+  if (!value || typeof value !== "object") return null;
+  const output = {};
+  Object.entries(value).forEach(([key, lane]) => {
+    if (!lane || typeof lane !== "object") {
+      output[key] = lane;
+      return;
+    }
+    const safe = { ...lane };
+    if (typeof safe.excerpt === "string") safe.excerpt = excerpt(safe.excerpt, 16);
+    if (typeof safe.body === "string") {
+      const replacement = safe.excerpt ? `“${safe.excerpt}”` : "the full exchange";
+      safe.body = clean(safe.body).replace(/“[^”]*”/g, replacement);
+    }
+    output[key] = safe;
+  });
+  return output;
+}
+
 function fanSignalCandidates(events, duration) {
   if (!events.length) return [];
   const evidenceBasis = events.some((event) => event.evidenceType === "local-whisper-transcript")
@@ -1013,7 +1032,7 @@ function episodeFrom(id) {
     summary: clean(summary),
     evidenceSummary,
     shape: guide?.shape ? { ...guide.shape, cuts: allMoments.length } : { runtimeBand: duration >= 9000 ? "MARATHON" : duration >= 5400 ? "FEATURE" : "SHORT", chapters: dossierChapters.length, threads: topics.length, cuts: allMoments.length },
-    fanRead: guide?.fanRead || (deepRecord ? null : ledgerFanRead(allMoments, finalMoment)),
+    fanRead: sanitizeFanRead(guide?.fanRead) || (deepRecord ? null : ledgerFanRead(allMoments, finalMoment)),
     fanSignals,
     laneCounts,
     chapters: dossierChapters,

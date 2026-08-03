@@ -179,6 +179,8 @@ test("watchalong listening cuts prefer local Whisper context", () => {
   assert.match(generator, /function trimDanglingClause\(value\)/);
   assert.match(generator, /function isLikelyFragment\(value\)/);
   assert.match(generator, /long punctuation-free window/);
+  assert.match(generator, /function sanitizeFanRead\(value\)/);
+  assert.match(generator, /sanitizeFanRead\(guide\?\.fanRead\)/);
   assert.match(generator, /whisperContext/);
   assert.match(generator, /sourceKind === "local-whisper-transcript"/);
   assert.match(generator, /canonical YouTube audio \+ source-local Whisper transcript alignment/);
