@@ -2453,10 +2453,17 @@
     if (!pack) return recap;
     var duration = Math.max(1, number(record(map.metadata).duration));
     var story = array(pack.story).map(function (item, index) {
-      var at = Math.max(0, Math.min(duration, number(item.at)));
-      var end = number(item.end) > at ?
-        Math.min(duration, number(item.end)) :
-        Math.min(duration, at + 45);
+      // Keep the authored pack fields exact. Playback bounds may use a safe
+      // fallback, but the public story text/timestamps must remain identical
+      // to the human editorial source so the truth audit can prove it.
+      var authoredAt = number(item.at);
+      var authoredEnd = number(item.end);
+      var at = authoredAt;
+      var end = authoredEnd;
+      var playAt = Math.max(0, Math.min(duration, authoredAt));
+      var boundedEnd = authoredEnd > authoredAt ?
+        Math.min(duration, authoredEnd) :
+        Math.min(duration, playAt + 45);
       var primarySubject = clean(item.primarySubject || item.topic ||
         item.subject || item.label) || "THE SHOW";
       return {
@@ -2464,14 +2471,14 @@
           String(index + 1).padStart(2, "0"),
         ordinal: index + 1,
         label: clean(item.label),
-        body: playBoundBody(item.body, at, true),
+        body: clean(item.body),
         at: at,
         end: end,
-        displayAt: at,
-        displayEnd: end,
-        playAt: at,
-        playEnd: end,
-        anchorAt: at,
+        displayAt: playAt,
+        displayEnd: boundedEnd,
+        playAt: playAt,
+        playEnd: boundedEnd,
+        anchorAt: playAt,
         anchor: clean(item.label),
         primarySubject: primarySubject,
         subjectContract: "label-is-primary-subject",
@@ -2492,20 +2499,24 @@
       };
     });
     var highlights = array(pack.highlights).map(function (item, index) {
-      var at = Math.max(0, Math.min(duration, number(item.at)));
-      var end = number(item.end) > at ?
-        Math.min(duration, number(item.end)) :
-        Math.min(duration, at + 35);
+      var authoredAt = number(item.at);
+      var authoredEnd = number(item.end);
+      var at = authoredAt;
+      var end = authoredEnd;
+      var playAt = Math.max(0, Math.min(duration, authoredAt));
+      var boundedEnd = authoredEnd > authoredAt ?
+        Math.min(duration, authoredEnd) :
+        Math.min(duration, playAt + 35);
       return {
         receiptKey: "",
         guideCutId: "",
         ordinal: index + 1,
         kind: "human-editorial-highlight",
-        category: clean(item.category) || "BEST MOMENT",
+        category: clean(item.category),
         at: at,
         end: end,
-        playAt: at,
-        playEnd: end,
+        playAt: playAt,
+        playEnd: boundedEnd,
         label: clean(item.label),
         excerpt: clean(item.excerpt),
         signalScore: Math.max(1, 100 - index),
@@ -2517,7 +2528,7 @@
         id: item.id,
         ordinal: item.ordinal,
         label: item.label,
-        body: playBoundBody(item.body, item.at, true),
+        body: item.body,
         at: item.at,
         end: item.end,
         displayAt: item.displayAt,
