@@ -129,9 +129,28 @@ function words(value) {
 }
 
 function excerpt(value, limit = 16) {
-  const text = clean(value).replace(/\s*\n\s*/g, " ");
-  const tokens = words(text);
-  return tokens.length <= limit ? tokens.join(" ") : `${tokens.slice(0, limit).join(" ")}...`;
+  const normalized = normalizeCaptionText(value)
+    .replace(/(?:\s*\.{3,}|\u2026)\s*$/g, "")
+    .trim();
+  if (!normalized) return "";
+  const publicLimit = Math.min(16, Math.max(8, Number(limit) || 16));
+  const sentenceList = normalized.match(/[^.!?]+[.!?](?=\s*(?:>>\s*)?[A-Za-z0-9"'“‘]|$)/g)?.map((sentence) => sentence.trim()) || [];
+  const bounded = (sentence) => {
+    const sentenceWords = words(sentence);
+    if (sentenceWords.length <= publicLimit) return sentence.trim();
+    const clipped = sentenceWords.slice(0, publicLimit).join(" ")
+      .replace(/\s+(?:the|a|an|and|or|but|to|of|in|on|for|with|from|that|this|it|i|you|he|she|we|they)$/i, "")
+      .trim();
+    return /[.!?]$/.test(clipped) ? clipped : `${clipped}.`;
+  };
+  const candidate = sentenceList.find((sentence) => words(sentence).length >= 8) || normalized;
+  const text = bounded(candidate);
+  const cased = `${text.charAt(0).toUpperCase()}${text.slice(1)}`
+    .replace(/\bi\b/g, "I")
+    .replace(/\s*>>\s*/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  return /[.!?]$/.test(cased) ? cased : `${cased}.`;
 }
 
 // Podcast enclosures sometimes begin with a baked-in sponsor read or show
@@ -243,7 +262,7 @@ function alternateAudioMeta(watchPassRecord, canonicalDuration) {
 function normalizeCaptionText(value) {
   let text = clean(value)
     .replace(/\[(?:\s*[_-]+\s*)+\]/g, " ")
-    .replace(/\[(?:music|applause|laughter|inaudible|bleep)\]/gi, " ")
+    .replace(/\[(?:music|applause|laughter|laughs?|screaming|yelling|shouting|inaudible|bleep)\]/gi, " ")
     .replace(/[_]+/g, " ")
     .replace(/[Â»>]{1,3}(?=\s)/g, " ")
     .replace(/Ã¢â‚¬â„¢/g, "'").replace(/Ã¢â‚¬Å“|Ã¢â‚¬Â/g, '"').replace(/Ã¢â‚¬â€|Ã¢â‚¬â€œ/g, "â€”")
@@ -254,6 +273,9 @@ function normalizeCaptionText(value) {
   // that repeat a token four or more times across adjacent Whisper windows.
   for (let pass = 0; pass < 4; pass += 1) {
     text = text.replace(/\b([A-Za-z][A-Za-z'â€™-]*)\b(?:\s+\1\b){3,}/gi, "$1 $1");
+  }
+  for (let pass = 0; pass < 3; pass += 1) {
+    text = text.replace(/\b([A-Za-z0-9][A-Za-z0-9'-]*)\s+([A-Za-z0-9][A-Za-z0-9'-]*)\s+\1\s+\2\b/gi, "$1 $2");
   }
   return text.replace(/\s{2,}/g, " ").trim();
 }
@@ -808,23 +830,33 @@ function episodeFrom(id) {
   // Carry the same boundary labels into the held-source watch-pass card. The
   // UI reads this raw pass for its playable alternate shelf, while the dossier
   // below reads the compact `alternateAudio` routes.
-  const normalizedWatchPass = watchPassRecord && alternateAudio && watchPassRecord.alternateAudio
+  const normalizedWatchPass = watchPassRecord
     ? {
         ...watchPassRecord,
-        alternateAudio: {
-          ...watchPassRecord.alternateAudio,
-          candidates: alternateAudio.routes.map((route) => ({
-            ...route,
-            captionExcerpt: route.excerpt,
-            excerpt: route.excerpt
-          })),
-          listeningDigest: {
-            ...(watchPassRecord.alternateAudio.listeningDigest || {}),
-            signalMix: alternateAudio.signalMix
+        // The pilot manifest is an internal audio ledger and may carry a
+        // multi-window caption paragraph. Keep the public watch-pass shelf
+        // bounded to the same readable receipt policy as the dossier cuts.
+        candidates: (watchPassRecord.candidates || []).map((candidate) => {
+          const context = sourceKind === "local-whisper-transcript" ? nearestCaptionContext(events, candidate.t) : null;
+          const text = context?.text || excerpt(normalizeCaptionText(candidate.captionExcerpt || candidate.excerpt || ""), 16);
+          return { ...candidate, captionExcerpt: text, excerpt: text };
+        }),
+        ...(alternateAudio && watchPassRecord.alternateAudio ? {
+          alternateAudio: {
+            ...watchPassRecord.alternateAudio,
+            candidates: alternateAudio.routes.map((route) => ({
+              ...route,
+              captionExcerpt: route.excerpt,
+              excerpt: route.excerpt
+            })),
+            listeningDigest: {
+              ...(watchPassRecord.alternateAudio.listeningDigest || {}),
+              signalMix: alternateAudio.signalMix
+            }
           }
-        }
+        } : {})
       }
-    : watchPassRecord;
+    : null;
   const audioCandidates = watchPassRecord && watchPassRecord.status === "audio-feature-pilot"
     ? (watchPassRecord.candidates || [])
     : [];

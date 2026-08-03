@@ -152,6 +152,13 @@ test("watchalong listening cuts prefer local Whisper context", () => {
   assert.match(generator, /canonical YouTube audio \+ source-local Whisper transcript alignment/);
 });
 
+test("watchalong pilot shelves bound raw multi-window captions before publication", () => {
+  const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-watchalong-canon.mjs"), "utf8");
+  assert.match(generator, /public watch-pass shelf/);
+  assert.match(generator, /captionExcerpt: text, excerpt: text/);
+  assert.match(generator, /excerpt\(normalizeCaptionText\(candidate\.captionExcerpt \|\| candidate\.excerpt \|\| ""\), 16\)/);
+});
+
 test("local fan and recurring lanes carry local transcript provenance", () => {
   const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-livestream-canon.mjs"), "utf8");
   assert.match(generator, /source-local Whisper transcript fan-callout cluster/);
