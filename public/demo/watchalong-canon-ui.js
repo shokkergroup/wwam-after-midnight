@@ -34,6 +34,7 @@
     var text = clean(value)
       .replace(/\[(?:laughter|music|applause|inaudible|crosstalk|\s*[_-]+\s*)\]/gi, " ")
       .replace(/>>\s*/g, "")
+      .replace(/^(?:\.{2,}|…)+\s*/g, "")
       .replace(/\b(\w+)(?:\s+\1\b)+/gi, "$1")
       .replace(/\s+/g, " ").trim();
     var max = Number(limit || 240);

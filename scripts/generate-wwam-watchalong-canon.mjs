@@ -149,6 +149,7 @@ function isLikelyFragment(value) {
 function excerpt(value, limit = 16) {
   const normalized = normalizeCaptionText(value)
     .replace(/(?:\s*\.{3,}|\u2026)\s*$/g, "")
+    .replace(/^(?:\.{2,}|\u2026)+\s*/g, "")
     .trim();
   if (!normalized) return "";
   const publicLimit = Math.min(16, Math.max(8, Number(limit) || 16));
