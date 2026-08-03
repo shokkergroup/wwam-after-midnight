@@ -340,7 +340,7 @@
 
   function routeCard(label, item) {
     if (!item) return '<article class="wac-route-card"><small>' + esc(label) + '</small><b>NO RECEIPT IN THIS DOSSIER</b><p>The source remains linked, but this route cannot be guessed without a bounded caption or reviewed guide cut.</p></article>';
-    return '<article class="wac-route-card"><small>' + esc(label) + ' // ' + esc(timestamp(item.t)) + '</small><b>' + esc(item.category || item.label || "SOURCE RECEIPT") + '</b><p>' + esc(excerpt(item.excerpt || item.quote, 190)) + '</p></article>';
+    return '<article class="wac-route-card"><small>' + esc(label) + ' // ' + esc(timestamp(item.t)) + '</small><b>' + esc(item.category || item.label || "SOURCE RECEIPT") + '</b><p>' + esc(excerpt(item.excerpt || item.quote, 190) || 'Transcript route available; open the timestamp to listen.') + '</p></article>';
   }
 
   function fanReadMarkup(fanRead) {
@@ -348,7 +348,7 @@
     var cards = [fanRead.loved, fanRead.hated, fanRead.wildestDetour, fanRead.lastWord].filter(Boolean);
     if (!cards.length) return '';
     return '<div class="wac-section-label" style="padding:0 1.5rem">EDITORIAL LANES // THE TAPE&rsquo;S OWN ARGUMENT</div><div class="wac-route-grid">' + cards.map(function (item) {
-      return '<article class="wac-route-card"><small>' + esc(item.label || item.key) + ' // ' + esc(timestamp(item.at)) + '</small><b>' + esc(item.topic || item.category || "SOURCE LANE") + '</b><p>' + esc(excerpt(item.body || item.excerpt, 210)) + '</p></article>';
+      return '<article class="wac-route-card"><small>' + esc(item.label || item.key) + ' // ' + esc(timestamp(item.at)) + '</small><b>' + esc(item.topic || item.category || "SOURCE LANE") + '</b><p>' + esc(excerpt(item.body || item.excerpt, 210) || 'Transcript route available; open the timestamp to listen.') + '</p></article>';
     }).join('') + '</div>';
   }
 

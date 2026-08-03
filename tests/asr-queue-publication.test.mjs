@@ -172,6 +172,7 @@ test("visitor-facing route cards refuse punctuation-free decoder windows", () =>
   assert.match(livestreamUi, /!\/\[\.!\?\]\(\?:\\s\|\$\)\/.test\(source\)/);
   assert.match(watchalongUi, /long punctuation-free caption window/);
   assert.match(watchalongUi, /Transcript route available; open the timestamp to listen/);
+  assert.match(watchalongUi, /excerpt\(item\.excerpt \|\| item\.quote, 190\) \|\| 'Transcript route available/);
 });
 
 test("watchalong listening cuts prefer local Whisper context", () => {
