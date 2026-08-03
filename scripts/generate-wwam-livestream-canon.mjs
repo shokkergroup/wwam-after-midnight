@@ -264,6 +264,9 @@ function mergeTranscriptMoments(primary, transcriptMoments) {
 function fanSignals(events, duration) {
   const lane = LANE_DEFS.find((item) => item.key === "fan");
   const ranked = events.map((event, index) => ({ event, index })).filter((item) => lane.pattern.test(item.event.text));
+  const evidenceBasis = events.some((event) => event.evidenceType === "local-whisper-transcript")
+    ? "source-local Whisper transcript fan-callout cluster"
+    : "source-local automatic caption fan-callout cluster";
   const max = Math.max(3, Math.round((duration || 1) / 1800) + 2);
   const picked = [];
   ranked.forEach((item) => {
@@ -273,7 +276,7 @@ function fanSignals(events, duration) {
   return picked.map((item) => {
     const sourceExcerpt = excerpt(captionWindow(events, item.index), 24);
     const identity = fanIdentity(sourceExcerpt) || fanIdentity(item.event.text);
-    return { id: `fan-${Math.round(item.event.t)}`, t: Math.round(item.event.t), end: Math.round(item.event.end || item.event.t + 36), category: "FAN SIGNAL", label: "FAN SIGNAL", signalType: fanSignalType(item.event.text), fanEntity: identity?.key || null, fanEntityLabel: identity?.label || null, fanEntityMatch: identity?.match || null, fanIdentityBasis: identity?.identityBasis || null, score: 78, excerpt: sourceExcerpt, evidenceBasis: "source-local automatic caption fan-callout cluster", reviewStatus: "machine-candidate" };
+    return { id: `fan-${Math.round(item.event.t)}`, t: Math.round(item.event.t), end: Math.round(item.event.end || item.event.t + 36), category: "FAN SIGNAL", label: "FAN SIGNAL", signalType: fanSignalType(item.event.text), fanEntity: identity?.key || null, fanEntityLabel: identity?.label || null, fanEntityMatch: identity?.match || null, fanIdentityBasis: identity?.identityBasis || null, score: 78, excerpt: sourceExcerpt, evidenceBasis, reviewStatus: "machine-candidate" };
   });
 }
 function fanSignalType(text) {
@@ -306,6 +309,9 @@ function laneLabelMatches(value, laneLabel) {
 }
 function recurringBits(events, moments, fan, duration, listeningRoutes = []) {
   const receiptLimit = Math.max(6, Math.round((duration || 1) / 450));
+  const eventEvidenceBasis = events.some((event) => event.evidenceType === "local-whisper-transcript")
+    ? "source-local Whisper transcript lane cue"
+    : "source-local automatic caption lane cue";
   return LANE_DEFS.map((lane) => {
     const hits = lane.key === "fan"
       ? fan.map((signal) => ({ t: signal.t, end: signal.end, text: signal.excerpt, index: -1, signalType: signal.signalType }))
@@ -315,7 +321,7 @@ function recurringBits(events, moments, fan, duration, listeningRoutes = []) {
     const receipts = ranked.slice(0, receiptLimit).map((item) => ({
       t: Math.round(item.t), end: Math.round(item.end || item.t + 36),
       excerpt: excerpt(item.index >= 0 ? captionWindow(events, item.index) : item.text, 24),
-      signalType: item.signalType || null, evidenceBasis: "source-local automatic caption lane cue", reviewStatus: "machine-candidate"
+      signalType: item.signalType || null, evidenceBasis: eventEvidenceBasis, reviewStatus: "machine-candidate"
     }));
     const laneMoments = moments.filter((moment) => laneLabelMatches(moment.category || moment.label, lane.label));
     const listeningLaneMoments = listeningRoutes.filter((moment) => laneLabelMatches(moment.category || moment.label, lane.label));

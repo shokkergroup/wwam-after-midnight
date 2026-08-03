@@ -69,3 +69,9 @@ test("watchalong listening cuts prefer local Whisper context", () => {
   assert.match(generator, /sourceKind === "local-whisper-transcript"/);
   assert.match(generator, /canonical YouTube audio \+ source-local Whisper transcript alignment/);
 });
+
+test("local fan and recurring lanes carry local transcript provenance", () => {
+  const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-livestream-canon.mjs"), "utf8");
+  assert.match(generator, /source-local Whisper transcript fan-callout cluster/);
+  assert.match(generator, /source-local Whisper transcript lane cue/);
+});
