@@ -161,6 +161,7 @@ test("best-bits keeps acoustic-only doors visible without inventing quotes", () 
   assert.match(generator, /A caption-ledger episode can already have a real audio watch pass/);
   assert.match(generator, /coveredAudioKeys = new Set\(listeningRoutes\.map/);
   assert.match(generator, /captionAligned: false/);
+  assert.match(generator, /captionAligned: moment\.captionAligned === false \? false : Boolean\(moment\.captionAligned\)/);
   assert.match(generator, /moment\.excerpt \|\| moment\.captionAligned === false/);
   assert.match(generator, /bestBits\(moments, fan, listeningRoutes, audioCandidates\)/);
 });
