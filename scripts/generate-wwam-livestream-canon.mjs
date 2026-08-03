@@ -351,8 +351,11 @@ function humanMomentLabel(value) {
     "room break": "the room breaks",
     "the room breaks": "the room breaks",
     "wwam up in ya": "an Up In Ya detour",
+    "up in ya": "an Up In Ya detour",
     "straight to steve's asshole": "a Straight to Steve's Asshole verdict",
+    "steve's asshole": "a Straight to Steve's Asshole verdict",
     "fan signal": "a fan callout",
+    "character signal": "a character callback",
     "full send": "a full-send stretch"
   };
   return labels[label] || label || "the first big turn";
@@ -369,29 +372,42 @@ function voiceSummaryV2(title, date, shape, topics, moments, fan, recurring, cha
     .map((lane) => lane.label)
     .filter(Boolean);
   const frame = contentFrame(title, shape, topics);
-  const opening = `${clean(title)} is ${frame} from ${date}.`;
-  const topicLine = topicList ? `Its clearest subject spine is ${topicList}.` : "The subject spine stays deliberately loose.";
+  const cleanTitle = clean(title);
+  const opening = frame === "a ranking-night argument"
+    ? `${cleanTitle} turns the ${date} ranking room into an argument with receipts.`
+    : frame === "a trailer-and-news roundtable"
+      ? `${cleanTitle} opens a trailer-and-news roundtable on ${date}.`
+      : frame === "an episode-recap room"
+        ? `${cleanTitle} is the ${date} episode-recap room, with the side roads left in.`
+        : frame === "a fan-driven open line"
+          ? `${cleanTitle} is ${date}'s fan-driven open line, where the chat gets a real vote.`
+          : frame === "a spoiler-review hang"
+            ? `${cleanTitle} hangs a spoiler-review shingle on ${date} and lets the arguments run.`
+            : frame === "a movie-side conversation"
+              ? `${cleanTitle} settles into a movie-side conversation on ${date}.`
+              : `${cleanTitle} is ${date}'s open-line movie-news room.`;
+  const topicLine = topicList ? `The conversation keeps circling ${topicList}.` : "The conversation keeps its subject spine loose.";
   const route = hot
     ? `${moments.length ? "The best first jump is" : "The best first listening stop is"} ${clock(hot.t)} for ${humanMomentLabel(hot.category || "the first big turn")}.`
     : "Start with the chapter rail and let the tape choose the first detour.";
   const routeLine = routeMoments.length
-    ? `The page keeps ${routeMoments.length} playable doors, each tied to this upload.`
-    : "The page keeps the topic doors and the full official player.";
+    ? `The local route rail keeps ${routeMoments.length} playable doors into this upload.`
+    : "The local page keeps the topic doors and the full official player.";
   const laneLine = laneNames.length
-    ? `The recurring WWAM lanes are ${listPhrase(laneNames)}.`
+    ? `WWAM's fingerprints show up as ${listPhrase(laneNames)}.`
     : "No recurring WWAM lane is strong enough to headline this pass.";
   const fanLine = fan.length
-    ? `The chat is part of the show too: ${fan.length} fan callout${fan.length === 1 ? "" : "s"}${fanTypes.length ? `, including ${listPhrase(fanTypes).replace(/ CUE/g, "")}` : ""}.`
+    ? `The chat is not background noise here: ${fan.length} fan callout${fan.length === 1 ? "" : "s"}${fanTypes.length ? `, including ${listPhrase(fanTypes).replace(/ CUE/g, "")}` : ""}.`
     : "The fan lane stays quiet on this tape.";
   const characterLine = characterCues.length
-    ? `The recurring-character traffic includes ${characterList}; open the surrounding exchange, not just the keyword.`
+    ? `Character-shaped callbacks include ${characterList}; open the surrounding exchange, not just the keyword.`
     : "No recurring-character bit takes over this tape.";
   const listeningLine = listeningRoutes.length
-    ? `The audio lane adds ${listeningRoutes.length} candidate windows; those are invitations to listen, not claims about who spoke or what should be funny.`
+    ? `A separate listening pass marks ${listeningRoutes.length} windows worth pressing play on; they are leads, not claims about who spoke or what should be funny.`
     : "There is no separate audio-ranked lane attached to this file yet.";
   const tierLine = evidenceTier === "source-brief"
     ? "This one stays compact until a stronger local receipt arrives."
-    : "Press play for the delivery and timing that the text can only point toward.";
+    : "The text can point to the moment; the delivery and timing live in the player.";
   return `${opening} ${topicLine} ${route} ${routeLine} ${laneLine} ${fanLine} ${characterLine} ${listeningLine} ${tierLine}`;
 }
 
