@@ -1402,7 +1402,7 @@
     });
   }
 
-  function storyArc(receipts, duration, guide, source) {
+  function storyArc(receipts, duration, guide, source, context) {
     if (!receipts.length) return [];
     var topicOnly = receipts.every(function (receipt) {
       return receiptKind(receipt) === "topic";
@@ -1622,7 +1622,31 @@
       }).slice(0, 3).sort(function (left, right) {
         return number(left.at) - number(right.at);
       });
-      var storyTopicEvidence = topics.map(function (receipt) {
+      var selectedTopicReceipts = topics.slice().sort(function (left, right) {
+        return receiptSignal(right) - receiptSignal(left) ||
+          optionalNumber(right.topicMentions) - optionalNumber(left.topicMentions) ||
+          receiptTime(left) - receiptTime(right) ||
+          clean(left.key).localeCompare(clean(right.key));
+      }).slice(0, 4);
+      // A title-confirmed topic is an accuracy obligation, not a popularity
+      // contest. Keep it in the written story even when four louder topic
+      // receipts would otherwise crowd it out of the bounded evidence list.
+      var titleTopics = array(record(context).titleTopics).map(displayLabel).filter(Boolean);
+      topics.filter(function (receipt) {
+        return /caption-title-topic-receipt/i.test(clean(receipt.evidenceType));
+      }).forEach(function (receipt) {
+        if (selectedTopicReceipts.indexOf(receipt) < 0) selectedTopicReceipts.push(receipt);
+      });
+      titleTopics.forEach(function (titleTopic) {
+        var matching = topics.find(function (receipt) {
+          return displayLabel(receiptDisplayLabel(receipt)).toLowerCase() ===
+            displayLabel(titleTopic).toLowerCase();
+        });
+        if (matching && selectedTopicReceipts.indexOf(matching) < 0) {
+          selectedTopicReceipts.push(matching);
+        }
+      });
+      var storyTopicEvidence = selectedTopicReceipts.map(function (receipt) {
         var metricReceipt =
           canonicalTopicByLabel[receiptDisplayLabel(receipt).toLowerCase()] ||
           receipt;
@@ -1643,7 +1667,7 @@
         return right.mentions - left.mentions ||
           left.firstAt - right.firstAt ||
           left.label.localeCompare(right.label);
-      }).slice(0, 4);
+      });
       var storyMomentEvidence = topReceipts(moments, 2).map(function (receipt) {
         return feature(receipt, duration);
       }).filter(Boolean);
@@ -2088,7 +2112,7 @@
     var sections = guideReady ?
       guideSections(source, receipts, guide) :
       receiptSections(source, receipts);
-    var story = storyArc(receipts, source.duration, guide, source);
+    var story = storyArc(receipts, source.duration, guide, source, context);
     var moments = bestMomentReceipts(receipts.filter(function (receipt) {
       return receiptKind(receipt) === "moment";
     }), source.duration, 5);
