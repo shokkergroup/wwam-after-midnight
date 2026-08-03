@@ -791,6 +791,67 @@ function candidateMoments(events, duration, aliases, taxonomy = {}) {
   return { moments: contextualCandidates, topics: topicTerms, chapters, captionWords: words(events.map((event) => event.text).join(" ")).length, captionEvents: events.length };
 }
 
+// A sparse transcript should not make a marathon commentary look like an
+// eight-card stub. When the signal lanes do not naturally reach the runtime
+// floor, add a few neutral, source-local checkpoints selected from clean
+// transcript windows. These are navigation doors, not invented “best bits” or
+// speaker claims; the exact exchange still lives in the player.
+function runtimeCoverageFloor(duration) {
+  if (duration >= 10800) return 12;
+  if (duration >= 7200) return 10;
+  if (duration >= 5400) return 8;
+  return 6;
+}
+
+function coverageMoments(events, duration, existing) {
+  const floor = runtimeCoverageFloor(Number(duration || 0));
+  const deficit = Math.max(0, floor - (existing || []).length);
+  if (!events.length || !deficit) return [];
+  const localWhisper = events.some((event) => event.evidenceType === "local-whisper-transcript");
+  const evidenceBasis = localWhisper
+    ? "source-local Whisper transcript coverage checkpoint"
+    : "source-local caption coverage checkpoint";
+  const candidates = events.map((event, index) => {
+    const receipt = publicReceiptText(excerpt(captionWindow(events, index), 16));
+    if (!receipt || words(receipt).length < 5) return null;
+    const signalHits = (receipt.match(/\b(?:fuck|fucking|shit|dick|asshole|hate|worst|terrible|awful|love|best|great|chucky|jason|freddy|loomis|challis|slenderman|feldman|super\s*chat|member)\b/gi) || []).length;
+    const punctuationHits = (receipt.match(/[!?]/g) || []).length;
+    return {
+      event,
+      index,
+      receipt,
+      score: Math.min(82, 48 + Math.min(16, words(receipt).length) + Math.min(12, signalHits * 4) + Math.min(6, punctuationHits * 2))
+    };
+  }).filter(Boolean).sort((left, right) => right.score - left.score || left.event.t - right.event.t);
+  if (!candidates.length) return [];
+  const picked = [];
+  const spacing = Math.max(75, Math.round((Number(duration || 1) / Math.max(1, floor)) * 0.35));
+  const targets = Array.from({ length: Math.max(deficit * 2, floor) }, (_, index) => (Number(duration || 0) * (index + 0.5)) / Math.max(deficit * 2, floor));
+  for (const target of targets) {
+    if (picked.length >= deficit) break;
+    const nearest = candidates
+      .filter((candidate) => !picked.some((item) => Math.abs(item.event.t - candidate.event.t) < spacing))
+      .slice()
+      .sort((left, right) => Math.abs(left.event.t - target) - Math.abs(right.event.t - target) || right.score - left.score)[0];
+    if (nearest) picked.push(nearest);
+  }
+  for (const candidate of candidates) {
+    if (picked.length >= deficit) break;
+    if (!picked.some((item) => Math.abs(item.event.t - candidate.event.t) < spacing)) picked.push(candidate);
+  }
+  return picked.slice(0, deficit).sort((left, right) => left.event.t - right.event.t).map((candidate, index) => ({
+    id: `coverage-${Math.round(candidate.event.t)}`,
+    t: Math.round(candidate.event.t),
+    end: Math.round(candidate.event.end || candidate.event.t + 36),
+    category: "TAPE CHECKPOINT",
+    label: `TAPE CHECKPOINT // ${index + 1}`,
+    score: candidate.score,
+    excerpt: candidate.receipt,
+    evidenceBasis,
+    reviewStatus: "machine-candidate"
+  }));
+}
+
 function alternateChapterRoutes(routes, duration) {
   if (!routes.length) return [];
   const count = Math.min(8, Math.max(4, Math.ceil(routes.length / 6)));
@@ -898,7 +959,8 @@ function episodeFrom(id) {
   const derived = (!deepRecord || !guide) ? candidateMoments(events, duration, aliases, taxonomy) : null;
   const sourceTopics = (overrideById.get(id) || []).map((topic) => ({ name: topic.label, first: topic.firstAt, peak: topic.peakAt, mentions: topic.mentions, receipt: publicReceiptText(excerpt(topic.excerpt)), evidenceBasis: topic.evidenceBasis }));
   const guideCuts = guide?.cuts || [];
-  const moments = deepRecord && guide ? (deepRecord.moments || []).map((moment) => ({ ...moment, t: Number(moment.t || 0), end: Number(moment.end || moment.t || 0), excerpt: publicReceiptText(excerpt(moment.quote || moment.excerpt)), reviewStatus: "distilled-editorial-candidate" })).filter((moment) => moment.excerpt) : (derived.moments || []).map((moment) => ({ ...moment, excerpt: publicReceiptText(moment.excerpt) })).filter((moment) => moment.excerpt);
+  const baseMoments = deepRecord && guide ? (deepRecord.moments || []).map((moment) => ({ ...moment, t: Number(moment.t || 0), end: Number(moment.end || moment.t || 0), excerpt: publicReceiptText(excerpt(moment.quote || moment.excerpt)), reviewStatus: "distilled-editorial-candidate" })).filter((moment) => moment.excerpt) : (derived?.moments || []).map((moment) => ({ ...moment, excerpt: publicReceiptText(moment.excerpt) })).filter((moment) => moment.excerpt);
+  const moments = baseMoments.concat(coverageMoments(events, duration, baseMoments));
   const chapters = deepRecord && guide ? (guide?.chapters || []).map((chapter) => ({ ...chapter, excerpt: excerpt(chapter.excerpt), body: clean(chapter.body) })) : derived.chapters;
   const filmTitleLower = clean(taxonomy.movieTitle).toLowerCase();
   const filmTitleTokens = filmTitleLower.split(/\s+/).filter((token) => token.length >= 4 && !["this", "that", "the", "with", "from", "full", "movie"].includes(token));

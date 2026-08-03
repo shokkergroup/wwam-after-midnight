@@ -221,6 +221,16 @@ test("watchalong listening cuts prefer local Whisper context", () => {
   assert.match(generator, /canonical YouTube audio \+ source-local Whisper transcript alignment/);
 });
 
+test("sparse long watchalongs receive neutral transcript checkpoints", () => {
+  const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-watchalong-canon.mjs"), "utf8");
+  assert.match(generator, /function runtimeCoverageFloor\(duration\)/);
+  assert.match(generator, /if \(duration >= 10800\) return 12/);
+  assert.match(generator, /function coverageMoments\(events, duration, existing\)/);
+  assert.match(generator, /category: "TAPE CHECKPOINT"/);
+  assert.match(generator, /baseMoments\.concat\(coverageMoments\(events, duration, baseMoments\)\)/);
+  assert.match(generator, /source-local Whisper transcript coverage checkpoint/);
+});
+
 test("watchalong pilot shelves bound raw multi-window captions before publication", () => {
   const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-watchalong-canon.mjs"), "utf8");
   assert.match(generator, /public watch-pass shelf/);
