@@ -16,7 +16,7 @@ function topicCopy(z){var name=c(z.name||"This topic"),first=t(z.first||z.peak||
 function threadCopy(z){var name=c(z.name||"This thread");return name+" is a recurring conversation thread: first indexed at "+t(z.first||0)+", with its strongest door at "+t(z.peak||z.first||0)+". Open either point and listen to the tape."}
 function u(e,a){return "?source="+encodeURIComponent(e.id)+"&at="+Math.max(0,Math.round(Number(a)||0))+"&section=wiki#archive"}
 function fl(v){return c(v).replace(/-/g," ").toUpperCase()||"LIVESTREAM"}
-function el(v){return v==="completion-dossier"?"COMPLETION DOSSIER":v==="distill-dossier"?"DISTILL DOSSIER":v==="caption-ledger"?"CAPTION LEDGER":"SOURCE BRIEF"}
+function el(v){return v==="completion-dossier"?"FULL SHOW READ":v==="distill-dossier"?"DEEP SHOW READ":v==="caption-ledger"?"TAPE MAP":"SOURCE BRIEF"}
 function tt(e){return c(e&&e.displayTitle||e&&e.title||"WWAM SHOW")}
 function et(v){return v==="completion-dossier"||v==="distill-dossier"?"deep":v==="caption-ledger"?"ledger":"brief"}
 function vals(k){var z={};return E.map(function(e){return e[k]}).filter(function(v){if(!v||z[v])return false;z[v]=1;return true})}
