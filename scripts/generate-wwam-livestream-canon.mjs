@@ -462,7 +462,7 @@ function voiceSummaryV2(title, date, shape, topics, moments, fan, recurring, cha
     if (text) text = `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
     const tokenList = words(text).map((token) => token.toLowerCase());
     const tokenCount = tokenList.length;
-    const fillerWords = (text.toLowerCase().match(/\b(?:uh|um|like|yeah|you know|i mean|okay|just)\b/g) || []).length;
+    const fillerWords = (text.toLowerCase().match(/\b(?:uh|um|like|yeah|you know|i mean|i know|i gotta|okay|just)\b/g) || []).length;
     const repeatedWords = (text.match(/\b([A-Za-z][A-Za-z'-]*)\b\s+\1\b/gi) || []).length;
     const repeatedPhrases = [2, 3].reduce((total, size) => {
       let hits = 0;
@@ -477,7 +477,7 @@ function voiceSummaryV2(title, date, shape, topics, moments, fan, recurring, cha
     const quality = Math.max(0, Math.min(30, tokenCount * 1.5 + punctuationBonus - fillerPenalty - fragmentPenalty));
     const startsFragment = /^(?:are|is|was|were|and|but|because|so|then|which|that)\b/i.test(text);
     return { ...item, text, tokenCount, fillerWords, repeatedPhrases, startsFragment, score: quality * 100 + Math.min(10, Number(item.weight || 0)) };
-  }).filter((item) => item.text && item.tokenCount >= 8 && item.fillerWords <= 3 && item.repeatedPhrases === 0 && !item.startsFragment && item.score >= 1000 && !/^(?:No local transcript window aligned|No caption fragment aligned|Title signal only|open the source before treating)/i.test(item.text));
+  }).filter((item) => item.text && item.tokenCount >= 8 && item.fillerWords <= 2 && item.repeatedPhrases === 0 && !item.startsFragment && item.score >= 1000 && !/^(?:No local transcript window aligned|No caption fragment aligned|Title signal only|open the source before treating)/i.test(item.text));
   const receiptCandidate = receiptOptions.sort((a, b) => b.score - a.score || Number(a.at || 0) - Number(b.at || 0))[0];
   const receiptLine = receiptCandidate
     ? [

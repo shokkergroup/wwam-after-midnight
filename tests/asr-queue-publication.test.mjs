@@ -91,7 +91,7 @@ test("visitor-facing recap quotes strip non-speech Whisper stage cues and vary t
   assert.match(generator, /For a quick taste, press/);
   assert.match(generator, /The house specialties here are/);
   assert.match(generator, /Fan traffic adds/);
-  assert.match(generator, /fillerWords <= 3/);
+  assert.match(generator, /fillerWords <= 2/);
   assert.match(generator, /repeatedPhrases === 0/);
 });
 
