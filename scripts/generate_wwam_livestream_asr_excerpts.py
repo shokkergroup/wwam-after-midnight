@@ -34,10 +34,28 @@ def bounded_excerpt(text: str, limit: int = 16) -> str:
     # Prefer an intact short sentence; it reads better and avoids presenting a
     # clipped ASR breath as a finished quote.
     sentences = re.split(r"(?<=[.!?])\s+", text)
-    intact = [
-        sentence.strip() for sentence in sentences
-        if len(words(sentence)) <= limit and re.search(r"[.!?][\"']?$", sentence.strip())
-    ]
+    intact = []
+    for raw_sentence in sentences:
+        sentence = raw_sentence.strip()
+        sentence_words = words(sentence)
+        if len(sentence_words) > limit or not re.search(r"[.!?][\"']?$", sentence):
+            continue
+        normalized = [word.lower() for word in sentence_words]
+        # Whisper can make a clause look finished by inheriting punctuation
+        # from the next window. Do not publish obvious conditional fragments,
+        # filler openings, or a short repeated-word stutter as if it were a
+        # clean quote; the timestamp remains available for playback review.
+        if normalized and normalized[0] in {"uh", "um", "er"}:
+            continue
+        if normalized and normalized[0] in {"if", "when", "while", "although", "because", "since", "unless", "which", "that"} and "," not in sentence[:90]:
+            continue
+        if any(normalized[index:index + 2] == normalized[next_index:next_index + 2]
+               for index in range(max(0, len(normalized) - 3))
+               for next_index in range(index + 2, min(len(normalized) - 1, index + 7))):
+            continue
+        if re.search(r"\b(?:it's|he's|she's|they're|i'm|we're)\s+(?:kind of|sort of)\s+(?:was|were|is|are)\b", sentence, re.I):
+            continue
+        intact.append(sentence)
     if intact:
         return max(intact, key=lambda sentence: len(words(sentence)))
     # A trailing Whisper fragment is still useful to the player, but it is not
