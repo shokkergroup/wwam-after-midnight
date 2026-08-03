@@ -152,6 +152,10 @@ function excerpt(value, limit = 16) {
     .trim();
   if (!normalized) return "";
   const publicLimit = Math.min(16, Math.max(8, Number(limit) || 16));
+  // A long punctuation-free window is a playable navigation lead, not a
+  // sentence. Keep it out of public prose instead of manufacturing a period
+  // around decoder fragments.
+  if (!/[.!?]/.test(normalized) && words(normalized).length > 12) return "";
   const sentenceList = normalized.match(/[^.!?]+[.!?](?=\s*(?:>>\s*)?[A-Za-z0-9"'“‘]|$)/g)?.map((sentence) => sentence.trim()) || [];
   const bounded = (sentence) => {
     const sentenceWords = words(sentence);

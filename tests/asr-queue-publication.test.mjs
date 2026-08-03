@@ -159,14 +159,26 @@ test("recap prose prefers bounded audio receipts over noisy topic fragments", ()
   const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-livestream-canon.mjs"), "utf8");
   assert.match(generator, /const routeMoments = listeningRoutes\.length \? listeningRoutes : moments/);
   assert.match(generator, /hot\.excerpt \|\| hot\.captionExcerpt/);
-  assert.match(generator, /let text = safeExcerpt\(item\.text, 16\)/);
+  assert.match(generator, /let text = safeExcerpt\(sourceText, 16\)/);
+  assert.match(generator, /const sentenceBound = \/\[\.!\?\]\(\?:\\s\|\$\)\/.test\(sourceText\)/);
+  assert.match(generator, /item\.text && item\.sentenceBound/);
   assert.match(generator, /safeExcerpt\(receiptCandidate\.text, 16\)/);
+});
+
+test("visitor-facing route cards refuse punctuation-free decoder windows", () => {
+  const livestreamUi = fs.readFileSync(path.join(root, "public", "demo", "livestream-canon-ui.js"), "utf8");
+  const watchalongUi = fs.readFileSync(path.join(root, "public", "demo", "watchalong-canon-ui.js"), "utf8");
+  assert.match(livestreamUi, /source=c\(z\.excerpt\|\|z\.quote\|\|z\.captionExcerpt\)/);
+  assert.match(livestreamUi, /!\/\[\.!\?\]\(\?:\\s\|\$\)\/.test\(source\)/);
+  assert.match(watchalongUi, /long punctuation-free caption window/);
+  assert.match(watchalongUi, /Transcript route available; open the timestamp to listen/);
 });
 
 test("watchalong listening cuts prefer local Whisper context", () => {
   const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-watchalong-canon.mjs"), "utf8");
   assert.match(generator, /function trimDanglingClause\(value\)/);
   assert.match(generator, /function isLikelyFragment\(value\)/);
+  assert.match(generator, /long punctuation-free window/);
   assert.match(generator, /whisperContext/);
   assert.match(generator, /sourceKind === "local-whisper-transcript"/);
   assert.match(generator, /canonical YouTube audio \+ source-local Whisper transcript alignment/);

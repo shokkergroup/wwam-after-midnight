@@ -31,9 +31,20 @@
   function number(value) { return Number(value || 0).toLocaleString("en-US"); }
   function timestamp(value) { return durationLabel(value); }
   function excerpt(value, limit) {
-    var text = clean(value);
+    var text = clean(value)
+      .replace(/\[(?:laughter|music|applause|inaudible|crosstalk|\s*[_-]+\s*)\]/gi, " ")
+      .replace(/>>\s*/g, "")
+      .replace(/\b(\w+)(?:\s+\1\b)+/gi, "$1")
+      .replace(/\s+/g, " ").trim();
     var max = Number(limit || 240);
-    return text.length <= max ? text : text.slice(0, max - 1).trimEnd() + "…";
+    if (!text) return "";
+    // A long punctuation-free caption window is a navigation receipt, not
+    // readable prose. Keep it playable without printing decoder sludge.
+    if (!/[.!?]/.test(text) && text.split(/\s+/).length > 12) return "Transcript route available; open the timestamp to listen.";
+    if (text.length <= max) return text;
+    var cut = text.slice(0, max), last = Math.max(cut.lastIndexOf("."), cut.lastIndexOf("!"), cut.lastIndexOf("?"));
+    if (last >= Math.min(72, max - 1)) return cut.slice(0, last + 1).trim();
+    return cut.replace(/\s+\S*$/, "").trim() + ".";
   }
   function sourceUrl(episode, at) {
     var sourceId = encodeURIComponent(episode && episode.id || "");

@@ -549,7 +549,12 @@ function voiceSummaryV2(title, date, shape, topics, moments, fan, recurring, cha
     hot ? { text: hot.excerpt || hot.captionExcerpt, at: hot.t, weight: Number(hot.score || 0) } : null,
     ...topics.map((item) => ({ text: item?.receipt, at: item?.at, weight: Number(item?.mentions || 0) }))
   ].filter(Boolean).map((item) => {
-    let text = safeExcerpt(item.text, 16);
+    const sourceText = normalizeCaptionText(item.text);
+    // A bounded window without a real punctuation boundary is navigation
+    // evidence, not a quote. Do not make it sound complete by appending a
+    // period; that is how caption fragments turn into AI-smelling prose.
+    const sentenceBound = /[.!?](?:\s|$)/.test(sourceText);
+    let text = safeExcerpt(sourceText, 16);
     text = text.replace(/^(?:yeah|and|but|so|well|just|i mean|you know)\s+/i, "");
     text = text.replace(/^(?:[.…]+\s*)+/, "");
     if (text) text = `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
@@ -572,8 +577,8 @@ function voiceSummaryV2(title, date, shape, topics, moments, fan, recurring, cha
     const vividHits = (text.match(/\b(?:fuck|fucking|shit|dick|ass|bitch|suck|sucks|horror|halloween|loomis|challis|freddy|jason|scream|terrifier|michael|movie|kill|dead|garbage|poop)\b/gi) || []).length;
     const adminHits = (text.match(/\b(?:streamyard|chat|internet|subscribe|microphone|camera|technical|screen|audio|live chat|can you see|are we live)\b/gi) || []).length;
     const editorialVibe = Math.min(120, vividHits * 12) - adminHits * 70;
-    return { ...item, text, tokenCount, fillerWords, repeatedPhrases, startsFragment, vividHits, adminHits, score: quality * 100 + Math.min(10, Number(item.weight || 0)) + editorialVibe };
-  }).filter((item) => item.text && item.tokenCount >= 8 && item.fillerWords <= 2 && item.repeatedPhrases === 0 && !item.startsFragment && !/\.\.\.$/.test(item.text) && !(item.adminHits > 0 && item.vividHits === 0) && item.score >= 1000 && !/^(?:No local transcript window aligned|No caption fragment aligned|Title signal only|open the source before treating)/i.test(item.text));
+    return { ...item, text, sentenceBound, tokenCount, fillerWords, repeatedPhrases, startsFragment, vividHits, adminHits, score: quality * 100 + Math.min(10, Number(item.weight || 0)) + editorialVibe };
+  }).filter((item) => item.text && item.sentenceBound && item.tokenCount >= 8 && item.fillerWords <= 2 && item.repeatedPhrases === 0 && !item.startsFragment && !/\.\.\.$/.test(item.text) && !(item.adminHits > 0 && item.vividHits === 0) && item.score >= 1000 && !/^(?:No local transcript window aligned|No caption fragment aligned|Title signal only|open the source before treating)/i.test(item.text));
   const receiptCandidate = receiptOptions.sort((a, b) => b.score - a.score || Number(a.at || 0) - Number(b.at || 0))[0];
   const receiptLine = receiptCandidate
     ? [
