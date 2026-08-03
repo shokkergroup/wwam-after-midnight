@@ -265,6 +265,19 @@ function formatTimestamp(seconds) {
 }
 
 function captionEvents(id) {
+  // Prefer a validated local Whisper ledger when one exists. Automatic
+  // captions remain the fallback, but finished audio listening should not sit
+  // unused merely because YouTube also supplied a caption track.
+  const asrFile = path.join(CAPTIONS_DIR, `${id}.asr.json`);
+  if (fs.existsSync(asrFile)) {
+    const payload = readJson(asrFile);
+    return (payload.segments || []).map((segment) => ({
+      t: Math.max(0, Number(segment.start || 0)),
+      end: Math.max(0, Number(segment.end || segment.start || 0)),
+      text: normalizeCaptionText(segment.text),
+      evidenceType: "local-whisper-transcript"
+    })).filter((event) => event.text);
+  }
   const captionFile = path.join(CAPTIONS_DIR, `${id}.json`);
   if (fs.existsSync(captionFile)) {
     const payload = readJson(captionFile);
@@ -277,15 +290,7 @@ function captionEvents(id) {
       }))
       .filter((event) => event.text);
   }
-  const asrFile = path.join(CAPTIONS_DIR, `${id}.asr.json`);
-  if (!fs.existsSync(asrFile)) return [];
-  const payload = readJson(asrFile);
-  return (payload.segments || []).map((segment) => ({
-    t: Math.max(0, Number(segment.start || 0)),
-    end: Math.max(0, Number(segment.end || segment.start || 0)),
-    text: normalizeCaptionText(segment.text),
-    evidenceType: "local-whisper-transcript"
-  })).filter((event) => event.text);
+  return [];
 }
 
 // Edge receipts use YouTube's archived .en.json3 filename so they can be
@@ -307,8 +312,8 @@ function edgeCaptionEvents(id) {
 }
 
 function captionSourceKind(id) {
-  if (fs.existsSync(path.join(CAPTIONS_DIR, `${id}.json`))) return "youtube-automatic-caption";
   if (fs.existsSync(path.join(CAPTIONS_DIR, `${id}.asr.json`))) return "local-whisper-transcript";
+  if (fs.existsSync(path.join(CAPTIONS_DIR, `${id}.json`))) return "youtube-automatic-caption";
   return null;
 }
 

@@ -222,6 +222,8 @@ test("every episode has an official source, evidence state, and playable receipt
   assert.equal(signs.dossier.caption.sourceKind, "local-whisper-transcript");
   assert.equal(signs.watchPass.status, "audio-feature-pilot");
   assert.ok(signs.watchPass.candidates.length >= 20, "public no-caption source receives an audio/ASR route");
+  const audioUpgraded = canon.episodes.find((episode) => episode.id === "BIbyzMlstmM");
+  assert.equal(audioUpgraded?.dossier.caption.sourceKind, "local-whisper-transcript", "a local Whisper ledger takes precedence over a matching automatic-caption file");
   const captionLedgers = canon.episodes.filter((episode) => episode.dossier.state === "caption-ledger-dossier");
   assert.equal(captionLedgers.length, 63);
   assert.ok(captionLedgers.every((episode) => /caption-aligned route|listening lead/i.test(episode.dossier.summary)), "caption-ledger summaries surface a concrete bounded receipt instead of generic machine boilerplate");
