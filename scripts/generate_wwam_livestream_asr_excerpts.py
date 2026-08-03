@@ -27,6 +27,10 @@ def words(text: str) -> list[str]:
     return re.findall(r"[A-Za-z0-9]+(?:['-][A-Za-z0-9]+)*", text)
 
 
+def clean(text: object) -> str:
+    return " ".join(str(text or "").split()).strip()
+
+
 LOW_SIGNAL_SENTENCES = {
     "you know what i mean",
     "well it happens to the best of us",
@@ -51,6 +55,11 @@ def bounded_excerpt(text: str, limit: int = 16) -> str:
         if len(sentence_words) < 5 or len(sentence_words) > limit or not re.search(r"[.!?][\"']?$", sentence):
             continue
         normalized = [word.lower() for word in sentence_words]
+        # A joined window can begin in the middle of a thought even when the
+        # final token has punctuation. Whisper usually capitalizes a fresh
+        # utterance, so a lowercase opening is a useful fail-closed signal.
+        if sentence and sentence[0].islower():
+            continue
         # A complete sentence is not automatically a useful moment. These
         # are common conversational acknowledgements that make a public card
         # feel padded and tell the listener nothing about the door behind it.
@@ -65,7 +74,7 @@ def bounded_excerpt(text: str, limit: int = 16) -> str:
         # clean quote; the timestamp remains available for playback review.
         if normalized and normalized[0] in {"uh", "um", "er"}:
             continue
-        if normalized and normalized[0] in {"if", "when", "while", "although", "because", "since", "unless", "which", "that"} and "," not in sentence[:90]:
+        if normalized and normalized[0] in {"and", "but", "or", "so", "then", "if", "when", "while", "although", "because", "since", "unless", "which", "that"} and "," not in sentence[:90]:
             continue
         # A short ASR window can inherit punctuation while still ending on a
         # dangling preposition, helper verb, or article. Keep that timestamp
@@ -129,6 +138,66 @@ def excerpt_for(segments: list[dict], at: float) -> dict:
     }
 
 
+TEXT_CUE_RE = re.compile(
+    r"\b(?:fuck(?:ing)?|shit|asshole|dick|balls|tits|cunt|horny|poop|piss|suck|cock|boob|boner|goddamn|motherfucker)\b"
+    r"|\b(?:hilarious|funny|laugh|laughing|crazy|insane|what the fuck|oh my god|holy shit)\b"
+    r"|\b(?:Loomis|Challis|Slenderman|Feldman|Michael Myers|Ghostface|Freddy|Jason|Steve's Asshole|Up in Ya)\b",
+    re.I,
+)
+
+
+def text_cue_score(text: str) -> float:
+    """Rank transcript-only doors without pretending the text is a joke verdict."""
+    tokens = words(text)
+    score = min(36.0, len(tokens) * 2.5)
+    score += min(36.0, len(TEXT_CUE_RE.findall(text)) * 12.0)
+    if re.search(r"[!?]", text):
+        score += 10.0
+    if re.search(r"\b(?:I|we|they|he|she)\b", text, re.I):
+        score += 4.0
+    return round(score, 1)
+
+
+def derived_text_candidates(segments: list[dict], existing_times: list[float], limit: int = 14) -> list[dict]:
+    """Find additional transcript-led doors the acoustic pass did not rank.
+
+    These are deliberately secondary: the public app labels them as local
+    Whisper listening windows, never as finished quotes or editorial picks.
+    A minimum spacing keeps a talkative minute from flooding the route rail.
+    """
+    usable = [segment for segment in segments if clean(segment.get("text"))]
+    raw: list[dict] = []
+    for index, segment in enumerate(usable):
+        start = float(segment.get("start") or 0)
+        window: list[dict] = []
+        for candidate in usable[index:index + 4]:
+            if window and float(candidate.get("end") or 0) - start > 22:
+                break
+            window.append(candidate)
+            excerpt = bounded_excerpt(" ".join(clean(item.get("text")) for item in window))
+            if not excerpt:
+                continue
+            if any(abs(start - existing) < 24 for existing in existing_times):
+                continue
+            raw.append({
+                "t": round(start, 3),
+                **excerpt_for(usable, start),
+                "selectionKind": "source-local-whisper-text-cue",
+                "selectionScore": text_cue_score(excerpt),
+            })
+            break
+    raw.sort(key=lambda item: (-float(item.get("selectionScore") or 0), float(item.get("t") or 0)))
+    picked: list[dict] = []
+    for item in raw:
+        at = float(item.get("t") or 0)
+        if any(abs(at - float(other.get("t") or 0)) < 45 for other in picked):
+            continue
+        picked.append(item)
+        if len(picked) >= limit:
+            break
+    return sorted(picked, key=lambda item: float(item.get("t") or 0))
+
+
 def main() -> None:
     audio_pass = load_js_json(DEMO / "wwam-livestream-audio-pass.js")
     sources = {}
@@ -138,10 +207,13 @@ def main() -> None:
             continue
         ledger = json.loads(ledger_path.read_text(encoding="utf-8"))
         candidates = []
+        existing_times = []
         for candidate in episode.get("candidates") or []:
             at = float(candidate.get("t") or 0)
             aligned = excerpt_for(ledger.get("segments") or [], at)
-            candidates.append({"t": round(at, 3), **aligned})
+            existing_times.append(at)
+            candidates.append({"t": round(at, 3), **aligned, "selectionKind": "audio-ranked-alignment"})
+        candidates.extend(derived_text_candidates(ledger.get("segments") or [], existing_times))
         sources[source_id] = {
             "model": ledger.get("model"),
             "audioSha256": ledger.get("audioSha256"),
@@ -152,7 +224,7 @@ def main() -> None:
         }
     payload = {
         "schema": "wwam-livestream-asr-excerpts/v1",
-        "policy": "quality-gated local Whisper excerpts aligned to existing audio-ranked timestamps; playback remains the authority",
+        "policy": "quality-gated local Whisper excerpts plus secondary transcript-cue doors; playback remains the authority",
         "publicExcerptWordLimit": 16,
         "qualityRules": [
             "minimum five words",
@@ -160,6 +232,7 @@ def main() -> None:
             "no adjacent repeated tokens",
             "no known Whisper hallucination tails",
             "low-signal conversational acknowledgements are not promoted",
+            "transcript-only text cues are secondary listening leads, never editorial picks",
         ],
         "sources": sources,
     }
