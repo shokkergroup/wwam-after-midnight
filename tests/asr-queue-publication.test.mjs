@@ -131,3 +131,8 @@ test("audio route pickers reserve multiple WWAM-native lanes before score fill",
   assert.match(livestreamPass, /from run_wwam_audio_watch_pass import/);
   assert.match(sharedPass, /candidate\["category"\] == category/);
 });
+
+test("empty moment shelves explain the audio route index instead of implying a missing show", () => {
+  const ui = fs.readFileSync(path.join(root, "public", "demo", "livestream-canon-ui.js"), "utf8");
+  assert.match(ui, /THE AUDIO ROUTE SHELF ABOVE IS THIS SHOW/);
+});
