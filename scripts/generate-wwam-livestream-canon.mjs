@@ -92,6 +92,10 @@ function normalizeCaptionText(value) {
   // the audio as the authority, but collapse the obvious duplicate before a
   // transcript line is promoted into visitor-facing prose.
   text = text.replace(/\b([A-Za-z][A-Za-z'-]*)\b(?:\s+\1\b)+/gi, "$1");
+  // A second common stutter repeats a short phrase rather than one token
+  // ("there was there was", "not only not only"). Collapse only an exact
+  // adjacent pair so intentional emphasis elsewhere remains intact.
+  text = text.replace(/\b([A-Za-z][A-Za-z'-]*)\s+([A-Za-z][A-Za-z'-]*)\s+\1\s+\2\b/gi, "$1 $2");
   return text.replace(/\s{2,}/g, " ").trim();
 }
 function captionEvents(id) {

@@ -124,6 +124,8 @@ test("sentence-safe receipts preserve punctuation across caption speaker markers
   assert.match(generator, /const bounded = clipped \|\| tokens\.slice\(0, limit\)\.join\(" "\);/);
   assert.match(generator, /return \/\[.!\?\]\$\/\.test\(bounded\) \? bounded : `\$\{bounded\}\.\`;/);
   assert.match(generator, /replace\(\/\\s\*>>\\s\*\/g, ""\)/);
+  assert.match(generator, /two-token decoder stutter/);
+  assert.match(generator, /\\1\\s\+\\2\\b/);
 });
 
 test("generic weekly recap headlines retain a date-level navigation handle", () => {
