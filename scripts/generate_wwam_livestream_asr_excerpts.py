@@ -38,7 +38,7 @@ def bounded_excerpt(text: str, limit: int = 16) -> str:
     for raw_sentence in sentences:
         sentence = raw_sentence.strip()
         sentence_words = words(sentence)
-        if len(sentence_words) > limit or not re.search(r"[.!?][\"']?$", sentence):
+        if len(sentence_words) < 5 or len(sentence_words) > limit or not re.search(r"[.!?][\"']?$", sentence):
             continue
         normalized = [word.lower() for word in sentence_words]
         # Whisper can make a clause look finished by inheriting punctuation
@@ -48,6 +48,21 @@ def bounded_excerpt(text: str, limit: int = 16) -> str:
         if normalized and normalized[0] in {"uh", "um", "er"}:
             continue
         if normalized and normalized[0] in {"if", "when", "while", "although", "because", "since", "unless", "which", "that"} and "," not in sentence[:90]:
+            continue
+        # A short ASR window can inherit punctuation while still ending on a
+        # dangling preposition, helper verb, or article. Keep that timestamp
+        # playable, but do not promote the fragment as public prose.
+        if normalized[-1] in {
+            "a", "an", "the", "to", "of", "and", "but", "for", "with", "in", "on",
+            "at", "is", "are", "was", "were", "be", "been", "being", "did", "does",
+            "do", "that", "which", "because", "if", "when", "like",
+        }:
+            continue
+        # Whisper occasionally produces an adjacent stutter or a recognizable
+        # hallucinated tail. These are navigation coordinates, not quotes.
+        if re.search(r"\b([A-Za-z][A-Za-z'-]*)\s+\1\b", sentence, re.I):
+            continue
+        if re.search(r"\b(?:did\s+a\s+good|one\s+section|not\s+allowed\s+to|you're\s+not\s+allowed\s+to)\b", sentence, re.I):
             continue
         if any(normalized[index:index + 2] == normalized[next_index:next_index + 2]
                for index in range(max(0, len(normalized) - 3))
@@ -119,8 +134,14 @@ def main() -> None:
         }
     payload = {
         "schema": "wwam-livestream-asr-excerpts/v1",
-        "policy": "bounded local Whisper excerpts aligned to existing audio-ranked timestamps; playback remains the authority",
+        "policy": "quality-gated local Whisper excerpts aligned to existing audio-ranked timestamps; playback remains the authority",
         "publicExcerptWordLimit": 16,
+        "qualityRules": [
+            "minimum five words",
+            "no dangling clause endings",
+            "no adjacent repeated tokens",
+            "no known Whisper hallucination tails",
+        ],
         "sources": sources,
     }
     OUTPUT.write_text(

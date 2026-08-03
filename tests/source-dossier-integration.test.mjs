@@ -389,7 +389,7 @@ test("the compact livestream fallback index is bounded and category-aware", () =
 test("cold source routes paint the local fallback before optional Watchalong hydration", () => {
   assert.match(app, /function ensureWatchalongCanonForSource\(sourceId\)/);
   assert.match(app, /wwam-watchalong-route-index\.js\?v=1\.2\.1-alternate-routes/);
-  assert.match(app, /wwam-livestream-asr-excerpts\.js\?v=1\.0\.3-expanding-whisper/);
+  assert.match(app, /wwam-livestream-asr-excerpts\.js\?v=1\.0\.4-quality-gate/);
   assert.match(app, /wwam-livestream-fallback-index\.js\?v=1\.0\.0-category-lanes/);
   assert.match(app, /WWAM_LIVESTREAM_FALLBACK_INDEX/);
   assert.match(app, /WWAM_YEAR_CANON_2025_2026 && window\.WWAM_YEAR_CANON_2025_2026\.streams/);
@@ -691,6 +691,18 @@ test("dossier CSS brands cold routes immediately while heavy scripts remain lazy
     /wwam-livestream-asr-excerpts\/v1[\s\S]*publicExcerptWordLimit/,
     "the ASR overlay must declare its bounded public excerpt policy",
   );
+  const asrSandbox = { window: {} };
+  vm.runInNewContext(asrExcerptIndex, asrSandbox, { filename: "wwam-livestream-asr-excerpts.js" });
+  const publicAsrExcerpts = Object.values(asrSandbox.window.WWAM_LIVESTREAM_ASR_EXCERPTS.sources || {})
+    .flatMap((source) => source.candidates || [])
+    .map((candidate) => String(candidate.excerpt || ""))
+    .filter(Boolean);
+  assert.ok(publicAsrExcerpts.length > 0, "the published ASR overlay must retain usable excerpts");
+  for (const excerpt of publicAsrExcerpts) {
+    assert.ok(excerpt.split(/\s+/).length >= 5, `ASR excerpt is too short: ${excerpt}`);
+    assert.doesNotMatch(excerpt, /\b([A-Za-z][A-Za-z'-]*)\s+\1\b/i, `ASR adjacent stutter leaked: ${excerpt}`);
+    assert.doesNotMatch(excerpt, /\b(?:did a good|one section|not allowed to|you're not allowed to)\b/i, `ASR hallucination tail leaked: ${excerpt}`);
+  }
   assert.match(
     asrExcerptIndex,
     /LV2rmwEA0w4[\s\S]*iz0WFhe6LYM/,
