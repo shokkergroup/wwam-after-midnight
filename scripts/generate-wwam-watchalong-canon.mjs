@@ -143,8 +143,42 @@ function trimDanglingClause(value) {
 }
 function isLikelyFragment(value) {
   const text = clean(value);
+  if (/\b(?:is|are|was|were|be|been|being|have|has|had|will|would|could|should|can|do|does|did|going|trying|want|wanted|need|needs|got|made|already|yet|again)\.?\s*$/i.test(text)) return true;
+  if (/\b(?:and|but|or|because|since|although|while|when|if|which|that|who|with|for|to|of|about|using|like|as|all)\.?\s*$/i.test(text)) return true;
   return /\b(?:this|that|it)\s+is\s+(?:a|an|the)\s+[a-z0-9'â€™-]+\.?$/i.test(text)
     || /\b(?:because|since|although|while|when|if|which|that|who)\s+(?:i|you|he|she|we|they)\s+[a-z0-9'â€™-]+\.?$/i.test(text);
+}
+
+function isNoisyTranscript(value) {
+  const text = clean(value);
+  return /[,\.]\s*\.$/.test(text)
+    || /\b(?:do you do|the both of you|i just don't i|the just the|i saw it in the just the)\b/i.test(text)
+    || /\b(?:he|she|it|they|we|you|i)(?:'s|'re|'m)?\s+(?:a|an|the)\s+(?:all|by|with|to|from)\b/i.test(text)
+    || /\b(?:like|so|yeah|well)\b.*\b(?:like|so|yeah|well)\b.*\b(?:like|so|yeah|well)\b/i.test(text);
+}
+
+function sanitizePublicExcerpt(value) {
+  let text = clean(value)
+    .replace(/^\s*["”]\s*/, "")
+    .replace(/\s+([,.!?])/g, "$1")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  // A bounded caption window can stop after an opening quote. Preserve the
+  // words, but remove the dangling marker instead of showing broken dialogue.
+  if ((text.match(/"/g) || []).length % 2 === 1) text = text.replace(/"/g, "");
+  const smartOpen = (text.match(/[“]/g) || []).length;
+  const smartClose = (text.match(/[”]/g) || []).length;
+  if (smartOpen !== smartClose) text = text.replace(/[“”]/g, "");
+  return text
+    .replace(/\b(said|says|asked|asks|was like|were like|be like)\s*,\s+(?=[A-Z])/i, "$1: ")
+    .replace(/\s+([,.!?])/g, "$1")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+function publicReceiptText(value) {
+  const text = sanitizePublicExcerpt(value);
+  if (!text || /[,.]\s*\.$/.test(text) || /\bwhat the do\b/i.test(text)) return "";
+  return text;
 }
 
 function excerpt(value, limit = 16) {
@@ -168,7 +202,7 @@ function excerpt(value, limit = 16) {
       .trim();
     return /[.!?]$/.test(clipped) ? clipped : `${clipped}.`;
   };
-  const candidate = sentenceList.find((sentence) => words(sentence).length >= 8) || normalized;
+  const candidate = sentenceList.find((sentence) => words(sentence).length >= 8 && !isLikelyFragment(sentence) && !isNoisyTranscript(sentence)) || normalized;
   const text = bounded(candidate);
   let cased = `${text.charAt(0).toUpperCase()}${text.slice(1)}`
     .replace(/\bi\b/g, "I")
@@ -180,7 +214,9 @@ function excerpt(value, limit = 16) {
     cased = cased.replace(/\b([A-Za-z0-9][A-Za-z0-9'-]*)\s+([A-Za-z0-9][A-Za-z0-9'-]*)\s+\1\s+\2\b/gi, "$1 $2");
   }
   cased = trimDanglingClause(cased);
-  if (isLikelyFragment(cased)) return "";
+  cased = sanitizePublicExcerpt(cased);
+  if (/[,.]\s*\.$/.test(cased) || /\bwhat the do\b/i.test(cased)) return "";
+  if (isLikelyFragment(cased) || isNoisyTranscript(cased)) return "";
   return /[.!?]$/.test(cased) ? cased : `${cased}.`;
 }
 
@@ -624,7 +660,7 @@ function topicAnchor(events, terms) {
     .filter((entry) => entry.hits > 0);
   if (!hits.length) return null;
   const peak = hits.slice().sort((left, right) => right.hits - left.hits || left.event.t - right.event.t)[0];
-  return { mentions: hits.reduce((sum, item) => sum + item.hits, 0), first: hits[0].event.t, peak: peak.event.t, cluster: Math.min(24, hits.length), receipt: excerpt(peak.event.text) };
+  return { mentions: hits.reduce((sum, item) => sum + item.hits, 0), first: hits[0].event.t, peak: peak.event.t, cluster: Math.min(24, hits.length), receipt: publicReceiptText(excerpt(peak.event.text)) };
 }
 
 const LANE_DEFS = [
@@ -860,9 +896,9 @@ function episodeFrom(id) {
   // caption ledger can provide bounded route receipts. Keep the evidence state
   // honest, but do not leave the episode as an empty shell.
   const derived = (!deepRecord || !guide) ? candidateMoments(events, duration, aliases, taxonomy) : null;
-  const sourceTopics = (overrideById.get(id) || []).map((topic) => ({ name: topic.label, first: topic.firstAt, peak: topic.peakAt, mentions: topic.mentions, receipt: excerpt(topic.excerpt), evidenceBasis: topic.evidenceBasis }));
+  const sourceTopics = (overrideById.get(id) || []).map((topic) => ({ name: topic.label, first: topic.firstAt, peak: topic.peakAt, mentions: topic.mentions, receipt: publicReceiptText(excerpt(topic.excerpt)), evidenceBasis: topic.evidenceBasis }));
   const guideCuts = guide?.cuts || [];
-  const moments = deepRecord && guide ? (deepRecord.moments || []).map((moment) => ({ ...moment, t: Number(moment.t || 0), end: Number(moment.end || moment.t || 0), excerpt: excerpt(moment.quote || moment.excerpt), reviewStatus: "distilled-editorial-candidate" })) : derived.moments;
+  const moments = deepRecord && guide ? (deepRecord.moments || []).map((moment) => ({ ...moment, t: Number(moment.t || 0), end: Number(moment.end || moment.t || 0), excerpt: publicReceiptText(excerpt(moment.quote || moment.excerpt)), reviewStatus: "distilled-editorial-candidate" })).filter((moment) => moment.excerpt) : (derived.moments || []).map((moment) => ({ ...moment, excerpt: publicReceiptText(moment.excerpt) })).filter((moment) => moment.excerpt);
   const chapters = deepRecord && guide ? (guide?.chapters || []).map((chapter) => ({ ...chapter, excerpt: excerpt(chapter.excerpt), body: clean(chapter.body) })) : derived.chapters;
   const filmTitleLower = clean(taxonomy.movieTitle).toLowerCase();
   const filmTitleTokens = filmTitleLower.split(/\s+/).filter((token) => token.length >= 4 && !["this", "that", "the", "with", "from", "full", "movie"].includes(token));
@@ -873,7 +909,7 @@ function episodeFrom(id) {
     return mentions >= 2 || titleHit;
   });
   const topics = deepRecord && guide
-    ? (guide?.threads || []).slice(0, 10).map((thread) => ({ name: thread.name, mentions: thread.mentions, first: thread.first, peak: thread.peak, cluster: thread.cluster, receipt: excerpt(thread.receipt), kind: thread.kind }))
+    ? (guide?.threads || []).slice(0, 10).map((thread) => ({ name: thread.name, mentions: thread.mentions, first: thread.first, peak: thread.peak, cluster: thread.cluster, receipt: publicReceiptText(excerpt(thread.receipt)), kind: thread.kind }))
     : relevantTopics(sourceTopics.length ? sourceTopics : derivedTopicDoors, taxonomy);
   const watchPassRecord = watchPass.episodes?.[id] || null;
   const alternateAudio = alternateAudioMeta(watchPassRecord, duration);
@@ -888,7 +924,7 @@ function episodeFrom(id) {
         // bounded to the same readable receipt policy as the dossier cuts.
         candidates: (watchPassRecord.candidates || []).map((candidate) => {
           const context = sourceKind === "local-whisper-transcript" ? nearestCaptionContext(events, candidate.t) : null;
-          const text = context?.text ? excerpt(context.text, 16) : excerpt(normalizeCaptionText(candidate.captionExcerpt || candidate.excerpt || ""), 16);
+          const text = context?.text ? publicReceiptText(excerpt(context.text, 16)) : publicReceiptText(excerpt(normalizeCaptionText(candidate.captionExcerpt || candidate.excerpt || ""), 16));
           return { ...candidate, captionExcerpt: text, excerpt: text };
         }),
         ...(alternateAudio && watchPassRecord.alternateAudio ? {
@@ -923,13 +959,13 @@ function episodeFrom(id) {
       // caption fragment on every clickable audio door.
       const whisperContext = sourceKind === "local-whisper-transcript" ? nearestCaptionContext(events, at) : null;
       const captionExcerpt = whisperContext?.text
-        ? excerpt(whisperContext.text, 16)
-        : (sourceKind === "local-whisper-transcript" ? "" : excerpt(normalizeCaptionText(candidate.captionExcerpt || ""), 16));
+        ? publicReceiptText(excerpt(whisperContext.text, 16))
+        : (sourceKind === "local-whisper-transcript" ? "" : publicReceiptText(excerpt(normalizeCaptionText(candidate.captionExcerpt || ""), 16)));
       const nearbyCaption = whisperContext || (captionExcerpt ? null : nearestCaptionContext(events, at));
       const receiptExcerpt = captionExcerpt
         ? captionExcerpt
         : nearbyCaption
-          ? excerpt(`NEARBY CAPTION CONTEXT // ${nearbyCaption.text}`, 16)
+          ? publicReceiptText(excerpt(`NEARBY CAPTION CONTEXT // ${nearbyCaption.text}`, 16))
           : "No caption fragment aligned; open the source and listen to this acoustic window.";
       return {
         id: `audio-${Math.round(at)}-${index + 1}`,
@@ -979,7 +1015,7 @@ function episodeFrom(id) {
   }));
   const editorialMoments = deepRecord && guide ? guideCuts.map((cut) => ({
     id: cut.id, t: Number(cut.t || 0), end: Number(cut.end || cut.t || 0), category: cut.category, label: cut.label || cut.category,
-    score: Number(cut.score || 0), excerpt: excerpt(cut.excerpt), topic: cut.topic || null, evidenceBasis: cut.evidenceBasis || "reviewed-guide-cut", reviewStatus: "distilled-editorial-candidate"
+    score: Number(cut.score || 0), excerpt: publicReceiptText(excerpt(cut.excerpt)), topic: cut.topic || null, evidenceBasis: cut.evidenceBasis || "reviewed-guide-cut", reviewStatus: "distilled-editorial-candidate"
   })) : moments;
   // Deep dossiers have a curated guide, but the guide is not the whole tape.
   // Re-run the source-local lane detector for the explicit WWAM shelves so a

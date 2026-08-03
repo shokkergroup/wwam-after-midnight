@@ -30,6 +30,14 @@ function inspect(value, sourceId, field, failures) {
     failures.push({ sourceId, field, kind: "two-token-loop", text });
   }
   if (/(?:\.{3,}|\u2026)\s*$/.test(text)) failures.push({ sourceId, field, kind: "trailing-ellipsis", text });
+  if ((text.match(/"/g) || []).length % 2 === 1) failures.push({ sourceId, field, kind: "unbalanced-quote", text });
+  if (/[,.]\s*\.$/.test(text)) failures.push({ sourceId, field, kind: "malformed-terminal-punctuation", text });
+  if (/\b(?:do you do|the both of you|i just don't i|the just the|i saw it in the just the|what the do|i'm not it's not)\b/i.test(text)) {
+    failures.push({ sourceId, field, kind: "decoder-collision", text });
+  }
+  if (/\b(?:like|so|yeah|well)\b.*\b(?:like|so|yeah|well)\b.*\b(?:like|so|yeah|well)\b/i.test(text)) {
+    failures.push({ sourceId, field, kind: "filler-collision", text });
+  }
 }
 
 function inspectSummaryProse(value, sourceId, field, failures) {

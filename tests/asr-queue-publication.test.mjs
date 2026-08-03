@@ -62,6 +62,9 @@ test("public receipt audit rejects clipped summary quotes", () => {
   assert.match(audit, /function inspectSummaryProse/);
   assert.match(audit, /clipped-summary-quote/);
   assert.match(audit, /fragment-tail/);
+  assert.match(audit, /unbalanced-quote/);
+  assert.match(audit, /malformed-terminal-punctuation/);
+  assert.match(audit, /decoder-collision/);
   assert.match(audit, /dossier\.summary/);
 });
 
@@ -83,7 +86,8 @@ test("local Whisper routes never fall back to stale automatic-caption text", () 
 test("livestream watch-pass candidates use the bounded public receipt path", () => {
   const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-livestream-canon.mjs"), "utf8");
   assert.match(generator, /const captionExcerpt = localWhisper\s*\n\s*\? captionExcerptAt\(events, candidate\.t, 16\)/);
-  assert.match(generator, /excerpt: captionExcerpt \|\| \(localWhisper/);
+  assert.match(generator, /const publicCaptionExcerpt = isWeakPublicReceipt\(captionExcerpt\) \? "" : captionExcerpt/);
+  assert.match(generator, /excerpt: publicCaptionExcerpt \|\| \(localWhisper/);
 });
 
 test("local Whisper evidence replaces legacy caption provenance", () => {
@@ -137,12 +141,16 @@ test("public moment and receipt shelves use the sentence-safe excerpt path", () 
   assert.match(generator, /const boundedSentence = \(sentence\) =>/);
   assert.match(generator, /function trimDanglingClause\(value\)/);
   assert.match(generator, /function isLikelyFragment\(value\)/);
+  assert.match(generator, /function sanitizePublicExcerpt\(value\)/);
+  assert.match(generator, /dangling\s+\/\/\s+quote/);
+  assert.match(generator, /isLikelyFragment\(cased\)/);
   assert.match(generator, /refreshMachineMomentExcerpt/);
   assert.match(generator, /const refreshedExistingMoments = events\.length/);
   assert.match(generator, /excerpt: bestCaptionExcerpt\(captionWindow\(events, item\.index\)/);
   assert.match(generator, /excerpt: safeExcerpt\(route\.captionExcerpt \|\| route\.excerpt \|\| "", 24\)/);
   assert.match(generator, /excerpt: safeExcerpt\(moment\.excerpt \|\| moment\.quote \|\| "", 24\)/);
   assert.match(generator, /function bestBits[\s\S]*excerpt: safeExcerpt\(moment\.excerpt \|\| moment\.quote \|\| moment\.captionExcerpt \|\| "", 16\)/);
+  assert.match(generator, /\.filter\(\(moment\) => moment\.excerpt && !isWeakPublicReceipt\(moment\.excerpt\)\)/);
   assert.match(generator, /source-local automatic caption alignment/);
 });
 
@@ -254,4 +262,7 @@ test("watchalong publication keeps special broadcasts visible and bounds nearby 
   assert.match(generator, /anniversary broadcast; retained as a companion source/);
   assert.match(generator, /excerpt\(context\.text, 16\)/);
   assert.match(generator, /excerpt\(`NEARBY CAPTION CONTEXT \/\/ \$\{nearbyCaption\.text\}`, 16\)/);
+  assert.match(generator, /function isNoisyTranscript\(value\)/);
+  assert.match(generator, /function sanitizePublicExcerpt\(value\)/);
+  assert.match(generator, /isLikelyFragment\(cased\) \|\| isNoisyTranscript\(cased\)/);
 });

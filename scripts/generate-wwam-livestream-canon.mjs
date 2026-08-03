@@ -63,11 +63,31 @@ function isLikelyFragment(value) {
   if (/\b(?:i'd|i'll|i'm|you're|he's|she's|we're|they're)\s+(?:be|been|being|was|were|am|is|are|have|has|had|did|do|does|will|would|could|should|can)\.?\s*$/i.test(text)) return true;
   if (/\b(?:i|you|he|she|we|they)\s+(?:said|says|told|asked|thought|felt|wanted|tried|made|doing|going)\.?\s*$/i.test(text)) return true;
   if (/\b(?:is|are|was|were|be|been|being|have|has|had|will|would|could|should|can|do|does|did|going|trying|want|wanted|need|needs|got|made|doing|already|yet|again)\.?\s*$/i.test(text)) return true;
+  if (/\b(?:i'm|you're|he's|she's|it's|we're|they're|that's|there's|here's|i've|you've|we've|they've)\.?\s*$/i.test(text)) return true;
   if (/\b(?:so|but|and|yeah|well|like)\s*,?\s+(?:so|but|and|yeah|well|like)\b/i.test(text)) return true;
   if ((text.match(/\b(?:so|but|and|yeah|well|like)\b/gi) || []).length >= 3) return true;
   if (/\b(?:hate|love|like|want|need|know|think|believe|feel|see|say|tell|make|put|give|take|get|go|come|told|asked|thought|felt)\.?\s*$/i.test(text)) return true;
   return /\b(?:this|that|it)\s+is\s+(?:a|an|the)\s+[a-z0-9'â€™-]+\.?$/i.test(text)
     || /\b(?:because|since|although|while|when|if|which|that|who)\s+(?:i|you|he|she|we|they)\s+[a-z0-9'â€™-]+\.?$/i.test(text);
+}
+function sanitizePublicExcerpt(value) {
+  let text = clean(value)
+    .replace(/^\s*["”]\s*/, "")
+    .replace(/\s+([,.!?])/g, "$1")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  // Caption windows routinely stop inside a quoted sentence. A dangling
+  // quote is visual decoder noise, not evidence that a speaker finished the
+  // thought. Remove the marker rather than fabricating a closing sentence.
+  if ((text.match(/"/g) || []).length % 2 === 1) text = text.replace(/"/g, "");
+  const smartOpen = (text.match(/[“]/g) || []).length;
+  const smartClose = (text.match(/[”]/g) || []).length;
+  if (smartOpen !== smartClose) text = text.replace(/[“”]/g, "");
+  return text
+    .replace(/\b(said|says|asked|asks|was like|were like|be like)\s*,\s+(?=[A-Z])/i, "$1: ")
+    .replace(/\s+([,.!?])/g, "$1")
+    .replace(/\s{2,}/g, " ")
+    .trim();
 }
 function excerpt(value, limit = 20) {
   const tokens = words(String(value).replace(/\s*\n\s*/g, " "));
@@ -140,6 +160,7 @@ function safeExcerpt(value, limit = 20) {
   if (casedWords.length >= 8 && fillerCount >= 3 && fillerCount / casedWords.length >= 0.18) return "";
   if (/[,.]\s*\.$/.test(cased)) return "";
   cased = trimDanglingClause(cased);
+  cased = sanitizePublicExcerpt(cased);
   if (isLikelyFragment(cased)) return "";
   if (isNoisyTranscript(cased)) return "";
   if (excerptQuality(cased) <= 5) return "";
@@ -284,12 +305,19 @@ function isNoisyTranscript(value) {
     /\b(?:and|but|so)\s+(?:he|she|they|we|it)\s+(?:up|down|out|off)\s+(?:that|the)\b/i,
     /\b(?:like|so|yeah|well)\b.*\b(?:like|so|yeah|well)\b.*\b(?:like|so|yeah|well)\b/i,
     /\b(?:do you do|the both of you|i just don't i|the just the|i saw it in the just the)\b/i,
+    /\b(?:between\d|what the do|i'm not it's not|he never got a chance.*never|top\s*\.)\b/i,
+    /\b(?:said|says|asked|asks|was like|were like|be like)\s*[,;:]\s*["']?\s*$/i,
+    /\b(?:uh|um|er|like)[,.]?\s+(?:uh|um|er|like)[,.]?\s+(?:uh|um|er|like)\b/i,
     /\b(?:don't|never|ever|always)\s+(?:you|we|they|he|she|i)\s+[A-Za-z][^.!?]*\s+(?:again|but|and)\b/i,
     /\b(?:he|she|it|they|we|you|i)(?:'s|\s+is|\s+are|\s+was|\s+were)\s+[A-Z][a-z'-]+\s+(?:but|and|so)\b/,
   ].some((pattern) => pattern.test(text));
 }
+function isWeakPublicReceipt(value) {
+  const text = clean(value);
+  return !text || /[,.]\s*\.$/.test(text) || isNoisyTranscript(text);
+}
 function bestCaptionExcerpt(primary, fallback, limit = 24) {
-  const candidates = [primary, fallback].map((value) => safeExcerpt(value, limit)).filter(Boolean);
+  const candidates = [primary, fallback].map((value) => safeExcerpt(value, limit)).filter((value) => !isWeakPublicReceipt(value));
   if (!candidates.length) return "";
   return candidates.slice().sort((left, right) => excerptQuality(right) - excerptQuality(left) || words(right).length - words(left).length)[0];
 }
@@ -894,7 +922,7 @@ function normalizeMoments(items, restricted = false) {
       evidenceBasis: moment.evidenceBasis || "source-local caption candidate",
       reviewStatus: moment.reviewStatus || "machine-candidate"
     }))
-    .filter((moment) => moment.excerpt || moment.t >= 0);
+    .filter((moment) => moment.excerpt && !isWeakPublicReceipt(moment.excerpt));
 }
 function conversationThreads(topics, localWhisper = false) {
   const evidenceBasis = localWhisper ? "source-local Whisper transcript topic anchor" : "source-local automatic caption topic anchor";
@@ -1085,12 +1113,13 @@ const episodes = canonicalMetadata.map((record) => {
       const captionExcerpt = localWhisper
         ? captionExcerptAt(events, candidate.t, 16)
         : safeExcerpt(candidate.captionExcerpt || "", 16);
+      const publicCaptionExcerpt = isWeakPublicReceipt(captionExcerpt) ? "" : captionExcerpt;
       return {
         ...candidate,
-        captionExcerpt: captionExcerpt || (localWhisper ? "No local transcript window aligned; open the player at this timestamp." : "No caption fragment aligned; open the source and listen to this acoustic window."),
-        excerpt: captionExcerpt || (localWhisper ? "No local transcript window aligned; open the player at this timestamp." : "No caption fragment aligned; open the source and listen to this acoustic window."),
-        captionAligned: Boolean(captionExcerpt),
-        evidenceBasis: localWhisper && captionExcerpt
+        captionExcerpt: publicCaptionExcerpt || (localWhisper ? "No local transcript window aligned; open the player at this timestamp." : "No caption fragment aligned; open the source and listen to this acoustic window."),
+        excerpt: publicCaptionExcerpt || (localWhisper ? "No local transcript window aligned; open the player at this timestamp." : "No caption fragment aligned; open the source and listen to this acoustic window."),
+        captionAligned: Boolean(publicCaptionExcerpt),
+        evidenceBasis: localWhisper && publicCaptionExcerpt
           ? "canonical audio + source-local Whisper transcript alignment"
           : localWhisper
             ? "canonical audio route; local Whisper window unavailable at this timestamp"
