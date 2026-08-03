@@ -817,6 +817,7 @@
     var moments = fallbackSourceMoments(sourceId, source).filter(function (moment) {
       return moment.sourceKind !== "podcast-variant";
     });
+    var whisperCount = moments.filter(function (moment) { return moment.sourceKind === "local-whisper"; }).length;
     var topics = (Array.isArray(source.topics) ? source.topics : []).map(function (topic) {
       return typeof topic === "string" ? topic : topic && (topic.name || topic.label);
     }).filter(Boolean).slice(0, 8);
@@ -853,7 +854,7 @@
       '<section class="source-dossier-fallback-player" id="fallback-player"><div class="modal-player" id="modalPlayer">' + player + '</div><p class="source-dossier-fallback-boundary">PLAYBACK stays inside this page. The official source opens only if you choose the link below.</p></section>' +
       '<section class="source-dossier-fallback-about" id="fallback-about"><p class="kicker">THE SHORT VERSION</p><p>' + esc(summary) + '</p>' +
       (topics.length ? '<div class="source-dossier-fallback-topics">' + topics.map(function (topic) { return '<span>' + esc(topic) + '</span>'; }).join("") + '</div>' : "") + '</section>' + alternateSection +
-      '<section class="source-dossier-fallback-routes" id="fallback-routes"><header><div><p class="kicker">SOURCE-LOCAL RECEIPTS</p><h3>PRESS PLAY HERE.</h3></div><span>' + moments.length + ' bounded route' + (moments.length === 1 ? "" : "s") + ' // no invented speaker labels</span></header>' +
+      '<section class="source-dossier-fallback-routes" id="fallback-routes"><header><div><p class="kicker">SOURCE-LOCAL RECEIPTS</p><h3>PRESS PLAY HERE.</h3></div><span>' + moments.length + ' bounded route' + (moments.length === 1 ? "" : "s") + ' // no invented speaker labels' + (whisperCount ? ' // ' + whisperCount + ' transcript window' + (whisperCount === 1 ? '' : 's') : '') + '</span></header>' +
       (moments.length ? '<div class="source-dossier-fallback-route-grid">' + moments.map(function (moment, index) {
         return '<button type="button" data-fallback-jump="' + moment.at + '" data-fallback-end="' + (moment.end || "") + '"><b>0' + (index + 1) + '</b><span>' + esc(moment.label) + '</span><time>' + timestamp(moment.at) + '</time><em>' + esc(moment.excerpt) + '</em></button>';
       }).join("") + '</div>' : '<p class="source-dossier-fallback-empty">This source has no safe timestamp receipt in the local bundle yet. The source link remains honest and playable.</p>') + '</section>' +
