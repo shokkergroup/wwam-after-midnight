@@ -62,10 +62,10 @@ function isLikelyFragment(value) {
   if (/\b(?:i|you|he|she|we|they)\s+(?:was|were|am|is|are|have|has|had|did|do|does|will|would|could|should|can|makes?)\.?\s*$/i.test(clean(value))) return true;
   if (/\b(?:i'd|i'll|i'm|you're|he's|she's|we're|they're)\s+(?:be|been|being|was|were|am|is|are|have|has|had|did|do|does|will|would|could|should|can)\.?\s*$/i.test(text)) return true;
   if (/\b(?:i|you|he|she|we|they)\s+(?:said|says|told|asked|thought|felt|wanted|tried|made|doing|going)\.?\s*$/i.test(text)) return true;
-  if (/\b(?:is|are|was|were|be|been|being|have|has|had|will|would|could|should|can|do|does|did|going|trying|want|wanted|need|needs)\.?\s*$/i.test(text)) return true;
+  if (/\b(?:is|are|was|were|be|been|being|have|has|had|will|would|could|should|can|do|does|did|going|trying|want|wanted|need|needs|got|made|doing|already|yet|again)\.?\s*$/i.test(text)) return true;
   if (/\b(?:so|but|and|yeah|well|like)\s*,?\s+(?:so|but|and|yeah|well|like)\b/i.test(text)) return true;
   if ((text.match(/\b(?:so|but|and|yeah|well|like)\b/gi) || []).length >= 3) return true;
-  if (/\b(?:hate|love|like|want|need|know|think|believe|feel|see|say|tell|make|put|give|take|get|go|come)\.?\s*$/i.test(text)) return true;
+  if (/\b(?:hate|love|like|want|need|know|think|believe|feel|see|say|tell|make|put|give|take|get|go|come|told|asked|thought|felt)\.?\s*$/i.test(text)) return true;
   return /\b(?:this|that|it)\s+is\s+(?:a|an|the)\s+[a-z0-9'â€™-]+\.?$/i.test(text)
     || /\b(?:because|since|although|while|when|if|which|that|who)\s+(?:i|you|he|she|we|they)\s+[a-z0-9'â€™-]+\.?$/i.test(text);
 }
@@ -283,6 +283,9 @@ function isNoisyTranscript(value) {
     /\b(?:from their pov, from their|getting woke with the|nonp prejudice|is ruth)\b/i,
     /\b(?:and|but|so)\s+(?:he|she|they|we|it)\s+(?:up|down|out|off)\s+(?:that|the)\b/i,
     /\b(?:like|so|yeah|well)\b.*\b(?:like|so|yeah|well)\b.*\b(?:like|so|yeah|well)\b/i,
+    /\b(?:do you do|the both of you|i just don't i|the just the|i saw it in the just the)\b/i,
+    /\b(?:don't|never|ever|always)\s+(?:you|we|they|he|she|i)\s+[A-Za-z][^.!?]*\s+(?:again|but|and)\b/i,
+    /\b(?:he|she|it|they|we|you|i)(?:'s|\s+is|\s+are|\s+was|\s+were)\s+[A-Z][a-z'-]+\s+(?:but|and|so)\b/,
   ].some((pattern) => pattern.test(text));
 }
 function bestCaptionExcerpt(primary, fallback, limit = 24) {
@@ -550,7 +553,7 @@ function bestBits(moments, fan, listeningRoutes = []) {
     rank: index + 1, t: Number(moment.t || 0), end: Number(moment.end || moment.t || 0), category: clean(moment.category || moment.label || "SOURCE RECEIPT"),
     label: clean(moment.label || moment.category || "SOURCE RECEIPT"), excerpt: safeExcerpt(moment.excerpt || moment.quote || moment.captionExcerpt || "", 16), score: Number(moment.score || 0),
     evidenceBasis: moment.evidenceBasis || "source-local listening route", reviewStatus: moment.reviewStatus || "machine-candidate"
-  }));
+  })).filter((moment) => moment.excerpt);
 }
 function listPhrase(items) {
   const names = items.filter(Boolean).map(clean).filter(Boolean);

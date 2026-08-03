@@ -121,6 +121,7 @@ test("visitor-facing recap quotes strip non-speech Whisper stage cues and vary t
   assert.match(generator, /const fillerCount =/);
   assert.match(generator, /function isNoisyTranscript\(value\)/);
   assert.match(generator, /if \(isNoisyTranscript\(cased\)\) return ""/);
+  assert.match(generator, /\}\)\)\.filter\(\(moment\) => moment\.excerpt\);/);
   assert.match(generator, /const substantive = sentenceList\.filter/);
   assert.match(generator, /safeExcerpt\(receiptCandidate\.text, 16\)/);
   assert.match(generator, /const vividHits =/);
