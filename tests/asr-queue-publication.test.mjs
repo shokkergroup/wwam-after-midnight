@@ -136,3 +136,9 @@ test("empty moment shelves explain the audio route index instead of implying a m
   const ui = fs.readFileSync(path.join(root, "public", "demo", "livestream-canon-ui.js"), "utf8");
   assert.match(ui, /THE AUDIO ROUTE SHELF ABOVE IS THIS SHOW/);
 });
+
+test("cold Show Wiki shelves reserve native lanes before chronological fill", () => {
+  const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-livestream-canon.mjs"), "utf8");
+  assert.match(generator, /COLD_ROUTE_PRIORITY/);
+  assert.match(generator, /chooseDiverseColdCuts\(cuts, 12\)/);
+});
