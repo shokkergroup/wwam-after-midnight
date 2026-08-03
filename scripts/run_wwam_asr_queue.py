@@ -17,6 +17,76 @@ QUEUE = ROOT / "source-cache" / "wwam-asr-queue.json"
 SELECTOR = ROOT / "scripts" / "select_wwam_asr_queue.mjs"
 EXCERPT_GENERATOR = ROOT / "scripts" / "generate_wwam_livestream_asr_excerpts.py"
 WATCHALONG_CANON_GENERATOR = ROOT / "scripts" / "generate-wwam-watchalong-canon.mjs"
+DEMO = ROOT / "public" / "demo"
+
+
+def load_js_json(path: Path) -> dict:
+    raw = path.read_text(encoding="utf-8")
+    return json.loads(raw[raw.index("=") + 1 :].strip().rstrip(";"))
+
+
+def episode_map(path: Path) -> dict:
+    payload = load_js_json(path)
+    episodes = payload.get("episodes") or {}
+    return episodes if isinstance(episodes, dict) else {
+        str(row.get("id")): row for row in episodes if row.get("id")
+    }
+
+
+LIVESTREAM_AUDIO_PASS = episode_map(DEMO / "wwam-livestream-audio-pass.js")
+WATCHALONG_CANON = episode_map(DEMO / "wwam-watchalong-canon.js")
+
+
+def bounded_clip_timestamps(row: dict) -> list[float] | str:
+    """Return merged ranked-audio windows with context padding for Whisper.
+
+    The audio pass already ranks exact source windows. Whisper only needs to
+    inspect those windows to produce bounded transcript doors; decoding the
+    silent/low-signal hours between them adds cost without improving this
+    public evidence layer. An empty result deliberately falls back to the
+    existing full-source transcription path.
+    """
+    source_id = str(row.get("id") or "")
+    episode = (LIVESTREAM_AUDIO_PASS if row.get("kind") == "livestream" else WATCHALONG_CANON).get(source_id) or {}
+    candidates = episode.get("candidates")
+    if candidates is None:
+        candidates = episode.get("watchPass")
+    if isinstance(candidates, dict):
+        candidates = candidates.get("candidates")
+    if not isinstance(candidates, list):
+        return "0"
+    duration = float(row.get("duration") or episode.get("duration") or 0)
+    windows = []
+    for candidate in candidates:
+        try:
+            at = float(candidate.get("t"))
+        except (TypeError, ValueError):
+            continue
+        if at < 0 or (duration and at > duration):
+            continue
+        try:
+            end = float(candidate.get("end"))
+        except (TypeError, ValueError):
+            end = at + 18
+        if end <= at:
+            end = at + 18
+        start = max(0.0, at - 12)
+        stop = min(duration, end + 12) if duration else end + 12
+        if stop > start:
+            windows.append((start, stop))
+    if not windows:
+        return "0"
+    windows.sort()
+    merged = []
+    for start, stop in windows:
+        if merged and start <= merged[-1][1] + 4:
+            merged[-1] = (merged[-1][0], max(merged[-1][1], stop))
+        else:
+            merged.append((start, stop))
+    flattened = []
+    for start, stop in merged:
+        flattened.extend([round(start, 3), round(stop, 3)])
+    return flattened or "0"
 
 
 def validate_ledger(source_id: str, payload: dict) -> None:
@@ -63,7 +133,15 @@ def main() -> None:
         print(f"[queue] batch {batch + 1} // {', '.join(ids)}", flush=True)
         for row in rows:
             source_id = str(row["id"])
-            payload = transcribe_one(model, source_id)
+            clip_timestamps = bounded_clip_timestamps(row)
+            if clip_timestamps == "0":
+                print(f"[queue] {source_id} // no ranked windows // full-source fallback", flush=True)
+            else:
+                print(
+                    f"[queue] {source_id} // {len(clip_timestamps) // 2} merged Whisper windows",
+                    flush=True,
+                )
+            payload = transcribe_one(model, source_id, clip_timestamps=clip_timestamps)
             validate_ledger(source_id, payload)
             # Publish the bounded navigation layer as soon as this source is
             # complete. A neighboring three-hour source should not hold back

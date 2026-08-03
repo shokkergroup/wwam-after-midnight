@@ -52,11 +52,17 @@ def clean(text: object) -> str:
     return " ".join(str(text or "").split()).strip()
 
 
-def transcribe_one(model, video_id: str) -> dict:
+def transcribe_one(model, video_id: str, clip_timestamps="0") -> dict:
     audio = audio_path(video_id)
     target = CAPTION_DIR / f"{video_id}.asr.json"
     started = time.time()
-    print(f"[asr] {video_id} // {audio.name}", flush=True)
+    windowed = clip_timestamps != "0"
+    window_count = len(clip_timestamps) // 2 if isinstance(clip_timestamps, list) else 0
+    print(
+        f"[asr] {video_id} // {audio.name}" +
+        (f" // {window_count} bounded windows" if windowed else " // full source"),
+        flush=True,
+    )
     segments, info = model.transcribe(
         str(audio),
         language="en",
@@ -64,7 +70,8 @@ def transcribe_one(model, video_id: str) -> dict:
         best_of=1,
         temperature=0,
         condition_on_previous_text=False,
-        vad_filter=True,
+        vad_filter=not windowed,
+        clip_timestamps=clip_timestamps,
         word_timestamps=False,
     )
     rows = []

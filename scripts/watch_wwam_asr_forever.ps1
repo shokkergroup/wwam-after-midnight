@@ -120,7 +120,10 @@ while ($true) {
   }
 
   Write-RunLog ("starting next queued ASR tranche // {0} sources remain" -f $remaining)
-  $exit = Run-Logged "python" @("scripts/run_wwam_asr_queue.py", "--batches", "20", "--batch-size", "3")
+  # Keep each tranche short so a new evidence policy or faster bounded-window
+  # transcription path takes effect on the next restart instead of remaining
+  # trapped inside a long-lived model process.
+  $exit = Run-Logged "python" @("scripts/run_wwam_asr_queue.py", "--batches", "1", "--batch-size", "3")
   if ($exit -ne 0) {
     Write-RunLog ("queued tranche exited with code {0} // retrying after 60 seconds" -f $exit)
     Start-Sleep -Seconds 60
