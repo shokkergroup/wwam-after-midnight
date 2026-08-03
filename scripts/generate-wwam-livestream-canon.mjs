@@ -553,7 +553,8 @@ function voiceSummaryV2(title, date, shape, topics, moments, fan, recurring, cha
     // A bounded window without a real punctuation boundary is navigation
     // evidence, not a quote. Do not make it sound complete by appending a
     // period; that is how caption fragments turn into AI-smelling prose.
-    const sentenceBound = /[.!?](?:\s|$)/.test(sourceText);
+    const publicWindow = words(sourceText).slice(0, 16).join(" ");
+    const sentenceBound = /[.!?](?:\s|$)/.test(publicWindow) || (words(sourceText).length <= 16 && /[.!?]$/.test(sourceText));
     let text = safeExcerpt(sourceText, 16);
     text = text.replace(/^(?:yeah|and|but|so|well|just|i mean|you know)\s+/i, "");
     text = text.replace(/^(?:[.…]+\s*)+/, "");
@@ -945,9 +946,13 @@ const episodes = canonicalMetadata.map((record) => {
   const cueList = characterCues(events, Number(record.duration || 0), listeningRoutes);
   const recurring = recurringBits(events, moments, fan, Number(record.duration || 0), listeningRoutes);
   const note = tapeNote(record.title, shape, topics, moments, fan, recurring, cueList, listeningRoutes);
-  const generatedSummary = currentYear === 2026 || machineShapedSummary(summary)
-    ? voiceSummaryV2(record.title, dateFrom(record.upload_date), shape, topics, moments, fan, recurring, cueList, tier, listeningRoutes)
-    : summary;
+  // Rebuild every caption-backed file through the same voice pass. Reusing an
+  // older summary was allowing pre-cleanup transcript fragments to survive
+  // indefinitely in otherwise healthy dossiers. Human editorial packs and
+  // metadata-only source briefs remain untouched.
+  const generatedSummary = editorialPackBound || (!events.length && tier === "source-brief")
+    ? summary
+    : voiceSummaryV2(record.title, dateFrom(record.upload_date), shape, topics, moments, fan, recurring, cueList, tier, listeningRoutes);
   // Keep the visitor-facing summary conversational and compact. Acoustic
   // method/evidence belongs in audioRead and tapeNote; appending it here made
   // every livestream card end with the same machine-room disclaimer.

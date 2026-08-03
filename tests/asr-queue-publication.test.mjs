@@ -160,7 +160,9 @@ test("recap prose prefers bounded audio receipts over noisy topic fragments", ()
   assert.match(generator, /const routeMoments = listeningRoutes\.length \? listeningRoutes : moments/);
   assert.match(generator, /hot\.excerpt \|\| hot\.captionExcerpt/);
   assert.match(generator, /let text = safeExcerpt\(sourceText, 16\)/);
-  assert.match(generator, /const sentenceBound = \/\[\.!\?\]\(\?:\\s\|\$\)\/.test\(sourceText\)/);
+  assert.match(generator, /const publicWindow = words\(sourceText\)\.slice\(0, 16\)\.join\(" "\)/);
+  assert.match(generator, /const sentenceBound = \/\[\.!\?\]\(\?:\\s\|\$\)\/.test\(publicWindow\)/);
+  assert.match(generator, /const generatedSummary = editorialPackBound \|\| \(!events\.length && tier === "source-brief"\)/);
   assert.match(generator, /item\.text && item\.sentenceBound/);
   assert.match(generator, /safeExcerpt\(receiptCandidate\.text, 16\)/);
 });
@@ -169,7 +171,9 @@ test("visitor-facing route cards refuse punctuation-free decoder windows", () =>
   const livestreamUi = fs.readFileSync(path.join(root, "public", "demo", "livestream-canon-ui.js"), "utf8");
   const watchalongUi = fs.readFileSync(path.join(root, "public", "demo", "watchalong-canon-ui.js"), "utf8");
   assert.match(livestreamUi, /source=c\(z\.excerpt\|\|z\.quote\|\|z\.captionExcerpt\)/);
-  assert.match(livestreamUi, /!\/\[\.!\?\]\(\?:\\s\|\$\)\/.test\(source\)/);
+  assert.match(livestreamUi, /sourceWindow=.*slice\(0,16\)\.join\(" "\)/);
+  assert.match(livestreamUi, /sourceWindow/);
+  assert.match(livestreamUi, /test\(sourceWindow\)/);
   assert.match(watchalongUi, /long punctuation-free caption window/);
   assert.match(watchalongUi, /Transcript route available; open the timestamp to listen/);
   assert.match(watchalongUi, /excerpt\(item\.excerpt \|\| item\.quote, 190\) \|\| 'Transcript route available/);
