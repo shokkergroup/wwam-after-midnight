@@ -117,6 +117,15 @@ test("public moment and receipt shelves use the sentence-safe excerpt path", () 
   assert.match(generator, /source-local automatic caption alignment/);
 });
 
+test("sentence-safe receipts preserve punctuation across caption speaker markers", () => {
+  const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-livestream-canon.mjs"), "utf8");
+  assert.match(generator, /punctuation boundary followed by a plausible sentence starter/);
+  assert.match(generator, /\?=\\s\*\(\?:>>\\s\*\)\?\[A-Z0-9/);
+  assert.match(generator, /const bounded = clipped \|\| tokens\.slice\(0, limit\)\.join\(" "\);/);
+  assert.match(generator, /return \/\[.!\?\]\$\/\.test\(bounded\) \? bounded : `\$\{bounded\}\.\`;/);
+  assert.match(generator, /replace\(\/\\s\*>>\\s\*\/g, ""\)/);
+});
+
 test("generic weekly recap headlines retain a date-level navigation handle", () => {
   const adapter = fs.readFileSync(path.join(root, "public", "demo", "wwam-episode-recap-adapter.js"), "utf8");
   assert.match(adapter, /genericTapeTitle = \/\(\?:we watched a movie\|movie news\|livestream\|live!\|let's watch scary videos\)/i);

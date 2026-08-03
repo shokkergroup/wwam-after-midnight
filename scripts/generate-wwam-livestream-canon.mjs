@@ -24,7 +24,13 @@ function excerpt(value, limit = 20) {
 }
 function quoteExcerpt(value, limit = 22) {
   const text = clean(value);
-  const sentenceList = text.match(/[^.!?]+[.!?](?:\s|$)/g)?.map((sentence) => sentence.trim()) || [];
+  // Captions often splice speaker markers or bracketed sound cues directly
+  // after punctuation ("that. >> Yeah" / "that. [laughter]"). Split on a
+  // punctuation boundary followed by a plausible sentence starter instead of
+  // requiring a plain whitespace-only boundary. This preserves the first
+  // substantive sentence rather than falling through to a punctuation-free
+  // token slice that reads like decoder sludge.
+  const sentenceList = text.match(/[^.!?]+[.!?](?=\s*(?:>>\s*)?[A-Z0-9"'“‘])/g)?.map((sentence) => sentence.trim()) || [];
   const substantive = sentenceList.find((sentence) => {
     const adminOnly = /\b(?:streamyard|chat|internet|subscribe|microphone|camera|technical|screen|audio|live chat|can you see|are we live)\b/i.test(sentence)
       && !/\b(?:fuck|fucking|shit|dick|ass|bitch|suck|horror|halloween|loomis|challis|freddy|jason|scream|terrifier|michael|movie|kill|dead|garbage|poop)\b/i.test(sentence);
@@ -38,7 +44,8 @@ function quoteExcerpt(value, limit = 22) {
   const clipped = tokens.slice(0, limit).join(" ")
     .replace(/\s+(?:the|a|an|and|or|but|to|of|in|on|for|with|from|that|this|it|i|you|he|she|we|they)$/i, "")
     .trim();
-  return clipped || tokens.slice(0, limit).join(" ");
+  const bounded = clipped || tokens.slice(0, limit).join(" ");
+  return /[.!?]$/.test(bounded) ? bounded : `${bounded}.`;
 }
 // Public receipts should read like bounded doors, not raw decoder fragments.
 // Keep the underlying ledger untouched for evidence while applying one
@@ -52,7 +59,12 @@ function safeExcerpt(value, limit = 20) {
     .replace(/(?:\s*\.{3,}|\u2026)\s*$/g, "")
     .trim();
   if (!text) return "";
-  return `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
+  const cased = `${text.charAt(0).toUpperCase()}${text.slice(1)}`
+    .replace(/\bi\b/g, "I")
+    .replace(/\s*>>\s*/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  return /[.!?]$/.test(cased) ? cased : `${cased}.`;
 }
 function dateFrom(value) {
   const text = clean(value);
