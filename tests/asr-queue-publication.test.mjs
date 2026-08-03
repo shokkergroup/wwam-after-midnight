@@ -30,6 +30,7 @@ test("overnight publisher ships both livestream and watchalong audio artifacts",
   assert.match(supervisor, /wwam-watchalong-canon\.js/);
   assert.match(supervisor, /wwam-watchalong-route-index\.js/);
   assert.match(supervisor, /audit-wwam-transcript-publication\.mjs/);
+  assert.match(supervisor, /audit-wwam-public-receipts\.mjs/);
   assert.match(supervisor, /transcript publication audit \/\/ running/);
   assert.match(supervisor, /transcript publication audit failed/);
   assert.match(supervisor, /combinedHash/);
@@ -69,6 +70,12 @@ test("local Whisper routes never fall back to stale automatic-caption text", () 
   assert.match(generator, /localWhisper\s*\?\s*\(captionWindowAt\(events, candidate\.t\) \|\| \"No local transcript window aligned/);
   assert.match(generator, /canonical audio route; local Whisper window unavailable at this timestamp/);
   assert.match(generator, /localWhisper \? captionWindowAt\(events, candidate\.t\) : \"\"/);
+});
+
+test("livestream watch-pass candidates use the bounded public receipt path", () => {
+  const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-livestream-canon.mjs"), "utf8");
+  assert.match(generator, /const captionExcerpt = safeExcerpt\(localWhisper \? localExcerpt : \(candidate\.captionExcerpt \|\| ""\), 16\)/);
+  assert.match(generator, /excerpt: captionExcerpt \|\| \(localWhisper/);
 });
 
 test("local Whisper evidence replaces legacy caption provenance", () => {

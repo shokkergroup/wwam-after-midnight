@@ -5,6 +5,7 @@ $watchalongGenerated = Join-Path $work "public\demo\wwam-watchalong-canon.js"
 $livestreamGenerated = Join-Path $work "public\demo\wwam-livestream-canon.js"
 $livestreamColdGenerated = Join-Path $work "public\demo\wwam-livestream-cold-index.js"
 $transcriptAudit = Join-Path $work "scripts\audit-wwam-transcript-publication.mjs"
+$receiptAudit = Join-Path $work "scripts\audit-wwam-public-receipts.mjs"
 $queueFile = Join-Path $work "source-cache\wwam-asr-queue.json"
 $log = Join-Path $work ".codex-asr-publication.log"
 
@@ -111,6 +112,15 @@ function Publish-IfChanged {
     Write-RunLog ("transcript publication audit // exit {0}" -f $auditExit)
     if ($auditExit -ne 0) {
       Write-RunLog "transcript publication audit failed // leaving hash retryable"
+      return
+    }
+  }
+  if (Test-Path -LiteralPath $receiptAudit) {
+    Write-RunLog "public receipt audit // running"
+    $receiptExit = Run-Logged "node" @($receiptAudit)
+    Write-RunLog ("public receipt audit // exit {0}" -f $receiptExit)
+    if ($receiptExit -ne 0) {
+      Write-RunLog "public receipt audit failed // leaving hash retryable"
       return
     }
   }

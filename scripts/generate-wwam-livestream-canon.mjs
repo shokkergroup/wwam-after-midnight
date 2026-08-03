@@ -71,11 +71,15 @@ function safeExcerpt(value, limit = 20) {
     .replace(/(?:\s*\.{3,}|\u2026)\s*$/g, "")
     .trim();
   if (!text) return "";
-  const cased = `${text.charAt(0).toUpperCase()}${text.slice(1)}`
+  let cased = `${text.charAt(0).toUpperCase()}${text.slice(1)}`
     .replace(/\bi\b/g, "I")
     .replace(/\s*>>\s*/g, "")
+    .replace(/(?:\.{3,}|\u2026)/g, ".")
     .replace(/\s{2,}/g, " ")
     .trim();
+  for (let pass = 0; pass < 3; pass += 1) {
+    cased = cased.replace(/\b([A-Za-z0-9][A-Za-z0-9'-]*)\s+([A-Za-z0-9][A-Za-z0-9'-]*)\s+\1\s+\2\b/gi, "$1 $2");
+  }
   return /[.!?]$/.test(cased) ? cased : `${cased}.`;
 }
 function dateFrom(value) {
@@ -934,10 +938,11 @@ const episodes = canonicalMetadata.map((record) => {
     ...watchPassRaw,
     candidates: (watchPassRaw.candidates || []).map((candidate) => {
       const localExcerpt = localWhisper ? captionWindowAt(events, candidate.t) : "";
-      const captionExcerpt = normalizeCaptionText(localWhisper ? localExcerpt : (candidate.captionExcerpt || ""));
+      const captionExcerpt = safeExcerpt(localWhisper ? localExcerpt : (candidate.captionExcerpt || ""), 16);
       return {
         ...candidate,
         captionExcerpt: captionExcerpt || (localWhisper ? "No local transcript window aligned; open the player at this timestamp." : "No caption fragment aligned; open the source and listen to this acoustic window."),
+        excerpt: captionExcerpt || (localWhisper ? "No local transcript window aligned; open the player at this timestamp." : "No caption fragment aligned; open the source and listen to this acoustic window."),
         captionAligned: Boolean(captionExcerpt),
         evidenceBasis: localWhisper && captionExcerpt
           ? "canonical audio + source-local Whisper transcript alignment"

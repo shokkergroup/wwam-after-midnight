@@ -145,11 +145,15 @@ function excerpt(value, limit = 16) {
   };
   const candidate = sentenceList.find((sentence) => words(sentence).length >= 8) || normalized;
   const text = bounded(candidate);
-  const cased = `${text.charAt(0).toUpperCase()}${text.slice(1)}`
+  let cased = `${text.charAt(0).toUpperCase()}${text.slice(1)}`
     .replace(/\bi\b/g, "I")
     .replace(/\s*>>\s*/g, "")
+    .replace(/(?:\.{3,}|\u2026)/g, ".")
     .replace(/\s{2,}/g, " ")
     .trim();
+  for (let pass = 0; pass < 3; pass += 1) {
+    cased = cased.replace(/\b([A-Za-z0-9][A-Za-z0-9'-]*)\s+([A-Za-z0-9][A-Za-z0-9'-]*)\s+\1\s+\2\b/gi, "$1 $2");
+  }
   return /[.!?]$/.test(cased) ? cased : `${cased}.`;
 }
 
