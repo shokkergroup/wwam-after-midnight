@@ -42,7 +42,7 @@ function normalizeCaptionText(value) {
   // several adjacent segments. Keep a genuine repeated phrase, but collapse
   // obvious decoder runs before the text reaches a visitor-facing card.
   for (let pass = 0; pass < 4; pass += 1) {
-    text = text.replace(/\b([A-Za-z][A-Za-z'’-]*)\b(?:\s+\1\b){2,}/gi, "$1");
+    text = text.replace(/\b([A-Za-z][A-Za-z'’-]*)\b(?:\s+\1\b){3,}/gi, "$1 $1");
   }
   return text.replace(/\s{2,}/g, " ").trim();
 }
