@@ -7,6 +7,16 @@ $livestreamColdGenerated = Join-Path $work "public\demo\wwam-livestream-cold-ind
 $transcriptAudit = Join-Path $work "scripts\audit-wwam-transcript-publication.mjs"
 $queueFile = Join-Path $work "source-cache\wwam-asr-queue.json"
 $log = Join-Path $work ".codex-asr-publication.log"
+
+# Only one overnight supervisor may own the queue at a time. A second
+# automation wake-up should exit cleanly instead of launching a competing
+# Whisper process against the same manifest and public canon files.
+$script:wwamAsrSupervisorMutex = New-Object System.Threading.Mutex($false, "Global\WWAM_After_Midnight_ASR_Supervisor")
+try {
+  if (-not $script:wwamAsrSupervisorMutex.WaitOne(0)) { exit 0 }
+} catch {
+  exit 1
+}
 Set-Location -LiteralPath $work
 
 function Write-RunLog {

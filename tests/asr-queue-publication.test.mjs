@@ -42,6 +42,11 @@ test("overnight supervisor retries a genuinely stalled queue worker", () => {
   assert.match(supervisor, /QuietMinutes = 45/);
 });
 
+test("overnight supervisor refuses competing instances", () => {
+  assert.match(supervisor, /WWAM_After_Midnight_ASR_Supervisor/);
+  assert.match(supervisor, /WaitOne\(0\)/);
+});
+
 test("transcript publication audit checks both visible canons", () => {
   const audit = fs.readFileSync(path.join(root, "scripts", "audit-wwam-transcript-publication.mjs"), "utf8");
   assert.match(audit, /wwam-livestream-canon\.js/);
