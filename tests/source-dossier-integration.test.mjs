@@ -437,6 +437,7 @@ test("cold source routes paint the local fallback before optional Watchalong hyd
   assert.match(app, /wwam-watchalong-route-index\.js\?v=1\.2\.2-conversational-summaries/);
   assert.match(app, /raw\.length <= 900/, "rich route reads are allowed to reach the visitor-facing Show Wiki");
   assert.match(app, /_editorialPack/, "cold routes retain human editorial packs");
+  assert.match(html, /episode-editorial-packs\.js\?v=1\.0\.2-cold-fallback/, "flagship editorial pack is available before lazy dossier assets");
   assert.match(app, /wwam-livestream-asr-excerpts\.js\?v=1\.0\.5-low-signal-filter/);
   assert.match(app, /wwam-livestream-fallback-index\.js\?v=1\.0\.0-category-lanes/);
   assert.match(app, /WWAM_LIVESTREAM_FALLBACK_INDEX/);
@@ -678,7 +679,9 @@ test("dossier CSS brands cold routes immediately while heavy scripts remain lazy
     "wwam-dossier-editorial.js",
   ];
   assert.equal(eagerStyles.includes("source-dossier.css"), true);
+  const intentionalColdRouteScripts = new Set(["episode-editorial-packs.js"]);
   for (const asset of dossierScripts) {
+    if (intentionalColdRouteScripts.has(asset)) continue;
     assert.equal(eagerScripts.includes(asset), false, `${asset} must remain lazy`);
   }
   assert.ok(eagerScripts.includes("feature-loader.js"));
