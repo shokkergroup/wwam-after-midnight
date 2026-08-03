@@ -580,7 +580,7 @@ function bestBits(moments, fan, listeningRoutes = [], audioCandidates = []) {
   // doors in BEST BITS anyway: the UI renders them as “press play” routes,
   // never as invented dialogue. Otherwise a show with dozens of ranked audio
   // candidates falsely looks like it has no best bits at all.
-  const coveredAudioKeys = new Set(listeningRoutes.map((route) => `${Math.round(Number(route.t || 0))}|${clean(route.category || route.label || "SOURCE RECEIPT")}`));
+  const coveredAudioKeys = new Set(listeningRoutes.filter((route) => route.captionAligned === true).map((route) => `${Math.round(Number(route.t || 0))}|${clean(route.category || route.label || "SOURCE RECEIPT")}`));
   const acousticRoutes = audioCandidates.filter((candidate) => !coveredAudioKeys.has(`${Math.round(Number(candidate.t || 0))}|${clean(candidate.category || candidate.label || "SOURCE RECEIPT")}`)).map((candidate) => ({
     ...candidate,
     excerpt: "",
@@ -1052,6 +1052,7 @@ const episodes = canonicalMetadata.map((record) => {
     // clickable route so the listening shelf cannot reintroduce stale or
     // mangled caption text while the main dossier is already clean.
     excerpt: repairedExcerpt || "No local transcript window aligned; open the player at this timestamp.",
+    captionAligned: Boolean(repairedExcerpt),
     evidenceBasis: localWhisper && rawExcerpt
       ? "canonical audio + source-local Whisper transcript alignment"
       : localWhisper
