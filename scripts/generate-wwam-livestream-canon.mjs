@@ -32,6 +32,10 @@ function trimDanglingClause(value) {
   return trimmed || text;
 }
 function isLikelyFragment(value) {
+  if (/\b(?:and|but|or|because|since|although|while|when|if|which|that|who|with|for|to|of|about|using|like|as)\.?\s*$/i.test(clean(value))) return true;
+  if (/\b(?:can|could|should|would|will|did|does|do|is|are)\s+[a-z][a-z'-]*\.?\s*$/i.test(clean(value))) return true;
+  if (/\b(?:that|this|it)\s+(?:makes?|was|is|are|does|did|will|would|could|should|can|have|has|had)\.?\s*$/i.test(clean(value))) return true;
+  if (/\b(?:i|you|he|she|we|they)\s+(?:was|were|am|is|are|have|has|had|did|do|does|will|would|could|should|can|makes?)\.?\s*$/i.test(clean(value))) return true;
   const text = clean(value);
   return /\b(?:this|that|it)\s+is\s+(?:a|an|the)\s+[a-z0-9'â€™-]+\.?$/i.test(text)
     || /\b(?:because|since|although|while|when|if|which|that|who)\s+(?:i|you|he|she|we|they)\s+[a-z0-9'â€™-]+\.?$/i.test(text);
@@ -216,7 +220,8 @@ function topicAnchor(events, term) {
   const hits = events.map((event, index) => ({ event, index })).filter(({ event }) => pattern.test(event.text));
   if (!hits.length) return null;
   const peak = hits.slice().sort((a, b) => b.event.text.length - a.event.text.length || a.event.t - b.event.t)[0];
-  return { name: term, mentions: hits.length, first: hits[0].event.t, peak: peak.event.t, cluster: Math.min(24, hits.length), receipt: safeExcerpt(captionWindow(events, peak.index), 20), at: Math.round(peak.event.t) };
+  const rawReceipt = captionWindow(events, peak.index);
+  return { name: term, mentions: hits.length, first: hits[0].event.t, peak: peak.event.t, cluster: Math.min(24, hits.length), rawReceipt, receipt: safeExcerpt(rawReceipt, 20), at: Math.round(peak.event.t) };
 }
 
 const metadata = fs.readdirSync(METADATA_DIR).filter((file) => file.endsWith(".json")).map((file) => readJson(path.join(METADATA_DIR, file)));
@@ -546,15 +551,15 @@ function voiceSummaryV2(title, date, shape, topics, moments, fan, recurring, cha
   // title-only topic signals; when no nearby receipt exists we simply omit
   // the quote instead of inventing connective tissue.
   const receiptOptions = [
-    hot ? { text: hot.excerpt || hot.captionExcerpt, at: hot.t, weight: Number(hot.score || 0) } : null,
-    ...topics.map((item) => ({ text: item?.receipt, at: item?.at, weight: Number(item?.mentions || 0) }))
+    hot ? { text: hot.rawExcerpt || hot.excerpt || hot.captionExcerpt, at: hot.t, weight: Number(hot.score || 0) } : null,
+    ...topics.map((item) => ({ text: item?.rawReceipt || item?.receipt, at: item?.at, weight: Number(item?.mentions || 0) }))
   ].filter(Boolean).map((item) => {
     const sourceText = normalizeCaptionText(item.text);
     // A bounded window without a real punctuation boundary is navigation
     // evidence, not a quote. Do not make it sound complete by appending a
     // period; that is how caption fragments turn into AI-smelling prose.
     const publicWindow = words(sourceText).slice(0, 16).join(" ");
-    const sentenceBound = /[.!?](?:\s|$)/.test(publicWindow) || (words(sourceText).length <= 16 && /[.!?]$/.test(sourceText));
+    const sentenceBound = /[.!?](?:\s|$)/.test(publicWindow);
     let text = safeExcerpt(sourceText, 16);
     text = text.replace(/^(?:yeah|and|but|so|well|just|i mean|you know)\s+/i, "");
     text = text.replace(/^(?:[.…]+\s*)+/, "");
@@ -772,7 +777,7 @@ function characterCues(events, duration, listeningRoutes = []) {
     };
   }).filter(Boolean);
 }
-function normalizeTopics(items) { return (items || []).slice(0, 10).map((topic) => ({ name: clean(topic.name), mentions: Number(topic.mentions || 0), first: Math.round(Number(topic.first || 0)), peak: Math.round(Number(topic.peak || topic.at || 0)), cluster: Number(topic.cluster || 0), receipt: clean(topic.receipt || ""), at: Math.round(Number(topic.at || topic.peak || topic.first || 0)), evidence: topic.evidence || { type: "source-local caption", speakerStatus: "not-diarized", reviewStatus: "machine-candidate" } })).filter((topic) => topic.name); }
+function normalizeTopics(items) { return (items || []).slice(0, 10).map((topic) => ({ name: clean(topic.name), mentions: Number(topic.mentions || 0), first: Math.round(Number(topic.first || 0)), peak: Math.round(Number(topic.peak || topic.at || 0)), cluster: Number(topic.cluster || 0), rawReceipt: clean(topic.rawReceipt || ""), receipt: clean(topic.receipt || ""), at: Math.round(Number(topic.at || topic.peak || topic.first || 0)), evidence: topic.evidence || { type: "source-local caption", speakerStatus: "not-diarized", reviewStatus: "machine-candidate" } })).filter((topic) => topic.name); }
 function normalizeMoments(items, restricted = false) {
   if (restricted) return [];
   return (items || [])
@@ -884,22 +889,26 @@ const episodes = canonicalMetadata.map((record) => {
   const tier = completionById.has(id) ? "completion-dossier" : deepById.has(id) || freshById.has(id) ? "distill-dossier" : events.length ? "caption-ledger" : "source-brief";
   const watchPassRaw = livestreamAudio.episodes?.[id] || watchPilot.episodes?.[id] || null;
   const audioCandidates = Array.isArray(watchPassRaw?.candidates) ? watchPassRaw.candidates : [];
-  const listeningRoutes = audioCandidates.map((candidate) => ({
+  const listeningRoutes = audioCandidates.map((candidate) => {
+    const rawExcerpt = localWhisper
+      ? captionWindowAt(events, candidate.t)
+      : (candidate.captionExcerpt || candidate.excerpt || "");
+    return {
     ...candidate,
+    rawExcerpt,
     // The audio pass was originally aligned to YouTube automatic captions.
     // Once a verified Whisper ledger exists, put that transcript on the
     // clickable route so the listening shelf cannot reintroduce stale or
     // mangled caption text while the main dossier is already clean.
-    excerpt: safeExcerpt(localWhisper
-      ? (captionWindowAt(events, candidate.t) || "No local transcript window aligned; open the player at this timestamp.")
-      : (candidate.captionExcerpt || candidate.excerpt || "")),
-    evidenceBasis: localWhisper && captionWindowAt(events, candidate.t)
+    excerpt: safeExcerpt(rawExcerpt || "No local transcript window aligned; open the player at this timestamp."),
+    evidenceBasis: localWhisper && rawExcerpt
       ? "canonical audio + source-local Whisper transcript alignment"
       : localWhisper
         ? "canonical audio route; local Whisper window unavailable at this timestamp"
         : candidate.evidenceBasis || "source-local listening route",
     reviewStatus: candidate.reviewStatus || "machine-candidate"
-  }));
+    };
+  });
   const decodedAudio = watchPassRaw?.status === "audio-feature-pass" && watchPassRaw?.media?.canonicalAudioAvailable !== false;
   const audioStrongest = audioCandidates.slice().sort((left, right) => Number(right.score || 0) - Number(left.score || 0) || Number(left.t || 0) - Number(right.t || 0))[0] || null;
   const audioSignalMix = Array.isArray(watchPassRaw?.listeningDigest?.signalMix)

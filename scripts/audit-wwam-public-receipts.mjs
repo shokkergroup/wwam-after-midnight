@@ -41,6 +41,10 @@ function inspectSummaryProse(value, sourceId, field, failures) {
   const matches = text.matchAll(/[\u201c"]([^\u201d"]{8,180})[\u201d"]/g);
   for (const match of matches) {
     const quote = clean(match[1]);
+    if (/\b(?:and|but|or|because|since|although|while|when|if|which|that|who|with|for|to|of|about|using|like|as)\.?\s*$/i.test(quote)
+      || /\b(?:that|this|it|i|you|he|she|we|they)\s+(?:makes?|was|were|am|is|are|have|has|had|did|do|does|will|would|could|should|can)\.?\s*$/i.test(quote)) {
+      failures.push({ sourceId, field, kind: "fragment-tail", text: quote });
+    }
     if (/\b(?:this|that|it)\s+is\s+(?:a|an|the)\s+[a-z0-9'â€™-]+\.?$/i.test(quote)
       || /\b(?:because|since|although|while|when|if)\s*\.?$/i.test(quote)
       || /\b(?:in|on|at|for|with|to|of|from)\s+(?:so|the|a|an|this|that|it|one)\.?$/i.test(quote)) {
