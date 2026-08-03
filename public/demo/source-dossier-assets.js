@@ -39,7 +39,7 @@
     "episode-recap-engine.js?v=1.9.8-story-reel-cap",
     "wwam-episode-recap-adapter.js?v=2.3.2-safe-topic-doors",
     "source-dossier-engine.js?v=1.17.0-alternate-podcast-routes",
-    "wwam-livestream-asr-excerpts.js?v=1.0.1-latest-two-whisper",
+    "wwam-livestream-asr-excerpts.js?v=1.0.2-latest-three-whisper",
     "wwam-source-dossier-adapter.js?v=1.21.0-asr-excerpt-overlay",
     "source-query-engine.js?v=1.6.1-lanes",
     "aftermath-pack-engine.js?v=1.0.0",

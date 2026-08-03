@@ -364,7 +364,7 @@ test("the compact livestream fallback index is bounded and category-aware", () =
 test("cold source routes paint the local fallback before optional Watchalong hydration", () => {
   assert.match(app, /function ensureWatchalongCanonForSource\(sourceId\)/);
   assert.match(app, /wwam-watchalong-route-index\.js\?v=1\.2\.1-alternate-routes/);
-  assert.match(app, /wwam-livestream-asr-excerpts\.js\?v=1\.0\.1-latest-two-whisper/);
+  assert.match(app, /wwam-livestream-asr-excerpts\.js\?v=1\.0\.2-latest-three-whisper/);
   assert.match(app, /wwam-livestream-fallback-index\.js\?v=1\.0\.0-category-lanes/);
   assert.match(app, /WWAM_LIVESTREAM_FALLBACK_INDEX/);
   assert.match(app, /LISTENING \/\/ TRANSCRIPT WINDOW/);
@@ -666,6 +666,11 @@ test("dossier CSS brands cold routes immediately while heavy scripts remain lazy
     asrExcerptIndex,
     /LV2rmwEA0w4[\s\S]*iz0WFhe6LYM/,
     "the latest-two listening pass must publish both completed newest livestream ledgers",
+  );
+  assert.match(
+    asrExcerptIndex,
+    /iz0WFhe6LYM[\s\S]*ag3axSC9BpU/,
+    "the latest-three listening pass must publish the third completed newest livestream ledger",
   );
   assert.match(
     sourceDossierUi,
