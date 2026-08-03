@@ -442,10 +442,31 @@ function voiceSummaryV2(title, date, shape, topics, moments, fan, recurring, cha
     .slice(0, 3)
     .map((lane) => lane.label)
     .filter(Boolean);
+  // A topic list is useful navigation, but it is not a recap. Put one
+  // bounded source receipt in the prose so a visitor can feel the tape's
+  // actual voice immediately. This deliberately refuses placeholders and
+  // title-only topic signals; when no nearby receipt exists we simply omit
+  // the quote instead of inventing connective tissue.
+  const receiptOptions = [
+    hot ? { text: hot.excerpt, at: hot.t, weight: Number(hot.score || 0) } : null,
+    ...topics.map((item) => ({ text: item?.receipt, at: item?.at, weight: Number(item?.mentions || 0) }))
+  ].filter(Boolean).map((item) => {
+    let text = normalizeCaptionText(item.text);
+    text = text.replace(/^(?:yeah|and|but|so|well|just|i mean|you know)\s+/i, "");
+    if (text) text = `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
+    const tokenCount = words(text).length;
+    const fillerPenalty = /^(?:the|a|an|this|that|it|he|she|we|they)\b/i.test(text) ? 2 : 0;
+    const fragmentPenalty = /\.\.\.$/.test(text) ? 1 : 0;
+    return { ...item, text, tokenCount, score: Number(item.weight || 0) + Math.min(24, tokenCount) * 2 - fillerPenalty - fragmentPenalty };
+  }).filter((item) => item.text && item.tokenCount >= 8 && !/^(?:No local transcript window aligned|No caption fragment aligned|Title signal only|open the source before treating)/i.test(item.text));
+  const receiptCandidate = receiptOptions.sort((a, b) => b.score - a.score || Number(a.at || 0) - Number(b.at || 0))[0];
+  const receiptLine = receiptCandidate
+    ? `One line caught at ${clock(receiptCandidate.at || 0)} gives the tone: “${excerpt(receiptCandidate.text, 22)}”`
+    : "The transcript does not leave a safe short quote here, so the player remains the first source of tone";
   const frame = contentFrame(title, shape, topics);
   const cleanTitle = clean(title);
   const opening = frame === "a ranking-night argument"
-    ? `${cleanTitle} turns the ${date} ranking room into an argument with receipts.`
+    ? `${cleanTitle} turns the ${date} ranking room into the kind of argument where nobody came to quietly agree.`
     : frame === "a trailer-and-news roundtable"
       ? `${cleanTitle} opens a trailer-and-news roundtable on ${date}.`
       : frame === "an episode-recap room"
@@ -457,7 +478,7 @@ function voiceSummaryV2(title, date, shape, topics, moments, fan, recurring, cha
             : frame === "a movie-side conversation"
               ? `${cleanTitle} settles into a movie-side conversation on ${date}.`
               : `${cleanTitle} is ${date}'s open-line movie-news room.`;
-  const topicLine = topicList ? `The conversation keeps circling ${topicList}.` : "The conversation keeps its subject spine loose.";
+  const topicLine = topicList ? `The tape moves through ${topicList}.` : "The tape keeps its subject spine loose.";
   const route = hot
     ? `${moments.length ? "The best first jump is" : "The best first listening stop is"} ${clock(hot.t)}, where ${humanMomentLabel(hot.category || "the first big turn")}.`
     : "Start with the chapter rail and let the tape choose the first detour.";
@@ -474,12 +495,12 @@ function voiceSummaryV2(title, date, shape, topics, moments, fan, recurring, cha
     ? `Character-shaped callbacks include ${characterList}; open the surrounding exchange, not just the keyword.`
     : "No recurring-character bit takes over this tape.";
   const listeningLine = listeningRoutes.length
-    ? `A separate listening pass marks ${listeningRoutes.length} windows worth pressing play on; they are leads, not claims about who spoke or what should be funny.`
+    ? `The listening shelf adds ${listeningRoutes.length} more doors; use the player to judge the timing and the joke.`
     : "There is no separate audio-ranked lane attached to this file yet.";
   const tierLine = evidenceTier === "source-brief"
     ? "This one stays compact until a stronger local receipt arrives."
-    : "The text can point to the moment; the delivery and timing live in the player.";
-  return `${opening} ${topicLine} ${route} ${routeLine} ${laneLine} ${fanLine} ${characterLine} ${listeningLine} ${tierLine}`;
+    : "The recap points you at the moment; the delivery still belongs to the tape.";
+  return `${opening} ${topicLine} ${receiptLine}. ${route} ${routeLine} ${laneLine} ${fanLine} ${characterLine} ${listeningLine} ${tierLine}`;
 }
 
 function voiceSummary(title, date, shape, topics, moments, fan, recurring, characterCues, evidenceTier, listeningRoutes = []) {
