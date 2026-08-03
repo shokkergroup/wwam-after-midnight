@@ -499,16 +499,18 @@ function auditReadyFile(file, failures, globalTopicCompleteFrame) {
     const primarySubject = clean(
       segment.primarySubject || record(segment.narrative).primarySubject,
     );
+    const labelIsPrimarySubject = normalizeSubject(segment.label) ===
+      normalizeSubject(primarySubject);
     if (
-      !suffix ||
       !primarySubject ||
-      normalizeSubject(suffix) !== normalizeSubject(primarySubject)
+      (!labelIsPrimarySubject &&
+        (!suffix || normalizeSubject(suffix) !== normalizeSubject(primarySubject)))
     ) {
       failures.storyLabelPrimarySubjectMismatches.push(
         compactFailure(
           file,
           field,
-          !suffix || !primarySubject
+          !primarySubject
             ? "missing-story-subject-contract"
             : "story-label-suffix-primary-subject-mismatch",
           {
@@ -516,6 +518,7 @@ function auditReadyFile(file, failures, globalTopicCompleteFrame) {
             label: clean(segment.label),
             labelSuffix: suffix,
             primarySubject,
+            labelIsPrimarySubject,
           },
         ),
       );

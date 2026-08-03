@@ -12,6 +12,13 @@ function plain(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+function firstClockSeconds(value) {
+  const match = String(value ?? "").match(/\b(\d{1,3}):([0-5]\d)(?::([0-5]\d))?\b/);
+  if (!match) return null;
+  return (match[3] === undefined ? Number(match[1]) * 60 + Number(match[2]) :
+    Number(match[1]) * 3600 + Number(match[2]) * 60 + Number(match[3]));
+}
+
 function runtime(files) {
   const window = {};
   const sandbox = { window, globalThis: window };
@@ -169,6 +176,25 @@ test("episode recap adapter applies a human pack only to its matching source and
   assert.equal(exact.story.length, 19);
   assert.equal(exact.highlightRunway.length, 25);
   assert.equal(exact.overview, expectedPack.overview);
+  exact.story.forEach((beat) => {
+    assert.equal(
+      firstClockSeconds(beat.body),
+      beat.playAt,
+      `${beat.id} must expose its exact source-local play doorway first`,
+    );
+    assert.equal(
+      beat.primarySubject,
+      beat.narrative.primarySubject,
+      `${beat.id} must keep its visible subject and narrative subject aligned`,
+    );
+  });
+  Object.values(exact.fanRead).forEach((item) => {
+    assert.equal(
+      firstClockSeconds(item.body),
+      item.playAt,
+      "human fan reads must expose their exact source-local play doorway first",
+    );
+  });
 
   const wrongSource = adapter.build({
     map: recapMap("abcdefghijk", expectedPack.evidence.duration),

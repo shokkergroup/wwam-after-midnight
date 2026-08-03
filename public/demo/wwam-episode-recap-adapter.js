@@ -2,7 +2,7 @@
   "use strict";
 
   var SCHEMA = "wwam-feldman-recap/v1";
-  var VERSION = "2.3.2";
+  var VERSION = "2.4.0";
 
   function clean(value) {
     return String(value == null ? "" : value).trim();
@@ -42,6 +42,25 @@
     var remainder = total % 60;
     return (hours ? hours + ":" + String(minutes).padStart(2, "0") : String(minutes)) +
       ":" + String(remainder).padStart(2, "0");
+  }
+
+  /*
+   * Every visible recap body needs one unambiguous doorway into the source.
+   * Human packs sometimes contain a second editorial reference clock, while
+   * machine story bodies used to be emitted as bare topic tags. Keep the
+   * reviewed prose intact, but put the exact public play coordinate first so
+   * a reader never has to guess which timestamp the card opens.
+   */
+  function playBoundBody(value, at, replaceExisting) {
+    var text = clean(value);
+    var stamp = clock(at);
+    if (!text) return "Play from " + stamp + ".";
+    var firstClock = text.match(/\b\d{1,3}:[0-5]\d(?::[0-5]\d)?\b/);
+    if (firstClock && firstClock[0] === stamp) return text;
+    if (firstClock && replaceExisting) {
+      return text.replace(firstClock[0], stamp);
+    }
+    return "Play from " + stamp + ". " + text;
   }
 
   function runtime(seconds) {
@@ -1398,8 +1417,18 @@
      * Human-reviewed packs replace these rows with actual prose. This keeps
      * 509 pages from repeating the same four "the chapter turns to..." molds.
      */
-    return unique(related.concat(namedMoment ? [namedMoment] : []))
-      .join(" // ");
+    var startAt = Number.isFinite(Number(segment.displayAt)) ?
+      number(segment.displayAt) : number(segment.at);
+    var relatedText = related.length ?
+      " It also pulls in " + list(related, "the nearby conversation") + "." :
+      "";
+    var momentText = namedMoment ?
+      " The marked beat here is " + namedMoment + "." :
+      "";
+    return playBoundBody(
+      "The conversation turns to " + subject + "." + relatedText + momentText,
+      startAt,
+    );
   }
 
   function readableStoryBody(
@@ -2428,12 +2457,14 @@
       var end = number(item.end) > at ?
         Math.min(duration, number(item.end)) :
         Math.min(duration, at + 45);
+      var primarySubject = clean(item.primarySubject || item.topic ||
+        item.subject || item.label) || "THE SHOW";
       return {
         id: clean(item.id) || "editorial-reel-" +
           String(index + 1).padStart(2, "0"),
         ordinal: index + 1,
         label: clean(item.label),
-        body: clean(item.body),
+        body: playBoundBody(item.body, at, true),
         at: at,
         end: end,
         displayAt: at,
@@ -2442,7 +2473,8 @@
         playEnd: end,
         anchorAt: at,
         anchor: clean(item.label),
-        primarySubject: clean(item.label),
+        primarySubject: primarySubject,
+        subjectContract: "label-is-primary-subject",
         excerpt: clean(item.excerpt),
         topicLabels: array(item.topicLabels).map(clean).filter(Boolean),
         momentLabels: [],
@@ -2454,7 +2486,7 @@
         guideAnchor: {},
         narrative: {
           kind: "human-editorial-story",
-          primarySubject: clean(item.label),
+          primarySubject: primarySubject,
         },
         evidenceBasis: "full-tape-human-editorial-read",
       };
@@ -2485,7 +2517,7 @@
         id: item.id,
         ordinal: item.ordinal,
         label: item.label,
-        body: item.body,
+        body: playBoundBody(item.body, item.at, true),
         at: item.at,
         end: item.end,
         displayAt: item.displayAt,
@@ -2495,6 +2527,8 @@
         subjectPeakAt: item.at,
         subjectMentions: 0,
         anchor: item.anchor,
+        primarySubject: item.primarySubject,
+        subjectContract: item.subjectContract,
         category: "human-editorial-story",
         excerpt: item.excerpt,
         receiptKeys: [],
@@ -2502,7 +2536,22 @@
         evidenceBasis: "full-tape-human-editorial-read",
       };
     });
-    var fanReadPack = record(pack.fanRead);
+    var fanReadPack = Object.entries(record(pack.fanRead)).reduce(function (output, entry) {
+      var key = entry[0];
+      var item = record(entry[1]);
+      var at = Math.max(0, Math.min(duration, number(item.at)));
+      var end = number(item.end) > at ?
+        Math.min(duration, number(item.end)) :
+        Math.min(duration, at + 30);
+      output[key] = Object.assign({}, item, {
+        at: at,
+        end: end,
+        playAt: at,
+        playEnd: end,
+        body: playBoundBody(item.body, at, true),
+      });
+      return output;
+    }, {});
     var packedTopics = unique(array(pack.panels).reduce(function (output, panel) {
       return output.concat(array(panel.groups).reduce(function (items, group) {
         return items.concat(array(group.items));
@@ -2605,14 +2654,14 @@
           values.length,
           clean(map.mode) === "topic-recap"
         ),
-        body: fanStoryBody(
+        body: playBoundBody(readableStoryBody(
           segment,
           index,
           values.length,
           number(record(map.metadata).duration),
           clean(map.mode) === "topic-recap",
           map.sourceId
-        ),
+        ), number(segment.displayAt)),
         at: number(segment.at),
         end: number(segment.end),
         displayAt: number(segment.displayAt),
