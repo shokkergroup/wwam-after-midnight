@@ -750,8 +750,21 @@
     // Prefer the cold-route index/canon record when a legacy catalog entry
     // exists for the same source; those records carry the complete dossier
     // cuts instead of the original eight-moment shell.
-    if (indexed) return Object.assign({}, source || {}, indexed);
-    return source || { id: sourceId, title: "WWAM SOURCE", displayTitle: "WWAM SOURCE" };
+    var merged = indexed ? Object.assign({}, source || {}, indexed) :
+      (source || { id: sourceId, title: "WWAM SOURCE", displayTitle: "WWAM SOURCE" });
+    // Human editorial packs are loaded with the dossier runtime, but a cold
+    // route can paint its playable shell before the full renderer finishes.
+    // Keep the pack attached to that shell so a slow/held UI never downgrades
+    // a fully read episode to a generic one-line fallback.
+    var packRegistry = typeof window !== "undefined" ? window.WWAM_EPISODE_EDITORIAL_PACKS : null;
+    var packSources = packRegistry && packRegistry.sources;
+    var pack = packSources && packSources[sourceId];
+    if (pack) {
+      merged._editorialPack = pack;
+      if (!merged.summary && !merged.dossier) merged.summary = pack.overview || pack.deck || "";
+      if ((!Array.isArray(merged.topics) || !merged.topics.length) && Array.isArray(pack.topics)) merged.topics = pack.topics.slice();
+    }
+    return merged;
   }
 
   function fallbackSourceMoments(sourceId, source) {
@@ -778,6 +791,32 @@
     if (source.episodeGuide && Array.isArray(source.episodeGuide.cuts)) raw = raw.concat(source.episodeGuide.cuts);
     if (source.editorial && Array.isArray(source.editorial.cuts)) raw = raw.concat(source.editorial.cuts);
     if (source.watchPass && Array.isArray(source.watchPass.candidates)) raw = raw.concat(source.watchPass.candidates);
+    var editorialPack = source._editorialPack;
+    if (editorialPack) {
+      // Story beats and highlight runway entries are already bounded to the
+      // original upload. They are safe fallback doors even when the richer
+      // episode renderer is unavailable on a cold route.
+      if (Array.isArray(editorialPack.story)) raw = raw.concat(editorialPack.story.map(function (entry) {
+        return Object.assign({}, entry, {
+          at: entry.at != null ? entry.at : entry.t,
+          category: entry.category || "EPISODE STORY",
+          label: entry.label || "EPISODE STORY",
+          excerpt: entry.excerpt || entry.body || "",
+          sourceKind: "editorial-pack",
+          reviewStatus: "full-tape-human-editorial-read",
+        });
+      }));
+      if (Array.isArray(editorialPack.highlightRunway)) raw = raw.concat(editorialPack.highlightRunway.map(function (entry) {
+        return Object.assign({}, entry, {
+          at: entry.at != null ? entry.at : entry.t,
+          category: entry.category || entry.lane || "HIGHLIGHT",
+          label: entry.label || entry.title || "HIGHLIGHT",
+          excerpt: entry.excerpt || entry.body || "",
+          sourceKind: "editorial-pack",
+          reviewStatus: "full-tape-human-editorial-read",
+        });
+      }));
+    }
     var audioLaneRegistry = typeof window !== "undefined" ? window.WWAM_LIVESTREAM_FALLBACK_INDEX : null;
     var audioLaneEpisode = audioLaneRegistry && audioLaneRegistry.episodes && audioLaneRegistry.episodes[sourceId];
     if (audioLaneEpisode && Array.isArray(audioLaneEpisode.candidates)) {
@@ -896,7 +935,14 @@
     var topics = (Array.isArray(source.topics) ? source.topics : []).map(function (topic) {
       return typeof topic === "string" ? topic : topic && (topic.name || topic.label);
     }).filter(Boolean).slice(0, 8);
-    var summaryCandidate = source.dossier && source.dossier.summary || source.summary || source.editorial && source.editorial.whyItMatters || tape.verdict;
+    var editorialPack = source._editorialPack;
+    if (!topics.length && editorialPack && Array.isArray(editorialPack.topics)) topics = editorialPack.topics.map(function (topic) {
+      return typeof topic === "string" ? topic : topic && (topic.name || topic.label);
+    }).filter(Boolean).slice(0, 8);
+    var summaryCandidate = source.dossier && source.dossier.summary ||
+      editorialPack && (editorialPack.overview || editorialPack.deck) ||
+      source.summary ||
+      source.editorial && source.editorial.whyItMatters || tape.verdict;
     var summary = fallbackNaturalSummary(source, topics, moments, summaryCandidate);
     var alternate = source.alternateAudio && typeof source.alternateAudio === "object" ? source.alternateAudio : null;
     var alternateRoutes = alternate && Array.isArray(alternate.routes) ? alternate.routes : [];
