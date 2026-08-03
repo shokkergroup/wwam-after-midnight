@@ -117,6 +117,13 @@ test("public moment and receipt shelves use the sentence-safe excerpt path", () 
   assert.match(generator, /source-local automatic caption alignment/);
 });
 
+test("generic weekly recap headlines retain a date-level navigation handle", () => {
+  const adapter = fs.readFileSync(path.join(root, "public", "demo", "wwam-episode-recap-adapter.js"), "utf8");
+  assert.match(adapter, /genericTapeTitle = \/\(\?:we watched a movie\|movie news\|livestream\|live!\|let's watch scary videos\)/i);
+  assert.match(adapter, /var dateTag = genericTapeTitle && clean\(metadata\.date\)/);
+  assert.match(adapter, /if \(dateTag\) shortTapeTitle \+= dateTag/);
+});
+
 test("recap prose prefers bounded audio receipts over noisy topic fragments", () => {
   const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-livestream-canon.mjs"), "utf8");
   assert.match(generator, /const routeMoments = listeningRoutes\.length \? listeningRoutes : moments/);

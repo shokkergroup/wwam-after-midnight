@@ -433,6 +433,14 @@
     var seed = map.sourceId + "|feldman-headline|" + topics.join("|") + "|" + wild;
     var tapeTitle = naturalLabel(clean(metadata.title));
     var shortTapeTitle = displayTapeTitle(tapeTitle, 78);
+    // Weekly WWAM uploads often reuse the same public title. Keep the witty
+    // headline, but put the source date on generic live/show titles so archive
+    // cards do not look like cloned AI entries or collapse into one search
+    // result. Movie-specific titles retain their cleaner headline treatment.
+    var genericTapeTitle = /(?:we watched a movie|movie news|livestream|live!|let's watch scary videos)/i.test(tapeTitle);
+    var dateTag = genericTapeTitle && clean(metadata.date) ?
+      " // " + clean(metadata.date) : "";
+    if (dateTag) shortTapeTitle += dateTag;
     var tapeWithArticle = /^(?:the|an?)\s/i.test(shortTapeTitle) ?
       shortTapeTitle : "THE " + shortTapeTitle;
     var tapeLength = Math.max(
