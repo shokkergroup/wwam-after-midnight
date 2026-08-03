@@ -303,7 +303,7 @@
     // and gives the cold shell real listening receipts while the larger bundle
     // is still loading. It never carries speaker, visual, or intent claims.
     var whisperReady = window.WWAM_LIVESTREAM_ASR_EXCERPTS ? Promise.resolve() :
-      loadDemoScript("wwam-livestream-asr-excerpts.js?v=1.0.4-quality-gate");
+      loadDemoScript("wwam-livestream-asr-excerpts.js?v=1.0.5-low-signal-filter");
     // This compact category index is generated from the audited audio pass,
     // not from a new model guess. It exposes the strongest Steve's Asshole,
     // UP IN YA, character, fan, and room-break lanes without shipping the
