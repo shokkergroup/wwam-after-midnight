@@ -68,16 +68,21 @@ def transcribe_one(model, video_id: str) -> dict:
         word_timestamps=False,
     )
     rows = []
-    for segment in segments:
+    for segmentIndex, segment in enumerate(segments, 1):
         text = clean(segment.text)
-        if not text:
-            continue
-        rows.append({
-            "start": round(max(0.0, float(segment.start)), 3),
-            "end": round(max(float(segment.start), float(segment.end)), 3),
-            "text": text,
-            "evidenceType": "local-whisper-transcript",
-        })
+        if text:
+            rows.append({
+                "start": round(max(0.0, float(segment.start)), 3),
+                "end": round(max(float(segment.start), float(segment.end)), 3),
+                "text": text,
+                "evidenceType": "local-whisper-transcript",
+            })
+        if segmentIndex == 1 or segmentIndex % 250 == 0:
+            print(
+                f"[asr] {video_id} // heartbeat // {segmentIndex} segments // "
+                f"tape {float(segment.end):.1f}s // elapsed {time.time() - started:.1f}s",
+                flush=True,
+            )
     payload = {
         "schema": "wwam-local-whisper-ledger/v1",
         "sourceId": video_id,
