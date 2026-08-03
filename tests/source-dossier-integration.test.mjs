@@ -439,7 +439,7 @@ test("cold source routes paint the local fallback before optional Watchalong hyd
   assert.match(app, /_editorialPack/, "cold routes retain human editorial packs");
   assert.match(html, /episode-editorial-packs\.js\?v=1\.0\.2-cold-fallback/, "flagship editorial pack is available before lazy dossier assets");
   assert.match(html, /episode-editorial-packs-recent\.js\?v=1\.0\.3-cold-fallback/, "newest editorial packs are available before lazy dossier assets");
-  assert.match(html, /wwam-livestream-cold-index\.js\?v=1\.0\.0-human-cold-routes/, "livestream cold routes have a compact local index");
+  assert.match(html, /wwam-livestream-cold-index\.js\?v=1\.0\.1-human-cold-routes/, "livestream cold routes have a compact local index");
   assert.match(app, /wwam-livestream-asr-excerpts\.js\?v=1\.0\.5-low-signal-filter/);
   assert.match(app, /wwam-livestream-fallback-index\.js\?v=1\.0\.0-category-lanes/);
   assert.match(app, /WWAM_LIVESTREAM_FALLBACK_INDEX/);
