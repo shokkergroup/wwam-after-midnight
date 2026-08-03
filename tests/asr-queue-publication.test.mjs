@@ -95,6 +95,8 @@ test("local fan and recurring lanes carry local transcript provenance", () => {
   const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-livestream-canon.mjs"), "utf8");
   assert.match(generator, /source-local Whisper transcript fan-callout cluster/);
   assert.match(generator, /source-local Whisper transcript lane cue/);
+  assert.match(generator, /\$\{eventEvidenceBasis\} \+ bounded timestamp receipts/);
+  assert.match(generator, /source-local Whisper transcript route checkpoint/);
 });
 
 test("visible canon audit rejects stale automatic-caption lanes", () => {

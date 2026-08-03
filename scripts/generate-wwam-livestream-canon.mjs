@@ -339,7 +339,7 @@ function recurringBits(events, moments, fan, duration, listeningRoutes = []) {
     return {
       key: lane.key, label: lane.label, candidateCount: hits.length, momentReceipts: laneMoments.length + listeningLaneMoments.length,
       first: Math.round(hits.slice().sort((a, b) => a.t - b.t)[0].t), peak: Math.round(peak.t),
-      receipts, evidenceBasis: "caption pattern + bounded timestamp receipts; not speaker-diarized", reviewStatus: "machine-candidate"
+      receipts, evidenceBasis: `${eventEvidenceBasis} + bounded timestamp receipts; not speaker-diarized`, reviewStatus: "machine-candidate"
     };
   }).filter(Boolean);
 }
@@ -538,13 +538,13 @@ function voiceSummary(title, date, shape, topics, moments, fan, recurring, chara
 function normalizeFanSignals(items) {
   return (items || []).map((signal) => ({ ...signal, signalType: clean(signal.signalType || fanSignalType(signal.excerpt || "")) })).filter((signal) => signal.excerpt || Number(signal.t || 0) >= 0);
 }
-function chapters(duration, moments, topics, restricted = false) {
+function chapters(duration, moments, topics, restricted = false, routeEvidenceBasis = "source-local caption route checkpoint") {
   const output = [];
   for (let index = 0; index < 8; index += 1) {
     const target = Math.round((duration || 1) * index / 8);
     const route = moments.length ? moments.slice().sort((a, b) => Math.abs(a.t - target) - Math.abs(b.t - target))[0] : topics.slice().sort((a, b) => Math.abs((a.at || a.peak || 0) - target) - Math.abs((b.at || b.peak || 0) - target))[0];
     if (!route) continue;
-    output.push({ id: `act-${String(index + 1).padStart(2, "0")}`, act: index + 1, at: Math.round(route.t ?? route.at ?? route.peak ?? target), end: Math.round(route.end ?? route.at ?? route.peak ?? target), label: route.label || route.category || route.name || "WATCH ROUTE", category: route.category || "TOPIC DOOR", excerpt: restricted ? "Topic-navigation checkpoint; excerpt withheld for this content mode." : excerpt(route.excerpt || route.receipt || "Open the source at this chapter checkpoint.", 24), body: restricted ? "The archive preserves this chapter as a source-local route without manufacturing a quote or visual claim." : `The tape's ${String(route.label || route.category || route.name || "route").toLowerCase()} lane surfaces here. Open the timestamp and hear the full exchange.`, evidenceBasis: restricted ? "restricted topic checkpoint" : "source-local caption route checkpoint" });
+    output.push({ id: `act-${String(index + 1).padStart(2, "0")}`, act: index + 1, at: Math.round(route.t ?? route.at ?? route.peak ?? target), end: Math.round(route.end ?? route.at ?? route.peak ?? target), label: route.label || route.category || route.name || "WATCH ROUTE", category: route.category || "TOPIC DOOR", excerpt: restricted ? "Topic-navigation checkpoint; excerpt withheld for this content mode." : excerpt(route.excerpt || route.receipt || "Open the source at this chapter checkpoint.", 24), body: restricted ? "The archive preserves this chapter as a source-local route without manufacturing a quote or visual claim." : `The tape's ${String(route.label || route.category || route.name || "route").toLowerCase()} lane surfaces here. Open the timestamp and hear the full exchange.`, evidenceBasis: restricted ? "restricted topic checkpoint" : routeEvidenceBasis });
   }
   return output;
 }
@@ -640,7 +640,9 @@ function yearPass(record, events, topics, moments, fan, recurring, characterCues
       fanSignals: localFans.length,
       characterCues: localCharacters.reduce((sum, character) => sum + (character.receipts || []).length, 0),
       description: `${label} is the clearest searchable door in this stretch of the source. The map holds ${localMoments.length} moment candidate${localMoments.length === 1 ? "" : "s"}, ${localFans.length} fan signal${localFans.length === 1 ? "" : "s"}, and ${localCharacters.reduce((sum, character) => sum + (character.receipts || []).length, 0)} character cue${localCharacters.reduce((sum, character) => sum + (character.receipts || []).length, 0) === 1 ? "" : "s"}. Open ${clock(at)} for the actual exchange.`,
-      evidenceBasis: events.length ? "2026 second-pass caption route; machine-surfaced" : "2026 second-pass source dossier route; machine-surfaced",
+      evidenceBasis: events.length
+        ? (events.some((event) => event.evidenceType === "local-whisper-transcript") ? "2026 second-pass Whisper route; machine-surfaced" : "2026 second-pass caption route; machine-surfaced")
+        : "2026 second-pass source dossier route; machine-surfaced",
       reviewStatus: "machine-candidate"
     };
   });
@@ -691,7 +693,7 @@ const episodes = canonicalMetadata.map((record) => {
     ? mergeTranscriptMoments(refreshedExistingMoments, transcriptMoments)
     : (existingMoments.length ? existingMoments : transcriptMoments);
   const fan = fanSignals(events, Number(record.duration || 0));
-  const chapterList = chapters(Number(record.duration || 0), moments, topics, restricted);
+  const chapterList = chapters(Number(record.duration || 0), moments, topics, restricted, localWhisper ? "source-local Whisper transcript route checkpoint" : "source-local caption route checkpoint");
   const yearSnapshot = yearCanonById.get(id) || null;
   const shape = inferShape(record.title, mode, existing, yearSnapshot);
   const series = inferSeries(record.title, mode);
