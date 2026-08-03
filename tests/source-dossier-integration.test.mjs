@@ -13,6 +13,7 @@ const html = read("index.html");
 const featureLoader = read("feature-loader.js");
 const atlasUi = read("archive-atlas-ui.js");
 const sourceDossierAssets = read("source-dossier-assets.js");
+const sourceDossierUi = read("source-dossier-ui.js");
 
 function runtimeVersion(file) {
   const version = read(file).match(/\bvar VERSION = "(\d+\.\d+\.\d+)"/)?.[1];
@@ -578,6 +579,16 @@ test("dossier CSS brands cold routes immediately while heavy scripts remain lazy
     sourceDossierAdapter,
     /canonicalDurationSeconds[^\n]+canonicalYouTubeDuration|canonicalYouTubeDuration/,
     "official podcast alternates must accept the archive manifest's canonicalYouTubeDuration alias",
+  );
+  assert.match(
+    sourceDossierAdapter,
+    /audio-feature-candidate[\s\S]*audio-listening-navigation/,
+    "restricted commentaries must retain source-local audio listening doors",
+  );
+  assert.doesNotMatch(
+    sourceDossierUi,
+    /\bnormalized\s*\(/,
+    "Source Dossier UI must not call an undefined normalization helper",
   );
   assert.match(loader, /loadDemoScript\("creator-studio-engine\.js"\)\.then\(createClipLab\)/);
   assert.doesNotMatch(loader, /createCreatorEngines/);

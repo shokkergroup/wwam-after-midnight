@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.32.0";
+  var VERSION = "1.32.1";
   var DOSSIER_SCHEMA = "shokker-source-dossier/v1";
   var QUERY_SCHEMA = "shokker-source-query/v1";
   var QUERY_RESULT_SCHEMA = "shokker-source-query-result/v1";
@@ -2656,6 +2656,11 @@
         array(episodeRecap.highlightRunway).length;
       var recapTopicDoorCount = structuredSummaryRecap ?
         episodeRecapTopicEntries(dossier, 8).length : 0;
+      var audioListeningCount = array(source.receipts).filter(function (receipt) {
+        return clean(receipt && receipt.evidenceType).toLowerCase() ===
+          "audio-feature-candidate";
+      }).length;
+      var hasAudioListeningPass = audioListeningCount > 0;
       var recapHasHumanStory =
         /human-editorial/i.test(clean(episodeRecap.editorialState)) ||
         record(episodeRecap.caseFile).humanEditorialRead === true;
@@ -2671,6 +2676,8 @@
       var headerTitle = sourceBrief && hasEpisodeRecap(dossier) ?
         "THE SHOW IS HERE. THE RECAP IS WAITING ON THE TAPE." :
         sourceBrief ? "THE SHOW IS HERE. THE DEEP DIVE IS NOT READY YET." :
+        structuredSummaryRecap && !recapTopicDoorCount && hasAudioListeningPass ?
+          "THE TAPE HAS A LISTENING PASS. THE WRITTEN STORY IS NEXT." :
         structuredSummaryRecap ? "WHAT CAME UP, WITHOUT A FAKE BEST-OF LIST." :
         status === "topic-nav-only" ? "WHAT THEY COVERED, WITH A WAY BACK TO EACH PART." :
           hasMappedContent ? "THE WHOLE NIGHT, CUT TO THE PARTS WORTH REVISITING." :
@@ -2679,12 +2686,16 @@
         "The official upload is verified. No episode events are invented while its caption map is missing." :
         sourceBrief ?
         "The official upload is linked and verified. A recap will appear only after this exact show has usable captions." :
+        structuredSummaryRecap && !recapTopicDoorCount && hasAudioListeningPass ?
+          "Audio-ranked windows are attached to this exact upload. Listen first; the machine pass does not claim a speaker, joke, or finished best-of moment." :
         structuredSummaryRecap ?
           "The subjects and timestamps are mapped. The written story and best-of shelf stay hidden until somebody has actually read the whole tape." :
         queued ? "The upload is ready to watch. Its recap and moments wait for captions from this exact show." :
           "A recap, watch path, and timestamped moments from this exact upload.";
       var statusLabel = sourceBrief && hasEpisodeRecap(dossier) ?
         "RECAP WAITING ON THE TAPE" :
+        structuredSummaryRecap && !recapTopicDoorCount && hasAudioListeningPass ?
+          "LISTENING PASS" :
         structuredSummaryRecap ? "SOURCE SUBJECT MAP" :
         readyEpisodeRecap && clean(episodeRecap.tier) === "topic-recap" ?
           (number(record(episodeRecap.caseFile).lastPlayableAnchorPercent) > 0 &&
@@ -2742,9 +2753,15 @@
         '</header><div class="source-dossier-wiki-status" role="status"><span>' +
         'ON THIS PAGE</span><b>' + esc(statusLabel) +
         '</b><small>' + (structuredSummaryRecap ?
-          esc(recapTopicDoorCount) + ' PLAYABLE TOPIC ' +
-            (recapTopicDoorCount === 1 ? 'DOOR' : 'DOORS') +
-            ' // FULL STORY PENDING' :
+          recapTopicDoorCount ?
+            esc(recapTopicDoorCount) + ' PLAYABLE TOPIC ' +
+              (recapTopicDoorCount === 1 ? 'DOOR' : 'DOORS') +
+              ' // FULL STORY PENDING' :
+          hasAudioListeningPass ?
+            esc(audioListeningCount) + ' AUDIO-RANKED LISTENING WINDOW' +
+              (audioListeningCount === 1 ? '' : 'S') +
+              ' // FULL STORY PENDING' :
+            '0 PLAYABLE TOPIC DOORS // FULL STORY PENDING' :
           readyEpisodeRecap ?
           esc(recapMomentCount) + ' PLAYABLE MOMENT' +
             (recapMomentCount === 1 ? '' : 'S') +

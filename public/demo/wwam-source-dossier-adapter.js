@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.20.1";
+  var VERSION = "1.20.2";
   var SCHEMA = "shokker-source-dossier-input/v1";
   var PUBLIC_EXCERPT_WORDS = 16;
   var OFFICIAL_WWAM_CHANNEL_ID = "UC6ieEOZW4iXV8TcILJI8k5g";
@@ -899,8 +899,27 @@
   function restrictedTopicNavigationReceipts(receipts) {
     return array(receipts).filter(function (receipt) {
       return normalized(receipt.kind).indexOf("topic") >= 0 ||
-        normalized(receipt.evidenceType).indexOf("topic") >= 0;
+        normalized(receipt.evidenceType).indexOf("topic") >= 0 ||
+        normalized(receipt.evidenceType) === "audio-feature-candidate";
     }).map(function (receipt) {
+      var audioCandidate =
+        normalized(receipt.evidenceType) === "audio-feature-candidate";
+      if (audioCandidate) {
+        // A canonical source-local audio pass establishes a playable listening
+        // window, but not a speaker, intent, or visual claim. Keep that door
+        // visible on restricted commentaries without promoting it into the
+        // ordinary topic/moment shelves or publishing its excerpt.
+        return Object.assign({}, receipt, {
+          kind: "audio-listening-navigation",
+          evidenceBasis: clean(receipt.evidenceBasis) ||
+            "restricted-source-local-audio-listening-window",
+          reviewState: "audio-feature-candidate; playback remains the authority",
+          speaker: null,
+          speakerStatus: "not-diarized",
+          promotionAllowed: false,
+          publicExcerptAllowed: false,
+        });
+      }
       var titleTopic =
         receipt.evidenceType === "caption-title-topic-receipt";
       return Object.assign({}, receipt, {

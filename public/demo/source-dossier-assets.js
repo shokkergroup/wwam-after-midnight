@@ -39,10 +39,10 @@
     "episode-recap-engine.js?v=1.9.8-story-reel-cap",
     "wwam-episode-recap-adapter.js?v=2.3.2-safe-topic-doors",
     "source-dossier-engine.js?v=1.17.0-alternate-podcast-routes",
-    "wwam-source-dossier-adapter.js?v=1.20.1-canonical-youtube-duration",
+    "wwam-source-dossier-adapter.js?v=1.20.2-restricted-audio-doors",
     "source-query-engine.js?v=1.6.1-lanes",
     "aftermath-pack-engine.js?v=1.0.0",
-    "source-dossier-ui.js?v=1.32.0-alternate-podcast-routes",
+    "source-dossier-ui.js?v=1.32.1-audio-listening-pass",
     "wwam-dossier-editorial.js?v=1.3.2-damage-priority",
   ]);
 })(window);
