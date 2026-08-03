@@ -590,6 +590,11 @@ test("dossier CSS brands cold routes immediately while heavy scripts remain lazy
     /showWikiAudioListeningMarkup[\s\S]*audio-feature-candidate[\s\S]*data-source-dossier-action=\"play-receipt\"/,
     "every Show Wiki must render source-local ranked listening windows as playable receipts",
   );
+  assert.match(
+    sourceDossierUi,
+    /function listeningCaptionExcerpt[\s\S]*AUTO-RANKED AUDIO WINDOW\. PRESS PLAY AND DECIDE FOR YOURSELF\./,
+    "listening rails must quarantine broken auto-caption fragments instead of presenting them as quotes",
+  );
   assert.doesNotMatch(
     sourceDossierUi,
     /\bnormalized\s*\(/,
