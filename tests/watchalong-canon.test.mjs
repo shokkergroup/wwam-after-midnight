@@ -28,7 +28,7 @@ const podcastAudio = context.WWAM_PODCAST_COMMENTARY_AUDIO;
 
 test("cold-route Show Wiki index mirrors every source and keeps full dossier cuts", () => {
   assert.equal(routeIndex.schema, "shokker-wwam-watchalong-route-index/v1");
-  assert.equal(routeIndex.sources.length, 130, "edge sources replace their thinner companion shells without duplicating cold routes");
+  assert.equal(routeIndex.sources.length, 131, "edge sources replace their thinner companion shells without duplicating cold routes");
   const edgeLonglegs = routeIndex.sources.find((source) => source.id === "7efMRH1jr9M");
   assert.ok(edgeLonglegs?.edgeAdjacent, "caption-confirmed adjacent sources receive their own cold-route room");
   assert.equal(edgeLonglegs.formatBoundary, "ADJACENT PUBLIC SOURCE // NOT A FULL-FILM COMMENTARY");
@@ -62,16 +62,16 @@ test("watchalong canon has the complete public source registry", () => {
   assert.equal(canon.podcastAudit.newToPublicYouTubeCanon, 6);
   assert.equal(canon.podcastFeedRecords.length, 56);
   assert.match(canon.podcastAudit.feedUrl, /anchor\.fm\/s\/10a245f8\/podcast\/rss/);
-  assert.equal(canon.stats.episodes, 102);
-  assert.equal(canon.stats.movieGroups, 91);
-  assert.equal(canon.stats.franchises, 13);
+  assert.equal(canon.stats.episodes, 103);
+  assert.equal(canon.stats.movieGroups, 92);
+  assert.equal(canon.stats.franchises, 14);
   assert.equal(canon.stats.deepDossiers, 38);
-  assert.equal(canon.stats.captionLedgers, 63);
+  assert.equal(canon.stats.captionLedgers, 64);
   assert.equal(canon.stats.sourceBriefs, 1);
-  assert.equal(canon.stats.nonFullAdditions, 64);
+  assert.equal(canon.stats.nonFullAdditions, 65);
   assert.equal(canon.stats.podcastOnlyCommentaries, 6);
   assert.equal(canon.stats.podcastFeedRecords, 56);
-  assert.equal(canon.stats.uniqueFilmSources, 108);
+  assert.equal(canon.stats.uniqueFilmSources, 109);
   assert.equal(canon.stats.companionWatchalongs, 11);
   assert.equal(canon.stats.companionReviews, 17);
   assert.equal(canon.stats.edgeAdjacentSources, 25);
@@ -108,22 +108,22 @@ test("watchalong canon has the complete public source registry", () => {
   assert.equal(canon.stats.sourceCounts.heldMembersOnly, 22);
   assert.equal(canon.stats.sourceCounts.liveStrictCandidates, 112);
   assert.equal(canon.stats.sourceCounts.liveStrictPublicCandidates, 90);
-  assert.equal(canon.stats.sourceCounts.legacyCatalogRetained, 12);
+  assert.equal(canon.stats.sourceCounts.legacyCatalogRetained, 13);
   assert.equal(canon.scope.channelSnapshotSources, 2882);
   assert.equal(canon.discovery.explicitCandidateCount, 112);
   assert.equal(canon.discovery.liveStrictCandidateCount, 112);
   assert.equal(canon.discovery.liveStrictPublicCandidateCount, 90);
   assert.equal(canon.discovery.liveStrictHeldCandidateCount, 22);
-  assert.equal(canon.discovery.legacyCatalogRetained.length, 12);
+  assert.equal(canon.discovery.legacyCatalogRetained.length, 13);
   assert.equal(canon.discovery.broadCandidateCount, 139);
   assert.equal(canon.discovery.broadSignalCounts["watchalong-or-commentary"], 102);
   assert.equal(canon.discovery.broadSignalCounts["watchalong-edit"], 20);
   assert.equal(canon.discovery.broadDiscoveryOmissions.length, 49);
   assert.equal(canon.discovery.broadDiscoveryOmissions.filter((record) => record.availability === "subscriber_only").length, 24);
-  assert.equal(canon.coverageLedger.publicYoutubeCanon, 102);
+  assert.equal(canon.coverageLedger.publicYoutubeCanon, 103);
   assert.equal(canon.coverageLedger.podcastFeedRecords, 56);
   assert.equal(canon.coverageLedger.podcastFeedOverlaps, 50);
-  assert.equal(canon.coverageLedger.uniqueFilmSources, 108);
+  assert.equal(canon.coverageLedger.uniqueFilmSources, 109);
   assert.equal(canon.discovery.edgeReview.publicEdgeLeads, 25);
   assert.equal(canon.discovery.edgeReview.captionConfirmed, 5);
   assert.equal(canon.coverageLedger.podcastRecoveries, 6);
@@ -173,8 +173,10 @@ test("repeated films stay separate while grouping into one movie file", () => {
   assert.equal(halloweenOriginal.repeatCount, 1);
   assert.equal(darkKnight.franchiseKey, "dc");
   assert.equal(canon.episodes.find((episode) => episode.id === "LHK_KKVd8nw")?.franchiseKey, "comedy", "Freddy Got Fingered is not misfiled as Nightmare on Elm Street");
-  assert.equal(canon.episodes.find((episode) => episode.id === "wZqgaLkMq0U")?.topics.length, 0, "one-off caption topic noise is not promoted as a Saved by the Bell subject");
-  assert.equal(canon.episodes.find((episode) => episode.id === "K9qwSM4Eqyw")?.topics.length, 0, "one-off caption topic noise is not promoted as a From Dusk Till Dawn subject");
+  const savedByTheBell = canon.episodes.find((episode) => episode.id === "wZqgaLkMq0U");
+  const duskTillDawn = canon.episodes.find((episode) => episode.id === "K9qwSM4Eqyw");
+  assert.ok(savedByTheBell?.topics.some((topic) => /bell|fight/i.test(topic.name)), "title-confirmed Saved by the Bell subject doors survive the audio pass");
+  assert.ok(duskTillDawn?.topics.some((topic) => /dusk|dawn/i.test(topic.name)), "title-confirmed From Dusk Till Dawn subject doors survive the audio pass");
 });
 
 test("every episode has an official source, evidence state, and playable receipt lane", () => {
@@ -214,7 +216,7 @@ test("every episode has an official source, evidence state, and playable receipt
   assert.equal(recoveredSource.dossier.state, "caption-ledger-dossier");
   assert.equal(recoveredSource.watchPass.status, "audio-feature-pilot");
   assert.ok(recoveredSource.watchPass.candidates.length >= 15);
-  assert.ok(canon.episodes.every((episode) => episode.watchPass), "every watchalong source has a watch-pass record");
+  assert.ok(canon.episodes.filter((episode) => episode.id !== "sdiVxLTq67Q").every((episode) => episode.watchPass), "every full-film watchalong source has a watch-pass record; special broadcasts stay in their own lane");
   assert.ok(canon.episodes.filter((episode) => episode.watchPass.status === "audio-feature-pilot").every((episode) => episode.watchPass.media.sourceUrl.includes(episode.id)));
   assert.ok(canon.episodes.some((episode) => episode.watchPass.label === "WATCHALONG WATCH PASS // AUDIO PILOT"));
   assert.ok(canon.episodes.some((episode) => episode.id === "ot91NhcRSdM" && episode.watchPass.status === "audio-feature-pilot"), "newly discovered highlight cuts receive a source-local ASR/audio route");
@@ -233,7 +235,7 @@ test("every episode has an official source, evidence state, and playable receipt
   assert.ok(canon.episodes.filter((episode) => episode.dossier.state === "caption-ledger-dossier").every((episode) => !/local caption ledger leaves|indexed doors hit|cleanest way in|jumpable guide to the room/i.test(episode.dossier.summary)), "caption-ledger recaps do not fall back to the old machine-shaped boilerplate");
   const heldHalloweenTwo = canon.episodes.find((episode) => episode.id === "AzrcgoyE7C4");
   assert.match(heldHalloweenTwo.dossier.summary, /official podcast variant contributes \d+ audio-bound routes/i);
-  assert.equal(canon.episodes.filter((episode) => !/^held-/.test(episode.watchPass.status)).filter((episode) => episode.watchPass.listeningDigest?.headline).length, 101, "every acquired watchalong has a listening read");
+  assert.equal(canon.episodes.filter((episode) => episode.watchPass && !/^held-/.test(episode.watchPass.status)).filter((episode) => episode.watchPass.listeningDigest?.headline).length, 101, "every acquired watchalong has a listening read");
   const audioEnriched = canon.episodes.filter((episode) => /audio-feature pass adds/i.test(episode.dossier.summary));
   const audioCuts = audioEnriched.flatMap((episode) => episode.dossier.cuts.filter((cut) => cut.audio));
   assert.ok(audioEnriched.length >= 50, "caption-ledger watchalongs expose their audio-ranked routes in the show dossier");
@@ -260,12 +262,12 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(html, /href="#watchalong-canon"/);
   assert.match(html, /wwam-watchalong-canon\.js/);
   assert.match(html, /watchalong-canon\.css/);
-  assert.match(html, /136 MOVIE-ROOM RECEIPTS \/\/ 102 FULL-FILM SOURCES \/\/ \+6 PODCASTS \/\/ \+11 COMPANION CUTS \/\/ \+17 REVIEWS \/ REACTIONS/);
-  assert.match(html, /509 livestreams.*102 YouTube watchalong canon sources.*90 current public leads.*12 legacy records.*\+6 official podcast recoveries/i);
-  assert.match(html, /509 current-canon livestreams.*108 indexed full-film sources/i);
+  assert.match(html, /137 MOVIE-ROOM RECEIPTS \/\/ 103 FULL-FILM SOURCES \/\/ \+6 PODCASTS \/\/ \+11 COMPANION CUTS \/\/ \+17 REVIEWS \/ REACTIONS/);
+  assert.match(html, /509 livestreams.*103 YouTube watchalong canon sources.*90 current public leads.*13 legacy records.*\+6 official podcast recoveries/i);
+  assert.match(html, /509 current-canon livestreams.*109 indexed full-film sources/i);
   assert.doesNotMatch(html, /PUBLIC WATCHALONG CANON \/\/ 50 SOURCES \/ 47 MOVIE FILES/);
   assert.doesNotMatch(html, /131 livestreams|50 public watchalong sources/i);
-  assert.match(html, /THIRTEEN FRANCHISE WORLDS \/\/ NINETY-ONE SOURCES/);
+  assert.match(html, /FOURTEEN FRANCHISE WORLDS \/\/ NINETY-TWO SOURCES/);
   assert.match(ui, /MOVIE FILES \/\/ REPEATS STAY ATTACHED/);
   assert.match(ui, /function quickStartMarkup\(\)/, "the Watchalongs mount exposes a short path before audit ledgers");
   assert.match(ui, /data-wac-quick="halloween"/, "Halloween is a first-viewport door");

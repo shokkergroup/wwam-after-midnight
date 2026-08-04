@@ -120,7 +120,7 @@
         title: "PICK A MOVIE.<br><em>ENTER ITS WORLD.</em>",
         copy: "Choose a franchise or a one-off commentary. The movie context, WWAM versions, playable moments, and source record stay in one place.",
         links: [
-          ["#watchalong-canon", "watchalongs", "ALL COMMENTARIES", "102 sources, every movie world"],
+          ["#watchalong-canon", "watchalongs", "ALL COMMENTARIES", "103 sources, every movie world"],
           ["#halloween-universe", "watchalongs", "HALLOWEEN UNIVERSE", "WWAM's deepest franchise map"],
           ["#comedy-vault", "watchalongs", "COMEDY SHELF", "Scary Movie, Waiting, Harold & Kumar"],
           ["#watchalong-canon", "watchalongs", "PUBLIC WATCHALONG CANON", "Every movie cut, repeat, and source dossier"],

@@ -674,7 +674,7 @@ const LANE_DEFS = [
   { key: "up-in-ya", label: "WWAM UP IN YA", category: "UP IN YA", pattern: /\b(fuck|fucking|dick|cock|balls?|cum|fart|shit|bitch|piss|boob|tits?|asshole|suck|boner)\b/i },
   { key: "steves-asshole", label: "STRAIGHT TO STEVE'S ASSHOLE", category: "STRAIGHT TO STEVE'S ASSHOLE", pattern: /\b(hate|hated|worst|terrible|awful|sucks?|stupid|dumb|bullshit|garbage|lazy|weak|ruined|don't like|didn't like|not good)\b/i },
   { key: "film-read", label: "FILM READ", category: "FILM READ", pattern: /\b(love|best|great|amazing|music|score|camera|director|actor|acting|scene|ending|character|story|plot|performance)\b/i },
-  { key: "character-signal", label: "CHARACTER SIGNAL", category: "CHARACTER SIGNAL", pattern: /\b(loomis|chall[ie]s|slenderman|corey feldman|feldman|michael myers|michael|freddy|jason|chucky|tiffany)\b/i },
+  { key: "character-signal", label: "CHARACTER SIGNAL", category: "CHARACTER SIGNAL", pattern: /\b(loomis|chall[ie]s|slenderman|corey feldman|feldman|michael myers|michael|freddy|jason|chucky|tiffany|ghostface|sidney(?: prescott)?|dewey(?: riley)?|laurie(?: strode)?|leatherface)\b/i },
   { key: "fan-signal", label: "FAN SIGNAL", category: "FAN SIGNAL", pattern: /super ?chat|\bdonat(?:e|ed|ion)\b|lee(?:\s+the)?\s+machine|michael\s+part(?:on|in)|chat(?:'s| is) asking|question from (?:the )?chat|(?:thanks|welcome|appreciate|thank you).{0,45}(?:member|membership)|(?:new|another|our) member|(?:member|membership).{0,45}(?:joined|join|thanks|thank|gift)/i }
 ];
 
