@@ -162,10 +162,14 @@ function isNoisyTranscript(value) {
     || /\b(?:what|who)\s+the\s+(?:who|what|is|the)\b/i.test(text)
     || /\b(?:got|have|has|was|were|is|are)\s+to\s+(?:this|that)\s+[a-z][a-z'-]*\s+(?:up|down)\b/i.test(text)
     || /^\s*(?:i|you|we|they|he|she)\s+maybe\b/i.test(text)
-    || /\b(?:between|because|since|although|while|when|if|which|that|who|from|with|for|to|of|in|on|at|probably|perhaps|maybe)\.?$/i.test(text)
+    || /\b(?:between|because|since|although|while|when|if|which|that|who|from|with|for|to|of|in|on|at|by|probably|perhaps|maybe)\.?$/i.test(text)
     || /[.!?]\s+[a-z]/.test(text)
     || /\b([a-z]{4,})(?:s|es|ed|ing)?\s+\1(?:s|es|ed|ing)?\b/i.test(text)
     || /\b(?:the|a|an)\s+(?:his|her|their|my|your|our|its)\b/i.test(text)
+    || /\b(?:all|both|three)\s+(?:of\s+)?those\s+that\s+right\b/i.test(text)
+    || /\b(?:these|those)\s+(?:this|that)\s+(?:one|right|is|was)\b/i.test(text)
+    || /\bthat(?:'s|\s+is)\s+not\s+that\s+one(?:'s|\s+is)\b/i.test(text)
+    || /\b(?:these|those)\s+and\s+these\s+this\b/i.test(text)
     // Preserve the audio route but suppress obvious Whisper boundary joins
     // such as "I If..." or "I it did..." from public clip receipts.
     || /\bI\s+(?:if|what|well|you|she|it|they|he|we)\b/.test(text)

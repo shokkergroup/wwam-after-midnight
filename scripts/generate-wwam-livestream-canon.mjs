@@ -354,13 +354,17 @@ function isNoisyTranscript(value) {
     /\b(?:what|who)\s+the\s+(?:who|what|is|the)\b/i,
     /\b(?:got|have|has|was|were|is|are)\s+to\s+(?:this|that)\s+[a-z][a-z'-]*\s+(?:up|down)\b/i,
     /^\s*(?:i|you|we|they|he|she)\s+maybe\b/i,
-    /\b(?:between|because|since|although|while|when|if|which|that|who|from|with|for|to|of|in|on|at|probably|perhaps|maybe)\.?$/i,
+    /\b(?:between|because|since|although|while|when|if|which|that|who|from|with|for|to|of|in|on|at|by|probably|perhaps|maybe)\.?$/i,
     // A lower-case restart after punctuation and a repeated word stem are
     // common decoder boundary artifacts ("... January. hey ...", "reach
     // reaches"). They are useful audio routes, not clean public quotes.
     /[.!?]\s+[a-z]/,
     /\b([a-z]{4,})(?:s|es|ed|ing)?\s+\1(?:s|es|ed|ing)?\b/i,
     /\b(?:the|a|an)\s+(?:his|her|their|my|your|our|its)\b/i,
+    /\b(?:all|both|three)\s+(?:of\s+)?those\s+that\s+right\b/i,
+    /\b(?:these|those)\s+(?:this|that)\s+(?:one|right|is|was)\b/i,
+    /\bthat(?:'s|\s+is)\s+not\s+that\s+one(?:'s|\s+is)\b/i,
+    /\b(?:these|those)\s+and\s+these\s+this\b/i,
     /\b(?:said|says|asked|asks|was like|were like|be like)\s*[,;:]\s*["']?\s*$/i,
     /\b(?:uh|um|er|like)[,.]?\s+(?:uh|um|er|like)[,.]?\s+(?:uh|um|er|like)\b/i,
     /\b(?:don't|never|ever|always)\s+(?:you|we|they|he|she|i)\s+[A-Za-z][^.!?]*\s+(?:again|but|and)\b/i,
