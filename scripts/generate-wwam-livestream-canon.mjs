@@ -338,6 +338,10 @@ function isNoisyTranscript(value) {
     // boundary-splice signal ("you I don't", "I You got"). Keep the softer
     // conversational "we, I mean" form eligible for publication.
     /\b(?:i|you|he|she|we|they)\s+(?:i|you|he|she|we|they)\s+(?:don't|can't|won't|didn't|haven't|hasn't|am|is|are|was|were|thought|got|just)\b/i,
+    // Whisper sometimes preserves the capitalization of two competing
+    // sentence starts: "I If...", "I What...", or "I You...". Those are
+    // high-confidence boundary splices, not a reason to publish a quote.
+    /\bI\s+(?:if|what|well|you|she|it|they|he|we)\b/,
     // Three competing negative starts in one bounded receipt are decoder
     // overlap, not a useful sentence. Preserve the listening door instead.
     /\b(?:i|you|he|she|we|they)\s+(?:don't|can't|won't|didn't)\b(?:\s+[a-z']+){0,3}\s+\b(?:i|you|he|she|we|they)\s+(?:don't|can't|won't|didn't)\b(?:\s+[a-z']+){0,3}\s+\b(?:i|you|he|she|we|they)\s+(?:don't|can't|won't|didn't)\b/i,
@@ -1001,8 +1005,8 @@ function normalizeMoments(items, restricted = false) {
       id: moment.id || `moment-${index + 1}`,
       t: Math.round(Number(moment.t || 0)),
       end: Math.round(Number(moment.end || moment.t || 0)),
-      category: clean(moment.category || moment.label || "SOURCE RECEIPT"),
-      label: clean(moment.label || moment.category || "SOURCE RECEIPT"),
+      category: canonicalLaneLabel(clean(moment.category || moment.label || "SOURCE RECEIPT")),
+      label: canonicalLaneLabel(clean(moment.label || moment.category || "SOURCE RECEIPT")),
       score: Number(moment.heat || moment.score || 0),
       excerpt: safeExcerpt(moment.excerpt || moment.quote || "", 24),
       evidenceBasis: moment.evidenceBasis || "source-local caption candidate",

@@ -42,6 +42,9 @@ function inspect(value, sourceId, field, failures) {
   if (/\b(?:i|you|he|she|we|they)\s+(?:i|you|he|she|we|they)\s+(?:don't|can't|won't|didn't|haven't|hasn't|am|is|are|was|were|thought|got|just)\b/i.test(text)) {
     failures.push({ sourceId, field, kind: "adjacent-pronoun-collision", text });
   }
+  if (/\bI\s+(?:if|what|well|you|she|it|they|he|we)\b/.test(text)) {
+    failures.push({ sourceId, field, kind: "capitalized-clause-collision", text });
+  }
   if (/\b(?:i|you|he|she|we|they)\s+(?:don't|can't|won't|didn't)\b(?:\s+[a-z']+){0,3}\s+\b(?:i|you|he|she|we|they)\s+(?:don't|can't|won't|didn't)\b(?:\s+[a-z']+){0,3}\s+\b(?:i|you|he|she|we|they)\s+(?:don't|can't|won't|didn't)\b/i.test(text)) {
     failures.push({ sourceId, field, kind: "repeated-negative-collision", text });
   }

@@ -67,6 +67,7 @@ test("public receipt audit rejects clipped summary quotes", () => {
   assert.match(audit, /decoder-collision/);
   assert.match(audit, /clause-collision/);
   assert.match(audit, /adjacent-pronoun-collision/);
+  assert.match(audit, /capitalized-clause-collision/);
   assert.match(audit, /repeated-negative-collision/);
   assert.match(audit, /dossier\.summary/);
 });
@@ -145,8 +146,10 @@ test("visitor-facing recap quotes strip non-speech Whisper stage cues and vary t
   assert.match(generator, /function isNoisyTranscript\(value\)/);
   assert.match(generator, /this\|that\|it\)\\s\+is\\s\+the\\s\+\(\?:to\|for\)\\s\+me/);
   assert.match(generator, /Adjacent pronouns followed by a fresh clause start/);
+  assert.match(generator, /capitalization of two competing/);
   assert.match(generator, /Three competing negative starts/);
   assert.match(generator, /if \(isNoisyTranscript\(cased\)\) return ""/);
+  assert.match(generator, /category: canonicalLaneLabel\(clean\(moment\.category/);
   assert.match(generator, /\}\)\)\.filter\(\(moment\) => moment\.excerpt \|\| moment\.captionAligned === false\);/);
   assert.match(generator, /const substantive = sentenceList\.filter/);
   assert.match(generator, /safeExcerpt\(receiptCandidate\.text, 16\)/);
