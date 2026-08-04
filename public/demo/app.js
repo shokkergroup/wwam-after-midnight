@@ -1067,7 +1067,13 @@
     modal.setAttribute("aria-describedby", "fallback-about");
     document.querySelectorAll("[data-fallback-jump]").forEach(function (button) {
       button.addEventListener("click", function () {
-        loadPlayer(sourceId, Number(button.getAttribute("data-fallback-jump") || 0), Number(button.getAttribute("data-fallback-end") || 0) || null);
+        var jumpAt = Number(button.getAttribute("data-fallback-jump") || 0);
+        var jumpEnd = Number(button.getAttribute("data-fallback-end") || 0) || null;
+        // A moment click is also a share action. Replace the current source
+        // route (rather than adding a history entry for every browse click) so
+        // refresh/copy preserves the exact playable door the visitor chose.
+        syncSourceRoute(sourceId, jumpAt, section || "wiki", "replace");
+        loadPlayer(sourceId, jumpAt, jumpEnd);
         var playerNode = document.getElementById("fallback-player");
         if (playerNode) playerNode.scrollIntoView({ behavior: "smooth", block: "start" });
       });

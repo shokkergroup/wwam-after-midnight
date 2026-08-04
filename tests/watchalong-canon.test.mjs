@@ -386,5 +386,6 @@ test("cold Show Wiki deep links snap to a useful local section", () => {
   assert.match(app, /wiki:\s*"fallback-about"/);
   assert.match(app, /inside:\s*"fallback-routes"/);
   assert.match(app, /fallbackModal\.scrollTo\(\{ top: Math\.min\(targetTop, maxScroll\), behavior: "smooth" \}\)/);
+  assert.match(app, /syncSourceRoute\(sourceId, jumpAt, section \|\| "wiki", "replace"\)/);
   assert.match(dossierCss, /source-dossier-fallback \[id\]\s*\{\s*scroll-margin-top/);
 });
