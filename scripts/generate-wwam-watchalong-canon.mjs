@@ -176,6 +176,12 @@ function isNoisyTranscript(value) {
     // refusing to print the decoder join as a clean quote.
     || /\b(?:uh|um|er)\s+(?:uh|um|er)\b/i.test(text)
     || /\b(?:is|are|was|were)\s+(?:is|are|was|were|has|have)\b/i.test(text)
+    || /\b([a-z]{2,})\s+(?:is|are|was|were)\s+(?:a|an|the)\s+\1\b/i.test(text)
+    || /\b([a-z]{2,})\s+(?:is|are|was|were)\s+\1\b/i.test(text)
+    || /\b(?:like|just)\s+(?:like|just)\b/i.test(text)
+    || /\b(?:it|this|that)\s+(?:is|was|are|were|like)\s+(?:it|this|that)\b/i.test(text)
+    || /\b(?:is|are|was|were),\s+(?:is|are|was|were)\b/i.test(text)
+    || /\b(?:is|are|was|were)\s+(?:the|a|an)\s+(?:is|are|was|were|it|that|this)\b/i.test(text)
     // Preserve the audio route but suppress obvious Whisper boundary joins
     // such as "I If..." or "I it did..." from public clip receipts.
     || /\bI\s+(?:if|what|well|you|she|it|they|he|we)\b/.test(text)

@@ -379,6 +379,12 @@ function isNoisyTranscript(value) {
     // as audio doors only; they are not safe visitor-facing quotations.
     /\b(?:uh|um|er)\s+(?:uh|um|er)\b/i,
     /\b(?:is|are|was|were)\s+(?:is|are|was|were|has|have)\b/i,
+    /\b([a-z]{2,})\s+(?:is|are|was|were)\s+(?:a|an|the)\s+\1\b/i,
+    /\b([a-z]{2,})\s+(?:is|are|was|were)\s+\1\b/i,
+    /\b(?:like|just)\s+(?:like|just)\b/i,
+    /\b(?:it|this|that)\s+(?:is|was|are|were|like)\s+(?:it|this|that)\b/i,
+    /\b(?:is|are|was|were),\s+(?:is|are|was|were)\b/i,
+    /\b(?:is|are|was|were)\s+(?:the|a|an)\s+(?:is|are|was|were|it|that|this)\b/i,
     /\b(?:don't|never|ever|always)\s+(?:you|we|they|he|she|i)\s+[A-Za-z][^.!?]*\s+(?:again|but|and)\b/i,
     /\b(?:he|she|it|they|we|you|i)(?:'s|\s+is|\s+are|\s+was|\s+were)\s+[A-Z][a-z'-]+\s+(?:but|and|so)\b/,
     // A bounded window can glue a new clause onto the previous one.
