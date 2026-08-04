@@ -314,6 +314,13 @@ function isNoisyTranscript(value) {
     // Keep the audio route, but do not promote the stitched text as a quote.
     /\b(?:this|that|it)\s+is\s+the\s+(?:to|for)\s+me\b/i,
     /\b(?:i|you|he|she|we|they)\s+(?:hate|love|like)\s+(?:this|that|it)\s+is\s+the\b/i,
+    // Adjacent pronouns followed by a fresh clause start are a strong
+    // boundary-splice signal ("you I don't", "I You got"). Keep the softer
+    // conversational "we, I mean" form eligible for publication.
+    /\b(?:i|you|he|she|we|they)\s+(?:i|you|he|she|we|they)\s+(?:don't|can't|won't|didn't|haven't|hasn't|am|is|are|was|were|thought|got|just)\b/i,
+    // Three competing negative starts in one bounded receipt are decoder
+    // overlap, not a useful sentence. Preserve the listening door instead.
+    /\b(?:i|you|he|she|we|they)\s+(?:don't|can't|won't|didn't)\b(?:\s+[a-z']+){0,3}\s+\b(?:i|you|he|she|we|they)\s+(?:don't|can't|won't|didn't)\b(?:\s+[a-z']+){0,3}\s+\b(?:i|you|he|she|we|they)\s+(?:don't|can't|won't|didn't)\b/i,
     /\b(?:between\d|what the do|i'm not it's not|he never got a chance.*never|top\s*\.)\b/i,
     /\b(?:said|says|asked|asks|was like|were like|be like)\s*[,;:]\s*["']?\s*$/i,
     /\b(?:uh|um|er|like)[,.]?\s+(?:uh|um|er|like)[,.]?\s+(?:uh|um|er|like)\b/i,

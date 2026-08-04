@@ -39,6 +39,12 @@ function inspect(value, sourceId, field, failures) {
     || /\b(?:i|you|he|she|we|they)\s+(?:hate|love|like)\s+(?:this|that|it)\s+is\s+the\b/i.test(text)) {
     failures.push({ sourceId, field, kind: "clause-collision", text });
   }
+  if (/\b(?:i|you|he|she|we|they)\s+(?:i|you|he|she|we|they)\s+(?:don't|can't|won't|didn't|haven't|hasn't|am|is|are|was|were|thought|got|just)\b/i.test(text)) {
+    failures.push({ sourceId, field, kind: "adjacent-pronoun-collision", text });
+  }
+  if (/\b(?:i|you|he|she|we|they)\s+(?:don't|can't|won't|didn't)\b(?:\s+[a-z']+){0,3}\s+\b(?:i|you|he|she|we|they)\s+(?:don't|can't|won't|didn't)\b(?:\s+[a-z']+){0,3}\s+\b(?:i|you|he|she|we|they)\s+(?:don't|can't|won't|didn't)\b/i.test(text)) {
+    failures.push({ sourceId, field, kind: "repeated-negative-collision", text });
+  }
   if (/\b(?:like|so|yeah|well)\b.*\b(?:like|so|yeah|well)\b.*\b(?:like|so|yeah|well)\b/i.test(text)) {
     failures.push({ sourceId, field, kind: "filler-collision", text });
   }
