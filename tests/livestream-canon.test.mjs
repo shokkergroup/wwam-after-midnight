@@ -188,6 +188,8 @@ test("audio watch-pass receipts are marker-clean and disclose caption alignment"
     ...(episode.characterCues || []).flatMap((character) => character.receipts || [])
   ]);
   assert.ok(visibleReceipts.every((receipt) => !/[\\[]\\s*(?:__+|music|laughter|inaudible|bleep)\\s*[\\]]/i.test(receipt.excerpt || receipt.receipt || "")), "visible livestream receipts remove caption-stage marker debris");
+  const boundarySplice = /\\blook at\\s+(?:his|her|the)\\s+look at\\b|\\b(?:it's got|it has)\\s+(?:we got|we have|they got|they have)\\b|\\b(?:that's|there's|it's)\\s+(?:just|one|the)\\s+(?:that's|there's|it's)\\b|\\bbefore\\b[^.!?]{0,50}\\bbefore\\s+(?:just|you|we|i)\\b|\\b[A-Z][a-z]+,\\s+[A-Z]{3,}\\b|\\b(?:oh|he|hey)\\s+(?:he|hey)\\s+(?:hey|he)\\b/i;
+  assert.ok(visibleReceipts.every((receipt) => !boundarySplice.test(receipt.excerpt || receipt.receipt || "")), "visible livestream receipts quarantine stitched decoder clause starts");
 });
 
 test("livestream audio recovery queue is incremental by default", () => {
