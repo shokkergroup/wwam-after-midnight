@@ -51,6 +51,25 @@ function inspect(value, sourceId, field, failures) {
   if (/\b(?:like|so|yeah|well)\b.*\b(?:like|so|yeah|well)\b.*\b(?:like|so|yeah|well)\b/i.test(text)) {
     failures.push({ sourceId, field, kind: "filler-collision", text });
   }
+  // A route can be playable and still be a bad public receipt. Keep these
+  // decoder-boundary checks in the audit as a backstop for future generators:
+  // lower-case sentence restarts, unfinished adverb tails, repeated stems,
+  // and determiner/pronoun collisions are navigation cues, not clean quotes.
+  if (/[.!?]\s+[a-z]/.test(text)) {
+    failures.push({ sourceId, field, kind: "lowercase-boundary-restart", text });
+  }
+  if (/\b([a-z]{4,})(?:s|es|ed|ing)?\s+\1(?:s|es|ed|ing)?\b/i.test(text)) {
+    failures.push({ sourceId, field, kind: "repeated-word-stem", text });
+  }
+  if (/\b(?:the|a|an)\s+(?:that|this|his|her|their|my|your|our|its)\b/i.test(text)
+    || /\b(?:all|both|three)\s+(?:of\s+)?those\s+that\s+right\b/i.test(text)
+    || /\b(?:these|those)\s+(?:this|that)\s+(?:one|right|is|was)\b/i.test(text)
+    || /\bthat(?:'s|\s+is)\s+not\s+that\s+one(?:'s|\s+is)\b/i.test(text)) {
+    failures.push({ sourceId, field, kind: "determiner-boundary-collision", text });
+  }
+  if (/\b(?:probably|perhaps|maybe)\.?$/i.test(text)) {
+    failures.push({ sourceId, field, kind: "unfinished-adverb-tail", text });
+  }
 }
 
 function inspectSummaryProse(value, sourceId, field, failures) {
@@ -73,6 +92,11 @@ function inspectSummaryProse(value, sourceId, field, failures) {
     }
     if (/\[(?:screaming|yelling|shouting|laughter|music|inaudible|bleep)\]|(?:^|\s)>>(?=\s|$)/i.test(quote)) {
       failures.push({ sourceId, field, kind: "summary-stage-marker", text: quote });
+    }
+    if (/[.!?]\s+[a-z]/.test(quote)
+      || /\b(?:probably|perhaps|maybe)\.?$/i.test(quote)
+      || /\b(?:the|a|an)\s+(?:that|this|his|her|their|my|your|our|its)\b/i.test(quote)) {
+      failures.push({ sourceId, field, kind: "summary-decoder-boundary", text: quote });
     }
   }
 }
