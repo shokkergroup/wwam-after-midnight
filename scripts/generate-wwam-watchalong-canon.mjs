@@ -642,6 +642,13 @@ function sanitizeFanRead(value) {
         .replace(/\u00e2\u20ac\u0153[^\u00e2\u20ac\u009d]*\u00e2\u20ac\u009d/g, replacement)
         .replace(/\bthe full exchange\b/gi, "this exchange")
         .replace(/([.!?]\s+)([a-z])/g, (_match, punctuation, first) => `${punctuation}${first.toUpperCase()}`);
+      if (!safe.excerpt) {
+        const sourceDoor = "The source player keeps the exact line; tap the timestamp and hear the turn in context.";
+        safe.body = safe.body
+          .replace(/This exchange is the line inside that [^.]+\./g, sourceDoor)
+          .replace(/with this exchange as its fingerprint\./g, sourceDoor)
+          .replace(/The exact cut carries this exchange\./g, sourceDoor);
+      }
       if (safe.primaryThread) {
         safe.body = safe.body.split(`${safe.primaryThread} is the obsession`).join(`${safe.primaryThread} sets the obsession`);
       }
