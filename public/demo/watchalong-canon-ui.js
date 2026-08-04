@@ -258,12 +258,12 @@
       var remaining = candidates.slice(6);
       function candidateButtons(list) {
         return list.map(function (candidate) {
-          return '<button type="button" class="wac-podcast-moment" data-wac-podcast-seek="' + esc(item.key) + '" data-wac-podcast-time="' + esc(candidate.t) + '"><span><b>' + esc(candidate.category || 'SOURCE RECEIPT') + '</b><small>' + esc(timestamp(candidate.t)) + ' // HEAT ' + esc(candidate.score) + '</small></span><em>' + esc(excerpt(candidate.captionExcerpt || candidate.excerpt || 'Podcast-bound receipt.', 150)) + '</em></button>';
+          return '<button type="button" class="wac-podcast-moment" data-wac-podcast-seek="' + esc(item.key) + '" data-wac-podcast-time="' + esc(candidate.t) + '"><span><b>' + esc(candidate.category || 'SOURCE RECEIPT') + '</b><small>' + esc(timestamp(candidate.t)) + ' // HEAT ' + esc(candidate.score) + '</small></span><em>' + esc(receiptExcerpt(candidate.captionExcerpt || candidate.excerpt || 'Podcast-bound receipt.', 150)) + '</em></button>';
         }).join('');
       }
       var shape = pass && pass.dossier ? pass.dossier : null;
       var shapeMarkup = shape ? '<div class="wac-podcast-shape"><small>TAPE SHAPE // SOURCE-LOCAL READ</small><p>' + esc(shape.summary || 'The source-local audio pass produced bounded navigation cards.') + '</p><div class="wac-podcast-chapters">' + (shape.chapters || []).map(function (chapter) {
-        return '<button type="button" data-wac-podcast-seek="' + esc(item.key) + '" data-wac-podcast-time="' + esc(chapter.at) + '"><b>ACT ' + esc(chapter.chapter) + ' // ' + esc(chapter.label) + '</b><span>' + esc(timestamp(chapter.at)) + '</span><em>' + esc(excerpt(chapter.excerpt, 130)) + '</em></button>';
+        return '<button type="button" data-wac-podcast-seek="' + esc(item.key) + '" data-wac-podcast-time="' + esc(chapter.at) + '"><b>ACT ' + esc(chapter.chapter) + ' // ' + esc(chapter.label) + '</b><span>' + esc(timestamp(chapter.at)) + '</span><em>' + esc(receiptExcerpt(chapter.excerpt, 130)) + '</em></button>';
       }).join('') + '</div>' + ((shape.topics || []).length ? '<div class="wac-podcast-topics">' + shape.topics.slice(0, 6).map(function (topic) { return '<button type="button" data-wac-podcast-seek="' + esc(item.key) + '" data-wac-podcast-time="' + esc(topic.peak) + '"><b>' + esc(topic.name) + '</b><small>' + esc(topic.mentions) + ' MENTIONS // ' + esc(timestamp(topic.peak)) + '</small></button>'; }).join('') + '</div>' : '') + '</div>' : '';
       var passMarkup = pass ? '<div class="wac-podcast-listening-read"><small>LISTENING READ // ' + esc(pass.audit.candidateCount) + ' BOUNDED ROUTES // ' + esc(pass.audit.transcriptSegments) + ' WHISPER SEGMENTS</small><p>' + esc(pass.listeningDigest.headline) + '</p>' + shapeMarkup + '<div class="wac-podcast-hot-list">' + candidateButtons(featured) + '</div>' + (remaining.length ? '<details><summary>SHOW ALL ' + esc(remaining.length) + ' ADDITIONAL ROUTES</summary><div class="wac-podcast-hot-list">' + candidateButtons(remaining) + '</div></details>' : '') + '</div>' : '<div class="wac-podcast-listening-read"><small>LISTENING PASS QUEUED</small><p>Official audio is playable now; bounded audio-ranked receipts will appear after the local listening pass.</p></div>';
       return '<article class="wac-podcast-card"><div class="wac-podcast-card-head"><span>OFFICIAL WWAM PODCAST</span><b>' + esc(item.movieTitle) + '</b><small>' + esc(dateLabel(item.date)) + ' // ' + esc(durationLabel(item.duration)) + '</small></div><p>' + esc(item.note) + '</p><audio id="wacPodcastAudio-' + esc(item.key) + '" controls preload="none" src="' + esc(item.sourceUrl || item.url) + '"></audio>' + passMarkup + '<div class="wac-podcast-card-foot"><button type="button" class="wac-podcast-open" data-wac-podcast-open="' + esc(item.key) + '">OPEN LOCAL PODCAST WIKI -></button><a target="_blank" rel="noopener" href="' + esc(item.sourceUrl || item.url) + '">OPEN AUDIO SOURCE -></a><span>RSS TITLE + RUNTIME VERIFIED</span></div></article>';
@@ -277,10 +277,10 @@
     var shape = pass && pass.dossier ? pass.dossier : {};
     var audioId = 'wacPodcastDossierAudio-' + item.key;
     var routeMarkup = candidates.map(function (candidate) {
-      return '<button type="button" class="wac-podcast-dossier-route" data-wac-podcast-dossier-seek="' + esc(item.key) + '" data-wac-podcast-dossier-time="' + esc(candidate.t) + '"><header><b>#' + esc(candidate.rank || '') + ' // ' + esc(candidate.category || 'SOURCE RECEIPT') + '</b><time>' + esc(timestamp(candidate.t)) + '</time></header><p>' + esc(excerpt(candidate.captionExcerpt || candidate.excerpt || 'Podcast-bound receipt.', 360)) + '</p><small>SCORE ' + esc(candidate.score || '—') + ' // PODCAST CLOCK ONLY // ' + esc(candidate.evidenceBasis || 'official WWAM audio + local transcript') + '</small></button>';
+      return '<button type="button" class="wac-podcast-dossier-route" data-wac-podcast-dossier-seek="' + esc(item.key) + '" data-wac-podcast-dossier-time="' + esc(candidate.t) + '"><header><b>#' + esc(candidate.rank || '') + ' // ' + esc(candidate.category || 'SOURCE RECEIPT') + '</b><time>' + esc(timestamp(candidate.t)) + '</time></header><p>' + esc(receiptExcerpt(candidate.captionExcerpt || candidate.excerpt || 'Podcast-bound receipt.', 360)) + '</p><small>SCORE ' + esc(candidate.score || '—') + ' // PODCAST CLOCK ONLY // ' + esc(candidate.evidenceBasis || 'official WWAM audio + local transcript') + '</small></button>';
     }).join('');
     var chapterMarkup = (shape.chapters || []).map(function (chapter) {
-      return '<button type="button" data-wac-podcast-dossier-seek="' + esc(item.key) + '" data-wac-podcast-dossier-time="' + esc(chapter.at) + '"><b>ACT ' + esc(chapter.chapter || '') + ' // ' + esc(chapter.label || 'LISTENING LANE') + '</b><span>' + esc(timestamp(chapter.at)) + '</span><em>' + esc(excerpt(chapter.excerpt, 220)) + '</em></button>';
+      return '<button type="button" data-wac-podcast-dossier-seek="' + esc(item.key) + '" data-wac-podcast-dossier-time="' + esc(chapter.at) + '"><b>ACT ' + esc(chapter.chapter || '') + ' // ' + esc(chapter.label || 'LISTENING LANE') + '</b><span>' + esc(timestamp(chapter.at)) + '</span><em>' + esc(receiptExcerpt(chapter.excerpt, 220)) + '</em></button>';
     }).join('');
     var topicMarkup = (shape.topics || []).slice(0, 12).map(function (topic) {
       return '<button type="button" data-wac-podcast-dossier-seek="' + esc(item.key) + '" data-wac-podcast-dossier-time="' + esc(topic.peak || topic.first) + '"><b>' + esc(topic.name || 'TOPIC') + '</b><small>' + number(topic.mentions || 1) + ' MENTIONS // ' + esc(timestamp(topic.peak || topic.first)) + '</small></button>';
@@ -377,7 +377,11 @@
 
   function routeCard(label, item) {
     if (!item) return '<article class="wac-route-card"><small>' + esc(label) + '</small><b>NO RECEIPT IN THIS DOSSIER</b><p>The source remains linked, but this route cannot be guessed without a bounded caption or reviewed guide cut.</p></article>';
-    return '<article class="wac-route-card"><small>' + esc(label) + ' // ' + esc(timestamp(item.t)) + '</small><b>' + esc(item.category || item.label || "SOURCE RECEIPT") + '</b><p>' + esc(excerpt(item.excerpt || item.quote, 190) || 'Transcript route available; open the timestamp to listen.') + '</p></article>';
+    // Keep the safe receipt pass first. The bounded excerpt fallback is
+    // intentionally explicit for older dossiers that only carry `quote`;
+    // receiptExcerpt still owns the final visitor-facing text boundary.
+    var routeCopy = receiptExcerpt(item.excerpt || item.quote, 190) || excerpt(item.excerpt || item.quote, 190) || 'Transcript route available; open the timestamp to listen.';
+    return '<article class="wac-route-card"><small>' + esc(label) + ' // ' + esc(timestamp(item.t)) + '</small><b>' + esc(item.category || item.label || "SOURCE RECEIPT") + '</b><p>' + esc(routeCopy) + '</p></article>';
   }
 
   function fanReadMarkup(fanRead) {
@@ -392,7 +396,7 @@
   function fanSignalsMarkup(episode, signals) {
     if (!Array.isArray(signals) || !signals.length) return '';
     return '<div class="wac-section-label" style="padding:0 1.5rem">FAN SIGNAL // SUPERCHATS, MEMBERS, AND THE PEOPLE WHO KEEP WALKING BACK IN</div><div class="wac-moment-grid">' + signals.map(function (signal) {
-      return '<article class="wac-moment wac-fan-moment"><header><span>FAN SIGNAL</span><span>' + esc(timestamp(signal.t)) + '</span></header><p>' + esc(signal.excerpt || 'Fan callout receipt available at this timestamp.') + '</p><a target="_blank" rel="noopener" href="' + esc(sourceUrl(episode, signal.t)) + '">OPEN SOURCE AT ' + esc(timestamp(signal.t)) + ' ↗</a></article>';
+      return '<article class="wac-moment wac-fan-moment"><header><span>FAN SIGNAL</span><span>' + esc(timestamp(signal.t)) + '</span></header><p>' + esc(receiptExcerpt(signal.excerpt || 'Fan callout receipt available at this timestamp.', 190)) + '</p><a target="_blank" rel="noopener" href="' + esc(sourceUrl(episode, signal.t)) + '">OPEN SOURCE AT ' + esc(timestamp(signal.t)) + ' ↗</a></article>';
     }).join('') + '</div>';
   }
 
@@ -427,7 +431,8 @@
       var open = podcast
         ? '<button type="button" class="wac-variant-route" data-wac-variant-seek="' + esc(at) + '" data-wac-variant-audio="wacVariantAudio-source">OPEN PODCAST VARIANT AT ' + esc(timestamp(at)) + ' -></button>'
         : '<a' + receiptTarget(chapter) + ' href="' + esc(receiptUrl(episode, chapter)) + '">' + (podcast ? 'OPEN PODCAST VARIANT AT ' : 'OPEN SOURCE AT ') + esc(timestamp(at)) + ' -></a>';
-      return '<article class="wac-chapter"><header><span>ACT ' + esc(chapter.act || chapter.chapter || '') + '</span><span>' + esc(receiptClock(chapter) + timestamp(at)) + '</span></header><b>' + esc(chapter.label || chapter.category || 'WATCH ROUTE') + '</b><p>' + esc(excerpt(chapter.body || chapter.excerpt || 'Open the timestamp and hear this stretch of the tape.', 220)) + '</p>' + open + '</article>';
+      var chapterCopy = chapter.body ? excerpt(chapter.body, 220) : receiptExcerpt(chapter.excerpt || 'Open the timestamp and hear this stretch of the tape.', 220);
+      return '<article class="wac-chapter"><header><span>ACT ' + esc(chapter.act || chapter.chapter || '') + '</span><span>' + esc(receiptClock(chapter) + timestamp(at)) + '</span></header><b>' + esc(chapter.label || chapter.category || 'WATCH ROUTE') + '</b><p>' + esc(chapterCopy) + '</p>' + open + '</article>';
     }).join('') + '</div>';
   }
 
@@ -459,7 +464,7 @@
     var anchors = Array.isArray(digest.anchors) && digest.anchors.length ? digest.anchors : listeningAnchorCandidates(pass.candidates);
     var anchorMarkup = anchors.length && episode ? '<div class="wac-listening-anchors"><span>FIRST LISTENING ANCHORS</span>' + anchors.map(function (anchor) {
       var at = Number(anchor.t || 0);
-      return '<a href="' + esc(sourceUrl(episode, at)) + '"><b>' + esc(anchor.category || 'SOURCE RECEIPT') + '</b><small>' + esc(timestamp(at)) + ' // SCORE ' + esc(anchor.score == null ? '-' : anchor.score) + '</small><p>' + esc(excerpt(anchor.excerpt, 180) || 'Open this bounded route and listen.') + '</p></a>';
+      return '<a href="' + esc(sourceUrl(episode, at)) + '"><b>' + esc(anchor.category || 'SOURCE RECEIPT') + '</b><small>' + esc(timestamp(at)) + ' // SCORE ' + esc(anchor.score == null ? '-' : anchor.score) + '</small><p>' + esc(receiptExcerpt(anchor.excerpt, 180) || 'Open this bounded route and listen.') + '</p></a>';
     }).join('') + '</div>' : '';
     return '<div class="wac-watch-pass-read"><span class="wac-section-label">LISTENING READ // EVIDENCE MIX</span><strong>' + esc(digest.headline || 'The pass retained bounded source routes.') + '</strong>' + (mix.length ? '<small>' + esc(mix.join(' // ')) + '</small>' : '') + '<p>' + esc(digest.evidence || 'Playback remains the authority.') + '</p>' + anchorMarkup + '</div>';
   }
@@ -515,7 +520,7 @@
     var cards = candidates.map(function (candidate) {
       var audio = candidate.audio || {};
       var boundary = candidate.segmentKind === 'podcast-ad-or-intro';
-      var body = '<header><b>#' + esc(candidate.rank) + ' // ' + esc(candidate.category || candidate.label || 'VARIANT RECEIPT') + '</b><span>' + esc(timestamp(candidate.t)) + ' // SCORE ' + esc(candidate.score) + '</span></header><p>' + esc(excerpt(candidate.captionExcerpt || candidate.excerpt, 230) || 'NO TRANSCRIPT FRAGMENT ALIGNED // OPEN THE PODCAST VARIANT AND LISTEN.') + '</p><small>' + (boundary ? 'AD / INTRO BOUNDARY // NOT A WWAM BIT // ' : '') + 'VARIANT AUDIO // ENERGY ' + esc(audio.meanEnergyPercentile) + 'TH PCTL // PEAK ' + esc(audio.peakPercentile) + 'TH PCTL</small>';
+      var body = '<header><b>#' + esc(candidate.rank) + ' // ' + esc(candidate.category || candidate.label || 'VARIANT RECEIPT') + '</b><span>' + esc(timestamp(candidate.t)) + ' // SCORE ' + esc(candidate.score) + '</span></header><p>' + esc(receiptExcerpt(candidate.captionExcerpt || candidate.excerpt, 230) || 'NO TRANSCRIPT FRAGMENT ALIGNED // OPEN THE PODCAST VARIANT AND LISTEN.') + '</p><small>' + (boundary ? 'AD / INTRO BOUNDARY // NOT A WWAM BIT // ' : '') + 'VARIANT AUDIO // ENERGY ' + esc(audio.meanEnergyPercentile) + 'TH PCTL // PEAK ' + esc(audio.peakPercentile) + 'TH PCTL</small>';
       return playable
         ? '<button type="button" class="wac-variant-route' + (boundary ? ' wac-variant-boundary' : '') + '" data-wac-variant-seek="' + esc(candidate.t || 0) + '" data-wac-variant-audio="' + audioId + '">' + body + '</button>'
         : '<a target="_blank" rel="noopener" href="' + esc(source) + '">' + body + '</a>';
@@ -536,7 +541,7 @@
     }
     return '<section class="wac-watch-pass"><header><div><span class="wac-section-label">' + esc(pass.label || 'HALLOWEEN WATCH PASS // AUDIO PILOT') + '</span><h4>LISTEN FOR THE ROOM TO CHANGE.</h4><p>' + esc(pass.note || 'Canonical audio was sampled and aligned to the caption map.') + '</p></div><a target="_blank" rel="noopener" href="' + esc(episode.url) + '">PLAY OFFICIAL SOURCE ↗</a></header><div class="wac-watch-pass-metrics"><span><b>' + number(audit.captionEvents) + '</b>CAPTION EVENTS</span><span><b>' + number(audit.laughterOrOverlapMarkers) + '</b>LAUGHTER / OVERLAP MARKERS</span><span><b>' + number(audit.candidateCount) + '</b>RANKED AUDIO CANDIDATES</span><span><b>' + number(stats.energyP90Seconds) + '</b>HIGH-ENERGY SECONDS</span></div><div class="wac-watch-pass-candidates">' + candidates.map(function (candidate) {
       var audio = candidate.audio || {};
-      var candidateExcerpt = excerpt(candidate.captionExcerpt, 230) || 'NO CAPTION FRAGMENT ALIGNED // OPEN SOURCE AND LISTEN.';
+      var candidateExcerpt = receiptExcerpt(candidate.captionExcerpt, 230) || 'NO CAPTION FRAGMENT ALIGNED // OPEN SOURCE AND LISTEN.';
       var alignment = candidate.captionExcerpt ? '' : ' // ACOUSTIC ONLY';
       return '<a target="_blank" rel="noopener" href="' + esc(sourceUrl(episode, candidate.t)) + '"><header><b>#' + esc(candidate.rank) + ' // ' + esc(watchCandidateLabel(episode, candidate)) + alignment + '</b><span>' + esc(timestamp(candidate.t)) + ' // SCORE ' + esc(candidate.score) + '</span></header><p>' + esc(candidateExcerpt) + '</p><small>ENERGY ' + esc(audio.meanEnergyPercentile) + 'TH PCTL // PEAK ' + esc(audio.peakPercentile) + 'TH PCTL // ' + (audio.markerObserved ? 'MARKER OBSERVED' : 'NO MARKER') + '</small></a>';
     }).join('') + '</div><p class="wac-watch-pass-foot">AUDIO-ONLY PILOT // ACOUSTIC INTENSITY RE-RANKS THE CAPTION CANDIDATES; IT DOES NOT IDENTIFY A SPEAKER OR PROVE A JOKE. PLAYBACK REMAINS THE AUTHORITY.</p></section>';
