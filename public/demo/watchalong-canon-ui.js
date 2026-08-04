@@ -823,5 +823,5 @@
   if (root.MutationObserver) {
     new root.MutationObserver(keepLocalJumpLinksInApp).observe(mount, { childList: true, subtree: true });
   }
-  root.WWAMWatchalongCanonUI = Object.freeze({ version: "1.8.1", render: render, payload: payload });
+  root.WWAMWatchalongCanonUI = Object.freeze({ version: "1.8.2", render: render, payload: payload });
 })(typeof window !== "undefined" ? window : globalThis);
