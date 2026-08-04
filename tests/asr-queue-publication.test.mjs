@@ -109,6 +109,13 @@ test("local Whisper routes never fall back to stale automatic-caption text", () 
   assert.match(generator, /localWhisper \? captionWindowAt\(events, candidate\.t\) : \"\"/);
 });
 
+test("automatic-caption repair uses a chronological merge instead of a quadratic scan", () => {
+  const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-livestream-canon.mjs"), "utf8");
+  assert.match(generator, /Both tracks are chronological/);
+  assert.match(generator, /while \(nearest \+ 1 < automatic\.length\)/);
+  assert.doesNotMatch(generator, /automatic\.forEach\(\(candidate, index\)/);
+});
+
 test("livestream watch-pass candidates use the bounded public receipt path", () => {
   const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-livestream-canon.mjs"), "utf8");
   assert.match(generator, /const captionExcerpt = localWhisper\s*\n\s*\? captionExcerptAt\(events, candidate\.t, 16\)/);

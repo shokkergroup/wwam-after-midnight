@@ -240,14 +240,19 @@ function captionEvents(id) {
     // time-aligned automatic-caption window as a repair candidate when the
     // Whisper decoder stutters or drops a short phrase. This is not mixed
     // provenance: the public card still labels the route as local Whisper.
+    if (!automatic.length) return asrEvents;
+    // Both tracks are chronological. A moving cursor turns the old
+    // event-times-caption-events scan into a linear merge while preserving
+    // the exact nearest-window choice for every Whisper segment.
+    let nearest = 0;
     return asrEvents.map((event) => {
-      if (!automatic.length) return event;
-      let nearest = 0;
-      let distance = Infinity;
-      automatic.forEach((candidate, index) => {
-        const nextDistance = Math.abs(Number(candidate.t || 0) - Number(event.t || 0));
-        if (nextDistance < distance) { nearest = index; distance = nextDistance; }
-      });
+      const target = Number(event.t || 0);
+      while (nearest + 1 < automatic.length) {
+        const currentDistance = Math.abs(Number(automatic[nearest]?.t || 0) - target);
+        const nextDistance = Math.abs(Number(automatic[nearest + 1]?.t || 0) - target);
+        if (nextDistance > currentDistance) break;
+        nearest += 1;
+      }
       return { ...event, fallbackText: captionWindow(automatic, nearest) };
     });
   }
