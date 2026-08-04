@@ -158,6 +158,8 @@ test("visitor-facing recap quotes strip non-speech Whisper stage cues and vary t
 test("public moment and receipt shelves use the sentence-safe excerpt path", () => {
   const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-livestream-canon.mjs"), "utf8");
   assert.match(generator, /function safeExcerpt\(value, limit = 20\)/);
+  assert.match(generator, /function captionFragments\(events, index/);
+  assert.match(generator, /const expand = \(value\) => Array\.isArray\(value\) \? value : \[value\]/);
   assert.match(generator, /const publicLimit = Math\.min\(16, Math\.max\(8, Number\(limit\) \|\| 20\)\)/);
   assert.match(generator, /const boundedSentence = \(sentence\) =>/);
   assert.match(generator, /function trimDanglingClause\(value\)/);

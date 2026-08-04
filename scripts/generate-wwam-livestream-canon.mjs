@@ -263,6 +263,26 @@ function captionWindow(events, index, before = 5, after = 12, field = "text") {
   });
   return deduped.join(" ");
 }
+function captionFragments(events, index, before = 5, after = 12, field = "text") {
+  const anchor = events[index];
+  if (!anchor) return [];
+  const nearby = [];
+  for (let cursor = Math.max(0, index - 3); cursor <= Math.min(events.length - 1, index + 5); cursor += 1) {
+    const event = events[cursor];
+    if (event.t < anchor.t - before || event.t > anchor.t + after) continue;
+    if (nearby.length && event.t - events[cursor - 1].t > 6) continue;
+    const text = clean(event[field] || (field === "fallbackText" ? "" : event.text));
+    if (text) nearby.push({ event, text });
+  }
+  const fragments = [captionWindow(events, index, before, after, field)];
+  nearby.forEach((item) => fragments.push(item.text));
+  for (let cursor = 0; cursor < nearby.length - 1; cursor += 1) {
+    if (nearby[cursor + 1].event.t - nearby[cursor].event.t <= 6) {
+      fragments.push(`${nearby[cursor].text} ${nearby[cursor + 1].text}`);
+    }
+  }
+  return Array.from(new Set(fragments.map(clean).filter(Boolean)));
+}
 function captionWindowAt(events, seconds, maxDistance = 42, field = "text") {
   if (!events.length) return "";
   let nearest = 0;
@@ -333,13 +353,17 @@ function isWeakPublicReceipt(value) {
   return !text || /[,.]\s*\.$/.test(text) || isNoisyTranscript(text);
 }
 function bestCaptionExcerpt(primary, fallback, limit = 24) {
-  const candidates = [primary, fallback].map((value) => safeExcerpt(value, limit)).filter((value) => !isWeakPublicReceipt(value));
+  const expand = (value) => Array.isArray(value) ? value : [value];
+  const candidates = [...expand(primary), ...expand(fallback)].map((value) => safeExcerpt(value, limit)).filter((value) => !isWeakPublicReceipt(value));
   if (!candidates.length) return "";
   return candidates.slice().sort((left, right) => excerptQuality(right) - excerptQuality(left) || words(right).length - words(left).length)[0];
 }
 function captionExcerptAt(events, seconds, limit = 24) {
-  const primary = captionWindowAt(events, seconds, 42, "text");
-  const fallback = captionWindowAt(events, seconds, 42, "fallbackText");
+  const primaryIndex = events.reduce((best, event, index) => Math.abs(Number(event.t || 0) - Number(seconds || 0)) < Math.abs(Number(events[best]?.t || 0) - Number(seconds || 0)) ? index : best, 0);
+  const distance = events.length ? Math.abs(Number(events[primaryIndex]?.t || 0) - Number(seconds || 0)) : Infinity;
+  if (distance > 42) return "";
+  const primary = captionFragments(events, primaryIndex, 5, 12, "text");
+  const fallback = captionFragments(events, primaryIndex, 5, 12, "fallbackText");
   return bestCaptionExcerpt(primary, fallback, limit);
 }
 function refreshMachineMomentExcerpt(moment, events) {
@@ -578,7 +602,7 @@ function recurringBits(events, moments, fan, duration, listeningRoutes = []) {
     const ranked = hits.slice().sort((a, b) => words(b.text).length - words(a.text).length || a.t - b.t);
     const receipts = ranked.slice(0, receiptLimit).map((item) => ({
       t: Math.round(item.t), end: Math.round(item.end || item.t + 36),
-      excerpt: item.index >= 0 ? bestCaptionExcerpt(captionWindow(events, item.index), captionWindow(events, item.index, 5, 12, "fallbackText"), 24) : safeExcerpt(item.text, 24),
+      excerpt: item.index >= 0 ? bestCaptionExcerpt(captionFragments(events, item.index), captionFragments(events, item.index, 5, 12, "fallbackText"), 24) : safeExcerpt(item.text, 24),
       signalType: item.signalType || null, evidenceBasis: eventEvidenceBasis, reviewStatus: "machine-candidate"
     }));
     const laneMoments = moments.filter((moment) => laneLabelMatches(moment.category || moment.label, lane.label));
