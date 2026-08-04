@@ -170,6 +170,7 @@ function isNoisyTranscript(value) {
     || /\b(?:these|those)\s+(?:this|that)\s+(?:one|right|is|was)\b/i.test(text)
     || /\bthat(?:'s|\s+is)\s+not\s+that\s+one(?:'s|\s+is)\b/i.test(text)
     || /\b(?:these|those)\s+and\s+these\s+this\b/i.test(text)
+    || /\b(?:the|a|an)\s+(?:that|this)\b/i.test(text)
     // Preserve the audio route but suppress obvious Whisper boundary joins
     // such as "I If..." or "I it did..." from public clip receipts.
     || /\bI\s+(?:if|what|well|you|she|it|they|he|we)\b/.test(text)

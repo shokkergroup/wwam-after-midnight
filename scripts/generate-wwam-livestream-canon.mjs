@@ -365,6 +365,7 @@ function isNoisyTranscript(value) {
     /\b(?:these|those)\s+(?:this|that)\s+(?:one|right|is|was)\b/i,
     /\bthat(?:'s|\s+is)\s+not\s+that\s+one(?:'s|\s+is)\b/i,
     /\b(?:these|those)\s+and\s+these\s+this\b/i,
+    /\b(?:the|a|an)\s+(?:that|this)\b/i,
     /\b(?:said|says|asked|asks|was like|were like|be like)\s*[,;:]\s*["']?\s*$/i,
     /\b(?:uh|um|er|like)[,.]?\s+(?:uh|um|er|like)[,.]?\s+(?:uh|um|er|like)\b/i,
     /\b(?:don't|never|ever|always)\s+(?:you|we|they|he|she|i)\s+[A-Za-z][^.!?]*\s+(?:again|but|and)\b/i,
