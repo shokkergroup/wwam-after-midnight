@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.1.4-editorial-read";
+  var VERSION = "1.1.6-receipt-quarantine";
 
   function array(value) { return Array.isArray(value) ? value : []; }
   function clean(value) { return String(value == null ? "" : value).trim(); }
@@ -12,6 +12,38 @@
   }
   function attr(value) { return esc(value); }
   function fmt(value) { return Number(value || 0).toLocaleString("en-US"); }
+  // Halloween receipts are still source-local caption routes unless an audio
+  // pass has explicitly promoted them. Never print decoder soup as a quote:
+  // keep the timestamp and invite the visitor to hear the real exchange.
+  function receiptExcerpt(value, limit) {
+    var raw = clean(value)
+      .replace(/\[(?:laughter|music|applause|inaudible|crosstalk|\s*[_-]+\s*)\]/gi, " ")
+      .replace(/>>\s*/g, "")
+      .replace(/\b(?:uh|um|er)\b/gi, " ")
+      .replace(/\b(\w+)(?:\s+\1\b)+/gi, "$1")
+      .replace(/\s+/g, " ").trim();
+    if (!raw) return "Caption receipt available at this timestamp. Press play to hear the exchange.";
+    var words = raw.split(/\s+/).filter(Boolean);
+    var bad = [
+      /\b(?:is|are|was|were)\s+(?:is|are|was|were|has|have)\b/i,
+      /\b(?:is|are|was|were)\s+(?:a|an|the)\s+(?:is|are|was|were|it|that|this)\b/i,
+      /\b([a-z]{2,})\s+(?:is|are|was|were)\s+(?:a|an|the)\s+\1\b/i,
+      /\b(?:like|just)\s+(?:like|just)\b/i,
+      /\b(?:it|this|that)\s+(?:is|was|are|were|like)\s+(?:it|this|that)\b/i,
+      /\b(?:oh|hey|shh)\s+(?:oh|hey|shh)\b/i,
+      /\b(?:before|after|then)\s+[^.!?]{0,36}\b(?:before|after|then)\b/i
+    ].some(function (pattern) { return pattern.test(raw); });
+    var filler = words.filter(function (word) { return /^(?:oh|yeah|like|just|well|okay|right|uh|um|er|so|and|but)$/i.test(word); }).length;
+    var tiny = words.filter(function (word) { return word.replace(/[^A-Za-z']/g, "").length <= 1; }).length;
+    var noSentence = !/[.!?]/.test(raw) && words.length > 12;
+    var fragmented = words.length >= 10 && ((filler / words.length) > .34 || (tiny / words.length) > .22);
+    if (bad || noSentence || fragmented) return "Caption route at this timestamp. Press play to hear the real exchange; the auto-caption window was too rough to print as a quote.";
+    var max = Number(limit || 220);
+    if (raw.length <= max) return raw.charAt(0).toUpperCase() + raw.slice(1);
+    var cut = raw.slice(0, max), last = Math.max(cut.lastIndexOf("."), cut.lastIndexOf("!"), cut.lastIndexOf("?"));
+    var trimmed = last >= Math.min(72, max - 1) ? cut.slice(0, last + 1) : cut.replace(/\s+\S*$/, "") + ".";
+    return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+  }
   function youtubeUrl(sourceId, start) {
     var id = clean(sourceId);
     if (!/^[A-Za-z0-9_-]{11}$/.test(id)) return "";
@@ -95,7 +127,7 @@
       (item.start != null ? '<time>' + esc(time(item.start)) + (item.end != null ? ' - ' + esc(time(item.end)) : "") + '</time>' : "") +
       '</div><h4>' + esc(item.label || item.title || "SOURCE RECEIPT") + '</h4>' +
       (item.film ? '<p class="hu-receipt-film">' + esc(item.film) + '</p>' : "") +
-      (item.excerpt ? '<blockquote>&ldquo;' + esc(item.excerpt) + '&rdquo;</blockquote>' : "") +
+      (item.excerpt ? '<blockquote>&ldquo;' + esc(receiptExcerpt(item.excerpt)) + '&rdquo;</blockquote>' : "") +
       (item.performanceStatus === "not-established" ? '<p class="hu-warning">A NAME MENTION - NOT A CONFIRMED CHARACTER BIT</p>' : "") +
       (item.reviewRequired ? '<p class="hu-warning">POSSIBLE HATE MOMENT - PLAY THE SURROUNDING MINUTE FIRST</p>' : "") +
       '<div class="hu-receipt-actions">' + playButton(item) + sourceLink(item) + '</div></article>';

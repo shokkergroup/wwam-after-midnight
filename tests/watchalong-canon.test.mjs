@@ -12,6 +12,7 @@ const ui = fs.readFileSync(path.join(demo, "watchalong-canon-ui.js"), "utf8");
 const css = fs.readFileSync(path.join(demo, "watchalong-canon.css"), "utf8");
 const app = fs.readFileSync(path.join(demo, "app.js"), "utf8");
 const dossierCss = fs.readFileSync(path.join(demo, "source-dossier.css"), "utf8");
+const halloweenUi = fs.readFileSync(path.join(demo, "halloween-universe-ui.js"), "utf8");
 const livestreamAnchors = fs.readFileSync(path.join(demo, "livestream-audio-anchors.js"), "utf8");
 const livestreamAnchorsCss = fs.readFileSync(path.join(demo, "livestream-audio-anchors.css"), "utf8");
 const context = { console };
@@ -31,6 +32,45 @@ test("primary navigation exposes the signature comedy lanes", () => {
   assert.match(html, /class="nav-signature nav-upinya"[^>]+href="#upinya"/);
   assert.match(html, />STEVE'S ASSHOLE<\/a>/);
   assert.match(html, />UP IN YA<\/a>/);
+});
+
+test("Halloween Universe quarantines rough caption windows instead of printing decoder soup", () => {
+  const halloweenContext = { console };
+  halloweenContext.window = halloweenContext;
+  vm.createContext(halloweenContext);
+  vm.runInContext(halloweenUi, halloweenContext);
+  const model = {
+    query: "",
+    activeTab: "films",
+    selectedFilm: {
+      id: "12345678901",
+      order: 1,
+      film: "Halloween Test Tape",
+      thumbnail: "https://example.test/thumb.jpg",
+      access: "captured",
+      duration: 120,
+      wordsAudited: 120,
+      captionEvents: 4,
+      topicDoors: [],
+      characterReferences: [],
+      variants: [],
+      moments: [{ sourceId: "12345678901", start: 10, end: 20, label: "UP IN YA", excerpt: "it is is the it before this before that" }]
+    },
+    films: [],
+    paths: [],
+    activePath: null,
+    searchResults: [],
+    loomis: [],
+    challis: [],
+    upInYa: [],
+    steve: [],
+    canon: [],
+    evidenceLegend: [],
+    summary: { films: 1, auditedWords: 120, topicDoors: 0, characterCallbacks: 0, alternateTreatments: 0, canonSources: 1 }
+  };
+  const rendered = halloweenContext.WWAMHalloweenUniverseUI.renderMarkup(model);
+  assert.doesNotMatch(rendered, /it is is the it before this before that/);
+  assert.match(rendered, /auto-caption window was too rough to print as a quote/);
 });
 
 test("cold-route Show Wiki index mirrors every source and keeps full dossier cuts", () => {
