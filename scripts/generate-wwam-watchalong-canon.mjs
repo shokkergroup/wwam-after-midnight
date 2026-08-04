@@ -155,6 +155,17 @@ function isNoisyTranscript(value) {
     || /\b(?:do you do|the both of you|i just don't i|the just the|i saw it in the just the)\b/i.test(text)
     || /\b(?:he|she|it|they|we|you|i)(?:'s|'re|'m)?\s+(?:a|an|the)\s+(?:all|by|with|to|from)\b/i.test(text)
     || /\b(?:like|so|yeah|well)\b.*\b(?:like|so|yeah|well)\b.*\b(?:like|so|yeah|well)\b/i.test(text)
+    // Low-confidence decoder joins that look grammatical one word at a time
+    // but read as a broken caption on the page. Keep the timestamped door;
+    // suppress the false promise of a clean quotation.
+    || /\b(?:the|a|an)\s+[a-z][a-z'-]*\s+(?:the|a|an)\s+[a-z][a-z'-]*\b/i.test(text)
+    || /\b(?:what|who)\s+the\s+(?:who|what|is|the)\b/i.test(text)
+    || /\b(?:got|have|has|was|were|is|are)\s+to\s+(?:this|that)\s+[a-z][a-z'-]*\s+(?:up|down)\b/i.test(text)
+    || /^\s*(?:i|you|we|they|he|she)\s+maybe\b/i.test(text)
+    || /\b(?:between|because|since|although|while|when|if|which|that|who|from|with|for|to|of|in|on|at)\.?$/i.test(text)
+    || /[.!?]\s+[a-z]/.test(text)
+    || /\b([a-z]{4,})(?:s|es|ed|ing)?\s+\1(?:s|es|ed|ing)?\b/i.test(text)
+    || /\b(?:the|a|an)\s+(?:his|her|their|my|your|our|its)\b/i.test(text)
     // Preserve the audio route but suppress obvious Whisper boundary joins
     // such as "I If..." or "I it did..." from public clip receipts.
     || /\bI\s+(?:if|what|well|you|she|it|they|he|we)\b/.test(text)
@@ -1062,11 +1073,12 @@ function episodeFrom(id) {
         ? publicReceiptText(excerpt(whisperContext.text, 16))
         : (sourceKind === "local-whisper-transcript" ? "" : publicReceiptText(excerpt(normalizeCaptionText(candidate.captionExcerpt || ""), 16)));
       const nearbyCaption = whisperContext || (captionExcerpt ? null : nearestCaptionContext(events, at));
+      const nearbyReceipt = nearbyCaption
+        ? publicReceiptText(excerpt(`NEARBY CAPTION CONTEXT // ${nearbyCaption.text}`, 16))
+        : "";
       const receiptExcerpt = captionExcerpt
-        ? captionExcerpt
-        : nearbyCaption
-          ? publicReceiptText(excerpt(`NEARBY CAPTION CONTEXT // ${nearbyCaption.text}`, 16))
-          : "No caption fragment aligned; open the source and listen to this acoustic window.";
+        || nearbyReceipt
+        || "No caption fragment aligned; open the source and listen to this acoustic window.";
       return {
         id: `audio-${Math.round(at)}-${index + 1}`,
         t: Math.round(at),
@@ -1076,13 +1088,16 @@ function episodeFrom(id) {
         score: Number(candidate.score || 0),
         excerpt: receiptExcerpt,
         captionAligned: Boolean(captionExcerpt),
-        captionContext: Boolean(nearbyCaption),
+        // A nearest-event object alone is not a usable fallback. Mark this
+        // as context only when the exact excerpt was not available and the
+        // card is genuinely using a nearby caption window.
+        captionContext: Boolean(nearbyCaption?.text && !captionExcerpt),
         captionContextAt: nearbyCaption?.at || null,
         captionContextDistance: nearbyCaption?.distance || null,
         topic: nearestTopic?.name || null,
         audioRank: Number(candidate.rank || index + 1),
         audio: candidate.audio || null,
-        evidenceBasis: whisperContext
+        evidenceBasis: captionExcerpt && whisperContext
           ? "canonical YouTube audio + source-local Whisper transcript alignment"
           : captionExcerpt
             ? "canonical YouTube audio + source-local caption alignment"

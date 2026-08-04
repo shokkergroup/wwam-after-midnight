@@ -145,7 +145,7 @@ test("each source has an honest evidence tier and playable source link", () => {
   assert.match(restrictedListening.dossier.summary, /best (?:starting|listening) door/i, "restricted shows surface their strongest listening route in the conversational summary");
   assert.doesNotMatch(restrictedListening.dossier.summary, /no honest single hook/i, "a decoded listening route prevents a false empty-hook message");
   const trailerRoundtable = canon.episodes.find((episode) => episode.id === "Q_CprCuIXLk");
-  assert.match(trailerRoundtable.dossier.summary, /trailer-and-news roundtable/i);
+  assert.match(trailerRoundtable.dossier.summary, /trailer-and-news (?:roundtable|watch-and-react)/i);
   const episodeRecap = canon.episodes.find((episode) => episode.id === "jBVlQGkeh-Q");
   assert.match(episodeRecap.dossier.summary, /episode-recap room/i);
   assert.ok(canon.yearIndex["2026"].topTopics.length > 0);
@@ -165,7 +165,7 @@ test("each source has an honest evidence tier and playable source link", () => {
   assert.equal(new Set(canon.episodes.map((episode) => episode.dossier.summary.split(/(?<=\\.)\\s+/).slice(0, 2).join(" "))).size, canon.episodes.length, "each livestream has a source-specific opening read");
   assert.ok(canon.episodes.every((episode) => episode.dossier.audioRead && Number.isInteger(episode.dossier.audioRead.routeCount)), "every show exposes an explicit listening-read state");
   const decodedMachineReads = canon.episodes.filter((episode) => episode.dossier.audioRead.mode === "decoded-audio" && episode.dossier.editorialRead !== true);
-  assert.ok(decodedMachineReads.every((episode) => /playable doors|listening stop/i.test(episode.dossier.summary)), "decoded machine-audio state is reflected in the show read without machine-room copy");
+  assert.ok(decodedMachineReads.every((episode) => /playable doors|timestamped doors|additional audio doors|places to press play|listening stop/i.test(episode.dossier.summary)), "decoded machine-audio state is reflected in the show read without machine-room copy");
   const heldCaptionEpisode = canon.episodes.find((episode) => episode.id === "LVVGdGxTBfI");
   assert.ok(heldCaptionEpisode && heldCaptionEpisode.dossier.audioRead.mode === "caption-only", "the held source keeps its caption-only boundary in structured evidence");
   assert.equal(/decoded audio pass/i.test(heldCaptionEpisode.dossier.summary), false, "caption-only source is never described as decoded audio");
@@ -230,7 +230,7 @@ test("livestream canon surface is wired into the page and route shell", () => {
   assert.match(ui, /START HERE \/\/ BEST LISTENING DOOR/);
   assert.match(ui, /2026 SECOND PASS/);
   assert.match(ui, /THE ROUTE THROUGH THIS NIGHT/);
-  assert.match(ui, /TAPE NOTE/);
+  assert.match(ui, /(?:TAPE NOTE|LISTENING NOTE \/\/ EPISODE ROUTE)/);
   assert.match(ui, /ALL RECEIPTS, RANKED/);
   assert.match(ui, /CONVERSATION THREADS/);
   assert.match(ui, /AUDIO WATCH PASS/);

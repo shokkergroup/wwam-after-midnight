@@ -346,6 +346,21 @@ function isNoisyTranscript(value) {
     // overlap, not a useful sentence. Preserve the listening door instead.
     /\b(?:i|you|he|she|we|they)\s+(?:don't|can't|won't|didn't)\b(?:\s+[a-z']+){0,3}\s+\b(?:i|you|he|she|we|they)\s+(?:don't|can't|won't|didn't)\b(?:\s+[a-z']+){0,3}\s+\b(?:i|you|he|she|we|they)\s+(?:don't|can't|won't|didn't)\b/i,
     /\b(?:between\d|what the do|i'm not it's not|he never got a chance.*never|top\s*\.)\b/i,
+    // Low-confidence decoder joins that look grammatical one word at a time
+    // but read as a broken caption on the page ("the step the way", "the
+    // truck wash the bathroom", "What the Who..."). Keep the timestamped
+    // door; suppress the false promise of a clean quotation.
+    /\b(?:the|a|an)\s+[a-z][a-z'-]*\s+(?:the|a|an)\s+[a-z][a-z'-]*\b/i,
+    /\b(?:what|who)\s+the\s+(?:who|what|is|the)\b/i,
+    /\b(?:got|have|has|was|were|is|are)\s+to\s+(?:this|that)\s+[a-z][a-z'-]*\s+(?:up|down)\b/i,
+    /^\s*(?:i|you|we|they|he|she)\s+maybe\b/i,
+    /\b(?:between|because|since|although|while|when|if|which|that|who|from|with|for|to|of|in|on|at)\.?$/i,
+    // A lower-case restart after punctuation and a repeated word stem are
+    // common decoder boundary artifacts ("... January. hey ...", "reach
+    // reaches"). They are useful audio routes, not clean public quotes.
+    /[.!?]\s+[a-z]/,
+    /\b([a-z]{4,})(?:s|es|ed|ing)?\s+\1(?:s|es|ed|ing)?\b/i,
+    /\b(?:the|a|an)\s+(?:his|her|their|my|your|our|its)\b/i,
     /\b(?:said|says|asked|asks|was like|were like|be like)\s*[,;:]\s*["']?\s*$/i,
     /\b(?:uh|um|er|like)[,.]?\s+(?:uh|um|er|like)[,.]?\s+(?:uh|um|er|like)\b/i,
     /\b(?:don't|never|ever|always)\s+(?:you|we|they|he|she|i)\s+[A-Za-z][^.!?]*\s+(?:again|but|and)\b/i,

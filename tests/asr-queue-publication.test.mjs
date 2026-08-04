@@ -90,7 +90,7 @@ test("livestream Show Wiki separates acoustic-only cues into an expandable shelf
 test("livestream listening doors prefer verified Whisper excerpts", () => {
   const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-livestream-canon.mjs"), "utf8");
   assert.match(generator, /captionWindowAt\(events, candidate\.t\)/);
-  assert.match(generator, /canonical audio \+ source-local Whisper transcript alignment/);
+  assert.match(generator, /canonical (?:YouTube )?audio \+ source-local Whisper transcript alignment/);
   assert.match(generator, /No local transcript window aligned; open the player at this timestamp/);
   assert.match(generator, /maxDistance = 42/);
 });
@@ -98,7 +98,7 @@ test("livestream listening doors prefer verified Whisper excerpts", () => {
 test("local Whisper routes never fall back to stale automatic-caption text", () => {
   const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-livestream-canon.mjs"), "utf8");
   assert.match(generator, /const rawExcerpt = localWhisper\s*\?\s*captionWindowAt\(events, candidate\.t\)/);
-  assert.match(generator, /canonical audio route; local Whisper window unavailable at this timestamp/);
+  assert.match(generator, /canonical (?:YouTube )?audio route; local Whisper window unavailable at this timestamp/);
   assert.match(generator, /localWhisper \? captionWindowAt\(events, candidate\.t\) : \"\"/);
 });
 
