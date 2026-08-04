@@ -40,8 +40,15 @@ test("overnight supervisor retries a genuinely stalled queue worker", () => {
   assert.match(supervisor, /function Test-QueueStall/);
   assert.match(supervisor, /no CPU\/log progress/);
   assert.match(supervisor, /Stop-Process -Id/);
-  assert.match(supervisor, /QuietMinutes = 45/);
+  assert.match(supervisor, /QuietMinutes = 20/);
   assert.match(supervisor, /--batch-size\", \"4\"/);
+});
+
+test("the live companion watchdog uses the same twenty-minute recovery window", () => {
+  const watchdog = fs.readFileSync(path.join(root, "scripts", "watch_wwam_asr_20min.ps1"), "utf8");
+  assert.match(watchdog, /TotalMinutes\s*-ge 20/);
+  assert.match(watchdog, /run_wwam_asr_queue\\\.py/);
+  assert.match(watchdog, /Stop-Process/);
 });
 
 test("overnight supervisor refuses competing instances", () => {
