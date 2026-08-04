@@ -1105,6 +1105,31 @@
         if (variantNode) variantNode.scrollIntoView({ behavior: "smooth", block: "start" });
       });
     });
+    // Shared Show Wiki links carry a section name. The rich dossier knows how
+    // to honor every section, but the cold shell used to ignore it and leave
+    // a visitor at the top of a long modal. Keep the fallback truthful and
+    // still land people at the useful local equivalent: play, the short read,
+    // or the bounded moment rail.
+    var fallbackSectionTargets = {
+      player: "fallback-player",
+      wiki: "fallback-about",
+      inside: "fallback-routes",
+      proof: "fallback-routes",
+      chronology: "fallback-routes",
+      footprint: "fallback-routes",
+      wake: "fallback-routes",
+      work: "fallback-routes",
+      ask: "fallback-about",
+      aftermath: "fallback-about",
+      boundary: "fallback-about",
+    };
+    var fallbackTargetId = fallbackSectionTargets[String(section || "").toLowerCase()];
+    if (fallbackTargetId) {
+      setTimeout(function () {
+        var fallbackTarget = document.getElementById(fallbackTargetId);
+        if (fallbackTarget) fallbackTarget.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 35);
+    }
     syncBackgroundInert();
     focusSoon("#modalClose");
     return true;

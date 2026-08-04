@@ -232,6 +232,7 @@
 .source-dossier-fallback-nav { position: sticky; top: 0; z-index: 4; display: flex; gap: 1px; padding: 1px; background: rgba(246,240,231,.16); border-bottom: 1px solid rgba(246,240,231,.16); }
 .source-dossier-fallback-nav a { flex: 1; padding: 13px 15px; color: #f5f0e9; background: #111015; font: 800 10px/1 var(--mono,"IBM Plex Mono",monospace); letter-spacing: .08em; text-align: center; text-decoration: none; }
 .source-dossier-fallback-nav a:hover { color: #c9ff18; background: rgba(201,255,24,.08); }
+.source-dossier-fallback [id] { scroll-margin-top: 1.2rem; }
 .source-dossier-fallback-player, .source-dossier-fallback-about, .source-dossier-fallback-routes { padding: clamp(20px,3vw,34px); }
 .source-dossier-fallback-boundary { margin: 0; color: #8d858e; font: 500 11px/1.5 var(--body,"DM Sans",sans-serif); }
 .source-dossier-fallback-about { border-top: 1px solid rgba(246,240,231,.1); border-bottom: 1px solid rgba(246,240,231,.1); }

@@ -380,3 +380,11 @@ test("Show Wiki copy keeps rough captions playable without printing decoder soup
   assert.match(app, /function humanMomentReceipt\(/);
   assert.match(app, /Caption route only; press play to hear this moment/);
 });
+
+test("cold Show Wiki deep links snap to a useful local section", () => {
+  assert.match(app, /fallbackSectionTargets/);
+  assert.match(app, /wiki:\s*"fallback-about"/);
+  assert.match(app, /inside:\s*"fallback-routes"/);
+  assert.match(app, /scrollIntoView\(\{ behavior: "smooth", block: "start" \}\)/);
+  assert.match(dossierCss, /source-dossier-fallback \[id\]\s*\{\s*scroll-margin-top/);
+});
