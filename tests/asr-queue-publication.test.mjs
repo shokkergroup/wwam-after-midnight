@@ -326,5 +326,6 @@ test("watchalong publication keeps special broadcasts visible and bounds nearby 
   assert.match(generator, /function isNoisyTranscript\(value\)/);
   assert.match(generator, /obvious Whisper boundary joins/);
   assert.match(generator, /function sanitizePublicExcerpt\(value\)/);
+  assert.match(generator, /function publicReceiptText\(value\)[\s\S]*isNoisyTranscript\(text\)/, "guide cuts use the same transcript splice quarantine");
   assert.match(generator, /isLikelyFragment\(cased\) \|\| isNoisyTranscript\(cased\)/);
 });
