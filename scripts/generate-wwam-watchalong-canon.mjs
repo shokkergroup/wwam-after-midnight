@@ -181,7 +181,10 @@ function sanitizePublicExcerpt(value) {
 }
 function publicReceiptText(value) {
   const text = sanitizePublicExcerpt(value);
-  if (!text || /[,.]\s*\.$/.test(text) || /\bwhat the do\b/i.test(text)) return "";
+  // Editorial guide cuts can bypass the caption excerpt selector. Run the
+  // same source-local splice quarantine here so stale decoder collisions are
+  // never copied into the public dossier or cold route index.
+  if (!text || /[,.]\s*\.$/.test(text) || /\bwhat the do\b/i.test(text) || isNoisyTranscript(text)) return "";
   return text;
 }
 
