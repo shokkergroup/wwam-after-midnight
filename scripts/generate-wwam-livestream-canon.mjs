@@ -309,6 +309,11 @@ function isNoisyTranscript(value) {
     /\b(?:and|but|so)\s+(?:he|she|they|we|it)\s+(?:up|down|out|off)\s+(?:that|the)\b/i,
     /\b(?:like|so|yeah|well)\b.*\b(?:like|so|yeah|well)\b.*\b(?:like|so|yeah|well)\b/i,
     /\b(?:do you do|the both of you|i just don't i|the just the|i saw it in the just the)\b/i,
+    // Decoder clause collisions can look grammatical word-by-word while
+    // splicing two competing starts together ("I hate this is the To me").
+    // Keep the audio route, but do not promote the stitched text as a quote.
+    /\b(?:this|that|it)\s+is\s+the\s+(?:to|for)\s+me\b/i,
+    /\b(?:i|you|he|she|we|they)\s+(?:hate|love|like)\s+(?:this|that|it)\s+is\s+the\b/i,
     /\b(?:between\d|what the do|i'm not it's not|he never got a chance.*never|top\s*\.)\b/i,
     /\b(?:said|says|asked|asks|was like|were like|be like)\s*[,;:]\s*["']?\s*$/i,
     /\b(?:uh|um|er|like)[,.]?\s+(?:uh|um|er|like)[,.]?\s+(?:uh|um|er|like)\b/i,

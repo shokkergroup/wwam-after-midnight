@@ -35,6 +35,10 @@ function inspect(value, sourceId, field, failures) {
   if (/\b(?:do you do|the both of you|i just don't i|the just the|i saw it in the just the|what the do|i'm not it's not)\b/i.test(text)) {
     failures.push({ sourceId, field, kind: "decoder-collision", text });
   }
+  if (/\b(?:this|that|it)\s+is\s+the\s+(?:to|for)\s+me\b/i.test(text)
+    || /\b(?:i|you|he|she|we|they)\s+(?:hate|love|like)\s+(?:this|that|it)\s+is\s+the\b/i.test(text)) {
+    failures.push({ sourceId, field, kind: "clause-collision", text });
+  }
   if (/\b(?:like|so|yeah|well)\b.*\b(?:like|so|yeah|well)\b.*\b(?:like|so|yeah|well)\b/i.test(text)) {
     failures.push({ sourceId, field, kind: "filler-collision", text });
   }
