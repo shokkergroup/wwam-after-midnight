@@ -3190,6 +3190,17 @@ test("caption transport debris stays playable navigation instead of becoming pro
   assert.match(mount.innerHTML, /JUMP TO 05:44/);
 });
 
+test("stacked decoder clause joins are quarantined without losing the play door", () => {
+  const dossier = makeDossier();
+  dossier.source.receipts[2].excerpt =
+    "It is is the it before this before that and the caption keeps going.";
+  const { ui, mount } = setup(dossier);
+  ui.render("SOURCE00001", { fullFile: true });
+
+  assert.doesNotMatch(mount.innerHTML, /It is is the it before this before that/);
+  assert.match(mount.innerHTML, /JUMP TO 03:22/);
+});
+
 test("deep-linked player view resets the modal and focuses its short heading without scroll drift", () => {
   for (const [section, sectionId, headingId] of [
     ["player", "sourceDossierPlayerSection", "sourceDossierPlayerTitle"],

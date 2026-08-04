@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.34.0";
+  var VERSION = "1.34.1";
   var DOSSIER_SCHEMA = "shokker-source-dossier/v1";
   var QUERY_SCHEMA = "shokker-source-query/v1";
   var QUERY_RESULT_SCHEMA = "shokker-source-query-result/v1";
@@ -75,6 +75,16 @@
         /\b([A-Za-z][A-Za-z'-]*)\s+\1(?:\s+\1)+\b/i.test(raw)) {
       return "";
     }
+    var decoderJoin = [
+      /\b(?:is|are|was|were)\s+(?:is|are|was|were|has|have)\b/i,
+      /\b(?:is|are|was|were)\s+(?:a|an|the)\s+(?:is|are|was|were|it|that|this)\b/i,
+      /\b([a-z]{2,})\s+(?:is|are|was|were)\s+(?:a|an|the)\s+\1\b/i,
+      /\b(?:like|just)\s+(?:like|just)\b/i,
+      /\b(?:it|this|that)\s+(?:is|was|are|were|like)\s+(?:it|this|that)\b/i,
+      /\b(?:oh|hey|shh)\s+(?:oh|hey|shh)\b/i,
+      /\b(?:before|after|then)\s+[^.!?]{0,36}\b(?:before|after|then)\b/i
+    ];
+    if (decoderJoin.some(function (pattern) { return pattern.test(raw); })) return "";
     var text = raw
       .replace(/^(?:\s*>>\s*)+/, "")
       .replace(/>>/g, " ")
