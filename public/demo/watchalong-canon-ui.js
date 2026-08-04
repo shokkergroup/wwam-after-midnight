@@ -47,6 +47,43 @@
     if (last >= Math.min(72, max - 1)) return cut.slice(0, last + 1).trim();
     return cut.replace(/\s+\S*$/, "").trim() + ".";
   }
+
+  // A caption window is navigation evidence, not automatically a clean quote.
+  // YouTube/Whisper windows often stitch two utterances together or preserve
+  // a burst of filler.  Keep the timestamp, but refuse to print decoder soup
+  // as if WWAM said a polished sentence.  This is deliberately conservative:
+  // only obvious artifacts are quarantined; the source player remains the
+  // authority for every receipt.
+  function receiptExcerpt(value, limit) {
+    var raw = clean(value)
+      .replace(/\[(?:laughter|music|applause|inaudible|crosstalk|\s*[_-]+\s*)\]/gi, " ")
+      .replace(/>>\s*/g, "")
+      .replace(/\b(?:uh|um|er)\b/gi, " ")
+      .replace(/\b(\w+)(?:\s+\1\b)+/gi, "$1")
+      .replace(/\s+/g, " ").trim();
+    if (!raw) return "Caption receipt available at this timestamp. Press play to hear the exchange.";
+    var words = raw.split(/\s+/).filter(Boolean);
+    var lower = raw.toLowerCase();
+    var bad = [
+      /\b(?:is|are|was|were)\s+(?:is|are|was|were|has|have)\b/i,
+      /\b(?:is|are|was|were)\s+(?:a|an|the)\s+(?:is|are|was|were|it|that|this)\b/i,
+      /\b([a-z]{2,})\s+(?:is|are|was|were)\s+(?:a|an|the)\s+\1\b/i,
+      /\b(?:like|just)\s+(?:like|just)\b/i,
+      /\b(?:it|this|that)\s+(?:is|was|are|were|like)\s+(?:it|this|that)\b/i,
+      /\b(?:oh|hey|shh)\s+(?:oh|hey|shh)\b/i,
+      /\b(?:before|after|then)\s+[^.!?]{0,36}\b(?:before|after|then)\b/i,
+    ].some(function (pattern) { return pattern.test(raw); });
+    var filler = words.filter(function (word) { return /^(?:oh|yeah|like|just|well|okay|right|uh|um|er|so|and|but)$/i.test(word); }).length;
+    var tiny = words.filter(function (word) { return word.replace(/[^A-Za-z']/g, "").length <= 1; }).length;
+    var noSentence = !/[.!?]/.test(raw) && words.length > 12;
+    var fragmented = words.length >= 10 && ((filler / words.length) > .34 || (tiny / words.length) > .22);
+    if (bad || noSentence || fragmented) {
+      return "Caption route at this timestamp. Press play to hear the real exchange; the auto-caption window was too rough to print as a quote.";
+    }
+    var cleaned = excerpt(raw, limit || 190);
+    if (!cleaned) return "Caption route at this timestamp. Press play to hear the real exchange.";
+    return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+  }
   function sourceUrl(episode, at) {
     var sourceId = encodeURIComponent(episode && episode.id || "");
     var seconds = Math.max(0, Math.round(Number(at) || 0));
@@ -545,7 +582,7 @@
     var action = podcast
       ? '<button type="button" class="wac-variant-route" data-wac-variant-seek="' + esc(moment.t || 0) + '" data-wac-variant-audio="wacVariantAudio-source">OPEN PODCAST VARIANT AT ' + esc(timestamp(moment.t)) + ' -></button>'
       : '<a' + receiptTarget(moment) + ' href="' + esc(receiptUrl(episode, moment)) + '">' + label + esc(timestamp(moment.t)) + ' -></a>';
-    return '<article class="wac-moment"><header><span>' + esc(moment.category || moment.label || 'SOURCE RECEIPT') + '</span><span>' + esc(receiptClock(moment) + timestamp(moment.t)) + '</span></header><p>' + esc(moment.excerpt || moment.quote || 'Caption receipt available at this timestamp.') + '</p>' + action + '</article>';
+    return '<article class="wac-moment"><header><span>' + esc(moment.category || moment.label || 'SOURCE RECEIPT') + '</span><span>' + esc(receiptClock(moment) + timestamp(moment.t)) + '</span></header><p>' + esc(receiptExcerpt(moment.excerpt || moment.quote, 190)) + '</p>' + action + '</article>';
   }
 
   function signatureLaneMarkup(episode, moments) {
@@ -611,9 +648,9 @@
       '<div class="wac-dossier-note"><strong>EVIDENCE STATUS // </strong>' + esc(dossier.evidenceSummary || 'The source is linked to the official tape. Speaker identity, intent, and current playback availability remain outside this fan archive unless a reviewed guide says otherwise.') + '</div>' +
       signatureLaneMarkup(episode, moments) +
       '<div class="wac-route-grid">' + routeCard('OPENING READ', route.opening) + routeCard('STRONGEST RECEIPT', route.strongest) + routeCard('CLOSING READ', route.closing) + '</div>' + watchPassMarkup(episode) + chapterMarkup(episode, dossier.chapters) + topicMarkup(episode, episode.topics) + fanReadMarkup(dossier.fanRead) + fanSignalsMarkup(episode, dossier.fanSignals) +
-      '<div class="wac-section-label" style="padding:0 1.5rem">EVERY INDEXED RECEIPT // PRESS PLAY AT THE TAPE</div><div class="wac-moment-grid">' + moments.map(function (moment) {
-        return dossierMomentMarkup(episode, moment);
-      }).join('') + '</div><footer class="wac-dossier-footer"><a href="' + esc(wikiUrl(episode)) + '">OPEN THIS SHOW&rsquo;S WIKI -></a><a target="_blank" rel="noopener" href="' + esc(episode.url) + '">OPEN OFFICIAL UPLOAD -></a><button class="wac-button" type="button" data-wac-close>CLOSE DOSSIER</button></footer></section>';
+       '<details class="wac-receipt-drawer"><summary><span>THE FULL EVIDENCE CHUTE</span><b>' + number(moments.length) + ' BOUNDED RECEIPTS // OPEN WHEN YOU WANT THE FORENSICS</b></summary><p class="wac-receipt-note">These are source-local navigation receipts, not cleaned transcripts. A rough caption gets a plain-language warning instead of being dressed up as a fake quote. Every door stays playable.</p><div class="wac-moment-grid">' + moments.map(function (moment) {
+         return dossierMomentMarkup(episode, moment);
+       }).join('') + '</div></details><footer class="wac-dossier-footer"><a href="' + esc(wikiUrl(episode)) + '">OPEN THIS SHOW&rsquo;S WIKI -></a><a target="_blank" rel="noopener" href="' + esc(episode.url) + '">OPEN OFFICIAL UPLOAD -></a><button class="wac-button" type="button" data-wac-close>CLOSE DOSSIER</button></footer></section>';
   }
 
   function keepPublicEdgeLinksLocal() {

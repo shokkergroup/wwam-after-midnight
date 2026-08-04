@@ -923,6 +923,31 @@
       /editorial/.test(sourceKind);
   }
 
+  function humanMomentReceipt(moment) {
+    var lane = String(moment && (moment.lane || moment.category || "") || "").trim().toUpperCase();
+    var topic = String(moment && (moment.topic || moment.thread || "") || "").trim();
+    var subject = topic ? " around " + topic : " in this tape";
+    var copy = {
+      "LOVE LETTER": "The tape gives" + subject + " a little love here.",
+      "STRAIGHT TO STEVE'S ASSHOLE": "The complaint chute opens" + subject + ".",
+      "WWAM UP IN YA": "The room goes properly off the rails" + subject + ".",
+      "CHARACTER SIGNAL": "A recurring-character door opens" + subject + ".",
+      "FAN SIGNAL": "The room makes space for a fan callout" + subject + ".",
+      "TAKE GETS NUCLEAR": "The temperature spikes" + subject + ".",
+      "ROOM BREAK": "This is a room-break route" + subject + ".",
+      "OUT OF POCKET": "The commentary takes an unholy side road" + subject + ".",
+      "FRANCHISE FELONY": "The franchise gets put on trial" + subject + ".",
+      "KILL ROOM": "The kill-scene lane gets its turn" + subject + ".",
+      "HORROR BRAIN": "The horror-lore brain starts chewing on this" + subject + ".",
+      "FILM READ": "A straight movie-analysis route opens" + subject + ".",
+      "THEORY BOARD": "A prediction or theory gets pinned to the board" + subject + ".",
+      "BREAKDOWN": "The room briefly loses the plot" + subject + ".",
+    }[lane] || (lane ? lane.replace(/\s+/g, " ").toLowerCase() + " route" + subject + "." : "A bounded editorial route opens here.");
+    var label = String(moment && moment.label || "").trim();
+    if (label && !/^a |^the |^an /i.test(label) && label.toUpperCase() !== lane) copy += " " + label + ".";
+    return copy + " Press play to hear the actual exchange.";
+  }
+
   function fallbackRouteButtonMarkup(moment, index) {
     var editorial = fallbackMomentIsEditorial(moment);
     return '<button type="button" data-fallback-jump="' + moment.at +
@@ -930,7 +955,7 @@
       '" data-fallback-lane="' + esc(moment.lane || moment.label) +
       '" data-fallback-review="' + (editorial ? "editorial" : "discovery") +
       '"><b>' + String(index + 1).padStart(2, "0") +
-      '</b><span>' + esc(moment.label) + '</span><time>' + timestamp(moment.at) +
+      '</b><span>' + esc(moment.lane || moment.label) + '</span><time>' + timestamp(moment.at) +
       '</time><em>' + esc(fallbackMomentDescription(moment)) + '</em></button>';
   }
 
@@ -1860,6 +1885,27 @@
       .trim();
   }
 
+  function captionLooksNoisy(value) {
+    var text = cleanedCaptionReceipt(value);
+    if (!text) return true;
+    var words = text.split(/\s+/).filter(Boolean);
+    var lower = text.toLowerCase();
+    var decoderCollision = [
+      /\b(?:is|are|was|were)\s+(?:is|are|was|were|has|have)\b/i,
+      /\b(?:is|are|was|were)\s+(?:a|an|the)\s+(?:is|are|was|were|it|that|this)\b/i,
+      /\b([a-z]{2,})\s+(?:is|are|was|were)\s+(?:a|an|the)\s+\1\b/i,
+      /\b(?:like|just)\s+(?:like|just)\b/i,
+      /\b(?:it|this|that)\s+(?:is|was|are|were|like)\s+(?:it|this|that)\b/i,
+      /\b(?:oh|hey|shh)\s+(?:oh|hey|shh)\b/i,
+      /\b(?:before|after|then)\s+[^.!?]{0,36}\b(?:before|after|then)\b/i,
+    ].some(function (pattern) { return pattern.test(text); });
+    var filler = words.filter(function (word) { return /^(?:oh|yeah|like|just|well|okay|right|so|and|but)$/i.test(word); }).length;
+    var tiny = words.filter(function (word) { return word.replace(/[^A-Za-z']/g, "").length <= 1; }).length;
+    return decoderCollision || (!/[.!?]/.test(text) && words.length > 12) ||
+      (words.length >= 10 && ((filler / words.length) > .34 || (tiny / words.length) > .22)) ||
+      lower === "the full exchange";
+  }
+
   function fallbackMomentDescription(moment) {
     var review = String(moment.reviewStatus || "").toLowerCase();
     var evidence = String(moment.evidenceBasis || "").toLowerCase();
@@ -1896,12 +1942,12 @@
       // still a transcript window) while letting the reader see why the door
       // might be worth opening instead of hiding every line behind a generic
       // audit sentence.
-      if (sourceKind === "local-whisper" && caption.split(/\s+/).filter(Boolean).length >= 5) {
+      if (sourceKind === "local-whisper" && caption.split(/\s+/).filter(Boolean).length >= 5 && !captionLooksNoisy(caption)) {
         return '"' + boundedExcerpt(caption) + '" starts at ' + timestamp(moment.at) + '. Press play to hear the full exchange.';
       }
       return (topic ? topic + " discussion" : laneCopy) + " starts at " + timestamp(moment.at) + ". Press play to hear the full exchange.";
     }
-    return cleanedCaptionReceipt(moment.excerpt) || "Bounded source receipt; press play to hear the tape.";
+    return cleanedCaptionReceipt(moment.excerpt) || humanMomentReceipt(moment);
   }
 
   function fallbackNaturalSummary(source, topics, moments, candidate) {
@@ -1937,7 +1983,9 @@
   }
 
   function displayQuote(value) {
-    return applyLanguageMode(boundedExcerpt(value));
+    var cleaned = cleanedCaptionReceipt(value);
+    if (!cleaned || captionLooksNoisy(cleaned)) return "Caption route only; press play to hear this moment.";
+    return applyLanguageMode(boundedExcerpt(cleaned));
   }
 
   function displayUiText(value) {
