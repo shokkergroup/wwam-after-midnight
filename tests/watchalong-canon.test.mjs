@@ -34,6 +34,19 @@ test("primary navigation exposes the signature comedy lanes", () => {
   assert.match(html, />UP IN YA<\/a>/);
 });
 
+test("per-show dossiers expose a guided read/listen/evidence path", () => {
+  assert.match(ui, /function dossierJumpMarkup\(\)/);
+  assert.match(ui, /href="#wacDossierRoutes">THE READ/);
+  assert.match(ui, /href="#wacDossierListen">LISTENING LANES/);
+  assert.match(ui, /href="#wacDossierEvidence">FULL RECEIPTS/);
+  assert.match(ui, /id="wacDossierRoutes"/);
+  assert.match(ui, /id="wacDossierListen"/);
+  assert.match(ui, /id="wacDossierEvidence"/);
+  assert.match(ui, /item\.body \? excerpt\(item\.body, 210\) : receiptExcerpt\(item\.excerpt, 210\)/);
+  assert.match(css, /\.wac-dossier-jump/);
+  assert.match(ui, /state\.franchise = franchises\.filter\(function \(item\) \{ return item\.key === "comedy"; \}\)/);
+});
+
 test("Halloween Universe quarantines rough caption windows instead of printing decoder soup", () => {
   const halloweenContext = { console };
   halloweenContext.window = halloweenContext;
