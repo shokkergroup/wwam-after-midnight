@@ -186,6 +186,10 @@ test("every episode has an official source, evidence state, and playable receipt
     assert.ok(["full-editorial-dossier", "source-brief-dossier", "caption-ledger-dossier"].includes(episode.dossier.state));
     assert.ok(Array.isArray(episode.dossier.cuts));
     assert.ok(episode.dossier.summary.length > 30);
+    const whyBody = episode.dossier.fanRead?.whyThisNightMatters?.body || "";
+    assert.doesNotMatch(whyBody, /\.\s+[a-z]/, `${episode.id} fan-read prose must not restart a sentence lowercase`);
+    assert.doesNotMatch(whyBody, /\b(?:kill scenes|effects and gore|the mask and the look|direction and camera|score and sound|performances|lore and continuity)\s+is the\b/i, `${episode.id} fan-read prose must not give plural lanes a singular verb`);
+    assert.doesNotMatch(whyBody, /\bthe full exchange\b/i, `${episode.id} fan-read prose must not expose a placeholder quote`);
   });
   const halloweenParty = canon.episodes.find((episode) => episode.id === "KrBhfGxsJNM");
   assert.equal(halloweenParty.type, "watch-party");
