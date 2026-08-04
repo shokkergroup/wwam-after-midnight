@@ -185,7 +185,13 @@ function normalizeCaptionText(value) {
     .replace(/[_]+/g, " ")
     .replace(/[»>]{1,3}(?=\s)/g, " ")
     .replace(/â€™/g, "'").replace(/â€œ|â€/g, '"').replace(/â€”|â€“/g, "—")
-    .replace(/\s+([,.!?])/g, "$1").replace(/\s{2,}/g, " ").trim();
+    .replace(/\s+([,.!?])/g, "$1")
+    // Normalize UTF-8/Windows-1252 quote artifacts before the public
+    // receipt filters see the caption window.
+    .replace(/\u00e2\u20ac\u2122/g, "'")
+    .replace(/\u00e2\u20ac\u0153|\u00e2\u20ac\u009c|\u00e2\u20ac\u009d/g, '"')
+    .replace(/\u00e2\u20ac\u2014|\u00e2\u20ac\u0094/g, "—")
+    .replace(/\s{2,}/g, " ").trim();
   // Whisper and automatic captions occasionally stutter the same token over
   // several adjacent segments. Keep a genuine repeated phrase, but collapse
   // obvious decoder runs before the text reaches a visitor-facing card.
