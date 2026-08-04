@@ -110,6 +110,24 @@ function inspectRouteUniqueness(items, sourceId, field, failures) {
   }
 }
 
+function inspectFanReadBody(value, sourceId, field, failures) {
+  const text = clean(value);
+  if (!text) return;
+  // Fan-facing cards are authored prose, not transcript receipts, but they
+  // still need the same basic sentence hygiene. These checks catch the exact
+  // failure mode that made the archive feel machine-written: a plural lane
+  // taking a singular verb or a withheld quote starting a sentence lowercase.
+  if (/[.!?]\s+[a-z]/.test(text)) {
+    failures.push({ sourceId, field, kind: "editorial-lowercase-boundary", text });
+  }
+  if (/\b(?:kill scenes|effects and gore|the mask and the look|direction and camera|score and sound|performances|lore and continuity)\s+is the\b/i.test(text)) {
+    failures.push({ sourceId, field, kind: "editorial-plural-lane-grammar", text });
+  }
+  if (/\bthe full exchange\b/i.test(text)) {
+    failures.push({ sourceId, field, kind: "editorial-placeholder-quote", text });
+  }
+}
+
 function inspectLivestream(data, failures) {
   for (const episode of data.episodes || []) {
     const id = episode.id;
@@ -134,6 +152,7 @@ function inspectWatchalong(data, failures) {
   for (const episode of data.episodes || []) {
     const id = episode.id;
     inspectSummaryProse(episode.dossier?.summary, id, "dossier.summary", failures);
+    inspectFanReadBody(episode.dossier?.fanRead?.whyThisNightMatters?.body, id, "dossier.fanRead.whyThisNightMatters.body", failures);
     for (const item of episode.dossier?.cuts || []) inspect(item.excerpt, id, "dossier.cuts.excerpt", failures);
     for (const item of episode.dossier?.chapters || []) inspect(item.excerpt, id, "dossier.chapters.excerpt", failures);
     for (const item of episode.dossier?.fanSignals || []) inspect(item.excerpt, id, "dossier.fanSignals.excerpt", failures);

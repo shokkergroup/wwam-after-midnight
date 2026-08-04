@@ -135,7 +135,7 @@ function trimDanglingClause(value) {
   // "...because I hate." Keep the complete main clause and leave the rest
   // for the player at the source timestamp.
   const trimmed = text
-    .replace(/\s+(?:because|since|although|while|when|if|which|that|who)\s+(?:i|you|he|she|we|they)\s+[a-z0-9'â€™-]+\s*\.?\s*$/i, "")
+    .replace(/\s+(?:because|since|although|while|when|if|which|that|who)\s+(?:i|you|he|she|we|they)\s+[a-z0-9'\u2019-]+\s*\.?\s*$/i, "")
     .replace(/\s+(?:because|since|although|while|when|if)\s*\.?\s*$/i, "")
     .replace(/\s+(?:in|on|at|for|with|to|of|from)\s+(?:so|the|a|an|this|that|it|one)\s*\.?\s*$/i, "")
     .trim();
@@ -145,8 +145,8 @@ function isLikelyFragment(value) {
   const text = clean(value);
   if (/\b(?:is|are|was|were|be|been|being|have|has|had|will|would|could|should|can|do|does|did|going|trying|want|wanted|need|needs|got|made|already|yet|again)\.?\s*$/i.test(text)) return true;
   if (/\b(?:and|but|or|because|since|although|while|when|if|which|that|who|with|for|to|of|about|using|like|as|all)\.?\s*$/i.test(text)) return true;
-  return /\b(?:this|that|it)\s+is\s+(?:a|an|the)\s+[a-z0-9'â€™-]+\.?$/i.test(text)
-    || /\b(?:because|since|although|while|when|if|which|that|who)\s+(?:i|you|he|she|we|they)\s+[a-z0-9'â€™-]+\.?$/i.test(text);
+  return /\b(?:this|that|it)\s+is\s+(?:a|an|the)\s+[a-z0-9'\u2019-]+\.?$/i.test(text)
+    || /\b(?:because|since|although|while|when|if|which|that|who)\s+(?:i|you|he|she|we|they)\s+[a-z0-9'\u2019-]+\.?$/i.test(text);
 }
 
 function isNoisyTranscript(value) {
@@ -354,15 +354,18 @@ function normalizeCaptionText(value) {
     .replace(/\[(?:\s*[_-]+\s*)+\]/g, " ")
     .replace(/\[(?:music|applause|laughter|laughs?|screaming|yelling|shouting|inaudible|bleep)\]/gi, " ")
     .replace(/[_]+/g, " ")
-    .replace(/[Â»>]{1,3}(?=\s)/g, " ")
-    .replace(/Ã¢â‚¬â„¢/g, "'").replace(/Ã¢â‚¬Å“|Ã¢â‚¬Â/g, '"').replace(/Ã¢â‚¬â€|Ã¢â‚¬â€œ/g, "â€”")
+    .replace(/[\u00bb>]{1,3}(?=\s)/g, " ")
+    // Repair common UTF-8-as-Windows-1252 spellings before excerpt filtering.
+    .replace(/\u00e2\u20ac\u2122/g, "'")
+    .replace(/\u00e2\u20ac\u0153|\u00e2\u20ac\u009c|\u00e2\u20ac\u009d/g, '"')
+    .replace(/\u00e2\u20ac\u2014|\u00e2\u20ac\u0094/g, "—")
     .replace(/\s+([,.!?])/g, "$1")
     .replace(/\s{2,}/g, " ")
     .trim();
   // Keep an intentional two-word stutter, but collapse the decoder runs
   // that repeat a token four or more times across adjacent Whisper windows.
   for (let pass = 0; pass < 4; pass += 1) {
-    text = text.replace(/\b([A-Za-z][A-Za-z'â€™-]*)\b(?:\s+\1\b){3,}/gi, "$1 $1");
+    text = text.replace(/\b([A-Za-z][A-Za-z'\u2019-]*)\b(?:\s+\1\b){3,}/gi, "$1 $1");
   }
   for (let pass = 0; pass < 3; pass += 1) {
     text = text.replace(/\b([A-Za-z0-9][A-Za-z0-9'-]*)\s+([A-Za-z0-9][A-Za-z0-9'-]*)\s+\1\s+\2\b/gi, "$1 $2");
@@ -630,8 +633,21 @@ function sanitizeFanRead(value) {
     const safe = { ...lane };
     if (typeof safe.excerpt === "string") safe.excerpt = excerpt(safe.excerpt, 16);
     if (typeof safe.body === "string") {
-      const replacement = safe.excerpt ? `“${safe.excerpt}”` : "the full exchange";
-      safe.body = clean(safe.body).replace(/“[^”]*”/g, replacement);
+      // Empty/noisy quotes are useful as timestamp doors, but they are not
+      // permission to publish a topic label as dialogue. Keep the card
+      // conversational and repair old quote-boundary artifacts.
+      const replacement = safe.excerpt ? `“${safe.excerpt}”` : "this exchange";
+      safe.body = clean(safe.body)
+        .replace(/[“”][^“”]*[”]/g, replacement)
+        .replace(/\u00e2\u20ac\u0153[^\u00e2\u20ac\u009d]*\u00e2\u20ac\u009d/g, replacement)
+        .replace(/\bthe full exchange\b/gi, "this exchange")
+        .replace(/([.!?]\s+)([a-z])/g, (_match, punctuation, first) => `${punctuation}${first.toUpperCase()}`);
+      if (safe.primaryThread) {
+        safe.body = safe.body.split(`${safe.primaryThread} is the obsession`).join(`${safe.primaryThread} sets the obsession`);
+      }
+      if (safe.secondaryThread) {
+        safe.body = safe.body.split(`${safe.secondaryThread} is the pressure point`).join(`the pressure lands in ${safe.secondaryThread}`);
+      }
     }
     output[key] = safe;
   });

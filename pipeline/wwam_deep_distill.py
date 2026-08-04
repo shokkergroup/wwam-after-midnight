@@ -1183,8 +1183,10 @@ def evidence_fragment(cut: dict[str, Any], maximum: int = 10) -> str:
         r"\[BLEEP\]|[A-Za-z0-9]+(?:['-][A-Za-z0-9]+)*",
         cut.get("excerpt", ""),
     )
+    # A topic is a navigation label, not a spoken quote. Quoting it when the
+    # caption window is empty makes topic names masquerade as dialogue.
     if not tokens:
-        return cut.get("topic") or "this moment"
+        return "this moment"
     lowered = [lexical(token) for token in tokens]
     anchors = [
         cut.get("verdictEvidence", ""),
@@ -1233,9 +1235,14 @@ def evidence_fragment(cut: dict[str, Any], maximum: int = 10) -> str:
 
 
 def quoted_fragment(cut: dict[str, Any]) -> str:
+    fragment = evidence_fragment(cut)
+    # These are editorial labels, not transcript reproductions. Sentence-case
+    # a mid-window opening so the surrounding copy remains readable.
+    if fragment and fragment[0].islower():
+        fragment = fragment[0].upper() + fragment[1:]
     return (
         "\N{LEFT DOUBLE QUOTATION MARK}"
-        + evidence_fragment(cut)
+        + fragment
         + "\N{RIGHT DOUBLE QUOTATION MARK}"
     )
 
@@ -1806,7 +1813,7 @@ def build_episode_guide(
             "memory path."
         ),
         (
-            "{primary} is the obsession and {secondary} is the pressure point, but the clip "
+            "{primary} sets the obsession; the pressure lands in {secondary}, but the clip "
             "that bottles this {film} watch arrives on {topic} at {at}. {quote} is the line "
             "inside that {category} turn. The cards below separate the save, the burial, the "
             "side quest, and the final taste."
