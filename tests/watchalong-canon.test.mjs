@@ -364,3 +364,12 @@ test("watchalong canon is reachable from the Watchalongs route", () => {
   assert.match(css, /\.wac-podcast-dossier-route/);
   assert.match(css, /\.wac-podcast-open/);
 });
+
+test("Show Wiki copy keeps rough captions playable without printing decoder soup", () => {
+  assert.match(ui, /function receiptExcerpt\(/);
+  assert.match(ui, /THE FULL EVIDENCE CHUTE/);
+  assert.match(css, /\.wac-receipt-drawer/);
+  assert.match(app, /function captionLooksNoisy\(/);
+  assert.match(app, /function humanMomentReceipt\(/);
+  assert.match(app, /Caption route only; press play to hear this moment/);
+});
