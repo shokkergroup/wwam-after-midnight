@@ -374,6 +374,11 @@ function isNoisyTranscript(value) {
     /\b(?:the|a|an)\s+(?:that|this)\b/i,
     /\b(?:said|says|asked|asks|was like|were like|be like)\s*[,;:]\s*["']?\s*$/i,
     /\b(?:uh|um|er|like)[,.]?\s+(?:uh|um|er|like)[,.]?\s+(?:uh|um|er|like)\b/i,
+    // Two decoder hypotheses can leave duplicated filler or a stacked verb
+    // behind ("uh um ...", "my car is has ..."). Those fragments are useful
+    // as audio doors only; they are not safe visitor-facing quotations.
+    /\b(?:uh|um|er)\s+(?:uh|um|er)\b/i,
+    /\b(?:is|are|was|were)\s+(?:is|are|was|were|has|have)\b/i,
     /\b(?:don't|never|ever|always)\s+(?:you|we|they|he|she|i)\s+[A-Za-z][^.!?]*\s+(?:again|but|and)\b/i,
     /\b(?:he|she|it|they|we|you|i)(?:'s|\s+is|\s+are|\s+was|\s+were)\s+[A-Z][a-z'-]+\s+(?:but|and|so)\b/,
     // A bounded window can glue a new clause onto the previous one.

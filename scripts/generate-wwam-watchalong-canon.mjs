@@ -171,6 +171,11 @@ function isNoisyTranscript(value) {
     || /\bthat(?:'s|\s+is)\s+not\s+that\s+one(?:'s|\s+is)\b/i.test(text)
     || /\b(?:these|those)\s+and\s+these\s+this\b/i.test(text)
     || /\b(?:the|a|an)\s+(?:that|this)\b/i.test(text)
+    // Whisper can stack two filler/verb hypotheses in a bounded window
+    // ("uh um ...", "my car is has ..."). Keep the timestamp door while
+    // refusing to print the decoder join as a clean quote.
+    || /\b(?:uh|um|er)\s+(?:uh|um|er)\b/i.test(text)
+    || /\b(?:is|are|was|were)\s+(?:is|are|was|were|has|have)\b/i.test(text)
     // Preserve the audio route but suppress obvious Whisper boundary joins
     // such as "I If..." or "I it did..." from public clip receipts.
     || /\bI\s+(?:if|what|well|you|she|it|they|he|we)\b/.test(text)
