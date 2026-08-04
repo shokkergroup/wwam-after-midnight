@@ -116,6 +116,14 @@ test("automatic-caption repair uses a chronological merge instead of a quadratic
   assert.doesNotMatch(generator, /automatic\.forEach\(\(candidate, index\)/);
 });
 
+test("automatic-caption files are opened only for sparse or noisy Whisper ledgers", () => {
+  const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-livestream-canon.mjs"), "utf8");
+  assert.match(generator, /function needsAutomaticRepair\(events\)/);
+  assert.match(generator, /events\.length < 12/);
+  assert.match(generator, /weak \/ sample\.length >= 0\.2/);
+  assert.match(generator, /needsAutomaticRepair\(asrEvents\) \? automaticCaptionEvents\(id\) : \[\]/);
+});
+
 test("livestream watch-pass candidates use the bounded public receipt path", () => {
   const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-livestream-canon.mjs"), "utf8");
   assert.match(generator, /const captionExcerpt = localWhisper\s*\n\s*\? captionExcerptAt\(events, candidate\.t, 16\)/);

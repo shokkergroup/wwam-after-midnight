@@ -223,11 +223,23 @@ function automaticCaptionEvents(id) {
       evidenceType: "youtube-automatic-caption",
     })).filter((event) => event.text);
 }
+function needsAutomaticRepair(events) {
+  if (!events.length) return true;
+  // Local Whisper is the evidence authority. Only reopen the much larger
+  // automatic-caption corpus when the local ledger is sparse or contains a
+  // meaningful share of visibly noisy windows that could benefit from a
+  // time-aligned repair candidate.
+  const sample = events.slice(0, Math.min(events.length, 48));
+  const weak = sample.filter((event) => {
+    const text = clean(event.text);
+    return words(text).length < 3 || isNoisyTranscript(text) || !/[.!?]/.test(text);
+  }).length;
+  return events.length < 12 || weak / sample.length >= 0.2;
+}
 function captionEvents(id) {
   const asrFile = path.join(CAPTIONS_DIR, `${id}.asr.json`);
   if (fs.existsSync(asrFile)) {
     const payload = readJson(asrFile);
-    const automatic = automaticCaptionEvents(id);
     const asrEvents = (payload.segments || [])
       .map((segment) => ({
         t: Math.max(0, Number(segment.start || 0)),
@@ -236,6 +248,7 @@ function captionEvents(id) {
         evidenceType: "local-whisper-transcript"
       }))
       .filter((event) => event.text);
+    const automatic = needsAutomaticRepair(asrEvents) ? automaticCaptionEvents(id) : [];
     // Keep the local Whisper line as the evidence authority, but retain a
     // time-aligned automatic-caption window as a repair candidate when the
     // Whisper decoder stutters or drops a short phrase. This is not mixed
