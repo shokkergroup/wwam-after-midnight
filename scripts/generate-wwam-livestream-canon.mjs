@@ -354,7 +354,7 @@ function isNoisyTranscript(value) {
     /\b(?:what|who)\s+the\s+(?:who|what|is|the)\b/i,
     /\b(?:got|have|has|was|were|is|are)\s+to\s+(?:this|that)\s+[a-z][a-z'-]*\s+(?:up|down)\b/i,
     /^\s*(?:i|you|we|they|he|she)\s+maybe\b/i,
-    /\b(?:between|because|since|although|while|when|if|which|that|who|from|with|for|to|of|in|on|at)\.?$/i,
+    /\b(?:between|because|since|although|while|when|if|which|that|who|from|with|for|to|of|in|on|at|probably|perhaps|maybe)\.?$/i,
     // A lower-case restart after punctuation and a repeated word stem are
     // common decoder boundary artifacts ("... January. hey ...", "reach
     // reaches"). They are useful audio routes, not clean public quotes.

@@ -162,7 +162,7 @@ function isNoisyTranscript(value) {
     || /\b(?:what|who)\s+the\s+(?:who|what|is|the)\b/i.test(text)
     || /\b(?:got|have|has|was|were|is|are)\s+to\s+(?:this|that)\s+[a-z][a-z'-]*\s+(?:up|down)\b/i.test(text)
     || /^\s*(?:i|you|we|they|he|she)\s+maybe\b/i.test(text)
-    || /\b(?:between|because|since|although|while|when|if|which|that|who|from|with|for|to|of|in|on|at)\.?$/i.test(text)
+    || /\b(?:between|because|since|although|while|when|if|which|that|who|from|with|for|to|of|in|on|at|probably|perhaps|maybe)\.?$/i.test(text)
     || /[.!?]\s+[a-z]/.test(text)
     || /\b([a-z]{4,})(?:s|es|ed|ing)?\s+\1(?:s|es|ed|ing)?\b/i.test(text)
     || /\b(?:the|a|an)\s+(?:his|her|their|my|your|our|its)\b/i.test(text)
