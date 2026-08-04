@@ -389,7 +389,8 @@
     var cards = [fanRead.loved, fanRead.hated, fanRead.wildestDetour, fanRead.lastWord].filter(Boolean);
     if (!cards.length) return '';
     return '<div class="wac-section-label" style="padding:0 1.5rem">EDITORIAL LANES // THE TAPE&rsquo;S OWN ARGUMENT</div><div class="wac-route-grid">' + cards.map(function (item) {
-      return '<article class="wac-route-card"><small>' + esc(item.label || item.key) + ' // ' + esc(timestamp(item.at)) + '</small><b>' + esc(item.topic || item.category || "SOURCE LANE") + '</b><p>' + esc(excerpt(item.body || item.excerpt, 210) || 'Transcript route available; open the timestamp to listen.') + '</p></article>';
+      var copy = item.body ? excerpt(item.body, 210) : receiptExcerpt(item.excerpt, 210);
+      return '<article class="wac-route-card"><small>' + esc(item.label || item.key) + ' // ' + esc(timestamp(item.at)) + '</small><b>' + esc(item.topic || item.category || "SOURCE LANE") + '</b><p>' + esc(copy || 'Transcript route available; open the timestamp to listen.') + '</p></article>';
     }).join('') + '</div>';
   }
 
@@ -581,6 +582,13 @@
     return { steve: "STRAIGHT TO STEVE'S ASSHOLE", 'up-in-ya': 'WWAM UP IN YA', character: 'CHARACTER SIGNAL', fan: 'FAN SIGNAL' }[key] || '';
   }
 
+  function dossierJumpMarkup() {
+    // A show page should read like a guided tape, not a pile of modules. Keep
+    // the three useful doors visible before the forensic drawer: read the
+    // editorial spine, jump to the listening lanes, or open every receipt.
+    return '<nav class="wac-dossier-jump" aria-label="Show Wiki shortcuts"><span>JUMP TO</span><a href="#wacDossierRoutes">THE READ</a><a href="#wacDossierListen">LISTENING LANES</a><a href="#wacDossierEvidence">FULL RECEIPTS</a></nav>';
+  }
+
   function dossierMomentMarkup(episode, moment) {
     var podcast = moment.sourceKind === 'podcast-variant';
     var label = podcast ? 'OPEN PODCAST VARIANT AT ' : 'OPEN LOCAL SOURCE AT ';
@@ -652,8 +660,9 @@
     return '<section class="wac-dossier" id="wacDossier" aria-labelledby="wacDossierTitle"><header class="wac-dossier-head"><div><span class="wac-dossier-kicker">' + esc(episode.franchiseTitle) + ' // ' + esc(stateLabel(episode)) + '</span><h3 id="wacDossierTitle">' + esc(episode.movieTitle) + '</h3><p>' + esc(dossier.summary) + '</p></div><div class="wac-dossier-facts"><span><small>DATE</small><b>' + esc(dateLabel(episode.date)) + '</b></span><span><small>RUNTIME</small><b>' + esc(durationLabel(episode.duration)) + '</b></span><span><small>CAPTION WORDS</small><b>' + number(dossier.caption && dossier.caption.words) + '</b></span><span><small>JUMP RECEIPTS</small><b>' + number(moments.length) + '</b></span></div></header>' +
       '<div class="wac-dossier-note"><strong>EVIDENCE STATUS // </strong>' + esc(dossier.evidenceSummary || 'The source is linked to the official tape. Speaker identity, intent, and current playback availability remain outside this fan archive unless a reviewed guide says otherwise.') + '</div>' +
       signatureLaneMarkup(episode, moments) +
-      '<div class="wac-route-grid">' + routeCard('OPENING READ', route.opening) + routeCard('STRONGEST RECEIPT', route.strongest) + routeCard('CLOSING READ', route.closing) + '</div>' + watchPassMarkup(episode) + chapterMarkup(episode, dossier.chapters) + topicMarkup(episode, episode.topics) + fanReadMarkup(dossier.fanRead) + fanSignalsMarkup(episode, dossier.fanSignals) +
-       '<details class="wac-receipt-drawer"><summary><span>THE FULL EVIDENCE CHUTE</span><b>' + number(moments.length) + ' BOUNDED RECEIPTS // OPEN WHEN YOU WANT THE FORENSICS</b></summary><p class="wac-receipt-note">These are source-local navigation receipts, not cleaned transcripts. A rough caption gets a plain-language warning instead of being dressed up as a fake quote. Every door stays playable.</p><div class="wac-moment-grid">' + moments.map(function (moment) {
+      dossierJumpMarkup() +
+      '<div class="wac-route-grid" id="wacDossierRoutes">' + routeCard('OPENING READ', route.opening) + routeCard('STRONGEST RECEIPT', route.strongest) + routeCard('CLOSING READ', route.closing) + '</div><div id="wacDossierListen">' + watchPassMarkup(episode) + chapterMarkup(episode, dossier.chapters) + topicMarkup(episode, episode.topics) + fanReadMarkup(dossier.fanRead) + fanSignalsMarkup(episode, dossier.fanSignals) + '</div>' +
+       '<details class="wac-receipt-drawer" id="wacDossierEvidence"><summary><span>THE FULL EVIDENCE CHUTE</span><b>' + number(moments.length) + ' BOUNDED RECEIPTS // OPEN WHEN YOU WANT THE FORENSICS</b></summary><p class="wac-receipt-note">These are source-local navigation receipts, not cleaned transcripts. A rough caption gets a plain-language warning instead of being dressed up as a fake quote. Every door stays playable.</p><div class="wac-moment-grid">' + moments.map(function (moment) {
          return dossierMomentMarkup(episode, moment);
        }).join('') + '</div></details><footer class="wac-dossier-footer"><a href="' + esc(wikiUrl(episode)) + '">OPEN THIS SHOW&rsquo;S WIKI -></a><a target="_blank" rel="noopener" href="' + esc(episode.url) + '">OPEN OFFICIAL UPLOAD -></a><button class="wac-button" type="button" data-wac-close>CLOSE DOSSIER</button></footer></section>';
   }
@@ -707,8 +716,11 @@
         state.selectedPodcast = "";
         if (quick === "halloween") state.franchise = franchises.filter(function (item) { return item.key === "halloween"; })[0] ? "halloween" : state.franchise;
         else if (quick === "comedy") {
-          state.franchise = "all";
-          state.query = "Scary Movie";
+          // The comedy door is a real world in the canon. Keep Harold &
+          // Kumar, Waiting..., and the Scary Movie files together instead of
+          // quietly narrowing the fan to one title.
+          state.franchise = franchises.filter(function (item) { return item.key === "comedy"; })[0] ? "comedy" : "all";
+          state.query = "";
         } else if (quick === "search") {
           state.franchise = "all";
           state.query = "";
