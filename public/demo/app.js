@@ -1126,9 +1126,13 @@
     var fallbackTargetId = fallbackSectionTargets[String(section || "").toLowerCase()];
     if (fallbackTargetId) {
       setTimeout(function () {
+        var fallbackModal = document.getElementById("tapeModal");
         var fallbackTarget = document.getElementById(fallbackTargetId);
-        if (fallbackTarget) fallbackTarget.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 35);
+        if (!fallbackTarget || !fallbackModal) return;
+        var targetTop = Math.max(0, Number(fallbackTarget.offsetTop || 0) - 18);
+        var maxScroll = Math.max(0, fallbackModal.scrollHeight - fallbackModal.clientHeight);
+        fallbackModal.scrollTo({ top: Math.min(targetTop, maxScroll), behavior: "smooth" });
+      }, 80);
     }
     syncBackgroundInert();
     focusSoon("#modalClose");
