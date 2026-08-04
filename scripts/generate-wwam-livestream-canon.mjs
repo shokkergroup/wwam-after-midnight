@@ -804,45 +804,45 @@ function voiceSummaryV2(title, date, shape, topics, moments, fan, recurring, cha
   const receiptCandidate = receiptOptions.sort((a, b) => b.score - a.score || Number(a.at || 0) - Number(b.at || 0))[0];
   const receiptLine = receiptCandidate
     ? [
-      `The cleanest bit of tape I found starts at ${clock(receiptCandidate.at || 0)}: “${safeExcerpt(receiptCandidate.text, 16)}”`,
-      `At ${clock(receiptCandidate.at || 0)}, the transcript catches the show's temperature: “${safeExcerpt(receiptCandidate.text, 16)}”`,
-      `For a quick taste, press ${clock(receiptCandidate.at || 0)}: “${safeExcerpt(receiptCandidate.text, 16)}”`
+      `A clean source line lands at ${clock(receiptCandidate.at || 0)}: "${safeExcerpt(receiptCandidate.text, 16)}"`,
+      `At ${clock(receiptCandidate.at || 0)}, the source gives us a clean line: "${safeExcerpt(receiptCandidate.text, 16)}"`,
+      `For a quick taste, press ${clock(receiptCandidate.at || 0)}: "${safeExcerpt(receiptCandidate.text, 16)}"`
     ][variant]
     : [
-      "The transcript does not leave a safe short quote here, so the player remains the first source of tone",
-      "There is no clean short line to print here; the player is the honest way to catch the tone",
-      "No short transcript line survives cleanly enough to quote, so start with the tape itself"
+      "No short transcript line cleared the quote check on this pass; use the playable doors for tone",
+      "The source did not yield a clean pull quote here, so the timestamp rail is the honest way in",
+      "Nothing short enough to quote survived the transcript check; the player carries the timing"
     ][variant];
   const frame = contentFrame(title, shape, topics);
   const cleanTitle = clean(title);
   const opening = frame === "a ranking-night argument"
-    ? `${cleanTitle} turns the ${date} ranking room into the kind of argument where nobody came to quietly agree.`
+    ? `${cleanTitle} is a ${date} ranking night with the gloves off.`
     : frame === "a trailer-and-news roundtable"
-      ? `${cleanTitle} opens a trailer-and-news roundtable on ${date}.`
+      ? `${cleanTitle} is ${date}'s trailer-and-news watch-and-react.`
       : frame === "an episode-recap room"
-        ? `${cleanTitle} is the ${date} episode-recap room, with the side roads left in.`
+        ? `${cleanTitle} is ${date}'s episode-recap room, detours included.`
         : frame === "a fan-driven open line"
-          ? `${cleanTitle} is ${date}'s fan-driven open line, where the chat gets a real vote.`
+          ? `${cleanTitle} is ${date}'s fan-driven open line; the chat gets a real vote.`
           : frame === "a spoiler-review hang"
-            ? `${cleanTitle} hangs a spoiler-review shingle on ${date} and lets the arguments run.`
+            ? `${cleanTitle} is ${date}'s spoiler-review hang, with the polite version left outside.`
             : frame === "a movie-side conversation"
               ? `${cleanTitle} settles into a movie-side conversation on ${date}.`
-              : `${cleanTitle} is ${date}'s open-line movie-news room.`;
+              : `${cleanTitle} is ${date}'s open-line movie-news show.`;
   const topicLine = topicList
     ? [
-      `The night ricochets through ${topicList}.`,
-      `The conversation keeps looping back to ${topicList}.`,
-      `The room jumps between ${topicList}, with the detours left in.`
+      `The main subject doors are ${topicList}.`,
+      `The index keeps ${topicList} in view.`,
+      `The night touches ${topicList}, with the side roads left in.`
     ][variant]
-    : "The tape keeps its subject spine loose.";
+    : "The subject spine stays loose on this tape.";
   const route = hot
-    ? `${moments.length ? "The best first jump is" : "The best first listening stop is"} ${clock(hot.t)}, where ${humanMomentLabel(hot.category || "the first big turn")}.`
+    ? `${moments.length ? "Best starting door:" : "Best listening door:"} ${clock(hot.t)} // ${humanMomentLabel(hot.category || "the first big turn")}.`
     : "Start with the chapter rail and let the tape choose the first detour.";
   const routeLine = routeMoments.length
     ? [
-      `${routeMoments.length} jump-in points are wired into the page.`,
-      `The page has ${routeMoments.length} timestamped ways in.`,
-      `You can drop into this tape at ${routeMoments.length} marked points.`
+      `The page has ${routeMoments.length} playable doors.`,
+      `${routeMoments.length} timestamped doors are ready.`,
+      `There are ${routeMoments.length} marked places to drop in.`
     ][variant]
     : [
       "The page keeps the topic doors and the full official player together.",
@@ -851,38 +851,38 @@ function voiceSummaryV2(title, date, shape, topics, moments, fan, recurring, cha
     ][variant];
   const laneLine = laneNames.length
     ? [
-      `The house specialties here are ${listPhrase(laneNames)}.`,
-      `The WWAM fingerprints are ${listPhrase(laneNames)}.`,
-      `The recurring bits that keep surfacing: ${listPhrase(laneNames)}.`
+      `The recurring WWAM lanes are ${listPhrase(laneNames)}.`,
+      `The bits that keep resurfacing are ${listPhrase(laneNames)}.`,
+      `The strongest WWAM fingerprints here: ${listPhrase(laneNames)}.`
     ][variant]
-    : "No recurring WWAM bit is strong enough to headline this pass.";
+    : "No recurring WWAM lane cleared the headline check on this pass.";
   const fanLine = fan.length
     ? [
-      `Chat leaves ${fan.length} fan callout${fan.length === 1 ? "" : "s"}${fanTypes.length ? ` in the mix, including ${listPhrase(fanTypes).replace(/ CUE/g, "")}` : ""}.`,
-      `Fan traffic adds ${fan.length} callout${fan.length === 1 ? "" : "s"}${fanTypes.length ? `, from ${listPhrase(fanTypes).replace(/ CUE/g, "")}` : ""}.`,
-      `The audience gets ${fan.length} callout${fan.length === 1 ? "" : "s"}${fanTypes.length ? `, including ${listPhrase(fanTypes).replace(/ CUE/g, "")}` : ""}.`
+      `The audience leaves ${fan.length} fan callout${fan.length === 1 ? "" : "s"}${fanTypes.length ? `, including ${listPhrase(fanTypes).replace(/ CUE/g, "")}` : ""}.`,
+      `The chat contributes ${fan.length} callout${fan.length === 1 ? "" : "s"}${fanTypes.length ? `, including ${listPhrase(fanTypes).replace(/ CUE/g, "")}` : ""}.`,
+      `Fan traffic shows up ${fan.length} time${fan.length === 1 ? "" : "s"}${fanTypes.length ? `, through ${listPhrase(fanTypes).replace(/ CUE/g, "")}` : ""}.`
     ][variant]
-    : ["Chat stays quiet on this tape.", "The fan lane stays quiet here.", "This one keeps the audience lane subdued."][variant];
+    : ["No fan-callout cluster cleared this pass.", "The audience lane stays quiet here.", "No fan signal was retained for this tape."][variant];
   const characterLine = characterCues.length
     ? [
-      `The recurring cast drops in through ${characterList}; the timestamped door is where the callback earns its laugh.`,
-      `${characterList} all make the character roll call; use the clip, not just the keyword, to catch the performance.`,
-      `The character traffic runs through ${characterList}; the bit lives in the exchange around the cue.`
+      `Character cues include ${characterList}; open the timestamped exchange for the performance.`,
+      `${characterList} are all flagged in the source; the surrounding audio decides whether it is a bit or a mention.`,
+      `The character lane touches ${characterList}; use the door, not just the keyword.`
     ][variant]
     : "No recurring-character bit takes over this tape.";
   const listeningLine = listeningRoutes.length
     ? [
-      `The audio pass adds ${listeningRoutes.length} more doors; use the player to judge the timing and the joke.`,
-      `I found ${listeningRoutes.length} extra places to press play; the delivery decides whether the bit lands.`,
-      `There are ${listeningRoutes.length} additional listening doors here; let the tape supply the timing.`
+      `The listening pass adds ${listeningRoutes.length} source-audio doors; the player carries timing and delivery.`,
+      `A local audio pass adds ${listeningRoutes.length} more places to press play; hear the exchange before judging it.`,
+      `There are ${listeningRoutes.length} additional audio doors here; let the tape supply the timing.`
     ][variant]
     : "There is no separate audio-ranked lane attached to this file yet.";
   const tierLine = evidenceTier === "source-brief"
     ? "This one stays compact until a stronger local receipt arrives."
     : [
-      `${humanMomentLabel(hot?.category || "the first big turn").replace(/^./, (character) => character.toUpperCase())} is the doorway; stay for the turn after it.`,
-      `Start with the timestamp, then widen the window until the bit lands.`,
-      `The route points at the moment; the full exchange supplies the punchline.`
+      "Use the timestamp as a starting point; the full exchange supplies the punchline.",
+      "Start with the door, then widen the window until the bit lands.",
+      "The route points at the moment; playback supplies the rest."
     ][variant];
   return `${opening} ${topicLine} ${receiptLine}. ${route} ${routeLine} ${laneLine} ${fanLine} ${characterLine} ${listeningLine} ${tierLine}`;
 }
