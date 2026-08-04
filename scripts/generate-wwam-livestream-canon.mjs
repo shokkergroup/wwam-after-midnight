@@ -553,11 +553,17 @@ function fanIdentity(text) {
   return null;
 }
 function laneLabelMatches(value, laneLabel) {
-  const candidate = clean(value).toLowerCase();
-  const lane = clean(laneLabel).toLowerCase();
+  const candidate = canonicalLaneLabel(value).toLowerCase();
+  const lane = canonicalLaneLabel(laneLabel).toLowerCase();
   if (candidate === lane) return true;
-  const aliases = { "the room breaks": "room break", "wwam up in ya": "up in ya" };
+  const aliases = { "wwam up in ya": "up in ya" };
   return aliases[lane] === candidate;
+}
+function canonicalLaneLabel(value) {
+  const label = clean(value);
+  if (/^(?:the )?room breaks?$/i.test(label)) return "THE ROOM BREAKS";
+  if (/^(?:wwam )?up in ya$/i.test(label)) return "WWAM UP IN YA";
+  return label;
 }
 function recurringBits(events, moments, fan, duration, listeningRoutes = []) {
   const receiptLimit = Math.max(6, Math.round((duration || 1) / 450));
@@ -586,7 +592,7 @@ function recurringBits(events, moments, fan, duration, listeningRoutes = []) {
   }).filter(Boolean);
 }
 function bestBits(moments, fan, listeningRoutes = [], audioCandidates = []) {
-  const routeKey = (moment) => `${Math.round(Number(moment?.t || 0))}|${clean(moment?.category || moment?.label || "SOURCE RECEIPT")}`;
+  const routeKey = (moment) => `${Math.round(Number(moment?.t || 0))}|${canonicalLaneLabel(moment?.category || moment?.label || "SOURCE RECEIPT")}`;
   const routeRank = (moment) => {
     const evidence = clean(moment?.evidenceBasis || "").toLowerCase();
     const excerptPresent = Boolean(clean(moment?.excerpt || moment?.quote || moment?.captionExcerpt));
@@ -634,8 +640,8 @@ function bestBits(moments, fan, listeningRoutes = [], audioCandidates = []) {
   });
   const routes = Array.from(routeMap.values());
   return routes.slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || Number(a.t || 0) - Number(b.t || 0)).map((moment, index) => ({
-    rank: index + 1, t: Number(moment.t || 0), end: Number(moment.end || moment.t || 0), category: clean(moment.category || moment.label || "SOURCE RECEIPT"),
-    label: clean(moment.label || moment.category || "SOURCE RECEIPT"), excerpt: safeExcerpt(moment.excerpt || moment.quote || moment.captionExcerpt || "", 16), captionAligned: moment.captionAligned === false ? false : moment.captionAligned === true ? true : null, score: Number(moment.score || 0),
+    rank: index + 1, t: Number(moment.t || 0), end: Number(moment.end || moment.t || 0), category: canonicalLaneLabel(moment.category || moment.label || "SOURCE RECEIPT"),
+    label: canonicalLaneLabel(moment.label || moment.category || "SOURCE RECEIPT"), excerpt: safeExcerpt(moment.excerpt || moment.quote || moment.captionExcerpt || "", 16), captionAligned: moment.captionAligned === false ? false : moment.captionAligned === true ? true : null, score: Number(moment.score || 0),
     evidenceBasis: moment.evidenceBasis || "source-local listening route", reviewStatus: moment.reviewStatus || "machine-candidate"
   })).filter((moment) => moment.excerpt || moment.captionAligned === false);
 }
@@ -669,7 +675,7 @@ function tapeNote(title, shape, topics, moments, fan, recurring, characterCues, 
   const fanTypes = Array.from(new Set(fan.map((signal) => signal.signalType))).slice(0, 2);
   const frame = contentFrame(title, shape, topics);
   const hook = hot ? `The first door worth pressing is ${clock(hot.t)} // ${hot.category}; open the source there and hear the exchange in full.` : "No bounded first-play hook survived this evidence tier.";
-  const laneMood = laneLead?.label === "ROOM BREAK" ? "breakdown territory" : laneLead?.label === "TAKE GETS NUCLEAR" ? "an argumentative register" : laneLead?.label === "WWAM UP IN YA" ? "out-of-pocket territory" : laneLead?.label === "STRAIGHT TO STEVE'S ASSHOLE" ? "a hostile verdict lane" : "a sharp side-channel";
+  const laneMood = canonicalLaneLabel(laneLead?.label) === "THE ROOM BREAKS" ? "breakdown territory" : canonicalLaneLabel(laneLead?.label) === "TAKE GETS NUCLEAR" ? "an argumentative register" : canonicalLaneLabel(laneLead?.label) === "WWAM UP IN YA" ? "out-of-pocket territory" : canonicalLaneLabel(laneLead?.label) === "STRAIGHT TO STEVE'S ASSHOLE" ? "a hostile verdict lane" : "a sharp side-channel";
   const lane = laneLead ? `The dominant recurring lane is ${laneLead.label} (${laneLead.candidateCount} surfaced moments), which puts the night in ${laneMood}.` : "The recurring-bit lanes stay quiet in this pass.";
   const fanLine = fan.length ? `The audience leaves ${fan.length} ${fan.length === 1 ? "fan callout" : "fan callouts"}${fanTypes.length ? `, including ${listPhrase(fanTypes)}` : ""}.` : "No fan-callout cluster survived this pass.";
   const characterLine = characterCues.length ? `Character traffic includes ${characterList}; the page cannot prove who performed each cue.` : "No character cue was strong enough to retain in this pass.";
@@ -865,7 +871,7 @@ function voiceSummary(title, date, shape, topics, moments, fan, recurring, chara
   const characterList = listPhrase(characterCues.slice().sort((a, b) => Number(b.mentions || 0) - Number(a.mentions || 0)).slice(0, 3).map((character) => character.name));
   const fanTypes = Array.from(new Set(fan.map((signal) => signal.signalType))).slice(0, 2);
   const frame = contentFrame(title, shape, topics);
-  const mood = laneLead?.label === "ROOM BREAK" ? "the room keeps losing its composure" : laneLead?.label === "TAKE GETS NUCLEAR" ? "the takes keep catching fire" : laneLead?.label === "WWAM UP IN YA" ? "the conversation gets gloriously filthy" : laneLead?.label === "STRAIGHT TO STEVE'S ASSHOLE" ? "the verdict lane gets mean" : "the side conversations keep widening";
+  const mood = canonicalLaneLabel(laneLead?.label) === "THE ROOM BREAKS" ? "the room keeps losing its composure" : canonicalLaneLabel(laneLead?.label) === "TAKE GETS NUCLEAR" ? "the takes keep catching fire" : canonicalLaneLabel(laneLead?.label) === "WWAM UP IN YA" ? "the conversation gets gloriously filthy" : canonicalLaneLabel(laneLead?.label) === "STRAIGHT TO STEVE'S ASSHOLE" ? "the verdict lane gets mean" : "the side conversations keep widening";
   const variant = voiceVariant(title, date);
   const frameText = String(frame).replace(/^an? /i, "");
   const openerSets = /ranking-night/i.test(frame)
@@ -1326,7 +1332,7 @@ fs.writeFileSync(path.join(DEMO, "wwam-livestream-canon.js"), `/* Generated by s
 // useful page. Keep a compact, source-local shelf with the visitor summary
 // and a bounded set of story/audio/fan doors; the full canon can still hydrate
 // later when a visitor opens the deeper livestream tools.
-const COLD_ROUTE_PRIORITY = ["STRAIGHT TO STEVE'S ASSHOLE", "WWAM UP IN YA", "CHARACTER SIGNAL", "FAN SIGNAL", "TAKE GETS NUCLEAR", "ROOM BREAK"];
+const COLD_ROUTE_PRIORITY = ["STRAIGHT TO STEVE'S ASSHOLE", "WWAM UP IN YA", "CHARACTER SIGNAL", "FAN SIGNAL", "TAKE GETS NUCLEAR", "THE ROOM BREAKS"];
 function chooseDiverseColdCuts(cuts, limit = 12) {
   const deduped = [];
   const seen = new Set();

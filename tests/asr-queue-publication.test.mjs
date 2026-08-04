@@ -191,6 +191,8 @@ test("best-bits keeps acoustic-only doors visible without inventing quotes", () 
 test("best-bits collapses duplicate timestamp lanes and prefers local evidence", () => {
   const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-livestream-canon.mjs"), "utf8");
   assert.match(generator, /const routeKey =/);
+  assert.match(generator, /function canonicalLaneLabel\(value\)/);
+  assert.match(generator, /category: canonicalLaneLabel/);
   assert.match(generator, /const routeRank =/);
   assert.match(generator, /const listeningKeys = new Set\(listeningRoutes\.map\(routeKey\)\)/);
   assert.match(generator, /const routeMap = new Map\(\)/);
