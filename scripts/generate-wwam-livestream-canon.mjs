@@ -835,9 +835,9 @@ function voiceSummaryV2(title, date, shape, topics, moments, fan, recurring, cha
       `For a quick taste, press ${clock(receiptCandidate.at || 0)}: "${safeExcerpt(receiptCandidate.text, 16)}"`
     ][variant]
     : [
-      "No short transcript line cleared the quote check on this pass; use the playable doors for tone",
-      "The source did not yield a clean pull quote here, so the timestamp rail is the honest way in",
-      "Nothing short enough to quote survived the transcript check; the player carries the timing"
+      "The transcript stayed too ragged for a clean pull quote here; the player is the honest way to catch the room's tone",
+      "No single line survived cleanly enough to print; tap a timestamp and hear the room do the talking",
+      "This show is better heard than paraphrased here; tap a timestamp and catch the timing in the source"
     ][variant];
   const frame = contentFrame(title, shape, topics);
   const cleanTitle = clean(title);
