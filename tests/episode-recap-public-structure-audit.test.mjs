@@ -242,6 +242,16 @@ test("synthetic body/play controls reject disagreement and missing coordinates",
     );
   });
 
+  await t.test("editorial prose may omit a clock when its play coordinate is explicit", () => {
+    const file = cleanFixture();
+    file.recap.sections[0].body = "Alpha gets a clean editorial read without a timestamp in the sentence.";
+    file.recap.sections[0].playAt = 60;
+
+    const result = auditOne(file);
+    assert.equal(result.pass, true, JSON.stringify(result.failures, null, 2));
+    assert.equal(result.counts.bodyPlayCoordinateMismatches, 0);
+  });
+
   await t.test("a public body references no resolvable play action", () => {
     const file = cleanFixture();
     delete file.recap.sections[0].receiptKeys;

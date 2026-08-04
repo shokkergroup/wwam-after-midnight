@@ -251,6 +251,15 @@ function bodyPlayFailure(file, item, field, receipts) {
   const clocks = parsePublicClockTokens(item.body);
   const play = resolvePublicPlayCoordinate(file, item, receipts);
   if (!clocks.length) {
+    // Human/editorial prose is intentionally allowed to read naturally
+    // without stuffing a timestamp into every sentence. If the card already
+    // exposes an explicit public play coordinate (or a reviewed guide anchor),
+    // that coordinate is the contract the UI uses. Receipt-only fan cards must
+    // still print their clock so a prose lane cannot look playable while its
+    // action is unresolved or ambiguous.
+    if (["public-play-coordinate", "guide-anchor", "guide-cut"].includes(play.mechanism)) {
+      return null;
+    }
     return compactFailure(file, field, "missing-body-clock", {
       body: clean(item.body),
       playAt: play.at,
