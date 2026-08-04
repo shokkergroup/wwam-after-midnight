@@ -49,5 +49,10 @@
 .source-dossier-player>.shokker-youtube-player .shokker-youtube-recover,.context-embed .shokker-youtube-recover{top:auto!important;left:auto!important;right:12px!important;bottom:12px!important;width:auto!important;height:auto!important;min-height:38px!important;max-height:44px!important}
 
 .guided-primary-links .nav-halloween-universe{color:#ffb34d;font-weight:800}.guided-primary-links .nav-halloween-universe:hover,.guided-primary-links .nav-halloween-universe[aria-current="page"]{color:#fff3d6;text-shadow:0 0 18px rgba(255,128,43,.58)}.guided-primary-links .nav-halloween-universe[aria-current="page"]:after{background:#ff812b;box-shadow:0 0 16px rgba(255,129,43,.72)}
+.guided-primary-links .nav-signature{font-weight:800;letter-spacing:.08em}
+.guided-primary-links .nav-steve{color:#ff4f9b}
+.guided-primary-links .nav-steve:hover,.guided-primary-links .nav-steve[aria-current="page"]{color:#ffd0e5;text-shadow:0 0 16px rgba(255,79,155,.55)}
+.guided-primary-links .nav-upinya{color:#d4ff29}
+.guided-primary-links .nav-upinya:hover,.guided-primary-links .nav-upinya[aria-current="page"]{color:#f3ffc7;text-shadow:0 0 16px rgba(212,255,41,.55)}
 .hero-actions .hero-halloween-universe{border-color:#9b4822;background:linear-gradient(135deg,rgba(255,103,24,.18),rgba(255,179,60,.05));color:#ffb34d;font-weight:800}.hero-actions .hero-halloween-universe:hover{border-color:#ff812b;background:#ff812b;color:#090706}
 @media(max-width:820px){.guided-primary-links .nav-halloween-universe{display:grid!important;min-height:42px;align-items:center;font-size:10px}}

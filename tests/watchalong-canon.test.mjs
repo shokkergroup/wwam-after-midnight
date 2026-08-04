@@ -26,6 +26,13 @@ const routeIndex = context.WWAM_WATCHALONG_ROUTE_INDEX;
 const watchPass = context.WWAM_WATCH_PASS_PILOT;
 const podcastAudio = context.WWAM_PODCAST_COMMENTARY_AUDIO;
 
+test("primary navigation exposes the signature comedy lanes", () => {
+  assert.match(html, /class="nav-signature nav-steve"[^>]+href="#steves-asshole"/);
+  assert.match(html, /class="nav-signature nav-upinya"[^>]+href="#upinya"/);
+  assert.match(html, />STEVE'S ASSHOLE<\/a>/);
+  assert.match(html, />UP IN YA<\/a>/);
+});
+
 test("cold-route Show Wiki index mirrors every source and keeps full dossier cuts", () => {
   assert.equal(routeIndex.schema, "shokker-wwam-watchalong-route-index/v1");
   assert.equal(routeIndex.sources.length, 131, "edge sources replace their thinner companion shells without duplicating cold routes");
