@@ -142,7 +142,7 @@ test("each source has an honest evidence tier and playable source link", () => {
   const restrictedListening = canon.episodes.find((episode) => episode.id === "fpNtQMexZiw");
   assert.ok(restrictedListening.bestBits.length >= restrictedListening.watchPass.candidates.length, "restricted shows expose their listening routes in the best-bit shelf");
   assert.ok(restrictedListening.recurringBits.some((lane) => lane.label === "THE ROOM BREAKS" && lane.momentReceipts > 0), "audio room-break routes count as doors even when visual-result moments are withheld");
-  assert.match(restrictedListening.dossier.summary, /best first listening stop/i, "restricted shows surface their strongest listening route in the conversational summary");
+  assert.match(restrictedListening.dossier.summary, /best (?:starting|listening) door/i, "restricted shows surface their strongest listening route in the conversational summary");
   assert.doesNotMatch(restrictedListening.dossier.summary, /no honest single hook/i, "a decoded listening route prevents a false empty-hook message");
   const trailerRoundtable = canon.episodes.find((episode) => episode.id === "Q_CprCuIXLk");
   assert.match(trailerRoundtable.dossier.summary, /trailer-and-news roundtable/i);
@@ -227,7 +227,7 @@ test("livestream canon surface is wired into the page and route shell", () => {
   assert.match(ui, /donation total/);
   assert.match(ui, /CHARACTER CUES/);
   assert.match(ui, /AUDIO CHARACTER ROUTE/);
-  assert.match(ui, /TAPE HOOK/);
+  assert.match(ui, /START HERE \/\/ BEST LISTENING DOOR/);
   assert.match(ui, /2026 SECOND PASS/);
   assert.match(ui, /THE ROUTE THROUGH THIS NIGHT/);
   assert.match(ui, /TAPE NOTE/);

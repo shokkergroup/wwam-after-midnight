@@ -655,7 +655,7 @@ function bestBits(moments, fan, listeningRoutes = [], audioCandidates = []) {
     excerpt: "",
     captionExcerpt: "",
     captionAligned: false,
-    evidenceBasis: candidate.evidenceBasis || "canonical audio route; playback remains the authority",
+    evidenceBasis: candidate.evidenceBasis || "canonical YouTube audio route; playback remains the authority",
     reviewStatus: candidate.reviewStatus || "audio-feature-candidate; playback remains the authority"
   }));
   const routeMap = new Map();
@@ -988,7 +988,7 @@ function characterCues(events, duration, listeningRoutes = []) {
     if (!hits.length && !routeHits.length) return null;
     const ranked = hits.slice().sort((a, b) => words(b.event.text).length - words(a.event.text).length || a.event.t - b.event.t);
     const captionReceipts = ranked.map((item) => ({ t: Math.round(item.event.t), end: Math.round(item.event.end || item.event.t + 36), excerpt: bestCaptionExcerpt(captionWindow(events, item.index), captionWindow(events, item.index, 5, 12, "fallbackText"), 24), evidenceBasis: captionEvidenceBasis, reviewStatus: "machine-candidate", receiptKind: "caption-cue" }));
-    const audioReceipts = routeHits.slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || Number(a.t || 0) - Number(b.t || 0)).map((route) => ({ t: Math.round(route.t || 0), end: Math.round(route.end || route.t || 0), excerpt: safeExcerpt(route.captionExcerpt || route.excerpt || "", 24), evidenceBasis: localWhisper ? "canonical audio route + source-local Whisper transcript character cue; performance not established" : "canonical audio route + source-local caption character cue; performance not established", reviewStatus: "audio-feature-candidate; playback remains the authority", receiptKind: "audio-character-route" }));
+    const audioReceipts = routeHits.slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || Number(a.t || 0) - Number(b.t || 0)).map((route) => ({ t: Math.round(route.t || 0), end: Math.round(route.end || route.t || 0), excerpt: safeExcerpt(route.captionExcerpt || route.excerpt || "", 24), evidenceBasis: localWhisper ? "canonical YouTube audio route + source-local Whisper transcript character cue; performance not established" : "canonical YouTube audio route + source-local caption character cue; performance not established", reviewStatus: "audio-feature-candidate; playback remains the authority", receiptKind: "audio-character-route" }));
     const receipts = [...captionReceipts, ...audioReceipts].sort((a, b) => Number(b.receiptKind === "audio-character-route") - Number(a.receiptKind === "audio-character-route") || a.t - b.t).filter((receipt, index, all) => index === all.findIndex((candidate) => Math.abs(candidate.t - receipt.t) < 4)).slice(0, receiptLimit);
     return {
       key: character.key, name: character.name, mentions: hits.length + routeHits.length, captionMentions: hits.length, listeningRouteMentions: routeHits.length, first: Math.round((hits[0]?.event?.t ?? routeHits[0]?.t ?? 0)), peak: Math.round((ranked[0]?.event?.t ?? routeHits[0]?.t ?? 0)),
@@ -1126,9 +1126,9 @@ const episodes = canonicalMetadata.map((record) => {
     excerpt: repairedExcerpt || "No local transcript window aligned; open the player at this timestamp.",
     captionAligned: Boolean(repairedExcerpt),
     evidenceBasis: localWhisper && rawExcerpt
-      ? "canonical audio + source-local Whisper transcript alignment"
+      ? "canonical YouTube audio + source-local Whisper transcript alignment"
       : localWhisper
-        ? "canonical audio route; local Whisper window unavailable at this timestamp"
+        ? "canonical YouTube audio route; local Whisper window unavailable at this timestamp"
         : candidate.evidenceBasis || "source-local listening route",
     reviewStatus: candidate.reviewStatus || "machine-candidate"
     };
@@ -1211,9 +1211,9 @@ const episodes = canonicalMetadata.map((record) => {
         excerpt: publicCaptionExcerpt || (localWhisper ? "No local transcript window aligned; open the player at this timestamp." : "No caption fragment aligned; open the source and listen to this acoustic window."),
         captionAligned: Boolean(publicCaptionExcerpt),
         evidenceBasis: localWhisper && publicCaptionExcerpt
-          ? "canonical audio + source-local Whisper transcript alignment"
+          ? "canonical YouTube audio + source-local Whisper transcript alignment"
           : localWhisper
-            ? "canonical audio route; local Whisper window unavailable at this timestamp"
+            ? "canonical YouTube audio route; local Whisper window unavailable at this timestamp"
             : candidate.evidenceBasis || "source-local listening route"
       };
     })
