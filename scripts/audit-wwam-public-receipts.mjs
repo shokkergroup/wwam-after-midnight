@@ -70,6 +70,14 @@ function inspect(value, sourceId, field, failures) {
   if (/\b(?:probably|perhaps|maybe)\.?$/i.test(text)) {
     failures.push({ sourceId, field, kind: "unfinished-adverb-tail", text });
   }
+  if (/\blook at\s+(?:his|her|the)\s+look at\b/i.test(text)
+    || /\b(?:it's got|it has)\s+(?:we got|we have|they got|they have)\b/i.test(text)
+    || /\b(?:that's|there's|it's)\s+(?:just|one|the)\s+(?:that's|there's|it's)\b/i.test(text)
+    || /\bbefore\b[^.!?]{0,50}\bbefore\s+(?:just|you|we|i)\b/i.test(text)
+    || /\b[A-Z][a-z]+,\s+[A-Z]{3,}\b/.test(text)
+    || /\b(?:oh|he|hey)\s+(?:he|hey)\s+(?:hey|he)\b/i.test(text)) {
+    failures.push({ sourceId, field, kind: "capitalized-boundary-splice", text });
+  }
 }
 
 function inspectSummaryProse(value, sourceId, field, failures) {

@@ -370,6 +370,13 @@ function isNoisyTranscript(value) {
     /\b(?:uh|um|er|like)[,.]?\s+(?:uh|um|er|like)[,.]?\s+(?:uh|um|er|like)\b/i,
     /\b(?:don't|never|ever|always)\s+(?:you|we|they|he|she|i)\s+[A-Za-z][^.!?]*\s+(?:again|but|and)\b/i,
     /\b(?:he|she|it|they|we|you|i)(?:'s|\s+is|\s+are|\s+was|\s+were)\s+[A-Z][a-z'-]+\s+(?:but|and|so)\b/,
+    // A bounded window can glue a new clause onto the previous one.
+    /\blook at\s+(?:his|her|the)\s+look at\b/i,
+    /\b(?:it's got|it has)\s+(?:we got|we have|they got|they have)\b/i,
+    /\b(?:that's|there's|it's)\s+(?:just|one|the)\s+(?:that's|there's|it's)\b/i,
+    /\bbefore\b[^.!?]{0,50}\bbefore\s+(?:just|you|we|i)\b/i,
+    /\b[A-Z][a-z]+,\s+[A-Z]{3,}\b/,
+    /\b(?:oh|he|hey)\s+(?:he|hey)\s+(?:hey|he)\b/i,
   ].some((pattern) => pattern.test(text));
 }
 function isWeakPublicReceipt(value) {

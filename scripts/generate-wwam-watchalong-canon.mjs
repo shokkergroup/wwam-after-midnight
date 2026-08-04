@@ -174,7 +174,13 @@ function isNoisyTranscript(value) {
     // Preserve the audio route but suppress obvious Whisper boundary joins
     // such as "I If..." or "I it did..." from public clip receipts.
     || /\bI\s+(?:if|what|well|you|she|it|they|he|we)\b/.test(text)
-    || /\b(?:I|you|he|she|we|they)\s+(?:I|you|he|she|we|they)\s+(?:did|does|do|don't|can't|won't|was|were|am|is|are|just|got)\b/i.test(text);
+    || /\b(?:I|you|he|she|we|they)\s+(?:I|you|he|she|we|they)\s+(?:did|does|do|don't|can't|won't|was|were|am|is|are|just|got)\b/i.test(text)
+    || /\blook at\s+(?:his|her|the)\s+look at\b/i.test(text)
+    || /\b(?:it's got|it has)\s+(?:we got|we have|they got|they have)\b/i.test(text)
+    || /\b(?:that's|there's|it's)\s+(?:just|one|the)\s+(?:that's|there's|it's)\b/i.test(text)
+    || /\bbefore\b[^.!?]{0,50}\bbefore\s+(?:just|you|we|i)\b/i.test(text)
+    || /\b[A-Z][a-z]+,\s+[A-Z]{3,}\b/.test(text)
+    || /\b(?:oh|he|hey)\s+(?:he|hey)\s+(?:hey|he)\b/i.test(text);
 }
 
 function sanitizePublicExcerpt(value) {
