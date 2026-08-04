@@ -154,7 +154,11 @@ function isNoisyTranscript(value) {
   return /[,\.]\s*\.$/.test(text)
     || /\b(?:do you do|the both of you|i just don't i|the just the|i saw it in the just the)\b/i.test(text)
     || /\b(?:he|she|it|they|we|you|i)(?:'s|'re|'m)?\s+(?:a|an|the)\s+(?:all|by|with|to|from)\b/i.test(text)
-    || /\b(?:like|so|yeah|well)\b.*\b(?:like|so|yeah|well)\b.*\b(?:like|so|yeah|well)\b/i.test(text);
+    || /\b(?:like|so|yeah|well)\b.*\b(?:like|so|yeah|well)\b.*\b(?:like|so|yeah|well)\b/i.test(text)
+    // Preserve the audio route but suppress obvious Whisper boundary joins
+    // such as "I If..." or "I it did..." from public clip receipts.
+    || /\bI\s+(?:if|what|well|you|she|it|they|he|we)\b/.test(text)
+    || /\b(?:I|you|he|she|we|they)\s+(?:I|you|he|she|we|they)\s+(?:did|does|do|don't|can't|won't|was|were|am|is|are|just|got)\b/i.test(text);
 }
 
 function sanitizePublicExcerpt(value) {

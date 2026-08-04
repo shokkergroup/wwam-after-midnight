@@ -324,6 +324,7 @@ test("watchalong publication keeps special broadcasts visible and bounds nearby 
   assert.match(generator, /excerpt\(context\.text, 16\)/);
   assert.match(generator, /excerpt\(`NEARBY CAPTION CONTEXT \/\/ \$\{nearbyCaption\.text\}`, 16\)/);
   assert.match(generator, /function isNoisyTranscript\(value\)/);
+  assert.match(generator, /obvious Whisper boundary joins/);
   assert.match(generator, /function sanitizePublicExcerpt\(value\)/);
   assert.match(generator, /isLikelyFragment\(cased\) \|\| isNoisyTranscript\(cased\)/);
 });
