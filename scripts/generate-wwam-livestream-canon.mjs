@@ -719,7 +719,8 @@ function tapeNote(title, shape, topics, moments, fan, recurring, characterCues, 
   // exists, which is exactly the kind of machine-smell we refuse to print.
   const routeMoments = listeningRoutes.length ? listeningRoutes : moments;
   const hot = routeMoments.slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || Number(a.t || 0) - Number(b.t || 0))[0];
-  const characterList = listPhrase(characterCues.slice().sort((a, b) => Number(b.mentions || 0) - Number(a.mentions || 0)).slice(0, 3).map((character) => character.name));
+  const characterNames = characterCues.slice().sort((a, b) => Number(b.mentions || 0) - Number(a.mentions || 0)).slice(0, 3).map((character) => character.name);
+  const characterList = listPhrase(characterNames);
   const fanTypes = Array.from(new Set(fan.map((signal) => signal.signalType))).slice(0, 2);
   const frame = contentFrame(title, shape, topics);
   const hook = hot ? `The first door worth pressing is ${clock(hot.t)} // ${hot.category}; open the source there and hear the exchange in full.` : "No bounded first-play hook survived this evidence tier.";
@@ -778,7 +779,8 @@ function voiceSummaryV2(title, date, shape, topics, moments, fan, recurring, cha
   // canonical source and carry the strongest aligned transcript window.
   const routeMoments = listeningRoutes.length ? listeningRoutes : moments;
   const hot = routeMoments.slice().sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || Number(a.t || 0) - Number(b.t || 0))[0];
-  const characterList = listPhrase(characterCues.slice().sort((a, b) => Number(b.mentions || 0) - Number(a.mentions || 0)).slice(0, 3).map((character) => character.name));
+  const characterNames = characterCues.slice().sort((a, b) => Number(b.mentions || 0) - Number(a.mentions || 0)).slice(0, 3).map((character) => character.name);
+  const characterList = listPhrase(characterNames);
   const fanTypes = Array.from(new Set(fan.map((signal) => signal.signalType))).slice(0, 2);
   const laneNames = recurring.slice()
     .sort((a, b) => Number(b.candidateCount || 0) - Number(a.candidateCount || 0))
@@ -890,7 +892,7 @@ function voiceSummaryV2(title, date, shape, topics, moments, fan, recurring, cha
   const characterLine = characterCues.length
     ? [
       `Character cues include ${characterList}; open the timestamped exchange for the performance.`,
-      `${characterList} are all flagged in the source; the surrounding audio decides whether it is a bit or a mention.`,
+      `${characterList} ${characterNames.length === 1 ? "is" : "are"} flagged in the source; the surrounding audio decides whether it is a bit or a mention.`,
       `The character lane touches ${characterList}; use the door, not just the keyword.`
     ][variant]
     : "No recurring-character bit takes over this tape.";
