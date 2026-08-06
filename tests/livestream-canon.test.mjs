@@ -240,6 +240,9 @@ test("livestream canon surface is wired into the page and route shell", () => {
   assert.match(ui, /CAPTION FALLBACKS/);
   assert.match(ui, /CAPTION-ONLY PASS/);
   assert.match(ui, /function navCopy\(/, "machine receipts have a readable navigation boundary");
+  assert.match(ui, /function searchScore\(e,z\)/, "archive search ranks matches instead of only sorting by date");
+  assert.match(ui, /fanEntityLabel\|\|v\.label/, "archive search includes repeat-fan name cues");
+  assert.match(ui, /characters=\(e\.characterCues\|\|\[\]\)/, "archive search includes character lanes");
   assert.match(ui, /function cleanRouteQuote\(raw\)/, "source-bound quotes quarantine obvious decoder-boundary fragments");
   assert.match(ui, /lvc-audio-candidates.*x\(navCopy\(z\)\)/, "audio watch-pass cards use the same quote-safe receipt route as the rest of the dossier");
   assert.match(ui, /sourceWindow=\(source\.match\(\/\\S\+\/g\)/, "quote eligibility checks punctuation before token normalization");
