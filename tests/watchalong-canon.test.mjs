@@ -44,6 +44,8 @@ test("per-show dossiers expose a guided read/listen/evidence path", () => {
   assert.match(ui, /id="wacDossierEvidence"/);
   assert.match(ui, /version: "1\.8\.2"/);
   assert.match(ui, /item\.body \? excerpt\(item\.body, 210\) : receiptExcerpt\(item\.excerpt, 210\)/);
+  assert.match(ui, /function visitorEvidenceSummary\(episode\)/, "show evidence notes are translated into visitor-facing language");
+  assert.match(ui, /function visitorChapterCopy\(chapter\)/, "machine chapter boilerplate is replaced by a playable route read");
   assert.match(css, /\.wac-dossier-jump/);
   assert.match(ui, /state\.franchise = franchises\.filter\(function \(item\) \{ return item\.key === "comedy"; \}\)/);
 });

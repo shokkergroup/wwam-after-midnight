@@ -84,6 +84,33 @@
     if (!cleaned) return "Caption route at this timestamp. Press play to hear the real exchange.";
     return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
   }
+  function visitorEvidenceSummary(episode) {
+    var dossier = episode && episode.dossier || {};
+    var raw = clean(dossier.evidenceSummary || '');
+    if (!raw) return 'This page maps the official tape into playable doors. Press play before treating a caption as a quote or assigning a speaker.';
+    var ledger = raw.match(/The source ledger contains (\d[\d,]*) audio transcript segments and (\d[\d,]*) words\. The local listening pass contributes (\d[\d,]*) ranked routes\./i);
+    if (ledger) {
+      return 'The tape has ' + ledger[1] + ' transcript segments and ' + ledger[2] + ' words mapped to ' + ledger[3] + ' playable listening doors. These are machine-found leads—not speaker-identified quotes—so press play before turning one into canon.';
+    }
+    return raw
+      .replace(/gets a character-led evidence map/gi, 'has a character-led tape map')
+      .replace(/gets an evidence map/gi, 'has a tape map')
+      .replace(/The three-stop path/gi, 'The three-stop route')
+      .replace(/analysis-weighted receipt/gi, 'strongest indexed door')
+      .replace(/saved reaction ledger/gi, 'reaction ledger')
+      .replace(/local listening pass contributes (\d[\d,]*) ranked routes; those acoustic windows are browse aids, not speaker or joke proof/gi, 'the audio pass adds $1 ranked listening doors; they help find the heat, but do not identify a speaker or prove a joke')
+      .replace(/local listening pass contributes (\d[\d,]*) ranked routes/gi, 'the audio pass adds $1 ranked listening doors')
+      .replace(/no unsupported final verdict is invented/gi, 'no verdict is invented beyond the tape');
+  }
+  function visitorChapterCopy(chapter) {
+    var raw = clean(chapter && (chapter.body || chapter.excerpt));
+    if (!raw) return 'Open the timestamp and hear this stretch of the tape.';
+    if (/source-local caption ledger|machine candidate|route checkpoint|audio-feature|bounded source|caption route/i.test(raw)) {
+      var label = clean(chapter.label || chapter.category || 'WATCH ROUTE').toLowerCase();
+      return 'This act opens on ' + label + '. Use the timestamp to hear how the room gets there; the card is a listening door, not a finished quote.';
+    }
+    return excerpt(raw, 220);
+  }
   function sourceUrl(episode, at) {
     var sourceId = encodeURIComponent(episode && episode.id || "");
     var seconds = Math.max(0, Math.round(Number(at) || 0));
@@ -405,7 +432,7 @@
     if (!Array.isArray(chapters) || !chapters.length) return '';
     return '<div class="wac-section-label" style="padding:0 1.5rem">SHOW ARC // CHAPTERS ARE ROUTES, NOT AI FILLER</div><div class="wac-chapter-grid">' + chapters.map(function (chapter) {
       var at = Number(chapter.at || chapter.t || 0);
-      return '<article class="wac-chapter"><header><span>ACT ' + esc(chapter.act || chapter.chapter || '') + '</span><span>' + esc(timestamp(at)) + '</span></header><b>' + esc(chapter.label || chapter.category || 'WATCH ROUTE') + '</b><p>' + esc(excerpt(chapter.body || chapter.excerpt || 'Open the timestamp and hear this stretch of the tape.', 220)) + '</p><a target="_blank" rel="noopener" href="' + esc(sourceUrl(episode, at)) + '">OPEN SOURCE AT ' + esc(timestamp(at)) + ' ↗</a></article>';
+      return '<article class="wac-chapter"><header><span>ACT ' + esc(chapter.act || chapter.chapter || '') + '</span><span>' + esc(timestamp(at)) + '</span></header><b>' + esc(chapter.label || chapter.category || 'WATCH ROUTE') + '</b><p>' + esc(visitorChapterCopy(chapter)) + '</p><a target="_blank" rel="noopener" href="' + esc(sourceUrl(episode, at)) + '">OPEN SOURCE AT ' + esc(timestamp(at)) + ' ↗</a></article>';
     }).join('') + '</div>';
   }
 
@@ -417,7 +444,7 @@
       var at = Number(chapter.at || chapter.t || 0);
       var podcast = chapter.sourceKind === "podcast-variant";
       var label = podcast ? "OPEN PODCAST VARIANT AT " : "OPEN SOURCE AT ";
-      return '<article class="wac-chapter"><header><span>ACT ' + esc(chapter.act || chapter.chapter || '') + '</span><span>' + esc(receiptClock(chapter) + timestamp(at)) + '</span></header><b>' + esc(chapter.label || chapter.category || 'WATCH ROUTE') + '</b><p>' + esc(excerpt(chapter.body || chapter.excerpt || 'Open the timestamp and hear this stretch of the tape.', 220)) + '</p><a' + receiptTarget(chapter) + ' href="' + esc(receiptUrl(episode, chapter)) + '">' + label + esc(timestamp(at)) + ' -></a></article>';
+      return '<article class="wac-chapter"><header><span>ACT ' + esc(chapter.act || chapter.chapter || '') + '</span><span>' + esc(receiptClock(chapter) + timestamp(at)) + '</span></header><b>' + esc(chapter.label || chapter.category || 'WATCH ROUTE') + '</b><p>' + esc(visitorChapterCopy(chapter)) + '</p><a' + receiptTarget(chapter) + ' href="' + esc(receiptUrl(episode, chapter)) + '">' + label + esc(timestamp(at)) + ' -></a></article>';
     }).join('') + '</div>';
   }
 
@@ -432,7 +459,7 @@
       var open = podcast
         ? '<button type="button" class="wac-variant-route" data-wac-variant-seek="' + esc(at) + '" data-wac-variant-audio="wacVariantAudio-source">OPEN PODCAST VARIANT AT ' + esc(timestamp(at)) + ' -></button>'
         : '<a' + receiptTarget(chapter) + ' href="' + esc(receiptUrl(episode, chapter)) + '">' + (podcast ? 'OPEN PODCAST VARIANT AT ' : 'OPEN SOURCE AT ') + esc(timestamp(at)) + ' -></a>';
-      var chapterCopy = chapter.body ? excerpt(chapter.body, 220) : receiptExcerpt(chapter.excerpt || 'Open the timestamp and hear this stretch of the tape.', 220);
+      var chapterCopy = visitorChapterCopy(chapter);
       return '<article class="wac-chapter"><header><span>ACT ' + esc(chapter.act || chapter.chapter || '') + '</span><span>' + esc(receiptClock(chapter) + timestamp(at)) + '</span></header><b>' + esc(chapter.label || chapter.category || 'WATCH ROUTE') + '</b><p>' + esc(chapterCopy) + '</p>' + open + '</article>';
     }).join('') + '</div>';
   }
@@ -635,7 +662,7 @@
       return rendered;
     }) : [];
     return '<section class="wac-dossier" id="wacDossier" aria-labelledby="wacDossierTitle"><header class="wac-dossier-head"><div><span class="wac-dossier-kicker">' + esc(episode.franchiseTitle) + ' // ' + esc(stateLabel(episode)) + '</span><h3 id="wacDossierTitle">' + esc(episode.movieTitle) + '</h3><p>' + esc(dossier.summary) + '</p></div><div class="wac-dossier-facts"><span><small>DATE</small><b>' + esc(dateLabel(episode.date)) + '</b></span><span><small>RUNTIME</small><b>' + esc(durationLabel(episode.duration)) + '</b></span><span><small>CAPTION WORDS</small><b>' + number(dossier.caption && dossier.caption.words) + '</b></span><span><small>JUMP RECEIPTS</small><b>' + number(moments.length) + '</b></span></div></header>' +
-      '<div class="wac-dossier-note"><strong>EVIDENCE STATUS // </strong>' + esc(dossier.evidenceSummary || 'The source is linked to the official tape. Speaker identity, intent, and current playback availability remain outside this fan archive unless a reviewed guide says otherwise.') + '</div>' +
+      '<div class="wac-dossier-note"><strong>EVIDENCE STATUS // </strong>' + esc(visitorEvidenceSummary(episode)) + '</div>' +
       '<div class="wac-route-grid">' + routeCard('OPENING READ', route.opening) + routeCard('STRONGEST RECEIPT', route.strongest) + routeCard('CLOSING READ', route.closing) + '</div>' + watchPassMarkup(episode) + chapterMarkup(episode, dossier.chapters) + topicMarkup(episode, episode.topics) + fanReadMarkup(dossier.fanRead) + fanSignalsMarkup(episode, dossier.fanSignals) +
       '<div class="wac-section-label" style="padding:0 1.5rem">EVERY INDEXED RECEIPT // PRESS PLAY AT THE TAPE</div><div class="wac-moment-grid">' + moments.map(function (moment) {
         return '<article class="wac-moment"><header><span>' + esc(moment.category || moment.label || 'SOURCE RECEIPT') + '</span><span>' + esc(timestamp(moment.t)) + '</span></header><p>' + esc(moment.excerpt || moment.quote || 'Caption receipt available at this timestamp.') + '</p><a target="_blank" rel="noopener" href="' + esc(sourceUrl(episode, moment.t)) + '">OPEN SOURCE AT ' + esc(timestamp(moment.t)) + ' ↗</a></article>';
@@ -658,7 +685,7 @@
       return rendered;
     }) : [];
     return '<section class="wac-dossier" id="wacDossier" aria-labelledby="wacDossierTitle"><header class="wac-dossier-head"><div><span class="wac-dossier-kicker">' + esc(episode.franchiseTitle) + ' // ' + esc(stateLabel(episode)) + '</span><h3 id="wacDossierTitle">' + esc(episode.movieTitle) + '</h3><p>' + esc(dossier.summary) + '</p></div><div class="wac-dossier-facts"><span><small>DATE</small><b>' + esc(dateLabel(episode.date)) + '</b></span><span><small>RUNTIME</small><b>' + esc(durationLabel(episode.duration)) + '</b></span><span><small>CAPTION WORDS</small><b>' + number(dossier.caption && dossier.caption.words) + '</b></span><span><small>JUMP RECEIPTS</small><b>' + number(moments.length) + '</b></span></div></header>' +
-      '<div class="wac-dossier-note"><strong>EVIDENCE STATUS // </strong>' + esc(dossier.evidenceSummary || 'The source is linked to the official tape. Speaker identity, intent, and current playback availability remain outside this fan archive unless a reviewed guide says otherwise.') + '</div>' +
+      '<div class="wac-dossier-note"><strong>EVIDENCE STATUS // </strong>' + esc(visitorEvidenceSummary(episode)) + '</div>' +
       dossierJumpMarkup() +
       signatureLaneMarkup(episode, moments) +
       '<div class="wac-route-grid" id="wacDossierRoutes">' + routeCard('OPENING READ', route.opening) + routeCard('STRONGEST RECEIPT', route.strongest) + routeCard('CLOSING READ', route.closing) + '</div><div id="wacDossierListen">' + watchPassMarkup(episode) + chapterMarkup(episode, dossier.chapters) + topicMarkup(episode, episode.topics) + fanReadMarkup(dossier.fanRead) + fanSignalsMarkup(episode, dossier.fanSignals) + '</div>' +
