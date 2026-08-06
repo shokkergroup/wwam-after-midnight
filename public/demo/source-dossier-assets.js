@@ -37,7 +37,7 @@
     "episode-editorial-packs-wave13.js?v=1.0.0-full-tape",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
-    "wwam-episode-recap-adapter.js?v=2.4.1-play-bound-human-story",
+    "wwam-episode-recap-adapter.js?v=2.5.0-source-bound-decks",
     "source-dossier-engine.js?v=1.17.0-alternate-podcast-routes",
     "wwam-livestream-asr-excerpts.js?v=1.0.5-low-signal-filter",
     "wwam-source-dossier-adapter.js?v=1.24.0-windowed-whisper-boundary",

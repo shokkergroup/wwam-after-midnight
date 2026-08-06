@@ -2,7 +2,7 @@
   "use strict";
 
   var SCHEMA = "wwam-feldman-recap/v1";
-  var VERSION = "2.4.0";
+  var VERSION = "2.5.0-source-bound-decks";
 
   function clean(value) {
     return String(value == null ? "" : value).trim();
@@ -2060,8 +2060,15 @@
     return displayTapeTitle(clean(record(map.metadata).title), 110);
   }
 
-  function fanDeck() {
-    return "";
+  function fanDeck(map) {
+    // The deck is the first sentence visitors see after the headline. Leaving
+    // it blank forced the UI to fall back to the same format boilerplate for
+    // almost every structured episode, which made a 500+ episode archive feel
+    // machine-made even when the underlying topic map was source-specific.
+    // readableDeck only uses local subjects, runtime, chapter count, and the
+    // saved replay doorway; it never turns a caption match into a quote,
+    // speaker attribution, verdict, or visual claim.
+    return readableDeck(map);
   }
 
   function sourceSummaryLine(map) {
