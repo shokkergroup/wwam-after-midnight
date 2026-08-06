@@ -242,6 +242,7 @@ test("livestream canon surface is wired into the page and route shell", () => {
   assert.match(ui, /function navCopy\(/, "machine receipts have a readable navigation boundary");
   assert.match(ui, /function searchScore\(e,z\)/, "archive search ranks matches instead of only sorting by date");
   assert.match(ui, /function queryHit\(text,z\)/, "archive search handles multi-word aliases without requiring exact punctuation");
+  assert.match(ui, /function matchedWeight\(list,z\)/, "archive search ranks a lane by the number of source-local doors it contains");
   assert.match(ui, /fanEntityLabel/, "archive search includes repeat-fan name cues");
   assert.match(ui, /characters=\(e\.characterCues\|\|\[\]\)/, "archive search includes character lanes");
   assert.match(ui, /function cleanRouteQuote\(raw\)/, "source-bound quotes quarantine obvious decoder-boundary fragments");
