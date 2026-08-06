@@ -78,6 +78,7 @@
     "episode-editorial-packs-wave54.js?v=1.0.0-december-2025-welcome-to-derry-finale",
     "episode-editorial-packs-wave55.js?v=1.0.0-december-2025-scream-poster-ranking",
     "episode-editorial-packs-wave56.js?v=1.0.0-november-2025-derry-episode-four",
+    "episode-editorial-packs-wave57.js?v=1.0.0-december-2025-derry-episode-seven",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
