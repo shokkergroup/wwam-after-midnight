@@ -9,7 +9,7 @@ const assets = fs.readFileSync(path.join(root, "public/demo/source-dossier-asset
 const app = fs.readFileSync(path.join(root, "public/demo/app.js"), "utf8");
 
 test("cold Show Wiki routes preload the latest human editorial packs", () => {
-  for (const wave of [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35]) {
+  for (const wave of Array.from({ length: 34 }, (_, index) => index + 2)) {
     assert.match(html, new RegExp(`episode-editorial-packs-wave${wave}\\.js`));
     assert.match(assets, new RegExp(`episode-editorial-packs-wave${wave}\\.js`));
   }
