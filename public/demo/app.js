@@ -717,6 +717,19 @@
     });
     if (mode === "replace") history.replaceState(nextState, "", url);
     else history.pushState(nextState, "", url);
+    var closeControl = typeof document !== "undefined" ?
+      document.getElementById("modalClose") : null;
+    if (closeControl) {
+      var clipOpen = at != null && at !== "" && Number.isFinite(Number(at));
+      closeControl.setAttribute(
+        "aria-label",
+        clipOpen ? "Close clip and keep Show Wiki" : "Close Show Wiki",
+      );
+      closeControl.setAttribute(
+        "title",
+        clipOpen ? "Close clip and keep Show Wiki" : "Close Show Wiki",
+      );
+    }
   }
 
   function showSourceDossierLoading() {
@@ -1199,14 +1212,21 @@
     if (!/^[A-Za-z0-9_-]{11}$/.test(sourceId)) return Promise.resolve(false);
     showSourceDossierLoading();
     var fallbackShown = false;
+    var activeRouteState = function () {
+      var route = readSourceRoute();
+      return route && route.sourceId === sourceId ? route : null;
+    };
     var renderFallback = function () {
       // Paint the truthful local shell first. Hydrating the compact route index
       // is useful enrichment, but it must never sit in front of the only page
       // a visitor can use when a lazy asset stalls or fails on a cold route.
       var modal = document.getElementById("tapeModal");
       if (!modal || !modal.classList.contains("show")) return Promise.resolve(false);
-      fallbackSourceWiki(sourceId, startTime, section);
-      syncSourceRoute(sourceId, startTime, section, settings.routeMode || "push");
+      var route = activeRouteState();
+      var routeAt = route ? route.at : startTime;
+      var routeSection = route && route.section ? route.section : section;
+      fallbackSourceWiki(sourceId, routeAt, routeSection);
+      syncSourceRoute(sourceId, routeAt, routeSection, settings.routeMode || "push");
       return ensureWatchalongCanonForSource(sourceId).catch(function (error) {
         runtimeDiagnostics.push({at:new Date().toISOString(),operation:"watchalong route hydration",
           sourceId:sourceId,message:error&&error.message?error.message:String(error)});
@@ -1214,13 +1234,18 @@
         // Repaint once, after the compact route/Whisper assets arrive, so a
         // cold shell gains its bounded listening receipts without waiting on
         // the full dossier. The player remains inside the page.
+        var liveRoute = activeRouteState();
+        var liveModal = document.getElementById("tapeModal");
+        if (!liveModal || !liveModal.classList.contains("show") || !liveRoute) return true;
+        var liveAt = liveRoute.at;
+        var liveSection = liveRoute.section || section;
         var hydrated = fallbackSourceRecord(sourceId);
         var hasHydratedRecord = hydrated &&
           String(hydrated.title || hydrated.displayTitle || "").trim() !== "WWAM SOURCE" &&
           (Array.isArray(hydrated.moments) || Array.isArray(hydrated.bestMoments) ||
             hydrated.dossier || hydrated.episodeGuide || hydrated.editorial || hydrated.watchPass);
         if (hasHydratedRecord) {
-          fallbackSourceWiki(sourceId, startTime, section);
+          fallbackSourceWiki(sourceId, liveAt, liveSection);
         }
         return true;
       });
@@ -1247,29 +1272,39 @@
         // the richer dossier finishes after the guard fired, promote the same
         // open modal in place so a slow build can never strand a visitor on a
         // thin fallback forever.
-        var upgraded = ui.render(sourceId, {at:startTime == null ? null : Number(startTime),
-          section:section, query:String(settings.query || "").slice(0, 240)});
+        var liveRoute = activeRouteState();
+        var liveModal = document.getElementById("tapeModal");
+        if (!liveModal || !liveModal.classList.contains("show") || !liveRoute) return true;
+        var liveAt = liveRoute.at;
+        var liveSection = liveRoute.section || section;
+        var upgraded = ui.render(sourceId, {at:liveAt == null ? null : Number(liveAt),
+          section:liveSection, query:String(settings.query || "").slice(0, 240)});
         if (!upgraded) {
-          fallbackSourceWiki(sourceId, startTime, section);
+          fallbackSourceWiki(sourceId, liveAt, liveSection);
         } else {
           document.getElementById("tapeModal").setAttribute("aria-busy", "false");
-          syncSourceRoute(sourceId, startTime, section, "replace");
+          syncSourceRoute(sourceId, liveAt, liveSection, "replace");
           syncBagButtons();
         }
         return true;
       }
-      var rendered = ui.render(sourceId, {at:startTime == null ? null : Number(startTime),
-        section:section, query:String(settings.query || "").slice(0, 240)});
+      var liveRoute = activeRouteState();
+      var liveModal = document.getElementById("tapeModal");
+      if (!liveModal || !liveModal.classList.contains("show") || !liveRoute) return true;
+      var liveAt = liveRoute.at;
+      var liveSection = liveRoute.section || section;
+      var rendered = ui.render(sourceId, {at:liveAt == null ? null : Number(liveAt),
+        section:liveSection, query:String(settings.query || "").slice(0, 240)});
       if (!rendered) throw new Error("The Source Dossier failed its render boundary.");
       document.getElementById("tapeModal").setAttribute("aria-busy", "false");
       syncSourceRoute(
         sourceId,
-        startTime,
-        section,
+        liveAt,
+        liveSection,
         settings.routeMode || "push"
       );
       syncBagButtons();
-      if(startTime!=null&&settings.autoplay!==false)loadPlayer(sourceId,+startTime,settings.end);
+      if(liveAt!=null&&settings.autoplay!==false)loadPlayer(sourceId,+liveAt,settings.end);
       return true;
     }).catch(function (error) {
       window.clearTimeout(fallbackTimer);
@@ -3154,6 +3189,35 @@
 
   function closeDossier(options) {
     var settings = options || {};
+    // A playable moment is a child state of the open Show Wiki. The first
+    // close must leave that Wiki in place (the visitor is done with the clip,
+    // not done with the episode). Only the next close exits the dossier and
+    // returns to the exact shelf/franchise route that opened it.
+    var activeClipUrl = new URL(window.location.href);
+    var activeClipPlayer = document.getElementById("modalPlayer");
+    if (!settings.fromHistory && !settings.replaceRoute &&
+        activeClipUrl.searchParams.has("at") && activeClipPlayer) {
+      var activeSourceId = String(
+        (history.state && history.state.sourceId) ||
+        activeClipUrl.searchParams.get("source") ||
+        activeClipUrl.searchParams.get("tape") ||
+        activeClipUrl.searchParams.get("live") || ""
+      ).trim();
+      var activeSection = activeClipUrl.searchParams.get("section") || "wiki";
+      if (activeSourceId) {
+        syncSourceRoute(activeSourceId, null, activeSection, "replace");
+        if (window.ShokkerYouTubePlayback &&
+            typeof window.ShokkerYouTubePlayback.iframe === "function") {
+          activeClipPlayer.innerHTML = window.ShokkerYouTubePlayback.iframe(
+            activeSourceId,
+            { autoplay: false, title: "WWAM commentary source playback" },
+          );
+        } else {
+          activeClipPlayer.innerHTML = "";
+        }
+        return;
+      }
+    }
     if (!settings.fromHistory && !settings.replaceRoute &&
         history.state && history.state.wwamSourceDossierPushed) {
       history.back();

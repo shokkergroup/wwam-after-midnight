@@ -9,7 +9,7 @@ const assets = fs.readFileSync(path.join(root, "public/demo/source-dossier-asset
 const app = fs.readFileSync(path.join(root, "public/demo/app.js"), "utf8");
 
 test("cold Show Wiki routes preload the latest human editorial packs", () => {
-  for (const wave of Array.from({ length: 37 }, (_, index) => index + 2)) {
+  for (const wave of Array.from({ length: 38 }, (_, index) => index + 2)) {
     assert.match(html, new RegExp(`episode-editorial-packs-wave${wave}\\.js`));
     assert.match(assets, new RegExp(`episode-editorial-packs-wave${wave}\\.js`));
   }
@@ -34,6 +34,7 @@ test("latest 2026 human packs retain their exact source bindings", () => {
     36: "aHB28aYdYto",
     37: "2en5C2sNAN8",
     38: "XJDACajq_M0",
+    39: "rLdk9JKeN68",
   };
   for (const [wave, sourceId] of Object.entries(expected)) {
     const file = fs.readFileSync(
@@ -49,5 +50,5 @@ test("latest 2026 human packs retain their exact source bindings", () => {
 test("cold routes preserve long full-tape overviews instead of generic fallback copy", () => {
   assert.match(app, /fullTapeEditorialRead/);
   assert.match(app, /raw\.length\s*<=\s*3200/);
-  assert.match(html, /app\.js\?v=0\.5\.121-human-overview-firewall/);
+  assert.match(html, /app\.js\?v=0\.5\.127-clip-close-label-test-safe/);
 });

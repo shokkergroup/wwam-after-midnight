@@ -60,6 +60,7 @@
     "episode-editorial-packs-wave36.js?v=1.0.0-halloween-death-autopsy",
     "episode-editorial-packs-wave37.js?v=1.0.0-four-franchise-tournament",
     "episode-editorial-packs-wave38.js?v=1.0.0-birthday-radio",
+    "episode-editorial-packs-wave39.js?v=1.0.0-hellraiser-star-wars",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",

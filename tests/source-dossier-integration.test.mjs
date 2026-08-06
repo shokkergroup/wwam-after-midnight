@@ -515,8 +515,8 @@ test("cold source routes paint the local fallback before optional Watchalong hyd
   assert.match(app, /WWAM_WATCHALONG_ROUTE_INDEX && window\.WWAM_WATCHALONG_ROUTE_INDEX\.sources/);
   assert.match(app, /Prefer the cold-route index\/canon record/);
   assert.match(app, /var hydrated = fallbackSourceRecord\(sourceId\);[\s\S]*hasHydratedRecord/);
-  assert.match(app, /if \(hasHydratedRecord\) \{[\s\S]*fallbackSourceWiki\(sourceId, startTime, section\);/);
-  assert.ok(app.indexOf("fallbackSourceWiki(sourceId, startTime, section);") < app.indexOf("return ensureWatchalongCanonForSource(sourceId)"), "a stalled hydration cannot block the immediate local fallback shell");
+  assert.match(app, /if \(hasHydratedRecord\) \{[\s\S]*fallbackSourceWiki\(sourceId, liveAt, liveSection\);/);
+  assert.ok(app.indexOf("fallbackSourceWiki(sourceId, routeAt, routeSection);") < app.indexOf("return ensureWatchalongCanonForSource(sourceId)"), "a stalled hydration cannot block the immediate local fallback shell");
 });
 
 test("the app consumes every Source Dossier UI callback as one bounded payload object", () => {
@@ -754,6 +754,7 @@ test("dossier CSS brands cold routes immediately while heavy scripts remain lazy
   "episode-editorial-packs-wave36.js",
   "episode-editorial-packs-wave37.js",
   "episode-editorial-packs-wave38.js",
+  "episode-editorial-packs-wave39.js",
     "wwam-fam-index.js",
     "episode-recap-engine.js",
     "wwam-episode-recap-adapter.js",
@@ -785,7 +786,7 @@ test("dossier CSS brands cold routes immediately while heavy scripts remain lazy
   "episode-editorial-packs-wave34.js",
   "episode-editorial-packs-wave35.js",
   ]);
-  for (let wave = 2; wave <= 38; wave += 1) {
+  for (let wave = 2; wave <= 39; wave += 1) {
     intentionalColdRouteScripts.add(`episode-editorial-packs-wave${wave}.js`);
   }
   for (const asset of dossierScripts) {
@@ -1036,6 +1037,67 @@ test("modal teardown clears embedded media and removes only dossier query keys",
   }
   assert.equal(closedUrl.hash, "#archive");
   assert.deepEqual(plain(history.state), { campaignState: "kept" });
+});
+
+test("closing an active clip restores the open Show Wiki before leaving the shelf", () => {
+  const modal = {
+    classList: classList(["show"]),
+    attributes: new Map(),
+    setAttribute(name, value) { this.attributes.set(name, String(value)); },
+    removeAttribute(name) { this.attributes.delete(name); },
+  };
+  const player = { innerHTML: "<iframe src=\"clip\"></iframe>" };
+  const content = { innerHTML: "<article>show wiki</article>" };
+  const body = { classList: classList(["modal-open"]) };
+  const document = {
+    body,
+    getElementById(id) {
+      return { tapeModal: modal, modalContent: content, modalPlayer: player }[id] ?? null;
+    },
+  };
+  const history = {
+    state: {
+      wwamSourceDossier: true,
+      wwamSourceDossierPushed: true,
+      sourceId: "ABCDEFGHIJK",
+    },
+    replacements: [],
+    backCalls: 0,
+    back() { this.backCalls += 1; },
+    replaceState(state, unused, url) {
+      this.state = state;
+      this.replacements.push({ state, unused, url: String(url) });
+    },
+  };
+  const window = {
+    location: {
+      href: "https://memory.example/demo?source=ABCDEFGHIJK&at=92&section=wiki#archive",
+    },
+    ShokkerYouTubePlayback: {
+      iframe(id, options) { return `<iframe data-source="${id}" data-autoplay="${options.autoplay}"></iframe>`; },
+    },
+  };
+  const close = evaluateNamed("closeDossier", {
+    document,
+    history,
+    window,
+    URL,
+    syncSourceRoute(sourceId, at, section, mode) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("at");
+      if (sourceId) url.searchParams.set("source", sourceId);
+      if (section) url.searchParams.set("section", section);
+      history.replaceState(Object.assign({}, history.state, { sourceId }), "", url);
+    },
+    syncBackgroundInert() {},
+    restoreDialogFocus() {},
+  });
+  close();
+  assert.equal(history.backCalls, 0);
+  assert.equal(history.replacements.length, 1);
+  assert.equal(new URL(history.replacements[0].url).searchParams.has("at"), false);
+  assert.match(player.innerHTML, /data-autoplay="false"/);
+  assert.equal(modal.classList.contains("show"), true);
 });
 
 test("popstate reopens canonical and legacy routes, then closes media after a back navigation", () => {
