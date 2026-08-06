@@ -90,7 +90,7 @@
     if (!raw) return 'This page maps the official tape into playable doors. Press play before treating a caption as a quote or assigning a speaker.';
     var ledger = raw.match(/The source ledger contains (\d[\d,]*) audio transcript segments and (\d[\d,]*) words\. The local listening pass contributes (\d[\d,]*) ranked routes\./i);
     if (ledger) {
-      return 'The tape has ' + ledger[1] + ' transcript segments and ' + ledger[2] + ' words mapped to ' + ledger[3] + ' playable listening doors. These are machine-found leads—not speaker-identified quotes—so press play before turning one into canon.';
+      return 'The tape has ' + ledger[1] + ' transcript segments and ' + ledger[2] + ' words mapped to ' + ledger[3] + ' playable listening doors. These are indexed leads—not speaker-identified quotes—so press play before turning one into canon.';
     }
     return raw
       .replace(/gets a character-led evidence map/gi, 'has a character-led tape map')
