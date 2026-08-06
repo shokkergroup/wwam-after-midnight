@@ -238,7 +238,7 @@ test("livestream canon surface is wired into the page and route shell", () => {
   assert.match(ui, /ALL RECEIPTS, RANKED/);
   assert.match(ui, /CONVERSATION THREADS/);
   assert.match(ui, /AUDIO WATCH PASS/);
-  assert.match(ui, /AUDIO PASSES/);
+  assert.match(ui, /AUDIO READS/);
   assert.match(ui, /CAPTION FALLBACKS/);
   assert.match(ui, /CAPTION-ONLY PASS/);
   assert.match(ui, /function navCopy\(/, "machine receipts have a readable navigation boundary");
@@ -248,6 +248,9 @@ test("livestream canon surface is wired into the page and route shell", () => {
   assert.match(ui, /fanEntityLabel/, "archive search includes repeat-fan name cues");
   assert.match(ui, /characters=\(e\.characterCues\|\|\[\]\)/, "archive search includes character lanes");
   assert.match(ui, /function cleanRouteQuote\(raw\)/, "source-bound quotes quarantine obvious decoder-boundary fragments");
+  assert.match(ui, /function displayRead\(e\)/, "machine-shaped summaries receive a plain-language visitor read");
+  assert.match(ui, /ONE RECEIPT TO START WITH/, "show dossiers expose a bounded source receipt without pretending it is final copy");
+  assert.match(ui, /lvc-card-start/, "archive cards expose a first playable door");
   assert.match(ui, /lvc-audio-candidates.*x\(navCopy\(z\)\)/, "audio watch-pass cards use the same quote-safe receipt route as the rest of the dossier");
   assert.match(ui, /sourceWindow=\(source\.match\(\/\\S\+\/g\)/, "quote eligibility checks punctuation before token normalization");
   assert.match(ui, /not a finished quote/, "machine receipts do not masquerade as authored prose");
@@ -265,6 +268,7 @@ test("livestream canon surface is wired into the page and route shell", () => {
   assert.match(ui, /LISTEN FOR THE ROOM TO CHANGE/);
   assert.doesNotMatch(ui, /moments\|\|\[\]\)\.slice\(0,40\)/);
   assert.match(css, /\.lvc-card-grid/);
+  assert.match(css, /\.lvc-source-pull/);
   assert.match(css, /\.lvc-quick-lanes/);
   assert.match(css, /\.lvc-fan-people/);
   assert.match(css, /\.lvc-new/);
