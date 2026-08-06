@@ -252,6 +252,7 @@ test("livestream canon surface is wired into the page and route shell", () => {
   assert.match(ui, /function humanMomentLabel\(v\)/, "visitor reads have a defined source-door label helper");
   assert.match(ui, /function richerDisplayRead\(e\)/, "machine-shaped summaries receive a varied source-bound guide pass");
   assert.match(ui, /function guideShape\(e\)/, "guide copy changes with the episode format");
+  assert.match(ui, /function guideQuote\(z\)/, "guide cards reject decoder fragments that read like broken starts");
   assert.match(ui, /ONE RECEIPT TO START WITH/, "show dossiers expose a bounded source receipt without pretending it is final copy");
   assert.match(ui, /lvc-card-start/, "archive cards expose a first playable door");
   assert.match(ui, /lvc-audio-candidates.*x\(navCopy\(z\)\)/, "audio watch-pass cards use the same quote-safe receipt route as the rest of the dossier");
