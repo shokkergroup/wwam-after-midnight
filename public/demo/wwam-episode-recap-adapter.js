@@ -2,7 +2,7 @@
   "use strict";
 
   var SCHEMA = "wwam-feldman-recap/v1";
-  var VERSION = "2.5.1-editorial-body-truth";
+  var VERSION = "2.5.1";
 
   function clean(value) {
     return String(value == null ? "" : value).trim();

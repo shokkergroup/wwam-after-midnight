@@ -891,13 +891,43 @@
       // by timestamp made the cold Show Wiki quietly lose a category.
       var key = moment.at + "|" + String(moment.lane || moment.label || "").toLowerCase();
       if (!moment.at) return false;
+      var currentExcerpt = String(moment.excerpt || "").trim();
+      var currentIsQualityAudio = moment.sourceKind === "local-whisper" && currentExcerpt.split(/\s+/).filter(Boolean).length >= 5;
+      if (currentIsQualityAudio) {
+        Object.keys(seen).forEach(function (existingKey) {
+          var existingIndex = seen[existingKey];
+          var existing = deduped[existingIndex];
+          var existingExcerpt = String(existing && existing.excerpt || "");
+          var existingGeneric = existing && existing.at === moment.at && !(
+            existing.sourceKind === "local-whisper" && existingExcerpt.split(/\s+/).filter(Boolean).length >= 5
+          ) && /source-local receipt|press play to hear the tape|transcript window starts at|listening|indexed route/i.test(
+            existingExcerpt + " " + String(existing.lane || existing.label || "")
+          );
+          if (existingGeneric) {
+            deduped[existingIndex] = null;
+            delete seen[existingKey];
+          }
+        });
+      }
       if (seen[key] != null) {
         var previousIndex = seen[key];
         var previous = deduped[previousIndex];
-        var currentExcerpt = String(moment.excerpt || "").trim();
         var previousExcerpt = String(previous && previous.excerpt || "").trim();
-        var currentIsQualityAudio = moment.sourceKind === "local-whisper" && currentExcerpt.split(/\s+/).filter(Boolean).length >= 5;
         var previousIsQualityAudio = previous && previous.sourceKind === "local-whisper" && previousExcerpt.split(/\s+/).filter(Boolean).length >= 5;
+        var previousIsGenericListening = previous && !previousIsQualityAudio &&
+          /source-local receipt|press play to hear the tape|transcript window starts at|listening|indexed route/i.test(
+            String(previousExcerpt || "") + " " + String(previous.lane || previous.label || "")
+          );
+        // A cold route can carry a generic caption receipt and a better local
+        // Whisper door at the same second. Remove only that generic placeholder;
+        // distinct editorial lanes at the same second still remain separate.
+        if (currentIsQualityAudio && previousIsGenericListening) {
+          // Replace in place so the quality door is not accidentally dropped
+          // by the dedupe callback and the timestamp key remains stable for
+          // any later duplicate candidate.
+          deduped[previousIndex] = moment;
+          return false;
+        }
         // Older dossier ledgers often reserve the same timestamp with a
         // generic placeholder. Prefer a bounded, quality-gated local Whisper
         // excerpt when it arrives later; otherwise keep the first editorial
@@ -910,8 +940,8 @@
       seen[key] = deduped.length;
       deduped.push(moment);
       return true;
-    });
-    return deduped.sort(function (a, b) { return (b.heat - a.heat) || (a.at - b.at); })
+    }).filter(Boolean);
+    return deduped.filter(Boolean).sort(function (a, b) { return (b.heat - a.heat) || (a.at - b.at); })
       .sort(function (a, b) { return a.at - b.at; });
   }
 

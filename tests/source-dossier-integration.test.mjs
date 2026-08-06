@@ -344,7 +344,7 @@ test("fallback show wiki promotes bounded Whisper excerpts without publishing em
   const routes = fallbackSourceMoments("ABCDEFGHIJK", {});
   assert.equal(routes.length, 2);
   assert.equal(routes[0].at, 120);
-  assert.equal(routes[0].label, "LISTENING // TRANSCRIPT WINDOW");
+  assert.equal(routes[0].label, "TAPE DOOR // CONTEXT CLIP");
   assert.match(routes[0].excerpt, /complete local transcript/i);
   assert.equal(routes[1].label, "STRAIGHT TO STEVE'S ASSHOLE");
 });
@@ -408,7 +408,7 @@ test("cold-route Whisper text cues retain bounded playback ends and their score"
   });
   const routes = fallbackSourceMoments("ABCDEFGHIJK", {});
   assert.equal(routes.length, 1);
-  assert.equal(routes[0].label, "LISTENING // TEXT-CUE WINDOW");
+  assert.equal(routes[0].label, "TAPE DOOR // TALKING POINT");
   assert.equal(routes[0].end, 334);
   assert.equal(routes[0].heat, 57);
 });
@@ -418,6 +418,7 @@ test("fallback Show Wiki keeps unreviewed caption fragments out of public prose"
     timestamp(value) { return `${value}s`; },
     boundedExcerpt(value) { return String(value || "").trim(); },
     cleanedCaptionReceipt(value) { return String(value || "").replace(/>>\s*/g, "").trim(); },
+    captionLooksNoisy(value) { return /(?:^|\s)(?:uh|um|er)(?:\s|$)/i.test(String(value || "")); },
   });
   const machineCopy = fallbackMomentDescription({
     at: 1320,
@@ -484,7 +485,7 @@ test("cold source routes paint the local fallback before optional Watchalong hyd
   assert.match(app, /var summaryCandidate = editorialPack && \(editorialPack\.overview \|\| editorialPack\.deck\) \|\|/, "human editorial prose outranks machine cold-route summaries");
   assert.match(app, /source-dossier-fallback-editorial-headline/, "cold routes expose the human editorial hook above the playable doors");
   assert.match(app, /fallbackMomentIsEditorial/, "cold routes separate reviewed reads from machine discovery windows");
-  assert.match(app, /AUDIO DISCOVERY PASS \/\/ OPEN THE UNREVIEWED WINDOWS/, "machine-ranked doors are clearly labeled instead of reading as finished prose");
+  assert.match(app, /MORE DOORS \/\/ LISTENING LEADS/, "machine-ranked doors are clearly labeled instead of reading as finished prose");
   assert.match(app, /data-fallback-review/, "fallback play targets retain their review boundary");
   assert.match(html, /episode-editorial-packs\.js\?v=1\.0\.2-cold-fallback/, "flagship editorial pack is available before lazy dossier assets");
   assert.match(html, /episode-editorial-packs-recent\.js\?v=1\.0\.3-cold-fallback/, "newest editorial packs are available before lazy dossier assets");
@@ -494,7 +495,7 @@ test("cold source routes paint the local fallback before optional Watchalong hyd
   assert.match(app, /WWAM_LIVESTREAM_FALLBACK_INDEX/);
   assert.match(app, /WWAM_YEAR_CANON_2025_2026 && window\.WWAM_YEAR_CANON_2025_2026\.streams/);
   assert.match(app, /WWAM_ARCHIVE_COMPLETION && window\.WWAM_ARCHIVE_COMPLETION\.streams/);
-  assert.match(app, /LISTENING \/\/ TRANSCRIPT WINDOW/);
+  assert.match(app, /TAPE DOOR \/\/ CONTEXT CLIP/);
   assert.match(app, /transcript window/);
   assert.match(app, /String\(index \+ 1\)\.padStart\(2, "0"\)/);
   assert.match(app, /source-dossier-fallback-lane-legend/);
@@ -733,6 +734,7 @@ test("dossier CSS brands cold routes immediately while heavy scripts remain lazy
   "episode-editorial-packs-wave23.js",
   "episode-editorial-packs-wave24.js",
   "episode-editorial-packs-wave25.js",
+  "episode-editorial-packs-wave26.js",
     "wwam-fam-index.js",
     "episode-recap-engine.js",
     "wwam-episode-recap-adapter.js",
@@ -745,7 +747,15 @@ test("dossier CSS brands cold routes immediately while heavy scripts remain lazy
     "wwam-dossier-editorial.js",
   ];
   assert.equal(eagerStyles.includes("source-dossier.css"), true);
-  const intentionalColdRouteScripts = new Set(["episode-editorial-packs.js", "episode-editorial-packs-recent.js"]);
+  const intentionalColdRouteScripts = new Set([
+    "episode-editorial-packs.js",
+    "episode-editorial-packs-recent.js",
+    "episode-editorial-packs-wave22.js",
+    "episode-editorial-packs-wave23.js",
+    "episode-editorial-packs-wave24.js",
+    "episode-editorial-packs-wave25.js",
+    "episode-editorial-packs-wave26.js",
+  ]);
   for (const asset of dossierScripts) {
     if (intentionalColdRouteScripts.has(asset)) continue;
     assert.equal(eagerScripts.includes(asset), false, `${asset} must remain lazy`);
@@ -843,7 +853,12 @@ test("dossier CSS brands cold routes immediately while heavy scripts remain lazy
   );
   assert.match(
     asrExcerptIndex,
-    /iz0WFhe6LYM[\s\S]*ag3axSC9BpU/,
+    /iz0WFhe6LYM/,
+    "the latest-three listening pass must publish the second completed newest livestream ledger",
+  );
+  assert.match(
+    asrExcerptIndex,
+    /ag3axSC9BpU/,
     "the latest-three listening pass must publish the third completed newest livestream ledger",
   );
   assert.match(

@@ -52,7 +52,12 @@ def bounded_excerpt(text: str, limit: int = 16) -> str:
     for raw_sentence in sentences:
         sentence = raw_sentence.strip()
         sentence_words = words(sentence)
-        if len(sentence_words) < 5 or len(sentence_words) > limit or not re.search(r"[.!?][\"']?$", sentence):
+        # The public card and its audit both count visible whitespace-delimited
+        # words.  Keep the generator on that same measure: punctuation inside
+        # a token (for example ``myspace.com`` or ``1,005``) must not sneak a
+        # four-word fragment through the five-word floor.
+        visible_word_count = len(sentence.split())
+        if visible_word_count < 5 or len(sentence_words) > limit or not re.search(r"[.!?][\"']?$", sentence):
             continue
         normalized = [word.lower() for word in sentence_words]
         # A joined window can begin in the middle of a thought even when the
