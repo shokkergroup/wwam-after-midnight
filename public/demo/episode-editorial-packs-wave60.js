@@ -1,0 +1,91 @@
+(function (root) {
+  "use strict";
+
+  var registry = root.WWAM_EPISODE_EDITORIAL_PACKS || {
+    schema: "shokker-episode-editorial-packs/v1",
+    sources: {},
+  };
+  var sources = Object.assign({}, registry.sources || {});
+
+  /* December 1, 2025: full-tape read of the Welcome to Derry episode-six recap. */
+  sources["FTRWH0lgxa4"] = Object.freeze({
+    sourceId: "FTRWH0lgxa4",
+    reviewState: "full-tape-human-editorial-read",
+    evidence: Object.freeze({
+      duration: 2059,
+      captionWords: 2331,
+      captionEvents: 241,
+      captionSpanSeconds: 1861.02,
+      captionDurationCoveragePercent: 100,
+      captionSha256: "sha256:cb3d466815f6d345afbe1a65013d50365be53e5ca4a1d6a36d20657712fa779d",
+      captionSourceKind: "official YouTube caption ledger",
+      audioPass: "canonical YouTube audio + source-local Whisper transcript alignment",
+      audioSha256: "1c74e896f6278ec57139f4dd2d0b583d5c1798cd91c3720a6eb57c99d7a7c615",
+      asrWindowCount: 20,
+      speakerAttribution: false,
+      visualOutcomeInferred: false,
+    }),
+    label: "IT: WELCOME TO DERRY EPISODE 6 RECAP // SIN CITY PENNYWISE, STEPHEN KING QUESTIONS, AND A BIRTHDAY FAM STAMPEDE",
+    badge: "FULL SHOW WIKI // 34:19 OF BLACK-AND-WHITE HORROR, PROJECT BLUE BEAM, SLENDERMAN/CHALLIS, SUPERCHATS, AND ONE VERY LOUD MORNING",
+    headline: "EPISODE 6 LOOKS BEST WHEN DERRY GOES BLACK-AND-WHITE, THEN THE FAM TURNS A RECAP INTO A BIRTHDAY PARTY AND A GAME NIGHT.",
+    deck:
+      "A focused Derry recap that loves the silhouette, questions the Sinners echo, tries to map Pennywise's family deception, and then opens every side door the live room offers: Project Blue Beam, ice walls, Groot versus Chewbacca, a hostile grocery-store story, Slenderman and Challis birthday wishes, a Cronenberg-flavored game trailer, and the audience's fearless morning energy.",
+    overview:
+      "Episode six gets a much clearer visual compliment than most of the season: when Derry turns black-and-white, the Pennywise material suddenly has shape, shadow, and the kind of old-horror confidence the room keeps asking for. The opening complaint is specific. The ending echoes Sinners too closely, and the reveal that Mrs. Kers is tied to Pennywise feels like a twist that needs a second explanation. A door silhouette and glowing eyes, however, earn a genuine yes. From there the recap becomes a live-room sampler. Project Blue Beam and an ice-wall question lead into a conspiracy lane, while Groot versus Chewbacca turns into a debate about who would actually protect you in a fight. The chat is not background noise: Michael Parton, Mind the Gap, Byron Hansen, Macapartan, Willie, Gary, Gobaggoo, and others keep changing the subject. A birthday message for Michael gives Slenderman and Dr. Challis a character-performance doorway, and the hosts answer it with affection buried under the usual filth. The last act covers Halloween 4, a bizarre family argument in a store, and a new horror game that the room compares to Cronenberg, VHS, Manhunt, and an old VHS board game. It is a compact episode, but the tape has a real shape: praise the shadow, question the copy, celebrate the FAM, then find a new game to play together.",
+    story: Object.freeze([
+      { at: 0, end: 300, label: "BLACK-AND-WHITE DERRY FINALLY LOOKS ALIVE", body: "The room calls the episode one of the season's best, then immediately explains why: the black-and-white photography covers the ugly effects and gives Pennywise a proper shadow-world." },
+      { at: 301, end: 600, label: "SINNERS ECHO AND THE PENNYWISE FAMILY REVEAL", body: "The ending's bar imagery feels too close to Sinners, while Mrs. Kers' connection to Pennywise is treated as a twist that may be a disguise, a kidnapping, or a very complicated family lie." },
+      { at: 601, end: 900, label: "THE HUG THAT TURNS INTO A METAPHORICAL HIT", body: "A character appears to offer comfort, then flips the conversation. The hosts preserve the emotional whiplash without treating every harsh joke as a serious family prescription." },
+      { at: 901, end: 1200, label: "PROJECT BLUE BEAM AND THE ICE-WALL QUESTION", body: "The stream opens its conspiracy side door. Project Blue Beam gets a full explanation, an ice-wall question gets a confused response, and the room distinguishes mystery from certainty." },
+      { at: 1201, end: 1500, label: "GROOT, CHEWBACCA, AND THE FAM'S MORNING CHAOS", body: "The audience asks who would make the better companion. Groot wins because he can form protective branches, while Chewbacca is reduced to volume, hair, and questionable hygiene." },
+      { at: 1501, end: 1800, label: "THE STORE ARGUMENT AND A BIRTHDAY CHARACTER DOOR", body: "A hostile grocery-store encounter becomes a story about knowing when not to drag children into a fight. Then Michael's birthday message invites Slenderman and Dr. Challis into the room." },
+      { at: 1801, end: 2059, label: "CRONENBERG ENERGY, VHS HORROR, AND A GAME TO PLAY TOGETHER", body: "A new horror game earns a Cronenberg comparison, a VHS and Manhunt connection, and a practical verdict: it looks scarier and more fun with another person in the room." },
+    ]),
+    highlights: Object.freeze([
+      { at: 22, end: 72, category: "BEST MOMENT", label: "SIN CITY DERRY", excerpt: "The hosts say the black-and-white look makes Derry feel like Sin City and finally gives the episode a visual identity." },
+      { at: 84, end: 134, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "THE SINNERS ECHO", excerpt: "A bar full of little Sinners gets called out as a little too familiar, sending the ending straight to Steve's asshole." },
+      { at: 154, end: 204, category: "DEEP DIVE", label: "ANDY MUSCHIETTI IN BLACK AND WHITE", excerpt: "The room argues that the black-and-white photography hides weak effects and lets the directing style breathe." },
+      { at: 276, end: 326, category: "BEST MOMENT", label: "THE DOOR SILHOUETTE", excerpt: "Pennywise in the doorway, reduced to silhouette and eyes, earns the exact scary image the hosts want more of." },
+      { at: 392, end: 442, category: "TAKE GETS NUCLEAR", label: "MRS. KERS AS ROBIN", excerpt: "The Mrs. Kers reveal is compared to a famously over-explained horror twist, but the room still wants to know what Pennywise actually did." },
+      { at: 504, end: 554, category: "DEEP DIVE", label: "PENNYWISE STOLE THE FATHER", excerpt: "The recap builds a working theory that Pennywise took a father's identity rather than simply being the father." },
+      { at: 612, end: 662, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "THE COMFORT HUG REVERSAL", excerpt: "A consoling hug turns into a verbal reversal, and the room preserves the emotional whiplash as the episode's nastiest human beat." },
+      { at: 718, end: 768, category: "WWAM UP IN YA", label: "COOKIES AFTER THE BREAKUP", excerpt: "The room asks whether cookies are still allowed after the argument, which is the wrong domestic detail to become the focus." },
+      { at: 836, end: 886, category: "FAN SIGNAL", label: "MIND THE GAP ARRIVES", excerpt: "Mind the Gap's message keeps the audience present while the hosts decide whether the twist is scary or simply confusing." },
+      { at: 944, end: 994, category: "THE ROOM BREAKS", label: "ICE WALL CONFUSION", excerpt: "A conspiracy question about an ice wall gets the answer you would expect from a movie-news show that has already lost the morning." },
+      { at: 1008, end: 1058, category: "TAKE GETS NUCLEAR", label: "PROJECT BLUE BEAM", excerpt: "Project Blue Beam is treated as the conspiracy that sounds fictional until the room imagines how it might work." },
+      { at: 1054, end: 1104, category: "CHARACTER PERFORMANCE", label: "SLENDERMAN AND CHALLIS BIRTHDAY WISH", excerpt: "A fan asks Slenderman and Dr. Challis for birthday love, opening a recurring-character receipt in the middle of the Derry recap.", characters: ["Slenderman", "Dr. Challis"] },
+      { at: 1108, end: 1158, category: "CHARACTER PERFORMANCE", label: "CHALLIS GETS THE BIRTHDAY DOOR", excerpt: "Dr. Challis answers the birthday energy with the exact mixture of affection and bad judgment the FAM expects.", characters: ["Dr. Challis"] },
+      { at: 1162, end: 1212, category: "WWAM UP IN YA", label: "THE MORNING FAM STAMPEDE", excerpt: "The chat is already filthy before lunchtime, and the hosts admit the room is too awake for its own good." },
+      { at: 1216, end: 1266, category: "THE ROOM BREAKS", label: "GROOT VERSUS CHEWBACCA", excerpt: "Groot wins the companion debate because branches are more useful than a loud furry roar when the monsters arrive." },
+      { at: 1270, end: 1320, category: "FAN SIGNAL", label: "BYRON HANSEN PLAYS GAMES", excerpt: "Byron Hansen's message is misread, then reread, creating a tiny chat mystery that becomes the morning's cleanest laugh." },
+      { at: 1324, end: 1374, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "THE READING-IT-WRONG TRAP", excerpt: "The hosts turn a misread superchat into a self-own and decide the viewer's brain is the real unreliable narrator." },
+      { at: 1378, end: 1428, category: "DEEP DIVE", label: "THE FAMILY ARGUMENT RULE", excerpt: "A family story prompts a useful rule: do not pull children into an adult argument just because the other person is being awful." },
+      { at: 1432, end: 1482, category: "WWAM UP IN YA", label: "THE PAROLE-OFFICER FANTASY", excerpt: "A grocery-store insult gets a parole-officer soundtrack and a verbal exit strategy no parent should actually try." },
+      { at: 1486, end: 1536, category: "FAN SIGNAL", label: "MACAPARTAN'S BIRTHDAY", excerpt: "Macapartan's birthday is celebrated in the chat, turning a recap of a fictional town into a real-world FAM moment." },
+      { at: 1540, end: 1590, category: "BEST MOMENT", label: "THE FAM SINGS HAPPY BIRTHDAY", excerpt: "The birthday wishes stack up until the episode briefly feels like a party instead of a recap." },
+      { at: 1594, end: 1644, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "THE SHOPPING-AISLE MONSTER", excerpt: "A stranger blocking the aisle becomes a larger-than-life monster in the retelling, complete with a warning about picking the wrong fight." },
+      { at: 1648, end: 1698, category: "TAKE GETS NUCLEAR", label: "HALLOWEEN 4 GETS A SIDE DOOR", excerpt: "Halloween 4 appears as the kind of adjacent movie the room can argue about even when the episode is supposed to be about Derry." },
+      { at: 1702, end: 1752, category: "WWAM UP IN YA", label: "THE SLOPPY MORNING", excerpt: "The hosts admit they are hung over, under-caffeinated, and still somehow expected to explain Pennywise's family tree." },
+      { at: 1756, end: 1806, category: "FAN SIGNAL", label: "GOBAGOO KEEPS THE LORE MOVING", excerpt: "Gobaggoo's recurring questions keep the character and horror lanes alive after the recap has already wandered away." },
+      { at: 1810, end: 1860, category: "DEEP DIVE", label: "CRONENBERG ENERGY", excerpt: "The new game's trailer earns a David Cronenberg comparison for its body-horror texture and strange visual confidence." },
+      { at: 1828, end: 1878, category: "BEST MOMENT", label: "THE GAME LOOKS FUN", excerpt: "The room stops trying to solve Derry and admits the new horror game looks like something they would actually play together." },
+      { at: 1840, end: 1890, category: "FAN SIGNAL", label: "VHS AND MANHUNT COMPARISONS", excerpt: "Fans compare the game to VHS, Manhunt, and an old VHS board game, creating a compact history of ugly co-op fun." },
+      { at: 1860, end: 1910, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "DO NOT PLAY IT ALONE", excerpt: "The game gets sent to Steve's asshole if it expects a solo player to walk into that nightmare without backup." },
+      { at: 1914, end: 1964, category: "WWAM UP IN YA", label: "THE STEAM WISHLIST", excerpt: "The hosts consider adding the game to the Steam queue and turn a trailer reaction into a practical plan." },
+      { at: 1968, end: 2018, category: "CHARACTER PERFORMANCE", label: "LOOMIS WOULD INVESTIGATE THE GAME", excerpt: "The recurring character lane returns as the room imagines Dr. Loomis treating a video-game monster like a case file.", characters: ["Dr. Loomis"] },
+      { at: 2022, end: 2058, category: "BEST MOMENT", label: "END ON THE SHADOW", excerpt: "The episode leaves the audience with the cleanest possible image: a shadow, a pair of eyes, and a game the FAM wants to play." },
+    ]),
+    fanRead: Object.freeze({
+      loved: Object.freeze({ at: 276, end: 326, label: "THE DOOR SILHOUETTE", topic: "the episode's cleanest horror image", body: "Play from 4:36. Pennywise's silhouette and eyes finally give the room the kind of simple scare it has been asking Derry to deliver.", playAt: 276, playEnd: 326 }),
+      hated: Object.freeze({ at: 84, end: 134, label: "THE SINNERS ECHO", topic: "the ending complaint beneath the praise", body: "Play from 1:24. The room thinks the bar image borrows too much from Sinners even while praising the rest of the episode.", playAt: 84, playEnd: 134 }),
+      wildestDetour: Object.freeze({ at: 1008, end: 1058, label: "PROJECT BLUE BEAM", topic: "the conspiracy door that takes over the morning", body: "Play from 16:48. A Derry recap turns into a Project Blue Beam explanation and an ice-wall question before the FAM drags it somewhere else.", playAt: 1008, playEnd: 1058 }),
+      lastWord: Object.freeze({ at: 2022, end: 2058, label: "END ON THE SHADOW", topic: "the final image and the next game night", body: "Play from 33:42. The show closes on the shadow, the eyes, and a horror game the hosts would rather play together than alone.", playAt: 2022, playEnd: 2058 }),
+    }),
+  });
+
+  root.WWAM_EPISODE_EDITORIAL_PACKS = Object.freeze({
+    schema: registry.schema || "shokker-episode-editorial-packs/v1",
+    generated: "2026-08-06",
+    sources: Object.freeze(sources),
+  });
+})(typeof window !== "undefined" ? window : globalThis);
