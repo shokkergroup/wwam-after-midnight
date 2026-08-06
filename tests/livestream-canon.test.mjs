@@ -241,6 +241,8 @@ test("livestream canon surface is wired into the page and route shell", () => {
   assert.match(ui, /CAPTION-ONLY PASS/);
   assert.match(ui, /function navCopy\(/, "machine receipts have a readable navigation boundary");
   assert.match(ui, /not a finished quote/, "machine receipts do not masquerade as authored prose");
+  assert.match(ui, /legacyNavCopy=navCopy;navCopy=function\(z\)/, "clean source-bound lines remain visible as quotes");
+  assert.match(ui, /polishVisibleReceipts=function\(\)\{\}/, "receipt polishing cannot erase source-bound quote texture");
   assert.match(ui, /lvc-moment p,\.lvc-best-grid p/, "visible receipt lanes are polished consistently");
   assert.match(ui, /function u\(e,a\)\{return "\?source="/, "bounded livestream jumps use the local Show Wiki route");
   assert.match(ui, /keepLocalJumpLinksInApp/, "local livestream routes do not open a second external tab");
