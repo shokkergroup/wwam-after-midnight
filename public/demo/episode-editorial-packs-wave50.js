@@ -27,7 +27,7 @@
     }),
     label: "SCREAM 7 TEASER BREAKDOWN // THE PSYCHIATRIC-WARD MYSTERY AND THE CHAIR RECEIPT",
     badge: "FULL SHOW WIKI // 55:38 OF TRAILER FORENSICS, GHOSTFACE THEORY, AND FAM-POWERED ZOOMING",
-    headline: "THE ROOM ZOOMS INTO A CHAIR, ARGUES ABOUT STU, AND STILL FINDS TIME FOR A STEVEN SEAGAL REGGAE JOKE.",
+    headline: "THE SCREAM 7 ROOM ZOOMS INTO A CHAIR, ARGUES ABOUT STU, AND STILL FINDS TIME FOR A STEVEN SEAGAL REGGAE JOKE.",
     deck:
       "A compact but unusually dense Scream 7 teaser autopsy: a psychiatric ward, a suspicious chair, a changed line, possible Stu mythology, Ghostface rumors, fan red herrings, and the exact point where microscopic trailer reading becomes more fun than certainty.",
     overview:
@@ -40,7 +40,7 @@
       { at: 1901, end: 2400, label: "MARK, JILL, BILLY, AND THE RED-HERRING MACHINE", body: "The teaser appears to keep killing Mark, so the room wonders whether the franchise is training viewers not to trust any death image. Jill, Billy, Ethan Embry, and a possible family connection are all raised as possibilities. The important observation is not who is right; it is that the trailer is visibly manipulating the audience." },
       { at: 2401, end: 2800, label: "ROGER JACKSON, WILL SMITH, AND THE META GHOSTFACE DOOR", body: "The FAM builds increasingly meta ideas: Roger Jackson explaining the Ghostface voice, a celebrity Ghostface revenge joke, and an old-school character returning as the new Dewey-like anchor. The room laughs at the bad pitches while recognizing why Scream can keep generating them." },
       { at: 2801, end: 3200, label: "THE ROOM ADMITS IT MAY BE OVERTHINKING", body: "After one last zoom, the hosts admit the chair could simply belong to a random person and the asylum could be pure atmosphere. That is not a failure; it is the correct ending for a teaser breakdown. The fun was in the argument, the FAM supplied the eyes, and the uncertainty stays visible." },
-      { at: 3201, end: 3338, label: "THE AFTERNOON CLUB GOES UP ON A TUESDAY", body: "The goodbye thanks more than 400 people for showing up in the middle of a Tuesday, previews the next poster stream, and admits the audience made a short afternoon tape feel like an event." },
+      { at: 3201, end: 3338, label: "THE AFTERNOON CLUB GOES UP ON A TUESDAY", body: "The goodbye thanks more than 400 people for showing up on a Tuesday afternoon, previews the next poster stream, and admits the audience made a short afternoon tape feel like an event." },
     ]),
     highlights: Object.freeze([
       { at: 90, end: 124, category: "WWAM UP IN YA", label: "PAUL RUDD'S TRAILER SETUP", excerpt: "The show promises to put its metaphorical dick into the teaser before the first frame has even been examined." },
@@ -52,7 +52,7 @@
       { at: 1004, end: 1040, category: "DEEP DIVE", label: "STU IN A PSYCHIATRIC HOSPITAL", excerpt: "A fan theory sends Stu to a psychiatric hospital and recasts him as a possible Hannibal Lecter-style information source. The page preserves this as a theory, not a reveal." },
       { at: 1010, end: 1048, category: "TAKE GETS NUCLEAR", label: "THE HANNIBAL LECTER ROUTE", excerpt: "The room hates the neatness of a Scream villain becoming a consultant, but admits the franchise could absolutely try it." },
       { at: 1084, end: 1120, category: "DEEP DIVE", label: "WHO IS IN THE CHAIR?", excerpt: "The camera zooms toward a wheelchair figure and the FAM begins doing forensic work on a frame that may be deliberately meaningless." },
-      { at: 1111, end: 1148, category: "FAN SIGNAL", label: "THE RANDOM-PERSON DEFENSE", excerpt: "A viewer argues the chair could belong to a random person, giving the room its first useful antidote to its own overthinking." },
+      { at: 1111, end: 1148, category: "FAN SIGNAL", label: "THE RANDOM-PERSON THEORY", excerpt: "A viewer argues the chair could belong to a random person, giving the room its first useful antidote to its own overthinking." },
       { at: 1236, end: 1272, category: "DEEP DIVE", label: "ETHAN EMBRY OR A RED HERRING", excerpt: "The face in the chair is compared to Ethan Embry, while the hosts admit the resemblance could be exactly the trap the teaser wants them to fall into." },
       { at: 1253, end: 1288, category: "TAKE GETS NUCLEAR", label: "STU HAS TO BE DEAD, PROBABLY", excerpt: "The room insists Stu is dead, then immediately constructs the fake-death-and-psychiatric-ward loophole that keeps the theory alive." },
       { at: 1285, end: 1322, category: "THE ROOM BREAKS", label: "JULIE JAMES GETS PUT IN TIMEOUT", excerpt: "A fan demands a response and gets put in timeout, proving the live chat is not an audience so much as a second cast." },
