@@ -781,23 +781,53 @@ function machineShapedWhyItMatters(value) {
   return !text || /(?:final canonical shows without an episode recap|recovered caption map now supplies|This episode is part of the .* shelf\. Its evidence tier is .*Use the bounded receipts as navigation|This source is a source-linked machine index|Ranked #\d+ among eligible archived livestreams|Selected #\d+ by the frozen Archive Atlas|caption map concentrates on|Frozen Atlas priority|source-linked machine index)/i.test(text);
 }
 function whyItMattersRead(title, series, tier, shape, topics, moments, audioCandidates, audioStrongest, audioSignalMix, fan, characterCues, recurring, decodedAudio) {
+  const variant = voiceVariant(title, series.key || shape || tier);
   const routeCount = Math.max(moments.length, audioCandidates.length);
   const routeLine = routeCount
     ? `${routeCount} jump-in point${routeCount === 1 ? "" : "s"} wait on the page`
     : "the topic and chapter rails are the best way in";
   const lane = audioSignalMix[0] || recurring.slice().sort((left, right) => Number(right.candidateCount || 0) - Number(left.candidateCount || 0))[0]?.label || "OPEN MIC";
   const lead = audioStrongest || moments.slice().sort((left, right) => Number(right.score || 0) - Number(left.score || 0))[0] || null;
-  const leadLine = lead ? `The first stop I would make is ${clock(lead.t)}, where ${humanMomentLabel(lead.category || lead.label || "SOURCE RECEIPT")}.` : "There is no single loudest moment, so start with the chapter rail.";
+  const leadLine = lead
+    ? [
+      `Start at ${clock(lead.t)}: ${humanMomentLabel(lead.category || lead.label || "SOURCE RECEIPT")} is the cleanest first turn.`,
+      `For the quickest temperature check, use ${clock(lead.t)}; ${humanMomentLabel(lead.category || lead.label || "SOURCE RECEIPT")} takes over.`,
+      `The first hard turn arrives at ${clock(lead.t)}—${humanMomentLabel(lead.category || lead.label || "SOURCE RECEIPT")}—so that is the doorway I would use.`,
+    ][variant]
+    : "There is no single loudest moment, so start with the chapter rail.";
   const topicList = listPhrase(topics.slice(0, 3).map((topic) => topic.name));
-  const fanLine = fan.length ? `The chat leaves ${fan.length} fan callout${fan.length === 1 ? "" : "s"} in the mix` : "The chat stays quiet on this tape";
+  const fanLine = fan.length
+    ? [
+      `The chat leaves ${fan.length} fan callout${fan.length === 1 ? "" : "s"} in the mix`,
+      `Fan traffic shows up ${fan.length} time${fan.length === 1 ? "" : "s"} here`,
+      `The audience gets ${fan.length} callout${fan.length === 1 ? "" : "s"} into the room`,
+    ][variant]
+    : "The chat stays quiet on this tape";
   const characterList = listPhrase(characterCues.slice().sort((left, right) => Number(right.mentions || 0) - Number(left.mentions || 0)).slice(0, 3).map((character) => character.name));
-  const characterLine = characterCues.length ? `The character traffic runs through ${characterList}; open the surrounding exchange to hear the bit land.` : "No recurring character bit rises above the rest here.";
-  const audioLine = decodedAudio && audioCandidates.length ? `The listening pass adds ${audioCandidates.length} more places to jump in; its busiest lane is ${lane.toLowerCase()}.` : audioCandidates.length ? `The listening shelf adds ${audioCandidates.length} more places to jump in.` : "There is no extra listening lane attached to this one yet.";
-  const variant = voiceVariant(title, series.key || shape || tier);
+  const characterLine = characterCues.length
+    ? [
+      `The character traffic runs through ${characterList}; open the surrounding exchange to hear the bit land.`,
+      `${characterList} ${characterCues.length === 1 ? "keeps" : "keep"} turning up in the tape; use the timestamp to decide whether it is a bit or a mention.`,
+      `The character lane touches ${characterList}; the surrounding audio tells you how far the performance actually goes.`,
+    ][variant]
+    : "No recurring character bit rises above the rest here.";
+  const audioLine = decodedAudio && audioCandidates.length
+    ? [
+      `The listening pass adds ${audioCandidates.length} more places to jump in; its busiest lane is ${lane.toLowerCase()}.`,
+      `There are ${audioCandidates.length} audio-ranked doors behind the read, with ${lane.toLowerCase()} doing the most work.`,
+      `The local listening shelf contributes ${audioCandidates.length} extra stops, led by ${lane.toLowerCase()}.`,
+    ][variant]
+    : audioCandidates.length
+      ? `${audioCandidates.length} bounded listening doors sit beside the text.`
+      : "There is no extra listening lane attached to this one yet.";
   const shelf = clean(series.label || "WWAM archive").toLowerCase();
   const subjectLine = topicList === "the night's open room"
     ? "The subject spine stays loose, so the route rail matters more than the thumbnail."
-    : `The useful subject doors are ${topicList}.`;
+    : [
+      `The useful subject doors are ${topicList}.`,
+      `The conversation keeps circling ${topicList}.`,
+      `The tape's center of gravity is ${topicList}.`,
+    ][variant];
   const opening = [
     `${title} lives in the ${shelf} shelf, but the useful part is the argument inside it.`,
     `The fastest way into ${title} is through the tape, not the title card: ${routeLine}.`,
@@ -816,16 +846,16 @@ function voiceVariant(title, date) {
 function humanMomentLabel(value) {
   const label = clean(value).toLowerCase();
   const labels = {
-    "take gets nuclear": "the take gets nuclear",
-    "room break": "the room breaks",
-    "the room breaks": "the room breaks",
-    "wwam up in ya": "Up In Ya takes over",
-    "up in ya": "Up In Ya takes over",
-    "straight to steve's asshole": "the verdict goes Straight to Steve's Asshole",
-    "steve's asshole": "the verdict goes Straight to Steve's Asshole",
-    "fan signal": "the chat gets a fan callout",
-    "character signal": "a character callback lands",
-    "full send": "the show goes full send"
+    "take gets nuclear": "a nuclear take",
+    "room break": "a room break",
+    "the room breaks": "a room break",
+    "wwam up in ya": "an Up In Ya hit",
+    "up in ya": "an Up In Ya hit",
+    "straight to steve's asshole": "a Straight to Steve's Asshole verdict",
+    "steve's asshole": "a Straight to Steve's Asshole verdict",
+    "fan signal": "a fan callout",
+    "character signal": "a character callback",
+    "full send": "a full-send moment"
   };
   return labels[label] || label || "the first big turn";
 }
