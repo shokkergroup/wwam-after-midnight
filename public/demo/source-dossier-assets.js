@@ -86,6 +86,7 @@
     "episode-editorial-packs-wave62.js?v=1.0.0-november-2025-hellraiser-game-trailer",
     "episode-editorial-packs-wave63.js?v=1.0.0-november-2025-friday-poster-ranking",
     "episode-editorial-packs-wave64.js?v=1.0.0-november-2025-movie-news-nightmare-posters",
+    "episode-editorial-packs-wave65.js?v=1.0.0-november-2025-welcome-to-derry-episode-three",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",

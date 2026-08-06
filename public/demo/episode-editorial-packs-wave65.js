@@ -1,0 +1,83 @@
+(function (root) {
+  "use strict";
+  var registry = root.WWAM_EPISODE_EDITORIAL_PACKS || { schema: "shokker-episode-editorial-packs/v1", sources: {} };
+  var sources = Object.assign({}, registry.sources || {});
+
+  /* November 10, 2025: full-tape read of the Welcome to Derry episode-three recap. */
+  sources["0GhyPapAgCY"] = Object.freeze({
+    sourceId: "0GhyPapAgCY",
+    reviewState: "full-tape-human-editorial-read",
+    evidence: Object.freeze({
+      duration: 4370,
+      captionWords: 2798,
+      captionEvents: 266,
+      captionSpanSeconds: 4365.54,
+      captionDurationCoveragePercent: 100,
+      captionSha256: "sha256:da41b49aec6ccd5e215f73256be53157ae753962327984034a3507275171d071",
+      captionSourceKind: "official YouTube caption ledger",
+      audioPass: "canonical YouTube audio + source-local Whisper transcript alignment",
+      audioSha256: "8e72daa949af7c44db5b8564465b83a857f9fc93355408398ebc69b0eecfb0d0",
+      asrWindowCount: 25,
+      speakerAttribution: false,
+      visualOutcomeInferred: false,
+    }),
+    label: "IT WELCOME TO DERRY EPISODE 3 RECAP LIVE // METHADONE JEREMIAH, CEMETERY CGI, THE GREEN RANGER, AND THE CHAT'S FAST-FOOD COURT",
+    badge: "FULL SHOW WIKI // 1:12:50 OF WELCOME TO DERRY EPISODE 3, ANDY MUSCHIETTI CGI SLANDER, HORROR ICONS, HALO, AND GOBBLERS",
+    headline: "THE WELCOME TO DERRY RECAP STARTS WITH METHADONE JEREMIAH AND ENDS WITH A WAWA COCK GOBBLER, WHILE THE CEMETERY CGI GETS SENT TO STEVE'S ASSHOLE BEFORE THE TITLE CARD HAS COOLED.",
+    deck: "A compact but loaded recap room: episode-three reactions, a full autopsy of the cemetery scene, Andy Muschietti and The Brave and the Bold skepticism, a Green Ranger/Pennywise detour, fast-food burger taxonomy, Halo memories, Halloween-versus-It casting, fan questions, and one very specific Dr. Loomis-sized sign-off.",
+    overview: "The hosts come in ready to talk about Welcome to Derry episode three and immediately rename the episode's old man Methadone Jeremiah because the character looks like he wandered out of a clinic and into a Stephen King circus. The opening credits get credit for their comic-book style, but the episode's cemetery sequence is treated as a catastrophe: the hosts compare the effects to Ghostbusters, complain that the budget explanation sounds like a television excuse, and decide Andy Muschietti keeps coating his projects in digital noise. The criticism is not just a score; it becomes a running character bit, with Muschietti imagined in Nike sweatpants asking the geeks to put the outside world on a green screen. The recap then widens into news and fan mail: a legal-story tangent, the Creeper from Jeepers Creepers as a horror icon trapped by terrible movies, Frankenstein and classic monsters, and a Green Ranger/Pennywise fantasy where Kimberly's rescue is apparently the only reliable plot. Stephen King is briefly reported dead, immediately disproven by someone looking out a window, and then reanimated as Stefan King because the chat cannot resist a typo. The back half is a live room rather than a review: Halo Reach, Halo 4, Halo Infinite support, Stream Elements, a mystery package, a Stranger Things burger, the argument that chicken on a bun is still a burger, weight-loss misery, and a Wawa gobbler that sounds like a sex move. A fan asks which remake is better, Halloween 2007 or It 2017, and the hosts give Rob Zombie's film a grudging edge despite attacking its first twenty minutes. The final stretch brings a Deathstroke casting rumor, a gambling tangent, a Joker-gas office collapse, Popeyes biscuits as hockey pucks, and a clean promise to return Wednesday. It is not a formal episode guide. It is a source-bound WWAM recap of a recap: one bad cemetery, a lot of FAM chemistry, and a sandwich that should come with a warning label.",
+    story: Object.freeze([
+      { at: 0, end: 500, label: "METHADONE JEREMIAH CHECKS IN", body: "Episode three gets a nickname before the recap can settle. The old man, the circus feeling, Pennywise's opening-credit gunshot, and a Sin City comparison establish that this is going to be an autopsy with jokes." },
+      { at: 501, end: 1000, label: "THE CEMETERY SCENE GOES TO COURT", body: "The cemetery effects are compared to Ghostbusters and the room rejects the television-budget defense. The criticism turns into a full imagined Andy Muschietti green-screen routine." },
+      { at: 1001, end: 1500, label: "MUSCHIETTI, THE BRAVE AND THE BOLD, AND THE CGI TAX", body: "Andy Muschietti's broader filmography becomes the target: the hosts worry The Brave and the Bold will inherit the same effects-first problem and wonder whether any practical texture will survive." },
+      { at: 1501, end: 2000, label: "LEGAL NEWS AND THE CREEPER'S WASTED LEGACY", body: "The room detours into a messy news story, then returns to horror with the claim that the Jeepers Creepers creature belongs in a top-ten icon list if its movies had not held it back." },
+      { at: 2001, end: 2500, label: "FRANKENSTEIN, GREEN RANGER, AND STEFAN KING", body: "Classic monsters, a Green Ranger rescue fantasy, and a false breaking-news alert about Stephen King turn the chat into a miniature horror-comedy writers' room." },
+      { at: 2501, end: 3000, label: "HALO, THE MYSTERY PACKAGE, AND THE BURGER COURT", body: "Halo Reach and Halo Infinite lead into a fan package, a Stranger Things burger, and the question of whether chicken on a bun can legally call itself a burger." },
+      { at: 3001, end: 3500, label: "HALLOWEEN 2007 VERSUS IT 2017", body: "A fan asks for a remake comparison. Rob Zombie gets a grudging advantage despite the first twenty minutes, while an Alan Ritchson/Deathstroke rumor keeps the movie-news door open." },
+      { at: 3501, end: 4000, label: "WEIGHT LOSS, GOBBLERS, AND THE GAMBLING MACHINE", body: "Weight-loss talk, a Wawa gobbler, sports betting, and the discovery that modern apps let people gamble on almost anything give the room a late-night after-hours feel." },
+      { at: 4001, end: 4370, label: "JOKER GAS, POPEYES BISCUITS, AND WEDNESDAY'S EXIT", body: "A workplace collapse is retold like a Joker-gas clip, Popeyes biscuits become hockey pucks, and the hosts sign off with a promise to return for another live room." },
+    ]),
+    highlights: Object.freeze([
+      { at: 6, end: 56, category: "WWAM UP IN YA", label: "METHADONE JEREMIAH", excerpt: "The episode's old man gets renamed Methadone Jeremiah before the recap even reaches its first real complaint." },
+      { at: 62, end: 112, category: "BEST MOMENT", label: "PENNYWISE SHOOTS A GUN", excerpt: "The opening-credit comic art gets praised until Pennywise jumps through the frame shooting at the Dillinger gang." },
+      { at: 108, end: 158, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "THE CEMETERY SCENE IS ASS", excerpt: "The cemetery scene is declared a disaster and the room blames the effects before the explanation can finish." },
+      { at: 121, end: 171, category: "DEEP DIVE", label: "TELEVISION IS NOT A MOVIE EXCUSE", excerpt: "A budget defense about spreading effects across a television season gets rejected with one question: why make it television if it looks this rough?" },
+      { at: 198, end: 248, category: "TAKE GETS NUCLEAR", label: "THE BRAVE AND THE BOLD WILL SUCK", excerpt: "The hosts predict The Brave and the Bold will inherit the same effects problem and deliver the verdict before a frame exists." },
+      { at: 399, end: 449, category: "WWAM UP IN YA", label: "COTTON-EYE JOE JEREMIAH", excerpt: "The old-man character is reimagined as a low-budget horror mascot with one eye and a song in his head." },
+      { at: 719, end: 769, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "THE CEMETERY GATE SEX METAPHOR", excerpt: "A bad cemetery gate is compared to a beautiful person with an anatomical deal-breaker, and the room refuses to stop there." },
+      { at: 988, end: 1038, category: "WWAM UP IN YA", label: "MUSCHIETTI IN NIKE SWEATPANTS", excerpt: "Andy Muschietti is imagined asking the crew to put the outside world on a green screen because the cold is inconvenient." },
+      { at: 1620, end: 1670, category: "WWAM UP IN YA", label: "THE GIANT THING DETOUR", excerpt: "A legal-news tangent swerves into an allegedly giant object and the room decides to wait for evidence before sentencing anyone." },
+      { at: 1915, end: 1965, category: "FAN SIGNAL", label: "THE CREEPER DESERVES BETTER", excerpt: "A fan argues the Jeepers Creepers creature belongs among horror icons, but its movies keep dragging the legacy backward." },
+      { at: 2195, end: 2245, category: "TAKE GETS NUCLEAR", label: "FRANKENSTEIN IS A HOT TURD", excerpt: "A classic-monster movie is revisited and described with the kind of bluntness that makes a Universal Monsters fan reach for a chair." },
+      { at: 2287, end: 2337, category: "CHARACTER PERFORMANCE", label: "GREEN RANGER SAVES KIMBERLY", excerpt: "Pennywise's butt crack, the Green Ranger, and Kimberly's rescue collide in a fantasy nobody asked the room to storyboard.", characters: ["Pennywise", "Green Ranger"] },
+      { at: 2302, end: 2352, category: "WWAM UP IN YA", label: "LIGHT UP THE EYES", excerpt: "A movie line is denied, repeated, and denied again until the room cannot tell whether it is quoting a film or inventing one." },
+      { at: 2435, end: 2485, category: "THE ROOM BREAKS", label: "STEPHEN KING IS STILL ALIVE", excerpt: "A fake Stephen King death alert is instantly disproven by someone looking out a window, then renamed Stefan King for good measure." },
+      { at: 2450, end: 2500, category: "BEST MOMENT", label: "THE EPISODE KILLED HIM", excerpt: "The room pretends the episode was so bad it killed Stephen King, a ridiculous line that lands because the panic is so immediate." },
+      { at: 2625, end: 2675, category: "FAN SIGNAL", label: "HALO CAMPAIGN RECEIPT", excerpt: "A fan asks about Halo and the hosts separate Reach's campaign from the later entries and a support model nobody can keep straight." },
+      { at: 2728, end: 2778, category: "DEEP DIVE", label: "HALO REACH STILL WORKS", excerpt: "Halo Reach gets the cleanest game recommendation while Halo 4 and Infinite are treated as the point where the series lost its shape." },
+      { at: 2815, end: 2865, category: "FAN SIGNAL", label: "THE MYSTERY PACKAGE", excerpt: "A fan sends a package and asks Mike not to open it, creating a suspense plot inside a recap about a horror television episode." },
+      { at: 2850, end: 2900, category: "WWAM UP IN YA", label: "STEFAN KING CORRECTION", excerpt: "A fan corrects Stephen to Stefan and the room decides the world cannot survive without Stefan King." },
+      { at: 2865, end: 2915, category: "DEEP DIVE", label: "THE KIDS' STORY IS LITERAL ASS", excerpt: "A fan prefers the Army storyline to the kids' material, and the hosts admit the children's plot is starting to feel like a loop." },
+      { at: 2955, end: 3005, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "THE STRANGER THINGS BURGER", excerpt: "A burger arrives with spicy sauce, cheese, slaw, and enough juice to make the room question whether anyone should eat it in public." },
+      { at: 3148, end: 3198, category: "TAKE GETS NUCLEAR", label: "A MILLION DOLLAR SPITTY THING", excerpt: "A collectible idea is judged as something that could have made a million dollars if the hosts had not been too dumb to recognize it." },
+      { at: 3160, end: 3210, category: "DEEP DIVE", label: "BURGER OR SANDWICH", excerpt: "The chat draws a bread-based legal distinction and the room refuses to let a chicken sandwich hide inside the word burger." },
+      { at: 3280, end: 3330, category: "WWAM UP IN YA", label: "THE CONTRARIAN CUNT", excerpt: "A fast-food opinion turns into a family insult, followed by the realization that the Bible does not actually contain the line." },
+      { at: 3355, end: 3405, category: "FAN SIGNAL", label: "HALLOWEEN 2007 OR IT 2017", excerpt: "Man of Tomorrow asks for a remake verdict and adds a Deathstroke rumor, giving the show its cleanest fan-to-news handoff." },
+      { at: 3375, end: 3425, category: "TAKE GETS NUCLEAR", label: "ROB ZOMBIE GETS THE EDGE", excerpt: "Rob Zombie's Halloween remake gets a grudging win over It 2017 despite the hosts warning everyone about its first twenty minutes." },
+      { at: 3495, end: 3545, category: "WWAM UP IN YA", label: "THE COCK GOBBLER", excerpt: "A Wawa sandwich name sounds like a sex move and the room refuses to pronounce it normally again." },
+      { at: 3915, end: 3965, category: "FAN SIGNAL", label: "GAMBLE ON ANYTHING", excerpt: "A betting story turns into a tour of modern gambling apps where the next wager can apparently be almost anything." },
+      { at: 4128, end: 4178, category: "THE ROOM BREAKS", label: "JOKER GAS AT THE OFFICE", excerpt: "A workplace collapse is retold with a frozen smile and Joker-gas energy, making an ordinary incident sound like a comic-book emergency." },
+      { at: 4145, end: 4195, category: "WWAM UP IN YA", label: "RFK RUNS FOR HELP", excerpt: "A political figure fleeing a scene becomes a visual gag about somebody recognizing the disaster before anyone else." },
+      { at: 4335, end: 4368, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "POPEYES BISCUIT HOCKEY PUCK", excerpt: "A hard biscuit is promoted to a thrown weapon and an emergency Batman prop." },
+      { at: 4355, end: 4368, category: "FAN SIGNAL", label: "GOBBLERS WEDNESDAY", excerpt: "The hosts close by promising another Wednesday night, with the Wawa gobbler now the unofficial mascot." },
+    ]),
+    fanRead: Object.freeze({
+      loved: Object.freeze({ at: 2435, end: 2485, label: "STEPHEN KING IS STILL ALIVE", topic: "the fake alert that self-corrects", body: "Play from 40:35. A death rumor turns into a window check, then Stefan King becomes the only acceptable spelling in the room.", playAt: 2435, playEnd: 2485 }),
+      hated: Object.freeze({ at: 108, end: 158, label: "THE CEMETERY SCENE IS ASS", topic: "the effects fight", body: "Play from 1:48. The cemetery scene gets the strongest negative verdict, with the TV-budget defense rejected on arrival.", playAt: 108, playEnd: 158 }),
+      wildestDetour: Object.freeze({ at: 2287, end: 2337, label: "GREEN RANGER SAVES KIMBERLY", topic: "the fantasy detour", body: "Play from 38:07. Pennywise, a butt crack, Kimberly, and the Green Ranger become one of the night's most unhinged side doors.", playAt: 2287, playEnd: 2337 }),
+      lastWord: Object.freeze({ at: 4355, end: 4370, label: "GOBBLERS WEDNESDAY", topic: "the next-room promise", body: "Play from 1:12:35. The room signs off by promising another Wednesday and leaving the sandwich joke alive.", playAt: 4355, playEnd: 4370 }),
+    }),
+  });
+
+  root.WWAM_EPISODE_EDITORIAL_PACKS = Object.freeze({ schema: registry.schema || "shokker-episode-editorial-packs/v1", generated: "2026-08-06", sources: Object.freeze(sources) });
+})(typeof window !== "undefined" ? window : globalThis);
