@@ -37,13 +37,13 @@
     "episode-editorial-packs-wave13.js?v=1.0.0-full-tape",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
-    "wwam-episode-recap-adapter.js?v=2.5.0-source-bound-decks",
+    "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
     "source-dossier-engine.js?v=1.17.0-alternate-podcast-routes",
     "wwam-livestream-asr-excerpts.js?v=1.0.5-low-signal-filter",
     "wwam-source-dossier-adapter.js?v=1.26.0-rss-index-playback",
     "source-query-engine.js?v=1.6.1-lanes",
     "aftermath-pack-engine.js?v=1.0.0",
-    "source-dossier-ui.js?v=1.35.0-listening-heat",
+    "source-dossier-ui.js?v=1.35.1-display-body",
     "wwam-dossier-editorial.js?v=1.3.2-damage-priority",
   ]);
 })(window);

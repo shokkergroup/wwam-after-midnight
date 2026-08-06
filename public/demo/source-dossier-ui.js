@@ -1956,7 +1956,7 @@
           esc(section.id) + '"><header><span>ACT ' +
           esc(String(index + 1).padStart(2, "0")) + '</span><time>' +
           esc(formatTime(displayAt)) + '</time></header><h5>' +
-          esc(section.label) + '</h5><p>' + esc(section.body) + '</p>' +
+          esc(section.label) + '</h5><p>' + esc(section.displayBody || section.body) + '</p>' +
           '<footer>' + recapPlayButton(section, "Play recap act " + (index + 1)) +
           '<small>EXACT-SHOW EVIDENCE</small></footer></article>';
       }

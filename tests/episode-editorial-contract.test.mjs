@@ -182,6 +182,17 @@ test("episode recap adapter applies a human pack only to its matching source and
       beat.playAt,
       `${beat.id} must expose its exact source-local play doorway first`,
     );
+    const authored = expectedPack.story[beat.ordinal - 1];
+    assert.equal(
+      beat.editorialBody,
+      authored?.body,
+      `${beat.id} must retain the exact authored prose beside the playable body`,
+    );
+    assert.equal(
+      firstClockSeconds(beat.displayBody),
+      beat.playAt,
+      `${beat.id} display copy must keep the playable doorway`,
+    );
     assert.equal(
       beat.primarySubject,
       beat.narrative.primarySubject,

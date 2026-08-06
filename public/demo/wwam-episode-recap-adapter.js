@@ -2,7 +2,7 @@
   "use strict";
 
   var SCHEMA = "wwam-feldman-recap/v1";
-  var VERSION = "2.5.0-source-bound-decks";
+  var VERSION = "2.5.1-editorial-body-truth";
 
   function clean(value) {
     return String(value == null ? "" : value).trim();
@@ -2487,7 +2487,12 @@
           String(index + 1).padStart(2, "0"),
         ordinal: index + 1,
         label: clean(item.label),
+        // Keep the long-standing playable body contract for existing clients,
+        // while retaining the exact authored sentence in its own field for
+        // truth audits and downstream export. The player hint is display-only.
         body: playBoundBody(item.body, playAt),
+        editorialBody: clean(item.body),
+        displayBody: playBoundBody(item.body, playAt),
         at: at,
         end: end,
         displayAt: playAt,
@@ -2545,6 +2550,8 @@
         ordinal: item.ordinal,
         label: item.label,
         body: item.body,
+        editorialBody: item.editorialBody,
+        displayBody: item.displayBody,
         at: item.at,
         end: item.end,
         displayAt: item.displayAt,
@@ -2768,7 +2775,10 @@
       label: "SHOW WIKI // SOURCE-LINKED SUMMARY",
       badge: tierLabels[map.mode] || "PLAYABLE EPISODE RECAP",
       headline: fanHeadline(map),
-      deck: fanDeck(map),
+      // Structured dossiers already expose the source-linked overview and
+      // route cards. A generated deck reads like template filler and is not
+      // an authored editorial claim, so leave that lane intentionally blank.
+      deck: "",
       overview: sourceSummaryLine(map),
       topics: recapTopics(map),
       topicMap: array(map.topicMap).map(function (topic) {

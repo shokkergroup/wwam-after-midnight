@@ -480,11 +480,12 @@ function auditApplication(file, pack, failures) {
   }
   packStory.forEach((item, index) => {
     const applied = record(recapStory[index]);
+    const appliedBody = clean(applied.editorialBody || applied.body);
     if (
       Number(applied.at) === Number(item.at) &&
       Number(applied.end) === Number(item.end) &&
       sameText(applied.label, item.label) &&
-      sameText(applied.body, item.body)
+      sameText(appliedBody, item.body)
     ) return;
     failures.push(failure(
       "pack-story-entry-mismatch",
