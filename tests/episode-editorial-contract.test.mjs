@@ -212,6 +212,7 @@ test("episode recap adapter applies a human pack only to its matching source and
   });
   assert.equal(wrongSource.editorialState, "structured-source-summary");
   assert.equal(wrongSource.caseFile.humanEditorialRead, undefined);
+  assert.equal(wrongSource.deck, "");
   assert.equal(wrongSource.story.length, 0);
   assert.equal(wrongSource.highlightRunway.length, 0);
 
