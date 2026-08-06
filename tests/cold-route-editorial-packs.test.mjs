@@ -6,6 +6,7 @@ import test from "node:test";
 const root = path.resolve(process.cwd());
 const html = fs.readFileSync(path.join(root, "public/demo/index.html"), "utf8");
 const assets = fs.readFileSync(path.join(root, "public/demo/source-dossier-assets.js"), "utf8");
+const app = fs.readFileSync(path.join(root, "public/demo/app.js"), "utf8");
 
 test("cold Show Wiki routes preload the latest human editorial packs", () => {
   for (const wave of [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35]) {
@@ -40,4 +41,10 @@ test("latest 2026 human packs retain their exact source bindings", () => {
     assert.match(file, /reviewState:\s*["']full-tape-human-editorial-read["']/);
     assert.match(file, /captionSha256:\s*["']sha256:/);
   }
+});
+
+test("cold routes preserve long full-tape overviews instead of generic fallback copy", () => {
+  assert.match(app, /fullTapeEditorialRead/);
+  assert.match(app, /raw\.length\s*<=\s*3200/);
+  assert.match(html, /app\.js\?v=0\.5\.119-editorial-summary-bridge/);
 });
