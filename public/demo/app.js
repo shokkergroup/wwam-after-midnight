@@ -2049,7 +2049,12 @@
     // show. The old 900-character ceiling was silently replacing those reads
     // with the generic topic sentence, which made a verified dossier feel like
     // AI sludge on cold routes.
-    if (raw && fullTapeEditorialRead && raw.length >= 70 && raw.length <= 3200 && !machineShaped) return raw;
+    // A registered full-tape human read is already source-bound and audited.
+    // Do not run its conversational prose through the machine-room keyword
+    // firewall: words like "receipt" and "evidence" are legitimate in an
+    // editorial explanation, and rejecting them silently regresses the cold
+    // route to the generic AI-sounding sentence.
+    if (raw && fullTapeEditorialRead && raw.length >= 70 && raw.length <= 3200) return raw;
     if (raw && raw.length >= 70 && raw.length <= 900 && !machineShaped) return raw;
 
     var topicNames = (Array.isArray(topics) ? topics : []).map(function (topic) {
