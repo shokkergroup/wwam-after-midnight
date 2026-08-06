@@ -170,6 +170,8 @@ test("canonical source URLs use ?source=ID&at=SECONDS#archive and retain route-s
   const syncGlobals = {
     window,
     URL,
+    sourceReturnContext: null,
+    sourceReturnRestorePending: null,
     sourceDossierSection,
     history: {
       state: { campaignState: "kept" },
@@ -764,6 +766,8 @@ test("dossier CSS brands cold routes immediately while heavy scripts remain lazy
   "episode-editorial-packs-wave41.js",
   "episode-editorial-packs-wave42.js",
   "episode-editorial-packs-wave43.js",
+  "episode-editorial-packs-wave44.js",
+  "episode-editorial-packs-wave45.js",
     "wwam-fam-index.js",
     "episode-recap-engine.js",
     "wwam-episode-recap-adapter.js",
@@ -795,7 +799,7 @@ test("dossier CSS brands cold routes immediately while heavy scripts remain lazy
   "episode-editorial-packs-wave34.js",
   "episode-editorial-packs-wave35.js",
   ]);
-  for (let wave = 2; wave <= 43; wave += 1) {
+  for (let wave = 2; wave <= 45; wave += 1) {
     intentionalColdRouteScripts.add(`episode-editorial-packs-wave${wave}.js`);
   }
   for (const asset of dossierScripts) {
@@ -1120,6 +1124,9 @@ test("popstate reopens canonical and legacy routes, then closes media after a ba
   const closed = [];
   const modal = { classList: classList(["show"]) };
   const sandbox = {
+    sourceReturnContext: null,
+    sourceReturnRestorePending: null,
+    restoreSourceReturnContext() {},
     readSourceRoute() {
       return route;
     },
