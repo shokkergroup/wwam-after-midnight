@@ -469,11 +469,33 @@ const fresh = loadScript("livestream-distill.js").WWAM_LIVESTREAMS || { streams:
 const yearCanon = loadScript("year-canon-2025-2026.js").WWAM_YEAR_CANON_2025_2026 || { streams: [] };
 const watchPilot = loadScript("wwam-watch-pass-pilot.js").WWAM_WATCH_PASS_PILOT || { episodes: {} };
 const editorialPackById = new Map();
+function mergeEditorialPacks(previous, incoming) {
+  if (!previous) return incoming;
+  const highlights = [...(previous.highlights || []), ...(incoming.highlights || [])];
+  const seenAt = new Set();
+  const uniqueHighlights = highlights.filter((item) => {
+    const key = String(item?.at ?? "");
+    if (!key || seenAt.has(key)) return false;
+    seenAt.add(key);
+    return true;
+  }).sort((left, right) => Number(left?.at || 0) - Number(right?.at || 0));
+  const story = (previous.story?.length || 0) > (incoming.story?.length || 0)
+    ? previous.story
+    : incoming.story;
+  return {
+    ...previous,
+    ...incoming,
+    evidence: { ...(previous.evidence || {}), ...(incoming.evidence || {}), localAudioPass: incoming.evidence?.audioPass },
+    story,
+    highlights: uniqueHighlights,
+    fanRead: { ...(previous.fanRead || {}), ...(incoming.fanRead || {}) },
+  };
+}
 for (const file of fs.readdirSync(DEMO).filter((name) => /^episode-editorial-packs(?:-recent|-wave\d+)?\.js$/.test(name))) {
   const registry = loadScript(file).WWAM_EPISODE_EDITORIAL_PACKS || { sources: {} };
   for (const [sourceId, pack] of Object.entries(registry.sources || {})) {
     if (pack && pack.sourceId === sourceId && pack.reviewState === "full-tape-human-editorial-read") {
-      editorialPackById.set(sourceId, pack);
+      editorialPackById.set(sourceId, mergeEditorialPacks(editorialPackById.get(sourceId), pack));
     }
   }
 }
