@@ -134,10 +134,23 @@ function packFilesIn(demoDir) {
       /^episode-editorial-packs(?:-[a-z0-9][a-z0-9-]*)?\.js$/i.test(name)
     );
   const base = "episode-editorial-packs.js";
+  // Pack waves are append-only editorial passes. A source can deliberately
+  // reappear in a later wave after a deeper read (for example, wave27
+  // superseding the earlier June 25 placeholder in wave3). Lexicographic
+  // sorting puts wave27 before wave3 and lets the older file overwrite the
+  // newer pass. Load the base registry, then recent, then numeric waves in
+  // ascending order so the highest wave is the final authority.
+  const rank = (name) => {
+    if (name === base) return [0, 0, name];
+    if (name === "episode-editorial-packs-recent.js") return [1, 0, name];
+    const match = name.match(/^episode-editorial-packs-wave(\d+)\.js$/i);
+    if (match) return [2, Number(match[1]), name];
+    return [3, 0, name];
+  };
   return names.sort((left, right) => {
-    if (left === base) return -1;
-    if (right === base) return 1;
-    return left.localeCompare(right, "en");
+    const a = rank(left);
+    const b = rank(right);
+    return a[0] - b[0] || a[1] - b[1] || a[2].localeCompare(b[2], "en");
   });
 }
 

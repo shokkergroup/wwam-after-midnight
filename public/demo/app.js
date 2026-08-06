@@ -817,7 +817,13 @@
           reviewStatus: "full-tape-human-editorial-read",
         });
       }));
-      if (Array.isArray(editorialPack.highlightRunway)) raw = raw.concat(editorialPack.highlightRunway.map(function (entry) {
+      // Editorial packs publish their authored runway as `highlights`; the
+      // older `highlightRunway` spelling is retained for already-built packs.
+      // Accept both so a cold Show Wiki cannot silently downgrade a full-tape
+      // read to machine-only listening leads.
+      var authoredHighlights = Array.isArray(editorialPack.highlights) ?
+        editorialPack.highlights : editorialPack.highlightRunway;
+      if (Array.isArray(authoredHighlights)) raw = raw.concat(authoredHighlights.map(function (entry) {
         return Object.assign({}, entry, {
           at: entry.at != null ? entry.at : entry.t,
           category: entry.category || entry.lane || "HIGHLIGHT",
@@ -890,7 +896,11 @@
       // Steve's Asshole route can share an audio boundary; collapsing them
       // by timestamp made the cold Show Wiki quietly lose a category.
       var key = moment.at + "|" + String(moment.lane || moment.label || "").toLowerCase();
-      if (!moment.at) return false;
+      // A true opening beat is a valid source door. Machine ledgers often
+      // contain empty zero-second placeholders, so only preserve 0:00 when it
+      // came from a human editorial pack.
+      if (!Number.isFinite(moment.at) || moment.at < 0 ||
+          (moment.at === 0 && moment.sourceKind !== "editorial-pack")) return false;
       var currentExcerpt = String(moment.excerpt || "").trim();
       var currentIsQualityAudio = moment.sourceKind === "local-whisper" && currentExcerpt.split(/\s+/).filter(Boolean).length >= 5;
       if (currentIsQualityAudio) {
