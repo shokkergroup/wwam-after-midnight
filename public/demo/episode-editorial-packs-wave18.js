@@ -1,0 +1,110 @@
+(function (root) {
+  "use strict";
+
+  var registry = root.WWAM_EPISODE_EDITORIAL_PACKS || {
+    schema: "shokker-episode-editorial-packs/v1",
+    sources: {},
+  };
+  var sources = Object.assign({}, registry.sources || {});
+
+  /* April 16, 2026: full official caption ledger plus ranked local audio windows. */
+  sources["SEAT47OIgGA"] = Object.freeze({
+    sourceId: "SEAT47OIgGA",
+    reviewState: "full-tape-human-editorial-read",
+    evidence: Object.freeze({
+      duration: 11380,
+      captionWords: 41130,
+      captionEvents: 5895,
+      captionSpanSeconds: 11378.16,
+      captionDurationCoveragePercent: 99.9,
+      captionSha256: "sha256:ac8a6dba8ffb8f92feb353855751713f12484c3bec824e91bb22bc118f90168d",
+      captionSourceKind: "youtube-automatic-caption",
+      audioPass: "canonical YouTube audio + source-local Whisper ranked-window alignment",
+      speakerAttribution: false,
+      visualOutcomeInferred: false,
+    }),
+    label: "THE PASSENGER, EVIL DEAD BURN, AND THE DOOMSDAY ARGUMENT",
+    badge: "FULL SHOW WIKI // 3:09 OF TRAILERS, HORROR NERVES, AND CHAT CHAOS",
+    headline:
+      "A FAKE MATTHEW LILLARD CLIP OPENS THE DOOR TO A VERY REAL HORROR NIGHT.",
+    deck:
+      "The April 15 broadcast starts with a debunked internet clip, a trading-card gambling spiral, and a trailer that makes one host threaten to watch horror movies with his butt clenched. From Passenger and Evil Dead Burn to Resident Evil, Scary Movie 6, Halloween game speculation, Corey Feldman, and the question of whether Doomsday can ever beat Endgame, this is WWAM doing movie news as a nervous breakdown with a chat window.",
+    overview:
+      "This is the kind of live show that looks like a movie-news episode until the tape starts moving. The first ten minutes are a late arrival, a fake Apple Watch, an unmonetized trailer night and a viral Matthew Lillard home-invasion clip that the room believes for roughly thirty seconds before the chat drags it into the hoax pile. The detour is still worth keeping because the hosts turn the fake footage into a perfect WWAM question: if it had been real, would Lillard's barefoot, snow-chasing scream have put him above Michael, Freddy and Pinhead? From there the show finds its true spine. Passenger's trailer hits the hosts with a wall of jump scares and produces the rare reaction that is both analytical and physically afraid. Evil Dead Burn gets a gory premise, a Bruce Campbell lore check and an argument about whether the new generation understands the old movies. The rest of the night keeps opening doors: The Flood, As Deep as the Sea, Godzilla Minus Zero, Resident Evil's game-versus-movie problem, Scary Movie 6, a retro video-store plan, Halloween versus Wolverine versus GTA, Corey Feldman and Chucky, and a fan-led Halloween ranking. The final act is the serious payoff: Doomsday may be the movie Marvel fans want, but Endgame only worked because twenty years of character history made the snap matter. It ends with the room still answering questions, still promising commentaries, and still refusing to let a three-hour show have a clean exit.",
+    story: Object.freeze([
+      { at: 0, end: 400, label: "THE LATE START AND THE FAKE WATCH", body: "The stream opens late, unmonetized and already worried about whether showing trailers without ads will upset somebody. A cheap Apple Watch joke becomes a magical-clitoris detour before the room finds the viral Matthew Lillard home-invasion clip." },
+      { at: 400, end: 760, label: "MATTHEW LILLARD CHASES A HOAX", body: "The clip sounds exactly like Lillard chasing a burglar through snow, which is why the hosts want to believe it. The chat eventually exposes the edit, but not before the room crowns the imaginary scream as a possible Mount Rushmore horror moment." },
+      { at: 760, end: 1240, label: "CARDS, BOXES, AND THE GAMBLING ECONOMY", body: "A trading-card story turns into a debate over unopened boxes, $95 packs, eBay flips and the moment collecting becomes gambling. They argue about keeping a valuable pull, selling it to fund the hobby and whether a comic shop would offer five dollars for a collection worth hundreds." },
+      { at: 1240, end: 1450, label: "THE BOYS, FALLOUT, AND A SHAVED KINGDOM", body: "Fallout and The Boys get quick check-ins while the hosts catch up on their week. A dryer repair, a Bush Light shirt and one very direct grooming confession make the pre-news room feel like a genuine fan hangout instead of a prepared segment." },
+      { at: 1450, end: 1810, label: "PASSENGER MAKES THE ROOM SWEAT", body: "The Passenger trailer is introduced like a gift and then detonates into jump scares, a highway monster and a screaming car. One host wants to see it in theaters; the other wants the trailer served in a black paper bag with a warning label." },
+      { at: 1810, end: 2010, label: "HORROR CAN BE BAD AND STILL GET UNDER YOUR SKIN", body: "The hosts explain why a movie can have weak writing and still make a tiny demon escape from the viewer's body. They defend the physical reaction to horror while hoping Passenger is more than grief allegory and trailer editing." },
+      { at: 2010, end: 2400, label: "EVIL DEAD BURN ARRIVES THROUGH AN AD BLOCKER", body: "Cineacon news gets buried under a broken ad, a growing audience and a metric buttload of tabs. When Evil Dead Burn finally gets described, a dishwasher full of sharp silverware, a corpse with a car headrest through its skull and a family attack make the movie sound gloriously mean." },
+      { at: 2400, end: 2800, label: "THE FLOOD, LARONA, AND THE HORROR SLATE", body: "The news pile expands to The Flood, The Revenge of Llorona and other genre projects. The hosts are willing to be excited about a new Evil Dead while still admitting the first Llorona movie sucked biscuit parts." },
+      { at: 2800, end: 3250, label: "GODZILLA, AS DEEP AS THE SEA, AND TRAILER FATIGUE", body: "More trailers arrive with the question of how much story a preview should reveal. A film about a director's last project and a Godzilla Minus Zero tease push the room between curiosity and the fear that modern trailers are already giving away the whole movie." },
+      { at: 3250, end: 3850, label: "MARVEL'S VFX PROBLEM AND THE DOOMSDAY PROMISE", body: "The room argues over a Marvel visual-effects controversy, whether a YouTuber's criticism was fair and whether studio leadership keeps mistaking a finished render for a finished movie. Doomsday is the rare future project that makes both hosts want to believe again." },
+      { at: 3850, end: 4550, label: "RESIDENT EVIL HAS TO REMEMBER THE GAME", body: "A Resident Evil trailer opens the familiar wound: the Milla Jovovich movies can be entertaining, but the next film needs the actual game's story, dread and characters. The hosts would rather see a faithful scary movie than another unrelated action franchise wearing the logo." },
+      { at: 4550, end: 5250, label: "THE INTERNET, HULK, AND THE ROOM'S MEMORY", body: "The conversation drifts through Internet clips, the Hulk, Lyn Shaye and the kind of movie memories that only exist because somebody watched the same thing too many times. The show keeps proving that the detours are part of the archive, not dead air." },
+      { at: 5250, end: 5700, label: "WEREWOLF, NOSFERATU, AND THE ROOM'S DARK TRAILER", body: "Robert Eggers' Werewolf and a dark Nosferatu-adjacent trailer bring the room back to atmosphere. They debate whether audiences need another classic-monster movie and whether a filmmaker can make old horror feel dangerous without simply polishing it." },
+      { at: 5700, end: 6400, label: "SCARY MOVIE 6 AND THE VIDEO-STORE DREAM", body: "Scary Movie 6 becomes a referendum on rewatchability and whether the franchise can find its old rhythm. That leads naturally to the fantasy of a real video store, loyalty rewards, and a WWAM rental shelf where the chat gets to choose the next bad idea." },
+      { at: 6400, end: 7100, label: "HALLOWEEN, WOLVERINE, OR GTA?", body: "A fan asks which upcoming game deserves the most excitement. Halloween wins if it has a real campaign, Wolverine gets respect for being a focused single-player game, and GTA remains the giant everybody expects to dominate the room anyway." },
+      { at: 7100, end: 8000, label: "FELDMAN, CHUCKY, AND THE SCREAM DOOR", body: "Corey Feldman and Tommy become a character detour, Chucky gets a future movie wish and Scream gets another possible route into the archive. The hosts talk about the difference between a personality people mock, a performer who knows how to sell himself and a franchise that still has room for one more good murder mystery." },
+      { at: 8000, end: 8900, label: "THE MUMMY, FINAL DESTINATION, AND THE THEATER BET", body: "Fan questions move through Final Destination, The Mummy and whether a new horror movie deserves a sober theater trip. The hosts agree that Lee Cronin's Mummy needs to feel like a movie rather than a content delivery system, then immediately start planning a commentary if it works." },
+      { at: 8900, end: 9900, label: "HALLOWEEN 2007, HALLOWEEN 2018, OR SCREAM 5", body: "A fan forces a three-way Halloween comparison. Rob Zombie's 2007 film, Halloween 2018 and Scream 5 are separated by affection, annoyance and Curtis overacting, with the room admitting that even a flawed Halloween movie can still make a better late-night rewatch than most new releases." },
+      { at: 9900, end: 10800, label: "DOOMSDAY CANNOT CHEAT THE ENDGAME", body: "The serious center of the show arrives. Doomsday can be everything Marvel fans want, but Endgame was more than a big event: the snap worked because years of characters and consequences made it hurt. The hosts want Marvel to earn another finish instead of announcing one." },
+      { at: 10800, end: 11380, label: "THE COMMENTARY PROMISES KEEP COMING", body: "The final questions loop back through Scream, Evil Dead, horror cuts and the channel's identity as a movie-review hangout. The sign-off keeps slipping because the audience has more memories, more requests and one more reason to stay in the room." },
+    ]),
+    highlights: Object.freeze([
+      { at: 24, end: 39, category: "WWAM UP IN YA", label: "THE MAGICAL CLITORIS WATCH", excerpt: "The late stream starts with an Apple Watch, a poverty joke and a search for a body part Indiana Jones still cannot find." },
+      { at: 88, end: 115, category: "FAN SIGNAL", label: "MATTHEW LILLARD'S FAKE BREAK-IN", excerpt: "A viral clip supposedly shows Lillard chasing a burglar barefoot through snow, and the room cannot decide whether it is insane or fake." },
+      { at: 132, end: 181, category: "THE ROOM BREAKS", label: "YOU'RE GETTING IT", excerpt: "The repeated chase line is funny enough to make the hosts wish the hoax were real, because Lillard yelling it would have become horror history." },
+      { at: 215, end: 231, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "FOOLED BY THE INTERNET", excerpt: "The chat kills the story, and the room realizes it believed multiple reposts because apparently the internet has become a grandfather with a chain email." },
+      { at: 260, end: 280, category: "TAKE GETS NUCLEAR", label: "THE FAKE CLIP'S MOUNT RUSHMORE", excerpt: "For thirty seconds, a fake home-invasion scream is promoted above Michael Myers, Freddy and Pinhead." },
+      { at: 360, end: 385, category: "WWAM UP IN YA", label: "THE CARDS ARE GAMBLING", excerpt: "Collecting turns into gambling the second an unopened box can be split into $95 packs and flipped before the fad collapses." },
+      { at: 504, end: 526, category: "THE ROOM BREAKS", label: "A TIKTOK ADVENTURE GETS SHUT DOWN", excerpt: "The chat refuses to let a TikTok story survive, leaving one host with no adventure except shaving the dark lands of the Lion King." },
+      { at: 702, end: 725, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "THE CHAT SNIPES JT", excerpt: "A normally quiet fan delivers one factual insult and suddenly becomes Rocket Raccoon in a villain arc." },
+      { at: 1442, end: 1488, category: "THE ROOM BREAKS", label: "PASSENGER NEEDS BROWN PANTS", excerpt: "The Passenger trailer is introduced with a dramatic setup that dies for two seconds, then comes back louder and meaner." },
+      { at: 1567, end: 1654, category: "TAKE GETS NUCLEAR", label: "NO ONE OUTRUNS THE PASSENGER", excerpt: "The trailer piles on jump scares until one host refuses to see the movie and the other starts planning a theater trip anyway." },
+      { at: 1681, end: 1718, category: "WWAM UP IN YA", label: "THE TRAILER HITS THE BALL SACK", excerpt: "They compare a good horror trailer's first shock to a pellet landing in the ball sack and hope the movie has more than grief homework." },
+      { at: 1731, end: 1767, category: "TAKE GETS NUCLEAR", label: "A BAD MOVIE CAN STILL SCARE YOU", excerpt: "The hosts admit a movie can be analytically terrible while a tiny demon still escapes from your body during the screening." },
+      { at: 2090, end: 2143, category: "FAN SIGNAL", label: "EVIL DEAD BURN'S DISHWASHER", excerpt: "A mother, sharp silverware, a corpse with a car headrest through its skull and a family attack make the new Evil Dead sound gloriously vicious." },
+      { at: 2160, end: 2198, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "THE SILVERWARE IMPALEMENT", excerpt: "The trailer description gets so graphic that a cosmetic ad interrupts a story about a boy being pinned to a dishwasher." },
+      { at: 2267, end: 2308, category: "THE ROOM BREAKS", label: "THE LORONA KARAOKE TEST", excerpt: "The Revenge of Llorona gets compared to whatever lonely karaoke survivor is still available after the bar empties." },
+      { at: 2340, end: 2390, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "THE DIESEL FILL-UP ANALOGY", excerpt: "A hookup detour becomes a fuel analogy so specific that both hosts stop to admire it." },
+      { at: 2438, end: 2468, category: "TAKE GETS NUCLEAR", label: "EVIL DEAD WRATH GETS A CHANCE", excerpt: "The room forgives the weak Llorona start because the next Evil Dead still feels like the horror movie most likely to deliver." },
+      { at: 2878, end: 2922, category: "TAKE GETS NUCLEAR", label: "WEREWOLF'S DARK TRAILER", excerpt: "Robert Eggers' Werewolf and the almost-black trailer raise the question of whether classic-monster dread can still feel dangerous." },
+      { at: 3010, end: 3035, category: "FAN SIGNAL", label: "PASSENGER, MUMMY, AND THE SHORTLIST", excerpt: "The hosts try to remember every promising horror release before the chat adds another title to the list." },
+      { at: 3170, end: 3210, category: "THE ROOM BREAKS", label: "THE BEST TRAILER IS THE ONE THEY REMEMBER", excerpt: "A trailer ranking becomes a rewatchability argument and a confession that some films live in the room long after the plot is gone." },
+      { at: 3399, end: 3470, category: "FAN SIGNAL", label: "BUILD THE WWAM VIDEO STORE", excerpt: "The fantasy becomes specific: shelves, loyalty rewards and a rental system that lets the audience keep the weird movie-night culture alive." },
+      { at: 3487, end: 3545, category: "FAN SIGNAL", label: "DONATIONS KEEP THE VIDEOS AD-FREE", excerpt: "The hosts explain where donations help, then turn the chat's support into a reason to keep the archive and the live shows moving." },
+      { at: 6588, end: 6665, category: "TAKE GETS NUCLEAR", label: "HALLOWEEN VERSUS WOLVERINE VERSUS GTA", excerpt: "Halloween wins if the campaign is real, Wolverine gets the focused-game argument, and GTA remains the giant that can swallow every other release." },
+      { at: 7068, end: 7095, category: "CHARACTER SIGNAL", label: "FELDMAN KNOWS HOW TO SELL FELDMAN", excerpt: "Corey Feldman becomes a discussion about performance, self-promotion and whether the bit is the character or the man selling it." },
+      { at: 7171, end: 7210, category: "FAN SIGNAL", label: "THE HORROR MOVIE THEY WOULD MAKE", excerpt: "A fan asks what horror movie the hosts would create, and the answer starts as a serious pitch before the room corrupts it." },
+      { at: 7311, end: 7358, category: "TAKE GETS NUCLEAR", label: "HALLOWEEN'S FIRST 45 MINUTES", excerpt: "The room defends Halloween's atmosphere and argues that the opening stretch is so strong it can carry the movie through any later complaint." },
+      { at: 7781, end: 7820, category: "FAN SIGNAL", label: "CHUCKY GETS ANOTHER DOOR", excerpt: "A fan request for a Chucky movie opens a door back into the commentary archive and the question of which horror icons still have one great story left." },
+      { at: 8082, end: 8120, category: "FAN SIGNAL", label: "THE SUPER CHAT BOX OF DEMONS", excerpt: "A rapid-fire super chat arrives packed with questions, proving that the audience is now writing the rundown in real time." },
+      { at: 8486, end: 8525, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "THE MUMMY THEATER BET", excerpt: "The hosts argue over whether the new Mummy deserves a sober theater trip or a commentary with the alcohol doing quality control." },
+      { at: 8626, end: 8698, category: "TAKE GETS NUCLEAR", label: "THE MUMMY NEEDS TO BE A MOVIE", excerpt: "Lee Cronin's Mummy gets a fair chance, but the room refuses to confuse a promising trailer with a finished film." },
+      { at: 8995, end: 9040, category: "FAN SIGNAL", label: "HALLOWEEN ENDS ON NETFLIX", excerpt: "Netflix's Halloween Ends news gets treated like a hostage negotiation with a movie everybody already argued about." },
+      { at: 9435, end: 9590, category: "TAKE GETS NUCLEAR", label: "THE HALLOWEEN THREE-WAY", excerpt: "Halloween 2007, Halloween 2018 and Scream 5 fight for a late-night ranking slot, with Curtis overacting taking a bullet." },
+      { at: 9653, end: 9745, category: "TAKE GETS NUCLEAR", label: "DOOMSDAY NEEDS HISTORY", excerpt: "The hosts want Doomsday to be great, but they do not want Marvel to pretend that a trailer can manufacture the emotional weight of Endgame." },
+      { at: 9781, end: 9855, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "NO CAPTAIN MARVEL THREE", excerpt: "A hypothetical post-Endgame slate gets torched before it can become another homework assignment." },
+      { at: 10035, end: 10075, category: "THE ROOM BREAKS", label: "JIM CARREY AND THE SHAVED HEAD", excerpt: "A Jim Carrey casting detour reminds everybody that the best movie idea in the room is usually the one nobody planned to say out loud." },
+      { at: 10205, end: 10235, category: "FAN SIGNAL", label: "PUT US IN THE MOVIE", excerpt: "The chat pitches the hosts as characters, which is dangerous because the room has already proven it cannot resist a recurring bit." },
+      { at: 10720, end: 10765, category: "CHARACTER SIGNAL", label: "THE NEXT SCREAM DOOR", excerpt: "The Scream conversation loops back toward a possible future appearance, leaving the franchise door cracked instead of slamming it shut." },
+      { at: 10899, end: 10935, category: "WWAM UP IN YA", label: "EVIL DEAD NEVER GOT CUT", excerpt: "A late horror aside becomes a defense of the archive itself: the films, the cuts and the arguments all stay alive because somebody keeps pressing play." },
+      { at: 11203, end: 11250, category: "THE ROOM BREAKS", label: "THE CHANNEL IS A MOVIE REVIEW HANGOUT", excerpt: "The sign-off explains the whole project without sounding like a mission statement: they watched the movie, argued about it and kept the room open." },
+    ]),
+    fanRead: Object.freeze({
+      loved: Object.freeze({ at: 1567, end: 1767, label: "THE PASSENGER TRAILER", topic: "jump scares, atmosphere and horror nerves", body: "This is the clearest intensity spike: the trailer makes the hosts physically recoil, argue about whether it spoiled too much and still call it one of the best horror previews they have seen.", playAt: 1567, playEnd: 1767 }),
+      hated: Object.freeze({ at: 2088, end: 2198, label: "EVIL DEAD BURN'S BROKEN TRAILER LINK", topic: "Cineacon footage hidden behind an ad blocker", body: "The anger is aimed at access, not the movie. They want to see the trailer, the chat wants to see it, and the website keeps putting a tiny corporate hand over the play button.", playAt: 2088, playEnd: 2198 }),
+      wildestDetour: Object.freeze({ at: 2340, end: 2390, label: "THE DIESEL FILL-UP", topic: "a dating story that becomes fuel math", body: "The late-night hookup detour is the most aggressively unnecessary story in the tape, which is exactly why it belongs in the WWAM dossier.", playAt: 2340, playEnd: 2390 }),
+      lastWord: Object.freeze({ at: 11203, end: 11250, label: "THE MOVIE REVIEW HANGOUT", topic: "why the room keeps coming back", body: "The ending is not a polished sign-off. It is a promise that the next movie, question or horror trailer can still reopen the room.", playAt: 11203, playEnd: 11250 }),
+    }),
+  });
+
+  root.WWAM_EPISODE_EDITORIAL_PACKS = Object.freeze({
+    schema: registry.schema || "shokker-episode-editorial-packs/v1",
+    generated: "2026-08-06",
+    sources: Object.freeze(sources),
+  });
+})(typeof window !== "undefined" ? window : globalThis);
