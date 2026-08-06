@@ -211,14 +211,14 @@ test("watchalong canon has the complete public source registry", () => {
   assert.ok(canon.discovery.titleCandidates.some((record) => /Rambo|Saved By The Bell|Batman|Terminator|Men In Black/i.test(record.title)));
   assert.equal(new Set(canon.episodes.map((episode) => episode.id)).size, canon.episodes.length);
   assert.match(watchPass.version, /^2026-audio-pilot-0[34]$/);
-  assert.equal(watchPass.coverage.watchalongEpisodes, 102);
-  assert.equal(watchPass.coverage.audioAnalyzed, 101);
+  assert.equal(watchPass.coverage.watchalongEpisodes, 103);
+  assert.equal(watchPass.coverage.audioAnalyzed, 102);
   assert.equal(watchPass.coverage.held, 1);
   assert.equal(watchPass.coverage.alternateAudioAnalyzed, 1);
   assert.ok(watchPass.coverage.alternateRankedCandidates >= 30);
   assert.match(watchPass.selectionPolicy, /no fixed 48-card ceiling/i);
   assert.ok(watchPass.coverage.rankedCandidates >= 3000, "evidence-scaled watchalong routes expand beyond the former fixed shelf");
-  assert.equal(canon.watchPassCoverage.audioAnalyzed, 101);
+  assert.equal(canon.watchPassCoverage.audioAnalyzed, 102);
   const latestPilot = watchPass.episodes.LV2rmwEA0w4;
   assert.ok(latestPilot.audit.candidateCategories["STRAIGHT TO STEVE'S ASSHOLE"] > 0 || latestPilot.audit.candidateCategories["CHARACTER SIGNAL"] > 0, "current-show route selection preserves a recurring WWAM lane");
 });
@@ -284,6 +284,9 @@ test("every episode has an official source, evidence state, and playable receipt
   assert.equal(recoveredSource.watchPass.status, "audio-feature-pilot");
   assert.ok(recoveredSource.watchPass.candidates.length >= 15);
   assert.ok(canon.episodes.filter((episode) => episode.id !== "sdiVxLTq67Q").every((episode) => episode.watchPass), "every full-film watchalong source has a watch-pass record; special broadcasts stay in their own lane");
+  const anniversaryPass = watchPass.episodes?.sdiVxLTq67Q;
+  assert.equal(anniversaryPass?.status, "audio-feature-pilot", "the ten-year anniversary special keeps its own audio pass");
+  assert.ok((anniversaryPass?.candidates?.length || 0) >= 80, "the anniversary special keeps a genuinely deep listening route");
   assert.ok(canon.episodes.filter((episode) => episode.watchPass && episode.watchPass.status === "audio-feature-pilot").every((episode) => episode.watchPass.media.sourceUrl.includes(episode.id)));
   assert.ok(canon.episodes.some((episode) => episode.watchPass?.label === "WATCHALONG WATCH PASS // AUDIO PILOT"));
   assert.ok(canon.episodes.some((episode) => episode.id === "ot91NhcRSdM" && episode.watchPass?.status === "audio-feature-pilot"), "newly discovered highlight cuts receive a source-local ASR/audio route");
@@ -302,7 +305,7 @@ test("every episode has an official source, evidence state, and playable receipt
   assert.ok(canon.episodes.filter((episode) => episode.dossier.state === "caption-ledger-dossier").every((episode) => !/local caption ledger leaves|indexed doors hit|cleanest way in|jumpable guide to the room/i.test(episode.dossier.summary)), "caption-ledger recaps do not fall back to the old machine-shaped boilerplate");
   const heldHalloweenTwo = canon.episodes.find((episode) => episode.id === "AzrcgoyE7C4");
   assert.match(heldHalloweenTwo.dossier.summary, /official podcast variant contributes \d+ audio-bound routes/i);
-  assert.equal(canon.episodes.filter((episode) => episode.watchPass && !/^held-/.test(episode.watchPass.status)).filter((episode) => episode.watchPass.listeningDigest?.headline).length, 101, "every acquired watchalong has a listening read");
+  assert.equal(canon.episodes.filter((episode) => episode.watchPass && !/^held-/.test(episode.watchPass.status)).filter((episode) => episode.watchPass.listeningDigest?.headline).length, 102, "every acquired watchalong has a listening read");
   const audioEnriched = canon.episodes.filter((episode) => /listening shelf adds \d+ extra places/i.test(episode.dossier.summary));
   const audioCuts = audioEnriched.flatMap((episode) => episode.dossier.cuts.filter((cut) => cut.audio));
   assert.ok(audioEnriched.length >= 50, "caption-ledger watchalongs expose their audio-ranked routes in the show dossier");
@@ -313,7 +316,7 @@ test("every episode has an official source, evidence state, and playable receipt
   const nearbyCaptionContext = allAudioDossierCuts.filter((cut) => cut.captionContext && cut.captionAligned === false);
   assert.ok(nearbyCaptionContext.length > 0 && nearbyCaptionContext.length < allAudioDossierCuts.length, "caption-marker peaks retain nearby context without being relabeled as exact alignment");
   assert.ok(nearbyCaptionContext.every((cut) => /nearby source-local caption context; not exact alignment/i.test(cut.evidenceBasis) && (!cut.excerpt || /^NEARBY CAPTION CONTEXT/i.test(cut.excerpt) || /no caption fragment aligned/i.test(cut.excerpt))));
-  assert.equal(audioBacked.length, 101, "every acoustically acquired watchalong retains an audio-feature route");
+  assert.equal(audioBacked.length, 102, "every acoustically acquired watchalong retains an audio-feature route");
   assert.equal(canon.episodes.filter((episode) => episode.watchPass?.status === "caption-ledger-pilot").length, 0, "caption-only fallback is empty when every acquired transcript has a matching audio route");
   assert.ok(allAudioDossierCuts.length >= 2000, "audio-ranked routes are also carried into full editorial dossiers");
   assert.equal(canon.episodes.filter((episode) => episode.dossier.state === "full-editorial-dossier" && episode.dossier.cuts.some((cut) => cut.audio)).length, 38, "all full editorial watchalong dossiers expose their audio-ranked routes");
