@@ -261,6 +261,7 @@ test("livestream canon surface is wired into the page and route shell", () => {
   assert.match(ui, /official YouTube player at its bounded timestamp/, "local route copy explains the embedded source boundary");
   assert.match(ui, /THE PODCAST TAPE/);
   assert.match(ui, /data-lvc-rss-seek/);
+  assert.match(ui, /function rssCopy\(z\)/, "podcast-local alternate routes use the same quote-safe display boundary");
   assert.match(ui, /LISTEN FOR THE ROOM TO CHANGE/);
   assert.doesNotMatch(ui, /moments\|\|\[\]\)\.slice\(0,40\)/);
   assert.match(css, /\.lvc-card-grid/);
