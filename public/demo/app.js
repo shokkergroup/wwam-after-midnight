@@ -605,7 +605,7 @@
       })
       .then(function () { return loader.loadStyle("source-dossier.css?v=5.41-editorial-cold-shell"); })
       .then(function () {
-        return loader.load("source-dossier-assets.js?v=1.0.31-play-bound-story");
+        return loader.load("source-dossier-assets.js?v=1.0.32-late-tail-human-play");
       })
       .then(function () {
         var assets = window.WWAM_SOURCE_DOSSIER_ASSETS || [];
