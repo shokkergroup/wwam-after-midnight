@@ -46,6 +46,7 @@
     "episode-editorial-packs-wave22.js?v=1.0.0-editorial-wave22",
     "episode-editorial-packs-wave23.js?v=1.0.0-editorial-wave23",
     "episode-editorial-packs-wave24.js?v=1.0.0-editorial-wave24",
+    "episode-editorial-packs-wave25.js?v=1.0.0-editorial-wave25",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
