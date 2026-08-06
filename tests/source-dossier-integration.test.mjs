@@ -816,7 +816,7 @@ test("dossier CSS brands cold routes immediately while heavy scripts remain lazy
   "episode-editorial-packs-wave34.js",
   "episode-editorial-packs-wave35.js",
   ]);
-  for (let wave = 2; wave <= 61; wave += 1) {
+  for (let wave = 2; wave <= 62; wave += 1) {
     intentionalColdRouteScripts.add(`episode-editorial-packs-wave${wave}.js`);
   }
   for (const asset of dossierScripts) {
