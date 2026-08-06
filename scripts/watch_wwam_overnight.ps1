@@ -1,7 +1,6 @@
 $ErrorActionPreference = "Continue"
 $work = "C:\Users\Ricky's PC\Documents\Shokker YouTube WIKIS\WWAM Demo"
 $log = Join-Path $work ".codex-overnight-watchdog.log"
-$pack = Join-Path $work "public\demo\episode-editorial-packs-wave40.js"
 $canon = Join-Path $work "public\demo\wwam-livestream-canon.js"
 $sourceCache = Join-Path $work "source-cache\captions"
 Set-Location -LiteralPath $work
@@ -17,8 +16,8 @@ function Log([string]$Message) {
 
 function Latest-EvidenceTime {
   $items = @(
-    (Get-Item -LiteralPath $pack -ErrorAction SilentlyContinue),
     (Get-Item -LiteralPath $canon -ErrorAction SilentlyContinue),
+    (Get-ChildItem -LiteralPath (Join-Path $work "public\demo") -Filter 'episode-editorial-packs-wave*.js' -File -ErrorAction SilentlyContinue),
     (Get-ChildItem -LiteralPath $sourceCache -Filter '*.asr.json' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1)
   ) | Where-Object { $_ }
   if (-not $items) { return [datetime]::MinValue }
@@ -69,7 +68,7 @@ while ($true) {
   $audit = Run-Check "npm" @("run", "audit:public-truth")
   Log ("editorial truth audit exit {0}" -f $audit)
 
-  $packTime = (Get-Item -LiteralPath $pack -ErrorAction SilentlyContinue).LastWriteTime
+  $packTime = (Get-ChildItem -LiteralPath (Join-Path $work "public\demo") -Filter 'episode-editorial-packs-wave*.js' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1).LastWriteTime
   $canonTime = (Get-Item -LiteralPath $canon -ErrorAction SilentlyContinue).LastWriteTime
   if ($packTime -and (!$canonTime -or $packTime -gt $canonTime)) {
     Log "pack newer than canon // regenerating livestream canon"
