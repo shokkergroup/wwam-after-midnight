@@ -2648,6 +2648,10 @@
       var cardMarkup = visible.map(function (receipt, index) {
         var time = formatTime(receipt.at);
         var score = number(receipt.signalScore);
+        var heat = Number.isFinite(score) ?
+          Math.max(12, Math.min(100, Math.round(score))) : 12;
+        var heatBand = heat >= 90 ? "RED BAND" :
+          heat >= 80 ? "HOT" : heat >= 70 ? "WARM" : "LISTENING LEAD";
         var excerpt = listeningCaptionExcerpt(receipt.excerpt);
         var transcriptCue = token(clean(receipt.reviewState) + " " + clean(receipt.evidenceBasis)).indexOf("transcript-cue") >= 0;
         var scoreLabel = Number.isFinite(score) && score > 0 ?
@@ -2658,7 +2662,10 @@
           (excerpt ? 'source-dossier-listening-excerpt' : 'source-dossier-listening-excerpt is-audio-only') +
           '">' + (excerpt ? '&ldquo;' + esc(excerpt) + '&rdquo;' :
             'AUTO-RANKED AUDIO WINDOW. PRESS PLAY AND DECIDE FOR YOURSELF.') +
-          '</p><button type="button" data-source-dossier-action="play-receipt" ' +
+          '</p><div class="source-dossier-listening-meter" aria-label="Listening heat ' +
+          esc(heat) + ' out of 100; ranking aid only"><span>LISTENING HEAT // RANKING AID</span><meter min="0" max="100" value="' +
+          esc(heat) + '">' + esc(heat) + '</meter><b>' + esc(heatBand) +
+          '</b></div><button type="button" data-source-dossier-action="play-receipt" ' +
           'data-receipt-key="' + esc(receipt.key) + '" aria-label="Play audio listening window at ' +
           esc(time) + '">&#9654; PLAY THIS WINDOW</button><small>' +
           (transcriptCue ? 'SOURCE-LOCAL WHISPER TEXT CUE' : 'SOURCE-LOCAL AUDIO PASS') + scoreLabel +

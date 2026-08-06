@@ -7404,6 +7404,33 @@
   text-transform: uppercase;
 }
 
+.source-dossier-listening-meter {
+  display: grid;
+  grid-template-columns: auto minmax(72px, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  color: #8f858d;
+  font: 800 8px/1.25 var(--mono, monospace);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.source-dossier-listening-meter span {
+  white-space: nowrap;
+}
+
+.source-dossier-listening-meter meter {
+  width: 100%;
+  height: 7px;
+  accent-color: var(--dossier-pink, #ff2f7d);
+}
+
+.source-dossier-listening-meter b {
+  color: var(--dossier-acid, #d8ff38);
+  font-size: 8px;
+  white-space: nowrap;
+}
+
 .source-dossier-listening-grid > article > button {
   justify-self: start;
   min-height: 34px;
@@ -7452,5 +7479,13 @@
 
   .source-dossier-listening-grid {
     grid-template-columns: 1fr;
+  }
+
+  .source-dossier-listening-meter {
+    grid-template-columns: 1fr auto;
+  }
+
+  .source-dossier-listening-meter span {
+    grid-column: 1 / -1;
   }
 }

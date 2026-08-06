@@ -43,7 +43,7 @@
     "wwam-source-dossier-adapter.js?v=1.24.0-windowed-whisper-boundary",
     "source-query-engine.js?v=1.6.1-lanes",
     "aftermath-pack-engine.js?v=1.0.0",
-    "source-dossier-ui.js?v=1.34.1-caption-boundary",
+    "source-dossier-ui.js?v=1.35.0-listening-heat",
     "wwam-dossier-editorial.js?v=1.3.2-damage-priority",
   ]);
 })(window);
