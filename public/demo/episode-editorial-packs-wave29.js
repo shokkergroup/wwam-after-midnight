@@ -35,7 +35,7 @@
     label: "CHRISTMAS GETS RANKED, LOOMIS GETS A TOILET WARNING",
     badge: "FULL SHOW WIKI // 3:24:15 OF HOLIDAY CHAOS",
     headline:
-      "HOME ALONE GETS A HOLIDAY COURT DATE, CORY FELDMAN CALLS IN, AND LOOMIS IS TOLD NOT TO EAT THE YELLOW STONE.",
+      "CHRISTMAS MOVIES GET A HOLIDAY COURT DATE, CORY FELDMAN CALLS IN, AND LOOMIS IS TOLD NOT TO EAT THE YELLOW STONE.",
     deck:
       "The December 22 Christmas tier-list stream is a proper WWAM holiday party: movie arguments, Christmas shopping resentment, a Hans Gruber detour, a Cory Feldman legal update, a surprise pregnancy reveal, fan check-ins, and enough Loomis/Challis filth to make the tree file a complaint.",
     overview:

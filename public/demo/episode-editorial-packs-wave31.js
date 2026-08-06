@@ -74,7 +74,7 @@
       { at: 3660, end: 3700, category: "BEST MOMENT", label: "BATMAN LEFT ALONE WITH HIS DEVICES", excerpt: "Robert Pattinson's first look becomes a completely unscientific Batman diagnosis." },
       { at: 4250, end: 4300, category: "FAN SIGNAL", label: "LEE THE MACHINE BOOKS THE WIENER DOCTOR", excerpt: "Lee Bowers sends Loomis and Challis to a medical appointment, then asks for a fart intro song." },
       { at: 4350, end: 4395, category: "CHARACTER SIGNAL", label: "LOOMIS NEEDS CHALLIS AT THE DOCTOR", excerpt: "A recurring-character bit gets a precise new setting instead of a generic name-drop." },
-      { at: 4520, end: 4560, category: "THE ROOM BREAKS", label: "MOVIE NEWS NEWS NEWS NEWS", excerpt: "The fart request becomes a broadcast jingle before the actual Jamie Lee Curtis story." },
+      { at: 4520, end: 4560, category: "THE ROOM BREAKS", label: "THE MOVIE NEWS JINGLE", excerpt: "The fart request becomes a broadcast jingle before the actual Jamie Lee Curtis story." },
       { at: 4750, end: 4795, category: "TAKE GETS NUCLEAR", label: "JAMIE LEE CURTIS DID NOT KNOW IT WAS A TRILOGY", excerpt: "The Halloween trilogy begins its trial with one brutally useful quote." },
       { at: 4930, end: 4975, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "LAURIE STRODE IS NOT THE WHOLE FRANCHISE", excerpt: "The room asks whether Michael Myers can exist without the Strode family." },
       { at: 5145, end: 5190, category: "WWAM UP IN YA", label: "THE CONVENTION SIGNING JOB INTERVIEW", excerpt: "Meeting Jamie Lee Curtis is imagined as a job interview nobody can pass." },
