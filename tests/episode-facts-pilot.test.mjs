@@ -93,12 +93,12 @@ test("publishes exactly the twelve requested format-diverse source fact packs", 
     EXPECTED_IDS,
   );
   assert.equal(payload.meta.sources, 12);
-  assert.equal(payload.meta.facts, 326);
+  assert.equal(payload.meta.facts, 328);
   assert.deepEqual(payload.meta.byType, {
     phaseBoundary: 48,
     topicRun: 99,
     localReelAnchor: 124,
-    rankingEvent: 32,
+    rankingEvent: 34,
     questionAnswerPair: 5,
     agendaItem: 10,
     scriptSceneCue: 5,

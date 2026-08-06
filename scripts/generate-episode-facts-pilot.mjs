@@ -196,6 +196,8 @@ const REQUIRED_ANCHORS = Object.freeze({
     [2681, "I like Home Alone 2", 10],
     [3684, "Jim Car's The Grinch", 10],
     [3697, "the Grinch Stole Christmas", 10],
+    [8824, "Frosty on the list", 10],
+    [8834, "Rudolph's the best", 10],
   ],
   cQAVmNFQmoI: [
     [3627, "start ranking these", 8],
@@ -306,6 +308,8 @@ const FORMAT_FACT_CONFIG = Object.freeze({
       ["HOME ALONE 2 PREFERENCE CUE", 2681, "I like Home Alone 2", { subject: "Home Alone 2", eventKind: "captioned-preference-language" }],
       ["GRINCH PLACEMENT OPENS", 3684, "Jim Car's The Grinch", { subject: "The Grinch", eventKind: "placement-debate" }],
       ["GRINCH // ALMOST TOUCHES THE SUN", 3697, "the Grinch Stole Christmas", { subject: "The Grinch", placementLanguage: "almost touches the sun", support: [[3700, "put it at almost such as the"], [3702, "Sun I love it"]] }],
+      ["FROSTY // FAN CATCHES THE OMISSION", 8824, "Frosty on the list", { subject: "Frosty the Snowman", eventKind: "fan-prompted-omission" }],
+      ["RUDOLPH // CHAMPION CUE", 8834, "Rudolph's the best", { subject: "Rudolph the Red-Nosed Reindeer", placementLanguage: "the best", eventKind: "captioned-preference-language", support: [[8844, "the champion"]] }],
     ],
   },
   cQAVmNFQmoI: {

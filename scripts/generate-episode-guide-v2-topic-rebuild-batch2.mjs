@@ -677,15 +677,6 @@ export const TOPIC_REBUILD_BATCH2_CONFIGS = Object.freeze([
           "A featureless character in tiny tanning goggles opens an intentionally absurd salon exchange.",
       },
       {
-        at: 3004,
-        needle: "MTV",
-        label: "SALON VERDICT // LATE-NIGHT MTV WEIRD",
-        topic: "Tanning-salon script verdict",
-        classification: "evaluation-candidate",
-        summary:
-          "The spoken reaction compares the script's strangeness with late-night MTV animation.",
-      },
-      {
         at: 3180,
         needle: "cramped in a car",
         label: "CHRISTINE MASHUP // POSSESSED PLYMOUTH",
@@ -738,6 +729,15 @@ export const TOPIC_REBUILD_BATCH2_CONFIGS = Object.freeze([
         classification: "evaluation-candidate",
         summary:
           "The reading block closes with an immediate spoken verdict calling the experiment awesome.",
+      },
+      {
+        at: 9885,
+        needle: "Doomsday storyline",
+        label: "DOOMSDAY SPRAWL // TELL THE STORY RIGHT",
+        topic: "Doomsday in Batman v Superman",
+        classification: "evaluation-candidate",
+        summary:
+          "A late discussion argues that the Doomsday storyline was compressed into Batman v Superman instead of being given room to breathe across its own story.",
       },
     ],
   },

@@ -479,15 +479,6 @@ export const TOPIC_REBUILD_BATCH1_CONFIGS = Object.freeze([
           "The caption track explicitly starts the trailer segment and names Superman.",
       },
       {
-        at: 3673,
-        needle: "going to do great",
-        label: "BASELINE LEDGER // GOOD, CORNY, UNEVEN",
-        topic: "Earlier Superman trailer",
-        classification: "evaluation-candidate",
-        summary:
-          "The prior-trailer baseline names good and corny material and gives a sharply split effects estimate.",
-      },
-      {
         at: 3930,
         needle: "score hits",
         label: "FIRST REACTION // THE SCORE HITS",
@@ -594,6 +585,15 @@ export const TOPIC_REBUILD_BATCH1_CONFIGS = Object.freeze([
         classification: "topic-door",
         summary:
           "The spoken lookup identifies one director of photography for both Superman and The Flash.",
+      },
+      {
+        at: 10357,
+        needle: "problem",
+        label: "DOOM DETOUR // ONE COOL IDEA",
+        topic: "Doom (2005)",
+        classification: "evaluation-candidate",
+        summary:
+          "A late-game Doom detour separates the movie's bad reputation from the one first-person shooter sequence they still remember as its cool idea.",
       },
     ],
   },

@@ -2461,9 +2461,10 @@
     if (!pack) return recap;
     var duration = Math.max(1, number(record(map.metadata).duration));
     var story = array(pack.story).map(function (item, index) {
-      // Keep the authored pack fields exact. Playback bounds may use a safe
-      // fallback, but the public story text/timestamps must remain identical
-      // to the human editorial source so the truth audit can prove it.
+      // Keep the authored prose intact while adding the same explicit play
+      // doorway used by machine recaps. A human-written card should never
+      // make the reader hunt for the timestamp that its own bounds already
+      // declare.
       var authoredAt = number(item.at);
       var authoredEnd = number(item.end);
       var at = authoredAt;
@@ -2479,7 +2480,7 @@
           String(index + 1).padStart(2, "0"),
         ordinal: index + 1,
         label: clean(item.label),
-        body: clean(item.body),
+        body: playBoundBody(item.body, playAt),
         at: at,
         end: end,
         displayAt: playAt,
