@@ -67,6 +67,7 @@
     "episode-editorial-packs-wave43.js?v=1.0.0-scream-seven-spoiler-room",
     "episode-editorial-packs-wave44.js?v=1.0.0-february-super-bowl-room",
     "episode-editorial-packs-wave45.js?v=1.0.0-february-requiem-room",
+    "episode-editorial-packs-wave46.js?v=1.0.0-january-2003-room",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
