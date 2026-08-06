@@ -16,7 +16,7 @@
     sourceId: "_8rkO1gLQds",
     reviewState: "full-tape-human-editorial-read",
     evidence: Object.freeze({
-      duration: 11358.83,
+      duration: 11359,
       captionWords: 40274,
       captionEvents: 12376,
       captionSpanSeconds: 11360.72,
@@ -59,7 +59,7 @@
       { at: 9088, end: 9655, label: "THE FAM COURT: REQUIEM, SCREAM, AND LOOMIS", body: "Chat answers the Resident Evil scale, argues Scream rankings, asks about Scary Movie 6 targets, and gives the show its best fan texture: people are not just watching; they are building the next conversation in public." },
       { at: 9656, end: 10223, label: "THE 90S MEMORY ROOM OPENS", body: "Teenage stories take over: a radio DJ inviting minors to the studio, the first sunrise after an all-night hangout, Half Baked and a carton of Virginia Slims, a father returning Hulk tickets, and the strange emotional violence of 1990s parenting." },
       { at: 10224, end: 10791, label: "LEE THE MACHINE, THE FIREBALL BAR, AND THE GRIND 2 ARGUMENT", body: "Lee Bowers gets the full thank-you, Fireball shots summon a karaoke-bar memory, The Barbarians and Grind 2 are weighed against the loss of 90s skate culture, and the room briefly lets affection outrun the filth." },
-      { at: 10792, end: 11358.83, label: "THE LAST-CALL MEME PARADE", body: "Loomis and Challis, Ric Flair clips, a live Scream 7 watch promise, Hiawatha, a fan's relationship rumor, a thank-you to the 400-person room, and the same-dicks-same-little-dicks sign-off close the tape with a final burst of affectionate disorder." },
+      { at: 10792, end: 11359, label: "THE LAST-CALL MEME PARADE", body: "Loomis and Challis, Ric Flair clips, a live Scream 7 watch promise, Hiawatha, a fan's relationship rumor, a thank-you to the 400-person room, and the same-dicks-same-little-dicks sign-off close the tape with a final burst of affectionate disorder." },
     ]),
     highlights: Object.freeze([
       { at: 18, end: 70, category: "WWAM UP IN YA", label: "MAXIMUS TIBERIUS PREPOSTEROUS CIVICUS THE NINTH", excerpt: "J opens as a Roman emperor with a name that sounds like a rejected password, then immediately welcomes the chat into the filth." },

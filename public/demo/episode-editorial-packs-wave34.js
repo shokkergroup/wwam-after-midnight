@@ -15,7 +15,7 @@
     sourceId: "waD77pum1eQ",
     reviewState: "full-tape-human-editorial-read",
     evidence: Object.freeze({
-      duration: 11808.647,
+      duration: 11809,
       captionWords: 44093,
       captionEvents: 13302,
       captionSpanSeconds: 11810.48,
@@ -57,7 +57,7 @@
       { at: 9301, end: 9920, label: "THE CHAT BECOMES A MOVIE-THEATER UNION", body: "Fan questions cover theater prices, midnight releases, ushers, popcorn buckets, Event Horizon, Nightmare on Elm Street directors, and the difference between seeing a horror movie with fifteen fanatics versus watching it alone with a phone glowing in your face." },
       { at: 9921, end: 10540, label: "LOOMIS, CANDYMAN, PINHEAD, AND THE ACTOR PROBLEM", body: "The character lane gets loud. White Candyman is rejected, Pinhead is claimed and immediately body-shamed, auditions become a discussion of art versus embarrassment, and the hosts remember fan-film offers that wanted a mafia douchebag, a shirtless torture scene, or a parking-garage baseball-bat death." },
       { at: 10541, end: 11160, label: "THE FAN TAIL GOES FULL ORAL HISTORY", body: "Chat moves from Resident Evil favorites and Ghostface-in-real-life fear to childhood trailer memories, a dead friend, Michael Myers at the State of the Union, Batman, Rambo, Halo leaving Xbox, Ink Master scripting, Scary Movie 6 targets, and the odd comfort of showing up every Wednesday." },
-      { at: 11161, end: 11808.647, label: "LEE'S TRUCK, QUANTUM IMMORTALITY, AND THE SAME-DICKS GOODNIGHT", body: "Lee the Machine gets a real thank-you and an invitation for Loomis and Challis to ride in the new truck. The room tells a karaoke-bar non-fight, debates quantum immortality, sings the alphabet in character, promises more Lumosity Myers videos, and closes by thanking the four-hundred-person crowd before ruining the sentiment with one final anatomical insult." },
+      { at: 11161, end: 11809, label: "LEE'S TRUCK, QUANTUM IMMORTALITY, AND THE SAME-DICKS GOODNIGHT", body: "Lee the Machine gets a real thank-you and an invitation for Loomis and Challis to ride in the new truck. The room tells a karaoke-bar non-fight, debates quantum immortality, sings the alphabet in character, promises more Lumosity Myers videos, and closes by thanking the four-hundred-person crowd before ruining the sentiment with one final anatomical insult." },
     ]),
     highlights: Object.freeze([
       { at: 18, end: 72, category: "WWAM UP IN YA", label: "THE CHAT ONLY ACCEPTS GIBBERISH", excerpt: "Normal English disappears, but emojis and nonsense let the Super Chats sneak through like a criminally underfunded communication system." },
@@ -123,13 +123,13 @@
       { at: 11465, end: 11555, category: "FAN SIGNAL", label: "WHAM1 ON PLAYSTATION", excerpt: "A fan gets the actual gamer tag and an invitation to add Jay, even though the room immediately accuses him of playing one anatomically modified game." },
       { at: 11585, end: 11670, category: "TAKE GETS NUCLEAR", label: "ABANDON XBOX SHIP", excerpt: "Microsoft is declared dead, Halo is coming to PlayStation, and the recommendation is delivered like a captain ordering everyone into the lifeboats." },
       { at: 11705, end: 11795, category: "COMMUNITY MEMORY", label: "GHOSTFACE ON LUNCHBOXES", excerpt: "The room remembers Ghostface and The Crow as costumes before they became lunchboxes, toys, Pop figures, and a problem the filmmakers have to solve every time." },
-      { at: 11740, end: 11808.647, category: "LAST CALL", label: "FOUR HUNDRED PEOPLE, SAME DICKS", excerpt: "The hosts thank the crowd, promise the next Wednesday, and close with the same anatomical insult that somehow functions as a hug." },
+      { at: 11740, end: 11809, category: "LAST CALL", label: "FOUR HUNDRED PEOPLE, SAME DICKS", excerpt: "The hosts thank the crowd, promise the next Wednesday, and close with the same anatomical insult that somehow functions as a hug." },
     ]),
     fanRead: Object.freeze({
       loved: Object.freeze({ at: 2480, end: 2785, label: "MORTAL KOMBAT 2 IS THE NIGHT'S WINNER", topic: "Karl Urban, Noob Saibot, fatalities, and the hope that Cole Young leaves", body: "Play from 41:20. This is the cleanest trailer eruption on the tape: everybody can see the game, the blood, and the sequel's better priorities.", playAt: 2480, playEnd: 2785 }),
       hated: Object.freeze({ at: 1860, end: 2240, label: "WHEN EVIL LURKS FIGHTS THE EDIT", topic: "non-linear structure, subtitles, and a body-horror story that keeps refusing to explain itself", body: "Play from 31:00. The gore earns respect, but the room is openly irritated by the movie's scrambled path to the demon.", playAt: 1860, playEnd: 2240 }),
       wildestDetour: Object.freeze({ at: 10280, end: 11170, label: "THE KARAOKE / QUANTUM / LOOMIS AFTERSHOW", topic: "the water-only bar guy, quantum immortality, Lee's truck, and the ABCs", body: "Play from 2:51:20. Movie news has evaporated. What remains is a crude oral history of friendship and the kind of fan room that keeps generating canon after the headlines stop.", playAt: 10280, playEnd: 11170 }),
-      lastWord: Object.freeze({ at: 11200, end: 11808.647, label: "THE CHAT IS THE SHOW", topic: "fan gratitude, the gamer tag, Xbox's funeral, Ghostface nostalgia, and the same-dicks goodnight", body: "Play from 3:06:40. The ending makes the archive's thesis explicit: the room is a collaboration, and the last joke is also a thank-you.", playAt: 11200, playEnd: 11808.647 }),
+      lastWord: Object.freeze({ at: 11200, end: 11809, label: "THE CHAT IS THE SHOW", topic: "fan gratitude, the gamer tag, Xbox's funeral, Ghostface nostalgia, and the same-dicks goodnight", body: "Play from 3:06:40. The ending makes the archive's thesis explicit: the room is a collaboration, and the last joke is also a thank-you.", playAt: 11200, playEnd: 11809 }),
     }),
   });
 

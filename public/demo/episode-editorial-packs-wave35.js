@@ -15,7 +15,7 @@
     sourceId: "-31V7Dbyyqs",
     reviewState: "full-tape-human-editorial-read",
     evidence: Object.freeze({
-      duration: 12579.364,
+      duration: 12579,
       captionWords: 45373,
       captionEvents: 14062,
       captionSpanSeconds: 12580.92,
@@ -59,7 +59,7 @@
       { at: 10201, end: 10800, label: "THE FAM COURT OPENS", body: "A Stallone origin story, Colton's delayed trophy, a light-pole wreck, Lost River Drive-In, Evil Dead continuity, Slenderman singing Metallica, and the first big Loomis/Feldman material turn chat into a living index of the channel's regulars." },
       { at: 10801, end: 11400, label: "LOOMIS, CHALLIS, AND FELDMAN TAKE OVER", body: "Loomis cannot find Seal lyrics, Corey Feldman explains cult recruitment as a parody of his own public mythology, and a genuinely alarming relationship letter gets the blunt advice to run. The show is vulgar, but the underlying reaction is protective rather than careless." },
       { at: 11401, end: 12000, label: "PINHEAD, JASON, SOPRANOS, AND THE SERIOUS LINE", body: "Freddy versus Pinhead, Jason versus Michael, Sopranos versus The Dark Knight, Rambo versus Ivan Drago, and a careful discussion of separating a work from an artist's alleged conduct create a late-night mix of fandom, ethics, and character combat." },
-      { at: 12001, end: 12579.364, label: "THE CHAT IS THE SHOW", body: "The last run covers Darth Maul, Predator, a neighborhood light pole, Godfather III, a fan who survived a breakup with the streams, Mortal Kombat 2, the Spider-Babe detour, Slenderman's failed Metallica line, Patreon plans, Katie's tragedy, and a three-and-a-half-hour thank-you that ends in the familiar anatomical sign-off." },
+      { at: 12001, end: 12579, label: "THE CHAT IS THE SHOW", body: "The last run covers Darth Maul, Predator, a neighborhood light pole, Godfather III, a fan who survived a breakup with the streams, Mortal Kombat 2, the Spider-Babe detour, Slenderman's failed Metallica line, Patreon plans, Katie's tragedy, and a three-and-a-half-hour thank-you that ends in the familiar anatomical sign-off." },
     ]),
     highlights: Object.freeze([
       { at: 18, end: 72, category: "WWAM UP IN YA", label: "THE STREAM HAS ZERO VIEWERS", excerpt: "They are live, the chat says they are not, and the first five minutes become a platform-haunting cold open." },
@@ -154,13 +154,13 @@
       { at: 12270, end: 12355, category: "COMMUNITY MEMORY", label: "THE COVID STREAMS BECAME A ROOM", excerpt: "The hosts remember B-Dubs at four, streaming at seven, and how regular viewers changed the channel's entire rhythm." },
       { at: 12340, end: 12420, category: "WWAM UP IN YA", label: "SPIDER-BABE IS CINEMA", excerpt: "A fan describes an explicit Spider-Man parody and the room gives the upside-down rain sequence an unsolicited awards campaign." },
       { at: 12420, end: 12510, category: "FAN SIGNAL", label: "KATIE GETS THE LAST SERIOUS WORD", excerpt: "The hosts stop the joke machine to send love to Katie after a tragedy before returning to the Patreon pitch." },
-      { at: 12505, end: 12579.364, category: "LAST CALL", label: "THREE AND A HALF HOURS, SAME DICKS", excerpt: "The room thanks the audience, promises the next show, and ends with the familiar anatomical sign-off that functions as a hug." },
+      { at: 12505, end: 12579, category: "LAST CALL", label: "THREE AND A HALF HOURS, SAME DICKS", excerpt: "The room thanks the audience, promises the next show, and ends with the familiar anatomical sign-off that functions as a hug." },
     ]),
     fanRead: Object.freeze({
       loved: Object.freeze({ at: 7810, end: 9220, label: "HALLOWEEN WINS THE BRACKET", topic: "Halloween versus Friday, Scream, Nightmare, and the final 86-14 vote", body: "Play from 2:10:10. This is the show's big communal event: the audience is not reacting to a list; it is deciding which childhood universes survive.", playAt: 7810, playEnd: 9220 }),
       hated: Object.freeze({ at: 920, end: 1625, label: "DIGITAL OWNERSHIP GETS THE BOOT", topic: "Sony's one-time license check, physical media, and the future of offline play", body: "Play from 15:20. The room accepts the clarification but not the direction of travel. This is the clearest serious industry argument in the episode.", playAt: 920, playEnd: 1625 }),
       wildestDetour: Object.freeze({ at: 5950, end: 6150, label: "LEE'S POLE AND SPEEDO FILE", topic: "Lee the Machine, Loomis, Challis, a monster truck, and a trailer-park gift", body: "Play from 1:39:10. The Super Chat becomes a full fake legal case and a character callback with real fan-lore value.", playAt: 5950, playEnd: 6150 }),
-      lastWord: Object.freeze({ at: 12080, end: 12579.364, label: "THE CHAT IS THE SHOW", topic: "COVID memory, fan comfort, Spider-Babe, Katie, Patreon, and the same-dicks goodbye", body: "Play from 3:21:20. The episode ends by saying what the archive should preserve: not just the topics, but the people who kept showing up.", playAt: 12080, playEnd: 12579.364 }),
+      lastWord: Object.freeze({ at: 12080, end: 12579, label: "THE CHAT IS THE SHOW", topic: "COVID memory, fan comfort, Spider-Babe, Katie, Patreon, and the same-dicks goodbye", body: "Play from 3:21:20. The episode ends by saying what the archive should preserve: not just the topics, but the people who kept showing up.", playAt: 12080, playEnd: 12579 }),
     }),
   });
 

@@ -57,6 +57,7 @@
     "episode-editorial-packs-wave33.js?v=1.0.0-editorial-wave33",
     "episode-editorial-packs-wave34.js?v=1.0.0-editorial-wave34",
     "episode-editorial-packs-wave35.js?v=1.0.0-editorial-wave35",
+    "episode-editorial-packs-wave36.js?v=1.0.0-halloween-death-autopsy",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
