@@ -784,6 +784,7 @@ test("dossier CSS brands cold routes immediately while heavy scripts remain lazy
   "episode-editorial-packs-wave59.js",
   "episode-editorial-packs-wave60.js",
   "episode-editorial-packs-wave61.js",
+  "episode-editorial-packs-wave62.js",
     "wwam-fam-index.js",
     "episode-recap-engine.js",
     "wwam-episode-recap-adapter.js",
