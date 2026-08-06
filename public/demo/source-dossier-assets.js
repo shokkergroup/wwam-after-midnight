@@ -72,6 +72,7 @@
     "episode-editorial-packs-wave48.js?v=1.0.0-january-2000s-favorites-room",
     "episode-editorial-packs-wave49.js?v=1.0.0-january-power-outage-saw-posters",
     "episode-editorial-packs-wave50.js?v=1.0.0-january-scream-seven-teaser",
+    "episode-editorial-packs-wave51.js?v=1.0.0-january-fantastic-four-apartment-chaos",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
