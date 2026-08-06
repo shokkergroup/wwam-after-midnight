@@ -2030,9 +2030,18 @@
     var machineShaped = /automatic[- ]caption|machine[- ]surfaced|source[- ]local|caption[- ](?:backed|derived|ledger)|speaker(?:s)?\s+(?:unverified|not confirmed)|evidence|receipt|transcript window|playback remains the authority/i.test(raw) ||
       /(?:^|\s)(?:>>+|-->|<\/?(?:c|v|lang)\b)/i.test(raw) ||
       /\b([A-Za-z][A-Za-z'-]*)\s+\1(?:\s+\1)+\b/i.test(raw);
+    var fullTapeEditorialRead = !!(source && source._editorialPack &&
+      String(source._editorialPack.reviewState || "") ===
+        "full-tape-human-editorial-read");
     // Curated watchalong reads are intentionally richer than the old one-line
     // fallback. Keep a generous ceiling so the visitor sees the actual route
     // read instead of being silently downgraded to generic boilerplate.
+    // Full-tape livestream packs are deliberately allowed to be longer still:
+    // they carry the human editor's actual route through a two-to-four-hour
+    // show. The old 900-character ceiling was silently replacing those reads
+    // with the generic topic sentence, which made a verified dossier feel like
+    // AI sludge on cold routes.
+    if (raw && fullTapeEditorialRead && raw.length >= 70 && raw.length <= 3200 && !machineShaped) return raw;
     if (raw && raw.length >= 70 && raw.length <= 900 && !machineShaped) return raw;
 
     var topicNames = (Array.isArray(topics) ? topics : []).map(function (topic) {
