@@ -50,5 +50,14 @@ test("latest 2026 human packs retain their exact source bindings", () => {
 test("cold routes preserve long full-tape overviews instead of generic fallback copy", () => {
   assert.match(app, /fullTapeEditorialRead/);
   assert.match(app, /raw\.length\s*<=\s*3200/);
-  assert.match(html, /app\.js\?v=0\.5\.128-clip-child-route/);
+  assert.match(html, /app\.js\?v=0\.5\.129-source-route-memory/);
+});
+
+test("local Show Wiki links stay child routes and restore their source shelf", () => {
+  assert.match(app, /interceptLocalSourceLinks/);
+  assert.match(app, /document\.addEventListener\("click", interceptLocalSourceLinks, true\)/);
+  assert.match(app, /sourceReturnContext/);
+  assert.match(app, /wwamSourceReturn/);
+  assert.match(app, /restoreSourceReturnContext/);
+  assert.match(app, /Close clip and keep Show Wiki/);
 });

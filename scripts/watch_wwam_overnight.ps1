@@ -25,8 +25,12 @@ function Latest-EvidenceTime {
   return ($items | Sort-Object LastWriteTime -Descending | Select-Object -First 1).LastWriteTime
 }
 
-function Run-Check([string]$File, [string[]]$Args) {
-  & $File @Args 2>&1 | ForEach-Object { Add-Content -LiteralPath $log -Encoding utf8 -Value ([string]$_) }
+function Run-Check([string]$File, [string[]]$ArgList) {
+  # Do not call this parameter $Args: PowerShell reserves that name for the
+  # automatic argument array, which silently swallows the intended npm args
+  # when the watchdog is detached. That made every heartbeat run bare `npm`
+  # and report a false audit failure overnight.
+  & $File @ArgList 2>&1 | ForEach-Object { Add-Content -LiteralPath $log -Encoding utf8 -Value ([string]$_) }
   return $LASTEXITCODE
 }
 

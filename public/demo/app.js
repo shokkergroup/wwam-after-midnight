@@ -21,7 +21,8 @@
   var archiveDeepStreams = [], redBandMoments = deep.hot100 || [],
     showcaseReceiptById = {}, showcaseSourceById = {}, clipItemById = {},
     campaignSnapshots = {}, lastDialogFocus = null, tapeById = {}, itemById = {},
-    streamById = {}, storageFallback = {}, runtimeDiagnostics = [];
+    streamById = {}, storageFallback = {}, runtimeDiagnostics = [],
+    sourceReturnContext = null, sourceReturnRestorePending = null;
   window.WWAM_RUNTIME_DIAGNOSTICS = runtimeDiagnostics;
 
   function storageGet(key) {
@@ -727,6 +728,12 @@
       wwamSourceDossierPushed: pushedRoute,
       sourceId: sourceId,
     });
+    if (sourceReturnContext && pushedRoute) {
+      nextState.wwamSourceReturn = {
+        href: sourceReturnContext.href,
+        scrollY: sourceReturnContext.scrollY,
+      };
+    }
     if (mode === "replace") history.replaceState(nextState, "", url);
     else history.pushState(nextState, "", url);
     var closeControl = typeof document !== "undefined" ?
@@ -1222,6 +1229,17 @@
     var settings = options || {}, sourceId = String(id == null ? "" : id).trim(),
       section = sourceDossierSection(settings.section);
     if (!/^[A-Za-z0-9_-]{11}$/.test(sourceId)) return Promise.resolve(false);
+    // A source opened from a shelf is a child route. Capture the exact shelf
+    // URL and page position before the modal replaces it so closing the Wiki
+    // can put the visitor back in the same franchise/show context, not merely
+    // at the archive landing page. Direct shared links intentionally have no
+    // return context and still close to the archive shell.
+    if (settings.routeMode === "push" && !readSourceRoute()) {
+      sourceReturnContext = {
+        href: window.location.href,
+        scrollY: Math.max(0, Number(window.pageYOffset || document.documentElement.scrollTop || 0)),
+      };
+    }
     showSourceDossierLoading();
     var fallbackShown = false;
     var activeRouteState = function () {
@@ -3232,6 +3250,7 @@
     }
     if (!settings.fromHistory && !settings.replaceRoute &&
         history.state && history.state.wwamSourceDossierPushed) {
+      sourceReturnRestorePending = sourceReturnContext || history.state.wwamSourceReturn || null;
       history.back();
       return;
     }
@@ -3259,6 +3278,43 @@
     }
     if (settings.restoreFocus === false) lastDialogFocus = null;
     else restoreDialogFocus();
+  }
+
+  function interceptLocalSourceLinks(event) {
+    if (!event || event.defaultPrevented) return;
+    var target = event.target && event.target.closest ? event.target.closest("a[href]") : null;
+    if (!target || target.target === "_blank" || target.hasAttribute("download")) return;
+    var raw = target.getAttribute("href");
+    if (!raw || raw.charAt(0) === "#") return;
+    var url;
+    try { url = new URL(raw, window.location.href); } catch (error) { return; }
+    if (url.origin !== window.location.origin || url.pathname !== window.location.pathname) return;
+    var sourceId = url.searchParams.get("source");
+    if (!/^[A-Za-z0-9_-]{11}$/.test(sourceId || "") || url.hash !== "#archive") return;
+    event.preventDefault();
+    event.stopPropagation();
+    var atValue = url.searchParams.get("at");
+    var at = atValue != null && Number.isFinite(Number(atValue)) ? Number(atValue) : null;
+    var section = sourceDossierSection(url.searchParams.get("section")) || "wiki";
+    openSourceDossier(sourceId, at, {
+      section: section,
+      routeMode: "push",
+      autoplay: false,
+    });
+  }
+
+  function restoreSourceReturnContext(context) {
+    if (!context) return;
+    var targetY = Math.max(0, Number(context.scrollY || 0));
+    // The inline franchise/show shelf can reflow once its lazy feature is
+    // repainted. Align after two frames so the restored location survives
+    // that reflow instead of snapping back to the top of the hub.
+    var restore = function () { window.scrollTo(0, targetY); };
+    window.requestAnimationFrame(function () {
+      restore();
+      window.requestAnimationFrame(restore);
+    });
+    sourceReturnContext = null;
   }
 
   function bindPlayButtons(root, inModal) {
@@ -5888,6 +5944,11 @@
   }
 
   function bindPage() {
+    // Keep every in-app Show Wiki link inside the current document. A normal
+    // navigation destroys the Halloween/Comedy shelf's selected-film state,
+    // so the visitor returns to a generic archive page after closing a clip.
+    // Treat the local source URL as a modal child route instead.
+    document.addEventListener("click", interceptLocalSourceLinks, true);
     document.getElementById("triviaDifficulty").onchange = function (event) { state.triviaDifficulty = event.target.value; };
     document.getElementById("triviaLength").onchange = function (event) {
       state.triviaLength = Number(event.target.value);
@@ -6001,7 +6062,10 @@
           autoplay: false,
         });
       } else if (document.getElementById("tapeModal").classList.contains("show")) {
+        var returning = sourceReturnRestorePending || sourceReturnContext;
+        sourceReturnRestorePending = null;
         closeDossier({ fromHistory: true, preserveRoute: true });
+        restoreSourceReturnContext(returning);
       }
     });
     addEventListener("wwam:verdict-room-open", function (event) {

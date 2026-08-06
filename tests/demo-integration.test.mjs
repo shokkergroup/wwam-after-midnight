@@ -31,6 +31,8 @@ test("the complete browser script chain exists in dependency order", () => {
     "youtube-playback.js",
     "feature-loader.js",
     "route-render-gate.js",
+    ...scripts.filter((file) => /^episode-editorial-packs(?:-recent|-wave\d+)?\.js$/.test(file)),
+    "wwam-livestream-cold-index.js",
     "app.js",
     "context-atlas.js",
     "context-companion.js",
