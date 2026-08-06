@@ -1,0 +1,138 @@
+(function (root) {
+  "use strict";
+
+  var registry = root.WWAM_EPISODE_EDITORIAL_PACKS || {
+    schema: "shokker-episode-editorial-packs/v1",
+    sources: {},
+  };
+  var sources = Object.assign({}, registry.sources || {});
+
+  /* March 5, 2026: the complete public tape read from the canonical audio /
+   * caption pair. The room is movie-news first, but the best material is the
+   * argument rhythm: Green Lantern gets dragged to Missouri, Scary Movie 6
+   * gets defended as a return to rude comedy, Scream 7 becomes a Stu séance,
+   * and the fan tail turns into a character-and-memory aftershow. */
+  sources["_8rkO1gLQds"] = Object.freeze({
+    sourceId: "_8rkO1gLQds",
+    reviewState: "full-tape-human-editorial-read",
+    evidence: Object.freeze({
+      duration: 11358.83,
+      captionWords: 40274,
+      captionEvents: 12376,
+      captionSpanSeconds: 11360.72,
+      captionDurationCoveragePercent: 100,
+      captionSha256:
+        "sha256:05577a9249d7d8b23824fbd5b70a81bd609a3a99412f05c3b11b0d235b902318",
+      captionSourceKind: "official YouTube caption ledger",
+      audioPass: "canonical YouTube audio + source-local Whisper transcript alignment",
+      audioSha256:
+        "b1fd4e788cd7cde2e79895b8f883e9d8e6b2bb857e72759130883151d1a33145",
+      asrWindowCount: 72,
+      speakerAttribution: false,
+      visualOutcomeInferred: false,
+    }),
+    label: "GREEN LANTERNS IN MISSOURI, SCARY MOVIE 6, AND THE STU SÉANCE",
+    badge: "FULL SHOW WIKI // 3:09:19 OF MOVIE-NEWS MAYHEM",
+    headline:
+      "GREEN LANTERNS GET LOST IN MISSOURI, SCARY MOVIE 6 DECLARES WAR ON POLITENESS, AND STU M A C H E R REFUSES TO STAY DEAD.",
+    deck:
+      "A full Wednesday room that jumps from Resident Evil fear and a Sling Blade coffee order to Green Lantern's brown suit, Scary Movie 6's rude-comedy comeback, Jean-Claude Van Damme's cocaine-era near-misses, and a fan aftershow powered by Loomis, Challis, Lee the Machine, and one very determined Scream 7 theory.",
+    overview:
+      "The first ten minutes tell you exactly what kind of night this is: J arrives as Maximus Tiberius Preposterous Civicus the ninth, the chat gets welcomed by name, a Big Arch burger is put on trial, and a dog-medication joke immediately crosses the line and keeps walking. The tape then settles into a proper movie-news relay. Resident Evil Requiem is the fear engine, with Grace's stealth section, Leon's relief shift, a daughter who beat the game in days, and a player who needs a capture card, a laptop, and moral support before pressing Start. Green Lanterns gets a real debate: Kyle Chandler and Aaron Pierre are liked, but the brown suit, Missouri football field, Home Depot music, and True Detective tone make the hosts wonder whether DC has accidentally made a grounded cop show about space cops. Scary Movie 6 gets the biggest trailer cheer: the Wayans are back, the jokes are rude on purpose, and the room wants the pendulum to swing away from safety training. From there the tape ricochets through Matrix 5, Terrifier 4, The Exorcist, a possibly fake Avengers Doomsday leak, Faces of Death, 28 Years Later, Game of Thrones, Heat 2, American Psycho, The Housemaid, and a surprisingly sincere Joe Bob Briggs memory. The final hour is the real archive treasure: Scream 7's Stu-alive epilogue rumor, 60-million-dollar box-office bragging, chat rankings, fan arguments, old radio-station memories, the first all-night hangout, Virginia Slims mistaken for weed, Loomis and Challis, a live Scream 7 pact, and a last-call parade of terrible memes. It is not a tidy show. It is a three-hour group chat with a pulse.",
+    story: Object.freeze([
+      { at: 0, end: 567, label: "MAXIMUS OPENS THE BIG ARCH", body: "The cold open is J as Maximus Tiberius Preposterous Civicus the ninth, a roll call of Wednesday regulars, Big Arch burger math, Megan Fox and Michael Bay belly-button jokes, and an explicit arrival gag that establishes the room's unfiltered temperature." },
+      { at: 568, end: 1135, label: "RESIDENT EVIL REQUIEM IS STILL TOMORROW", body: "The game talk starts as a daughter-versus-dad comparison and becomes a fear confession. Grace is stealth, Leon is relief, the missing capture card is a practical obstacle, and the player openly plans to mute, pray, and Google a walkthrough." },
+      { at: 1136, end: 1703, label: "SLING BLADE ORDERS A SKINNY VANILLA LATTE", body: "A Sling Blade impression turns a coffee counter into a full scene: fried potatoes, sweet tea, bacon confusion, and the funniest possible answer to a skinny vanilla latte order." },
+      { at: 1704, end: 2271, label: "GREEN LANTERN ARRIVES IN BUTT-FUCK MISSOURI", body: "The Lanterns teaser gets a proper room read. The cast earns goodwill, but the brown-and-green suit, football field, Home Depot music, and lack of space make the hosts ask whether this is Green Lantern or True Detective with a ring." },
+      { at: 2272, end: 2839, label: "PARAMOUNT WINS, GI JOE GETS AN 80S REPRIEVE", body: "The Paramount deal becomes a studio conversation, then Danny McBride and Max Landis's two GI Joe projects revive a hope for a loud, throwback action movie that remembers toys can be fun without becoming a sermon." },
+      { at: 2840, end: 3407, label: "MATRIX 5 AND TERRIFIER 4 GET THE SIDE-EYE", body: "The Matrix's post-Revolutions damage and Terrifier 4's slow script progress get the WWAM treatment: one property is accused of spending its magic, the other of taking its time while the room makes sex-joke detours." },
+      { at: 3408, end: 3975, label: "SCARY MOVIE 6 BRINGS THE PENDULUM BACK", body: "The trailer delivers the first true eruption of the night. The Wayans are welcomed back, the half-gay line is judged insufficiently committed, and the hosts celebrate a movie willing to be offensive, stupid, and funny in public." },
+      { at: 3976, end: 4543, label: "DOOFY, JIM CARREY, AND THE DIRECTOR PROBLEM", body: "Dave Sheridan's return as Doofy, the Scary Movie director question, Jim Carrey's internet facial-surgery rumor, and the franchise's box-office history turn the comedy segment into a surprisingly specific production autopsy." },
+      { at: 4544, end: 5111, label: "VAN DAMME'S LOST ROLES AND THE COCAINE TRILOGY", body: "Jean-Claude Van Damme's near-misses—Heat, Zombieland, Demolition Man, Mortal Kombat, Predator, and Timecop—become a fantasy casting reel, ending with the story of asking for fifty million dollars while high." },
+      { at: 5112, end: 5679, label: "THE EXORCIST GETS A CONTRA SPIN-OFF", body: "Van Damme joining Mike Flanagan's Exorcist, a fake Schwarzenegger-and-Seagal Contra movie, and a wildly compressed Avengers Doomsday leak make this the franchise-news chapter where every pitch gets more impossible." },
+      { at: 5680, end: 6247, label: "HEAT 2, TWITTER RAGE, AND THE STU EPILOGUE", body: "A Heat 2 argument gets interrupted by a bathroom break and returns as the Scream 7 rumor: Kevin Williamson allegedly filmed a Stu-alive epilogue, test audiences allegedly hated it, and the room declares the Stu believers vindicated anyway." },
+      { at: 6248, end: 6815, label: "TACO SEASONING ROBBERY COURT", body: "A Target thief allegedly swaps forty-thousand dollars of trading cards for dollar taco-seasoning packets. The hosts explain the self-checkout trick, argue about whether card companies deserve it, and then accidentally create a courtroom about the suspect's stock photo." },
+      { at: 6816, end: 7383, label: "28 YEARS LATER, GAME OF THRONES, AND ANDOR", body: "Cillian Murphy waits on 28 Years Later, a Game of Thrones movie is treated as suspiciously vague, and Andor gets a cautious defense from a room that has already decided Kathleen Kennedy is not getting a free pass." },
+      { at: 7384, end: 7951, label: "JOE BOB'S LINGER BECOMES A FUNERAL", body: "A cryptic Last Drive-In video sends the mutant family into panic. The hosts remember MonsterVision, Joe Bob's private message about horror comedy, and the possibility that the old legend was politely saying hello—or goodbye." },
+      { at: 7952, end: 8519, label: "FACES OF DEATH AND RESIDENT EVIL FEAR", body: "The Faces of Death trailer gets a serious boundary check: the hosts can handle a fictional story around horrific footage, but the idea of real death in a quiet theater makes the room feel like a documentary about its own discomfort." },
+      { at: 8520, end: 9087, label: "SCREAM 7'S REVEAL, AMERICAN PSYCHO, AND THE HOUSEMAID", body: "The conversation separates a film's working beats from a weak reveal, rejects a needless American Psycho remake, and reserves a future Patreon slot for The Housemaid because an erotic thriller is easier to watch alone than with your best friend." },
+      { at: 9088, end: 9655, label: "THE FAM COURT: REQUIEM, SCREAM, AND LOOMIS", body: "Chat answers the Resident Evil scale, argues Scream rankings, asks about Scary Movie 6 targets, and gives the show its best fan texture: people are not just watching; they are building the next conversation in public." },
+      { at: 9656, end: 10223, label: "THE 90S MEMORY ROOM OPENS", body: "Teenage stories take over: a radio DJ inviting minors to the studio, the first sunrise after an all-night hangout, Half Baked and a carton of Virginia Slims, a father returning Hulk tickets, and the strange emotional violence of 1990s parenting." },
+      { at: 10224, end: 10791, label: "LEE THE MACHINE, THE FIREBALL BAR, AND THE GRIND 2 ARGUMENT", body: "Lee Bowers gets the full thank-you, Fireball shots summon a karaoke-bar memory, The Barbarians and Grind 2 are weighed against the loss of 90s skate culture, and the room briefly lets affection outrun the filth." },
+      { at: 10792, end: 11358.83, label: "THE LAST-CALL MEME PARADE", body: "Loomis and Challis, Ric Flair clips, a live Scream 7 watch promise, Hiawatha, a fan's relationship rumor, a thank-you to the 400-person room, and the same-dicks-same-little-dicks sign-off close the tape with a final burst of affectionate disorder." },
+    ]),
+    highlights: Object.freeze([
+      { at: 18, end: 70, category: "WWAM UP IN YA", label: "MAXIMUS TIBERIUS PREPOSTEROUS CIVICUS THE NINTH", excerpt: "J opens as a Roman emperor with a name that sounds like a rejected password, then immediately welcomes the chat into the filth." },
+      { at: 82, end: 125, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "MEDICINE ON THE DOG'S PENIS", excerpt: "The opening dog-care update takes a hard left into a sentence no family veterinarian should ever have to hear." },
+      { at: 165, end: 215, category: "FAN SIGNAL", label: "THE WEDNESDAY ROLL CALL", excerpt: "Glenn, Combat, Sinroth, Jordis, and the rest of the live room get named before the show has even found its chair." },
+      { at: 280, end: 335, category: "WWAM UP IN YA", label: "THE BIG ARCH HAS A CALORIE PROBLEM", excerpt: "A fast-food burger is treated as both a miracle and a personal attack on the human waistline." },
+      { at: 605, end: 655, category: "DEEP DIVE", label: "REQUIEM COST SEVENTY DOLLARS", excerpt: "The hosts debate a game's length, price, and whether a 30-hour Resident Evil can still feel like a premium purchase." },
+      { at: 685, end: 735, category: "WWAM UP IN YA", label: "THE YEAST-INFECTION COUNTERATTACK", excerpt: "The Resident Evil debate turns into a high-school sex-history comparison that should be archived under medical malpractice." },
+      { at: 780, end: 835, category: "TAKE GETS NUCLEAR", label: "LEON KENNEDY VS THE YEAST INFECTION", excerpt: "Monster hunting, Raccoon City, and a disgusting comeback land in the same breath." },
+      { at: 970, end: 1025, category: "CHARACTER SIGNAL", label: "SLING BLADE ORDERS A LATTE", excerpt: "Fried potatoes, sweet tea, bacon, and a skinny vanilla latte become a complete Sling Blade drive-through sketch." },
+      { at: 1110, end: 1165, category: "BEST MOMENT", label: "COFFEE MAKES ME NERVOUS", excerpt: "The coffee order collapses into a perfect rural deadpan: coffee makes him nervous, but the bacon sandwich must be investigated." },
+      { at: 1190, end: 1245, category: "SERIOUS ROOM", label: "BRUCE CAMPBELL PRAYER BREAK", excerpt: "A brief, sincere update about Bruce Campbell's health interrupts the jokes and shows the room can still stop and care." },
+      { at: 1450, end: 1515, category: "INDUSTRY READ", label: "LANTERNS HAS HOME DEPOT MUSIC", excerpt: "Green Lantern's teaser is critiqued for a brown suit, a football field, and audio that sounds like a hardware-store commercial." },
+      { at: 1610, end: 1680, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "SPACE COPS IN BUTT-FUCK MISSOURI", excerpt: "The central tonal complaint arrives fully formed: a space opera has been parked on a dirt path in Missouri." },
+      { at: 1770, end: 1825, category: "THE ROOM BREAKS", label: "THE GREEN LANTERN CONSTRUCT DILDO", excerpt: "A power-ring discussion takes the most obvious detour possible and then asks what size construct is right for the bedroom." },
+      { at: 2060, end: 2120, category: "INDUSTRY READ", label: "PARAMOUNT WINS THE MOUNTAINS", excerpt: "A studio acquisition becomes a plea for more theaters, more movies, and fewer ideological lectures." },
+      { at: 2240, end: 2300, category: "DEEP DIVE", label: "DANNY MCBRIDE'S 80S GI JOE", excerpt: "The prospect of an animated-series-faithful GI Joe makes the room remember that a toy movie can simply rip." },
+      { at: 2400, end: 2460, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "THE MATRIX IS A BUTT DOUBLE AWAY", excerpt: "Matrix 5 is welcomed with a demand for a twist so absurd it can explain away everything the sequels broke." },
+      { at: 2825, end: 2880, category: "TAKE GETS NUCLEAR", label: "TERRIFIER 4 IS NOT COMING IN 2026", excerpt: "Damien Leone's nearly-finished script gets translated into a practical release forecast: stop yelling, it will be 2027." },
+      { at: 3090, end: 3150, category: "BEST MOMENT", label: "SCARY MOVIE 6 CANCELS CANCEL CULTURE", excerpt: "The room cheers the Wayans for wanting everybody to laugh together by offending everybody equally." },
+      { at: 3210, end: 3270, category: "WWAM UP IN YA", label: "HALF GAY IS NOT COMMITTED ENOUGH", excerpt: "A trailer line about doing some half-gay stuff is rejected on principle: nut up or shut up." },
+      { at: 3320, end: 3385, category: "INDUSTRY READ", label: "SCARY MOVIE 2 STILL OWNS THE FRANCHISE", excerpt: "The room ranks the original Wayans run and insists a comeback only needs a few gut laughs to win." },
+      { at: 3620, end: 3680, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "THE DIRECTOR HAS A HAUNTED-HOUSE RESUME", excerpt: "The director's previous films trigger the first serious worry that a great script could be handed to the wrong traffic cop." },
+      { at: 3900, end: 3960, category: "WWAM UP IN YA", label: "JIM CARREY'S FACE IS A BODY DOUBLE", excerpt: "An internet rumor about Jim Carrey's face gets treated as both cruel and exactly the sort of cursed internet nonsense the room attracts." },
+      { at: 4190, end: 4250, category: "BEST MOMENT", label: "DAVE SHERIDAN GETS HIS WORK BACK", excerpt: "The room is genuinely happy that Doofy's actor has another big comedy job instead of only convention memories." },
+      { at: 4530, end: 4590, category: "DEEP DIVE", label: "VAN DAMME ALMOST PLAYED HEAT", excerpt: "Jean-Claude's lost roles become a fantasy cast list that includes Heat, Zombieland, Predator, and a Stallone face-off." },
+      { at: 4750, end: 4810, category: "TAKE GETS NUCLEAR", label: "COCAINE VAN DAMME ASKS FOR FIFTY MILLION", excerpt: "The Timecop sequel dies in the most 1990s way possible: the star asks for an impossible payday while high." },
+      { at: 5030, end: 5090, category: "INDUSTRY READ", label: "VAN DAMME IN THE EXORCIST", excerpt: "Mike Flanagan's Exorcist keeps collecting wild casting choices, and the room cannot resist imagining the trailer." },
+      { at: 5270, end: 5340, category: "WWAM UP IN YA", label: "CONTRA: SCHWARZENEGGER AND STALLONE", excerpt: "An obviously AI-made Contra pitch is still granted a full Logan-style franchise funeral because the idea rules." },
+      { at: 5510, end: 5580, category: "TAKE GETS NUCLEAR", label: "TOBEY MAGUIRE MAY DIE FOR A LEAK", excerpt: "A possibly fake Avengers Doomsday leak gets summarized, doubted, and then protected from anyone who might actually believe it." },
+      { at: 5815, end: 5880, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "HEAT 2 GETS A BIB", excerpt: "One host wants Heat 2; the other responds with a bib and a demand that the sequel stop drooling on the original." },
+      { at: 6005, end: 6075, category: "COMMUNITY MEMORY", label: "THE STU EPILOGUE SEANCE", excerpt: "A rumored Stu-alive epilogue is treated as proof that the believers were close enough to being right to demand a victory lap." },
+      { at: 6230, end: 6300, category: "FAN SIGNAL", label: "THE CHAT HITS 415 PEOPLE", excerpt: "The room notices a four-hundred-person crowd and immediately asks who let all of these people avoid their parents." },
+      { at: 6420, end: 6480, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "FORTY GRAND OF TACO SEASONING", excerpt: "A trading-card thief allegedly weaponizes dollar taco packets and creates a prison sentence with a very specific spice rack." },
+      { at: 6620, end: 6685, category: "THE ROOM BREAKS", label: "THE RACIST STOCK PHOTO COURT", excerpt: "The hosts argue over an anonymous handcuff photo until the segment becomes a parody of internet accusation itself." },
+      { at: 6840, end: 6900, category: "INDUSTRY READ", label: "28 YEARS LATER IS STILL PLANNING", excerpt: "Cillian Murphy's sequel patience gets framed as a man waiting at the bus stop for a franchise to remember his phone number." },
+      { at: 7060, end: 7120, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "GAME OF THRONES LEFT A STARBUCKS CUP", excerpt: "The abandoned coffee cup becomes shorthand for a show that stopped caring before the audience did." },
+      { at: 7310, end: 7370, category: "TAKE GETS NUCLEAR", label: "HEAT 2 WILL BE BETTER THAN HEAT", excerpt: "A chat interruption makes one host reverse his own take and announce the sequel will destroy Pacino and De Niro." },
+      { at: 7520, end: 7585, category: "SERIOUS ROOM", label: "JOE BOB'S WEIRD DM", excerpt: "The hosts remember Joe Bob messaging that WWAM had cornered horror comedy, then spend years wondering whether it was praise or a polite drive-by." },
+      { at: 7840, end: 7905, category: "DEEP DIVE", label: "FACES OF DEATH NEEDS A STORY", excerpt: "The trailer debate draws the line between a fictional horror narrative and real death, even while the room admits it will still watch." },
+      { at: 8080, end: 8145, category: "WWAM UP IN YA", label: "GRANNY ESCAPE TOGETHER", excerpt: "A co-op game trailer reveals a toilet, a motion detector, and a granny, immediately becoming the wrong game to play before Resident Evil Requiem." },
+      { at: 8420, end: 8485, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "AMERICAN PSYCHO REMAKE GETS MILA KUNIS", excerpt: "Christian Bale's permission is respected, but the room predicts the best possible remake would still be American Psycho 2." },
+      { at: 8650, end: 8715, category: "TAKE GETS NUCLEAR", label: "THE HOUSEMAID PATREON TRAP", excerpt: "An erotic thriller becomes the one movie the hosts refuse to watch together because the private commentary would be too embarrassing." },
+      { at: 8890, end: 8955, category: "FAN SIGNAL", label: "REQUiEM GETS AN 8.5", excerpt: "Chat gives Resident Evil Requiem an average around eight and a half, forcing a player who is still afraid to admit the game is happening." },
+      { at: 9060, end: 9125, category: "FAN SIGNAL", label: "SCARY MOVIE 6 TARGET LIST", excerpt: "Halloween Ends, Barbarian, A Quiet Place, and The Conjuring get pitched as easy targets for the new Wayans machine." },
+      { at: 9250, end: 9315, category: "CHARACTER SIGNAL", label: "LOOMIS SINGS BREAK", excerpt: "A fan asks Loomis to sing Benjamin Burnley's song, and the attempted answer sounds like a drunk Sinatra trapped in a clinic." },
+      { at: 9440, end: 9505, category: "FAN SIGNAL", label: "SCHOOL GYM DICK ETIQUETTE", excerpt: "A fan's locker-room question produces a brutally specific smell review of old-man nudity versus creatine bathroom warfare." },
+      { at: 9580, end: 9645, category: "COMMUNITY MEMORY", label: "THE RADIO DJ INVITES THE KIDS OVER", excerpt: "A 1990s radio-station memory turns from harmless song requests into a full parental alarm bell." },
+      { at: 9710, end: 9775, category: "COMMUNITY MEMORY", label: "VIRGINIA SLIMS ARE NOT WEED", excerpt: "The teenage Half Baked experiment ends with an entire carton of cigarettes and a new understanding of why parents say no." },
+      { at: 9830, end: 9895, category: "SERIOUS ROOM", label: "THE HULK TICKETS GET RETURNED", excerpt: "A childhood disappointment about a father returning movie tickets gives the crude show a surprisingly tender bruise." },
+      { at: 9950, end: 10015, category: "CHARACTER SIGNAL", label: "LOOMIS AND CHALLIS TAKE FIREBALL", excerpt: "The doctors are asked to account for karaoke-bar Fireball shots, degeneracy, and the lost art of buying a ten-pack next door." },
+      { at: 10080, end: 10145, category: "FAN SIGNAL", label: "LEE THE MACHINE IS A SOLDIER", excerpt: "Lee Bowers gets thanked with real warmth, then the room turns a fan donation into a full community-memory receipt." },
+      { at: 10210, end: 10275, category: "TAKE GETS NUCLEAR", label: "GRIND 2 CANNOT RECREATE THE SKATE ERA", excerpt: "The hosts worry that a sequel cannot resurrect a 90s skate culture that only existed for one strange, perfect year." },
+      { at: 10350, end: 10415, category: "WWAM UP IN YA", label: "COREY FELDMAN MUST NOT TOUCH THE BUTTS", excerpt: "A fan question summons the Corey Feldman character lane and a defensive monologue so deranged it becomes a permanent soundbite candidate." },
+      { at: 10480, end: 10545, category: "TAKE GETS NUCLEAR", label: "BATMAN LIGHTSABER VS LUKE", excerpt: "A fan matchup is answered with the only sane ruling: prime Luke Skywalker annihilates Batman, prep time be damned." },
+      { at: 10610, end: 10675, category: "CHARACTER SIGNAL", label: "REMATCH: REBOOT LEATHERFACE VS SCARECROW", excerpt: "Fear gas, acid, and a chainsaw become a tiny horror tournament with a very loud winner." },
+      { at: 10720, end: 10785, category: "FAN SIGNAL", label: "THE RELATIONSHIP RUMOR GETS MOWN DOWN", excerpt: "A chat troll invents a friendship crisis around a ride to a stream, and the hosts explain the boring truth: one friend refuses to drive drunk." },
+      { at: 10820, end: 10885, category: "BEST MOMENT", label: "400 PEOPLE, SAME DICKS", excerpt: "The hosts thank the crowd, promise the next Wednesday, and turn community gratitude into the most anatomically specific sign-off in the archive." },
+      { at: 10910, end: 10975, category: "THE ROOM BREAKS", label: "HIAWATHA AND THE FINAL MEME LOOP", excerpt: "Hiawatha, Ric Flair, Jesus parking, and a string of terrible clips give the end of the show its own after-aftershow." },
+      { at: 11020, end: 11085, category: "DEEP DIVE", label: "LIVE SCREAM 7 COMMENTARY PACT", excerpt: "The hosts agree to watch Scream 7 together live, even though one of them is still trying to protect the other from the ending." },
+      { at: 11120, end: 11190, category: "LAST CALL", label: "SAME LITTLE DICKS", excerpt: "A drunk goodbye becomes a genuine thank-you, a phone-call promise, and one last insult aimed lovingly at everybody still awake." },
+    ]),
+    fanRead: Object.freeze({
+      loved: Object.freeze({ at: 3000, end: 3500, label: "SCARY MOVIE 6 RETURNS THE RUDE COMEDY", topic: "Wayans, offensive jokes, and the return-to-form argument", body: "Play from 50:00. The room is at its happiest when the trailer confirms the new movie is willing to be dumb, loud, and rude in public.", playAt: 3000, playEnd: 3500 }),
+      hated: Object.freeze({ at: 5840, end: 6120, label: "THE STU EPILOGUE RUMOR", topic: "Scream 7's alleged test-screened ending and the reveal fight", body: "Play from 1:37:20. One side thinks the rumor proves Stu lives; the other side thinks the whole thing is misdirection. Nobody leaves neutral.", playAt: 5840, playEnd: 6120 }),
+      wildestDetour: Object.freeze({ at: 9600, end: 10450, label: "THE 90S MEMORY / LOOMIS AFTERSHOW", topic: "radio-station danger, Virginia Slims, Fireball, character bits, and fan matchups", body: "Play from 2:40:00. The show stops being movie news and becomes a crude oral history of friendship, chat culture, and the things nobody should put in a doctor's chart.", playAt: 9600, playEnd: 10450 }),
+      lastWord: Object.freeze({ at: 10680, end: 11350, label: "THE SAME-DICKS FAM GOODNIGHT", topic: "fan gratitude, live Scream pact, Hiawatha, and the final call", body: "Play from 2:58:00. The archive closes with the room thanking the people who keep coming back, then immediately ruining the sentiment with a last anatomical threat.", playAt: 10680, playEnd: 11350 }),
+    }),
+  });
+
+  root.WWAM_EPISODE_EDITORIAL_PACKS = Object.freeze({
+    schema: registry.schema || "shokker-episode-editorial-packs/v1",
+    generated: "2026-08-06",
+    sources: Object.freeze(sources),
+  });
+})(typeof window !== "undefined" ? window : globalThis);
