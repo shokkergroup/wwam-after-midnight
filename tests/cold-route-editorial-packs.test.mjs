@@ -50,5 +50,5 @@ test("latest 2026 human packs retain their exact source bindings", () => {
 test("cold routes preserve long full-tape overviews instead of generic fallback copy", () => {
   assert.match(app, /fullTapeEditorialRead/);
   assert.match(app, /raw\.length\s*<=\s*3200/);
-  assert.match(html, /app\.js\?v=0\.5\.127-clip-close-label-test-safe/);
+  assert.match(html, /app\.js\?v=0\.5\.128-clip-child-route/);
 });

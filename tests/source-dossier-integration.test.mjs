@@ -544,6 +544,11 @@ test("the app consumes every Source Dossier UI callback as one bounded payload o
   assert.match(runtime, /loadPlayer\(payload\.sourceId,\s*payload\.at,\s*payload\.end\)/);
   assert.match(
     runtime,
+    /var route = readSourceRoute\(\);[\s\S]*syncSourceRoute\(payload\.sourceId, clipAt, clipSection, "replace"\)/,
+    "playing a clip from an open Show Wiki must mark the clip as child route state",
+  );
+  assert.match(
+    runtime,
     /sourceDossierShareUrl\(payload\.sourceId,\s*payload\.at,\s*payload\.section\)/,
   );
   assert.match(runtime, /payload\.filename[\s\S]*payload\.manifest/);

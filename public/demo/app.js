@@ -480,6 +480,18 @@
       formatDate: shortDate,
       formatTime: timestamp,
       onPlay: function (payload) {
+        // A clip is a child state of the open Show Wiki, even when the clip
+        // is rendered in the same modal/player. Keep the exact source route
+        // live while it plays so the X button can close the clip first and
+        // leave the visitor on this episode instead of returning to the shelf.
+        var route = readSourceRoute();
+        var clipAt = payload.at != null && Number.isFinite(Number(payload.at)) ?
+          Number(payload.at) : null;
+        var clipSection = sourceDossierSection(payload.section) ||
+          (route && route.section) || "wiki";
+        if (route && route.sourceId === payload.sourceId) {
+          syncSourceRoute(payload.sourceId, clipAt, clipSection, "replace");
+        }
         loadPlayer(payload.sourceId, payload.at, payload.end);
       },
       onCopyLink: function (payload) {
