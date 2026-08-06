@@ -226,6 +226,8 @@ test("livestream canon surface is wired into the page and route shell", () => {
   assert.match(ui, /RECURRING BITS/);
   assert.match(ui, /WWAM FAM HALL/);
   assert.match(ui, /RECOGNIZED NAME CUES/);
+  assert.match(ui, /data-lvc-quick="STRAIGHT TO STEVE/, "signature comedy lanes are one click away");
+  assert.match(ui, /function bindQuickLanes\(\)/, "signature lane buttons keep the local search route in-app");
   assert.match(ui, /donation total/);
   assert.match(ui, /CHARACTER CUES/);
   assert.match(ui, /AUDIO CHARACTER ROUTE/);
@@ -262,6 +264,7 @@ test("livestream canon surface is wired into the page and route shell", () => {
   assert.match(ui, /LISTEN FOR THE ROOM TO CHANGE/);
   assert.doesNotMatch(ui, /moments\|\|\[\]\)\.slice\(0,40\)/);
   assert.match(css, /\.lvc-card-grid/);
+  assert.match(css, /\.lvc-quick-lanes/);
   assert.match(css, /\.lvc-fan-people/);
   assert.match(css, /\.lvc-new/);
   assert.match(css, /\.lvc-audio-pass/);
