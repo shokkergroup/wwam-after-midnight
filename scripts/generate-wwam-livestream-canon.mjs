@@ -793,7 +793,22 @@ function whyItMattersRead(title, series, tier, shape, topics, moments, audioCand
   const characterList = listPhrase(characterCues.slice().sort((left, right) => Number(right.mentions || 0) - Number(left.mentions || 0)).slice(0, 3).map((character) => character.name));
   const characterLine = characterCues.length ? `The character traffic runs through ${characterList}; open the surrounding exchange to hear the bit land.` : "No recurring character bit rises above the rest here.";
   const audioLine = decodedAudio && audioCandidates.length ? `The listening pass adds ${audioCandidates.length} more places to jump in; its busiest lane is ${lane.toLowerCase()}.` : audioCandidates.length ? `The listening shelf adds ${audioCandidates.length} more places to jump in.` : "There is no extra listening lane attached to this one yet.";
-  return `${title} earns a place in the ${series.label} shelf because ${routeLine} around ${topicList}. ${leadLine} ${fanLine}. ${characterLine} ${audioLine} Press play when you want the timing and delivery that a recap cannot fake.`;
+  const variant = voiceVariant(title, series.key || shape || tier);
+  const shelf = clean(series.label || "WWAM archive").toLowerCase();
+  const subjectLine = topicList === "the night's open room"
+    ? "The subject spine stays loose, so the route rail matters more than the thumbnail."
+    : `The useful subject doors are ${topicList}.`;
+  const opening = [
+    `${title} lives in the ${shelf} shelf, but the useful part is the argument inside it.`,
+    `The fastest way into ${title} is through the tape, not the title card: ${routeLine}.`,
+    `Treat ${title} like a room you can walk into at any point; ${routeLine}.`,
+  ][variant];
+  const ending = [
+    "Use that timestamp as the doorway; the source supplies the timing and delivery.",
+    "Start there, then widen the window until the exchange makes sense in its own voice.",
+    "The page gives you the door; playback is where the joke, argument, or character bit actually earns its keep.",
+  ][variant];
+  return `${opening} ${subjectLine} ${leadLine} ${fanLine}. ${characterLine} ${audioLine} ${ending}`;
 }
 function voiceVariant(title, date) {
   return Array.from(`${title}|${date}`).reduce((sum, character) => sum + character.charCodeAt(0), 0) % 3;
