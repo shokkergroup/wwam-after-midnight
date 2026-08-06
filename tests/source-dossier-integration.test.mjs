@@ -205,6 +205,13 @@ test("canonical source URLs use ?source=ID&at=SECONDS#archive and retain route-s
       sourceId: "ABCDEFGHIJK",
     },
   );
+
+  // The full dossier promotes the cold shell with replaceState. That
+  // replacement must remain closable back to the shelf that opened it.
+  syncGlobals.history.state = syncGlobals.history.pushed[0].state;
+  syncGlobals.syncSourceRoute("ABCDEFGHIJK", 92, "", "replace");
+  assert.equal(syncGlobals.history.replaced.length, 1);
+  assert.equal(syncGlobals.history.replaced[0].state.wwamSourceDossierPushed, true);
 });
 
 test("canonical, legacy tape, and legacy live source routes remain readable", () => {
@@ -745,6 +752,7 @@ test("dossier CSS brands cold routes immediately while heavy scripts remain lazy
   "episode-editorial-packs-wave34.js",
   "episode-editorial-packs-wave35.js",
   "episode-editorial-packs-wave36.js",
+  "episode-editorial-packs-wave37.js",
     "wwam-fam-index.js",
     "episode-recap-engine.js",
     "wwam-episode-recap-adapter.js",
@@ -776,7 +784,7 @@ test("dossier CSS brands cold routes immediately while heavy scripts remain lazy
   "episode-editorial-packs-wave34.js",
   "episode-editorial-packs-wave35.js",
   ]);
-  for (let wave = 2; wave <= 36; wave += 1) {
+  for (let wave = 2; wave <= 37; wave += 1) {
     intentionalColdRouteScripts.add(`episode-editorial-packs-wave${wave}.js`);
   }
   for (const asset of dossierScripts) {

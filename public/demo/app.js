@@ -702,9 +702,17 @@
   function syncSourceRoute(sourceId, at, section, mode) {
     if (mode === "none") return;
     var url = sourceRouteUrl(sourceId, at, section);
+    // A full dossier replaces the immediate cold-shell route once the heavy
+    // assets finish loading. Keep the original push marker on that replace;
+    // otherwise the close button thinks this was a direct deep link, strips
+    // the source query in place, and strands the visitor at #archive instead
+    // of returning to the exact shelf/franchise page that opened the show.
+    var priorState = history.state || {};
+    var pushedRoute = mode === "push" ||
+      (mode === "replace" && priorState.wwamSourceDossierPushed === true);
     var nextState = Object.assign({}, history.state || {}, {
       wwamSourceDossier: true,
-      wwamSourceDossierPushed: mode === "push",
+      wwamSourceDossierPushed: pushedRoute,
       sourceId: sourceId,
     });
     if (mode === "replace") history.replaceState(nextState, "", url);
