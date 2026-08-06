@@ -278,6 +278,46 @@ test("livestream audio index routes become a local Show Wiki lane", () => {
   assert.equal(receipt.publicExcerptAllowed, true);
 });
 
+test("an official RSS mirror becomes a clearly separate in-page audio edition", () => {
+  const { result } = buildFixture(({ input }) => {
+    input.livestreamAudioIndex = {
+      episodes: [{
+        id: "LV2rmwEA0w4",
+        alternateAudio: {
+          status: "rss-audio-feature-pass",
+          title: "The newest WWAM live // podcast edition",
+          media: {
+            sourceUrl: "https://traffic.megaphone.fm/example.mp3",
+            durationSeconds: 1234,
+            canonicalTimestampMapping: false,
+          },
+          source: {
+            kind: "official-wwam-rss",
+            rssTitle: "The newest WWAM live // podcast edition",
+            youtubeDurationSeconds: 1230,
+          },
+          candidates: [{
+            t: 21,
+            end: 29,
+            category: "WWAM UP IN YA",
+            score: 87,
+            captionExcerpt: "A bounded podcast-local doorway.",
+          }],
+        },
+      }],
+    };
+  });
+  const source = byId(result, "LV2rmwEA0w4");
+  assert.equal(source.officialAlternate.timestampIsomorphic, false);
+  assert.equal(source.officialAlternate.publicPlaybackAllowed, true);
+  assert.equal(source.officialAlternate.duration, 1234);
+  assert.equal(source.officialAlternate.canonicalDuration, 1230);
+  assert.equal(source.officialAlternate.routes.length, 1);
+  assert.equal(source.officialAlternate.routes[0].at, 21);
+  assert.match(source.officialAlternate.enclosureUrl, /megaphone/);
+  assert.match(source.warnings.join(" "), /OFFICIAL PODCAST EDITION AVAILABLE/);
+});
+
 test("Whisper transcript cue doors become playable secondary listening receipts", () => {
   const { result } = buildFixture(({ input, window }) => {
     input.livestreamAudioIndex = {

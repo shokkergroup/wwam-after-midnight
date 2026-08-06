@@ -6,13 +6,22 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const sourcePath = path.join(root, "public", "demo", "wwam-livestream-audio-pass.js");
 const outputPath = path.join(root, "public", "demo", "wwam-livestream-audio-index.js");
+const rssSourcePath = path.join(root, "public", "demo", "wwam-livestream-rss-audio-pass.js");
 const sandbox = { window: {} };
 vm.createContext(sandbox);
 vm.runInContext(fs.readFileSync(sourcePath, "utf8"), sandbox, {
   filename: path.basename(sourcePath),
 });
+const rssSandbox = { window: {} };
+vm.createContext(rssSandbox);
+if (fs.existsSync(rssSourcePath)) {
+  vm.runInContext(fs.readFileSync(rssSourcePath, "utf8"), rssSandbox, {
+    filename: path.basename(rssSourcePath),
+  });
+}
 
 const source = sandbox.window.WWAM_LIVESTREAM_AUDIO_PASS;
+const rssSource = rssSandbox.window.WWAM_LIVESTREAM_RSS_AUDIO_PASS;
 if (!source || !source.episodes || typeof source.episodes !== "object") {
   throw new Error("The canonical livestream audio pass is unavailable.");
 }
@@ -25,27 +34,77 @@ function publicExcerpt(value) {
   return clean(value).split(/\s+/).filter(Boolean).slice(0, 16).join(" ");
 }
 
-const episodes = Object.values(source.episodes).map((episode) => ({
-  id: clean(episode.id),
-  status: clean(episode.status),
-  candidates: Array.isArray(episode.candidates)
-    ? episode.candidates.map((candidate) => ({
-        t: Number(candidate.t),
-        end: Number(candidate.end),
-        category: clean(candidate.category || candidate.label || "LISTENING SPIKE"),
-        label: clean(candidate.label || candidate.category || "LISTENING SPIKE"),
-        score: Number(candidate.score),
-        captionExcerpt: publicExcerpt(candidate.captionExcerpt || candidate.excerpt),
-        evidenceBasis: clean(candidate.evidenceBasis),
-      }))
-    : [],
-}));
+function alternateAudio(record) {
+  if (!record || clean(record.status) !== "rss-audio-feature-pass") return null;
+  const media = record.media || {};
+  const source = record.source || {};
+  if (!clean(media.sourceUrl)) return null;
+  return {
+    status: "rss-audio-feature-pass",
+    title: clean(record.title || source.rssTitle || "Official WWAM podcast edition"),
+    label: clean(record.label || "OFFICIAL RSS MIRROR // PODCAST-LOCAL AUDIO"),
+    media: {
+      sourceUrl: clean(media.sourceUrl),
+      durationSeconds: Number(media.durationSeconds),
+      audioOnly: media.audioOnly !== false,
+      canonicalTimestampMapping: false,
+      timestampPolicy: "podcast player only; never a YouTube timestamp",
+    },
+    source: {
+      kind: clean(source.kind || "official-wwam-rss"),
+      rssTitle: clean(source.rssTitle),
+      rssDate: clean(source.rssDate),
+      youtubeSourceId: clean(source.youtubeSourceId),
+      youtubeDurationSeconds: Number(source.youtubeDurationSeconds),
+      captionCrossCheck: clean(source.captionCrossCheck),
+      transcriptEngine: clean(source.transcriptEngine),
+    },
+    candidates: Array.isArray(record.candidates)
+      ? record.candidates.map((candidate) => ({
+          t: Number(candidate.t),
+          end: Number(candidate.end),
+          category: clean(candidate.category || candidate.label || "PODCAST ROUTE"),
+          label: clean(candidate.label || candidate.category || "PODCAST ROUTE"),
+          score: Number(candidate.score),
+          captionExcerpt: publicExcerpt(candidate.captionExcerpt || candidate.excerpt),
+          evidenceBasis: clean(candidate.evidenceBasis),
+          reviewStatus: clean(candidate.reviewStatus),
+          timestampPolicy: "podcast player only; never a YouTube timestamp",
+        }))
+      : [],
+  };
+}
+
+const rssRecords = rssSource && rssSource.records && typeof rssSource.records === "object"
+  ? rssSource.records
+  : {};
+
+const episodes = Object.values(source.episodes).map((episode) => {
+  const output = {
+    id: clean(episode.id),
+    status: clean(episode.status),
+    candidates: Array.isArray(episode.candidates)
+      ? episode.candidates.map((candidate) => ({
+          t: Number(candidate.t),
+          end: Number(candidate.end),
+          category: clean(candidate.category || candidate.label || "LISTENING SPIKE"),
+          label: clean(candidate.label || candidate.category || "LISTENING SPIKE"),
+          score: Number(candidate.score),
+          captionExcerpt: publicExcerpt(candidate.captionExcerpt || candidate.excerpt),
+          evidenceBasis: clean(candidate.evidenceBasis),
+        }))
+      : [],
+  };
+  const alternate = alternateAudio(rssRecords[output.id]);
+  if (alternate) output.alternateAudio = alternate;
+  return output;
+});
 
 const payload = {
   schema: "shokker-wwam-livestream-audio-index/v1",
   generated: new Date().toISOString(),
   sourceGenerated: clean(source.generated),
-  sourcePolicy: "Source-local audio-ranked windows only; excerpts are bounded to 16 words before publication.",
+  sourcePolicy: "Source-local audio-ranked windows only; excerpts are bounded to 16 words before publication. Official RSS mirrors remain separate podcast clocks.",
   episodes,
 };
 

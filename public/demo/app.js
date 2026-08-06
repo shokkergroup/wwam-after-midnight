@@ -631,7 +631,7 @@
         // The same source-local listening contract now covers all 509 public
         // livestream records, including deep links opened before the live
         // canon shelf has hydrated.
-        return loader.load("wwam-livestream-audio-index.js?v=1.0.0-bounded-excerpts");
+        return loader.load("wwam-livestream-audio-index.js?v=1.1.0-rss-mirror-playback");
       })
       .then(buildSourceDossierRuntime)
       .catch(function (error) {

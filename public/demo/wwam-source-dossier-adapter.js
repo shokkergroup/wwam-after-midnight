@@ -2392,14 +2392,14 @@
         "EXACT YOUTUBE CUT HELD // NO RECAP, TOPIC, QUOTE, CHARACTER, HEAT, OR TIMESTAMP CLAIMS."
       );
     }
-    if (archiveStream && archiveStream.alternateOfficialSource &&
-        archiveStream.alternateOfficialSource.timestampIsomorphic === false) {
+    var alternateProof = source && source.officialAlternate ||
+      archiveStream && archiveStream.alternateOfficialSource;
+    if (alternateProof && alternateProof.timestampIsomorphic === false) {
       warnings.push(
         "OFFICIAL PODCAST EDITION AVAILABLE // ITS EDIT DOES NOT MATCH THIS YOUTUBE CUT."
       );
     }
-    if (archiveStream && archiveStream.alternateOfficialSource &&
-        archiveStream.alternateOfficialSource.timestampIsomorphic === true) {
+    if (alternateProof && alternateProof.timestampIsomorphic === true) {
       warnings.push(
         "YOUTUBE IS AGE-RESTRICTED // THE VERIFIED OFFICIAL WWAM PODCAST TIMELINE PLAYS HERE."
       );
@@ -2416,12 +2416,32 @@
 
   function officialAlternateFor(archiveStream, alternateRecord) {
     var alternate = archiveStream && archiveStream.alternateOfficialSource;
-    var alternateAudio = alternateRecord && alternateRecord.alternateAudio;
+    var alternateAudio = alternateRecord &&
+      (alternateRecord.alternateAudio || alternateRecord.rssAudioPass);
     // The compact watchalong pass carries the full official podcast route
     // map for the one age-gated H2 source. Keep that map attached to the
     // normalized alternate without ever treating its clock as YouTube time.
     if (!alternate && alternateAudio && typeof alternateAudio === "object") {
-      alternate = alternateAudio;
+      var rssSource = alternateAudio.source || {};
+      var rssMedia = alternateAudio.media || {};
+      var isRssMirror = clean(alternateAudio.status) ===
+        "rss-audio-feature-pass" || clean(rssSource.kind) === "official-wwam-rss";
+      alternate = isRssMirror ? {
+        kind: clean(rssSource.kind) || "official-wwam-rss",
+        title: clean(alternateAudio.title || rssSource.rssTitle ||
+          alternateAudio.label || "Official WWAM podcast edition"),
+        episodeUrl: clean(alternateRecord.url) ||
+          "https://www.youtube.com/watch?v=" + clean(alternateRecord.id),
+        enclosureUrl: clean(rssMedia.sourceUrl),
+        duration: number(rssMedia.durationSeconds),
+        canonicalDuration: number(rssSource.youtubeDurationSeconds),
+        durationDelta: number(rssMedia.durationSeconds) -
+          number(rssSource.youtubeDurationSeconds),
+        timestampIsomorphic: false,
+        publicPlaybackAllowed: true,
+        evidenceBoundary: "Official WWAM RSS mirror audio; its clock is separate from the YouTube cut.",
+        routes: array(alternateAudio.candidates)
+      } : alternateAudio;
     }
     if (!alternate || (alternate.timestampIsomorphic !== false &&
         alternate.timestampIsomorphic !== true)) return null;
@@ -2845,7 +2865,11 @@
           showcaseSource && showcaseSource.wordsAudited
         ),
         exactSourceHold: exactSourceHold,
-        officialAlternate: officialAlternateFor(archiveStream, watchalongEpisode),
+        officialAlternate: officialAlternateFor(
+          archiveStream,
+          watchalongEpisode || livestreamAudioById.get(id) ||
+            livestreamCanonById.get(id) || null
+        ),
         captionSourceKind: clean(
           watchalongEpisode && watchalongEpisode.dossier &&
           watchalongEpisode.dossier.caption &&

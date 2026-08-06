@@ -40,7 +40,7 @@
     "wwam-episode-recap-adapter.js?v=2.5.0-source-bound-decks",
     "source-dossier-engine.js?v=1.17.0-alternate-podcast-routes",
     "wwam-livestream-asr-excerpts.js?v=1.0.5-low-signal-filter",
-    "wwam-source-dossier-adapter.js?v=1.24.0-windowed-whisper-boundary",
+    "wwam-source-dossier-adapter.js?v=1.26.0-rss-index-playback",
     "source-query-engine.js?v=1.6.1-lanes",
     "aftermath-pack-engine.js?v=1.0.0",
     "source-dossier-ui.js?v=1.35.0-listening-heat",
