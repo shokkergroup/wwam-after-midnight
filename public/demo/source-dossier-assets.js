@@ -94,6 +94,7 @@
     "episode-editorial-packs-wave70.js?v=1.0.0-october-2025-scream-seven-trailer-reaction",
     "episode-editorial-packs-wave71.js?v=1.0.0-august-2025-halloween-game-announcement",
     "episode-editorial-packs-wave72.js?v=1.0.0-january-2026-scream-seven-teaser-breakdown",
+    "episode-editorial-packs-wave73.js?v=1.0.0-october-2025-halloween-activities-3c-crossover",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
