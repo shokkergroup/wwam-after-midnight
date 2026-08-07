@@ -150,6 +150,7 @@ const RUNTIME_FILES = [
   "episode-editorial-packs-wave103.js",
   "episode-editorial-packs-wave104.js",
   "episode-editorial-packs-wave105.js",
+  "episode-editorial-packs-wave106.js",
   "episode-recap-engine.js",
   "wwam-episode-recap-adapter.js",
   "wwam-source-dossier-adapter.js",
