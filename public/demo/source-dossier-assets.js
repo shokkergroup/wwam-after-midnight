@@ -113,6 +113,7 @@
     "episode-editorial-packs-wave89.js?v=1.0.0-august-2025-alien-earth-halloween-saw",
     "episode-editorial-packs-wave90.js?v=1.0.0-august-2025-peacemaker-season-two",
     "episode-editorial-packs-wave91.js?v=1.0.0-august-2025-alien-earth-episode-three",
+    "episode-editorial-packs-wave92.js?v=1.0.0-august-2025-sweet-revenge",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
