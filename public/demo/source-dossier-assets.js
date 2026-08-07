@@ -150,6 +150,7 @@
     "episode-editorial-packs-wave126.js?v=1.0.0-march-2025-part-deux",
     "episode-editorial-packs-wave127.js?v=1.0.0-march-2026-fine-toothed-second-read",
     "episode-editorial-packs-wave128.js?v=1.0.0-march-2026-fine-toothed-second-read",
+    "episode-editorial-packs-wave129.js?v=1.0.0-april-2025-predator-badlands-second-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
