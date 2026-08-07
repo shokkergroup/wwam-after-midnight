@@ -136,6 +136,7 @@
     "episode-editorial-packs-wave112.js?v=1.0.0-may-2025-movie-news-531",
     "episode-editorial-packs-wave113.js?v=1.0.0-may-2025-final-reckoning",
     "episode-editorial-packs-wave114.js?v=1.0.0-may-2025-fallout-fam",
+    "episode-editorial-packs-wave115.js?v=1.0.0-may-2025-sugar-ray-hangout",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
