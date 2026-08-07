@@ -169,6 +169,7 @@
     "episode-editorial-packs-wave145.js?v=1.0.0-january-2025-january-23-second-read",
     "episode-editorial-packs-wave146.js?v=1.0.0-january-2026-january-22-second-read",
     "episode-editorial-packs-wave147.js?v=1.0.0-january-2026-january-15-four-hour-second-read",
+    "episode-editorial-packs-wave148.js?v=1.0.0-january-2026-scream-seven-teaser-second-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",

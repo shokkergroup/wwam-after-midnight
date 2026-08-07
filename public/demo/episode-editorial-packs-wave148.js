@@ -1,0 +1,95 @@
+(function (root) {
+  "use strict";
+  var registry = root.WWAM_EPISODE_EDITORIAL_PACKS || { schema: "shokker-episode-editorial-packs/v1", sources: {} };
+  var sources = Object.assign({}, registry.sources || {});
+  var H = function (at, end, category, label, excerpt) {
+    return { at: at, end: end, category: category, label: label, excerpt: excerpt, sourceId: "M3P4mMDpXUc", evidenceState: "machine surfaced; audio-feature-ranked candidate; playback remains the authority" };
+  };
+
+  /* January 13, 2026: full read of the 55:38 Scream 7 teaser-breakdown room. */
+  sources["M3P4mMDpXUc"] = Object.freeze({
+    sourceId: "M3P4mMDpXUc",
+    reviewState: "full-tape-human-editorial-read",
+    editorialPass: "2026-08-07 fine-toothed second read; full caption-ledger pass across the January 13 Scream 7 TV-spot room with audio-backed doors",
+    evidence: Object.freeze({
+      duration: 3338,
+      captionWords: 10664,
+      captionEvents: 3047,
+      captionSpanSeconds: 3338.88,
+      captionDurationCoveragePercent: 100,
+      captionSha256: "sha256:dbda2b97a1c4a51aa1935ce5716e2b8ab2579b836ca927386e835db398fc365c",
+      captionSourceKind: "official YouTube caption ledger",
+      audioPass: "canonical YouTube audio + source-local Whisper transcript alignment",
+      audioSha256: "sha256:1f6dc9ee267079d5ded4d17b713f8b81505d13acd97ca199f1818a0e6c196cb9",
+      asrWindowCount: 21,
+      speakerAttribution: false,
+      visualOutcomeInferred: false,
+    }),
+    label: "SCREAM 7 TEASER TRAILER BREAKDOWN // JANUARY 13, 2026",
+    badge: "FULL EVENT WIKI // 55:38 OF STU THEORIES, PSYCHIATRIC HOSPITALS, GHOSTFACE KARATE, AND SICKO FRAME-BY-FRAME DETECTIVE WORK",
+    headline: "THE SCREAM 7 TV SPOT HIDES A PSYCHIATRIC HOSPITAL AND GIVES MIKE A STU THEORY",
+    deck: "Mike watches a twenty-second TV spot like it is the Zapruder film, freezes every frame, and turns one hospital sign into a full Scream-lore emergency.",
+    overview: "This is the January 13 afternoon Scream room: a focused one-man breakdown that proves a short trailer can still generate a full WWAM dossier when the host is willing to stare at a blurry frame until it confesses. The opening promises that Stu might be alive, explains why Jay refuses to cover Scream updates, and warms the new viewers up with Paul Rudd, a homemade shirt, a 3D-printed nipple, and a warning that sober daytime WWAM is somehow filthier than the drunk version. Once the teaser rolls, the actual investigation begins. The spot is mostly franchise callbacks—Casey Becker, Scream 2, Scream 3, and the old phone-call language—but the new material is specific: Mark appears to be stabbed, Sid's daughter is threatened, Ghostface moves with a karate kick, and a psychiatric hospital sign appears at the center of the mystery. The hospital is the episode's central door. The argument is that the only clean way to bring Stu Macher back is to fake his death, because every previous Ghostface hunt would have checked an obvious hospital record. Then the room discovers a more plausible loophole: Stu's wealthy parents could have hidden him under another name after deciding their son needs professional help. The chat makes the theory better, suggesting returned characters could be flashbacks that explain a fake death, while Roman's announced return complicates every timeline. Frame-by-frame, the breakdown studies stage-looking scenery, a possible theater in Pine Grove, Indiana, suspicious drawings, a fast Ghostface kick, a knife that may or may not be present, and a figure in the hospital chair that remains unidentified with certainty. The jokes remain part of the evidence trail: Tatum's anatomy, Roger Jackson as the ultimate meta reveal, Will Smith protecting Jada with a Ghostface knife, and a dog fart that smells like old ravioli during the enhancement pass. The conclusion is unusually disciplined for WWAM: the psychiatric hospital is the biggest new addition, it was placed in the spot for a reason, but it could still be a red herring or an unimportant establishing shot. The real excitement is the method—play, pause, argue, admit uncertainty, invite the FAM to bring a better theory, and promise a second live breakdown when the full trailer arrives.",
+    story: Object.freeze([
+      { at: 0, end: 450, label: "THE STU IS ALIVE ROOM OPENS", body: "Mike welcomes the afternoon crowd, explains why Jay will not cover Scream updates, and uses a homemade shirt and a 3D-printed nipple to make a teaser breakdown feel like a live event." },
+      { at: 450, end: 900, label: "THE TEASER'S CALLBACKS AND MARK'S POSSIBLE DEATH", body: "The spot begins with franchise echoes before a new stabbing image makes Mike wonder whether Mark is really dead or being used as trailer bait." },
+      { at: 900, end: 1350, label: "THE PSYCHIATRIC HOSPITAL CHANGES THE STU THEORY", body: "A hospital sign opens a new route: Stu could have faked his death, been hidden by rich parents, or become the patient everyone forgot to check." },
+      { at: 1350, end: 1800, label: "DRAWINGS, TATUM, AND THE FLASHBACK POSSIBILITY", body: "Psychotic drawings, basement art, and a fan theory about returning characters as flashbacks pull the mystery back toward the original film's visual clues." },
+      { at: 1800, end: 2250, label: "PINE GROVE, THE GHOSTFACE KICK, AND A LOT OF MARKS", body: "A possible theater set, a karate kick, and another apparently doomed character give the TV spot more motion than its runtime should allow." },
+      { at: 2250, end: 2700, label: "THE HOSPITAL CHAIR, ROGER JACKSON, AND CHAD V GAIL", body: "Mike circles back to the chair, entertains a Roger Jackson reveal, weighs Chad against Gale, and calls the teaser far more substantial than expected." },
+      { at: 2700, end: 3150, label: "ENHANCE, DOG FART, AND THE RED-HERRING DEFENSE", body: "The visual enhancement pass cannot identify the seated figure, but it does produce an old-ravioli dog fart and a clear theory about why Scream's best clues stay subtle." },
+      { at: 3150, end: 3338, label: "THE FULL TRAILER PROMISE AND THE FAM GOODBYE", body: "The final evidence pass treats the psychiatric hospital as the biggest new piece, announces the poster and full-trailer rollout, thanks more than 400 daytime viewers, and leaves the mystery open." },
+    ]),
+    highlights: Object.freeze([
+      H(1, 17, "FAN SIGNAL", "THE AFTERNOON SCREAM CLUB OPENS", "Mike checks the sound, the camera, and the room's soul before promising to dissect a twenty-second TV spot like a crime scene."),
+      H(31, 47, "CHARACTER / LORE", "STU IS ALIVE, MAYBE", "Duff's theory gets the first official receipt: one shot in the teaser might mean Stu Macher is not as dead as the franchise has insisted."),
+      H(58, 74, "FAN SIGNAL", "PRIMATE WILL ROCK YOUR DICK", "Before the Scream analysis, Mike promises a second Primate review and admits the horror movie has already wrecked his expectations in the best way."),
+      H(104, 120, "WWAM UP IN YA", "THE 3D-PRINTED NIPPLE SHIRT", "Mike explains that he made the shirt himself and faxed a new nipple into it with a 3D printer, which is not how shirts are normally upgraded."),
+      H(124, 140, "MAJOR TOPIC TURN", "JAY REFUSES TO COVER SCREAM", "Jay is absent because he dislikes the franchise's updates and does not want to ruin anyone's experience with a running complaint track."),
+      H(196, 212, "WWAM UP IN YA", "DAYTIME WWAM IS WORSE SOBER", "Mike discovers that sober afternoon coverage produces more euphemisms and perversion than the normal drunk stream."),
+      H(236, 252, "FAN SIGNAL", "THE NEW VIEWER MALE-NIPPLE TEST", "Mike asks who clicked in for Scream 7 and accidentally made the channel's subscriber problem sound like a nipple-based marketing strategy."),
+      H(318, 334, "CHARACTER / LORE", "STU ALIVE IS A COLOGNE", "A fan's theory becomes a fake fragrance: Stew Alive, with a TV dropped on your face and a suspicious hint of electricity."),
+      H(614, 630, "MAJOR TOPIC TURN", "THE TEASER IS MOSTLY CALLBACKS", "Mike explains that the opening uses Casey Becker, Scream 2, and Scream 3 language before the new footage begins, partly to avoid a copyright ambush."),
+      H(667, 683, "TAKE GETS NUCLEAR", "MARK LOOKS DEAD", "The face jiggle on the stabbing shot convinces Mike that Mark is gone, while the Kevin Williamson twist machine keeps a fake-out alive."),
+      H(739, 755, "CHARACTER / LORE", "KEVIN WILLIAMSON CHANGES THE RULES", "With Williamson back at the helm, Mike argues that the production logic of Scream 5 and 6 is no longer a safe guide to what happens next."),
+      H(778, 794, "SOUNDBYTE / REPLAY", "WATCH HIS FACE MOVE", "A tiny movement under the shroud becomes the evidence Mike keeps replaying: he is probably dead, but the trailer wants the FAM to doubt it."),
+      H(850, 866, "TAKE GETS NUCLEAR", "SID'S DAUGHTER IS THE HOSTAGE", "The line about a daughter being the same age as Sid when everything started gives the teaser a generational threat instead of another random Woodsboro body."),
+      H(882, 898, "MAJOR TOPIC TURN", "F-BROOK PSYCHIATRIC HOSPITAL", "One sign in one fast shot opens the episode's biggest door: who is being kept in that hospital, and why does the movie want us to see it?"),
+      H(902, 918, "STRAIGHT TO STEVE'S ASSHOLE", "STU CANNOT JUST BE ALIVE IN A HOSPITAL", "Mike explains the plot-hole problem: five Ghostface investigations would have checked on Stu if he were simply locked up somewhere under his own name."),
+      H(933, 949, "CHARACTER / LORE", "RICH PARENTS CAN HIDE A SON", "The theory pivots: Stu's wealthy parents could fake his death, change his name, and put him in a hospital after deciding the killer needs help."),
+      H(1201, 1217, "FAN SIGNAL", "THE INVESTIGATION LEADS TO THE HOSPITAL", "A chat theory connects a murdered wrong kid, a Woodsboro school history, and the hospital into a plausible race to find Stu before Sid's daughter is hurt."),
+      H(1500, 1516, "TAKE GETS NUCLEAR", "RETURNING DEAD CHARACTERS AS FLASHBACKS", "Gary suggests the returning cast is being used to show how Stu faked his death, and Mike admits the theory is much better than the one he had."),
+      H(1528, 1544, "CHARACTER / LORE", "ROMAN COMPLICATES THE TIMELINE", "Roman's announced return means the flashback theory has to account for Dewey, Stu, and the franchise's most inconveniently dead director."),
+      H(1840, 1856, "SOUNDBYTE / REPLAY", "PINE GROVE LOOKS LIKE A THEATER SET", "A paper-mache tree and a small-town stage possibility make Mike wonder whether Scream 7 is hiding an acting-school or play-within-a-movie angle."),
+      H(1998, 2014, "MAJOR TOPIC TURN", "GHOSTFACE KNOWS KARATE", "A sudden kick turns the killer into a Mortal Kombat character, and Mike immediately wants to know whether the blue-shirt victim is Mark."),
+      H(2068, 2084, "WWAM UP IN YA", "THE KILLER IS JEAN-CLAUDE VAN DAMME", "The kick is so clean that Mike casts Jean-Claude Van Damme as Ghostface and then wonders why the apparent knife disappears between frames."),
+      H(2098, 2114, "STRAIGHT TO STEVE'S ASSHOLE", "THE TRAILER KILLS MARK SEVENTEEN TIMES", "Mark has died so often in the released footage that the room can no longer tell whether it is a plot point or the franchise's favorite disposable image."),
+      H(2126, 2142, "TAKE GETS NUCLEAR", "STU CANNOT BE A VISION", "The room rejects a Billy-and-Sam hallucination for Stu and insists that any return has to be physical, plotted, and explainable."),
+      H(2414, 2430, "CHARACTER / LORE", "THE HOSPITAL CHAIR IS THE WHOLE GAME", "The line about planning this for a long time, paired with the hospital shot, is the clue Mike trusts enough to call the episode's main event."),
+      H(2458, 2474, "WWAM UP IN YA", "ROGER JACKSON IS THE META GHOSTFACE", "A fan imagines the voice actor himself stepping out to explain every past Ghostface voice, which is exactly the kind of absurd meta twist Scream could attempt."),
+      H(2475, 2491, "WWAM UP IN YA", "WILL SMITH AS GHOSTFACE", "A chat joke turns the Scream 2 wife-defense line into a Will Smith Ghostface pitch that Mike wisely refuses to expand for Twitter."),
+      H(2500, 2516, "FAN SIGNAL", "KEEP CHAD, TAKE GALE", "The live vote chooses the newer survivor over Gale, but Mike refuses to forget that Chad could be the franchise's new Dewey."),
+      H(2536, 2552, "TAKE GETS NUCLEAR", "THIS TV SPOT ACTUALLY HAS NEW FOOTAGE", "Mike expected a recycled promo and instead finds enough new material to justify an unscheduled live show."),
+      H(2574, 2590, "CHARACTER / LORE", "SCREAM NEEDS A DR. LOOMIS", "The room asks who can serve as Scream's Loomis-style anchor and lands on Sydney, with Dewey named as the version the franchise lost."),
+      H(2620, 2636, "THE ROOM BREAKS", "THE DOG FARTS LIKE OLD RAVIOLI", "The enhancement pass begins with a dog fart so strong Mike has to breathe it while trying to brighten the hospital frame."),
+      H(2724, 2740, "SOUNDBYTE / REPLAY", "WHO THE HELL IS IN THE CHAIR?", "The blown-up frame is still too soft to identify, which makes the uncertainty part of the receipt rather than an excuse to invent a name."),
+      H(2780, 2796, "STRAIGHT TO STEVE'S ASSHOLE", "IT COULD JUST BE B-ROLL", "The FAM offers the responsible alternative: the chair may be an establishing shot and the seated figure may be nobody important at all."),
+      H(3002, 3018, "WWAM UP IN YA", "THE THREE NINJAS ARE IN THE DRAWINGS", "A blurry image becomes Tatum, Rocky, Emily, and the Stranger Things kids before Mike admits the zoom has gone too far into the sun."),
+      H(3090, 3106, "MAJOR TOPIC TURN", "THE HOSPITAL WAS SHOWN FOR A REASON", "Mike's final evidence argument is careful: the hospital is the biggest new addition, but it could still be a red herring."),
+      H(3131, 3147, "FAN SIGNAL", "POSTER TOMORROW, FULL TRAILER THURSDAY", "The next pieces of the Scream rollout become part of the archive plan, with another live breakdown promised as soon as the footage lands."),
+      H(3190, 3206, "FAN SIGNAL", "FOUR HUNDRED PEOPLE AT MIDDAY", "More than 400 viewers show up for an afternoon TV spot, turning an unplanned video into a real FAM event."),
+      H(3254, 3270, "CHARACTER / LORE", "BILLY WAS QUICK, STU MADE ART", "A fan separates the original killers by method: Billy strikes fast, Stu takes his time, and the two-handed knife slam feels like the artist's tell."),
+      H(3280, 3296, "SOUNDBYTE / REPLAY", "THE BLACK BOOT RED HERRING", "Mike revisits the sheriff's black boot and the high-school bathroom clue as the kind of subtle Scream misdirection the newer films need more of."),
+      H(3300, 3316, "TAKE GETS NUCLEAR", "THE HOSPITAL COULD BE ANYBODY", "The closing theory refuses to crown Stu: the patient could be a wild twist, an investigator's lead, or a completely innocent background figure."),
+      H(3330, 3337, "CHARACTER APPEARANCE", "THE FAM GETS TICKLED OUT THE DOOR", "The goodbye thanks the afternoon crowd, promises the next trailer, and sends everyone out with the old WWAM feather-tickle sign-off."),
+    ]),
+    fanRead: Object.freeze({
+      loved: Object.freeze({ at: 1998, end: 2084, label: "THE GHOSTFACE KARATE KICK", topic: "the teaser suddenly turns into Mortal Kombat", body: "Play from 33:18. A rapid kick, a blue-shirt victim, and one vanishing knife make the shortest shot in the trailer the room's most replayable moment.", playAt: 1998, playEnd: 2084 }),
+      hated: Object.freeze({ at: 902, end: 949, label: "THE STU HOSPITAL PLOT HOLE", topic: "a simple survival theory cannot ignore five previous investigations", body: "Play from 15:02. Mike explains why Stu cannot merely be alive in a hospital under his own name, then finds the rich-parents loophole that keeps the theory alive.", playAt: 902, playEnd: 949 }),
+      wildestDetour: Object.freeze({ at: 2620, end: 2796, label: "THE ENHANCE PASS AND OLD-RAVIOLI DOG", topic: "visual detective work meets a smell that should not be in evidence", body: "Play from 43:40. Mike brightens the hospital frame, identifies nothing, and still gets a full comedic sequence out of his dog's old-ravioli fart.", playAt: 2620, playEnd: 2796 }),
+      lastWord: Object.freeze({ at: 3090, end: 3337, label: "THE HOSPITAL CLUE STAYS UNPROVEN", topic: "the best theory is allowed to remain a theory", body: "Play from 51:30. The hospital remains the biggest new piece, the poster and full-trailer rollout are announced, more than 400 daytime viewers get thanked, and the mystery stays open.", playAt: 3090, playEnd: 3337 }),
+    }),
+  });
+
+  root.WWAM_EPISODE_EDITORIAL_PACKS = Object.freeze({ schema: registry.schema || "shokker-episode-editorial-packs/v1", generated: "2026-08-07", sources: Object.freeze(sources) });
+})(typeof window !== "undefined" ? window : globalThis);
