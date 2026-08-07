@@ -156,6 +156,7 @@
     "episode-editorial-packs-wave132.js?v=1.0.0-march-2025-rewatchable-franchises-second-read",
     "episode-editorial-packs-wave133.js?v=1.0.0-march-2025-halloween-script-read-second-read",
     "episode-editorial-packs-wave134.js?v=1.0.0-february-2025-movie-news-second-read",
+    "episode-editorial-packs-wave135.js?v=1.0.0-february-2025-birthday-amenti-second-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
