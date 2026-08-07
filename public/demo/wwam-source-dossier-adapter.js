@@ -415,6 +415,9 @@
         ? null
         : clean(settings.topicMetricBasis),
       showWikiHidden: settings.showWikiHidden === true,
+      steveEvidenceState: clean(
+        settings.steveEvidenceState || raw.steveEvidenceState
+      ),
       editorNote: clean(settings.editorNote),
       entityIds: ids,
     };
@@ -1206,6 +1209,7 @@
         publicExcerptAllowed: true,
         signalScore: 99,
         signalBasis: "screened-explicit-negative-language-and-target",
+        steveEvidenceState: "editorially-screened-source-cut",
         editorNote: note,
       }
     );
