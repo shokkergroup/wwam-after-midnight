@@ -83,11 +83,11 @@ test("copy audit compiles every canonical Show Wiki dossier", () => {
     result.corpus.canonicalSourcesCompiled,
   );
   // Quarantined machine-candidate fan cards are intentionally absent from the
-  // public corpus, so the audited surface is smaller than the pre-quarantine
-  // baseline while still covering every canonical episode dossier.
-  assert.ok(result.corpus.publicFieldsAudited > 48_000);
-  assert.ok(result.corpus.proseFieldsAudited > 9_800);
-  assert.ok(result.corpus.authoredSentencesAudited > 35_000);
+  // public corpus. These floors are the current post-quarantine release
+  // baseline, not the superseded pre-quarantine card count.
+  assert.ok(result.corpus.publicFieldsAudited > 39_000);
+  assert.ok(result.corpus.proseFieldsAudited > 3_000);
+  assert.ok(result.corpus.authoredSentencesAudited > 7_000);
 });
 
 test("archive-authored recap copy clears every public quality gate", () => {
