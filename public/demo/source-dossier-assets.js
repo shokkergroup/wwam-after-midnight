@@ -190,6 +190,7 @@
      "episode-editorial-packs-wave166.js?v=1.0.0-december-2024-horror-villains-tier-list-part-two-second-read",
      "episode-editorial-packs-wave167.js?v=1.0.0-november-2024-top-ten-slasher-second-read",
      "episode-editorial-packs-wave168.js?v=1.0.0-december-2024-most-anticipated-movies-second-read",
+     "episode-editorial-packs-wave169.js?v=1.0.0-december-2024-superman-reaction-second-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
