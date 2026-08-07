@@ -1269,3 +1269,10 @@ test("popstate reopens canonical and legacy routes, then closes media after a ba
   onPopstate();
   assert.equal(closed.length, 1);
 });
+
+test("guided shell honors a saved shelf position while a source return token is active", () => {
+  const guided = fs.readFileSync(path.join(root, "public/demo/guided-shell.js"), "utf8");
+  assert.match(guided, /__wwamSourceReturnRestore/);
+  assert.match(guided, /Closing a clip\/show is a return journey/);
+  assert.match(guided, /restoreShelfPosition\(\);/);
+});

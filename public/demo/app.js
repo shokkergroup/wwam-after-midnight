@@ -3344,6 +3344,12 @@
       return;
     }
     var targetY = Math.max(0, Number(context.scrollY || 0));
+    // The guided shell normally treats a hash change as an instruction to
+    // scroll to the section heading. A restored child route is different: the
+    // visitor already chose a precise shelf position, so advertise a short
+    // restore window that lets the shell skip its competing auto-scroll.
+    var restoreToken = { top: targetY, expiresAt: Date.now() + 6500 };
+    window.__wwamSourceReturnRestore = restoreToken;
     // The inline franchise/show shelf can reflow once its lazy feature is
     // repainted. Align after two frames so the restored location survives
     // that reflow instead of snapping back to the top of the hub.
@@ -3352,6 +3358,12 @@
       restore();
       window.requestAnimationFrame(restore);
     });
+    window.setTimeout(function () {
+      restore();
+      if (window.__wwamSourceReturnRestore === restoreToken) {
+        window.__wwamSourceReturnRestore = null;
+      }
+    }, 6000);
     sourceReturnContext = null;
     sourceReturnStorageClear();
   }

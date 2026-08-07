@@ -340,6 +340,21 @@
       detail: { group: active, targetId: targetId || "top" }
     }));
     if (targetId) {
+      var sourceReturnRestore = window.__wwamSourceReturnRestore;
+      if (sourceReturnRestore && Number(sourceReturnRestore.expiresAt || 0) > Date.now()) {
+        // Closing a clip/show is a return journey, not a fresh hash-jump. Do
+        // not let the section anchor or route-pin timer throw the reader back
+        // to the top of the shelf they just left.
+        var restoredTop = Math.max(0, Number(sourceReturnRestore.top || 0));
+        var restoreShelfPosition = function () {
+          window.scrollTo({ top: restoredTop, left: 0, behavior: "auto" });
+        };
+        restoreShelfPosition();
+        window.requestAnimationFrame(restoreShelfPosition);
+        window.setTimeout(restoreShelfPosition, 120);
+        window.setTimeout(restoreShelfPosition, 900);
+        return;
+      }
       var move = function (behavior) {
         var target = document.getElementById(targetId);
         moveRouteTarget(target, behavior);

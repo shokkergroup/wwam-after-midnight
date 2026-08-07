@@ -152,4 +152,6 @@ test("local Show Wiki links stay child routes and restore their source shelf", (
   assert.match(app, /Close clip and keep Show Wiki/);
   assert.match(app, /A playable moment is a child state of the open Show Wiki/);
   assert.match(app, /sourceReturnRestorePending = sourceReturnContext/);
+  assert.match(app, /__wwamSourceReturnRestore/);
+  assert.match(app, /expiresAt: Date\.now\(\) \+ 6500/);
 });
