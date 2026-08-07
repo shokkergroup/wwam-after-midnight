@@ -80,6 +80,7 @@ test("latest 2026 human packs retain their exact source bindings", () => {
     82: "JBnfH9kNiIY",
     83: "RldFMV-gTh8",
     84: "SFU12QtMMwE",
+    85: "qgUX3ySexeI",
   };
   for (const [wave, sourceId] of Object.entries(expected)) {
     const file = fs.readFileSync(
