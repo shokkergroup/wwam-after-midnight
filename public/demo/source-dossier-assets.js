@@ -105,6 +105,7 @@
     "episode-editorial-packs-wave81.js?v=1.0.0-september-2025-halloween-wolverine-update",
     "episode-editorial-packs-wave82.js?v=1.0.0-september-2025-welcome-to-derry-movie-news",
     "episode-editorial-packs-wave83.js?v=1.0.0-september-2025-top-ten-2002",
+    "episode-editorial-packs-wave84.js?v=1.0.0-september-2025-paranormal-tier-list",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
