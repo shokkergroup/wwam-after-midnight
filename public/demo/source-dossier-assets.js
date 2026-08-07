@@ -145,6 +145,7 @@
     "episode-editorial-packs-wave121.js?v=1.0.0-april-2025-paranormal-loomis",
     "episode-editorial-packs-wave122.js?v=1.0.0-april-2025-1990s-director-court",
     "episode-editorial-packs-wave123.js?v=1.0.0-april-2025-streamyard-val-kilmer",
+    "episode-editorial-packs-wave124.js?v=1.0.0-april-2025-cinemacon-superman",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
