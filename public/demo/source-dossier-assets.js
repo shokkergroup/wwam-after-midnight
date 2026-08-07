@@ -143,6 +143,7 @@
     "episode-editorial-packs-wave119.js?v=1.0.0-april-2025-marvel-weapons",
     "episode-editorial-packs-wave120.js?v=1.0.0-april-2025-horror-mount-rushmore",
     "episode-editorial-packs-wave121.js?v=1.0.0-april-2025-paranormal-loomis",
+    "episode-editorial-packs-wave122.js?v=1.0.0-april-2025-1990s-director-court",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
