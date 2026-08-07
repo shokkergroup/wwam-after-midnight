@@ -23,6 +23,7 @@
     campaignSnapshots = {}, lastDialogFocus = null, tapeById = {}, itemById = {},
     streamById = {}, storageFallback = {}, runtimeDiagnostics = [],
     sourceReturnContext = null, sourceReturnRestorePending = null;
+  var SOURCE_RETURN_STORAGE_KEY = "wwamSourceReturnContext";
   window.WWAM_RUNTIME_DIAGNOSTICS = runtimeDiagnostics;
 
   function storageGet(key) {
@@ -712,6 +713,34 @@
       section:sourceDossierSection(params.get("section")), legacy: legacy };
   }
 
+  function sourceReturnStorageRead() {
+    try {
+      var raw = window.sessionStorage && window.sessionStorage.getItem(SOURCE_RETURN_STORAGE_KEY);
+      if (!raw) return null;
+      var parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed.href !== "string") return null;
+      return { href: parsed.href, scrollY: Math.max(0, Number(parsed.scrollY || 0)) };
+    } catch (error) { return null; }
+  }
+
+  function sourceReturnStorageWrite(context) {
+    if (!context || typeof context.href !== "string") return;
+    try {
+      if (window.sessionStorage) {
+        window.sessionStorage.setItem(SOURCE_RETURN_STORAGE_KEY, JSON.stringify({
+          href: context.href,
+          scrollY: Math.max(0, Number(context.scrollY || 0)),
+        }));
+      }
+    } catch (error) { /* private browsing can deny sessionStorage; memory still works */ }
+  }
+
+  function sourceReturnStorageClear() {
+    try {
+      if (window.sessionStorage) window.sessionStorage.removeItem(SOURCE_RETURN_STORAGE_KEY);
+    } catch (error) { /* best effort only */ }
+  }
+
   function syncSourceRoute(sourceId, at, section, mode) {
     if (mode === "none") return;
     var url = sourceRouteUrl(sourceId, at, section);
@@ -728,10 +757,12 @@
       wwamSourceDossierPushed: pushedRoute,
       sourceId: sourceId,
     });
-    if (sourceReturnContext && pushedRoute) {
+    var returnContext = sourceReturnContext ||
+      (typeof sourceReturnStorageRead === "function" ? sourceReturnStorageRead() : null);
+    if (returnContext && pushedRoute) {
       nextState.wwamSourceReturn = {
-        href: sourceReturnContext.href,
-        scrollY: sourceReturnContext.scrollY,
+        href: returnContext.href,
+        scrollY: returnContext.scrollY,
       };
     }
     if (mode === "replace") history.replaceState(nextState, "", url);
@@ -1239,6 +1270,8 @@
         href: window.location.href,
         scrollY: Math.max(0, Number(window.pageYOffset || document.documentElement.scrollTop || 0)),
       };
+      sourceReturnRestorePending = null;
+      sourceReturnStorageWrite(sourceReturnContext);
     }
     showSourceDossierLoading();
     var fallbackShown = false;
@@ -3250,7 +3283,9 @@
     }
     if (!settings.fromHistory && !settings.replaceRoute &&
         history.state && history.state.wwamSourceDossierPushed) {
-      sourceReturnRestorePending = sourceReturnContext || history.state.wwamSourceReturn || null;
+      sourceReturnRestorePending = sourceReturnContext ||
+        (typeof sourceReturnStorageRead === "function" ? sourceReturnStorageRead() : null) ||
+        history.state.wwamSourceReturn || null;
       history.back();
       return;
     }
@@ -3304,7 +3339,10 @@
   }
 
   function restoreSourceReturnContext(context) {
-    if (!context) return;
+    if (!context) {
+      sourceReturnStorageClear();
+      return;
+    }
     var targetY = Math.max(0, Number(context.scrollY || 0));
     // The inline franchise/show shelf can reflow once its lazy feature is
     // repainted. Align after two frames so the restored location survives
@@ -3315,6 +3353,7 @@
       window.requestAnimationFrame(restore);
     });
     sourceReturnContext = null;
+    sourceReturnStorageClear();
   }
 
   function bindPlayButtons(root, inModal) {
@@ -6062,7 +6101,8 @@
           autoplay: false,
         });
       } else if (document.getElementById("tapeModal").classList.contains("show")) {
-        var returning = sourceReturnRestorePending || sourceReturnContext;
+        var returning = sourceReturnRestorePending || sourceReturnContext ||
+          (typeof sourceReturnStorageRead === "function" ? sourceReturnStorageRead() : null);
         sourceReturnRestorePending = null;
         closeDossier({ fromHistory: true, preserveRoute: true });
         restoreSourceReturnContext(returning);
