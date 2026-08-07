@@ -1256,6 +1256,16 @@
     return true;
   }
 
+  function captureSourceReturnContext() {
+    if (readSourceRoute() || sourceReturnContext) return;
+    sourceReturnContext = {
+      href: window.location.href,
+      scrollY: Math.max(0, Number(window.pageYOffset || document.documentElement.scrollTop || 0)),
+    };
+    sourceReturnRestorePending = null;
+    sourceReturnStorageWrite(sourceReturnContext);
+  }
+
   function openSourceDossier(id, startTime, options) {
     var settings = options || {}, sourceId = String(id == null ? "" : id).trim(),
       section = sourceDossierSection(settings.section);
@@ -1265,14 +1275,7 @@
     // can put the visitor back in the same franchise/show context, not merely
     // at the archive landing page. Direct shared links intentionally have no
     // return context and still close to the archive shell.
-    if (settings.routeMode === "push" && !readSourceRoute()) {
-      sourceReturnContext = {
-        href: window.location.href,
-        scrollY: Math.max(0, Number(window.pageYOffset || document.documentElement.scrollTop || 0)),
-      };
-      sourceReturnRestorePending = null;
-      sourceReturnStorageWrite(sourceReturnContext);
-    }
+    if (settings.routeMode === "push") captureSourceReturnContext();
     showSourceDossierLoading();
     var fallbackShown = false;
     var activeRouteState = function () {
@@ -3281,11 +3284,12 @@
         return;
       }
     }
+    var parentReturnContext = (typeof sourceReturnContext !== "undefined" ? sourceReturnContext : null) ||
+      (typeof sourceReturnStorageRead === "function" ? sourceReturnStorageRead() : null) ||
+      (history.state && history.state.wwamSourceReturn) || null;
     if (!settings.fromHistory && !settings.replaceRoute &&
-        history.state && history.state.wwamSourceDossierPushed) {
-      sourceReturnRestorePending = sourceReturnContext ||
-        (typeof sourceReturnStorageRead === "function" ? sourceReturnStorageRead() : null) ||
-        history.state.wwamSourceReturn || null;
+        parentReturnContext && history.state && history.state.wwamSourceDossier) {
+      sourceReturnRestorePending = parentReturnContext;
       history.back();
       return;
     }
@@ -3328,6 +3332,11 @@
     if (!/^[A-Za-z0-9_-]{11}$/.test(sourceId || "") || url.hash !== "#archive") return;
     event.preventDefault();
     event.stopPropagation();
+    // Capture the shelf before any route/hash listener can reframe the page.
+    // This is deliberately done at the interception boundary as well as in
+    // openSourceDossier, so a competing navigation handler cannot erase the
+    // parent context before the modal takes ownership of the source route.
+    captureSourceReturnContext();
     var atValue = url.searchParams.get("at");
     var at = atValue != null && Number.isFinite(Number(atValue)) ? Number(atValue) : null;
     var section = sourceDossierSection(url.searchParams.get("section")) || "wiki";
