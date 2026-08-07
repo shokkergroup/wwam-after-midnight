@@ -165,6 +165,7 @@
     "episode-editorial-packs-wave141.js?v=1.0.0-january-2025-stu-lives-second-read",
     "episode-editorial-packs-wave142.js?v=1.0.0-january-2025-emergency-scream-second-read",
     "episode-editorial-packs-wave143.js?v=1.0.0-january-2025-top-2000-second-read",
+    "episode-editorial-packs-wave144.js?v=1.0.0-january-2025-january-28-second-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
