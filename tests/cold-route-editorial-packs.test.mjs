@@ -9,7 +9,7 @@ const assets = fs.readFileSync(path.join(root, "public/demo/source-dossier-asset
 const app = fs.readFileSync(path.join(root, "public/demo/app.js"), "utf8");
 
 test("cold Show Wiki routes preload the latest human editorial packs", () => {
-  for (const wave of Array.from({ length: 134 }, (_, index) => index + 2)) {
+  for (const wave of Array.from({ length: 135 }, (_, index) => index + 2)) {
     assert.match(html, new RegExp(`episode-editorial-packs-wave${wave}\\.js`));
     assert.match(assets, new RegExp(`episode-editorial-packs-wave${wave}\\.js`));
   }
@@ -131,6 +131,7 @@ test("latest 2026 human packs retain their exact source bindings", () => {
     133: "KIGg_I72x_M",
     134: "m_mDQ8UUwZY",
     135: "En9QSoJrAng",
+    136: "16Npt_N7pYA",
   };
   for (const [wave, sourceId] of Object.entries(expected)) {
     const file = fs.readFileSync(

@@ -168,6 +168,7 @@ export const RUNTIME_FILES = Object.freeze([
   "episode-editorial-packs-wave133.js",
   "episode-editorial-packs-wave134.js",
   "episode-editorial-packs-wave135.js",
+  "episode-editorial-packs-wave136.js",
   "episode-recap-engine.js",
   "wwam-episode-recap-adapter.js",
   "episode-format-contracts.js",
