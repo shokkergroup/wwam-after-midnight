@@ -188,6 +188,7 @@
      "episode-editorial-packs-wave164.js?v=1.0.0-october-2024-halloween-4-watch-party-second-read",
      "episode-editorial-packs-wave165.js?v=1.0.0-december-2024-final-chapter-watchalong-second-read",
      "episode-editorial-packs-wave166.js?v=1.0.0-december-2024-horror-villains-tier-list-part-two-second-read",
+     "episode-editorial-packs-wave167.js?v=1.0.0-november-2024-top-ten-slasher-second-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
