@@ -139,6 +139,7 @@
     "episode-editorial-packs-wave115.js?v=1.0.0-may-2025-sugar-ray-hangout",
     "episode-editorial-packs-wave116.js?v=1.0.0-may-2025-bloodlines-party",
     "episode-editorial-packs-wave117.js?v=1.0.0-may-2025-superman-kung-fury",
+    "episode-editorial-packs-wave118.js?v=1.0.0-may-2025-gta-long-walk",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
