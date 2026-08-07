@@ -96,7 +96,7 @@
       H(5100, 5162, "TAKE GETS NUCLEAR", "THE BIG MAC TEST FOR FAN SERVICE", "Fan service is defended as giving people the thing they ordered, not swapping the special sauce and calling it innovation."),
       H(5170, 5232, "WWAM UP IN YA", "ASK FETTY ABOUT TEXAS CHAINSAW", "The room wants every interviewer with Fede Alvarez to ask about the missing Texas Chainsaw Massacre prequel instead of only asking about Alien."),
       H(5230, 5272, "SOUNDBYTE / REPLAY", "STAR WARS GOT BLUE TITTY MILK", "Romulus optimism is contrasted with the sequel trilogy: settle the audience back in, then do not hand them a cliffside alien beverage."),
-      H(5410, 5468, "CHARACTER PERFORMANCE", "ANDRE LENOSO GETS A JASON STATHAM ACCENT", "A Storm of the Century fan prompt turns into an improvised keeper-of-the-bay accent that mutates into Australia and a shark problem."),
+      H(5410, 5468, "SOUNDBYTE / REPLAY", "ANDRE LENOSO GETS A JASON STATHAM ACCENT", "A Storm of the Century fan prompt turns into an improvised keeper-of-the-bay accent that mutates into Australia and a shark problem."),
       H(5470, 5520, "STRAIGHT TO STEVE'S ASSHOLE", "THE MEG 2 UNDERWATER BUNKER", "The Meg 2 is abandoned after a secret underwater bunker, peripheral sharks, and Jason Statham betrayal make the movie sound like a dare."),
       H(5520, 5564, "COMMUNITY MEMORY", "JAMAICAN RED IS A NEIGHBOR, NOT A FRIEND", "A fan asks whether J has met the apartment's weed-scented neighbor. J can identify the smell, but not the man."),
       H(5588, 5630, "DEEP DIVE", "BATMAN VERSUS SHREDDER WINS THE NIGHT", "A fan asks for the better animated fight. Batman versus Shredder and Arkham Origins versus Deathstroke become a mini-editorial on choreography."),
