@@ -182,6 +182,7 @@
     "episode-editorial-packs-wave158.js?v=1.0.0-january-2025-january-7-second-read",
      "episode-editorial-packs-wave159.js?v=1.0.0-december-2024-friday-night-fights-second-read",
      "episode-editorial-packs-wave160.js?v=1.0.0-december-2024-superman-trailer-second-read",
+     "episode-editorial-packs-wave161.js?v=1.0.0-october-2018-halloween-review-second-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
