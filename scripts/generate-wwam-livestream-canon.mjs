@@ -491,7 +491,19 @@ function mergeEditorialPacks(previous, incoming) {
     fanRead: { ...(previous.fanRead || {}), ...(incoming.fanRead || {}) },
   };
 }
-for (const file of fs.readdirSync(DEMO).filter((name) => /^episode-editorial-packs(?:-recent|-wave\d+)?\.js$/.test(name))) {
+// Load the human editorial waves in semantic order. A plain filesystem
+// listing is lexical, so wave103 would otherwise run before wave23 and the
+// older duplicate source pack could overwrite the newest full-tape read.
+const editorialPackFiles = fs.readdirSync(DEMO)
+  .filter((name) => /^episode-editorial-packs(?:-recent|-wave\d+)?\.js$/.test(name))
+  .sort((left, right) => {
+    const waveNumber = (name) => {
+      const match = name.match(/-wave(\d+)\.js$/);
+      return match ? Number(match[1]) : name === "episode-editorial-packs-recent.js" ? 1 : 0;
+    };
+    return waveNumber(left) - waveNumber(right) || left.localeCompare(right);
+  });
+for (const file of editorialPackFiles) {
   const registry = loadScript(file).WWAM_EPISODE_EDITORIAL_PACKS || { sources: {} };
   for (const [sourceId, pack] of Object.entries(registry.sources || {})) {
     if (pack && pack.sourceId === sourceId && pack.reviewState === "full-tape-human-editorial-read") {

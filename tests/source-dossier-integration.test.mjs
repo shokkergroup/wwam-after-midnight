@@ -477,7 +477,7 @@ test("cold livestream routes keep the conversational canon read", () => {
   vm.runInNewContext(livestreamColdIndex, sandbox);
   const christmas = sandbox.window.WWAM_LIVESTREAM_COLD_INDEX.episodes.QMYgsEfPMg0;
   assert.ok(christmas, "the Christmas 2025 route stays in the compact index");
-  assert.match(christmas.dossier.summary, /three-hour Christmas party/i);
+  assert.match(christmas.dossier.summary, /proper WWAM holiday party|refuses to behave like a Christmas show/i);
   assert.equal(christmas.summary, christmas.dossier.summary);
   assert.doesNotMatch(
     christmas.dossier.summary,
@@ -825,6 +825,7 @@ test("dossier CSS brands cold routes immediately while heavy scripts remain lazy
   "episode-editorial-packs-wave100.js",
   "episode-editorial-packs-wave101.js",
   "episode-editorial-packs-wave102.js",
+  "episode-editorial-packs-wave103.js",
     "wwam-fam-index.js",
     "episode-recap-engine.js",
     "wwam-episode-recap-adapter.js",
@@ -856,7 +857,7 @@ test("dossier CSS brands cold routes immediately while heavy scripts remain lazy
   "episode-editorial-packs-wave34.js",
   "episode-editorial-packs-wave35.js",
   ]);
-  for (let wave = 2; wave <= 102; wave += 1) {
+  for (let wave = 2; wave <= 103; wave += 1) {
     intentionalColdRouteScripts.add(`episode-editorial-packs-wave${wave}.js`);
   }
   for (const asset of dossierScripts) {
@@ -1168,6 +1169,13 @@ test("closing an active clip restores the open Show Wiki before leaving the shel
   assert.equal(new URL(history.replacements[0].url).searchParams.has("at"), false);
   assert.match(player.innerHTML, /data-autoplay="false"/);
   assert.equal(modal.classList.contains("show"), true);
+});
+
+test("editorial wave loading uses numeric precedence for duplicate source packs", () => {
+  const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-livestream-canon.mjs"), "utf8");
+  assert.ok(generator.includes("const editorialPackFiles = fs.readdirSync(DEMO)"));
+  assert.ok(generator.includes(".sort((left, right) =>"));
+  assert.ok(generator.includes("name.match(/-wave(\\d+)\\.js$/)"));
 });
 
 test("popstate reopens canonical and legacy routes, then closes media after a back navigation", () => {
