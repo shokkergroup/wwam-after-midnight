@@ -185,6 +185,7 @@
      "episode-editorial-packs-wave161.js?v=1.0.0-october-2018-halloween-review-second-read",
      "episode-editorial-packs-wave162.js?v=1.0.0-october-2018-halloween-spoiler-qa-second-read",
      "episode-editorial-packs-wave163.js?v=1.0.0-december-2018-halloween-commentary-second-read",
+     "episode-editorial-packs-wave164.js?v=1.0.0-october-2024-halloween-4-watch-party-second-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
