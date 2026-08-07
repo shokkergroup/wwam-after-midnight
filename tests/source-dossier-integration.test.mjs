@@ -1194,6 +1194,13 @@ test("closing an active clip restores the open Show Wiki before leaving the shel
   assert.equal(modal.classList.contains("show"), true);
 });
 
+test("local source interception captures the shelf before competing route listeners", () => {
+  const appSource = fs.readFileSync(path.join(root, "public/demo/app.js"), "utf8");
+  assert.match(appSource, /Capture the shelf before any route\/hash listener/);
+  assert.match(appSource, /function captureSourceReturnContext\(\)/);
+  assert.match(appSource, /parentReturnContext && hasActiveSourceRoute/);
+});
+
 test("editorial wave loading uses numeric precedence for duplicate source packs", () => {
   const generator = fs.readFileSync(path.join(root, "scripts", "generate-wwam-livestream-canon.mjs"), "utf8");
   assert.ok(generator.includes("const editorialPackFiles = fs.readdirSync(DEMO)"));

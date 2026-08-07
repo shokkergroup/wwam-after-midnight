@@ -142,10 +142,12 @@ test("cold routes preserve long full-tape overviews instead of generic fallback 
 
 test("local Show Wiki links stay child routes and restore their source shelf", () => {
   assert.match(app, /interceptLocalSourceLinks/);
-  assert.match(app, /document\.addEventListener\("click", interceptLocalSourceLinks, true\)/);
+  assert.match(app, /window\.addEventListener\("click", interceptLocalSourceLinks, true\)/);
   assert.match(app, /sourceReturnContext/);
   assert.match(app, /SOURCE_RETURN_STORAGE_KEY/);
   assert.match(app, /sourceReturnStorageWrite/);
+  assert.match(app, /A shelf can reflow several times/);
+  assert.match(app, /pendingReturn = sourceReturnRestorePending/);
   assert.match(app, /sourceReturnStorageClear/);
   assert.match(app, /wwamSourceReturn/);
   assert.match(app, /restoreSourceReturnContext/);

@@ -24,6 +24,7 @@
     streamById = {}, storageFallback = {}, runtimeDiagnostics = [],
     sourceReturnContext = null, sourceReturnRestorePending = null;
   var SOURCE_RETURN_STORAGE_KEY = "wwamSourceReturnContext";
+  var SOURCE_RETURN_WINDOW_NAME_PREFIX = "WWAM_RETURN_CONTEXT:";
   window.WWAM_RUNTIME_DIAGNOSTICS = runtimeDiagnostics;
 
   function storageGet(key) {
@@ -716,6 +717,9 @@
   function sourceReturnStorageRead() {
     try {
       var raw = window.sessionStorage && window.sessionStorage.getItem(SOURCE_RETURN_STORAGE_KEY);
+      if (!raw && typeof window.name === "string" && window.name.indexOf(SOURCE_RETURN_WINDOW_NAME_PREFIX) === 0) {
+        raw = decodeURIComponent(window.name.slice(SOURCE_RETURN_WINDOW_NAME_PREFIX.length));
+      }
       if (!raw) return null;
       var parsed = JSON.parse(raw);
       if (!parsed || typeof parsed.href !== "string") return null;
@@ -733,11 +737,20 @@
         }));
       }
     } catch (error) { /* private browsing can deny sessionStorage; memory still works */ }
+    try {
+      window.name = SOURCE_RETURN_WINDOW_NAME_PREFIX + encodeURIComponent(JSON.stringify({
+        href: context.href,
+        scrollY: Math.max(0, Number(context.scrollY || 0)),
+      }));
+    } catch (error) { /* window.name is a best-effort cross-navigation fallback */ }
   }
 
   function sourceReturnStorageClear() {
     try {
       if (window.sessionStorage) window.sessionStorage.removeItem(SOURCE_RETURN_STORAGE_KEY);
+    } catch (error) { /* best effort only */ }
+    try {
+      if (typeof window.name === "string" && window.name.indexOf(SOURCE_RETURN_WINDOW_NAME_PREFIX) === 0) window.name = "";
     } catch (error) { /* best effort only */ }
   }
 
@@ -1257,7 +1270,9 @@
   }
 
   function captureSourceReturnContext() {
-    if (readSourceRoute() || sourceReturnContext) return;
+    if (readSourceRoute() || sourceReturnContext) {
+      return;
+    }
     sourceReturnContext = {
       href: window.location.href,
       scrollY: Math.max(0, Number(window.pageYOffset || document.documentElement.scrollTop || 0)),
@@ -3287,8 +3302,11 @@
     var parentReturnContext = (typeof sourceReturnContext !== "undefined" ? sourceReturnContext : null) ||
       (typeof sourceReturnStorageRead === "function" ? sourceReturnStorageRead() : null) ||
       (history.state && history.state.wwamSourceReturn) || null;
+    var hasActiveSourceRoute = typeof readSourceRoute === "function" ?
+      Boolean(readSourceRoute()) :
+      Boolean(activeClipUrl.searchParams.get("source") || activeClipUrl.searchParams.get("tape") || activeClipUrl.searchParams.get("live"));
     if (!settings.fromHistory && !settings.replaceRoute &&
-        parentReturnContext && history.state && history.state.wwamSourceDossier) {
+        parentReturnContext && hasActiveSourceRoute) {
       sourceReturnRestorePending = parentReturnContext;
       history.back();
       return;
@@ -3363,8 +3381,16 @@
     // repainted. Align after two frames so the restored location survives
     // that reflow instead of snapping back to the top of the hub.
     var restore = function () { window.scrollTo(0, targetY); };
-    window.requestAnimationFrame(function () {
+    // A shelf can reflow several times while its image/feature rows hydrate.
+    // Keep the receipt authoritative for a short bounded window instead of
+    // allowing a late hash jump or lazy repaint to strand the visitor.
+    var restoreUntil = Date.now() + 2800;
+    var reinforce = function () {
       restore();
+      if (Date.now() < restoreUntil) window.setTimeout(reinforce, 90);
+    };
+    window.requestAnimationFrame(function () {
+      reinforce();
       window.requestAnimationFrame(restore);
     });
     window.setTimeout(function () {
@@ -6008,7 +6034,10 @@
     // navigation destroys the Halloween/Comedy shelf's selected-film state,
     // so the visitor returns to a generic archive page after closing a clip.
     // Treat the local source URL as a modal child route instead.
-    document.addEventListener("click", interceptLocalSourceLinks, true);
+    // Capture at window scope so feature mounts or route helpers cannot
+    // prevent the shelf context from being recorded before this boundary.
+    window.WWAMCaptureSourceReturnContext = captureSourceReturnContext;
+    window.addEventListener("click", interceptLocalSourceLinks, true);
     document.getElementById("triviaDifficulty").onchange = function (event) { state.triviaDifficulty = event.target.value; };
     document.getElementById("triviaLength").onchange = function (event) {
       state.triviaLength = Number(event.target.value);
@@ -6110,6 +6139,16 @@
       if (state.memoryTab === "score" || state.memoryTab === "bits") renderMemory();
     });
     addEventListener("hashchange", function () {
+      // Browser history traversal normally reaches the popstate handler first,
+      // but WebKit-based shells can deliver hashchange first. If that happens,
+      // consume the pending shelf receipt here so the route still restores the
+      // exact Show Wiki parent instead of its generic section anchor.
+      if (!readSourceRoute() && sourceReturnRestorePending &&
+          document.getElementById("tapeModal").classList.contains("show")) {
+        var pendingReturn = sourceReturnRestorePending;
+        sourceReturnRestorePending = null;
+        restoreSourceReturnContext(pendingReturn);
+      }
       if (location.hash !== "#tape-keeps-score") return;
       document.getElementById("tape-keeps-score").click();
     });
@@ -6219,6 +6258,7 @@
     state.initialRouteHandled = true;
     var params = new URLSearchParams(location.search);
     var sourceRoute = readSourceRoute();
+    var returnContext = sourceReturnStorageRead();
     if (sourceRoute) {
       setTimeout(function () {
         openSourceDossier(sourceRoute.sourceId, sourceRoute.at, {
@@ -6227,6 +6267,12 @@
           autoplay: false,
         });
       }, 50);
+    } else if (returnContext && returnContext.href === window.location.href) {
+      // A browser-level navigation can occur before the delegated click
+      // interceptor runs (or after a hard refresh). The per-tab return receipt
+      // survives that boundary and is consumed only when we are back on the
+      // exact shelf URL that created it.
+      setTimeout(function () { restoreSourceReturnContext(returnContext); }, 80);
     } else if (window.WWAMAskShare.read(location.search)) {
       setTimeout(function () {
         var shared = window.WWAMAskShare.read(location.search);
