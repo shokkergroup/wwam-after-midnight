@@ -1,0 +1,108 @@
+(function (root) {
+  "use strict";
+  var registry = root.WWAM_EPISODE_EDITORIAL_PACKS || { schema: "shokker-episode-editorial-packs/v1", sources: {} };
+  var sources = Object.assign({}, registry.sources || {});
+  var prior = sources["_hcLHO3Y0jA"] || {};
+  var E = function (at, end, category, label, excerpt, characters) {
+    return {
+      at: at,
+      end: end,
+      category: category,
+      label: label,
+      excerpt: excerpt,
+      sourceId: "_hcLHO3Y0jA",
+      evidenceState: "machine surfaced; audio-feature-ranked candidate; playback remains the authority",
+      ...(characters ? { characters: characters } : {}),
+    };
+  };
+
+  /* March 12, 2026: a second source-bound pass over the Scream/Alien/FAM room. */
+  var additions = [
+    E(510, 610, "WWAM UP IN YA", "THE FELDMAN TOUR MEMORY", "The documentary conversation detours through a remembered Corey Feldman tour, with the hosts turning the title into a performance before returning to the source claim."),
+    E(650, 735, "CHARACTER PERFORMANCE", "THE ROB REINER VOICE", "A Rob Reiner special is announced and immediately receives a deliberately diseased impression, a reminder that this room cannot let a straight news sentence stay straight.", ["Rob Reiner"]),
+    E(1200, 1300, "ROOM BREAK", "GRACE MAKES RUNNING A SKILL", "Resident Evil Requiem becomes a defense of running away: the hosts would rather survive than pretend every encounter needs a heroic stand."),
+    E(1300, 1395, "FAN SIGNAL", "PUT THE GAME CAMERA ON", "The chat proposes a second camera for the Resident Evil panic, which would turn the gameplay into a companion comedy broadcast."),
+    E(1400, 1480, "STRAIGHT TO STEVE'S ASSHOLE", "SUBSCRIBERS CLEAN THEIR ROOMS", "A random live arrival becomes a fake disciplinary notice: hit the subscribe button, then go clean the room before returning to the movie news."),
+    E(1560, 1655, "WWAM UP IN YA", "THOR'S HAMMER WORKOUT", "A casual name mix-up turns into a story about lifting Thor's hammer and accidentally receiving a gym session instead of a normal visit."),
+    E(1630, 1725, "COMMUNITY MEMORY", "THE BARBER AND THE VET KNOW HIS NAME", "A haircut question becomes a small piece of real-life texture: the hosts know the names of the people who cut their hair and treat their dogs."),
+    E(1700, 1800, "WWAM UP IN YA", "THE FREE-SHOT MISUNDERSTANDING", "A bar story begins with somebody putting shots in front of them and ends with the hosts leaving before the surprise bill can arrive."),
+    E(1810, 1910, "WWAM UP IN YA", "THE BLACK DILDO HOUSE EXIT", "A family story gets the full WWAM treatment: a former house guest leaves behind an object so memorable that it becomes the only detail anybody can recall."),
+    E(1880, 1980, "BEST MOMENT", "THE CONJURING HOUSE THEORY", "The abandoned object is reinterpreted as something the Conjuring crew might find in a haunted house, turning a domestic anecdote into a franchise set piece."),
+    E(1935, 2035, "STRAIGHT TO STEVE'S ASSHOLE", "THE BOX-OFFICE SHITHOLE SALAD", "A recent film's commercial result gets the bluntest possible verdict, with the hosts refusing to let a familiar cast hide a bad movie."),
+    E(2025, 2115, "TAKE GETS NUCLEAR", "RAINBOW BEADS AT THE THEATER", "The room mocks a theater warning story while keeping the useful part: watching the film is the only way to know if the movie itself works."),
+    E(2190, 2285, "FAN SIGNAL", "DARK MEDIA GETS A SHOUT-OUT", "A fan message about Rob Reiner is answered with a thank-you and a donation joke, showing the archive's recurring collision between grief and filthy improvisation."),
+    E(2290, 2390, "WWAM UP IN YA", "THE POSSUM TAKEOUT", "A sweet-and-sour chicken story becomes a possum-or-rat taste test, with the hosts describing bad takeout like a creature-feature practical effect."),
+    E(2425, 2505, "TAKE GETS NUCLEAR", "MCCQUARRIE GETS CORRECTED", "A director's name is corrected midstream, and the correction is treated like a red-carpet legal proceeding rather than a normal fact check."),
+    E(2695, 2795, "TAKE GETS NUCLEAR", "ARNOLD'S ABS HAVE A DEADLINE", "The hosts want Arnold back but acknowledge the body and action style have changed, then demand the character be written with dignity instead of digital denial."),
+    E(2770, 2870, "STRAIGHT TO STEVE'S ASSHOLE", "DISNEY WILL BASTARDIZE PREDATOR", "Predator ownership becomes a studio-anxiety bit: the room can imagine a good return, but it can also see the corporate version ruining the character."),
+    E(2840, 2930, "DEEP DIVE", "WHO OWNS PREDATOR NOW?", "The ownership question gets answered in real time, with Disney, Hulu, and Fox named as the reason the room stops trusting a simple franchise revival."),
+    E(2935, 3035, "FAN SIGNAL", "MORTAL KOMBAT 2 OVER STREET FIGHTER", "A viewer asks for the fight and the answer is immediate: Mortal Kombat 2 gets the confident vote because the trailers already look like the better bet."),
+    E(3180, 3275, "STRAIGHT TO STEVE'S ASSHOLE", "ATTACK OF THE CLONES CHAT TRAP", "The chat deliberately drops a Star Wars take to trigger the room, and the response turns into a gag about being attacked before the movie desk has even started."),
+    E(3360, 3450, "WWAM UP IN YA", "THE ROCKY GLOVE IS FOR AMERICA", "A fan's setup and a Rocky glove get folded into a patriotic riff that is too exaggerated to be a political statement and too funny to cut."),
+    E(4015, 4105, "BEST MOMENT", "THE SCREAM CLIP SOUNDS LIKE AN EX-WIFE", "A screaming clip is judged by the room as less monster and more furious ex-spouse, turning a sound reaction into its own tiny review."),
+    E(4160, 4250, "WWAM UP IN YA", "GUSHERS IN THE MOUTH", "A trailer reaction becomes a candy comparison so vivid the hosts stop discussing the scene and start arguing about how the snack should be eaten."),
+    E(4270, 4365, "DEEP DIVE", "THE HONEYMOON SUITE IS LOCKED", "A horror-trailer setup gets the room's suspicion test: locked rooms, groaning sounds, and a growing certainty that the nicest suite is the worst possible place to sleep."),
+    E(4650, 4755, "TAKE GETS NUCLEAR", "ROMULUS WITHOUT FEDE", "Alien: Romulus gets a reported director conversation, with the hosts admitting they want the physical horror of Fede Alvarez even if the next film has to find a new hand."),
+    E(4820, 4910, "WWAM UP IN YA", "UMBELLA CORP'S FIRST DAY", "An Umbrella Corporation worker hears the worst possible sound on day one, giving Resident Evil a workplace-comedy button."),
+    E(4925, 5015, "TAKE GETS NUCLEAR", "DADDY ISSUES IN THE JUNGLE", "A wilderness clip prompts a blunt warning about entering a dangerous place without knowing you can win, then immediately gets psychologized as a family problem."),
+    E(5125, 5225, "STRAIGHT TO STEVE'S ASSHOLE", "KEVIN WILLIAMSON GETS SENT HOME", "The reported Scream 8 change is treated as a genuine disappointment, with the hosts explaining why a franchise loses its compass when its original voice leaves."),
+    E(5200, 5300, "TAKE GETS NUCLEAR", "THE SCREAM 7 DEFENSE ATTORNEY", "The room distinguishes a divisive movie from a worthless one, keeping the disagreement specific instead of turning it into a score war."),
+    E(5360, 5455, "TAKE GETS NUCLEAR", "SYDNEY CANNOT DIE OFFSCREEN", "The hosts argue that bringing Sydney back only to kill her would be the cheapest possible use of the character, even while admitting the franchise needs a new shock."),
+    E(5450, 5540, "BEST MOMENT", "SCREAM 7 GETS FOURTH PLACE", "The ranking lands in plain language: Scream 1, Scream 2, Scream 5, then 7. The useful part is not the number; it is the reasons behind the placement."),
+    E(5530, 5625, "STRAIGHT TO STEVE'S ASSHOLE", "THE THIRD COMMENTARY THREAT", "A proposed commentary is treated as both an invitation and a threat, because one host knows the other will rewatch the film just to find more things to attack."),
+    E(5605, 5705, "TAKE GETS NUCLEAR", "EIGHT-POINT-FIVE WITH A BAD REVEAL", "The score sounds high until the hosts explain the split: most of the film worked, then the reveal damaged the final stretch."),
+    E(5845, 5940, "CHARACTER PERFORMANCE", "BELLY-BUTTON JELL-O SHOTS", "Feet Meat asks Loomis and Challis who gets first dibs on shaved-body Jell-O shots, and the character lane answers with the confidence of a medical clinic that should be shut down.", ["Dr. Loomis", "Dr. Challis"]),
+    E(5920, 6020, "WWAM UP IN YA", "TOXIC AVENGER GREEN STAIRS", "The green Buzz Ball story is replayed as a complete fan-authored soundbite: Fireballs, drinking, fading in and out, and a green stairwell aftermath."),
+    E(6000, 6100, "COMMUNITY MEMORY", "TIFFANY'S ANIMAL CHECK-IN", "A fan asks after the animals, and the hosts answer sincerely before the room remembers that even a clean-bill-of-health update can be interrupted by a joke."),
+    E(6050, 6150, "WWAM UP IN YA", "FORTIES AND FATTIES", "A sick-day confession becomes a story about rolling fatties and pounding 40s, delivered as personal memory rather than advice."),
+    E(6190, 6285, "FAN SIGNAL", "THE PLATINUM GAME BRAG", "A viewer challenges the hosts with a list of platinum trophies, turning the chat into a playful scoreboard for Red Dead and the TMNT game."),
+    E(6385, 6480, "CHARACTER PERFORMANCE", "THE HALLOWEEN GAME QUOTE", "A Halloween-game request arrives with a half-remembered quote, and Loomis/Challis energy takes over the answer before the source question can recover.", ["Dr. Loomis", "Dr. Challis"]),
+    E(6565, 6665, "TAKE GETS NUCLEAR", "THE REVEAL WAS BAD, THE FIGHT WAS GOOD", "The Scream argument gets its cleanest summary: the ending's fight and aftermath worked, but the reveal itself did not earn the room's trust."),
+    E(6700, 6785, "STRAIGHT TO STEVE'S ASSHOLE", "THE DEFAULT PLAYSTATION AVATAR", "A profile-picture question turns into a roast of the generic PlayStation avatar and a warning that the account is proving its own critics right."),
+    E(6930, 7035, "FAN SIGNAL", "IS HBO MAX WORTH IT?", "A viewer asks for a real subscription verdict, and the room answers through the actual use case: catalog depth, horror availability, and whether the monthly bill earns a rewatch."),
+    E(7015, 7115, "WWAM UP IN YA", "THE FRANKENSTEIN CAR", "A fan's vehicle needs so much work that the hosts compare it to Frankenstein's monster, then add the expired-tag confession."),
+    E(7140, 7245, "CHARACTER PERFORMANCE", "LOOMIS DODGES ROB ZOMBIE'S HOUSE", "Cornholio asks why the toilet is talking and what Loomis was doing with Sheri Moon. Loomis answers the first question and refuses the second.", ["Dr. Loomis", "Dr. Challis"]),
+    E(7335, 7425, "COMMUNITY MEMORY", "BUSTER'S HEALTH UPDATE", "A quick animal update interrupts the movie talk and shows the room's real community function: people remember the pets and ask how they are doing."),
+    E(7460, 7560, "FAN SIGNAL", "MICHAEL PARTON AND PROJECT HAIL MARY", "Michael Parton passes on the new Gosling movie, and the room turns the title into a quick punch-out before getting back to the actual question."),
+    E(7600, 7705, "TAKE GETS NUCLEAR", "COMEDY IS NOT A PHOBE", "The hosts push back on the internet's habit of assigning a label to every joke, defending broad comedy while acknowledging the line between a bit and a factual accusation."),
+    E(8460, 8560, "FAN SIGNAL", "ROB ZOMBIE'S SCREAM", "James Wan, Rob Zombie, and M. Night Shyamalan are all thrown into the Scream director fantasy, with the room choosing chaos over a safe answer."),
+    E(8580, 8675, "STRAIGHT TO STEVE'S ASSHOLE", "THE SCREAM SHILL ACCUSATION", "Liking a movie gets treated online as proof of industry corruption, and the hosts make the absurd accusation itself the object of the joke."),
+    E(8680, 8785, "WWAM UP IN YA", "THE EXTERMINATOR MISSED THE BUGS", "A Quiet Place/Alien tangent ends with the exterminator failing so badly that the bugs are invited to eat the audience's face."),
+    E(8845, 8945, "BEST MOMENT", "SHADOWBOXING IN UNDERWEAR", "A fan or family member shadowboxes outside in underwear, and the room's only editorial note is that somebody should film it before the haymaker arrives."),
+    E(8950, 9050, "COMMUNITY MEMORY", "THE NEW LAPTOP TAX", "A laptop purchase becomes the price of keeping the live room alive, with the hosts explaining the cost instead of pretending the stream runs on magic."),
+    E(9025, 9135, "CHARACTER PERFORMANCE", "LOOMIS DOESN'T KNOW WHAT POPPERS ARE", "A poppers question is answered as if it were a birthday-party supply, producing a rare character moment where ignorance is the whole joke.", ["Dr. Loomis", "Dr. Challis"]),
+    E(9090, 9190, "WWAM UP IN YA", "PARTY CITY POPPERS", "The room tries to solve the poppers mystery with Party City, balloons, and the realization that nobody in chat wants to be the person who explains it."),
+    E(9190, 9285, "WWAM UP IN YA", "COOL WHIP CAN SCIENCE", "A viewer's question turns into a Cool Whip can tangent that the hosts immediately recognize as a terrible late-night idea."),
+    E(9400, 9500, "FAN SIGNAL", "BRING BACK STU TO FIX SEVEN", "The chat proposes Stu as the shock repair for Scream 7, and the hosts explain why a resurrection only works if the story earns the stunt."),
+    E(9475, 9575, "TAKE GETS NUCLEAR", "THE OPENING WAS GREAT, THE REVEAL WASN'T", "A fan's pros-and-cons list gives the episode its most useful review language: the opening jumps, some kills land, Matthew Lillard rules, and nothing after the reveal blows the doors off."),
+    E(9660, 9765, "STRAIGHT TO STEVE'S ASSHOLE", "THE COMMENTARY THREAT RETURNS", "The proposed commentary comes back around with a warning that a second viewing will only give the hosts more ammunition."),
+    E(9760, 9860, "WWAM UP IN YA", "FLINTSTONE THE CAR TO THE GAS STATION", "A car with expired tags becomes a cartoon survival plan: kick out the bottom and Flintstone it to a repair shop."),
+    E(9970, 10080, "FAN SIGNAL", "TEXAS CHAINSAW BIRTHDAY TRIP", "A viewer plans a birthday trip to Austin for the original Texas Chainsaw Massacre house, and the hosts immediately endorse the movie-tour pilgrimage."),
+    E(10420, 10525, "WWAM UP IN YA", "LIVE SCREAM COMMENTARY OR BUST", "The room agrees that doing Scream 7 live would be fun precisely because the hosts would have to stop arguing and watch the damn movie together."),
+    E(10650, 10775, "LAST WORD", "HI-A-WA-THA ON COMMAND", "The final request is a Hiawatha soundbite, and the show exits by proving one more audience prompt can still unlock the room."),
+  ];
+
+  sources["_hcLHO3Y0jA"] = Object.freeze(Object.assign({}, prior, {
+    sourceId: "_hcLHO3Y0jA",
+    reviewState: "full-tape-human-editorial-read",
+    editorialPass: "2026-08-07 fine-toothed second read; audio candidates reconciled to visitor-facing lanes",
+    highlights: Object.freeze((prior.highlights || []).concat(additions).sort(function (a, b) { return Number(a.at || 0) - Number(b.at || 0); })),
+    evidence: Object.freeze(Object.assign({}, prior.evidence || {}, {
+      duration: 10775,
+      captionWords: 6716,
+      captionEvents: 710,
+      captionSpanSeconds: 10775.22,
+      captionDurationCoveragePercent: 100,
+      captionSha256: "sha256:2ce073dbae1bb3d6f87cd50c57aa83634d94cfc5703418d62fc63a36c11e167a",
+      captionSourceKind: "official YouTube caption ledger",
+      audioPass: "canonical YouTube audio + source-local Whisper transcript alignment",
+      audioSha256: "f5e9c8156988dc229cbbce1facbb1cc5159ade7057ad8f120daddde0d1e10daa",
+      asrWindowCount: 68,
+      speakerAttribution: false,
+      visualOutcomeInferred: false,
+    })),
+    badge: "FULL SHOW WIKI // 2:59:35 OF SCREAM, ALIEN, TOXIC AVENGER, AND A 93-RECEIPT SECOND READ",
+  }));
+
+  root.WWAM_EPISODE_EDITORIAL_PACKS = Object.freeze({ schema: registry.schema || "shokker-episode-editorial-packs/v1", generated: "2026-08-07", sources: Object.freeze(sources) });
+})(typeof window !== "undefined" ? window : globalThis);
