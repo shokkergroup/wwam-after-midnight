@@ -174,6 +174,7 @@
     "episode-editorial-packs-wave150.js?v=1.0.0-december-2025-most-anticipated-second-read",
     "episode-editorial-packs-wave151.js?v=1.0.0-december-2025-christmas-tier-list-second-read",
     "episode-editorial-packs-wave152.js?v=1.0.0-june-2026-horror-action-bracket-second-read",
+    "episode-editorial-packs-wave153.js?v=1.0.0-january-2025-january-22-second-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
