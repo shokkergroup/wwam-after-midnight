@@ -162,6 +162,7 @@
     "episode-editorial-packs-wave138.js?v=1.0.0-february-2025-february-11-second-read",
     "episode-editorial-packs-wave139.js?v=1.0.0-february-2025-february-05-second-read",
     "episode-editorial-packs-wave140.js?v=1.0.0-february-2025-february-04-second-read",
+    "episode-editorial-packs-wave141.js?v=1.0.0-january-2025-stu-lives-second-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
