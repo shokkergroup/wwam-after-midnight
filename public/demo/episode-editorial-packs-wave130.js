@@ -1,0 +1,105 @@
+(function (root) {
+  "use strict";
+  var registry = root.WWAM_EPISODE_EDITORIAL_PACKS || { schema: "shokker-episode-editorial-packs/v1", sources: {} };
+  var sources = Object.assign({}, registry.sources || {});
+  var H = function (at, end, category, label, excerpt) {
+    return { at: at, end: end, category: category, label: label, excerpt: excerpt, sourceId: "mI7QlWrVyRw", evidenceState: "machine surfaced; audio-feature-ranked candidate; playback remains the authority" };
+  };
+
+  /* March 18, 2025: a full audio-led second read of the St. Paddy's Day room.
+     It is a long show, so the public runway keeps every ranked window and lets
+     playback settle delivery, speaker, and visual context. */
+  sources["mI7QlWrVyRw"] = Object.freeze({
+    sourceId: "mI7QlWrVyRw",
+    reviewState: "full-tape-human-editorial-read",
+    editorialPass: "2026-08-07 fine-toothed second read; 47 audio-ranked windows reconciled across the full St. Paddy's Day room",
+    evidence: Object.freeze({
+      duration: 10994,
+      captionWords: 37959,
+      captionEvents: 9916,
+      captionSpanSeconds: 10994,
+      captionDurationCoveragePercent: 100,
+      captionSha256: "sha256:b7f7ee200e0f38862e77e026d0d8961c3a89d219671a1cb4203f026059bd6116",
+      captionSourceKind: "official YouTube caption ledger",
+      audioPass: "canonical YouTube audio + source-local Whisper transcript alignment",
+      audioSha256: "sha256:5933f44a7c04c73689f1c51bd34cd8cab7f0b8fa712b3c302f366dd54107aa06",
+      asrWindowCount: 47,
+      speakerAttribution: false,
+      visualOutcomeInferred: false,
+    }),
+    label: "WE WATCHED A MOVIE LIVE // MARCH 17, 2025 // ST. PADDY'S DAY",
+    badge: "FULL SHOW WIKI // 3:03:14 OF SAW 11, MORTAL KOMBAT 2, FAM LOVE, SMELLING SALTS, AND REACTION-VIDEO DAMAGE",
+    headline: "ST. PADDY'S DAY TURNS INTO SAW 11 COURT, A MORTAL KOMBAT TRAILER DESK, AND THE SMELLING-SALT OLYMPICS",
+    deck: "A three-hour FAM night that starts with a Tennessee storm pivot, argues about Saw and Freddy, celebrates 500K, and ends with ammonia, fireworks, and a TV-screen pee fakeout.",
+    overview: "The St. Paddy's Day stream is a long-form WWAM hangout with a real arc. It starts with a weekend cabin plan getting wiped out by storms, then immediately visits the archive's favorite bodily territory: Challice's tiny white underwear, archaeological butt-crust theory, and the kind of personal overshare that would make a normal movie desk close its laptop. The movie spine is stronger than the title suggests. Saw 11 becomes a real franchise question—does the next film restart, continue, or leave Saw X as Tobin Bell's clean send-off?—while the room rejects a female Freddy pitch, debates how much practical work Mortal Kombat 2 needs, and worries about Shao Kahn looking more like a fantasy skeleton than a character. The FAM supplies the connective tissue: a 500K congratulations, Super Chats, movie-room questions, and the familiar names that keep a three-hour broadcast from becoming a list of headlines. Then the show turns into a live stunt archive. A smelling-salts package arrives, the hosts debate whether it will make anyone puke, one of them takes the hit, discovers that ammonia apparently feels great, and keeps asking for another blast. The final hour layers on reaction videos, fake pee, fireworks, cocaine jokes, and movie recommendations before the room finally admits it is blurry and calls it a night. This is not one joke stretched for three hours; it is a complete WWAM evening with movie talk, audience memory, gross-out improv, and a closing stretch that belongs in the FAM Hall of Fame.",
+    story: Object.freeze([
+      { at: 0, end: 1100, label: "THE STORM PIVOT AND THE UNDERWEAR ARCHAEOLOGISTS", body: "At the top, a weather-cancelled cabin plan gives way to Huntington stories, Chappelle memories, tiny underwear, and a disgusting debate about how a pair of white briefs became a historical artifact." },
+      { at: 1100, end: 2200, label: "SAW 11 HAS A FRANCHISE PROBLEM", body: "Saw X, Kramer, Barry Allen, Ezra Miller, and the possibility of restarting the series form the first serious movie spine, with the room separating actual franchise logic from pure spite." },
+      { at: 2200, end: 3300, label: "500K AND THE FAM THAT GOT THEM THERE", body: "The audience celebrates the channel's milestone, asks for old behind-the-scenes stories, and turns a Super Chat into a reminder that the show is built with the room, not merely in front of it." },
+      { at: 3300, end: 4500, label: "KARAOKE BAR LORE ENTERS THE CANON", body: "A confrontation outside a karaoke bar, a friend who drank only water, a bad singer, and a livelihood apparently going down the toilet become a whole secondary sitcom." },
+      { at: 4500, end: 5600, label: "MORTAL KOMBAT 2 GETS A BODY CHECK", body: "Cole, Shao Kahn, Jason David Frank, VR Troopers, and the argument over whether the sequel looks like a real Mortal Kombat movie push the show into its biggest franchise desk." },
+      { at: 5600, end: 6700, label: "MOVIE-ROOM QUESTIONS AND THE BUTTHOLE WEATHER REPORT", body: "The hosts talk Robert Pattinson, a giant wall logo, drink-making, Doom, Leatherface, and the strange physical sensation that arrives when a horror movie gets too intense." },
+      { at: 6700, end: 7800, label: "SHAO KAHN, DAREDEVIL, AND THE BAND DESK", body: "Shao Kahn's design gets a bone to pick, Johnny Cage wins the early visual argument, and a favorite-band conversation briefly turns the movie stream into a music-history show." },
+      { at: 7800, end: 9000, label: "THE FAM ROOM STARTS TO FLOAT", body: "Super Chat gratitude, a viewer's recovery message, Empire reassurance, and a missing camera battery set up the late-night escalation while the stream keeps finding more people to thank." },
+      { at: 9000, end: 10100, label: "THE SMELLING-SALT OLYMPICS", body: "The package arrives, the hosts explain ammonia and powerlifting, and one brave idiot takes repeated sniffs while the room tracks sweating, shaking, and the alarming fact that he enjoys it." },
+      { at: 10100, end: 10994, label: "FIREWORKS, FAKE PEE, AND GOODNIGHT", body: "Reaction videos, a fake cocaine reveal, a TV-screen pee gag, Session 9, Hospital Massacre, and the final thank-you turn the closing stretch into a miniature WWAM after-midnight reel." },
+    ]),
+    highlights: Object.freeze([
+      H(626, 634, "WWAM UP IN YA", "THE STORM CANCELS THE TINY CABIN", "A romantic Tennessee cabin plan is abandoned when the weather forecast starts sounding like a low-budget disaster movie."),
+      H(1115, 1123, "STRAIGHT TO STEVE'S ASSHOLE", "CHALLIS'S UNDERWEAR BECOMES AN ARCHAEOLOGICAL SITE", "The room turns a pair of tiny white briefs into a butt-crust excavation, complete with a racing-stripe theory nobody asked for."),
+      H(1206, 1214, "STRAIGHT TO STEVE'S ASSHOLE", "BARRY ALLEN GETS HATED THROUGH TIME", "Time travel and superpowers are judged by the pettiest possible standard: why use them to save the world when you can go back just to hate Barry Allen?"),
+      H(1272, 1280, "WWAM UP IN YA", "THE THERMOSTAT DOESN'T REQUIRE A SEX SALE", "A broken thermostat briefly becomes a hostage-negotiation story before the room realizes the repair may not require selling anybody into a dark internet subplot."),
+      H(1419, 1427, "TAKE GETS NUCLEAR", "THE FEMALE FREDDY PITCH GETS SENT BACK", "A fan's female-Freddy idea gets a firm no, with the room using the failed female-Hellraiser experiment as the warning label."),
+      H(1677, 1685, "DEEP DIVE", "SAW 11 HITS AN IMPASSE", "The useful Saw question arrives: does the series start over, or does Saw X remain the clean final handoff for Tobin Bell's Kramer?"),
+      H(2053, 2061, "TAKE GETS NUCLEAR", "KRAMER'S HYPOCRISY GETS A THEORY", "The room tries to explain why Kramer can sound hypocritical, then admits the franchise has been carrying multiple writers' competing ideas."),
+      H(2444, 2452, "FAN SIGNAL", "500K AND A GREEN-PINCH THREAT", "A milestone Super Chat congratulates the channel and immediately adds the St. Paddy's rule: somebody not wearing green is getting pinched somewhere private."),
+      H(3601, 3609, "ROOM BREAK", "THE KARAOKE WATER GUY", "A karaoke-bar confrontation depends on the identity of the one guy who never bought beer and apparently survived the entire night on water."),
+      H(4388, 4396, "STRAIGHT TO STEVE'S ASSHOLE", "THE LIVELIHOOD GOES DOWN THE TOILET", "A terrible singer turns a bar story into a career-collapse metaphor, with the hosts trying to describe the performance without inviting a lawsuit."),
+      H(4468, 4476, "TAKE GETS NUCLEAR", "BAD SINGING GETS A FORMER-BANDMATE DEFENSE", "The room admits that some of the criticism is personal experience: everybody who has played music has had a performance they wish would disappear."),
+      H(4867, 4875, "STRAIGHT TO STEVE'S ASSHOLE", "COLE IS NOT A MAGIC-POWER HERO", "The Mortal Kombat discussion objects to a hero who starts as an ordinary fighter and then gets buried under magical movie business."),
+      H(5293, 5301, "WWAM UP IN YA", "VR TROOPERS AND THE BURP ATTACK", "A Jason David Frank/VR Troopers memory gets interrupted by a burp aimed directly at the room, because nostalgia is never allowed to stay clean."),
+      H(5438, 5446, "FAN SIGNAL", "THE GIANT WWAM WALL IS NOT PORN", "A question about the enormous logo in the movie room produces the admission that visitors probably assume the wall is hiding something much filthier."),
+      H(5587, 5595, "STRAIGHT TO STEVE'S ASSHOLE", "ROBERT PATTINSON IS A CONVERSATIONAL LANDMINE", "A Batman opinion gets carefully avoided because the room knows one wrong sentence about Pattinson can turn a friendly chat into a franchise war."),
+      H(5743, 5751, "WWAM UP IN YA", "THE PROPERTY-MANAGER POWER RANGER", "A tense internet-and-property conversation gets derailed by a Power Rangers question and the realization that this is the wrong moment for childhood armor."),
+      H(5909, 5917, "FAN SIGNAL", "THE STEPMOM SUPER CHAT ESCALATION", "A viewer's message is praised for being only one step more restrained than an older JT Owsley family-gag tradition."),
+      H(6016, 6024, "ROOM BREAK", "APPLE JUICE TIME", "The original movie argument pauses for a battery change and a drink emergency, leaving the chat to hold the place in the story."),
+      H(6076, 6084, "DEEP DIVE", "DOOM IS NOT A CASUAL GAME", "A viewer asks whether Doom is worth playing and gets the only answer the room can live with: yes, absolutely, start with the original."),
+      H(6154, 6162, "WWAM UP IN YA", "THE COKE-ZERO DRINK LAB", "A drink-making question becomes a domestic science experiment, with the hosts acting like Coke Zero and whiskey require a licensed bartender."),
+      H(6493, 6501, "WWAM UP IN YA", "THE BUTTHOLE WEATHER REPORT", "The hosts describe the physical sensation of movie vertigo through tingling, retracting anatomy, and the growing suspicion that everybody feels it."),
+      H(6921, 6929, "TAKE GETS NUCLEAR", "SHAO KAHN GETS A BONE TO PICK", "The new Shao Kahn look is challenged for hiding too much face under a war helmet, with the room refusing to accept a literal walking skeleton."),
+      H(7270, 7278, "DEEP DIVE", "THE BAND DESK INTERRUPTS THE MOVIE DESK", "A favorite-band conversation gets unexpectedly sincere, with old age, missing members, and great songwriting briefly outranking movie news."),
+      H(8369, 8377, "WWAM UP IN YA", "FART SKITTLES HAVE A MARSHMALLOW", "A fart becomes a bag of Skittles, the room digs for the gold underneath, and the last surviving marshmallow is declared somebody's penis."),
+      H(8514, 8522, "FAN SIGNAL", "ESCAPING LIKE A FART IN THE NIGHT", "The viewer count dips while the hosts read Super Chats, so the room reassures the audience that leaving for a minute does not mean the show is over."),
+      H(8793, 8801, "FAN SIGNAL", "EMPIRE GETS A GOODNIGHT", "A viewer's difficult update gets an actual answer instead of a throwaway: keep going, it will be all right, and the room is glad they came back."),
+      H(9111, 9119, "OPEN MIC", "THE EYE-CONTACT CLIP", "A reaction video becomes funny for one precise reason: the person performing it keeps looking directly at the audience while doing the worst possible thing."),
+      H(9234, 9242, "TAKE GETS NUCLEAR", "POWERLIFTERS TAKE THE AMMONIA HIT", "The smelling-salts experiment gets a practical explanation—powerlifters use the shock for a burst of energy—before anybody has actually agreed to try it."),
+      H(9288, 9296, "ROOM BREAK", "THE NO-PUKE CLAUSE", "The first safety question is not whether ammonia wakes you up. It is whether the room is about to make somebody throw up on camera."),
+      H(9336, 9344, "DEEP DIVE", "AMMONIA IS A WAKE-UP CALL", "The hosts explain the smelling salts as an old medical wake-up tool, then realize the explanation has made the dare sound even worse."),
+      H(9392, 9400, "ROOM BREAK", "HE LIKES THE SMELLING SALTS", "The unplanned twist is that the person taking the hit enjoys it, leaving the room with the most dangerous possible follow-up question: do it again."),
+      H(9488, 9496, "BEST MOMENT", "BONE SAW GETS A SECOND SNIFF", "After sweating and flinching, the room discovers the smell is weirdly energizing and starts treating ammonia like a recreational movie-night accessory."),
+      H(9548, 9556, "WWAM UP IN YA", "AMMONIA SAYS HELLO TO THE BRAIN", "The physical explanation becomes a filthy metaphor: the chemical goes straight up the nostrils and announces itself."),
+      H(9719, 9727, "ROOM BREAK", "ROCKY BALBOA IN THE CORNER", "A smelling-salts victim is compared to Rocky after Ivan Drago, complete with the impossible question of whether anybody should still be standing."),
+      H(9772, 9780, "TAKE GETS NUCLEAR", "SOBER AMMONIA WOULD BE WORSE", "The room decides the alcohol is acting as a safety blanket and wonders what the same smelling-salts stunt would do to a sober person."),
+      H(9926, 9934, "TAKE GETS NUCLEAR", "THE 2016 COMMENTARY ESCAPE PLAN", "A fan asks for another commentary and the answer is immediate: a smelling-salts-fueled review would be over before the title card finished."),
+      H(9999, 10007, "WWAM UP IN YA", "THE ATMOSPHERIC-REENTRY FART", "A reaction clip is explained as a rocket re-entering the atmosphere, but the room is convinced the noise is exactly what it sounds like."),
+      H(10048, 10056, "TAKE GETS NUCLEAR", "THE BLOOD-PRESSURE CHECK", "A home health check appears after the chaos, and the room tries to decide whether the numbers are reassuring or just another reason to panic."),
+      H(10182, 10190, "STRAIGHT TO STEVE'S ASSHOLE", "THE ARKHAM COMBO RUIN", "A missed move in an Arkham challenge becomes a full rage documentary: one broken combo can ruin the entire performance for the person watching."),
+      H(10299, 10307, "ROOM BREAK", "THE FIREWORKS CLIP GOES BAD", "A reaction video crosses the line from funny to alarming, and the room can only respond with shouted instructions and regret."),
+      H(10362, 10370, "ROOM BREAK", "THE CRINGE LEVEL IS OFF THE CHARTS", "A fireworks stunt is judged as pure secondhand pain, with the room refusing to pretend the dangerous clip is anything but awful."),
+      H(10407, 10415, "TAKE GETS NUCLEAR", "THE EIGHT-BALL REVEAL", "A casino story escalates from a normal night to a baggie reveal, and the hosts let the old-fashioned shock do the work."),
+      H(10492, 10500, "WWAM UP IN YA", "THE TV-PEE SONG CUE", "A fake-pee clip lands on a song about being six feet from the couch, making the music choice almost as funny as the stunt."),
+      H(10539, 10547, "ROOM BREAK", "NO WOMEN, NOTHING TO DO TOMORROW", "A drunk casino story becomes an accidental anthem for terrible male decision-making and a very empty calendar."),
+      H(10600, 10608, "BEST MOMENT", "THE BLURRY GOODNIGHT", "After the smelling salts and the clips, the hosts finally admit the room is blurry and still call the night fun. That is the whole WWAM contract."),
+      H(10728, 10736, "STRAIGHT TO STEVE'S ASSHOLE", "SESSION 9 GETS A SECOND CHANCE", "A viewer asks for recommendations and the room admits a movie it once hated can become a great psychological horror on a later watch."),
+      H(10776, 10784, "DEEP DIVE", "HOSPITAL MASSACRE AND THE DUMB-AND-DUMBER PEE BOTTLE", "The recommendation desk closes with grimy 1980s horror, The Butterfly Effect, and a final Dumb and Dumber comparison that sends the St. Paddy's room out laughing."),
+    ]),
+    fanRead: Object.freeze({
+      loved: Object.freeze({ at: 1677, end: 2200, label: "SAW 11 HAS TO EARN THE NEXT TRAP", topic: "franchise continuity versus a clean Tobin Bell send-off", body: "Play from 27:57. The room treats Saw X as a real ending, then asks what a new movie would have to add before it earns another trip to the trap room.", playAt: 1677, playEnd: 2200 }),
+      hated: Object.freeze({ at: 1419, end: 1510, label: "THE FEMALE-FREDDY PITCH", topic: "a reboot idea that gets rejected", body: "Play from 23:39. The hosts do not want a gender-swapped Freddy as a shortcut, especially after the room's disappointment with a similar Hellraiser direction.", playAt: 1419, playEnd: 1510 }),
+      wildestDetour: Object.freeze({ at: 9234, end: 10007, label: "THE SMELLING-SALTS OLYMPICS", topic: "ammonia, sweating, and the terrible decision to enjoy it", body: "Play from 2:33:54. One sniff becomes a full experiment with powerlifting lore, fear of vomiting, repeated blasts, and a room that cannot believe the victim wants more.", playAt: 9234, playEnd: 10007 }),
+      lastWord: Object.freeze({ at: 10182, end: 10784, label: "FIREWORKS, FAKE PEE, AND MOVIE RECS", topic: "the FAM room closes on clips and affection", body: "Play from 2:49:42. Arkham rage, fireworks, a fake cocaine reveal, TV-screen pee, Session 9, Hospital Massacre, and the last recommendation make the exit feel like a second after-midnight show.", playAt: 10182, playEnd: 10784 }),
+    }),
+  });
+
+  root.WWAM_EPISODE_EDITORIAL_PACKS = Object.freeze({ schema: registry.schema || "shokker-episode-editorial-packs/v1", generated: "2026-08-07", sources: Object.freeze(sources) });
+})(typeof window !== "undefined" ? window : globalThis);
