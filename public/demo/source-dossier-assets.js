@@ -118,6 +118,7 @@
     "episode-editorial-packs-wave94.js?v=1.0.0-august-2025-live-8-8",
     "episode-editorial-packs-wave95.js?v=1.0.0-august-2025-spirit-halloween-tier-list",
     "episode-editorial-packs-wave96.js?v=1.0.0-august-2025-fantastic-four-happy-gilmore",
+    "episode-editorial-packs-wave97.js?v=1.0.0-august-2025-comic-con-special",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
