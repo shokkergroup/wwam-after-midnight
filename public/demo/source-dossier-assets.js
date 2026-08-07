@@ -126,6 +126,7 @@
     "episode-editorial-packs-wave102.js?v=1.0.0-june-2025-28-years-later",
     "episode-editorial-packs-wave103.js?v=1.0.0-july-2026-movie-news",
     "episode-editorial-packs-wave104.js?v=1.0.0-june-2025-final-franchise",
+    "episode-editorial-packs-wave105.js?v=1.0.0-april-2026-horror-action-bracket",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
