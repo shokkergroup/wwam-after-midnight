@@ -200,6 +200,7 @@
      "episode-editorial-packs-wave176.js?v=1.0.0-april-2023-scream-vi-commentary-first-read",
      "episode-editorial-packs-wave177.js?v=1.0.0-october-2022-halloween-ends-commentary-first-read",
      "episode-editorial-packs-wave178.js?v=1.0.0-may-2022-the-batman-short-watchalong-first-read",
+     "episode-editorial-packs-wave179.js?v=1.0.0-march-2022-scream-2022-commentary-first-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
