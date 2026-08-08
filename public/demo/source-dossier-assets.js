@@ -308,6 +308,7 @@
     "episode-editorial-packs-wave284.js?v=1.0.0-june-06-boogeyman-full-tape-human-read",
     "episode-editorial-packs-wave285.js?v=1.0.0-june-04-movie-news-full-tape-human-read",
     "episode-editorial-packs-wave286.js?v=1.0.0-may-30-horror-comedies-full-tape-human-read",
+    "episode-editorial-packs-wave287.js?v=1.0.0-may-25-scariest-movies-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
