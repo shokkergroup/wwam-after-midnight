@@ -300,6 +300,7 @@
     "episode-editorial-packs-wave276.js?v=1.0.0-july-18-stephen-king-full-tape-human-read",
     "episode-editorial-packs-wave277.js?v=1.0.0-july-16-box-office-rematch-full-tape-human-read",
     "episode-editorial-packs-wave278.js?v=1.0.0-july-09-blumhouse-full-tape-human-read",
+    "episode-editorial-packs-wave279.js?v=1.0.0-july-06-80s-90s-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
