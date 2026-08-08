@@ -336,6 +336,7 @@
     "episode-editorial-packs-wave312.js?v=1.0.0-february-07-knock-at-the-cabin-m-night-top-ten-full-tape-human-read",
     "episode-editorial-packs-wave313.js?v=1.0.0-december-24-christmas-movie-face-off-full-tape-human-read",
     "episode-editorial-packs-wave314.js?v=1.0.0-december-08-top-15-antiheroes-full-tape-human-read",
+    "episode-editorial-packs-wave315.js?v=1.0.0-november-19-horror-icons-action-stars-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
