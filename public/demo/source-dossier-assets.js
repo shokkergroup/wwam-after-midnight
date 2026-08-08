@@ -195,6 +195,7 @@
      "episode-editorial-packs-wave171.js?v=1.0.0-december-2024-terrifier-3-reaction-first-read",
      "episode-editorial-packs-wave172.js?v=1.0.0-january-2025-longlegs-reaction-first-read",
      "episode-editorial-packs-wave173.js?v=1.0.0-november-2024-thanksgiving-reaction-first-read",
+     "episode-editorial-packs-wave174.js?v=1.0.0-october-2024-sinister-watchalong-second-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
