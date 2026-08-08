@@ -81,7 +81,7 @@
       H(1132, 1157, "STRAIGHT TO STEVE'S ASSHOLE", "NRA CARD-CARRYING GHOSTFACE", "A shirt and a street encounter are turned into a joke about being accused of murder for wearing Metallica in Arkansas."),
       H(1166, 1191, "FILM READ", "ORDEAL IN THE APARTMENT", "Gale's apartment attack earns the commentary's strongest early action praise and a clear statement that the movie understands suspense."),
       H(1200, 1225, "FAN SIGNAL", "ORTEGA AND BARRERA", "The performances of Jenna Ortega and Melissa Barrera are praised as the emotional engine of the new core."),
-      H(1234, 1259, "TAKE GETS NUCLEAR", "DEWEY SHOULD HAVE LIVED", "Mike argues that Dewey's protector role would have added more to this movie than another round of Gale's old ruthlessness."),
+      H(1234, 1259, "TAKE GETS NUCLEAR", "DEWEY SHOULD HAVE LIVED", "The tape argues that Dewey's protector role would have added more to this movie than another round of Gale's old ruthlessness."),
       H(1268, 1293, "DEEP DIVE", "THE DEWEY BOOK", "Gale's missing Dewey book becomes a small continuity question with major character implications."),
       H(1302, 1327, "STRAIGHT TO STEVE'S ASSHOLE", "GALE SELLS THE MOVIE RIGHTS", "Gale trying to sell the story after the events of the previous film is called as low as the character can get."),
       H(1336, 1361, "SOUNDBYTE / REPLAY", "STU IS DEAD, LOSER", "The shrine's Stu Macher death marker triggers the loudest defense of the Stu-lives theory in the tape."),
@@ -173,7 +173,7 @@
     ]),
     fanRead: Object.freeze({
       loved: Object.freeze({ at: 1574, end: 1701, label: "THE LADDER SEQUENCE", topic: "Annika and modern Scream suspense", body: "Play from 26:14. The ladder, the blood, the distance, and the Mick Foley comparison make this one of the commentary's strongest craft reads.", playAt: 1574, playEnd: 1701 }),
-      hated: Object.freeze({ at: 1234, end: 1327, label: "DEWEY SHOULD HAVE LIVED", topic: "legacy-character architecture", body: "Play from 20:34. Mike argues that Dewey's protector role would have added more to Scream VI than Gale's return to ruthless old Gale.", playAt: 1234, playEnd: 1327 }),
+      hated: Object.freeze({ at: 1234, end: 1327, label: "DEWEY SHOULD HAVE LIVED", topic: "legacy-character architecture", body: "Play from 20:34. The tape argues that Dewey's protector role would have added more to Scream VI than Gale's return to ruthless old Gale.", playAt: 1234, playEnd: 1327 }),
       wildestDetour: Object.freeze({ at: 828, end: 919, label: "BALL-TASING AND THE PACKERS", topic: "the party's filthy side road", body: "Play from 13:48. A Fireball defense turns into a ball-tasing death, a Packers marriage fight, and a very specific threat to Steve's Asshole.", playAt: 828, playEnd: 919 }),
       lastWord: Object.freeze({ at: 2628, end: 3061, label: "STU LIVES UNDER THE MASK", topic: "Scream 7 and the fake-death theory", body: "Play from 43:48. Stu merchandise, the television death, Neil Prescott, surviving stomach wounds, Loomis, Challis, and the Halloween-never-ends button close the archive route.", playAt: 2628, playEnd: 3061 }),
     }),
