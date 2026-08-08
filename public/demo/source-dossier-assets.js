@@ -248,6 +248,7 @@
     "episode-editorial-packs-wave224.js?v=1.0.0-may-2024-top-10-1994-human-read",
     "episode-editorial-packs-wave225.js?v=1.0.0-may-2024-80s-90s-part3-human-read",
     "episode-editorial-packs-wave226.js?v=1.0.0-april-2024-deadpool-wolverine-human-read",
+    "episode-editorial-packs-wave227.js?v=1.0.0-april-2024-scary-videos-part3-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
