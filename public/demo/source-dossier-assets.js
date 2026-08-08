@@ -231,6 +231,7 @@
     "episode-editorial-packs-wave207.js?v=1.0.0-august-2024-in-person-live-human-read",
     "episode-editorial-packs-wave208.js?v=1.0.0-august-2024-top-10-1996-human-read",
     "episode-editorial-packs-wave209.js?v=1.0.0-july-2024-deadpool-wolverine-human-read",
+    "episode-editorial-packs-wave210.js?v=1.0.0-july-2024-comic-con-special-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
