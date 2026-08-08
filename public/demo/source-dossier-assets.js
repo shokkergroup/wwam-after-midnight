@@ -217,6 +217,7 @@
     "episode-editorial-packs-wave193.js?v=1.0.0-october-2024-live-human-read",
     "episode-editorial-packs-wave194.js?v=1.0.0-november-2024-live-human-read",
     "episode-editorial-packs-wave195.js?v=1.0.0-november-1999-list-live-human-read",
+    "episode-editorial-packs-wave196.js?v=1.0.0-november-saturday-live-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
