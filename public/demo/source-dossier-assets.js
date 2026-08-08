@@ -225,6 +225,7 @@
     "episode-editorial-packs-wave201.js?v=1.0.0-september-1998-top-ten-human-read",
     "episode-editorial-packs-wave202.js?v=1.0.0-september-disappointing-movies-human-read",
     "episode-editorial-packs-wave203.js?v=1.0.0-august-2024-horror-tier-list-human-read",
+    "episode-editorial-packs-wave204.js?v=1.0.0-august-2024-1997-movie-room-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
