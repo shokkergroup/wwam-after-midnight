@@ -67,8 +67,8 @@
     H(10080,10260,"CHARACTER PERFORMANCE","THE DR. LOOMIS FILES SHOULD END AT THE ORIGINAL HALLOWEEN","The best television pitch is a young-Loomis series: two seasons, Ethan Hawke if the universe is kind, and a finale where he goes to Smith's Grove to retrieve Michael."),
     H(10260,10487,"CLOSING READ","ONE MORE TIME, THE VIDEO-STORE SMELL, AND WHY THIS ERA MATTERS","Blink-182's new songs close the tape alongside the memory of October rental shelves. The hosts are grateful they get to talk about movies for a living, even if the internet keeps demonetizing the room."),
   ];
-  highlights[23].characters = ["Dr. Loomis"];
-  highlights[57].characters = ["Dr. Loomis"];
+  highlights[13].characters = ["Dr. Loomis", "Dr. Challis"];
+  highlights[56].characters = ["Dr. Loomis"];
   sources[sourceId] = Object.freeze({
     sourceId: sourceId,
     reviewState: "full-tape-human-editorial-read",
