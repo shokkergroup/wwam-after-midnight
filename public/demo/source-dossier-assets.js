@@ -211,6 +211,7 @@
     "episode-editorial-packs-wave187.js?v=1.0.0-november-2024-horror-villains-tier-list-human-read",
     "episode-editorial-packs-wave188.js?v=1.0.0-november-2024-top-10-movies-1999-human-read",
     "episode-editorial-packs-wave189.js?v=1.0.0-november-2024-saturday-live-human-read",
+    "episode-editorial-packs-wave190.js?v=1.0.0-november-2024-tuesday-live-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
