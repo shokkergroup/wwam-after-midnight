@@ -334,6 +334,7 @@
     "episode-editorial-packs-wave310.js?v=1.0.0-february-14-valentines-movie-news-full-tape-human-read",
     "episode-editorial-packs-wave311.js?v=1.0.0-february-08-scream-vi-super-bowl-spot-full-tape-human-read",
     "episode-editorial-packs-wave312.js?v=1.0.0-february-07-knock-at-the-cabin-m-night-top-ten-full-tape-human-read",
+    "episode-editorial-packs-wave313.js?v=1.0.0-december-24-christmas-movie-face-off-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
