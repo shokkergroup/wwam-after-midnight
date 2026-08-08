@@ -64,14 +64,13 @@
     H(9275,9450,"STEVE'S ASSHOLE","KIDS IS EFFECTIVE, GNARLY, AND STILL A MOVIE THE ROOM HATES","The hosts separate impact from enjoyment. The movie leaves them wanting a shower, which is not the same as recommending it, even if the craft is impossible to ignore."),
     H(9450,9625,"UP IN YA","GREMLINS TWO, HE-MAN DICKS, AND THE CONVERSATION THAT SHOULD HAVE STAYED IN THE CHAT","A Gremlins sequel argument detonates into a grotesque tangent about old action figures. This is the purest late-night Up in Ya stretch of the whole broadcast."),
     H(9625,9800,"STEVE'S ASSHOLE","CRANK STARTS A STATHAM FIGHT","One host sees a kinetic action classic; the other sees a franchise that somehow made the same movie fifty-eight times. The disagreement is funnier than the ranking because neither side will stop escalating."),
-    H(9800,9975,"CHARACTER PERFORMANCE","COREY FELDMAN, DRIVE, AND A MEMORY GAP THAT BECOMES A JOKE","The hosts try to place Drive and its Coreys, admit the memory is fuzzy, and let Feldman become part of the recurring WWAM character constellation without pretending the identification is certain."),
+    H(9800,9975,"FILM READ","COREY FELDMAN, DRIVE, AND A MEMORY GAP THAT BECOMES A JOKE","The hosts try to place Drive and its Coreys, admit the memory is fuzzy, and let Feldman become part of the recurring WWAM conversation without pretending the identification is certain."),
     H(9975,10150,"FILM READ","CRADLE 2 THE GRAVE GETS THE JIGSAW TREATMENT","Jet Li and DMX's action movie is thrown into the lower tier with a crude Steve's-Asshole flourish. The joke lands because the hosts can still name the exact kind of movie it wanted to be."),
     H(10150,10325,"FILM READ","CLIFFHANGER STILL MAKES A RAVINE FEEL LIKE A NIGHTMARE","Stallone, Michael Rooker, John Lithgow, and the Super Nintendo game all return. The hosts remember renting the cartridge for its cover art and still physically clench at the wire shots."),
     H(10325,10500,"UP IN YA","THE GHOST RAIN ON MIKE'S HAND MEETS GOOGLE'S WORST MEDICAL ADVICE","A strange cold-rain sensation becomes a panic spiral, an imagined ghost, and a joke about dying of eyeball cancer. The late-show room is tired, filthy, and completely committed to the bit."),
     H(10500,10714,"FILM READ","HOSTEL ENDS THE LIST WITH A HYPE CHECK","The first Hostel gets credit for being new and nasty, but the hosts resist the legend that people fainted in theaters. It ends the broadcast exactly where the whole night lived: between genuine movie memory and a very loud argument."),
   ];
-  highlights[39].characters = ["Dr. Loomis", "Dr. Challis"];
-  highlights[49].characters = ["Corey Feldman"];
+  highlights[33].characters = ["Dr. Loomis", "Dr. Challis"];
   sources[sourceId] = Object.freeze({
     sourceId: sourceId,
     reviewState: "full-tape-human-editorial-read",
