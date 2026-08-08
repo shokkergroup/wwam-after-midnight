@@ -285,6 +285,7 @@
     "episode-editorial-packs-wave261.js?v=1.0.0-february-5-tcm-evil-dead-saw-full-tape-human-read",
     "episode-editorial-packs-wave262.js?v=1.0.0-december-19-2023-most-anticipated-movies-full-tape-human-read",
     "episode-editorial-packs-wave263.js?v=1.0.0-november-22-scream-7-qa-full-tape-human-read",
+    "episode-editorial-packs-wave264.js?v=1.0.0-november-14-jason-deaths-tier-list-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
