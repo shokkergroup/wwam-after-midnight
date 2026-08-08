@@ -229,6 +229,7 @@
     "episode-editorial-packs-wave205.js?v=1.0.0-august-2024-crow-review-human-read",
     "episode-editorial-packs-wave206.js?v=1.0.0-august-2024-romulus-review-human-read",
     "episode-editorial-packs-wave207.js?v=1.0.0-august-2024-in-person-live-human-read",
+    "episode-editorial-packs-wave208.js?v=1.0.0-august-2024-top-10-1996-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
