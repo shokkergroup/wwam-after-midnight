@@ -313,6 +313,7 @@
     "episode-editorial-packs-wave289.js?v=1.0.0-90s-horror-full-tape-human-read",
     "episode-editorial-packs-wave290.js?v=1.0.0-guardians-vol-3-full-tape-human-read",
     "episode-editorial-packs-wave291.js?v=1.0.0-third-movies-full-tape-human-read",
+    "episode-editorial-packs-wave292.js?v=1.0.0-april-27-movie-news-flash-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
