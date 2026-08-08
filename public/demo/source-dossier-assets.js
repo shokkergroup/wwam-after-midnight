@@ -203,6 +203,7 @@
      "episode-editorial-packs-wave179.js?v=1.0.0-march-2022-scream-2022-commentary-first-read",
      "episode-editorial-packs-wave180.js?v=1.0.0-january-2022-wwam-10-year-anniversary-first-read",
      "episode-editorial-packs-wave181.js?v=1.0.0-october-2021-halloween-kills-first-read",
+     "episode-editorial-packs-wave182.js?v=1.0.0-august-2021-candyman-short-watchalong-first-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
