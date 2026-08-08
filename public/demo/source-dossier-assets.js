@@ -305,6 +305,7 @@
     "episode-editorial-packs-wave281.js?v=1.0.0-june-20-flash-spoiler-full-tape-human-read",
     "episode-editorial-packs-wave282.js?v=1.0.0-june-15-flash-secret-invasion-full-tape-human-read",
     "episode-editorial-packs-wave283.js?v=1.0.0-june-08-pg13-horror-full-tape-human-read",
+    "episode-editorial-packs-wave284.js?v=1.0.0-june-06-boogeyman-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
