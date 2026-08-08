@@ -323,6 +323,7 @@
     "episode-editorial-packs-wave299.js?v=1.0.0-march-23-action-movie-heroes-full-tape-human-read",
     "episode-editorial-packs-wave300.js?v=1.0.0-march-21-scream-vi-ghostface-ranking-full-tape-human-read",
     "episode-editorial-packs-wave301.js?v=1.0.0-march-16-movie-news-full-tape-human-read",
+    "episode-editorial-packs-wave302.js?v=1.0.0-march-14-scream-vi-spoiler-party-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
