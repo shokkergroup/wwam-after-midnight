@@ -267,6 +267,7 @@
     "episode-editorial-packs-wave243.js?v=1.0.0-december-07-full-tape-human-read",
     "episode-editorial-packs-wave244.js?v=1.0.0-november-29-full-tape-human-read",
     "episode-editorial-packs-wave245.js?v=1.0.0-november-15-full-tape-human-read",
+    "episode-editorial-packs-wave246.js?v=1.0.0-november-08-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
