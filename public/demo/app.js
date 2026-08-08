@@ -22,7 +22,8 @@
     showcaseReceiptById = {}, showcaseSourceById = {}, clipItemById = {},
     campaignSnapshots = {}, lastDialogFocus = null, tapeById = {}, itemById = {},
     streamById = {}, storageFallback = {}, runtimeDiagnostics = [],
-    sourceReturnContext = null, sourceReturnRestorePending = null;
+    sourceReturnContext = null, sourceReturnRestorePending = null,
+    sourceClipParentRoute = null;
   var SOURCE_RETURN_STORAGE_KEY = "wwamSourceReturnContext";
   var SOURCE_RETURN_WINDOW_NAME_PREFIX = "WWAM_RETURN_CONTEXT:";
   window.WWAM_RUNTIME_DIAGNOSTICS = runtimeDiagnostics;
@@ -495,7 +496,12 @@
         if (route && route.sourceId === payload.sourceId) {
           syncSourceRoute(payload.sourceId, clipAt, clipSection, "replace");
         }
-        loadPlayer(payload.sourceId, payload.at, payload.end);
+        // The rich Show Wiki can play a verified local audio lane in place.
+        // That callback is only a route receipt; replacing it with a second
+        // YouTube iframe would discard the local player and make the X button
+        // look like it left the episode. Cold/fallback clips still load the
+        // on-page YouTube player as before.
+        if (!payload.localOnly) loadPlayer(payload.sourceId, payload.at, payload.end);
       },
       onCopyLink: function (payload) {
         copy(
@@ -3232,6 +3238,26 @@
 
   function openLooseSource(id, startTime, label, endTime) {
     if (!id) return;
+    var sourceId = String(id).trim();
+    var parentRoute = typeof readSourceRoute === "function" ? readSourceRoute() : null;
+    var nestedRouteMode = "none";
+    // A character/clip rail can fall back to this lightweight player from
+    // inside a Show Wiki. Give that child an explicit route so its X button
+    // returns to the episode that launched it instead of the archive shelf.
+    if (parentRoute && parentRoute.sourceId !== sourceId) {
+      sourceClipParentRoute = {
+        href: window.location.href,
+        scrollY: Math.max(0, Number(window.pageYOffset || document.documentElement.scrollTop || 0)),
+        sourceId: parentRoute.sourceId,
+        at: parentRoute.at,
+        section: parentRoute.section || "wiki",
+      };
+      nestedRouteMode = "push";
+    } else if (parentRoute && parentRoute.sourceId === sourceId) {
+      nestedRouteMode = "replace";
+    } else {
+      sourceClipParentRoute = null;
+    }
     rememberDialogFocus();
     var at = Number(startTime || 0);
     var end = Number(endTime || 0);
@@ -3239,7 +3265,7 @@
     var modal = document.getElementById("tapeModal");
     document.getElementById("modalContent").innerHTML =
       '<div class="modal-hero live-modal-hero" style="--accent:var(--pink)"><img src="https://i.ytimg.com/vi/' +
-      encodeURIComponent(id) + '/maxresdefault.jpg" alt=""><div><p>CHARACTER ARCHAEOLOGY // PERFORMANCE CANDIDATE</p><h2>' +
+      encodeURIComponent(sourceId) + '/maxresdefault.jpg" alt=""><div><p>CHARACTER ARCHAEOLOGY // PERFORMANCE CANDIDATE</p><h2>' +
       esc(label || "WWAM SOURCE RECEIPT") + '</h2><span>' +
       (clipSeconds ? "BOUNDED " + clipSeconds + "-SECOND SOURCE CLIP" : "PLAYABLE ORIGINAL") + " // " + timestamp(at) +
       '</span></div></div><section class="receipt-section loose-source"><div><p class="kicker">ORIGINAL SOURCE CONTEXT</p>' +
@@ -3253,7 +3279,10 @@
     document.body.classList.add("modal-open");
     syncBackgroundInert();
     focusSoon("#modalClose");
-    loadPlayer(id, at, end);
+    if (nestedRouteMode !== "none") {
+      syncSourceRoute(sourceId, at, parentRoute && parentRoute.section || "wiki", nestedRouteMode);
+    }
+    loadPlayer(sourceId, at, end);
   }
 
   function loadPlayer(id, at, end) {
@@ -3286,14 +3315,40 @@
       ).trim();
       var activeSection = activeClipUrl.searchParams.get("section") || "wiki";
       if (activeSourceId) {
+        // A loose clip opened from a different source is a real child history
+        // entry. Going back rehydrates the exact parent Show Wiki in place;
+        // do not collapse that child into the archive shelf.
+        var nestedParentRoute = typeof sourceClipParentRoute !== "undefined" ?
+          sourceClipParentRoute : null;
+        if (nestedParentRoute && nestedParentRoute.sourceId &&
+            nestedParentRoute.sourceId !== activeSourceId) {
+          if (typeof sourceClipParentRoute !== "undefined") sourceClipParentRoute = null;
+          history.back();
+          return;
+        }
         syncSourceRoute(activeSourceId, null, activeSection, "replace");
-        if (window.ShokkerYouTubePlayback &&
+        // Re-render the same source dossier when the rich UI is available so
+        // local audio/active-cut state clears without replacing the Show Wiki
+        // with a generic player. The fallback keeps the same source-local
+        // contract if the rich renderer is held.
+        var restoredShowWiki = false;
+        if (typeof sourceDossierUi !== "undefined" && sourceDossierUi &&
+            typeof sourceDossierUi.render === "function" &&
+            typeof sourceDossierEngine !== "undefined" && sourceDossierEngine &&
+            typeof sourceDossierEngine.has === "function" &&
+            sourceDossierEngine.has(activeSourceId)) {
+          restoredShowWiki = Boolean(sourceDossierUi.render(activeSourceId, {
+            at: null,
+            section: sourceDossierSection(activeSection) || "wiki",
+          }));
+        }
+        if (!restoredShowWiki && window.ShokkerYouTubePlayback &&
             typeof window.ShokkerYouTubePlayback.iframe === "function") {
           activeClipPlayer.innerHTML = window.ShokkerYouTubePlayback.iframe(
             activeSourceId,
             { autoplay: false, title: "WWAM commentary source playback" },
           );
-        } else {
+        } else if (!restoredShowWiki) {
           activeClipPlayer.innerHTML = "";
         }
         return;
@@ -3333,6 +3388,7 @@
       history.replaceState(nextState, "", url);
       if (typeof window.dispatchEvent === "function") window.dispatchEvent(new Event("hashchange"));
     }
+    if (typeof sourceClipParentRoute !== "undefined") sourceClipParentRoute = null;
     if (settings.restoreFocus === false) lastDialogFocus = null;
     else restoreDialogFocus();
   }

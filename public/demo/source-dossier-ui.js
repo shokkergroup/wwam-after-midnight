@@ -4231,6 +4231,14 @@
         }
         return true;
       }
+      function markLocalPlayback(meta) {
+        // Local source audio still needs a URL receipt. Without this signal
+        // the modal has no child-state marker, so closing after a clip can
+        // mistake the episode for a top-level Show Wiki and back out to the
+        // shelf. The app bridge records the route only; it does not replace
+        // the verified local player with YouTube.
+        callbacks.play(Object.assign(payload, meta, { localOnly: true }));
+      }
       if (action === "play-source") {
         state.activeReceiptKey = "";
         state.activeReceiptOrigin = "";
@@ -4242,6 +4250,7 @@
           end: null,
           receipt: null
         }));
+        else markLocalPlayback({ mode: "source-local", at: state.at, end: null, receipt: null });
       } else if (action === "play-alternate-route") {
         playAlternateAudio(
           Number(button.getAttribute("data-alternate-at")),
@@ -4273,6 +4282,12 @@
             end: Number.isFinite(guideEnd) && guideEnd > guideAt ? guideEnd : null,
             receipt: null
           }));
+          else markLocalPlayback({
+            mode: "episode-guide-local",
+            at: guideAt,
+            end: Number.isFinite(guideEnd) && guideEnd > guideAt ? guideEnd : null,
+            receipt: null
+          });
         }
       } else if (action === "play-receipt") {
         var playReceipt = receiptByKey(button.getAttribute("data-receipt-key"));
@@ -4291,6 +4306,12 @@
             end: playReceipt.end,
             receipt: playReceipt
           }));
+          else markLocalPlayback({
+            mode: "receipt-local",
+            at: playReceipt.at,
+            end: playReceipt.end,
+            receipt: playReceipt
+          });
         }
       } else if (action === "bag-receipt") {
         var bagReceipt = receiptByKey(button.getAttribute("data-receipt-key"));

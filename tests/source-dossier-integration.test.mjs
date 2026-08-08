@@ -544,6 +544,8 @@ test("the app consumes every Source Dossier UI callback as one bounded payload o
   assert.match(runtime, /onAftermathDecision:\s*saveAftermathReview/);
   assert.match(namedFunction(app, "saveAftermathReview"), /function saveAftermathReview\(payload\)/);
   assert.match(runtime, /loadPlayer\(payload\.sourceId,\s*payload\.at,\s*payload\.end\)/);
+  assert.match(runtime, /if \(!payload\.localOnly\) loadPlayer\(payload\.sourceId,\s*payload\.at,\s*payload\.end\)/,
+    "local Show Wiki audio must mark the child route without replacing its player");
   assert.match(
     runtime,
     /var route = readSourceRoute\(\);[\s\S]*syncSourceRoute\(payload\.sourceId, clipAt, clipSection, "replace"\)/,
@@ -567,6 +569,9 @@ test("the app consumes every Source Dossier UI callback as one bounded payload o
     runtime,
     /on(?:Play|CopyLink|Download|AskSource|OpenSource|OpenCompanion|BagReceipt):\s*function\s*\(\s*sourceId\s*,/,
   );
+  assert.match(sourceDossierUi, /function markLocalPlayback\(meta\)/,
+    "timeline audio playback must emit a route receipt for the close button");
+  assert.match(sourceDossierUi, /mode: "receipt-local"/);
 });
 
 test("Aftermath handoff clears hidden Clip Lab filters before exact-source rendering", () => {
@@ -1251,6 +1256,14 @@ test("closing an active clip restores the open Show Wiki before leaving the shel
   assert.equal(new URL(history.replacements[0].url).searchParams.has("at"), false);
   assert.match(player.innerHTML, /data-autoplay="false"/);
   assert.equal(modal.classList.contains("show"), true);
+});
+
+test("loose clips opened from a Show Wiki carry a nested parent route", () => {
+  assert.match(app, /sourceClipParentRoute = \{/, "nested source context is captured");
+  assert.match(app, /nestedRouteMode = "push"/, "different-source loose clips get a child history entry");
+  assert.match(app, /nestedRouteMode = "replace"/, "same-source loose clips stay in the current Show Wiki");
+  assert.match(app, /nestedParentRoute\.sourceId !== activeSourceId/, "the first X recognizes a nested clip");
+  assert.match(app, /history\.back\(\);\s*return;/, "nested clip close returns to its parent route");
 });
 
 test("local source interception captures the shelf before competing route listeners", () => {
