@@ -88,7 +88,7 @@
     ]),
     fanRead: Object.freeze({
       loved: Object.freeze({ at: 3600, end: 3800, label: "THE HOSTS PROMISE MORE MICHAEL AND LOOMIS", topic: "character canon", body: "Play from 1:00:00. A viewer asks for more Michael Myers and Loomis material, and the hosts make a clear promise to keep building that shelf.", playAt: 3600, playEnd: 3800 }),
-      hated: Object.freeze({ at: 5000, end: 5200, label: "FROZEN EMPIRE COULD FEEL LIKE DLC", topic: "sequel anxiety", body: "Play from 1:23:20. The hosts explain why effects without heart would make a Ghostbusters sequel feel like an unearned videogame add-on.", playAt: 5000, playEnd: 5200 }),
+      hated: Object.freeze({ at: 5000, end: 5200, label: "FROZEN EMPIRE COULD FEEL LIKE DLC", topic: "sequel anxiety", body: "Play from 1:23:20. The hosts explain why effects without heart would make a Ghostbusters sequel feel like an unearned videogame extra effect package.", playAt: 5000, playEnd: 5200 }),
       wildestDetour: Object.freeze({ at: 1800, end: 2200, label: "THE CONSTIPATION PURGE", topic: "up-in-ya", body: "Play from 30:00. A medical story becomes a Gatorade-and-suppository comedy sketch before the show can return to movies.", playAt: 1800, playEnd: 2200 }),
       lastWord: Object.freeze({ at: 9300, end: 9600, label: "MICHAEL MYERS WINS THE MISERY BRACKET", topic: "random horror verdict", body: "Play from 2:35:00. The database picks the matchup, but the hosts preserve the operating-room strobe kill that keeps Halloween 6 in the conversation.", playAt: 9300, playEnd: 9600 })
     })
