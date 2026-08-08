@@ -320,6 +320,7 @@
     "episode-editorial-packs-wave296.js?v=1.0.0-april-09-horror-sequels-full-tape-human-read",
     "episode-editorial-packs-wave297.js?v=1.0.0-march-28-rob-zombie-halloween-characters-full-tape-human-read",
     "episode-editorial-packs-wave298.js?v=1.0.0-january-26-open-line-movie-news-full-tape-human-read",
+    "episode-editorial-packs-wave299.js?v=1.0.0-march-23-action-movie-heroes-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
