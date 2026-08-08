@@ -1,0 +1,111 @@
+(function (root) {
+  "use strict";
+  var registry = root.WWAM_EPISODE_EDITORIAL_PACKS || { schema: "shokker-episode-editorial-packs/v1", sources: {} };
+  var sources = Object.assign({}, registry.sources || {});
+  var H = function (at, end, category, label, excerpt, characters) {
+    var item = { at: at, end: end, category: category, label: label, excerpt: excerpt, sourceId: "MqOpFK8dC9M", evidenceState: "machine surfaced; full-caption/audio second read; playback remains the authority" };
+    if (characters) item.characters = characters;
+    return item;
+  };
+
+  /* October 11, 2023: Pet Sematary II First Time Watch Review. */
+  sources["MqOpFK8dC9M"] = Object.freeze({
+    sourceId: "MqOpFK8dC9M",
+    reviewState: "full-tape-human-editorial-read-edge",
+    editorialPass: "2026-08-08 fine-toothed first editorial read; official caption ledger plus canonical local audio pass across the October 11, 2023 Pet Sematary II review",
+    evidence: Object.freeze({
+      duration: 1014,
+      captionWords: 3956,
+      captionEvents: 997,
+      captionSpanSeconds: 1015.76,
+      captionDurationCoveragePercent: 100,
+      captionSha256: "sha256:65a716bc33e45c24c46be60d63e980e76c82bc7fb4a6529039fb39b81689bd7f",
+      captionSourceKind: "official YouTube automatic caption ledger acquired as JSON3",
+      audioPass: "canonical YouTube audio + official-caption second read; local audio playback spot-check; playback remains the authority",
+      audioSha256: "sha256:f09183a514b02b32971b4bab31d944af6e9a2947d90d31816d0f9913d1d8ba98",
+      asrWindowCount: 0,
+      speakerAttribution: false,
+      visualOutcomeInferred: false,
+    }),
+    label: "PET SEMATARY II FIRST-TIME WATCH REVIEW // OCTOBER 11, 2023",
+    badge: "ADJACENT SHOW WIKI // 16:54 OF CLANCY BROWN, GRUNGE, KITTEN GORE, RESURRECTION RULES, AND A ROYAL RUMBLE ENDING",
+    headline: "GUS RISES, THE KITTENS LOSE, AND PET SEMATARY II ACCIDENTALLY BECOMES A PARTY",
+    deck: "Mike goes into Pet Sematary II expecting a bad sequel and comes out defending a loud, mean, grunge-soaked camp classic with Clancy Brown doing enough heavy lifting to resurrect the whole movie.",
+    overview: "This is a public adjacent review, not a full-film commentary, but it is a complete 16-minute argument with a very clear turn. Mike starts by mocking his own introduction, a Waffle House waitress who chain-smokes, and the idea of wrapping rubber around his congested face for another Michael Myers bit. Then he explains why Pet Sematary II has such a divided reputation. The first half tries to carry the grief of the original and mostly stiff-arms it; the second half begins when Clancy Brown's Gus comes back from the dead, and the movie suddenly becomes a campy horror classic with the volume knob broken off. The review's best critical point is that the sequel has no morality. It is surprisingly mean, willing to massacre kittens, and so committed to the bit that its black comedy becomes more memorable than its plot. Gus's mashed-potato performance, the strange soundtrack, the dog's glowing Cyclops eyes, and the baffling resurrection rules all get treated as evidence that the film is not a well-oiled narrative machine—it is a grunge music video that keeps finding another grotesque image. Edward Furlong's angsty teen performance, the attractive assistant who looks like the dead mom, the bully's absurd motivation, and the decision to rebury Gus after the dog kills him become a catalogue of bad choices that somehow improve the movie. The final attic fire is compared with Halloween Resurrection and a Royal Rumble, but the review ultimately lands warmly: seven out of ten, original Pet Sematary for the heavy grief, Pet Sematary II for the next time the viewer wants a stupid, fun horror blast. The archive closes with the Halloween-never-ends song, making this one of the clearest bridges between movie criticism and WWAM character lore.",
+    story: Object.freeze([
+      { at: 0, end: 130, label: "THE WAFFLE HOUSE INTRO", body: "The review opens with a fake diner voice, congested Michael Myers plans, and a warning that Pet Sematary II has spoilers and a very specific reputation." },
+      { at: 130, end: 260, label: "THE MOVIE CHANGES GENRES", body: "A serious grief sequel keeps trying to be Pet Sematary, then Clancy Brown's Gus returns and turns the whole tape into a camp party." },
+      { at: 260, end: 390, label: "THE NO-MORALITY ARGUMENT", body: "Kittens, black comedy, and a film that is willing to do anything become the strongest case for why the sequel works despite its bad decisions." },
+      { at: 390, end: 520, label: "CLANCY BROWN SAVES THE MOVIE", body: "Gus's mashed potatoes, sugar-water energy, and standout performance pull the review away from the other uneven acting and toward the movie's fun." },
+      { at: 520, end: 660, label: "THE SOUNDTRACK AND THE BAD DAD", body: "Grunge music, Edward Furlong's 1990s teen attitude, a suspicious assistant, and a terrible stepfather turn the family story into a playlist with knives." },
+      { at: 660, end: 805, label: "THE RULES ARE GONE", body: "Glowing dog eyes, sexual assault, resurrection without consequences, a dog that becomes a hero, and the decision to rebury Gus expose the movie's plot holes." },
+      { at: 805, end: 945, label: "ROYAL RUMBLE IN THE ATTIC", body: "Fire, electricity, a melting face, a resurrected mom, and the Halloween Resurrection comparison make the finale dumb in exactly the right way." },
+      { at: 945, end: 1014, label: "SEVEN OUT OF TEN, HALLOWEEN NEVER ENDS", body: "Mike keeps the original for its grief, keeps the sequel for a good time, and closes with Pumpkinhead, drinking, and the recurring white-faced character song." },
+    ]),
+    highlights: Object.freeze([
+      H(8, 24, "WWAM UP IN YA", "WAFFLE HOUSE WAITRESS VOICE", "The host introduces himself like a chain-smoking Waffle House waitress with a chest full of bad decisions."),
+      H(28, 44, "SOUNDBYTE / REPLAY", "SLOPPY JOE LADY", "A late-night waitress is imagined asking whether the kids have taken pills before riding roller coasters."),
+      H(48, 64, "STRAIGHT TO STEVE'S ASSHOLE", "RUBBER ON A CONGESTED FACE", "The thought of wrapping Michael Myers rubber around a congested face is rejected as a health emergency."),
+      H(68, 84, "DEEP DIVE", "FIRST TIME PET SEMATARY TWO", "Mike admits this is his first viewing, despite having judged the cover for years."),
+      H(88, 104, "FAN SIGNAL", "THE EDWARD FURLONG COVER", "A 1990s Edward Furlong cover becomes the exact reason the host expected a possible banger."),
+      H(108, 124, "DEEP DIVE", "MARY LAMBERT RETURNS", "The director's connection to the first film and Urban Legends 3 becomes a surprising bit of archive context."),
+      H(128, 144, "WWAM UP IN YA", "PUMPKINHEAD TWO DEFENSE", "Pet Sematary II is placed beside Pumpkinhead 2 as a sequel people misunderstand because it refuses to stay serious."),
+      H(148, 164, "TAKE GETS NUCLEAR", "THE ELECTROCUTED MOM", "The mother's death is called a major childhood fear, especially for a kid forced to watch it happen."),
+      H(168, 184, "FAN SIGNAL", "NINJA TURTLE VAN NIGHTMARE", "A recurring dream about a car crushing a Ninja Turtle van becomes an unexpected therapy session inside the review."),
+      H(188, 204, "WWAM UP IN YA", "DO YOU WANT TO SEE MY DICK?", "The therapy detour ends with the most unnecessary question a movie review can ask its audience."),
+      H(208, 224, "DEEP DIVE", "THE FIRST HALF STIFF-ARMS GRIEF", "The sequel tries to carry the original's grief but keeps the emotion at arm's length."),
+      H(228, 244, "TAKE GETS NUCLEAR", "GUS CHANGES THE MOVIE", "The moment Clancy Brown's Gus returns from the dead is identified as the instant Pet Sematary II becomes a different movie."),
+      H(248, 264, "CHARACTER PERFORMANCE", "CLANCY BROWN'S GUS", "Gus's resurrection is treated as the standout performance engine that turns the review from disappointment into celebration.", ["Gus / Clancy Brown"]),
+      H(268, 284, "FAN SIGNAL", "TWITTER SPLITS IN HALF", "The social-media reaction divides into people calling the sequel the worst movie ever and people calling it the best Pet Sematary."),
+      H(288, 304, "DEEP DIVE", "BOTH SIDES ARE RIGHT", "Mike's useful middle ground is that a serious-sequel viewer and a camp-horror viewer can both be correct."),
+      H(308, 324, "TAKE GETS NUCLEAR", "NO MORALITY WHATSOEVER", "A borrowed Twitter observation becomes the review's cleanest critical phrase: this movie has absolutely no morality."),
+      H(328, 344, "STRAIGHT TO STEVE'S ASSHOLE", "KITTENS GET MASSACRED", "The film's willingness to kill kittens is treated as the point where its black comedy stops asking permission."),
+      H(348, 364, "SOUNDBYTE / REPLAY", "THE WILD WEST BEFORE SCREAM", "The pre-Scream release date is used to explain why the movie feels free to do whatever ugly thing it wants."),
+      H(368, 384, "DEEP DIVE", "TALES FROM THE CRYPT ENERGY", "The sequel is compared with a Tales from the Crypt episode that actually follows its nasty idea all the way through."),
+      H(388, 404, "CHARACTER PERFORMANCE", "MASHED POTATO GUS", "Gus's sloppy mashed-potato scene is praised as over-the-top, dumb, and impossible not to enjoy.", ["Gus / Clancy Brown"]),
+      H(408, 424, "SOUNDBYTE / REPLAY", "SUGAR WATER GUS", "Clancy Brown's performance gets a Men in Black sugar-water comparison and still comes out looking great."),
+      H(428, 444, "DEEP DIVE", "THE SOUNDTRACK IS A CHARACTER", "The grunge-heavy soundtrack is credited with giving the movie its own identity even when individual songs do not fit."),
+      H(448, 464, "FAN SIGNAL", "GOOSE AS THE PERFECT STEPDAD", "One actor is recast as the kind of stepdad who would make cocoa and help with homework, a rare compliment for a random man in a horror movie."),
+      H(468, 484, "STRAIGHT TO STEVE'S ASSHOLE", "THE ATTRACTIVE ASSISTANT", "A new assistant who resembles the dead mother is called an obviously terrible move by the father."),
+      H(488, 504, "WWAM UP IN YA", "EDWARD FURLONG GOES EMO", "Furlong suddenly becomes a creepy, suit-wearing, camera-smiling horror teen for no reason anyone can explain."),
+      H(508, 524, "DEEP DIVE", "THE WORST STEPDAD ALIVE", "Gus is catalogued as a nightmare stepfather who insults the kid, steals food, kills the dog, and deserves the resurrection treatment."),
+      H(528, 544, "STRAIGHT TO STEVE'S ASSHOLE", "WHY ARE THE BULLIES SO MAD?", "The bully's hatred of a kid whose mother died is treated as one of the movie's least believable motivations."),
+      H(548, 564, "SOUNDBYTE / REPLAY", "WET WILLY GRIEF", "The hosts cannot imagine school bullies using a dead mother as a pretext for a Wet Willie, even in the cruelest middle school."),
+      H(568, 584, "DEEP DIVE", "THE MOTORBIKE FACE KILL", "Gus's scare with the motorbike wheel is praised for being both hilarious and genuinely nasty."),
+      H(588, 604, "SOUNDBYTE / REPLAY", "DEVIL AND GOD SCARF", "A scarf catches during the kill and the line about God and the devil raging inside the kid becomes a full WWAM replay."),
+      H(608, 624, "DEEP DIVE", "PRACTICAL GORE WINS", "Electrocution, a blown-off head, and an eye ripped by glass become the strongest argument for the film's practical effects."),
+      H(628, 644, "STRAIGHT TO STEVE'S ASSHOLE", "THE DOG'S GLOWING EYES", "A dog returns with glowing Cyclops eyes and a hole in its body while everybody in the house acts like this is normal."),
+      H(648, 664, "TAKE GETS NUCLEAR", "NO ONE KNOWS THE RULES", "The resurrection rules are declared nonexistent: sometimes the dead are nice, sometimes they go full Ezra Miller."),
+      H(668, 684, "SOUNDBYTE / REPLAY", "RABBIT SEX OBSERVATION", "Gus watching rabbits have sex while angrily petting one beside his crotch is declared stupid, strange, and perfect."),
+      H(688, 704, "DEEP DIVE", "THE SHOULDER DRILL", "A shoulder drill into an open wound gets added to the film's growing list of moments that should not work but do."),
+      H(708, 724, "STRAIGHT TO STEVE'S ASSHOLE", "REBurying GUS IS THE DUMBEST IDEA", "After the dog kills Gus, the kids decide to bury him again, a decision the review calls one of horror's dumbest ever."),
+      H(728, 744, "TAKE GETS NUCLEAR", "THE MOVIE JUMPS THE SHARK", "The second burial is identified as the plot hole that accidentally improves the movie by turning it into a party."),
+      H(748, 764, "DEEP DIVE", "HALLOWEEN PARTY ATMOSPHERE", "The Halloween party, pumpkins, and metal music give the movie a visual and sonic lift before the final disaster."),
+      H(768, 784, "WWAM UP IN YA", "GUS WANTS THE DEAD MOM", "The review keeps returning to Gus's creepy insistence that the kid dig up his mother, making the resurrection plan even filthier."),
+      H(788, 804, "SOUNDBYTE / REPLAY", "ROYAL RUMBLE ATTIC", "The flaming attic is compared with a Royal Rumble because the finale has too many resurrected people fighting at once."),
+      H(808, 824, "DEEP DIVE", "HALLOWEEN RESURRECTION ENDING", "Fire, electricity, and a bizarre final fight earn a comparison with Halloween Resurrection's own late-movie nonsense."),
+      H(828, 844, "CHARACTER PERFORMANCE", "THE MELTING-MOM VOICE", "The mother's melting face and voice are praised as the kind of effects the Exorcist should have used instead of generic possession noise.", ["Renee / resurrected mother"]),
+      H(848, 864, "TAKE GETS NUCLEAR", "WEIRD FOR THE SAKE OF WEIRD", "The review's defense is simple: the movie is not narratively great, but it is freaky and committed to being weird."),
+      H(868, 884, "FAN SIGNAL", "SEVEN OUT OF TEN", "Mike gives Pet Sematary II a seven, keeping the original for its weight and the sequel for a night of campy fun."),
+      H(888, 904, "WWAM UP IN YA", "PUMPKINHEAD TWO BROTHERHOOD", "The sequel gets paired with Pumpkinhead 2 as a movie to play when the viewer wants the silly version of a serious horror world."),
+      H(908, 924, "STRAIGHT TO STEVE'S ASSHOLE", "THE CIRCLE PILLOWS", "The final driving scene's little face pillows become one more baffling object nobody can explain."),
+      H(928, 944, "SOUNDBYTE / REPLAY", "I'M LOSING MY VOICE", "The review admits the argument has burned through Mike's voice while a full filming night still waits ahead."),
+      H(948, 964, "CHARACTER PERFORMANCE", "THE WHITE-FACED FREAK", "The closing Halloween song returns with its white-faced insult and sister-stabbing rhyme.", ["Michael Myers"]),
+      H(968, 984, "CHARACTER PERFORMANCE", "LOOMIS AND CHALLIS AGAIN", "Loomis cannot recover, Dr. Challis is drunk, and the recurring character canon survives another movie review.", ["Dr. Loomis", "Dr. Challis"]),
+      H(988, 1004, "WWAM UP IN YA", "HALLOWEEN NEVER ENDS", "The refrain refuses to let Halloween die and immediately starts insulting Blumhouse."),
+      H(1008, 1014, "SOUNDBYTE / REPLAY", "PUMPKINHEAD ON VHS", "The review exits through trick-or-treating, drinking, and Pumpkinhead on VHS—the perfect last word for a camp-sequel defense."),
+    ]),
+    fanRead: Object.freeze({
+      loved: Object.freeze({ at: 388, end: 424, label: "CLANCY BROWN SAVES IT", topic: "Gus's performance", body: "Play from 6:28. Mashed potatoes, sugar-water energy, and a huge Clancy Brown performance turn the sequel from a disappointment into a camp classic.", playAt: 388, playEnd: 424 }),
+      hated: Object.freeze({ at: 628, end: 744, label: "THE RESURRECTION RULES ARE INSANE", topic: "plot holes and bad decisions", body: "Play from 10:28. Glowing dog eyes, a sexual assault nobody hears, and the kids re-burying Gus make the movie's logic impossible to defend.", playAt: 628, playEnd: 744 }),
+      wildestDetour: Object.freeze({ at: 668, end: 704, label: "RABBIT SEX AND THE SHOULDER DRILL", topic: "the most unhinged detour", body: "Play from 11:08. Gus watches rabbits mate while angrily petting one by his crotch, then the review adds a drill into an open wound.", playAt: 668, playEnd: 704 }),
+      lastWord: Object.freeze({ at: 948, end: 1014, label: "HALLOWEEN NEVER ENDS", topic: "the closing character song", body: "Play from 15:48. White-faced Michael, broken Loomis, drunk Challis, Blumhouse, trick-or-treating, and Pumpkinhead on VHS close the review.", playAt: 948, playEnd: 1014 }),
+    }),
+  });
+
+  root.WWAM_EPISODE_EDITORIAL_PACKS = Object.freeze({
+    schema: registry.schema || "shokker-episode-editorial-packs/v1",
+    generated: "2026-08-08",
+    sources: Object.freeze(sources),
+  });
+})(typeof window !== "undefined" ? window : globalThis);
