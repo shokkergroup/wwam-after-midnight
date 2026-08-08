@@ -170,6 +170,13 @@ test("canonical source URLs use ?source=ID&at=SECONDS#archive and retain route-s
   const syncGlobals = {
     window,
     URL,
+    document: {
+      getElementById() {
+        return {
+          setAttribute(name, value) { this[name] = value; },
+        };
+      },
+    },
     sourceReturnContext: null,
     sourceReturnRestorePending: null,
     sourceDossierSection,
@@ -214,6 +221,17 @@ test("canonical source URLs use ?source=ID&at=SECONDS#archive and retain route-s
   syncGlobals.syncSourceRoute("ABCDEFGHIJK", 92, "", "replace");
   assert.equal(syncGlobals.history.replaced.length, 1);
   assert.equal(syncGlobals.history.replaced[0].state.wwamSourceDossierPushed, true);
+
+  // Deep links do not write a new history entry, but the X button still
+  // explains whether it closes a clip or the whole Show Wiki.
+  const directClose = {
+    setAttribute(name, value) { this[name] = value; },
+  };
+  syncGlobals.document.getElementById = () => directClose;
+  syncGlobals.syncSourceRoute("ABCDEFGHIJK", null, "wiki", "none");
+  assert.equal(directClose["aria-label"], "Close Show Wiki");
+  syncGlobals.syncSourceRoute("ABCDEFGHIJK", 92, "wiki", "none");
+  assert.equal(directClose["aria-label"], "Close clip and keep Show Wiki");
 });
 
 test("canonical, legacy tape, and legacy live source routes remain readable", () => {

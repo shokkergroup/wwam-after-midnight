@@ -785,7 +785,24 @@
   }
 
   function syncSourceRoute(sourceId, at, section, mode) {
-    if (mode === "none") return;
+    if (mode === "none") {
+      // A direct/deep Show Wiki route does not need a history write, but its
+      // close control still needs to explain what the first X will do.
+      var directCloseControl = typeof document !== "undefined" ?
+        document.getElementById("modalClose") : null;
+      if (directCloseControl) {
+        var directClipOpen = at != null && at !== "" && Number.isFinite(Number(at));
+        directCloseControl.setAttribute(
+          "aria-label",
+          directClipOpen ? "Close clip and keep Show Wiki" : "Close Show Wiki",
+        );
+        directCloseControl.setAttribute(
+          "title",
+          directClipOpen ? "Close clip and keep Show Wiki" : "Close Show Wiki",
+        );
+      }
+      return;
+    }
     var url = sourceRouteUrl(sourceId, at, section);
     // A full dossier replaces the immediate cold-shell route once the heavy
     // assets finish loading. Keep the original push marker on that replace;
