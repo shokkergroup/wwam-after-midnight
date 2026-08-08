@@ -302,6 +302,7 @@
     "episode-editorial-packs-wave278.js?v=1.0.0-july-09-blumhouse-full-tape-human-read",
     "episode-editorial-packs-wave279.js?v=1.0.0-july-06-80s-90s-full-tape-human-read",
     "episode-editorial-packs-wave280.js?v=1.0.0-june-29-horror-remakes-full-tape-human-read",
+    "episode-editorial-packs-wave281.js?v=1.0.0-june-20-flash-spoiler-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
