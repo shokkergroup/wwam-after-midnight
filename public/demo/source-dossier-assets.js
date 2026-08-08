@@ -274,6 +274,7 @@
     "episode-editorial-packs-wave250.js?v=1.0.0-october-horror-tier-list-human-read",
     "episode-editorial-packs-wave251.js?v=1.0.0-september-13-saw-movie-roulette-human-read",
     "episode-editorial-packs-wave252.js?v=1.0.0-september-09-full-tape-human-read",
+    "episode-editorial-packs-wave253.js?v=1.0.0-august-31-dark-directors-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
