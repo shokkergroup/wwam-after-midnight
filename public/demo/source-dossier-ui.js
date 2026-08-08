@@ -4245,7 +4245,11 @@
         // mistake the episode for a top-level Show Wiki and back out to the
         // shelf. The app bridge records the route only; it does not replace
         // the verified local player with YouTube.
-        callbacks.play(Object.assign(payload, meta, { localOnly: true }));
+        callbacks.play(Object.assign(payload, meta, {
+          localOnly: true,
+          childPlayback: true,
+          childKind: meta && meta.mode || "local-clip",
+        }));
       }
       if (action === "play-source") {
         state.activeReceiptKey = "";
@@ -4260,10 +4264,20 @@
         }));
         else markLocalPlayback({ mode: "source-local", at: state.at, end: null, receipt: null });
       } else if (action === "play-alternate-route") {
-        playAlternateAudio(
-          Number(button.getAttribute("data-alternate-at")),
-          Number(button.getAttribute("data-alternate-end"))
+        var alternateAt = Number(button.getAttribute("data-alternate-at"));
+        var alternateEnd = Number(button.getAttribute("data-alternate-end"));
+        var alternatePlayed = playAlternateAudio(
+          alternateAt,
+          alternateEnd
         );
+        if (alternatePlayed) callbacks.play(Object.assign(payload, {
+          at: null,
+          end: null,
+          mode: "alternate-audio",
+          childPlayback: true,
+          childKind: "alternate-audio",
+          localOnly: true,
+        }));
       } else if (action === "play-guide-cut") {
         var guideAt = Number(button.getAttribute("data-guide-at"));
         var guideEnd = Number(button.getAttribute("data-guide-end"));

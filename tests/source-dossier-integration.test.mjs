@@ -1296,12 +1296,75 @@ test("closing an active clip restores the open Show Wiki before leaving the shel
   assert.equal(modal.classList.contains("show"), true);
 });
 
+test("audio-only child clips keep the Show Wiki open even without a YouTube timestamp", () => {
+  const modal = {
+    scrollTop: 412,
+    classList: classList(["show"]),
+    setAttribute() {},
+    removeAttribute() {},
+  };
+  const player = { innerHTML: "<audio></audio>" };
+  const content = { innerHTML: "<article>show wiki</article>" };
+  const body = { classList: classList(["modal-open"]) };
+  const document = {
+    body,
+    getElementById(id) {
+      return { tapeModal: modal, modalContent: content, modalPlayer: player }[id] ?? null;
+    },
+  };
+  const history = {
+    state: {
+      wwamSourceDossier: true,
+      wwamSourceDossierPushed: true,
+      wwamSourceDossierClip: true,
+      sourceId: "ABCDEFGHIJK",
+    },
+    replacements: [],
+    backCalls: 0,
+    back() { this.backCalls += 1; },
+    replaceState(state, unused, url) {
+      this.state = state;
+      this.replacements.push({ state, unused, url: String(url) });
+    },
+  };
+  const window = {
+    location: {
+      href: "https://memory.example/demo?source=ABCDEFGHIJK&section=wiki#archive",
+    },
+    ShokkerYouTubePlayback: {
+      iframe(id, options) { return `<iframe data-source="${id}" data-autoplay="${options.autoplay}"></iframe>`; },
+    },
+  };
+  const close = evaluateNamed("closeDossier", {
+    document,
+    history,
+    window,
+    URL,
+    syncSourceRoute(sourceId, at, section) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("at");
+      if (sourceId) url.searchParams.set("source", sourceId);
+      if (section) url.searchParams.set("section", section);
+      history.replaceState(Object.assign({}, history.state, { sourceId }), "", url);
+    },
+    syncBackgroundInert() {},
+    restoreDialogFocus() {},
+  });
+  close();
+  assert.equal(history.backCalls, 0);
+  assert.equal(modal.classList.contains("show"), true);
+  assert.equal(history.state.wwamSourceDossierClip, undefined);
+  assert.equal(new URL(history.replacements.at(-1).url).searchParams.has("at"), false);
+});
+
 test("clip callbacks carry the Show Wiki scroll receipt and close works without a player node", () => {
   assert.match(app, /sourceClipReturnContext = null/, "clip parent receipt state exists");
   assert.match(app, /payload\.returnScrollTop/, "local and iframe clips can carry the parent scroll position");
   assert.match(app, /var clipReturn = typeof sourceClipReturnContext/, "closing a clip reads the parent receipt");
   assert.doesNotMatch(app, /activeClipUrl\.searchParams\.has\("at"\) && activeClipPlayer/, "clip close is not gated on a player element");
   assert.match(read("source-dossier-ui.js"), /payload\.returnScrollTop = Math\.max\(0, Number\(ownerDialog\.scrollTop\)\)/);
+  assert.match(read("source-dossier-ui.js"), /childPlayback: true/);
+  assert.match(read("source-dossier-ui.js"), /action === "play-alternate-route"/);
 });
 
 test("loose clips opened from a Show Wiki carry a nested parent route", () => {

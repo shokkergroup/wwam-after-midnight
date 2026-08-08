@@ -493,7 +493,12 @@
           Number(payload.at) : null;
         var clipSection = sourceDossierSection(payload.section) ||
           (route && route.section) || "wiki";
-        if (clipAt != null) {
+        // Every in-page playback lane is a child of the Show Wiki. Most lanes
+        // have a YouTube timestamp, but podcast-clock/local-only lanes do not.
+        // Keep a history marker for those too so closing the player can never
+        // mistake an in-page clip for a request to leave the episode.
+        var childPlayback = payload && payload.childPlayback === true;
+        if (clipAt != null || childPlayback) {
           var clipModal = document.getElementById("tapeModal");
           var rememberedScroll = payload.returnScrollTop != null &&
             Number.isFinite(Number(payload.returnScrollTop)) ?
@@ -503,10 +508,17 @@
             sourceId: String(payload.sourceId || "").trim(),
             section: clipSection,
             scrollTop: Math.max(0, rememberedScroll),
+            kind: String(payload.childKind || payload.mode || "clip"),
           };
         }
         if (route && route.sourceId === payload.sourceId) {
           syncSourceRoute(payload.sourceId, clipAt, clipSection, "replace");
+          if (childPlayback && clipAt == null) {
+            var childState = Object.assign({}, history.state || {}, {
+              wwamSourceDossierClip: true,
+            });
+            history.replaceState(childState, "", window.location.href);
+          }
         }
         // The rich Show Wiki can play a verified local audio lane in place.
         // That callback is only a route receipt; replacing it with a second
@@ -3317,7 +3329,9 @@
     // returns to the exact shelf/franchise route that opened it.
     var activeClipUrl = new URL(window.location.href);
     var activeClipPlayer = document.getElementById("modalPlayer");
-    var hasChildClipReceipt = activeClipUrl.searchParams.has("at") &&
+    var hasChildClipRoute = activeClipUrl.searchParams.has("at") ||
+      Boolean(history.state && history.state.wwamSourceDossierClip === true);
+    var hasChildClipReceipt = hasChildClipRoute &&
       (Boolean(activeClipPlayer) ||
         Boolean(history.state && history.state.wwamSourceDossierPushed === true) ||
         Boolean(typeof sourceClipReturnContext !== "undefined" &&
@@ -3370,6 +3384,11 @@
           activeClipPlayer.innerHTML = "";
         }
         if (typeof sourceClipReturnContext !== "undefined") sourceClipReturnContext = null;
+        if (history.state && history.state.wwamSourceDossierClip === true) {
+          var clearedClipState = Object.assign({}, history.state);
+          delete clearedClipState.wwamSourceDossierClip;
+          history.replaceState(clearedClipState, "", window.location.href);
+        }
         if (clipReturn && Number.isFinite(Number(clipReturn.scrollTop))) {
           var restoreClipScroll = function () {
             var restoredModal = document.getElementById("tapeModal");
