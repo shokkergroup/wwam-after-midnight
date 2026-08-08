@@ -208,6 +208,7 @@
     "episode-editorial-packs-wave184.js?v=1.0.0-april-2021-mandy-commentary-first-read",
     "episode-editorial-packs-wave185.js?v=1.0.0-april-2026-horror-action-franchise-bracket-human-read",
     "episode-editorial-packs-wave186.js?v=1.0.0-may-2020-halloween-friday-bracket-human-read",
+    "episode-editorial-packs-wave187.js?v=1.0.0-november-2024-horror-villains-tier-list-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
