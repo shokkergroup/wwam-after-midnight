@@ -160,7 +160,7 @@ test("latest 2026 human packs retain their exact source bindings", () => {
 test("cold routes preserve long full-tape overviews instead of generic fallback copy", () => {
   assert.match(app, /fullTapeEditorialRead/);
   assert.match(app, /raw\.length\s*<=\s*3200/);
-  assert.match(html, /app\.js\?v=0\.5\.130-source-route-memory-v2/);
+  assert.match(html, /app\.js\?v=0\.5\.131-source-route-memory-v3/);
 });
 
 test("local Show Wiki links stay child routes and restore their source shelf", () => {
