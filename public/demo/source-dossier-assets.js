@@ -280,6 +280,7 @@
     "episode-editorial-packs-wave256.js?v=1.0.0-april-30-horror-franchise-tier-list-human-read",
     "episode-editorial-packs-wave257.js?v=1.0.0-april-24-top-horror-openings-human-read",
     "episode-editorial-packs-wave258.js?v=1.0.0-march-21-alien-ghostbusters-human-read",
+    "episode-editorial-packs-wave259.js?v=1.0.0-march-13-scream-7-update-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
