@@ -282,6 +282,7 @@
     "episode-editorial-packs-wave258.js?v=1.0.0-march-21-alien-ghostbusters-human-read",
     "episode-editorial-packs-wave259.js?v=1.0.0-march-13-scream-7-update-human-read",
     "episode-editorial-packs-wave260.js?v=1.0.0-march-12-halloween-tv-full-tape-human-read",
+    "episode-editorial-packs-wave261.js?v=1.0.0-february-5-tcm-evil-dead-saw-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
