@@ -341,6 +341,7 @@
     "episode-editorial-packs-wave317.js?v=1.0.0-november-03-kevin-smith-ranking-full-tape-human-read",
     "episode-editorial-packs-wave318.js?v=1.0.0-october-27-halloween-franchise-reranking-full-tape-human-read",
     "episode-editorial-packs-wave319.js?v=1.0.0-october-18-halloween-ends-spoiler-party-full-tape-human-read",
+    "episode-editorial-packs-wave320.js?v=1.0.0-october-12-stephen-king-top-twenty-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
