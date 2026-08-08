@@ -1024,6 +1024,7 @@ test("dossier CSS brands cold routes immediately while heavy scripts remain lazy
   "episode-editorial-packs-wave276.js",
   "episode-editorial-packs-wave277.js",
   "episode-editorial-packs-wave278.js",
+  "episode-editorial-packs-wave279.js",
     "wwam-fam-index.js",
     "episode-recap-engine.js",
     "wwam-episode-recap-adapter.js",
@@ -1055,7 +1056,7 @@ test("dossier CSS brands cold routes immediately while heavy scripts remain lazy
   "episode-editorial-packs-wave34.js",
   "episode-editorial-packs-wave35.js",
   ]);
-  for (let wave = 2; wave <= 278; wave += 1) {
+  for (let wave = 2; wave <= 279; wave += 1) {
     intentionalColdRouteScripts.add(`episode-editorial-packs-wave${wave}.js`);
   }
   for (const asset of dossierScripts) {
@@ -1491,10 +1492,80 @@ test("an in-memory Show Wiki receipt protects the first close before a child mar
   assert.equal(new URL(history.replacements.at(-1).url).searchParams.has("at"), false);
 });
 
+test("the serialized Show Wiki receipt protects the first close after a modal re-render", () => {
+  const modal = {
+    scrollTop: 0,
+    classList: classList(["show"]),
+    setAttribute() {},
+    removeAttribute() {},
+  };
+  const player = { innerHTML: "<audio></audio>" };
+  const content = { innerHTML: "<article>show wiki</article>" };
+  const body = { classList: classList(["modal-open"]) };
+  const document = {
+    body,
+    getElementById(id) {
+      return { tapeModal: modal, modalContent: content, modalPlayer: player }[id] ?? null;
+    },
+  };
+  const history = {
+    state: {
+      wwamSourceDossier: true,
+      wwamSourceDossierPushed: true,
+      wwamSourceDossierClip: true,
+      wwamSourceDossierClipReceipt: {
+        sourceId: "ABCDEFGHIJK",
+        section: "wiki",
+        scrollTop: 731,
+        kind: "receipt-local",
+      },
+      sourceId: "ABCDEFGHIJK",
+    },
+    replacements: [],
+    backCalls: 0,
+    back() { this.backCalls += 1; },
+    replaceState(state, unused, url) {
+      this.state = state;
+      this.replacements.push({ state, unused, url: String(url) });
+    },
+  };
+  const window = {
+    location: {
+      href: "https://memory.example/demo?source=ABCDEFGHIJK&section=wiki#archive",
+    },
+    ShokkerYouTubePlayback: {
+      iframe(id, options) { return `<iframe data-source="${id}" data-autoplay="${options.autoplay}"></iframe>`; },
+    },
+  };
+  const close = evaluateNamed("closeDossier", {
+    document,
+    history,
+    window,
+    URL,
+    setTimeout,
+    syncSourceRoute(sourceId, at, section) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("at");
+      if (sourceId) url.searchParams.set("source", sourceId);
+      if (section) url.searchParams.set("section", section);
+      history.replaceState(Object.assign({}, history.state, { sourceId }), "", url);
+    },
+    syncBackgroundInert() {},
+    restoreDialogFocus() {},
+  });
+  close();
+  assert.equal(history.backCalls, 0);
+  assert.equal(modal.classList.contains("show"), true);
+  assert.equal(history.state.wwamSourceDossierClip, undefined);
+  assert.equal(history.state.wwamSourceDossierClipReceipt, undefined);
+  assert.equal(new URL(history.replacements.at(-1).url).searchParams.has("at"), false);
+});
+
 test("clip callbacks carry the Show Wiki scroll receipt and close works without a player node", () => {
   assert.match(app, /sourceClipReturnContext = null/, "clip parent receipt state exists");
   assert.match(app, /payload\.returnScrollTop/, "local and iframe clips can carry the parent scroll position");
   assert.match(app, /var clipReturn = typeof sourceClipReturnContext/, "closing a clip reads the parent receipt");
+  assert.match(app, /wwamSourceDossierClipReceipt/, "serialized child receipt survives a modal re-render");
   assert.doesNotMatch(app, /activeClipUrl\.searchParams\.has\("at"\) && activeClipPlayer/, "clip close is not gated on a player element");
   assert.match(read("source-dossier-ui.js"), /payload\.returnScrollTop = Math\.max\(0, Number\(ownerDialog\.scrollTop\)\)/);
   assert.match(read("source-dossier-ui.js"), /childPlayback: true/);

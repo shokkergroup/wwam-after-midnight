@@ -513,9 +513,19 @@
         }
         if (route && route.sourceId === payload.sourceId) {
           syncSourceRoute(payload.sourceId, clipAt, clipSection, "replace");
-          if (childPlayback && clipAt == null) {
+          if (clipAt != null || childPlayback) {
+            // Keep the parent receipt in history as well as memory. A rich
+            // dossier can re-render while a local/audio-only lane is active;
+            // if that happens, the first X must still know exactly which Show
+            // Wiki and reading position it is returning to.
             var childState = Object.assign({}, history.state || {}, {
               wwamSourceDossierClip: true,
+              wwamSourceDossierClipReceipt: {
+                sourceId: String(payload.sourceId || "").trim(),
+                section: clipSection,
+                scrollTop: Math.max(0, rememberedScroll),
+                kind: String(payload.childKind || payload.mode || "clip"),
+              },
             });
             history.replaceState(childState, "", window.location.href);
           }
@@ -3353,6 +3363,7 @@
     // clip and leave the episode in place.
     var hasChildClipRoute = activeClipUrl.searchParams.has("at") ||
       Boolean(history.state && history.state.wwamSourceDossierClip === true) ||
+      Boolean(history.state && history.state.wwamSourceDossierClipReceipt) ||
       Boolean(typeof sourceClipReturnContext !== "undefined" &&
         sourceClipReturnContext && sourceClipReturnContext.sourceId);
     var hasChildClipReceipt = hasChildClipRoute &&
@@ -3382,6 +3393,9 @@
         }
         var clipReturn = typeof sourceClipReturnContext !== "undefined" ?
           sourceClipReturnContext : null;
+        if (!clipReturn && history.state && history.state.wwamSourceDossierClipReceipt) {
+          clipReturn = history.state.wwamSourceDossierClipReceipt;
+        }
         syncSourceRoute(activeSourceId, null, activeSection, "replace");
         // Re-render the same source dossier when the rich UI is available so
         // local audio/active-cut state clears without replacing the Show Wiki
@@ -3411,7 +3425,12 @@
         if (history.state && history.state.wwamSourceDossierClip === true) {
           var clearedClipState = Object.assign({}, history.state);
           delete clearedClipState.wwamSourceDossierClip;
+          delete clearedClipState.wwamSourceDossierClipReceipt;
           history.replaceState(clearedClipState, "", window.location.href);
+        } else if (history.state && history.state.wwamSourceDossierClipReceipt) {
+          var clearedReceiptState = Object.assign({}, history.state);
+          delete clearedReceiptState.wwamSourceDossierClipReceipt;
+          history.replaceState(clearedReceiptState, "", window.location.href);
         }
         if (clipReturn && Number.isFinite(Number(clipReturn.scrollTop))) {
           var restoreClipScroll = function () {
