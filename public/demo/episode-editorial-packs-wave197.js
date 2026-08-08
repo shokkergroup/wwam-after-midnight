@@ -1,0 +1,123 @@
+(function (root) {
+  "use strict";
+  var registry = root.WWAM_EPISODE_EDITORIAL_PACKS || { schema: "shokker-episode-editorial-packs/v1", sources: {} };
+  var sources = Object.assign({}, registry.sources || {});
+  var sourceId = "CFUHyfcJDTg";
+  var H = function (at, end, category, label, excerpt, characters) {
+    var item = { at: Math.max(0, Math.round(at)), end: Math.min(10935, Math.max(Math.round(at) + 1, Math.round(end))), category: category, label: label, excerpt: excerpt, sourceId: sourceId, evidenceState: "machine surfaced; full-caption/audio second read; playback remains the authority" };
+    if (characters) item.characters = characters;
+    return item;
+  };
+
+  /* October 16, 2024: an experiment in turning two slasher franchises into a live sports desk, complete with scorekeeping, polls, production glitches, and a Dr. Loomis hotline. */
+  var highlights = [
+    H(0, 180, "ROOM BREAK", "JAY IS LATE, THE MIC IS MUTED, AND THE NIGHT IS SAVED", "Mike opens with a mute-button confession, a late Jay, and an accusation that Jay is outside vaping because he is afraid of the landlord. The show establishes its tone before the first kill appears."),
+    H(180, 390, "STRAIGHT TO STEVE'S ASSHOLE", "JOKER 2 GETS THE TURD-IN-A-BAG TREATMENT", "The hosts roast Joker: Folie à Deux's fast digital release, the musical premise, the audience backlash, and the idea that a sequel can retroactively poison the first movie."),
+    H(390, 560, "FILM READ", "HALLOWEEN ENDS BEATS JOKER 2 BY SURVIVING IT", "Even with no love for Halloween Ends, the hosts say they would rather rewatch it hundreds of times than revisit Joker 2. The comparison is really about franchise damage and rewatchability."),
+    H(560, 740, "FAN SIGNAL", "SCAREFEST DEMANDS TURN INTO A SAD SATIRE", "The postponed Scarefest appearance is joked through crates of beer, baby oil, chairs, and a box of absurd demands before the hosts explain that something behind the scenes genuinely hurt."),
+    H(740, 930, "MAJOR TOPIC TURN", "THE KILL VERSUS KILL EXPERIMENT", "Mike explains the format: line up Jason and Michael kills in chronological order, show short legal clips, let the audience vote when the matchup is close, and keep a running score."),
+    H(930, 1100, "FAN SIGNAL", "THE FIRST MATCHUP: JUDITH OR THE SCREWDRIVER", "Jason's screwdriver through the temple opens the Friday the 13th comparison. Michael's first kill is Judith, the naked-sister murder that establishes his lifelong brutality."),
+    H(1100, 1260, "FILM READ", "JUDITH WINS THE OPENING POLL 67–33", "Mike and Jay give Michael the edge, and the audience agrees 67–33. The reason is not just gore; it is the age of the killer, the family connection, and the way the scene sets Halloween's entire moral temperature."),
+    H(1260, 1450, "SOUNDBYTE / REPLAY", "THE DEATH-BY-DEATH RULES GET EXPLAINED", "They clarify that the project is about shown kills, not off-screen deaths, and that the goal is to compare staging, character, special effects, and franchise identity rather than simply count bodies."),
+    H(1450, 1640, "FILM READ", "ANNIE IN THE CAR OR BARBED WIRE AT THE FENCE", "Jason's barbed wire through the throat meets Michael's long, silent strangulation of Annie in the car. One is a quick puncture; the other is a patient ambush with the car windows fogging."),
+    H(1640, 1810, "FAN SIGNAL", "ANNIE WINS, BUT ONLY 56–44", "The chat gives the car strangulation a narrow 56–44 win. The hosts are surprised the barbed-wire finish stays that competitive, which becomes an early warning that the audience likes Jason's ugly practical kills."),
+    H(1810, 1980, "CHARACTER PERFORMANCE", "LOOMIS CALLS THE TERRIFIER FANS UNFIT FOR SOCIETY", "A viewer asks Dr. Loomis for a professional opinion on couples laughing through Terrifier 3 and hating Joker 2. Loomis prescribes social exile and a violent, medically useless diagnosis.", ["Dr. Loomis"]),
+    H(1980, 2180, "FILM READ", "BOB'S HEAD TILT VERSUS JASON'S HAMMER", "Jason's hammer to a man in the shed is clean and fast. Michael's Bob kill pins him to the wall, leaves his feet dangling, and adds the franchise-defining head tilt as Michael admires his work."),
+    H(2180, 2350, "STRAIGHT TO STEVE'S ASSHOLE", "THE HAMMER GETS THE QUICK-DEATH PASS", "If the audience has to choose a death, the hosts prefer the hammer because it is over quickly. Hanging on the wall while Michael tilts his head at you is deemed too embarrassing."),
+    H(2350, 2530, "FILM READ", "PHONE CORD OR UPSIDE-DOWN THROAT SLASH", "Jason's upside-down throat slash is matched against Michael's phone-cord strangulation. The phone pickup, silent mask, shadows, and slow reveal make Michael's simple kill feel like a complete suspense scene."),
+    H(2530, 2700, "FAN SIGNAL", "THE POLL CHOOSES THE PHONE CORD", "The audience sides with the Michael kill. The hosts admit a quick bleed-out sounds easier than a long strangulation, but nobody wants to be caught enjoying the process in front of the killer."),
+    H(2700, 2880, "ROOM BREAK", "THE WHITE-PARTY CHAT INCIDENT", "A clumsy viewer phrase forces the hosts to stop and explain why context matters. The correction is wrapped in a Diddy-party joke, but the moment shows the room policing its own weirdness rather than pretending not to notice."),
+    H(2880, 3060, "FILM READ", "THE WHEELCHAIR DEATH THAT SHOULDN'T HAVE HAPPENED", "A disabled final-guy death becomes a real complaint: the hosts wanted the character to survive as a different kind of slasher survivor, not get sent down the stairs as a punchline."),
+    H(3060, 3240, "FILM READ", "MACHETE THROUGH THE FACE BEATS THE HOSPITAL JUMP", "Jason's machete through the face sends a wheelchair down the stairs. Michael's jump from the darkness is stylish, but the hosts give Jason the more brutal, memorable image."),
+    H(3240, 3420, "STRAIGHT TO STEVE'S ASSHOLE", "A REVERSE COMEBACK STORY", "The wheelchair rolling backward down the stairs is called a comeback story in reverse. The joke is cruel, but the underlying point is that Jason's kill has a visual hook the Halloween scene never quite earns."),
+    H(3420, 3600, "FILM READ", "THE DOUBLE IMPALEMENT MATCH", "Jason spears a couple together with a sphere; Michael gives a quick hammer kill. The hosts argue about speed, intimacy, and the horrifying logistics of being stuck to a partner while bleeding out."),
+    H(3600, 3790, "FAN SIGNAL", "THE AUDIENCE PICKS SEXUAL IMPALEMENT 69%", "The chat chooses the double impalement over the hammer 69–31. WWAM immediately promotes the number to evidence that the audience is made of absolute degenerates."),
+    H(3790, 3980, "MAJOR TOPIC TURN", "2007 MICHAEL VERSUS 2009 JASON", "The kill comparison pauses for the bigger fantasy question: Rob Zombie's huge Michael Myers against Derek Mears's feral, survivalist Jason in a cage match."),
+    H(3980, 4170, "FILM READ", "THE LONGEST KILL: DIRTY FINGERS AND A CAR DOOR", "Jason's slow, filthy kill gets praised for shot design and the close-up of his dirty fingernails. Michael's matching appearance is smaller and blurred, which makes the matchup feel unfair."),
+    H(4170, 4350, "STRAIGHT TO STEVE'S ASSHOLE", "THE FINGERNAIL IS THE REAL MONSTER", "The hosts cannot stop discussing the grime under Jason's fingernails. The kill is filed under a new sensory category: if the weapon misses, the dirt itself may finish the job."),
+    H(4350, 4560, "FAN SIGNAL", "MICHAEL WINS THE CAGE POLL 51–49", "Despite Mike's confidence in Jason, the audience gives 2007 Michael a razor-thin 51–49 victory. Jay calls the losing voters liars; the score becomes a genuine live sports result."),
+    H(4560, 4750, "FILM READ", "JASON'S NEEDLE VERSUS MICHAEL'S SCALPEL", "Jason's needle kill and Michael's nurse pinned to the wall with a scalpel create one of the night's clearest comparisons: a pinpoint insertion against an impossible display of strength."),
+    H(4750, 4950, "FAN SIGNAL", "THE SCALPEL WINS 77–23", "The audience crushes the nurse kill 77–23. The hosts call it one of Michael's all-time images, even while admitting the physics of holding a body up with a scalpel are completely deranged."),
+    H(4950, 5140, "CHARACTER PERFORMANCE", "LOOMIS AND THE HALLOWEEN KILL HOTLINE", "A Loomis question about Michael and Jason becomes a character answer about children, evil, pudding, and whether Loomis could manipulate Jason's childlike mind.", ["Dr. Loomis"]),
+    H(5140, 5330, "FILM READ", "THE 3D SPEAR VERSUS THE H4 SHOTGUN", "Jason's 3D spear through a woman's chest meets Halloween 4's shotgun blast that pins a man to the wall. The hosts praise the ingenuity of both before admitting Jason's image is more iconic."),
+    H(5330, 5510, "SOUNDBYTE / REPLAY", "THE CHAT'S 'WOW' LOOP", "A playback hiccup becomes an accidental hour-long comedy idea: Jay and Mike repeat 'wow' until the room is laughing at the sound of two grown men discovering a word."),
+    H(5510, 5700, "FAN SIGNAL", "HAMMOCK CHEST OR H4 MICHAEL", "Jason's slow spear from behind a hammock is matched against a steel rod through a chest in Halloween 4. The hosts call the matchup genuinely close and open another poll."),
+    H(5700, 5880, "FAN SIGNAL", "THE HAMMOCK KILL WINS 56–44", "The audience gives Jason's hammock kill a 56–44 win. Michael's look is praised, but the slow special-effects reveal is too much for the chat to ignore."),
+    H(5880, 6070, "FILM READ", "THE ELECTROCUTION MIRROR MATCH", "A Jason electrocution lines up with Halloween 4's matching electrocution. The hosts pause the rivalry and admit the two franchises have accidentally built a shared kill vocabulary."),
+    H(6070, 6250, "ROOM BREAK", "THE LIVE 'WOW' EDITORIAL ROOM", "While Jay scrolls for the next clip, the hosts keep replaying the same reaction, turning the production delay itself into a small, hilarious piece of WWAM lore."),
+    H(6250, 6430, "FILM READ", "THE HOT POKER VERSUS THE SHOTGUN PIN", "Jason's hot poker and Michael's shotgun pin are compared as practical-effects showcases. The hosts give Michael the win for the blunt-force certainty and the sheer look of the shot."),
+    H(6430, 6610, "FILM READ", "EYE POP VERSUS GRADY'S FACE SQUISH", "Jason squeezing an eye out with his bare hand meets Michael crushing Grady's face. The practical effect on Jason is cheap but iconic; Michael's is brutally simple."),
+    H(6610, 6800, "FAN SIGNAL", "THE SCORE GOES DEAD EVEN", "A swing vote moves Grady's face squish from a tie to a one-percent win over the eye pop. The audience is literally changing the franchise record one click at a time."),
+    H(6800, 6990, "STRAIGHT TO STEVE'S ASSHOLE", "THE COMMUNITY BECOMES A POLITICAL SWING VOTE", "The one-percent swing becomes a Kevin Costner political thriller bit. The hosts use the poll to talk about how live audiences create drama that a pre-written ranking cannot manufacture."),
+    H(6990, 7170, "FAN SIGNAL", "THE 69% DEATH POLL GETS A REPLAY", "The hosts revisit the audience's impalement preference and admit that the chat's number is too perfect to leave alone. The receipt becomes part of the episode's permanent scorecard."),
+    H(7170, 7360, "ROOM BREAK", "SILENT HILL AND THE HAIRY-CRACK CAM", "A Silent Hill 2 remake question collides with Jay leaving the room, a camera angle, and the threat that the audience might see far more of him than a horror stream should permit."),
+    H(7360, 7540, "FILM READ", "THE CLEAN ARM CHOP", "Jason removes an arm with a clean chop while Michael's matching kill is a strange off-screen rock attack. The hosts give Jason the point before wandering into a story about a disappointing peanut jar gift."),
+    H(7540, 7730, "STRAIGHT TO STEVE'S ASSHOLE", "THE LONG JOHN SILVER MASK", "Michael's Halloween 5 victim is called a Krabby Patty by the sea, a Long John Silver, and a man who found Michael and tried to nurse him back to death. The mask itself is sentenced to the bin."),
+    H(7730, 7920, "FILM READ", "RACHEL'S QUICK EXIT VERSUS JASON'S HANDSAW", "The hosts hate Halloween 5 killing Rachel almost off-screen, then watch Jason use a handsaw and a twist to turn a victim into a full practical-effects set piece."),
+    H(7920, 8100, "FAN SIGNAL", "LEX LIVE, SCAREFEST, AND THE COMMUNITY BAR", "A viewer asks about watching Terrifier 3 at Lex Live. The hosts explain the giant seats, no-previews policy, and the bad VIP experience that helped sour their convention weekend."),
+    H(8100, 8280, "ROOM BREAK", "THE INTERNET DIES MID-STREAM", "Jay freezes, vanishes, and returns unwilling to discuss it. The interruption becomes a miniature WCW broadcast disaster with Mike trying to keep the audience from staring at a dead screen."),
+    H(8280, 8470, "FAN SIGNAL", "THE FUTURE KILL MATCHUPS", "Viewers request Freddy versus Chucky, Hellboy detective movies, and other franchise combinations. The hosts start building the next season of the kill desk in real time."),
+    H(8470, 8660, "SOUNDBYTE / REPLAY", "THE FREDDY KILLS THAT HAVE TO WAIT", "Freddy's cockroach kill, the marionette, and Johnny Depp's blood geyser are teased as future matchups because the evening has already produced too many slashers for one pass."),
+    H(8660, 8840, "FILM READ", "BANANA JUICE VERSUS THE SCYTHE", "A Jason kill involving a baffling banana-and-blood image meets Michael's scythe kill. The hosts give Jason the point for the sheer disgusting surprise of the reveal."),
+    H(8840, 9020, "FILM READ", "THE FINAL SCORE: JASON 12, MICHAEL 9", "The kill desk closes with Jason ahead 12–9. Michael started strong, but Jason's practical brutality, oddball props, and memorable effects carry the late rounds."),
+    H(9020, 9200, "STRAIGHT TO STEVE'S ASSHOLE", "THE FRANCHISE-ENDING MOMENTS", "A viewer asks which scenes ruined each franchise. The hosts choose Jason Goes to Hell's body-hopping for Friday the 13th and Halloween 5's mask, Busta Rhymes's kung fu, Michael's 'die,' and Halloween Ends' sewer humiliation for Halloween."),
+    H(9200, 9390, "FILM READ", "THE LOVECRAFTIAN RECOMMENDATION DESK", "The hosts recommend The Void, Spring, Color Out of Space, In the Mouth of Madness, Re-Animator, and Cabin in the Woods for a viewer's Lovecraftian horror challenge."),
+    H(9390, 9570, "CHARACTER PERFORMANCE", "PAMELA VOORHEES EXPLAINS FREDDY'S WINK", "Pamela is asked to explain Jason's loss to Freddy. She tells him the wink was the evidence: Freddy was still in control, and Jason's own lake became a dream trap.", ["Pamela Voorhees"]),
+    H(9570, 9750, "FAN SIGNAL", "THE TEXAS CONVENTION INVITATION", "A viewer offers to pay for the hotel at a Texas horror convention. The hosts keep the door open, talk about being free agents, and start imagining a future WWAM road trip."),
+    H(9750, 9940, "FAN SIGNAL", "TERRIFIER 3 FIRST-TIME WATCHALONG PLANS", "The hosts refuse to pirate Terrifier 3, promise a first-time watchalong when it reaches streaming, and let the audience know the movie is already queued for future canon."),
+    H(9940, 10120, "FAN SIGNAL", "THE WHAM FAM GETS A BIRTHDAY ROLL CALL", "Holly Roxy, Chris, Kyler, Dubstep Dub, and Michael Parton get birthday, service, music, and meetup shout-outs. The fan room is not filler; it is how the show keeps its memory alive."),
+    H(10120, 10320, "MAJOR TOPIC TURN", "THE SCAREFEST BREAKUP GETS REAL", "Mike and Jay explain that the Scarefest decision followed months of poor communication, promises that changed during event week, merch money spent, and the feeling that their community had been treated as disposable."),
+    H(10320, 10540, "FAN SIGNAL", "THE COMMUNITY FLEW FROM SWEDEN AND AUSTRALIA", "The hosts point out that viewers have flown internationally after hearing about Scarefest on WWAM. The convention problem is framed as a fan impact problem, not merely a booking inconvenience."),
+    H(10540, 10760, "STRAIGHT TO STEVE'S ASSHOLE", "THE CLOSET NEXT TO THE MOPS", "The hosts joke about being pushed into a closet beside mops and brooms, then clarify that the issue was changing promises and disrespect—not being too important to sit anywhere."),
+    H(10760, 10935, "CLOSING READ", "MAKE LEMONADE, TEA, AND A FREE COMMUNITY BAR", "The show promises the kill desk will return, turns a broken convention weekend into a free fan meetup, and closes by refusing to charge the WWAM community for a photo or a handshake."),
+  ];
+
+  sources[sourceId] = Object.freeze({
+    sourceId: sourceId,
+    reviewState: "full-tape-human-editorial-read",
+    editorialPass: "2026-08-08 fine-toothed full-tape editorial read; local official caption ledger and canonical audio pass across the October 16, 2024 Michael Myers versus Jason Voorhees livestream",
+    evidence: Object.freeze({
+      duration: 10935,
+      captionWords: 37880,
+      captionEvents: 4979,
+      captionSpanSeconds: 10932.12,
+      captionDurationCoveragePercent: 99.97,
+      captionSha256: "d5ccf92cdce5c9c4c217dbfb5c0f68057762df2552ee34a545e2119d82341ddf",
+      captionSourceKind: "source-local official YouTube caption ledger acquired as JSON",
+      audioPass: "canonical YouTube audio + source-local caption alignment; local audio playback spot-check; playback remains the authority",
+      audioSha256: "28ddb4d4230ecd3e70b8463afec19cada06f14735bd6227d80ee00edafd0b28f",
+      asrWindowCount: 46,
+      speakerAttribution: false,
+      visualOutcomeInferred: false,
+    }),
+    label: "WEDNESDAY LIVE // OCTOBER 16, 2024",
+    badge: "FULL SHOW WIKI // MICHAEL VS JASON KILL DESK, LIVE SCORECARD, FAN POLLS, LOOMIS, AND SCAREFEST LORE",
+    headline: "KILL VERSUS KILL: MICHAEL AND JASON TURN THE FRANCHISES INTO A LIVE SCOREBOARD",
+    deck: "A 3h02m Halloween-season experiment that matches kills in chronological order, lets the chat vote on close calls, and ends with Jason ahead 12–9 after a full Scarefest and fan-community reckoning.",
+    overview: "The October 16 show is the WWAM archive's clearest proof that a livestream can become a format. Mike and Jay do not simply rank Michael Myers and Jason Voorhees; they build a live kill desk. Each round lines up a Jason death with a Michael death in chronological order, then asks what actually makes the moment work: the weapon, the framing, the practical effect, the victim, the franchise history, and the audience's own memory. The first hour establishes the rules through Judith versus Jason's screwdriver, Annie's car strangulation versus barbed wire, Bob's head tilt versus a hammer, the phone-cord kill, a wheelchair death the hosts wish had been written differently, and the double-impalement question that the chat votes 69%. The middle rounds expose the experiment's best feature: the franchises keep accidentally answering each other. A needle meets a scalpel. A hammock spear meets a steel rod. A hot poker meets a shotgun pin. An eye pop meets Grady's face squish. The chat swings by one percent, and the running score becomes a real sports broadcast. Michael wins the 2007-versus-2009 cage poll by 51–49, the nurse scalpel kill wins 77–23, and the hammock kill takes 56–44. By the close, Jason's practical brutality and weird props have carried him to a 12–9 win. The last act widens the canon: Pamela Voorhees explains Freddy's wink, viewers request future Freddy and Chucky matchups, The Void becomes the Lovecraftian recommendation, Terrifier 3 gets a promised first-time watchalong, and the hosts explain why Scarefest was cancelled after months of promises, merch work, international fan travel, and poor communication. The show is vulgar and occasionally reckless, but the underlying structure is precise: every kill has a receipt, every vote changes the record, and every fan question can become the next bout on the card.",
+    story: Object.freeze([
+      { at: 0, end: 1100, label: "THE NIGHT OPENS WITH A BAD JOKER AND A GOOD IDEA", body: "Joker 2 gets roasted, Scarefest gets hinted at, and the kill-versus-kill format is introduced as a chronological live experiment." },
+      { at: 1100, end: 2200, label: "JUDITH, ANNIE, AND THE FIRST SCORE", body: "Judith wins the opener, Annie edges the barbed wire, and Bob's head tilt gives Michael the first true iconic receipt." },
+      { at: 2200, end: 3300, label: "PHONE CORDS, WHEELCHAIRS, AND MACABRE LOGISTICS", body: "The phone kill, the disabled final guy, and the machete-down-the-stairs argument show the hosts judging both craft and the ethics of a franchise choice." },
+      { at: 3300, end: 4300, label: "SEX, IMPALEMENT, AND THE 69% POLL", body: "A double impalement becomes a death-preference poll, and the audience chooses the most sexually cursed option with a suspiciously perfect number." },
+      { at: 4300, end: 5200, label: "THE CAGE MATCH TAKES OVER", body: "2007 Michael and 2009 Jason get their own fantasy fight, with survival instinct, size, masks, and a 51–49 audience result." },
+      { at: 5200, end: 6100, label: "NEEDLES, SCALPELS, AND HAMMOCKS", body: "The nurse scalpel crushes the needle 77–23, then the hammock spear narrowly beats Halloween 4's steel rod." },
+      { at: 6100, end: 7000, label: "THE FRANCHISES START COPYING EACH OTHER", body: "Electrocutions, hot pokers, shotgun pins, eye pops, and face squishes reveal a shared slasher vocabulary that the hosts never expected to see so clearly." },
+      { at: 7000, end: 7900, label: "THE STREAM BECOMES A WCW BROADCAST", body: "Bathroom breaks, a hairy-crack threat, Silent Hill, a clean arm chop, and the Long John Silver mask keep the live production itself in the ring." },
+      { at: 7900, end: 8800, label: "LEX LIVE AND THE NEXT ROUND OF MATCHUPS", body: "A theater recommendation, future Freddy-versus-Chucky requests, Hellboy detective talk, and the community's favorite kill list build the next card." },
+      { at: 8800, end: 9300, label: "THE SCORE GOES TO JASON", body: "The banana-and-blood kill and the scythe match close the edited card with Jason leading 12–9." },
+      { at: 9300, end: 10050, label: "PAMELA EXPLAINS THE WINK", body: "Pamela Voorhees turns Freddy versus Jason into a motherly legal brief: Jason lost because Freddy was still dreaming, and the lake belonged to Freddy's rules." },
+      { at: 10050, end: 10680, label: "SCAREFEST'S REAL COST", body: "The hosts explain the cancelled convention appearance, changed promises, merch expenses, international fans, and the disrespect that made a free community meetup feel like the only honest option." },
+      { at: 10680, end: 10935, label: "THE FREE BAR PROMISE", body: "The kill desk will return. The community will not be charged for a handshake. The night closes by converting a bad week into a fan-first plan." },
+    ]),
+    highlights: Object.freeze(highlights),
+    fanRead: Object.freeze({
+      loved: Object.freeze({ at: 740, end: 1260, label: "THE FIRST KILL DESK", topic: "the format locking into place", body: "Play from 0:12:20. Judith and the screwdriver establish the experiment: every death gets a receipt, a comparison, and a chance for the chat to change the score.", playAt: 740, playEnd: 1260 }),
+      hated: Object.freeze({ at: 9020, end: 9260, label: "THE FRANCHISE-ENDING MOMENTS", topic: "Halloween Resurrection and Jason Goes to Hell", body: "Play from 2:30:20. The hosts name the scenes that made them stop believing in the franchises: body-hopping, the H5 mask, Busta's kung fu, 'die,' and the sewer humiliation.", playAt: 9020, playEnd: 9260 }),
+      wildestDetour: Object.freeze({ at: 7170, end: 7360, label: "THE HAIRY-CRACK CAM", topic: "live production chaos", body: "Play from 1:59:30. A Silent Hill question becomes a threat to stand up on camera, expose the room, and never mention it again.", playAt: 7170, playEnd: 7360 }),
+      lastWord: Object.freeze({ at: 8840, end: 9020, label: "JASON 12, MICHAEL 9", topic: "the scoreboard closes", body: "Play from 2:27:20. The scythe round closes the first card and gives Jason the win, while the hosts promise the next franchise matchup.", playAt: 8840, playEnd: 9020 }),
+    }),
+  });
+
+  root.WWAM_EPISODE_EDITORIAL_PACKS = Object.freeze({ schema: registry.schema || "shokker-episode-editorial-packs/v1", generated: "2026-08-08", sources: Object.freeze(sources) });
+})(typeof window !== "undefined" ? window : globalThis);
