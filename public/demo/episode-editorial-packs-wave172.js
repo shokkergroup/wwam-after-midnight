@@ -1,0 +1,112 @@
+(function (root) {
+  "use strict";
+  var registry = root.WWAM_EPISODE_EDITORIAL_PACKS || { schema: "shokker-episode-editorial-packs/v1", sources: {} };
+  var sources = Object.assign({}, registry.sources || {});
+  var H = function (at, end, category, label, excerpt, characters) {
+    var item = { at: at, end: end, category: category, label: label, excerpt: excerpt, sourceId: "7efMRH1jr9M", evidenceState: "machine surfaced; full-caption/audio second read; playback remains the authority" };
+    if (characters) item.characters = characters;
+    return item;
+  };
+
+  /* January 3, 2025: Longlegs First Time Watch Reaction. */
+  sources["7efMRH1jr9M"] = Object.freeze({
+    sourceId: "7efMRH1jr9M",
+    reviewState: "full-tape-human-editorial-read-edge",
+    editorialPass: "2026-08-07 fine-toothed first editorial read; official caption ledger plus canonical local audio pass across the January 3, 2025 Longlegs reaction",
+    evidence: Object.freeze({
+      duration: 1074,
+      captionWords: 2923,
+      captionEvents: 821,
+      captionSpanSeconds: 1075.35,
+      captionDurationCoveragePercent: 100,
+      captionSha256: "sha256:63a034f5f91cd3cba84004da388b9ac78d2a6c5fa9faac9d9ac56050ab5955732",
+      captionSourceKind: "official YouTube automatic caption ledger acquired as JSON3",
+      audioPass: "canonical YouTube audio + official-caption second read; local audio playback spot-check; playback remains the authority",
+      audioSha256: "sha256:6419a3acb2048db28f8e0e5ec7d58081bb7eea99443ab827bf4488e2ed77dac2",
+      asrWindowCount: 0,
+      speakerAttribution: false,
+      visualOutcomeInferred: false,
+    }),
+    label: "LONGLEGS FIRST-TIME WATCH REACTION // JANUARY 3, 2025",
+    badge: "FULL SHOW WIKI // NICHOLAS CAGE'S FUDGE FACTORY, ASMR HORROR, DEMON DOLLS, AND A VERY DRUNK GOODBYE",
+    headline: "NICHOLAS CAGE'S FUDGE FACTORY: WWAM GETS TRAPPED IN LONGLEGS' QUIET LITTLE NIGHTMARE",
+    deck: "J sees Longlegs for the first time while Mike tries to survive the movie's whispering rooms, cursed dolls, Nicholas Cage's singing, and the moment a slow burn finally admits it has been hiding a knife.",
+    overview: "This is a genuine first-time reaction for J and only Mike's second trip through Longlegs. The tape opens by turning the title into a filthy Nicholas Cage travel brochure, then settles into the movie's real weapon: quiet rooms that make the hosts desperate for somebody to fart, sing, or do literally anything to break the silence. A woman investigates a farmhouse alone with a gun, an old woman serves cereal and leaves a note, and the room keeps asking why every character behaves as if a demonic house call is an acceptable Tuesday errand. The film's letter, symbols, dead family, and unsettling dolls pull the conversation toward The Book of the Dead, church, Satan, and the strange poetry of a story that would rather rhyme than explain itself. J's first reaction is split in the most useful way: the movie is freaky and beautifully made, but some of its ASMR hush feels boring when the payoff keeps walking away. Nicholas Cage's appearance changes the temperature immediately. The hosts call the performance immaculate, compare his voice to a karaoke bar at two in the morning, and treat every frozen close-up as a free horror short. Longlegs' singing, the makeup, the latex work, and the strange house geography become the tape's biggest replay receipts. The final stretch turns into a blunt slow-burn argument. Mike sees a good crime film with genuinely creepy pockets; J likes the atmosphere but wants more personality from the lead and does not plan to watch it again because the movie leaves him feeling weird. They agree Cage steals the picture despite not being on screen constantly, and the sign-off leaves the serious analysis behind for a white-faced insult, a Dr. Loomis failure, and a Dr. Challis who is once again too drunk to save anybody.",
+    story: Object.freeze([
+      { at: 0, end: 50, label: "THE FUDGE FACTORY OPENS", body: "J's first Longlegs watch is introduced as a genuine first reaction, with a filthy Nicholas Cage premise and a warning that the movie's quiet is going to make the room invent its own noises." },
+      { at: 50, end: 100, label: "QUIET HOUSES, BAD DECISIONS", body: "A farmhouse visit, a gun, a suspicious kitchen, cereal, notes, and a woman investigating alone give the hosts a running argument about horror characters refusing to use common sense." },
+      { at: 100, end: 150, label: "LET THE SYMBOLS DO THE TALKING", body: "Letters, crosses, the Book of the Dead, dead families, and a house full of scars turn Longlegs into a satanic puzzle that keeps rhyming instead of explaining itself." },
+      { at: 150, end: 200, label: "THE TWO WITCHES IN THE ROOM", body: "The lead's flat delivery, the quiet conversations, and the hosts' comparisons to witches, ASMR, and a podcast nobody would survive make the slow burn feel intentionally uncomfortable." },
+      { at: 200, end: 250, label: "NICHOLAS CAGE CHANGES THE AIR", body: "Cage's apartment, singing, frozen movements, and immaculate makeup create the first sustained burst of energy; every close-up becomes a new performance clip." },
+      { at: 250, end: 299, label: "THE LONGLEGS SHOWCASE", body: "Karaoke-bar vocals, Michael Myers rehaul jokes, latex praise, and a house that feels like a Chris Angel opening act become the most replayable section of the reaction." },
+      { at: 299, end: 356, label: "DOLLS, LAMBS, AND A SLOW-BURN VERDICT", body: "The hosts compare the final horror machinery with Silence of the Lambs, Annabelle, and 1970s horror, then argue whether the atmosphere earns the patience it demands." },
+      { at: 356, end: 383, label: "CAGE WINS; LOOMIS LOSES", body: "The review lands on a solid but uneasy recommendation, with Cage praised, the lead questioned, and a filthy Loomis/Challis character button closing the archive receipt." },
+    ]),
+    highlights: Object.freeze([
+      H(3, 21, "WWAM UP IN YA", "THE FUDGE FACTORY PREMIERE", "Longlegs is introduced as a journey between Nicholas Cage's butt cheeks, an immediate WWAM title card in audio form."),
+      H(24, 41, "FAN SIGNAL", "J'S GENUINE FIRST WATCH", "Mike confirms this is J's first time seeing Longlegs, so every reaction is a live first impression instead of a rehearsed review."),
+      H(44, 62, "TAKE GETS NUCLEAR", "THE CAMERA IS TOO SMALL", "The production companies are blamed for a camera that looks like it was ordered from the wrong corner of the internet."),
+      H(65, 83, "WWAM UP IN YA", "CHEVY CHASE'S CHRISTMAS CAR", "A random car and a Christmas-tree memory derail the opening seconds into a completely unnecessary Chevy Chase detour."),
+      H(86, 103, "STRAIGHT TO STEVE'S ASSHOLE", "THE FARMHOUSE SOLO MISSION", "A woman goes to investigate the foggy house alone and the room immediately files her decision under Steve's worst choices."),
+      H(106, 124, "SOUNDBYTE / REPLAY", "WHAT IF SOMEBODY FARTS?", "The quiet becomes so aggressive that the hosts start wishing for a random fart to break the spell."),
+      H(127, 145, "WWAM UP IN YA", "BOB CANNOT HOLD HIS GAS", "A background noise is blamed on Bob, who apparently has no respect for a haunted house's acoustics."),
+      H(148, 165, "DEEP DIVE", "THE CEREAL NOTE", "The hosts imagine the intruder making cereal, leaving a note, and treating a murder house like a polite overnight rental."),
+      H(168, 186, "WWAM UP IN YA", "THORO'S UNBOXING CHANNEL", "Opening a letter is recast as a dead-serious YouTube tutorial, complete with technique and a fake host voice."),
+      H(189, 207, "SOUNDBYTE / REPLAY", "FRESH SEMEN LETTER", "The contents of a letter take a hard turn into a bodily-fluid joke before the movie can explain what it actually means."),
+      H(210, 227, "DEEP DIVE", "SIX-SIX-SIX IN THE SCRIPT", "A six-six-six reference pulls the discussion toward Satan, the Book of the Dead, and Longlegs' habit of making symbols feel like homework."),
+      H(230, 248, "STRAIGHT TO STEVE'S ASSHOLE", "CUT OFF YOUR HANGING MILK TITS", "A grotesque rhyme is too filthy and too specific to remain in the normal review lane."),
+      H(251, 269, "FAN SIGNAL", "THE DEAD FAMILY TRIP", "The family appears to have been planning a trip right before the movie turns the itinerary into a morgue receipt."),
+      H(272, 289, "WWAM UP IN YA", "SALISBURY STEAK ANYONE?", "Maggots and a family dinner question turn the dead-house reveal into the worst possible potluck invitation."),
+      H(292, 310, "DEEP DIVE", "THE CROSS IS NOT A CD", "The hosts argue over an X, a cross, and a mysterious object, proving that nobody in the room is allowed to be the smart one for more than ten seconds."),
+      H(313, 331, "STRAIGHT TO STEVE'S ASSHOLE", "NO ONE CHECKED FOR A BOMB", "A hidden object gets opened with no safety check, no gloves, and no survival instinct whatsoever."),
+      H(334, 351, "SOUNDBYTE / REPLAY", "IS THAT A REAL PERSON?", "The reaction to a body or doll in the room lands as a clean jump-scare receipt even though the hosts know the movie is setting it up."),
+      H(354, 372, "DEEP DIVE", "THE MAKEUP IS IMMACULATE", "Longlegs' look is praised as a practical-performance achievement, with the hosts calling the character a horror-world Geppetto."),
+      H(375, 393, "WWAM UP IN YA", "THE EDIBLE EXCUSE", "Every flat stare and strange pause gets blamed on an edible somebody took before entering the haunted house."),
+      H(396, 413, "SOUNDBYTE / REPLAY", "SHE NEEDS A SPLASH OF SOMETHING", "The lead's breathy stillness makes the hosts beg for a stimulant, a splash of water, or one human emotion."),
+      H(416, 434, "FAN SIGNAL", "THE DOORS ARE HER FAVORITE BAND", "A character who speaks like a séance is assigned The Doors as her inevitable favorite band."),
+      H(437, 455, "STRAIGHT TO STEVE'S ASSHOLE", "THE WITCHES SHOULD START A PODCAST", "Two eerie women are imagined as witches who lure listeners to sleep and steal their souls through a podcast feed."),
+      H(458, 475, "WWAM UP IN YA", "READING TO ESCAPE YOUR WIFE", "A fake domestic confession turns pretend reading into an emergency strategy for escaping a wife's court-case monologues."),
+      H(478, 496, "DEEP DIVE", "WHY DOES LONGLEGS KNOW HER NAME?", "The hosts notice that the movie gives Longlegs information he should not have and treat the missing explanation as part of the dread."),
+      H(499, 517, "SOUNDBYTE / REPLAY", "HOT LAVA EJACULATE", "The film's supernatural language is translated into hot lava and hot ejaculate, one of the tape's most unmistakable WWAM phrases."),
+      H(520, 538, "WWAM UP IN YA", "POMPEII GOT TOO CLOSE", "The hosts imagine villagers in Pompeii being buried under the wrong kind of hot lava."),
+      H(540, 558, "STRAIGHT TO STEVE'S ASSHOLE", "THE GUN DID NOT HELP", "Having a gun turns out not to matter when the character stands in the fog waiting for John Carpenter to judge her."),
+      H(561, 579, "FAN SIGNAL", "NICHOLAS CAGE AS DAD", "The room keeps waiting for Cage to appear as an unhinged father figure and call himself papa."),
+      H(582, 600, "DEEP DIVE", "THE APARTMENT IS THE PAYOFF", "Cage's apartment finally gives the reaction a new visual rhythm, and the hosts immediately sit up for the performance."),
+      H(602, 620, "CHARACTER PERFORMANCE", "CAGE'S SLITHERY GREETING", "Cage's first full vocal entrance gets treated as a character performance rather than a normal actor beat.", ["Nicholas Cage / Longlegs"]),
+      H(623, 641, "SOUNDBYTE / REPLAY", "IRS VOICE", "Cage's singing is compared with the IRS arriving to inspect the room, which is somehow both accurate and insulting."),
+      H(644, 662, "WWAM UP IN YA", "MICHAEL MYERS REHAUL", "A sudden mask reference turns the Longlegs reaction into a miniature Halloween workshop."),
+      H(664, 682, "DEEP DIVE", "THE MAKEUP DESERVES THE CAMERA", "The hosts stop joking long enough to appreciate the latex, makeup, and physical construction of Cage's look."),
+      H(685, 703, "STRAIGHT TO STEVE'S ASSHOLE", "THE KARAOKE BAR AT TWO A.M.", "Cage's singing is placed in the exact room where drunk strangers become a public hazard."),
+      H(706, 724, "SOUNDBYTE / REPLAY", "TWENTY-FOUR MINUTES OF DEDICATION", "The hosts cannot believe how long the song lasts and call the performance dedication bordering on a hostage situation."),
+      H(726, 744, "FAN SIGNAL", "THE BACK OF THE VOLKSWAGEN", "The camera position is compared with a late-night ride in the back of a Volkswagen, which makes the whole movie feel less safe."),
+      H(747, 765, "DEEP DIVE", "LONGLEGS IS A SLOW BURN", "The reaction finally names the structure: the movie invests in atmosphere and asks the audience to wait for the supernatural machinery."),
+      H(768, 786, "STRAIGHT TO STEVE'S ASSHOLE", "THE DOLL FACTORY", "Possessed dolls are described like mass-produced Annabelle products, a factory line Steve would never approve."),
+      H(788, 806, "WWAM UP IN YA", "SHOOT THE DOLL HEAD", "The hosts want the characters to stop shooting around the problem and put a bullet directly into the cursed doll's head."),
+      H(809, 827, "SOUNDBYTE / REPLAY", "POWER BOMB THE DEVIL", "A wrestling move becomes the preferred solution to the demon problem."),
+      H(830, 848, "DEEP DIVE", "SILENCE OF THE LAMBS IN A SATANIC HOUSE", "The final investigation earns a comparison to Clarice and Hannibal, only with Satan, dolls, and nobody respecting a locked door."),
+      H(850, 868, "FAN SIGNAL", "THE LEAD NEEDS MORE PERSONALITY", "J's most useful criticism is not that the performance is wrong, but that the lead's flatness makes the long quiet stretches harder to carry."),
+      H(871, 889, "WWAM UP IN YA", "THE PACKERS ARE PLAYING", "The best way to survive an especially quiet horror scene is proposed: stop watching and check the football game."),
+      H(892, 910, "STRAIGHT TO STEVE'S ASSHOLE", "SHE LETS THE DOLL DO EVERYTHING", "The room cannot understand why the character stands still while the cursed object finishes the job."),
+      H(912, 930, "DEEP DIVE", "CAGE STEALS THE SHOW", "Both hosts agree that Cage does not need constant screen time; every appearance changes the temperature of the reaction."),
+      H(933, 951, "SOUNDBYTE / REPLAY", "I'LL NEVER WATCH IT AGAIN", "J's final relationship with Longlegs is honest: the film works, but it leaves him feeling too strange to revisit."),
+      H(954, 972, "FAN SIGNAL", "SOLID CRIME FILM, CREEPY POCKETS", "Mike's measured read gives the reaction a useful middle ground between masterpiece and complete waste of a night."),
+      H(974, 992, "WWAM UP IN YA", "MODERATION IS FOR COWARDS", "The mushroom analogy turns patience with a slow burn into a drug joke about going to the hospital too early."),
+      H(995, 1013, "DEEP DIVE", "THE SCORE IS ATMOSPHERE", "The film's quiet, music, and empty rooms are credited with creating a different kind of fear than jump scares."),
+      H(1016, 1034, "CHARACTER PERFORMANCE", "DR. LOOMIS CANNOT RECOVER", "The goodbye lets Loomis fail in public while Dr. Challis gets blamed for being drunk and sleeping with somebody's sister.", ["Dr. Loomis", "Dr. Challis"]),
+      H(1037, 1054, "WWAM UP IN YA", "THE WHITE-FACED GOODBYE", "The outro turns Longlegs' pale face into a filthy holiday-style monster sign-off, even though it is nowhere near Christmas."),
+      H(1057, 1074, "SOUNDBYTE / REPLAY", "GODDAMN YOU, MICHAEL", "The last curse in the caption ledger sends the tape out on an exaggerated horror-movie scream."),
+    ]),
+    fanRead: Object.freeze({
+      loved: Object.freeze({ at: 582, end: 724, label: "CAGE STEALS THE ROOM", topic: "Nicholas Cage's Longlegs performance", body: "Play from 27:12. Cage's apartment, voice, frozen movements, makeup, and karaoke-bar singing turn a quiet reaction into the night's biggest performance reel.", playAt: 582, playEnd: 724 }),
+      hated: Object.freeze({ at: 892, end: 930, label: "THE LEAD NEEDS A PULSE", topic: "flat delivery and slow-burn patience", body: "Play from 41:42. J's complaint is specific: the atmosphere works, but the lead's flatness makes the long stretches feel more sleepy than scary.", playAt: 892, playEnd: 930 }),
+      wildestDetour: Object.freeze({ at: 496, end: 538, label: "HOT LAVA EJACULATE", topic: "the most unhinged metaphor", body: "Play from 23:12. Pompeii, hot lava, and a very WWAM translation of supernatural writing create the clip most likely to make a new viewer ask what the hell they just heard.", playAt: 496, playEnd: 538 }),
+      lastWord: Object.freeze({ at: 1016, end: 1074, label: "LOOMIS IS FIRED", topic: "the character sign-off", body: "Play from 47:30. The review ends with Loomis failing, Challis drinking, Michael getting cursed, and the archive refusing to leave on a respectable sentence.", playAt: 1016, playEnd: 1074 }),
+    }),
+  });
+
+  root.WWAM_EPISODE_EDITORIAL_PACKS = Object.freeze({
+    schema: registry.schema || "shokker-episode-editorial-packs/v1",
+    generated: "2026-08-07",
+    sources: Object.freeze(sources),
+  });
+})(typeof window !== "undefined" ? window : globalThis);
