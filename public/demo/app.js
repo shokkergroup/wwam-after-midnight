@@ -23,7 +23,7 @@
     campaignSnapshots = {}, lastDialogFocus = null, tapeById = {}, itemById = {},
     streamById = {}, storageFallback = {}, runtimeDiagnostics = [],
     sourceReturnContext = null, sourceReturnRestorePending = null,
-    sourceClipParentRoute = null;
+    sourceClipParentRoute = null, sourceClipReturnContext = null;
   var SOURCE_RETURN_STORAGE_KEY = "wwamSourceReturnContext";
   var SOURCE_RETURN_WINDOW_NAME_PREFIX = "WWAM_RETURN_CONTEXT:";
   window.WWAM_RUNTIME_DIAGNOSTICS = runtimeDiagnostics;
@@ -493,6 +493,18 @@
           Number(payload.at) : null;
         var clipSection = sourceDossierSection(payload.section) ||
           (route && route.section) || "wiki";
+        if (clipAt != null) {
+          var clipModal = document.getElementById("tapeModal");
+          var rememberedScroll = payload.returnScrollTop != null &&
+            Number.isFinite(Number(payload.returnScrollTop)) ?
+            Number(payload.returnScrollTop) :
+            (clipModal ? Number(clipModal.scrollTop || 0) : 0);
+          sourceClipReturnContext = {
+            sourceId: String(payload.sourceId || "").trim(),
+            section: clipSection,
+            scrollTop: Math.max(0, rememberedScroll),
+          };
+        }
         if (route && route.sourceId === payload.sourceId) {
           syncSourceRoute(payload.sourceId, clipAt, clipSection, "replace");
         }
@@ -3305,8 +3317,12 @@
     // returns to the exact shelf/franchise route that opened it.
     var activeClipUrl = new URL(window.location.href);
     var activeClipPlayer = document.getElementById("modalPlayer");
-    if (!settings.fromHistory && !settings.replaceRoute &&
-        activeClipUrl.searchParams.has("at") && activeClipPlayer) {
+    var hasChildClipReceipt = activeClipUrl.searchParams.has("at") &&
+      (Boolean(activeClipPlayer) ||
+        Boolean(history.state && history.state.wwamSourceDossierPushed === true) ||
+        Boolean(typeof sourceClipReturnContext !== "undefined" &&
+          sourceClipReturnContext));
+    if (!settings.fromHistory && !settings.replaceRoute && hasChildClipReceipt) {
       var activeSourceId = String(
         (history.state && history.state.sourceId) ||
         activeClipUrl.searchParams.get("source") ||
@@ -3326,6 +3342,8 @@
           history.back();
           return;
         }
+        var clipReturn = typeof sourceClipReturnContext !== "undefined" ?
+          sourceClipReturnContext : null;
         syncSourceRoute(activeSourceId, null, activeSection, "replace");
         // Re-render the same source dossier when the rich UI is available so
         // local audio/active-cut state clears without replacing the Show Wiki
@@ -3342,14 +3360,24 @@
             section: sourceDossierSection(activeSection) || "wiki",
           }));
         }
-        if (!restoredShowWiki && window.ShokkerYouTubePlayback &&
+        if (!restoredShowWiki && activeClipPlayer && window.ShokkerYouTubePlayback &&
             typeof window.ShokkerYouTubePlayback.iframe === "function") {
           activeClipPlayer.innerHTML = window.ShokkerYouTubePlayback.iframe(
             activeSourceId,
             { autoplay: false, title: "WWAM commentary source playback" },
           );
-        } else if (!restoredShowWiki) {
+        } else if (!restoredShowWiki && activeClipPlayer) {
           activeClipPlayer.innerHTML = "";
+        }
+        if (typeof sourceClipReturnContext !== "undefined") sourceClipReturnContext = null;
+        if (clipReturn && Number.isFinite(Number(clipReturn.scrollTop))) {
+          var restoreClipScroll = function () {
+            var restoredModal = document.getElementById("tapeModal");
+            if (!restoredModal) return;
+            restoredModal.scrollTop = Math.max(0, Number(clipReturn.scrollTop));
+          };
+          restoreClipScroll();
+          setTimeout(restoreClipScroll, 0);
         }
         return;
       }
@@ -3389,6 +3417,7 @@
       if (typeof window.dispatchEvent === "function") window.dispatchEvent(new Event("hashchange"));
     }
     if (typeof sourceClipParentRoute !== "undefined") sourceClipParentRoute = null;
+    if (typeof sourceClipReturnContext !== "undefined") sourceClipReturnContext = null;
     if (settings.restoreFocus === false) lastDialogFocus = null;
     else restoreDialogFocus();
   }

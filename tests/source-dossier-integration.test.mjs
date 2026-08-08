@@ -1281,6 +1281,14 @@ test("closing an active clip restores the open Show Wiki before leaving the shel
   assert.equal(modal.classList.contains("show"), true);
 });
 
+test("clip callbacks carry the Show Wiki scroll receipt and close works without a player node", () => {
+  assert.match(app, /sourceClipReturnContext = null/, "clip parent receipt state exists");
+  assert.match(app, /payload\.returnScrollTop/, "local and iframe clips can carry the parent scroll position");
+  assert.match(app, /var clipReturn = typeof sourceClipReturnContext/, "closing a clip reads the parent receipt");
+  assert.doesNotMatch(app, /activeClipUrl\.searchParams\.has\("at"\) && activeClipPlayer/, "clip close is not gated on a player element");
+  assert.match(read("source-dossier-ui.js"), /payload\.returnScrollTop = Math\.max\(0, Number\(ownerDialog\.scrollTop\)\)/);
+});
+
 test("loose clips opened from a Show Wiki carry a nested parent route", () => {
   assert.match(app, /sourceClipParentRoute = \{/, "nested source context is captured");
   assert.match(app, /nestedRouteMode = "push"/, "different-source loose clips get a child history entry");

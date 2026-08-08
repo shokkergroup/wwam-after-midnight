@@ -4174,6 +4174,14 @@
         section: state.section,
         query: state.query
       };
+      // The clip is a child of this Show Wiki. Record where the visitor was
+      // reading before the player scrolls itself into view; the app bridge can
+      // restore that exact in-modal position when the first X closes the clip.
+      var ownerDialog = typeof mount.closest === "function" ?
+        mount.closest("#tapeModal,[role=dialog]") : null;
+      if (ownerDialog && Number.isFinite(Number(ownerDialog.scrollTop))) {
+        payload.returnScrollTop = Math.max(0, Number(ownerDialog.scrollTop));
+      }
       function playTimelineAudio(at, end) {
         var audio = typeof mount.querySelector === "function" ?
           mount.querySelector("[data-source-dossier-timeline-audio]") : null;
