@@ -69,6 +69,7 @@
     H(10440,10620,"CREATOR READ","THE BEST YOUTUBE HORROR IS OUTWORKING HOLLYWOOD","The closing argument is the episode's thesis: independent filmmakers make bold, weird, complete ideas with tiny budgets, while Hollywood keeps sanding the danger off its own genre."),
     H(10620,10806,"CLOSING READ","THE FAM LEAVES WITH A GHOST STORY, A CORNFIELD, AND A PART TWO","The last Super Chats mix movie recommendations, fan scares, Halloween costumes, and a cornfield warning. The room closes drunk, grateful, and already asking for the next batch of links."),
   ];
+  highlights[24].characters = ["Dr. Loomis", "Dr. Challis"];
   sources[sourceId] = Object.freeze({
     sourceId: sourceId,
     reviewState: "full-tape-human-editorial-read",
