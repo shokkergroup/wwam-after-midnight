@@ -3329,8 +3329,15 @@
     // returns to the exact shelf/franchise route that opened it.
     var activeClipUrl = new URL(window.location.href);
     var activeClipPlayer = document.getElementById("modalPlayer");
+    // The route marker is normally `at` (or the audio-only history flag), but
+    // a local lane can finish its handoff before either marker is serialized.
+    // The in-memory parent receipt is authoritative in that tiny window: if a
+    // clip was opened from a Show Wiki, the first X must still close only the
+    // clip and leave the episode in place.
     var hasChildClipRoute = activeClipUrl.searchParams.has("at") ||
-      Boolean(history.state && history.state.wwamSourceDossierClip === true);
+      Boolean(history.state && history.state.wwamSourceDossierClip === true) ||
+      Boolean(typeof sourceClipReturnContext !== "undefined" &&
+        sourceClipReturnContext && sourceClipReturnContext.sourceId);
     var hasChildClipReceipt = hasChildClipRoute &&
       (Boolean(activeClipPlayer) ||
         Boolean(history.state && history.state.wwamSourceDossierPushed === true) ||
