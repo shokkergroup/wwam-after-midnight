@@ -238,6 +238,7 @@
     "episode-editorial-packs-wave214.js?v=1.0.0-july-2024-longlegs-fam-live-human-read",
     "episode-editorial-packs-wave215.js?v=1.0.0-july-2024-maxxxine-spoiler-human-read",
     "episode-editorial-packs-wave216.js?v=1.0.0-july-2024-june-29-live-human-read",
+    "episode-editorial-packs-wave217.js?v=1.0.0-june-2024-watchers-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
