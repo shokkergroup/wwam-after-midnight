@@ -1,0 +1,68 @@
+(function (root) {
+  "use strict";
+  var registry = root.WWAM_EPISODE_EDITORIAL_PACKS || { schema: "shokker-episode-editorial-packs/v1", sources: {} };
+  var sources = Object.assign({}, registry.sources || {});
+  var sourceId = "hQbKp-aEacY";
+  var duration = 645;
+  var H = function (at, end, category, label, excerpt) {
+    return { at: Math.max(0, Math.round(at)), end: Math.min(duration, Math.max(Math.round(at) + 1, Math.round(end))), category: category, label: label, excerpt: excerpt, sourceId: sourceId, kind: "human-editorial-highlight", evidenceBasis: "full-tape-human-editorial-read", evidenceState: "source-local caption/audio aligned; playback remains the authority" };
+  };
+  var F = function (at, end, displayName, interactionType, excerpt) {
+    return { at: at, end: end, displayName: displayName, interactionType: interactionType, excerpt: excerpt, evidenceState: "source-local caption community receipt" };
+  };
+  var highlights = [
+    H(0, 125, "MILESTONE FILE", "THE COMPANION CELEBRATION OPENS WITH NIPS, PEPPERONI, AND THE STRIPPERS THEY FORGOT TO BOOK", "This shorter 100K cut is the afterparty version: the hosts count the room, read a nipples-out Super Chat, and admit the milestone package somehow arrived without the strippers."),
+    H(125, 245, "FAM FILE", "ASTROS, PACKERS, GIANTS, AND THE PRICE IS RIGHT REVIEW TURN THE 100K ROOM INTO A SPORTS BAR", "Nicole, Corey Starr, John Rahiro, Mason Lockley, and The Price is Right Review all get pulled into the live roll call while the hosts jump between teams and the nerd-as-term-of-endearment conversation."),
+    H(245, 390, "TAKE GETS NUCLEAR", "DEREK GETS A PACKERS ROAST, THEN VEGAS TURNS A TWO-HUNDRED-DOLLAR BANKROLL INTO A WHEEL OF FORTUNE CRIME SCENE", "Derek's congratulations become Packers trash talk. The Vegas story gets specific: a small bankroll climbs toward $900, then the Wheel of Fortune machine eats it back, and the hosts warn the chat not to trust that bright spinning bastard."),
+    H(390, 515, "WWAM UP IN YA", "A $7 WIN, GOLLUM POSSESSION, AND A HUNGOVER FIRST FLIGHT MAKE VEGAS FEEL LIKE A HORROR SHORT", "The slot-machine story moves from a jackpot-looking light show to a humiliating seven-dollar payout, then to a first flight taken hungover with anxiety, a $30 Bloody Mary, and a surprisingly intact stomach."),
+    H(515, 600, "CHARACTER SIGNAL", "THE 'INTERROGATION OF MICHAEL MYERS' CREATES A NEW QUOTES LEVEL FOR THE CHANNEL", "The hosts promise to return to the abandoned project and credit Cody with adding a new quotes level through the Interrogation of Michael Myers video and a Christopher Walken performance."),
+    H(600, 645, "FAM CLOSING", "ZACH GETS A SCRIPT PROMISE AND RUSSELL DASH ORDERS THE 100K ARNOLD PREDATOR BATTLE CRY", "The cut closes with Zach Cornett's script callback, Russell Dash's Arnold request, and a final burst of milestone affection instead of a neat sign-off."),
+  ];
+  highlights.sort(function (a, b) { return a.at - b.at; });
+  var story = [
+    { at: 0, end: 125, label: "THE 100K AFTERPARTY FORGETS THE STRIPPERS", body: "The companion cut is shorter and looser than the long celebration, but its opening establishes the point: 100,000 is being processed as a filthy live-room joke before anybody tries to sound inspirational.", evidenceBasis: "full-tape-human-editorial-read", narrative: { kind: "human-editorial-story" } },
+    { at: 125, end: 245, label: "A SPORTS BAR WITH A NERD HEART", body: "Astros, Packers, Giants, and a Price is Right review share the same chat lane. The hosts can roast a team and call a child a nerd in the same breath, then make the word affectionate instead of cruel.", evidenceBasis: "full-tape-human-editorial-read", narrative: { kind: "human-editorial-story" } },
+    { at: 245, end: 390, label: "VEGAS TAKES THE MONEY BACK", body: "The Vegas anecdote has a clean WWAM arc: a small bankroll grows, the Wheel of Fortune machine becomes an obsession, and the hosts go back to the same machine to lose again. The warning is funny because it is painfully specific.", evidenceBasis: "full-tape-human-editorial-read", narrative: { kind: "human-editorial-story" } },
+    { at: 390, end: 515, label: "THE HORROR IS A SEVEN-DOLLAR PAYOUT AND A $30 BLOODY MARY", body: "A slot win turns into Gollum guarding his precious, then the story shifts to flying hungover for the first time. Anxiety, alcohol, and a plane ride are treated as lived experience, not a generic travel anecdote.", evidenceBasis: "full-tape-human-editorial-read", narrative: { kind: "human-editorial-story" } },
+    { at: 515, end: 600, label: "CODY BUILDS THE CHANNEL'S QUOTES LEVEL", body: "The hosts remember the Interrogation of Michael Myers project and Cody's Christopher Walken performance. This is a useful lore receipt: the channel's characters and quote-bits are community-built, not just host mythology.", evidenceBasis: "full-tape-human-editorial-read", narrative: { kind: "human-editorial-story" } },
+    { at: 600, end: 645, label: "THE AFTERPARTY ENDS WITH MORE WORK TO DO", body: "Zach's script callback and Russell Dash's Arnold Predator Battle Cry request send the cut out on a promise: the 100K number is a milestone, not permission to stop making the weird stuff.", evidenceBasis: "full-tape-human-editorial-read", narrative: { kind: "human-editorial-story" } },
+  ];
+  sources[sourceId] = Object.freeze({
+    sourceId: sourceId,
+    reviewState: "full-tape-human-editorial-read",
+    editorialPass: "2026-08-09 fine-toothed read of the 10m45 companion 100K celebration cut; local caption/audio evidence was checked across the nipples/pepperoni opening, sports and nerd roll call, Derek Packers roast, Vegas and Wheel of Fortune story, first-flight anxiety, Interrogation of Michael Myers/Cody callback, and Zach/Russell closing requests",
+    evidence: Object.freeze({ duration: 645, captionWords: 2259, captionEvents: 611, captionSpanSeconds: 643.47, captionDurationCoveragePercent: 99.76, captionSha256: "0ca9b228dfb6dd1465085c6ab277949d3cafe240a109edc20e061241c18fd6fd", captionSourceKind: "source-local canonical speech-to-text caption ledger", audioPass: "canonical local source audio + source-local Whisper alignment; playback remains the authority", audioSha256: "65a1eeec6c4c907ffd97e146177a5fc10f670507fc8179e7715de9206e27b290", asrWindowCount: 1, asrSegmentCount: 164, asrSha256: "0d35b9ca0b2eac85c0e0537d71fd2cb8a4c774cc57253033d281744734396793", asrCoverageStartSeconds: 40, asrCoverageEndSeconds: 643.74, speakerAttribution: false, visualOutcomeInferred: false }),
+    label: "COMPANION TAPE // 100K AFTERPARTY",
+    badge: "SHOW WIKI // THE SHORT CUT WITH VEGAS, MICHAEL MYERS, AND THE STRIPPERS THEY FORGOT",
+    headline: "THE 100K AFTERPARTY LOSES THE MONEY AND KEEPS THE BITS",
+    deck: "A 10m45 companion cut that plays like the dirty afterparty to the long celebration: sports trash talk, a Wheel of Fortune gambling disaster, a hungover first flight, and the Cody-built Michael Myers quotes lane.",
+    overview: "This is not a duplicate of the 2h42 100K celebration. It is the companion cut: shorter, looser, and much more interested in the room's ability to turn a milestone into a filthy afterparty. It opens with nipples, pepperoni, a cup that says fuck, and the admission that the hosts forgot to book the strippers. The sports roll call pulls in Astros, Packers, Giants, Nicole, Corey Starr, John Rahiro, Mason Lockley, and The Price is Right Review, then turns nerd into a term of endearment. Derek's congratulations are answered with Packers trash talk before the show tells the Vegas story: a small bankroll climbs toward $900, the Wheel of Fortune machine becomes an obsession, and the same glowing bastard wins it all back. A $7 payout gets treated like a Gollum possession, while the first-flight story adds hungover anxiety and a $30 Bloody Mary. The final lore turn is Cody's Interrogation of Michael Myers project, which the hosts say created a new quotes level for the channel and included a Christopher Walken performance. Zach Cornett gets a script promise; Russell Dash asks for the 100K Arnold Predator Battle Cry. The long celebration is the emotional monument. This cut is the sticky floor and the jukebox beside it.",
+    topics: Object.freeze(["100K", "FAM", "Vegas", "Wheel of Fortune", "Packers", "Giants", "Michael Myers", "Cody", "Interrogation of Michael Myers", "Arnold", "Predator"]),
+    highlights: Object.freeze(highlights),
+    story: Object.freeze(story),
+    fanRead: Object.freeze({
+      loved: Object.freeze({ at: 515, end: 600, label: "CODY'S QUOTES LEVEL", topic: "Channel lore", body: "Play from 8:35. The hosts connect Cody's Interrogation of Michael Myers and Christopher Walken bit to a new layer of WWAM quote history.", playAt: 515, playEnd: 600 }),
+      hated: Object.freeze({ at: 245, end: 390, label: "THE WHEEL OF FORTUNE MACHINE", topic: "Vegas damage", body: "Play from 4:05. The bankroll climbs, the machine gets personal, and the hosts go back for a second beating.", playAt: 245, playEnd: 390 }),
+      wildestDetour: Object.freeze({ at: 0, end: 125, label: "THE STRIPPERS THEY FORGOT", topic: "Opening bit", body: "Play from 0:00. The companion cut announces its tone with nipples, pepperoni, and a missing adult-entertainment budget.", playAt: 0, playEnd: 125 }),
+      lastWord: Object.freeze({ at: 600, end: 645, label: "ARNOLD PREDATOR BATTLE CRY", topic: "Fan request", body: "Play from 10:00. Russell Dash's request gives the cut one last piece of unfinished business.", playAt: 600, playEnd: 645 })
+    }),
+    fam: Object.freeze({
+      callouts: Object.freeze([
+        F(65, 90, "JJ", "FIRST SUPER CHAT", "JJ's nipples-out message sets the tone for the afterparty."),
+        F(70, 100, "Nicole", "FAM ROLL CALL", "Nicole is welcomed as the room fills."),
+        F(118, 140, "Corey Starr", "MEMBERSHIP SUPPORT", "Corey Starr's members-only message is read and thanked."),
+        F(172, 190, "John Rahiro", "SPORTS CHAT", "John Rahiro's Giants loyalty gets a Go G-Man response."),
+        F(177, 190, "Mason Lockley", "FAM CHECK-IN", "Mason Lockley is thanked for stopping by before an early morning."),
+        F(218, 240, "Derek", "PACKERS ROAST", "Derek's congratulations turn into a Packers-versus-Lions roast."),
+        F(240, 260, "Greg Harris", "MILESTONE CONGRATULATIONS", "Greg Harris is thanked for the 100K congratulations."),
+        F(324, 350, "Jason Owens", "FAM SUPPORT", "Jason Owens is thanked during the Vegas-loss story."),
+        F(327, 345, "Holly", "VEGAS CALLBACK", "Holly is told the truth: the Vegas trip did not end in a win."),
+        F(570, 590, "Cody", "CHARACTER / QUOTES LORE", "Cody is credited with the Interrogation of Michael Myers and Christopher Walken quotes lane."),
+        F(630, 645, "Zach Cornett", "SCRIPT CALLBACK", "Zach Cornett gets a promise that the script will be finished."),
+        F(636, 645, "Russell Dash", "CHARACTER REQUEST", "Russell Dash asks for the 100K Arnold Predator Battle Cry."),
+      ]),
+      note: "Twelve source-local FAM, membership, question, callback, and character-request receipts are carried into this companion dossier. No donation totals or speaker attribution beyond the visible exchange are claimed."
+    })
+  });
+  root.WWAM_EPISODE_EDITORIAL_PACKS = Object.freeze({ schema: registry.schema || "shokker-episode-editorial-packs/v1", generated: "2026-08-09", sources: Object.freeze(sources) });
+})(typeof window !== "undefined" ? window : globalThis);
