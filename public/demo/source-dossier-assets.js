@@ -600,6 +600,7 @@
     "episode-editorial-packs-wave576.js?v=1.0.0-apr-03-2021-best-horror-1999-full-audio-human-read",
     "episode-editorial-packs-wave577.js?v=1.0.0-apr-08-2021-ghostbusters-rocky-movie-news-full-audio-human-read",
     "episode-editorial-packs-wave578.js?v=1.0.0-apr-10-2021-justice-league-writer-more-movie-news-full-audio-human-read",
+    "episode-editorial-packs-wave579.js?v=1.0.0-apr-15-2021-scream-babadook-revisited-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
