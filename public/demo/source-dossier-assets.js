@@ -557,6 +557,7 @@
     "episode-editorial-packs-wave533.js?v=1.0.0-oct-25-2020-new-nightmare-commentary-full-audio-human-read",
     "episode-editorial-packs-wave534.js?v=1.0.0-oct-24-2020-freddys-dead-commentary-full-audio-human-read",
     "episode-editorial-packs-wave535.js?v=1.0.0-oct-21-2020-host-watchalong-full-audio-human-read",
+    "episode-editorial-packs-wave536.js?v=1.0.0-oct-17-2020-nightmare-5-dream-child-commentary-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
