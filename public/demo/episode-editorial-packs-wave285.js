@@ -66,7 +66,7 @@
     topics: Object.freeze(["He-Man", "Mortal Kombat", "Batman", "Robert Pattinson", "Wolverine", "Spider-Man", "Scream", "Stu Macher", "Ghostface", "Michael Myers", "Dr. Loomis", "Hellraiser", "Halloween", "James Gunn", "Super Chats", "Patreon", "WWAM FAM", "acceptance"]),
     highlights: Object.freeze(highlights),
     story: Object.freeze([
-      { at: 0, end: 1050, label: "THE BARBER, THE OPINION, AND THE LAB-GROWN ASS CHEEK", body: "The room opens with a haircut and a defense of independent opinions, then turns food technology into a filthy thought experiment before the movie talk settles in." },
+      { at: 0, end: 1050, label: "THE BARBER, THE OPINION, AND THE LAB-GROWN ASS CHEEK", body: "The room opens with a haircut and a defense of independent opinions, then turns food technology into a filthy thought experiment before the movie talk finally finds its lane." },
       { at: 1050, end: 2100, label: "HE-MAN CHEESE, BATMAN BODIES, AND THE REACHER ARGUMENT", body: "He-Man's needed corniness leads into Robert Pattinson's Batman, Ben Affleck comparisons, and the larger question of whether a superhero performance needs a heavyweight silhouette." },
       { at: 2100, end: 3150, label: "WOLVERINE, MJ, AND THE GAME THAT WANTS THE CONSOLE MONEY", body: "The Wolverine trailer and gameplay watch produce a real buying argument: healing factor, voice, momentum, motorcycle spectacle, and a price that competes with a used car." },
       { at: 3150, end: 4200, label: "COLOGNE, PUPPIES, AND THE LOOMIS FOOTNOTE", body: "Jordan memories, dog-walking resentment, and a question about the voice of Loomis keep the live room moving through ordinary details that become channel lore." },
