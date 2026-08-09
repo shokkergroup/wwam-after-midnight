@@ -1,0 +1,71 @@
+(function (root) {
+  "use strict";
+  var registry = root.WWAM_EPISODE_EDITORIAL_PACKS || { schema: "shokker-episode-editorial-packs/v1", sources: {} };
+  var sources = Object.assign({}, registry.sources || {});
+  var sourceId = "zXnErgqpTWo";
+  var duration = 372;
+  var H = function (at, end, category, label, excerpt) {
+    return { at: Math.max(0, Math.round(at)), end: Math.min(duration, Math.max(Math.round(at) + 1, Math.round(end))), category: category, label: label, excerpt: excerpt, sourceId: sourceId, kind: "human-editorial-highlight", evidenceBasis: "full-tape-human-editorial-read", evidenceState: "source-local caption/audio aligned; playback remains the authority" };
+  };
+  var F = function (at, end, displayName, interactionType, excerpt) {
+    return { at: at, end: end, displayName: displayName, interactionType: interactionType, excerpt: excerpt, evidenceState: "source-local caption community receipt" };
+  };
+  var highlights = [
+    H(0, 75, "BOARD GAME NIGHTMARE", "BATTLESHIP OPENS AS A BOARD-GAME MOVIE JOKE AND ENDS AS A RED RING OF DEATH", "The hosts are fresh from the theater, calling the movie battle shits before describing the aliens and Navy premise. The real metaphor is an Xbox 360 that arrives with the red ring already glowing."),
+    H(75, 150, "SPECIAL-EFFECTS DISTRACTION", "A FLAT SCRIPT GETS WRAPPED IN TOASTERS, TRAILERS, AND A MICHAEL BAY IMPRESSION THAT DOESN'T EVEN REACH MICHAEL BAY", "The movie tries to hide its story behind effects, but the hosts think the aliens look robotic and the spectacle is less impressive than advertised."),
+    H(150, 225, "MISCAST FLEET", "TAYLOR KITSCH GETS A DEFENSE; LIAM NEESON GETS TWENTY MINUTES AND A CELL-PHONE JOB", "The hosts argue over Kitsch, then agree the ensemble has no chemistry. Rihanna, Brooklyn Decker, and the supporting cast are trapped inside lines nobody could make sound good."),
+    H(225, 300, "THE NAVY ODE", "OLD WARSHIPS, A COOL LAST BATTLE, AND THE ONLY FIFTEEN MINUTES THAT GIVE THE MOVIE A PULSE", "The hosts appreciate the tribute to veteran sailors and the final warship attack, even while noting that most of the effects look like toasters and the best combat is saved for the end."),
+    H(300, 350, "COMEDY CRASH", "THE MOVIE FIRES OFF RELIEF ATTEMPTS LIKE FLARES; THE ROOM HEARS CRICKETS", "Most of the jokes fail. The hosts give Taylor Kitsch a small defense, then return to the same diagnosis: subpar script, flat acting, bad soundtrack, and comedy characters who were inserted without a punchline."),
+    H(350, 372, "3.5 VS. 4.5", "A SOGGY-DIAPER ALERT: WATCH THE AVENGERS AGAIN INSTEAD", "Mike gives Battleship a 3.5 and J a 4.5. They would rather have seen The Avengers again, and the episode closes with the phrase that belongs in the archive: soggy diaper alert."),
+  ];
+  highlights.sort(function (a, b) { return a.at - b.at; });
+  var story = [
+    { at: 0, end: 75, label: "THE BRAND IS THE FIRST THING THEY ATTACK", body: "The review begins immediately after the theater. Mike and J joke that Hollywood has run out of ideas and gone to Toys R Us for a board game. Their actual complaint is more specific: Battleship uses the brand as a ticket, then offers aliens attacking Earth, a Navy response, and a script that assumes special effects can stand in for a story. The Xbox 360 red-ring metaphor is the episode's cleanest summary—great anticipation, instant failure, a repair trip to Texas, and a long wait for something that still does not work.", evidenceBasis: "full-audio-human-editorial-read", narrative: { kind: "full-tape-human-editorial-story" } },
+    { at: 75, end: 150, label: "THE EFFECTS ARE A DISTRACTION, NOT A RESCUE", body: "The hosts think the film is flat in acting, tone, and writing, then wrapped in a special-effects blanket to keep viewers from asking questions. The aliens look robotic to them, more like attacking toasters than an invading species. Even the Michael Bay comparison is an insult: the movie tries for that loud effects-first identity and does not even reach the level of the films it is imitating.", evidenceBasis: "full-audio-human-editorial-read", narrative: { kind: "full-tape-human-editorial-story" } },
+    { at: 150, end: 225, label: "THE FLEET HAS ACTORS BUT NO BAND CHEMISTRY", body: "The cast looks good on paper—Friday Night Lights, True Blood, Liam Neeson, Rihanna, Brooklyn Decker—but the hosts cannot make the ensemble feel connected. They debate whether Taylor Kitsch works in the opening and then agree the script defeats everybody. Liam Neeson is barely present and could have done the same job over a cell phone; Rihanna and Decker are asked to deliver lines that no performer could polish into dialogue.", evidenceBasis: "full-audio-human-editorial-read", narrative: { kind: "full-tape-human-editorial-story" } },
+    { at: 225, end: 300, label: "THE OLD WARSHIPS ARE THE ONLY HUMAN DETAIL", body: "The hosts find one honest gesture in the movie: an ode to the Navy's older warships and the people who served on them. The acting in that section is still weak, but the idea has weight. The final battle also gives the film a pulse. The problem is that the best combat arrives in the last fifteen minutes, after the movie has already asked the room to survive an hour and a half of flat spectacle.", evidenceBasis: "full-audio-human-editorial-read", narrative: { kind: "full-tape-human-editorial-story" } },
+    { at: 300, end: 350, label: "THE COMEDY RELIEF IS A DEAD CHANNEL", body: "Battleship keeps inserting jokes and relief characters, but the hosts hear crickets. Taylor Kitsch gets the only partial defense because a few intended comic beats land for J. Everything else circles back to the same verdict: the script is subpar, the soundtrack and cinematography are poor, and the characters were built to be funny without being given anything funny to say.", evidenceBasis: "full-audio-human-editorial-read", narrative: { kind: "full-tape-human-editorial-story" } },
+    { at: 350, end: 372, label: "THE SCORE IS A WARNING LABEL", body: "Mike gives the movie a 3.5 and J gives it a 4.5. They would rather have watched The Avengers again, and the recommendation is simple: skip the theater unless you need the final battle. The last phrase—soggy diaper alert—becomes the page's warning label, a crude but accurate summary of the post-theater mood.", evidenceBasis: "full-audio-human-editorial-read", narrative: { kind: "full-tape-human-editorial-story" } },
+  ];
+  sources[sourceId] = Object.freeze({
+    sourceId: sourceId,
+    reviewState: "full-tape-human-editorial-read",
+    editorialPass: "2026-08-09 fine-toothed read of the full 6m12s Battleship review; local audio and caption evidence was checked across the board-game premise, battle-shits opener, Xbox red-ring metaphor, effects-first distraction, robotic toaster aliens, Michael Bay comparison, Taylor Kitsch debate, Liam Neeson cell-phone joke, Rihanna and Brooklyn Decker, old-warship tribute, final fifteen-minute battle, comedy-crash diagnosis, 3.5-versus-4.5 split, Avengers alternative, and soggy-diaper sign-off",
+    evidence: Object.freeze({ duration: 372, captionWords: 1582, captionEvents: 430, captionSpanSeconds: 369.8, captionDurationCoveragePercent: 99.41, captionSha256: "50BEADA93AA0E83528D3E86F8BB1185178F815A3D115C6D67E6C00BCDE5A27BC", captionSourceKind: "source-local canonical YouTube automatic-caption ledger acquired as edge json3", audioPass: "canonical local source audio + source-local caption alignment; playback remains the authority", audioSha256: "3258F1AFA6CA25E397FDF9F0B645A7F9A677ADD4B70A9B23CECBB146A25C69BE", asrSegmentCount: 0, asrSha256: null, asrCoverageStartSeconds: null, asrCoverageEndSeconds: null, speakerAttribution: false, visualOutcomeInferred: false }),
+    label: "REVIEW FILE // BATTLESHIP",
+    badge: "FULL SHOW WIKI // BOARD-GAME BRAND, TOASTER ALIENS, AND THE SOGGY-DIAPER ALERT",
+    headline: "BATTLESHIP: THE RED RING OF DEATH WITH A NAVY BUDGET",
+    deck: "A source-grounded post-theater dossier: Hollywood shops at Toys R Us, a flat script hides behind effects, the aliens look like toasters, Liam Neeson phones it in, the Navy tribute lands, and a 3.5/4.5 split ends in a soggy-diaper warning.",
+    overview: "Mike and J review Battleship immediately after seeing it, and the first feeling is not wonder. It is battle shits. The film takes a board-game brand, adds aliens attacking Earth, and asks the Navy to save everyone. The hosts use an Xbox 360 red-ring-of-death story as their central metaphor: the anticipation is huge, the package looks exciting, and the moment it starts the whole thing fails. The movie's biggest defense is its effects, but the hosts think the effects are a distraction rather than a rescue. The script, tone, and acting are flat, the aliens look like robotic toasters, and the production never reaches the loud Michael Bay level it is imitating. The cast looks better on paper than it behaves on screen. Mike and J debate Taylor Kitsch, then agree that the script defeats every actor. Liam Neeson appears for roughly twenty minutes and could have done the same work over a cell phone. Rihanna and Brooklyn Decker are asked to deliver dialogue so stiff that the room stops blaming the performers and starts blaming the page. The one human detail they appreciate is an ode to the Navy's older warships and the sailors connected to them. The acting in that material is still weak, but the tribute has weight, and the final ship-to-alien battle is the only stretch that gives the movie a pulse. The problem is that the good combat arrives in the last fifteen minutes, after the film has spent most of its runtime asking the audience to admire spectacle that is neither surprising nor well integrated. Comedy relief fares worse. Battleship keeps inserting jokes and characters meant to be funny, but the room hears crickets. The final score splits 3.5 and 4.5. Mike would rather have watched The Avengers again; J calls it a little below average. The recommendation is a skip unless the viewer is desperate for the last battle. The archive label is appropriately crude: soggy diaper alert.",
+    topics: Object.freeze(["Battleship", "Peter Berg", "Taylor Kitsch", "Liam Neeson", "Rihanna", "Brooklyn Decker", "alien invasion", "Navy", "board-game movies", "WWAM FAM"]),
+    highlights: Object.freeze(highlights),
+    story: Object.freeze(story),
+    fanRead: Object.freeze({
+      loved: Object.freeze({ at: 225, end: 300, label: "OLD WARSHIPS", topic: "Navy tribute", body: "Play from 3:45. The hosts find the one human gesture and the final battle that give the movie a pulse.", playAt: 225, playEnd: 300 }),
+      hated: Object.freeze({ at: 75, end: 150, label: "TOASTER ALIENS", topic: "Effects", body: "Play from 1:15. The special effects cannot hide the flat script, and the aliens look more robotic than threatening.", playAt: 75, playEnd: 150 }),
+      wildestDetour: Object.freeze({ at: 0, end: 75, label: "RED RING OF DEATH", topic: "Board-game movie", body: "Play the opener for the Xbox metaphor that explains the entire post-theater mood.", playAt: 0, playEnd: 75 }),
+      lastWord: Object.freeze({ at: 350, end: 372, label: "SOGGY DIAPER ALERT", topic: "Final verdict", body: "Play the close for the 3.5/4.5 split and the Avengers alternative.", playAt: 350, playEnd: 372 })
+    }),
+    fam: Object.freeze({
+      callouts: Object.freeze([
+        F(0, 45, "THE FAM", "BATTLE SHITS", "The post-theater mood arrives before the plot summary."),
+        F(20, 70, "THE FAM", "BOARD GAME MOVIE", "Hollywood goes shopping at Toys R Us again."),
+        F(75, 120, "THE FAM", "RED RING OF DEATH", "A big-ticket movie arrives already broken."),
+        F(110, 155, "THE FAM", "FLAT SCRIPT", "Effects are asked to distract from the writing."),
+        F(135, 195, "THE FAM", "TOASTER ALIENS", "The invasion looks more robotic than alien."),
+        F(160, 220, "THE FAM", "TAYLOR KITSCH", "The room debates the lead and blames the script."),
+        F(220, 245, "THE FAM", "LIAM NEESON CELL PHONE", "Twenty minutes of screen time becomes a phone joke."),
+        F(245, 295, "THE FAM", "OLD WARSHIPS", "The Navy tribute gets the movie's only human detail."),
+        F(275, 315, "THE FAM", "FINAL FIFTEEN", "The last battle is neat, but it arrives too late."),
+        F(300, 345, "THE FAM", "COMEDY CRASH", "Relief characters fire jokes into an empty theater."),
+        F(315, 350, "THE FAM", "SUBPAR EVERYTHING", "Soundtrack, acting, cinematography, and script take the hit."),
+        F(330, 372, "THE FAM", "3.5 VS. 4.5", "The split score stays below average by design."),
+        F(335, 365, "THE FAM", "AVENGERS REWATCH", "The alternative is a movie they already love."),
+        F(350, 372, "THE FAM", "SOGGY DIAPER ALERT", "The official WWAM warning label."),
+        F(360, 372, "THE FAM", "STINKY SIGN-OFF", "The episode exits through the archive's crude lane.")
+      ]),
+      note: "Fifteen source-local audience receipts are retained. No supporter identity or donation claim is present; the community lane is the post-theater warning, the Avengers alternative, and the split score."
+    })
+  });
+  root.WWAM_EPISODE_EDITORIAL_PACKS = Object.freeze({ schema: registry.schema || "shokker-episode-editorial-packs/v1", generated: "2026-08-09", sources: Object.freeze(sources) });
+})(typeof window !== "undefined" ? window : globalThis);
