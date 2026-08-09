@@ -565,6 +565,7 @@
     "episode-editorial-packs-wave541.js?v=1.0.0-aug-27-2020-halloween-2018-encore-full-audio-human-read",
     "episode-editorial-packs-wave542.js?v=1.0.0-aug-10-2020-batman-forever-commentary-full-audio-human-read",
     "episode-editorial-packs-wave543.js?v=1.0.0-jul-20-2020-three-ninjas-commentary-full-audio-human-read",
+    "episode-editorial-packs-wave544.js?v=1.0.0-jul-27-2020-freddy-got-fingered-commentary-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
