@@ -396,6 +396,7 @@
     "episode-editorial-packs-wave372.js?v=1.0.0-january-22-2021-nathan-baesel-behind-the-mask-full-tape-human-read",
     "episode-editorial-packs-wave373.js?v=1.0.0-january-21-2021-body-bags-halloween-kills-full-tape-human-read",
     "episode-editorial-packs-wave374.js?v=1.0.0-january-14-2021-behind-the-mask-anticipated-movies-full-tape-human-read",
+    "episode-editorial-packs-wave375.js?v=1.0.0-january-08-2021-x-men-doomsday-netflix-halloween-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
