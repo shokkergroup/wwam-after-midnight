@@ -624,6 +624,7 @@
     "episode-editorial-packs-wave600.js?v=1.0.0-nov-19-2021-under-siege-ghostbusters-once-bitten-full-audio-human-read",
     "episode-editorial-packs-wave601.js?v=1.0.0-nov-17-2021-no-way-home-halloween-run-full-audio-human-read",
     "episode-editorial-packs-wave602.js?v=1.0.0-nov-15-2021-rocky-pulp-fiction-bond-pumpkinhead-full-audio-human-read",
+    "episode-editorial-packs-wave603.js?v=1.0.0-oct-15-2021-halloween-kills-spoiler-free-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
