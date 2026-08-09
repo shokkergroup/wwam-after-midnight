@@ -615,6 +615,7 @@
     "episode-editorial-packs-wave591.js?v=1.0.0-may-28-2021-quiet-place-its-me-billy-joker-halloween-full-audio-human-read",
     "episode-editorial-packs-wave592.js?v=1.0.0-jun-02-2021-conjuring-warrens-amityville-full-audio-human-read",
     "episode-editorial-packs-wave593.js?v=1.0.0-jun-04-2021-conjuring3-mail-sauce-leatherface-full-audio-human-read",
+    "episode-editorial-packs-wave594.js?v=1.0.0-jun-09-2021-conjuring-halloween6-loki-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
