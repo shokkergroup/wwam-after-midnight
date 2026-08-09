@@ -503,6 +503,7 @@
     "episode-editorial-packs-wave479.js?v=1.0.0-aug-16-2018-dead-end-commentary-full-audio-human-read",
     "episode-editorial-packs-wave480.js?v=1.0.0-aug-05-2018-my-bloody-valentine-commentary-full-audio-human-read",
     "episode-editorial-packs-wave481.js?v=1.0.0-jul-17-2018-scream-3-commentary-full-audio-human-read",
+    "episode-editorial-packs-wave482.js?v=1.0.0-jun-01-2018-scream-2-commentary-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
