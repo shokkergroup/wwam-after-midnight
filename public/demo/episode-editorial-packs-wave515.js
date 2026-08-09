@@ -1,0 +1,71 @@
+(function (root) {
+  "use strict";
+  var registry = root.WWAM_EPISODE_EDITORIAL_PACKS || { schema: "shokker-episode-editorial-packs/v1", sources: {} };
+  var sources = Object.assign({}, registry.sources || {});
+  var sourceId = "5zQSNUy8QKY";
+  var duration = 363;
+  var H = function (at, end, category, label, excerpt) {
+    return { at: Math.max(0, Math.round(at)), end: Math.min(duration, Math.max(Math.round(at) + 1, Math.round(end))), category: category, label: label, excerpt: excerpt, sourceId: sourceId, kind: "human-editorial-highlight", evidenceBasis: "full-tape-human-editorial-read", evidenceState: "source-local caption/audio aligned; playback remains the authority" };
+  };
+  var F = function (at, end, displayName, interactionType, excerpt) {
+    return { at: at, end: end, displayName: displayName, interactionType: interactionType, excerpt: excerpt, evidenceState: "source-local caption community receipt" };
+  };
+  var highlights = [
+    H(0, 75, "BURTON BOX", "TIM BURTON EATS BLACK LICORICE AND SERVES THE SAME CLOAKED MOVIE AGAIN", "The opener is already a complaint about the Burton/Depp house style: the look is recognizable before the story starts, and the hosts wonder whether Burton keeps choosing the shitty black licorice because he likes the taste."),
+    H(75, 150, "SAME OLD SHADOWS", "EDWARD SCISSORHANDS, BEETLEJUICE, BATMAN—THE ROOM WANTS THE TALENT TO CHANGE THE FEEL", "Mike and J are not anti-Burton. They love the earlier work. Their criticism is that the new film repeats the same dark, quirky package without offering a new emotional reason to care."),
+    H(150, 225, "TEN GOOD MINUTES", "JOHNNY DEPP IS GREAT, THE CINEMATOGRAPHY IS PRETTY, AND THE LAST 10–15 MINUTES FINALLY WAKE UP", "The hosts isolate the positives: Depp's performance, attractive photography, and a late effects-heavy stretch. They refuse to let those positives erase a movie that spends nearly two hours losing the plot."),
+    H(225, 300, "MEATBALLS AND SPAGHETTI", "THIRTY-EIGHT PLOTS FALL OFF THE PLATE WHILE BURTON PROTECTS THE LOOK", "The movie's central failure is structural. The hosts count too many story threads, pointless characters, holes, and an obsession with a trademark visual feel that replaces the reason anyone should care about the family."),
+    H(300, 340, "COUNT CHOCULA COURT", "THE THEATER LAUGHS AT A COP SAYING 'NOTHING TO SEE HERE' AND THE BOOTH WANTS TO KNOW WHY", "The hosts note that the in-room audience treated ordinary lines as hilarious, probably because they loved Depp. Their answer to the film's target viewer is blunt: watch the original TV show or eat Count Chocula instead."),
+    H(340, 363, "4.0 VS. 4.0", "RENT IT AT REDBOX AT 3 A.M., WATCH BEETLEJUICE, AND SAVE YOUR THEATER MONEY FOR THE AVENGERS", "Both hosts give Dark Shadows a four. The recommendation is a late-night rental only for committed Burton/Depp fans, with Beetlejuice or another Avengers rewatch as the safer alternative."),
+  ];
+  highlights.sort(function (a, b) { return a.at - b.at; });
+  var story = [
+    { at: 0, end: 75, label: "THE BURTON/DEPP BOX IS VISIBLE BEFORE THE REVIEW STARTS", body: "Mike and J open by imagining Tim Burton eating black licorice because he knows it is the shitty kind nobody wants. The bit is a blunt way to describe the film's visual identity: cloak, goth texture, quirky faces, and an instantly recognizable flavor. They are not pretending the talent is absent. They are asking why the same flavor is still being served without a new reason to take a bite.", evidenceBasis: "full-audio-human-editorial-read", narrative: { kind: "full-tape-human-editorial-story" } },
+    { at: 75, end: 150, label: "THEY LOVE THE OLD MOVIES, WHICH MAKES THE FATIGUE SPECIFIC", body: "Edward Scissorhands, Beetlejuice, and the 1989 Batman are named as evidence that the hosts once found Burton's darkness fresh. Their complaint is not that the aesthetic exists; it is that a Tim Burton/Johnny Depp pairing now announces the entire movie before a trailer. The room wants the same talent to keep the feeling and change the emotional engine.", evidenceBasis: "full-audio-human-editorial-read", narrative: { kind: "full-tape-human-editorial-story" } },
+    { at: 150, end: 225, label: "DEPP HAS TO CARRY THE WHOLE HOUSE", body: "Johnny Depp is the clear positive. The hosts think he is good for what he is given, the cinematography looks pretty, and the final ten or fifteen minutes provide some cool effects. But that is not enough to save a two-hour movie. Their praise is deliberately bounded: the performance and the finish are real, while the rest of the structure remains exhausted.", evidenceBasis: "full-audio-human-editorial-read", narrative: { kind: "full-tape-human-editorial-story" } },
+    { at: 225, end: 300, label: "THE PLATE HAS TOO MANY PLOTS", body: "The hosts describe the film as meatballs and spaghetti dumped into the trash because nobody knows how to finish the meal. They count roughly thirty-eight plot directions, pointless characters, holes, and a director more committed to the Tim Burton feel than to the family or the story. The Edward Scissorhands comparison lands here: they cared about Edward; they do not care about these people.", evidenceBasis: "full-audio-human-editorial-read", narrative: { kind: "full-tape-human-editorial-story" } },
+    { at: 300, end: 340, label: "THE THEATER'S LAUGH TRACK BECOMES EVIDENCE", body: "Mike and J watched a crowd erupt at lines they thought were plainly unfunny, including a cop's straight-faced 'nothing to see here.' Their theory is that the audience was in love with Johnny Depp and had decided every beat was funny. The reaction becomes a useful boundary for the page: committed Burton/Depp fans may be operating on a different frequency than an everyday viewer.", evidenceBasis: "full-audio-human-editorial-read", narrative: { kind: "full-tape-human-editorial-story" } },
+    { at: 340, end: 363, label: "THE FOUR IS A RENTAL, NOT A THEATER TICKET", body: "Both hosts land at 4.0. Their advice is not to spend hard-earned theater money unless the viewer already knows they will forgive the repetition. Wait for Redbox at three in the morning, watch Beetlejuice, or watch The Avengers again. The final joke is crude, but the editorial position is precise: pretty surfaces and a late effects burst cannot replace a story with a reason to care.", evidenceBasis: "full-audio-human-editorial-read", narrative: { kind: "full-tape-human-editorial-story" } },
+  ];
+  sources[sourceId] = Object.freeze({
+    sourceId: sourceId,
+    reviewState: "full-tape-human-editorial-read",
+    editorialPass: "2026-08-09 fine-toothed read of the full 6m03s Dark Shadows review; local audio and caption evidence was checked across the Tim Burton black-licorice opener, Johnny Depp praise, Helena Bonham Carter, Edward Scissorhands and Beetlejuice comparisons, the repeated Burton/Depp feel, 1970s setting criticism, plot holes, 38-story-thread metaphor, meatballs-and-spaghetti image, late effects, theater audience laughter, Count Chocula, Redbox, Beetlejuice, Avengers rewatch, and the 4.0-versus-4.0 verdict",
+    evidence: Object.freeze({ duration: 363, captionWords: 1547, captionEvents: 398, captionSpanSeconds: 365.04, captionDurationCoveragePercent: 100.56, captionSha256: "E8DC286FCCBA601015EF48AD7F4EE7E4E2A6CE77B6915E6FA0139DFD505FC659", captionSourceKind: "source-local canonical YouTube automatic-caption ledger acquired as edge json3", audioPass: "canonical local source audio + source-local caption alignment; playback remains the authority", audioSha256: "2BC7DCDD2BB7857893716A29485ED1583678FB08BE145239A478D0572153F542", asrSegmentCount: 0, asrSha256: null, asrCoverageStartSeconds: null, asrCoverageEndSeconds: null, speakerAttribution: false, visualOutcomeInferred: false }),
+    label: "REVIEW FILE // DARK SHADOWS",
+    badge: "FULL SHOW WIKI // BURTON BOX, COUNT CHOCULA, AND A 4.0 THEATER WARNING",
+    headline: "DARK SHADOWS: THE BURTON BOX WITH NO FAMILY INSIDE",
+    deck: "A source-grounded dossier for the 2012 Burton/Depp film: black licorice, repeat-goth fatigue, Johnny Depp carrying the positives, thirty-eight plot threads, a late effects burst, and a 4.0/4.0 Redbox recommendation.",
+    overview: "Mike and J review Dark Shadows as a film trapped inside a recognizable Tim Burton box. The opener imagines Burton eating black licorice because he knows it is the shitty kind nobody wants, a crude but accurate description of the cloaks, goth textures, odd faces, and familiar Johnny Depp performance the movie serves again. The hosts are not anti-Burton or anti-Depp. They love Edward Scissorhands, Beetlejuice, and the 1989 Batman. Their complaint is that the old darkness once felt edgy and new, while a Burton/Depp release now announces its entire flavor before the trailer finishes. They want the same talent to keep the atmosphere and change the emotional reason to care. Johnny Depp is the clear positive. Mike and J think he is good for what he is given, the cinematography is pretty, and the final ten or fifteen minutes finally provide cool effects. The praise is bounded because the movie is long, arduous, and filled with characters the hosts do not care about. The 1970s setting also fails to register; aside from a few trees and a Volkswagen van, the film looks like a Sweeney Todd production wearing a different date. The central structural complaint is the pileup. The hosts describe roughly thirty-eight plots, pointless characters, holes, and a director more committed to preserving the Tim Burton feel than to completing the story. Their meatballs-and-spaghetti metaphor is the page's key image: too many ingredients, no plan for the plate, and a final dump into the trash. A late effects burst and a few funny moments cannot repair that. The theater audience becomes part of the evidence. The group laughed at straight-faced lines that the hosts considered ordinary, probably because they were already in love with Depp. The recommendation therefore stays conditional. Both hosts give Dark Shadows a 4.0. Wait for Redbox at three in the morning, watch Beetlejuice, or watch The Avengers again. The page should not confuse a good-looking late sequence with a good movie. Dark Shadows is a Burton/Depp mood board that forgot to make its family matter.",
+    topics: Object.freeze(["Dark Shadows", "Tim Burton", "Johnny Depp", "Helena Bonham Carter", "Edward Scissorhands", "Beetlejuice", "1970s setting", "goth comedy", "Count Chocula", "WWAM FAM"]),
+    highlights: Object.freeze(highlights),
+    story: Object.freeze(story),
+    fanRead: Object.freeze({
+      loved: Object.freeze({ at: 150, end: 225, label: "DEPP CARRIES IT", topic: "Johnny Depp", body: "Play from 2:30. The hosts isolate the performance, photography, and late effects that keep the score from collapsing further.", playAt: 150, playEnd: 225 }),
+      hated: Object.freeze({ at: 225, end: 300, label: "MEATBALLS AND SPAGHETTI", topic: "Plot structure", body: "Play from 3:45. Thirty-eight plot threads, holes, and visual priorities leave the room asking who the family is for.", playAt: 225, playEnd: 300 }),
+      wildestDetour: Object.freeze({ at: 0, end: 75, label: "BLACK LICORICE", topic: "Burton box", body: "Play the opener for the black-licorice metaphor and the cloak-at-the-door image.", playAt: 0, playEnd: 75 }),
+      lastWord: Object.freeze({ at: 340, end: 363, label: "4.0 / REDBOX", topic: "Final verdict", body: "Play the close for the late-night rental advice, Beetlejuice alternative, and Avengers rewatch.", playAt: 340, playEnd: 363 })
+    }),
+    fam: Object.freeze({
+      callouts: Object.freeze([
+        F(0, 35, "THE FAM", "BLACK LICORICE", "The Burton box gets a candy-based warning label."),
+        F(12, 45, "THE FAM", "CLOAK AT THE DOOR", "Even trick-or-treating gets a gothic costume complaint."),
+        F(40, 80, "THE FAM", "JOHNNY DEPP", "The star gets the first and strongest compliment."),
+        F(75, 135, "THE FAM", "BURTON / DEPP FATIGUE", "The room wants the same feel with a new engine."),
+        F(85, 125, "THE FAM", "EDWARD SCISSORHANDS", "The old movie is the comparison that still has a heart."),
+        F(100, 145, "THE FAM", "BEETLEJUICE", "A better late-night recommendation arrives early."),
+        F(130, 185, "THE FAM", "1970S SETTING", "Two trees and a Volkswagen cannot make the era."),
+        F(150, 210, "THE FAM", "LAST 15 MINUTES", "The late effects burst gets its limited credit."),
+        F(190, 235, "THE FAM", "MEATBALLS AND SPAGHETTI", "Too many plots spill off the plate."),
+        F(225, 285, "THE FAM", "38 STORY THREADS", "The page counts the pileup without pretending precision beyond the tape."),
+        F(245, 300, "THE FAM", "TIM BURTNEY FEEL", "Style becomes the focal point instead of the story."),
+        F(300, 335, "THE FAM", "THEATER LAUGH TRACK", "A crowd laughs at a cop line; the room suspects Depp devotion."),
+        F(315, 350, "THE FAM", "COUNT CHOCULA", "The TV show wins the comparison."),
+        F(340, 363, "THE FAM", "4.0 VS. 4.0", "Both hosts land on the same warning score."),
+        F(350, 363, "THE FAM", "RED BOX / AVENGERS", "Rent late, watch Beetlejuice, or rewatch the Avengers.")
+      ]),
+      note: "Fifteen source-local audience receipts are retained. No supporter identity or donation claim is present; the community lane is the conditional Burton/Depp recommendation and the 4.0 rental warning."
+    })
+  });
+  root.WWAM_EPISODE_EDITORIAL_PACKS = Object.freeze({ schema: registry.schema || "shokker-episode-editorial-packs/v1", generated: "2026-08-09", sources: Object.freeze(sources) });
+})(typeof window !== "undefined" ? window : globalThis);
