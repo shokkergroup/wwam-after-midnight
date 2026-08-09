@@ -1,0 +1,79 @@
+(function (root) {
+  "use strict";
+  var registry = root.WWAM_EPISODE_EDITORIAL_PACKS || { schema: "shokker-episode-editorial-packs/v1", sources: {} };
+  var sources = Object.assign({}, registry.sources || {});
+  var sourceId = "gRdXvl5s_ys";
+  var duration = 6615;
+  var H = function (at, end, category, label, excerpt) {
+    return { at: Math.max(0, Math.round(at)), end: Math.min(duration, Math.max(Math.round(at) + 1, Math.round(end))), category: category, label: label, excerpt: excerpt, sourceId: sourceId, kind: "human-editorial-highlight", evidenceBasis: "full-tape-human-editorial-read", evidenceState: "machine surfaced; full-caption/audio second read; playback remains the authority" };
+  };
+  var F = function (at, end, displayName, interactionType, excerpt) {
+    return { at: at, end: end, displayName: displayName, interactionType: interactionType, excerpt: excerpt, evidenceState: "source-local caption community receipt" };
+  };
+  var highlights = [
+    H(0, 700, "OPENING FILE", "MONDAY STARTS WITH A LIVESTREAM CHECK, A HACKED FACEBOOK ACCOUNT, AND SOPRANOS GRAVY", "The May 12 show opens with a technical check, Mother's Day greetings, and a real annoyance: a fake Facebook account using James Holtz's family photos. The room then turns The Sopranos into a gravy-versus-sauce argument."),
+    H(700, 1400, "UP IN YA", "BOARDWALK EMPIRE, CHICKEN TOWN, AND THE SONGS THAT MAKE A SHOW'S ENDING HIT LIKE A WAR MOVIE", "The hosts compare The Sopranos and Boardwalk Empire through music, mock funerals, prohibition, and the songs they would have played while failing spectacularly in the 1920s."),
+    H(1400, 2100, "INDUSTRY NEWS", "APPLE BUYING DISNEY AND AMAZON BUYING AMC BECOME A QUARANTINE MOVIE-THEATER FEVER DREAM", "The hosts discuss reports and rumors about Apple/Disney and Amazon/AMC, tying the shutdown of parks, theaters, and movie releases to a larger argument about who could control the next entertainment ecosystem. The dossier labels these as the conversation's speculation, not confirmed deals."),
+    H(2100, 2800, "MARVEL / DEADPOOL", "MARVEL'S POST-ENDGAME PLAN, THE NETFLIX CANCELLATIONS, AND WHY DEADPOOL NEEDS ROOM TO BE R-RATED", "The booth argues that shelving Deadpool and the Netflix shows while pushing unfamiliar characters risks superhero fatigue. Deadpool becomes the test case for whether a new owner would let Marvel's adult characters stay sharp."),
+    H(2800, 3500, "HORROR / VOD", "HEREDITARY, THE CONJURING, THE IRISHMAN, AND THE QUESTION OF PAYING $50 FOR HALLOWEEN KILLS AT HOME", "A viewer asks for modern horror recommendations and the hosts choose Hereditary and The Conjuring. A Halloween Kills rumor then reopens the theatrical-versus-VOD debate, with Mike saying he would pay for an October home release if that is what the world requires."),
+    H(3500, 4200, "NEW MUTANTS / MIKE TYSON", "NEW MUTANTS LOSES HEAT WHEN IT LOSES ITS R-RATING, THEN MIKE TYSON LOOKS LIKE MR. DREAM", "The hosts mourn the version of New Mutants they wanted—a genuinely dark horror-superhero film—before reacting to Mike Tyson's training video and possible exhibition fight. Tyson is treated as a real person with a comeback story, not just a punchline."),
+    H(4200, 4900, "AWARDS / FAM", "LOGAN AND TONI COLLETTE GET THE OSCAR-SNUB RANT, THEN ANGER-TEXTING GETS ITS OWN COPY-EDIT", "The hosts agree Hugh Jackman and Toni Collette deserved recognition. A Patreon writing question turns into a funny confession about ADHD, punctuation, and texts written with no apostrophes when the heart is racing."),
+    H(4900, 5550, "HELLRAISER", "FEMALE PINHEAD, DOUG BRADLEY, AND THE MOMENT THE BOOTH ADMITS THE CENOBITES ARE SEXUALLY CONFUSING", "The Hellraiser reboot question becomes a serious casting debate before the room veers into BDSM imagery and the hosts' loyalty to Doug Bradley. The dossier preserves both the franchise opinion and the deliberately unhinged detour."),
+    H(5550, 6100, "CHARACTER LAB", "DR. LOOMIS ARRIVES TO DISCUSS CONFIDENCE, FROSTED FLAKES, AND WHY MICHAEL IS STILL ALIVE", "The dedicated late segment has Loomis address Cheyenne's confidence question while Michael sits nearby being disgusting. The advice is wrapped in breakfast, music, and a furious prayer that Michael finally stops terrorizing people."),
+    H(6100, 6615, "LOOMIS / MICHAEL", "MIKE TYSON VS MICHAEL, A CAGE, A DENTYNE ICE, AND A BEDTIME ORDER FROM THE DOCTOR", "The character room escalates into Tyson-versus-Michael, Marilyn Manson requests, a cage-containment plan, Dr. Challis-style profanity, and the final command: Michael goes to his room while Cheyenne is told to believe she is worth something."),
+  ];
+  highlights.sort(function (a, b) { return a.at - b.at; });
+  var story = [
+    { at: 0, end: 1400, label: "THE MONDAY ROOM OPENS WITH A HACKED ACCOUNT AND A SOPRANOS SOUNDTRACK", body: "After the stream check and a fake Facebook account using family photos, the hosts settle into a Sopranos/Boardwalk Empire music detour. The talk is filthy, musical, and unmistakably personal before the movie-business news begins.", evidenceBasis: "full-tape-human-editorial-read", narrative: { kind: "human-editorial-story" } },
+    { at: 1400, end: 2100, label: "APPLE, DISNEY, AND AMC TURN QUARANTINE INTO A CORPORATE MOVIE NIGHTMARE", body: "The hosts discuss possible acquisitions and the financial pressure on studios, parks, theaters, and release calendars. Because the tape is a live news show, the dossier labels the ownership talk as speculation and keeps the underlying observations separate from confirmed facts.", evidenceBasis: "full-tape-human-editorial-read", narrative: { kind: "human-editorial-story" } },
+    { at: 2100, end: 2800, label: "DEADPOOL AND NETFLIX MARVEL BECOME THE TEST OF SUPERHERO FATIGUE", body: "The room argues that a post-Endgame plan built around unfamiliar characters could exhaust audiences, especially after Daredevil and the other Netflix shows were cancelled. Deadpool matters because an R-rated voice is part of the character, not a removable accessory.", evidenceBasis: "full-tape-human-editorial-read", narrative: { kind: "human-editorial-story" } },
+    { at: 2800, end: 4200, label: "HEREDITARY, THE CONJURING, NEW MUTANTS, AND MIKE TYSON SHARE ONE QUESTION: WHAT DID WE WANT THIS TO BE?", body: "Modern horror recommendations lead into a Halloween Kills VOD debate and disappointment that New Mutants lost its darker edge. Mike Tyson's training video then shifts the room from fictional violence to a real comeback story and a charity exhibition idea.", evidenceBasis: "full-tape-human-editorial-read", narrative: { kind: "human-editorial-story" } },
+    { at: 4200, end: 5550, label: "LOGAN, TONI COLLETTE, PATREON WRITING, AND FEMALE PINHEAD MAKE THE MIDDLE A FULL WWAM MEMORY ROOM", body: "The hosts call out award snubs, confess how hard they have to focus to write clean copy, and debate a female Pinhead. The Hellraiser discussion proves the archive can hold a real franchise position and a filthy audience detour in the same chapter.", evidenceBasis: "full-tape-human-editorial-read", narrative: { kind: "human-editorial-story" } },
+    { at: 5550, end: 6615, label: "DR. LOOMIS ANSWERS A CONFIDENCE QUESTION WHILE MICHAEL GETS PUT IN A CAGE", body: "The final room is character-first: breakfast, music, confidence, Tyson, Dentyne Ice, Marilyn Manson, a containment plan, and a furious bedtime order. The advice underneath the profanity is direct—believe you are worth something and keep going.", evidenceBasis: "full-tape-human-editorial-read", narrative: { kind: "human-editorial-story" } },
+  ];
+  sources[sourceId] = Object.freeze({
+    sourceId: sourceId,
+    reviewState: "full-tape-human-editorial-read",
+    editorialPass: "2026-08-09 fine-toothed full-tape editorial read; canonical local audio aligned against the source-local caption ledger across the hacked-account opening, Sopranos/Boardwalk music, acquisition speculation, Marvel/Deadpool debate, modern horror and VOD, Mike Tyson, awards snubs, Hellraiser casting, and the Loomis/Michael confidence room",
+    evidence: Object.freeze({ duration: duration, captionWords: 21821, captionEvents: 6408, captionSpanSeconds: 6609.76, captionDurationCoveragePercent: 99.9, captionSha256: "A0C3571989ACA7CC11724973A4AE200B21D56F76462D628281BA6BA1D6A1E0FD", captionSourceKind: "source-local canonical speech-to-text caption ledger", audioPass: "canonical local source audio + caption alignment; local Whisper alignment retained for playback verification; playback remains the authority", audioSha256: "17130169934DB26D474F14E90609FFE327B74E2C6D0CBAB00761A9ED4DE4106F", asrWindowCount: 1, asrSegmentCount: 367, asrSha256: "3C30A6B24A0A9F4C27B857959EB6C86F8ED43D6FDD961A449CC2ACD0ED8408B3", speakerAttribution: false, visualOutcomeInferred: false }),
+    label: "MONDAY LIVE // MOVIE NEWS + LOOMIS & MICHAEL",
+    badge: "FULL SHOW WIKI // DISNEY, MARVEL, HORROR, MIKE TYSON, HELLRAISER, AND CHARACTER LORE",
+    headline: "THE NEWS DESK ENDS WITH LOOMIS PUTTING MICHAEL IN TIMEOUT",
+    deck: "A 1h50 source-local dossier covering entertainment-industry speculation, modern horror, superhero fatigue, Mike Tyson, Hellraiser casting, and a full Loomis/Michael advice bit.",
+    overview: "The May 12, 2020 Monday live show moves through more rooms than its title suggests. It opens with a fake Facebook account using family photos, Mother's Day greetings, and a Sopranos/Boardwalk Empire music detour. The news desk then discusses possible Apple/Disney and Amazon/AMC acquisitions in the context of closed parks, theaters, and delayed releases; the dossier labels those ownership ideas as live-show speculation rather than confirmed deals. The Marvel conversation argues that a post-Endgame plan built around unfamiliar characters could create superhero fatigue, especially after Netflix's Daredevil and other series were cancelled. Deadpool matters because its R-rated voice should not be sanded down. Hereditary and The Conjuring become the modern-horror recommendations, while Halloween Kills reopens the theatrical-versus-VOD question. New Mutants loses some of its promise when the hosts hear it will be PG-13, and Mike Tyson's training video becomes a surprisingly earnest discussion of a charity exhibition and a comeback. Logan and Toni Collette receive an Oscar-snub rant. Hellraiser casting becomes a female-Pinhead debate and then one of the show's most unhinged BDSM detours. The last third is a dedicated character room: Dr. Loomis answers Cheyenne's confidence question while Michael is condemned for the pandemic, bad hygiene, Frosted Flakes, Marilyn Manson, and refusing to die. The final advice underneath the profanity is simple and real—believe you are worth something and keep going.",
+    topics: Object.freeze(["Monday Movie News", "Disney", "Apple", "AMC", "Deadpool", "Marvel", "Netflix", "Daredevil", "New Mutants", "Halloween Kills", "Hereditary", "The Conjuring", "Mike Tyson", "Logan", "Toni Collette", "Hellraiser", "Pinhead", "Dr. Loomis", "Michael Myers", "Cheyenne", "FAM", "Patreon"]),
+    highlights: Object.freeze(highlights),
+    story: Object.freeze(story),
+    fanRead: Object.freeze({
+      loved: Object.freeze({ at: 5550, end: 6100, label: "LOOMIS ANSWERS A REAL CONFIDENCE QUESTION", topic: "Character advice", body: "Play from 1:32:30. The performance is filthy, but the message underneath it tells Cheyenne to believe she is worth something.", playAt: 5550, playEnd: 6100 }),
+      hated: Object.freeze({ at: 2100, end: 2800, label: "MARVEL'S PLAN LOOKS LIKE A POST-ENDGAME GAMBLE", topic: "Superhero fatigue", body: "Play from 35:00. The hosts argue that third-tier characters cannot automatically replace the stars who just left.", playAt: 2100, playEnd: 2800 }),
+      wildestDetour: Object.freeze({ at: 4900, end: 5550, label: "FEMALE PINHEAD AND THE WIRE TWINS MAKE THE BOOTH QUESTION ITSELF", topic: "Hellraiser detour", body: "Play from 1:21:40. The casting debate becomes a deliberately unhinged Cenobite tangent.", playAt: 4900, playEnd: 5550 }),
+      lastWord: Object.freeze({ at: 6100, end: 6615, label: "MICHAEL GOES TO HIS ROOM", topic: "Character close", body: "Play from 1:41:40. Dr. Loomis ends the show by ordering Michael back to his room and leaving the audience with the confidence message.", playAt: 6100, playEnd: 6615 })
+    }),
+    fam: Object.freeze({
+      callouts: Object.freeze([
+        F(120, 220, "I Need Sleep", "OPENING ROLL CALL", "The first FAM wave includes the viewer whose name perfectly matches the Monday mood."),
+        F(250, 350, "Denise Afro Whale", "OPENING SUPPORT", "Denise's name becomes an opening joke while the room gets settled."),
+        F(420, 520, "Robbie Koziol", "OPENING ROLL CALL", "Robbie is acknowledged as the movie-news room fills in."),
+        F(600, 720, "Derek B", "ACCOUNT SAFETY", "Derek's message helps surface the fake James Holtz account and the family-photo concern."),
+        F(930, 1050, "Billy Joiner", "FAM SUPPORT", "Billy arrives ready for another show and gets a Monday greeting."),
+        F(1180, 1300, "Cult Seaman", "QUARANTINE SUPPORT", "Cult Seaman explains a cancelled Virginia trip and receives the show's usual quarantine encouragement."),
+        F(1520, 1650, "Colin McCormick", "WRESTLING QUESTION", "Colin asks whether Rey Mysterio was killed in a wrestling storyline, sending the hosts into confusion."),
+        F(2050, 2180, "Massive Entertainment", "MARVEL NEWS", "Grant's Myers-with-red-hair shirt is acknowledged while the Disney/AMC discussion moves forward."),
+        F(2300, 2430, "Barbara", "COMMUNITY SUPPORT", "Barbara's kind message becomes a genuine thank-you before the Deadpool argument."),
+        F(2850, 3000, "Corjai", "SHOW QUESTION", "Corjai asks about Brooklyn Nine-Nine and accidentally opens a Mafia-role fantasy."),
+        F(3190, 3320, "Todd", "HALLOWEEN KILLS HOT TAKE", "Todd's claim that Halloween Kills may be bad reopens the VOD discussion."),
+        F(4050, 4200, "Dave McRae FAM", "AWARDS SNUB", "Dave's message helps the booth call out Logan and Hugh Jackman's missing recognition."),
+        F(4300, 4440, "Michael Staff", "WRITING RECEIPT", "Michael compliments the Patreon merch description and gets an honest answer about the hosts' writing habits."),
+        F(4700, 4840, "Courtney Reed", "FUTURE FORMAT", "Courtney requests a church sermon for the MCU, opening a future character-format door."),
+        F(4960, 5100, "Michael Swift", "HELLRAISER QUESTION", "Michael asks about the Hellraiser reboot and the possibility of a female Pinhead."),
+        F(5090, 5220, "Patreon FAM", "CHARACTER REQUEST", "A Patreon request asks for a Loomis message, which becomes the final performance setup."),
+        F(5740, 5900, "Cheyenne", "CONFIDENCE QUESTION", "Cheyenne's question gives Dr. Loomis the show's real advice prompt."),
+        F(6300, 6450, "Ryan Kenny", "FANTASY FIGHT", "Ryan asks about Mike Tyson versus Michael Myers, and the booth chooses Tyson's fists."),
+        F(6500, 6615, "FAM", "CLOSING SUPPORT", "The character room closes with thanks to the audience and the confidence message intact.")
+      ]),
+      note: "Nineteen source-local FAM, safety, support, question, future-format, and character receipts are carried into this dossier. Names and interaction types are caption evidence; donation amounts, speaker identity, intent, and visual context remain unclaimed until playback review."
+    })
+  });
+  root.WWAM_EPISODE_EDITORIAL_PACKS = Object.freeze({ schema: registry.schema || "shokker-episode-editorial-packs/v1", generated: "2026-08-09", sources: Object.freeze(sources) });
+})(typeof window !== "undefined" ? window : globalThis);

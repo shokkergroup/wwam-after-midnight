@@ -439,6 +439,7 @@
     "episode-editorial-packs-wave415.js?v=1.0.0-may-16-2020-halloween-vs-nightmare-full-tape-human-read",
     "episode-editorial-packs-wave416.js?v=1.0.0-may-14-2020-halloween-kills-scream5-full-tape-human-read",
     "episode-editorial-packs-wave417.js?v=1.0.0-may-16-2020-halloween-at-home-post-show-full-tape-human-read",
+    "episode-editorial-packs-wave418.js?v=1.0.0-may-12-2020-monday-movie-news-loomis-michael-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
