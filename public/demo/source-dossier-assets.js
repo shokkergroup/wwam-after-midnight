@@ -630,6 +630,7 @@
     "episode-editorial-packs-wave606.js?v=1.0.0-sep-15-2021-hellraiser-halloween-marvel-purge-full-audio-human-read",
     "episode-editorial-packs-wave607.js?v=1.0.0-sep-09-2021-halloween-kills-reviews-critic-watch-full-audio-human-read",
     "episode-editorial-packs-wave608.js?v=1.0.0-sep-04-2021-jason-friday-night-fights-full-audio-human-read",
+    "episode-editorial-packs-wave609.js?v=1.0.0-aug-27-2021-candyman-review-halloween-kills-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
