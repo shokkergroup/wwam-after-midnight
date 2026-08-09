@@ -448,6 +448,7 @@
     "episode-editorial-packs-wave424.js?v=1.0.0-apr-27-2020-curse-of-chucky-audio-asr-full-tape-human-read",
     "episode-editorial-packs-wave425.js?v=1.0.0-apr-23-2020-contract-clue-creep-marathon-full-tape-human-read",
     "episode-editorial-packs-wave426.js?v=1.0.0-apr-22-2020-halloween-kills-drive-ins-delays-full-tape-human-read",
+    "episode-editorial-packs-wave427.js?v=1.0.0-apr-19-2020-merkins-roy-audio-asr-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
