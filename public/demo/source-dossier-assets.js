@@ -399,6 +399,7 @@
     "episode-editorial-packs-wave375.js?v=1.0.0-january-08-2021-x-men-doomsday-netflix-halloween-full-tape-human-read",
     "episode-editorial-packs-wave376.js?v=1.0.0-january-07-2021-halloween-kills-fantastic-four-full-tape-human-read",
     "episode-editorial-packs-wave377.js?v=1.0.0-january-05-2021-halloween4-cobra-kai-full-tape-human-read",
+    "episode-editorial-packs-wave378.js?v=1.0.0-december-31-2020-batman-dave-mcrae-hot-noodles-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
