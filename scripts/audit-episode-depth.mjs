@@ -444,6 +444,7 @@ const runtimeFiles = [
   "episode-editorial-packs-wave410.js",
   "episode-editorial-packs-wave411.js",
   "episode-editorial-packs-wave412.js",
+  "episode-editorial-packs-wave413.js",
   "episode-recap-engine.js",
   "wwam-episode-recap-adapter.js",
   "wwam-source-dossier-adapter.js",
