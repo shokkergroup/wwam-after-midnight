@@ -423,6 +423,7 @@
     "episode-editorial-packs-wave399.js?v=1.0.0-august-23-2020-dc-fandome-batman-watch-party-full-tape-human-read",
     "episode-editorial-packs-wave400.js?v=1.0.0-august-15-2020-best-werewolf-movie-full-tape-human-read",
     "episode-editorial-packs-wave401.js?v=1.0.0-august-08-2020-best-vampire-movie-full-tape-human-read",
+    "episode-editorial-packs-wave402.js?v=1.0.0-august-01-2020-best-slasher-franchise-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
