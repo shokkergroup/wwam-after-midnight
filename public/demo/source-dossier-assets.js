@@ -394,6 +394,7 @@
     "episode-editorial-packs-wave370.js?v=1.0.0-january-30-2021-abyss-friday-deadpool-snyder-full-tape-human-read",
     "episode-editorial-packs-wave371.js?v=1.0.0-january-28-2021-little-things-buddy-cop-full-tape-human-read",
     "episode-editorial-packs-wave372.js?v=1.0.0-january-22-2021-nathan-baesel-behind-the-mask-full-tape-human-read",
+    "episode-editorial-packs-wave373.js?v=1.0.0-january-21-2021-body-bags-halloween-kills-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
