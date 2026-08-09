@@ -561,6 +561,7 @@
     "episode-editorial-packs-wave537.js?v=1.0.0-oct-11-2020-nightmare-4-commentary-full-audio-human-read",
     "episode-editorial-packs-wave538.js?v=1.0.0-oct-10-2020-dream-warriors-commentary-full-audio-human-read",
     "episode-editorial-packs-wave539.js?v=1.0.0-oct-04-2020-freddys-revenge-commentary-full-audio-human-read",
+    "episode-editorial-packs-wave540.js?v=1.0.0-oct-03-2020-nightmare-1-commentary-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
