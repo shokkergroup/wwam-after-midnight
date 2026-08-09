@@ -514,6 +514,7 @@
     "episode-editorial-packs-wave490.js?v=1.0.0-jan-11-2018-it-2017-commentary-full-audio-human-read",
     "episode-editorial-packs-wave491.js?v=1.0.0-jan-07-2018-halloween-curse-producers-cut-commentary-full-audio-human-read",
     "episode-editorial-packs-wave492.js?v=1.0.0-dec-21-2017-black-christmas-commentary-full-audio-human-read",
+    "episode-editorial-packs-wave493.js?v=1.0.0-dec-06-2017-halloween-5-commentary-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
