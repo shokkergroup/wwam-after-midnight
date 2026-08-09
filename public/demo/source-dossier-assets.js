@@ -407,6 +407,7 @@
     "episode-editorial-packs-wave383.js?v=1.0.0-december-10-2020-spiderman3-affleck-batman-carpenter-full-tape-human-read",
     "episode-editorial-packs-wave384.js?v=1.0.0-december-08-2020-top-10-1995-the-fanatic-full-tape-human-read",
     "episode-editorial-packs-wave385.js?v=1.0.0-december-03-2020-hellraiser-daredevil-mortal-kombat-halloween-full-tape-human-read",
+    "episode-editorial-packs-wave386.js?v=1.0.0-december-05-2020-friday-night-fights-horror-comedy-bracket-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
