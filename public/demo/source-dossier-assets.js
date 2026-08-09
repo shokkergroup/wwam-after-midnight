@@ -384,6 +384,7 @@
     "episode-editorial-packs-wave360.js?v=1.0.0-february-07-2022-batman-1989-full-tape-human-read",
     "episode-editorial-packs-wave361.js?v=1.0.0-february-02-2022-texas-chainsaw-1974-full-tape-human-read",
     "episode-editorial-packs-wave362.js?v=1.0.0-january-24-2022-lights-out-identity-time-travel-full-tape-human-read",
+    "episode-editorial-packs-wave363.js?v=1.0.0-january-17-2022-scream-spoiler-stream-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
