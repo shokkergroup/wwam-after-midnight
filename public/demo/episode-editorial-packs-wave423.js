@@ -1,0 +1,86 @@
+(function (root) {
+  "use strict";
+  var registry = root.WWAM_EPISODE_EDITORIAL_PACKS || { schema: "shokker-episode-editorial-packs/v1", sources: {} };
+  var sources = Object.assign({}, registry.sources || {});
+  var sourceId = "cDPaCYL8FgQ";
+  var duration = 5544;
+  var H = function (at, end, category, label, excerpt) {
+    return { at: Math.max(0, Math.round(at)), end: Math.min(duration, Math.max(Math.round(at) + 1, Math.round(end))), category: category, label: label, excerpt: excerpt, sourceId: sourceId, kind: "human-editorial-highlight", evidenceBasis: "full-tape-human-editorial-read", evidenceState: "machine surfaced; full-caption/audio second read; playback remains the authority" };
+  };
+  var F = function (at, end, displayName, interactionType, excerpt) {
+    return { at: at, end: end, displayName: displayName, interactionType: interactionType, excerpt: excerpt, evidenceState: "source-local caption community receipt" };
+  };
+  var highlights = [
+    H(0, 520, "OPENING FILE", "THE FEED TAKES FOREVER TO GO LIVE AND THE FIRST STORY IS A MADDEN LOSS", "The April 29 room opens with phone problems, a delayed feed, and Courtney asking Mike to react to losing Madden. Dr. Loomis arrives before the movie news even starts, furious about a linebacker pick and a missing meatloaf."),
+    H(520, 1150, "SPOILER COURT", "THE HALLOWEEN KILLS SPOILER IS OUT, BUT THE BOOTH REFUSES TO REWARD THE CLICKBAIT", "A viewer warns that a Halloween Kills spoiler is circulating. The hosts confirm they have seen the story, refuse to spoil it, and start dissecting the media ecosystem that published it."),
+    H(1150, 1800, "HELLRAISER", "PINHEAD, THE CENOBITES, AND WHY THE REBOOT SHOULD NOT TURN THEM INTO SAD HUMAN BACKSTORY", "The Hellraiser talk rejects a soft-focus origin story. The hosts want the new Pinhead to be established as a force with rules and judgment, not a human drama with puzzle-box accessories."),
+    H(1800, 2400, "HALLOWEEN TV", "THE HELLRAISER IDEA BECOMES THE CASE FOR A HALLOWEEN SERIES THAT LETS THE UNIVERSE BREATHE", "The room imagines an HBO-level Halloween series where Michael, the Cult of Thorn, and the larger mythology can exist without forcing every movie to carry the whole franchise. David Gordon Green's approach is described as evolution, not a hollow reboot."),
+    H(2400, 3150, "HALLOWEEN KILLS", "THE MASK HAS TO EVOLVE, THE DEATHS HAVE TO MATTER, AND THE GORE CANNOT BE THE WHOLE STORY", "The hosts parse Ryan Turek's comments about Halloween Kills, a changing mask, test-screening gore, and the idea that every death should carry emotional weight. They explicitly label their own mask and gore ideas as speculation, not insider fact."),
+    H(3150, 3850, "MEDIA WATCH", "WE GOT THIS COVERED GETS SENT TO THE CLICKBAIT SLAUGHTERHOUSE", "The booth explains the familiar rumor cycle: one correct guess becomes a fake source for six months of headlines. The rant is vulgar because the complaint is real—the spoiler economy turns fan excitement into traffic money."),
+    H(3850, 4250, "MACHO MAN CHALLENGE", "A VIEWER REQUESTS A MACHO MAN RANT ABOUT UNRELIABLE SCOOP SITES", "A Super Chat asks for the clickbait rant in a Macho Man voice. The hosts save the full performance for the return, then spend the gap on fan questions and wrestling-style nonsense."),
+    H(4250, 4700, "Q&A", "MEG RYAN, JACK NICHOLSON, MULHOLLAND DRIVE, AND THE FRIES THAT BECAME DINNER", "The break becomes a question room: movie-sex hypotheticals, Mulholland Drive, oven fries, and the sort of casual grossness that makes a serious Halloween news show feel like two friends in a kitchen."),
+    H(4700, 5250, "THEATER WAR", "AMC VERSUS UNIVERSAL IS REALLY A FIGHT OVER RELEASE WINDOWS, NOT JUST TROLLS", "The hosts argue that AMC's anger is not simply about Trolls going to VOD. It is about Universal narrating a future where theaters are optional, while theaters are already fighting to survive the shutdown."),
+    H(5250, 5450, "MASK THEORY", "THE TERMINATOR BATHROOM SCENE BECOMES A THEORY ABOUT MICHAEL PEELING OFF HIS BURNT FACE", "The teaser's bathroom shot inspires a theory that Michael will remove a mask melted into his skin, echoing the Terminator's eye reveal. The hosts frame it as their own prediction and tie it back to Halloween 4's burned-hands imagery."),
+    H(5450, 5544, "CLOSING FILE", "MR. JAY WILSON, MACHO MAN, AND ONE LAST BIT OF CHARACTER-PERFORMANCE FEEDBACK", "The show closes with fan feedback on J's impressions, an America's Got Talent self-roast, and the promise that the next pass through the rumor story will be even louder."),
+  ];
+  highlights.sort(function (a, b) { return a.at - b.at; });
+  var story = [
+    { at: 0, end: 1150, label: "THE FEED OPENS WITH A MADDEN LOSS AND A SPOILER WARNING", body: "The technical check becomes a character warm-up, then the audience warns that a Halloween Kills spoiler is loose. The hosts choose not to repeat it, preserving the viewer's right to discover the movie instead of farming the leak for clicks.", evidenceBasis: "full-tape-human-editorial-read", narrative: { kind: "human-editorial-story" } },
+    { at: 1150, end: 1800, label: "HELLRAISER'S REBOOT SHOULD KEEP THE CENOBITES STRANGE", body: "The hosts want Pinhead and the Cenobites to remain forces with judgment, not people whose trauma is explained until the horror has nowhere left to hide. The Doug Bradley question is really a question about presence.", evidenceBasis: "full-tape-human-editorial-read", narrative: { kind: "human-editorial-story" } },
+    { at: 1800, end: 2400, label: "A HALLOWEEN SERIES COULD LET THE MYTHOLOGY BREATHE", body: "The Hellraiser conversation becomes a pitch for a Halloween television series. Michael, the Cult of Thorn, and the expanded universe could exist as atmosphere and history while a new story evolves without pretending nothing came before.", evidenceBasis: "full-tape-human-editorial-read", narrative: { kind: "human-editorial-story" } },
+    { at: 2400, end: 3150, label: "HALLOWEEN KILLS IS DISCUSSED AS EMOTION, NOT JUST BODY COUNT", body: "Ryan Turek's comments, a possible mask change, test-screening reactions, and the promise that each death matters give the movie-news segment a real framework. The hosts mark their own Terminator-style mask idea as prediction, not leaked fact.", evidenceBasis: "full-tape-human-editorial-read", narrative: { kind: "human-editorial-story" } },
+    { at: 3150, end: 3850, label: "THE CLICKBAIT RANT HAS A SOURCE-CHAIN RECEIPT", body: "The booth describes how rumor sites make one lucky guess look like a reliable insider. The anger is not random: the archive preserves the mechanism—guess, headline, repeat, traffic, money, and a spoiler left sitting in the fan's lap.", evidenceBasis: "full-tape-human-editorial-read", narrative: { kind: "human-editorial-story" } },
+    { at: 3850, end: 4700, label: "A MACHO MAN REQUEST COLLIDES WITH MOVIE-SEX QUESTIONS AND OVEN FRIES", body: "A requested Macho Man delivery waits in the wings while the audience asks about Jack Nicholson, Meg Ryan, Mulholland Drive, and dinner. The room never stops being a movie conversation; it just refuses to wear a tie.", evidenceBasis: "full-tape-human-editorial-read", narrative: { kind: "human-editorial-story" } },
+    { at: 4700, end: 5250, label: "AMC AND UNIVERSAL ARE BOTH CORNERED BY THE NEW RELEASE WINDOW", body: "The hosts separate Trolls from the deeper conflict. Universal wants flexibility and publicity; AMC needs a theatrical pipeline to survive. The argument is heated, but the dossier keeps the economic claim grounded in what the hosts actually discuss rather than inventing a corporate inside story.", evidenceBasis: "full-tape-human-editorial-read", narrative: { kind: "human-editorial-story" } },
+    { at: 5250, end: 5544, label: "A BURNT MASK THEORY AND FAN IMPRESSIONS CLOSE THE FILE", body: "The bathroom shot becomes a Terminator comparison: Michael could peel a burned mask from his face. Mr. Jay Wilson's feedback on the impressions sends the room out on a character-performance button instead of another rumor headline.", evidenceBasis: "full-tape-human-editorial-read", narrative: { kind: "human-editorial-story" } },
+  ];
+  sources[sourceId] = Object.freeze({
+    sourceId: sourceId,
+    reviewState: "full-tape-human-editorial-read",
+    editorialPass: "2026-08-09 fine-toothed full-tape editorial read; canonical local audio aligned against the source-local caption ledger across the delayed opening, Madden character bit, Halloween Kills spoiler boundary, Hellraiser reboot philosophy, Halloween TV-series idea, Ryan Turek and mask/gore discussion, clickbait-site rant, Macho Man request, Q&A, AMC/Universal release-window argument, and Terminator-style burned-mask theory",
+    evidence: Object.freeze({ duration: duration, captionWords: 18080, captionEvents: 4935, captionSpanSeconds: 5544.99, captionDurationCoveragePercent: 100.0, captionSha256: "96BF4954BFC2C197EB6E5E5780AC10F9E78DA70E5944C9CBD47256426F7D9B3A", captionSourceKind: "source-local canonical speech-to-text caption ledger", audioPass: "canonical local source audio + caption alignment; local Whisper alignment retained for playback verification; playback remains the authority", audioSha256: "5E8444EC7DB9C336CD75F4C79B86906C5522B2EE344BEB3793108F0406CD5641", asrWindowCount: 1, asrSegmentCount: 376, asrSha256: "F27FA81D6C86DF66B56DEDA7CD8DD710756D7FB5C0AE301383EBF576CB8BEFA5", speakerAttribution: false, visualOutcomeInferred: false }),
+    label: "LIVE UPDATE // HELLRAISER, HALLOWEEN KILLS, AND THE SPOILER WAR",
+    badge: "FULL SHOW WIKI // PINHEAD, LOOMIS, CLICKBAIT, AMC VS UNIVERSAL, AND BURNT-MASK THEORY",
+    headline: "HALLOWEEN KILLS GETS A MASK THEORY AND THE CLICKBAIT SITES GET THE KNIFE",
+    deck: "A 1h32 source-local dossier where Hellraiser's reboot rules, Halloween Kills' emotional stakes, spoiler ethics, and the AMC/Universal fight share one very loud room.",
+    overview: "The April 29, 2020 live update opens with a broken feed, a Madden loss, and a viewer warning that a Halloween Kills spoiler is circulating. The hosts refuse to repeat it and instead examine why spoiler bait is so destructive. Hellraiser gets the first full argument: Pinhead and the Cenobites should remain strange forces with rules and judgment, not sad human backstory that turns the puzzle box into an origin-story prop. That leads naturally to the idea of a Halloween television series, where Michael, the Cult of Thorn, and the wider universe could breathe without making every sequel explain the entire mythology. The Halloween Kills discussion stays careful about evidence. Ryan Turek's comments, a possible mask change, test-screening reactions, and the promise that every death matters are discussed as public context; a Terminator-style scene in which Michael peels a burned mask from his face is labeled a house theory, not an insider leak. The middle of the show turns the media ecosystem into its own villain. The hosts describe rumor sites that make one correct guess look like a six-month source chain, then convert a requested Macho Man rant into a promise for a louder follow-up. A Q&A detour covers Jack Nicholson, Meg Ryan, Mulholland Drive, and oven fries. The late business argument separates Trolls from the deeper AMC/Universal conflict: theaters need a release pipeline, studios want flexible windows, and a shutdown is exposing a bargain that was already unstable. The closing fan feedback brings the voices back to character work—Mr. Jay Wilson likes the impressions, the room laughs at an America's Got Talent self-roast, and the burned-mask theory gets left hanging exactly where a future Halloween tape can pick it up.",
+    topics: Object.freeze(["Halloween Kills", "Halloween", "Hellraiser", "Pinhead", "Cenobites", "Cult of Thorn", "David Gordon Green", "Ryan Turek", "Chris Nelson", "spoiler ethics", "clickbait media", "AMC", "Universal", "Trolls", "release windows", "Dr. Loomis", "Madden", "FAM"]),
+    highlights: Object.freeze(highlights),
+    story: Object.freeze(story),
+    fanRead: Object.freeze({
+      loved: Object.freeze({ at: 1800, end: 2400, label: "THE HALLOWEEN TV IDEA LETS THE LORE BREATHE", topic: "Franchise architecture", body: "Play from 30:00. The hosts imagine an HBO-scale Halloween universe where Michael and the Cult of Thorn can exist without every sequel becoming a continuity lecture.", playAt: 1800, playEnd: 2400 }),
+      hated: Object.freeze({ at: 3150, end: 3850, label: "THE RUMOR SITE THAT GETS ONE GUESS RIGHT AND LIVES OFF IT", topic: "Clickbait media", body: "Play from 52:30. The booth diagrams the spoiler economy: one lucky prediction, six months of fake sourcing, and a fanbase used as traffic.", playAt: 3150, playEnd: 3850 }),
+      wildestDetour: Object.freeze({ at: 5250, end: 5450, label: "MICHAEL PEELS THE BURNT MASK OFF LIKE THE TERMINATOR", topic: "Mask theory", body: "Play from 1:27:30. The hosts imagine the melted mask ripping away from Michael's face; it is explicitly their prediction, not a confirmed spoiler.", playAt: 5250, playEnd: 5450 }),
+      lastWord: Object.freeze({ at: 5450, end: 5544, label: "THE MACHO MAN VOICE IS STILL IN THE CHAMBER", topic: "Character performance", body: "Play from 1:30:50. Fan feedback on J's impressions sends the show out with a promise to finish the rant later.", playAt: 5450, playEnd: 5544 })
+    }),
+    fam: Object.freeze({
+      callouts: Object.freeze([
+        F(133, 220, "Courtney Reed", "CHARACTER REQUEST", "Courtney asks Mike to react to losing his first Madden game."),
+        F(224, 310, "Britney Bush", "FAM SUPPORT", "Britney's short goodbye Super Chat gets a warm thank-you."),
+        F(425, 520, "David Gordon Green", "HALLOWEEN NEWS", "David Gordon Green is discussed as the filmmaker shaping Halloween's evolution."),
+        F(632, 735, "Markdown", "SPOILER WARNING", "Markdown warns the room about Halloween spoilers and receives a promise that the leak will not be repeated."),
+        F(677, 780, "Chucky Eat", "HELLRAISER QUESTION", "Chucky Eat suggests a Pinhead/Michael image, sending the booth into the Prince Albert detour."),
+        F(767, 875, "Jessie Kid Entertainment", "FAM SUPPORT", "Jessie is thanked for a generous message before the Hellraiser/Halloween discussion continues."),
+        F(1355, 1465, "Jimmy Graham", "HELLRAISER QUESTION", "Jimmy's name appears in the Hellraiser package and human-Cenobite argument."),
+        F(1728, 1835, "Chris Nelson", "HALLOWEEN NEWS", "Chris Nelson's mask work and Halloween Kills role are discussed in the franchise segment."),
+        F(2159, 2255, "Barbara", "FAM SUPPORT", "Barbara is thanked during the franchise and mask discussion."),
+        F(2409, 2515, "Ryan Turek", "HALLOWEEN KILLS NEWS", "Ryan Turek's public comments about Halloween Kills are treated as the news spine for the mask/gore section."),
+        F(2457, 2565, "Dr. Win", "SPOILER QUESTION", "Dr. Win asks when the trailer will arrive and is answered with the producer's five-month timeline."),
+        F(2476, 2585, "Eric", "HALLOWEEN NEWS", "Eric's pumpkin question is folded into the discussion of the producer asking fans to wait."),
+        F(3038, 3135, "JC Kustoms", "MEDIA QUESTION", "JC Kustoms asks about the bad Halloween news and opens the clickbait-site takedown."),
+        F(3380, 3490, "Ryan Gillen", "MACHO MAN REQUEST", "Ryan asks for the unreliable-scoop rant in a Macho Man voice."),
+        F(3703, 3810, "Arn Wine", "SUPER CHAT", "Arn's Super Chat arrives before the break and is thanked as the rumor rant winds down."),
+        F(4126, 4220, "Vinnie C", "CHARACTER REQUEST", "Vinnie asks J to work on the Macho Man voice."),
+        F(4174, 4260, "Barbara", "FAM SUPPORT", "Barbara tells J he is amazing during the Q&A room."),
+        F(4256, 4370, "Byron Weaver", "Q&A", "Byron asks about Meg Ryan versus Jack Nicholson, producing a Mulholland Drive/Shining detour."),
+        F(4300, 4400, "Julie RJ", "DINNER CHAT", "Julie asks what the hosts had for dinner, revealing the oven-fries meal."),
+        F(4383, 4490, "Barbara", "FAM SUPPORT", "Barbara is thanked again during the fries and Q&A lane."),
+        F(5401, 5500, "Dirty D", "CLOSING SUPPORT", "Dirty D is thanked during the final burned-mask theory and impression feedback."),
+        F(5494, 5544, "Mr. Jay Wilson", "CHARACTER FEEDBACK", "Mr. Jay Wilson says J's David-from-Cray impression is on target, closing the character lane."),
+        F(5534, 5544, "JT Customs", "CHARACTER QUESTION", "JT Customs asks why the whole ending is being turned into impressions, prompting the final button."),
+      ]),
+      note: "Twenty-three source-local FAM, spoiler, question, support, character, and industry-news receipts are carried into this dossier. Names and interaction types are caption evidence; donation amounts, speaker identity, intent, and visual context remain unclaimed until playback review. Public-news claims and mask ideas are separated from confirmed production facts."
+    })
+  });
+  root.WWAM_EPISODE_EDITORIAL_PACKS = Object.freeze({ schema: registry.schema || "shokker-episode-editorial-packs/v1", generated: "2026-08-09", sources: Object.freeze(sources) });
+})(typeof window !== "undefined" ? window : globalThis);

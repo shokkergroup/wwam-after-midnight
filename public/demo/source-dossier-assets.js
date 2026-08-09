@@ -444,6 +444,7 @@
     "episode-editorial-packs-wave420.js?v=1.0.0-may-08-2020-recognizable-horror-themes-full-tape-human-read",
     "episode-editorial-packs-wave421.js?v=1.0.0-may-02-2020-sci-fi-horror-top-ten-full-tape-human-read",
     "episode-editorial-packs-wave422.js?v=1.0.0-apr-30-2020-unboxing-mre-fan-mail-full-tape-human-read",
+    "episode-editorial-packs-wave423.js?v=1.0.0-apr-29-2020-hellraiser-halloween-kills-update-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
