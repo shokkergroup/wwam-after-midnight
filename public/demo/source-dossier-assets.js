@@ -469,6 +469,7 @@
     "episode-editorial-packs-wave445.js?v=1.0.0-oct-27-2019-100k-afterparty-companion-full-tape-human-read",
     "episode-editorial-packs-wave446.js?v=1.0.0-oct-26-2019-jason-lives-commentary-full-audio-human-read",
     "episode-editorial-packs-wave447.js?v=1.0.0-oct-31-2019-halloween-live-commentary-full-tape-human-read",
+    "episode-editorial-packs-wave448.js?v=1.0.0-oct-23-2019-friday-13th-part5-commentary-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
