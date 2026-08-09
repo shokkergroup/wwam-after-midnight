@@ -479,6 +479,7 @@
     "episode-editorial-packs-wave455.js?v=1.0.0-oct-02-2019-hellraiser-original-commentary-full-audio-human-read",
     "episode-editorial-packs-wave456.js?v=1.0.0-sep-05-2019-batman-v-superman-commentary-full-audio-human-read",
     "episode-editorial-packs-wave457.js?v=1.0.0-jul-21-2019-90k-subscribers-qa-full-tape-human-read",
+    "episode-editorial-packs-wave458.js?v=1.0.0-jun-24-2019-childs-play-spoiler-review-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
