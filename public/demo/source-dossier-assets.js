@@ -441,6 +441,7 @@
     "episode-editorial-packs-wave417.js?v=1.0.0-may-16-2020-halloween-at-home-post-show-full-tape-human-read",
     "episode-editorial-packs-wave418.js?v=1.0.0-may-12-2020-monday-movie-news-loomis-michael-full-tape-human-read",
     "episode-editorial-packs-wave419.js?v=1.0.0-may-12-2020-cult-of-chucky-audio-asr-full-tape-human-read",
+    "episode-editorial-packs-wave420.js?v=1.0.0-may-08-2020-recognizable-horror-themes-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
