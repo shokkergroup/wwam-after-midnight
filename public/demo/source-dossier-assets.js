@@ -368,6 +368,7 @@
     "episode-editorial-packs-wave344.js?v=1.0.0-may-10-2022-doctor-strange-2-full-tape-human-read",
     "episode-editorial-packs-wave345.js?v=1.0.0-may-04-2022-strange-halloween-update-full-tape-human-read",
     "episode-editorial-packs-wave346.js?v=1.0.0-april-28-2022-halloween-ends-trailer-full-tape-human-read",
+    "episode-editorial-packs-wave347.js?v=1.0.0-april-26-2022-mcu-ranking-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
