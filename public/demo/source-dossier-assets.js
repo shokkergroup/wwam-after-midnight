@@ -610,6 +610,7 @@
     "episode-editorial-packs-wave586.js?v=1.0.0-may-12-2021-dustin-mcneil-taking-shape-full-audio-human-read",
     "episode-editorial-packs-wave587.js?v=1.0.0-may-14-2021-spiral-halloween-kills-full-audio-human-read",
     "episode-editorial-packs-wave588.js?v=1.0.0-may-19-2021-christopher-nelson-army-of-the-dead-full-audio-human-read",
+    "episode-editorial-packs-wave589.js?v=1.0.0-may-22-2021-marvel-dc-top-50-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
