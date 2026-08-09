@@ -613,6 +613,7 @@
     "episode-editorial-packs-wave589.js?v=1.0.0-may-22-2021-marvel-dc-top-50-full-audio-human-read",
     "episode-editorial-packs-wave590.js?v=1.0.0-may-27-2021-together-challis-chalice-full-audio-human-read",
     "episode-editorial-packs-wave591.js?v=1.0.0-may-28-2021-quiet-place-its-me-billy-joker-halloween-full-audio-human-read",
+    "episode-editorial-packs-wave592.js?v=1.0.0-jun-02-2021-conjuring-warrens-amityville-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
