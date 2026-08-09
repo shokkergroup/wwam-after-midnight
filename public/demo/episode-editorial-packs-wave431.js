@@ -1,0 +1,87 @@
+(function (root) {
+  "use strict";
+  var registry = root.WWAM_EPISODE_EDITORIAL_PACKS || { schema: "shokker-episode-editorial-packs/v1", sources: {} };
+  var sources = Object.assign({}, registry.sources || {});
+  var sourceId = "QsDAKLv8XBg";
+  var duration = 5185;
+  var H = function (at, end, category, label, excerpt) {
+    return { at: Math.max(0, Math.round(at)), end: Math.min(duration, Math.max(Math.round(at) + 1, Math.round(end))), category: category, label: label, excerpt: excerpt, sourceId: sourceId, kind: "human-editorial-highlight", evidenceBasis: "full-tape-human-editorial-read", evidenceState: "machine surfaced; full-caption/audio second read; playback remains the authority" };
+  };
+  var F = function (at, end, displayName, interactionType, excerpt) {
+    return { at: at, end: end, displayName: displayName, interactionType: interactionType, excerpt: excerpt, evidenceState: "source-local caption community receipt" };
+  };
+  var highlights = [
+    H(0, 620, "OPENING FILE", "THE STREAM OPENS IN A RUSH WITH BAD GINGER ALE, A HOT-NOODLE RULEBOOK, AND A GINGERBREAD MAN THAT WILL NOT STAY CHAINED", "The April 11 room is barely assembled when the noodles arrive. The hosts read the challenge rules, discover there are rules, ignore most of them, and promise that a red version twice as hot is waiting in the future."),
+    H(620, 1250, "HOT NOODLES", "THE FIRST BITE HITS LIKE A SLIPPERY SNAKE AND MIKE STARTS FINANCIALLY RECOVERING FROM JOE EXOTIC'S FLAVOR", "Mike takes the first serious hit while the chat watches. Beer, no milk, dryer-sheet tongue, and the claim that the sauce tastes like despair turn a food challenge into a full body-comedy sequence."),
+    H(1250, 1820, "HOT NOODLES", "THE SECOND ROUND TURNS THE BOWL INTO A RED, VEINY, HERPETIC TORTURE DEVICE", "The rules are finally clear: no drinking, first to finish wins. The noodles hit immediately, the hosts invoke Ala-hatta and Reba McEntire, and the review has to wait while the body takes over."),
+    H(1820, 2400, "HELLRAISER UPDATE", "DAVID BRUCKNER AND DAVID GOYER GET A CAUTIOUS YES, WHILE FIGURE COLLECTIONS GET A FULL ATTIC", "The Hellraiser reboot discussion separates promising names from guarantees. Bruckner earns trust, Goyer gets a mixed résumé read, and J explains that the visible horror figures are only the small wall in a much larger Star Wars and Marvel collection."),
+    H(2400, 3000, "PINHEAD / SCAREFEST", "J HAS A CRUSH ON PINHEAD, A KARAOKE-BAR STORY BECOMES A HANNIBAL LECTER ESCAPE, AND THE MERKINS ARRIVE IN CHAT", "The Merkins tease J about Pinhead. The hosts then recount a Scare Fest karaoke-bar encounter that could have become a leather-clad nightmare, and J's decision to walk away becomes its own WWAM legend."),
+    H(3000, 3600, "FAN MAIL", "NADIA'S FAN ART LETTER GETS INTERRUPTED BY CAROL BASKIN, PETA, AND A MICROPHONE SCARE", "The room tries to read Nadia's heartfelt Chicago fan-art letter while the comedy keeps sabotaging the moment. The hosts eventually slow down long enough to thank the artist and preserve the letter as real FAM memory."),
+    H(3600, 4200, "UNBOXING", "SPOOKY STUDIOS POSTERS LOOK LIKE THE T-1000, THEN THE CAMERA MAKES THE WALL ART IMPOSSIBLE TO SHOW", "Two custom pieces arrive and the hosts fight over where they belong. The visuals are described through the tape, but the dossier keeps playback as the authority because the camera and microphone repeatedly fail to show the art cleanly."),
+    H(4200, 4750, "FAM CARE", "SADIE'S LETTER, A CANCELED BLACK-BELT TEST, AND A DR. LOOMIS VOICE MESSAGE TURN THE ROOM SINCERE", "Sadie says the channel helped when the virus canceled an eight-hour black-belt test. J reads the name in a Loomis voice, the hosts praise the drawings and short horror stories, and the room realizes it should read the emotional letters before the joke props."),
+    H(4750, 4950, "WWAM LORE", "THE OLD FRIDAY THE 13TH RANKING PODCAST IS THE RECEIPT THAT PROVES THE CHANNEL ALREADY WON", "The hosts remember a long-ago ranking podcast that fans still cite as inspiration. The point is not nostalgia; it is the evidence that years of grinding created a community that can carry the archive forward."),
+    H(4950, 5185, "CLOSING FILE", "NO SUPER CHAT IS REQUIRED, THE NOODLE DAMAGE IS STILL COMING, AND THE ROOM LEAVES WITH A CATHARTIC PROMISE", "The hosts explicitly tell viewers that watching does not require a donation, thank everyone who stayed, and admit the hot-noodle consequences are waiting after the cameras stop."),
+  ];
+  highlights.sort(function (a, b) { return a.at - b.at; });
+  var story = [
+    { at: 0, end: 620, label: "THE HOT-NOODLE NIGHT STARTS BEFORE THE CAMERAS ARE READY", body: "The opening is a rushed setup, a bad drink, a broken gingerbread-man chain, and a rulebook nobody wants. The audience is not watching a polished challenge; it is watching WWAM try to make a community event work in real time.", evidenceBasis: "full-tape-human-editorial-read", narrative: { kind: "human-editorial-story" } },
+    { at: 620, end: 1250, label: "THE FIRST BITE TURNS THE STREAM INTO A MEDICAL COMEDY", body: "Mike's first taste becomes a report from the mouth: slippery snake, Joe Exotic flavor, dryer-sheet tongue, and no milk. The food is not a side quest; it controls the timing of the whole show.", evidenceBasis: "full-tape-human-editorial-read", narrative: { kind: "human-editorial-story" } },
+    { at: 1250, end: 1820, label: "THE SECOND BOWL MAKES HELLRAISER WAIT", body: "The red, veiny noodles arrive with a no-drinking rule and immediate pain. The hosts keep trying to speak about movies while their lips and stomachs vote against the schedule.", evidenceBasis: "full-tape-human-editorial-read", narrative: { kind: "human-editorial-story" } },
+    { at: 1820, end: 2400, label: "HELLRAISER GETS A CAUTIOUS CREATOR READ AND J'S ATTIC GETS A FIGURE INVENTORY", body: "David Bruckner is treated as promising, David Goyer as complicated, and the reboot as a possibility rather than a guarantee. The figure conversation maps J's larger collecting life beyond the small visible wall.", evidenceBasis: "full-tape-human-editorial-read", narrative: { kind: "human-editorial-story" } },
+    { at: 2400, end: 3000, label: "PINHEAD'S CHARMS AND THE KARAOKE-BAR NEAR-MISS ENTER THE SAME LORE FILE", body: "J's Pinhead crush turns into a story about a stranger, a bar, and a decision not to walk into a leather-clad trap. The Merkins' chat appearance gives the detour a genuine creator-community connection.", evidenceBasis: "full-tape-human-editorial-read", narrative: { kind: "human-editorial-story" } },
+    { at: 3000, end: 3600, label: "NADIA'S LETTER SURVIVES A ROOM THAT KEEPS TRYING TO RUIN THE MOMENT", body: "Fan art, a heartfelt note, Chicago, and a request for Michael and Loomis to say hello are repeatedly interrupted by Carol Baskin and microphone jokes. The hosts eventually slow down and preserve the thank-you as a real FAM artifact.", evidenceBasis: "full-tape-human-editorial-read", narrative: { kind: "human-editorial-story" } },
+    { at: 3600, end: 4200, label: "THE UNBOXING IS A VISUAL RECEIPT THE CAMERA CANNOT FULLY PROVE", body: "Two striking posters arrive, the hosts compare one to the T-1000, and the room argues about where to hang them. The dossier records what the tape says but refuses to invent a visual description beyond playback evidence.", evidenceBasis: "full-tape-human-editorial-read", narrative: { kind: "human-editorial-story" } },
+    { at: 4200, end: 4750, label: "SADIE'S BLACK-BELT LETTER CHANGES THE EDITORIAL PRIORITY", body: "Sadie's canceled test and the channel's role in helping her through sadness expose a real lesson: read the human letter before performing the package gag. The Loomis voice remains funny, but the care is the point.", evidenceBasis: "full-tape-human-editorial-read", narrative: { kind: "human-editorial-story" } },
+    { at: 4750, end: 4950, label: "THE OLD FRIDAY THE 13TH PODCAST IS A COMMUNITY ANCHOR", body: "The hosts remember a ranking episode that fans still cite years later. That memory becomes proof that the channel's archive has already been doing lore work long before anyone called it a wiki.", evidenceBasis: "full-tape-human-editorial-read", narrative: { kind: "human-editorial-story" } },
+    { at: 4950, end: 5185, label: "THEY CLOSE BY TAKING THE PRESSURE OFF THE AUDIENCE", body: "The hosts explicitly say viewers do not need to super chat to belong. They thank everyone who stayed, promise the noodle aftermath later, and leave the show as a community night rather than a transaction.", evidenceBasis: "full-tape-human-editorial-read", narrative: { kind: "human-editorial-story" } },
+  ];
+  sources[sourceId] = Object.freeze({
+    sourceId: sourceId,
+    reviewState: "full-tape-human-editorial-read",
+    editorialPass: "2026-08-09 fine-toothed full-tape editorial read; canonical local audio aligned against the source-local caption ledger across the hot-noodle rules and challenge, Hellraiser reboot names, figure collection, Pinhead/Scare Fest story, Merkins chat appearance, Nadia fan art, Spooky Studios unboxing, Sadie black-belt letter, Friday the 13th podcast lore, and no-super-chat closing",
+    evidence: Object.freeze({ duration: duration, captionWords: 18186, captionEvents: 5969, captionSpanSeconds: 5182.88, captionDurationCoveragePercent: 100.0, captionSha256: "FB167E49022F136CCD3FAC7C532CC891A7A10F2C570A868A8CFA0AD9E6CFDAFA", captionSourceKind: "source-local canonical speech-to-text caption ledger", audioPass: "canonical local source audio + caption alignment; local Whisper alignment retained for playback verification; playback remains the authority", audioSha256: "454CE034B0A8872FCB9575B6765289259480DB3A02AEC985076215D3812E0D8C", asrWindowCount: 1, asrSegmentCount: 424, asrSha256: "75CF9203FEDBD95A246F8A05FBC906F53F0349E87DF4D87A88F7B741F2B31472", speakerAttribution: false, visualOutcomeInferred: false }),
+    label: "LIVE CHALLENGE // HELLRAISER UPDATE AND HOT NOODLES",
+    badge: "FULL SHOW WIKI // THE NOODLE TRIAL, PINHEAD, FAN ART, LOOMIS LETTERS, AND COMMUNITY MEMORY",
+    headline: "THE NOODLES WIN THE FIRST ROUND, THEN THE FAM LETTERS WIN THE SHOW",
+    deck: "An 86-minute live dossier where hot ramen, Hellraiser reboot news, Pinhead lore, fan mail, custom posters, and a canceled black-belt test collide in one very human room.",
+    overview: "The April 11, 2020 Hellraiser update and Hot Noodles Challenge is a deceptively important WWAM archive entry. It begins with a rushed setup, bad ginger ale, a runaway gingerbread-man joke, and a rulebook the hosts immediately want to ignore. The noodles are not a prop; they control the entire rhythm. The first bite becomes a report from the mouth—slippery snake, Joe Exotic flavor, dryer-sheet tongue—while the second round turns the bowl red and veiny enough to delay Hellraiser talk. Once the bodies stop fighting, the film lane arrives. David Bruckner is treated as a promising choice for the reboot, David Goyer as a writer with both bangers and turds, and the project as a possibility rather than a guarantee. A figure-collection question reveals that J's visible horror shelf is only a fraction of an attic full of Star Wars and Marvel. The Pinhead lane becomes a Scare Fest karaoke-bar story that could have turned into a leather-clad Hannibal Lecter encounter, and the Merkins appear in chat to tease J about his crush. The unboxing then turns the show toward FAM memory. Nadia's Chicago fan-art letter is heartfelt but repeatedly interrupted by Carol Baskin, PETA, and microphone jokes; the hosts eventually slow down long enough to preserve the thank-you. Two striking Spooky Studios posters arrive, but the camera and microphone cannot fully prove their visual details, so the dossier keeps playback as the authority. Sadie's letter changes the editorial priority. Her black-belt test was canceled by the virus, and she says the channel helped when she was sad. J reads her name in a Loomis voice, the hosts praise her short horror stories and drawings, and the room realizes it should read the human note before the package gag. The final section remembers an old Friday the 13th ranking podcast that fans still cite as inspiration, then explicitly removes donation pressure: viewers do not need to super chat to belong. The closing promise is cathartic and bodily—noodle consequences later, more community nights ahead. This is not just a challenge stream. It is a record of the channel learning, in public, how to hold comedy and care in the same frame.",
+    topics: Object.freeze(["Hellraiser", "David Bruckner", "David Goyer", "hot noodles", "Pinhead", "Scare Fest", "The Merkins", "Nadia", "Sadie", "fan art", "Dr. Loomis", "Friday the 13th", "FAM"]),
+    highlights: Object.freeze(highlights),
+    story: Object.freeze(story),
+    fanRead: Object.freeze({
+      loved: Object.freeze({ at: 4200, end: 4750, label: "SADIE'S LETTER AND THE LOOMIS VOICE", topic: "FAM care", body: "Play from 1:10:00. A canceled black-belt test and a heartfelt note force the room to read the human message before the props.", playAt: 4200, playEnd: 4750 }),
+      hated: Object.freeze({ at: 1250, end: 1820, label: "THE RED NOODLES ARE SENT TO STEVE'S ASSHOLE", topic: "Hot-food verdict", body: "Play from 20:50. No milk, no mercy, and a bowl that makes Hellraiser wait while the body objects.", playAt: 1250, playEnd: 1820 }),
+      wildestDetour: Object.freeze({ at: 2400, end: 3000, label: "PINHEAD, A KARAOKE BAR, AND THE LEATHER-CLAD NEAR-MISS", topic: "Scare Fest lore", body: "Play from 40:00. J explains the encounter he walked away from while Mike turns it into a survival-horror anecdote.", playAt: 2400, playEnd: 3000 }),
+      lastWord: Object.freeze({ at: 4950, end: 5185, label: "NO SUPER CHAT IS REQUIRED TO BELONG", topic: "Community promise", body: "Play from 1:22:30. The hosts thank everyone, remove donation pressure, and promise the noodle aftermath later.", playAt: 4950, playEnd: 5185 })
+    }),
+    fam: Object.freeze({
+      callouts: Object.freeze([
+        F(100, 190, "Tracy", "OPENING ROLL CALL", "Tracy is welcomed as the rushed stream begins."),
+        F(115, 205, "Shy Town", "OPENING ROLL CALL", "Shy Town is named in the first audience cluster."),
+        F(130, 220, "Barbara", "OPENING ROLL CALL", "Barbara is welcomed before the noodle rules are read."),
+        F(145, 235, "Todd Thibidoux", "OPENING ROLL CALL", "Todd is included in the opening roll call."),
+        F(165, 250, "Chad Church", "OPENING ROLL CALL", "Chad is welcomed into the challenge room."),
+        F(180, 270, "Burnt Toast", "OPENING ROLL CALL", "Burnt Toast is named before the hot-noodle countdown."),
+        F(240, 330, "Shawn O'Brien", "OPENING JOKE", "Shawn's man-under-the-bed joke becomes the gingerbread-man bit."),
+        F(640, 760, "Billy Joiner", "FAM SUPPORT", "Billy asks how Loomis and Michael would quarantine six feet apart."),
+        F(820, 930, "Simone", "FAM SUPPORT", "Simone tells the room to enjoy the noodles while she watches later."),
+        F(940, 1050, "Jarvis Beat Beatrick", "CREATOR SUPPORT", "Jarvis is credited for the next video's edits."),
+        F(1910, 2030, "Evan Al Paul", "FIGURE QUESTION", "Evan asks about J's figures and Bushwhacked."),
+        F(2410, 2540, "Britney Bush", "FAM SUPPORT", "Britney asks for a friend to be greeted and supports the Pinhead lane."),
+        F(2510, 2630, "Rovenary Reed", "FAM GREETING", "Rovenary is welcomed as a horror fan and Michael Myers fan."),
+        F(2680, 2800, "The Merkins", "CREATOR CALLBACK", "The Merkins tease J about his Pinhead crush."),
+        F(2940, 3070, "Nadia Gtownhorror101", "FAN ART LETTER", "Nadia sends fan art and a heartfelt note from Chicago."),
+        F(3090, 3210, "Tomo", "UNBOXING SUPPORT", "Tomo warns the room that the package opening will be a long night."),
+        F(3200, 3330, "Marcel", "CHARACTER BIT", "Marcel's PETA joke becomes the Carol Baskin interruption."),
+        F(3560, 3690, "Blade Brown", "UNBOXING", "Blade Brown's custom pieces arrive and are praised as display-worthy."),
+        F(4230, 4350, "Sadie", "FAM CARE", "Sadie explains that the virus canceled her black-belt test and the channel helped her through sadness."),
+        F(4440, 4560, "Sadie", "LOOMIS PERFORMANCE", "Sadie asks for her name in the Dr. Loomis voice and receives a full character greeting."),
+        F(4790, 4890, "Spookhouse Studios", "WWAM LORE", "The old Friday the 13th ranking podcast is remembered as a source of fan inspiration."),
+        F(4930, 5030, "Evil Little Ninja", "CLOSING ROLL CALL", "Evil Little Ninja becomes the closing nickname for the audience room."),
+        F(5000, 5120, "Michelle", "CLOSING SUPPORT", "Michelle is thanked alongside Sadie and Jarvis in the no-super-chat promise."),
+      ]),
+      note: "Twenty-three source-local FAM, creator, fan-art, care, and community-memory receipts are carried into this dossier. Names and interaction types are caption evidence; donation amounts, medical conclusions, speaker attribution beyond the chat context, and visual outcomes remain unclaimed until playback review. The show explicitly tells viewers they do not need to super chat to belong."
+    })
+  });
+  root.WWAM_EPISODE_EDITORIAL_PACKS = Object.freeze({ schema: registry.schema || "shokker-episode-editorial-packs/v1", generated: "2026-08-09", sources: Object.freeze(sources) });
+})(typeof window !== "undefined" ? window : globalThis);

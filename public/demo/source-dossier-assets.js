@@ -452,6 +452,7 @@
     "episode-editorial-packs-wave428.js?v=1.0.0-apr-16-2020-chris-nelson-fx-guest-full-tape-human-read",
     "episode-editorial-packs-wave429.js?v=1.0.0-apr-15-2020-halloween-franchise-qa-full-tape-human-read",
     "episode-editorial-packs-wave430.js?v=1.0.0-apr-12-2020-bride-of-chucky-audio-asr-full-tape-human-read",
+    "episode-editorial-packs-wave431.js?v=1.0.0-apr-11-2020-hellraiser-hot-noodles-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
