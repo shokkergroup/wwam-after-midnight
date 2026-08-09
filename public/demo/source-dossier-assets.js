@@ -620,6 +620,7 @@
     "episode-editorial-packs-wave596.js?v=1.0.0-jun-11-2021-friday-night-fights-soundtracks-full-audio-human-read",
     "episode-editorial-packs-wave597.js?v=1.0.0-dec-03-2021-friday-night-fights-90s-teen-horror-full-audio-human-read",
     "episode-editorial-packs-wave598.js?v=1.0.0-dec-10-2021-box-office-rematch-1990s-full-audio-human-read",
+    "episode-editorial-packs-wave599.js?v=1.0.0-nov-24-2021-thanksgiving-eve-resident-evil-halo-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
