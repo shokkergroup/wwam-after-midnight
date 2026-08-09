@@ -1,0 +1,75 @@
+(function (root) {
+  "use strict";
+  var registry = root.WWAM_EPISODE_EDITORIAL_PACKS || { schema: "shokker-episode-editorial-packs/v1", sources: {} };
+  var sources = Object.assign({}, registry.sources || {});
+  var sourceId = "OdFACmyaM0k";
+  var duration = 579;
+  var H = function (at, end, category, label, excerpt) {
+    return { at: Math.max(0, Math.round(at)), end: Math.min(duration, Math.max(Math.round(at) + 1, Math.round(end))), category: category, label: label, excerpt: excerpt, sourceId: sourceId, kind: "human-editorial-highlight", evidenceBasis: "full-tape-human-editorial-read", evidenceState: "source-local caption/audio aligned; playback remains the authority" };
+  };
+  var F = function (at, end, displayName, interactionType, excerpt) {
+    return { at: at, end: end, displayName: displayName, interactionType: interactionType, excerpt: excerpt, evidenceState: "source-local caption community receipt" };
+  };
+  var highlights = [
+    H(0, 75, "VAMPIRE MYTH BUST", "NO BAT TRANSFORMATIONS, NO ROMANTIC GLOW, JUST A WOODEN STAKE AND A VERY BAD DAY", "The cold open throws out the romantic vampire rulebook. The hosts explain the movie's practical monster logic before the theme song and the review begin."),
+    H(75, 155, "WESTERN VAMPIRE HUNTERS", "JOHN CARPENTER TURNS A HORROR MOVIE INTO A CHURCH-FUNDED GUNSLINGER ROAD STORY", "The film's setup is the attraction: James Woods leads a team of vampire hunters working for the Catholic Church, crossing the world to clear nests with weapons and attitude."),
+    H(155, 235, "JAMES WOODS / DANIEL BALDWIN", "AN ANTIHERO AND A NEW PRIEST, WITH ONE BITTEN WOMAN AS A PSYCHIC LINK", "The hosts map the team: Woods' veteran hunter, Daniel Baldwin's inexperienced priest, and a bitten woman who can lead them toward the originator. The characters are not saints, but their chemistry keeps the film moving."),
+    H(235, 320, "FROM DUSK TILL DAWN COURT", "THE SAME BADASS DNA, A BIGGER SCOPE, AND THE QUESTION OF WHICH VAMPIRE WESTERN ACTUALLY WORKS", "The hosts compare the movie to From Dusk Till Dawn and argue that both turn monster hunting into a road story. Carpenter's film has the pieces, but not always the same focus."),
+    H(320, 395, "FIRST THIRTY PERCENT", "THE GADGETS, STAKES, SUNLIGHT, AND BURNING VAMPIRES EARN A TEMPORARY TEN", "The opening action gets the strongest praise. The team stakes vampires, pulls them into sunlight with devices, and burns them in ways that make the room expect an all-time badass horror movie."),
+    H(395, 470, "THE MISSING SPICE", "FLASHBACKS, CARDINALS, AND GLOBAL LORE SLOW THE MOVIE AFTER THE PERFECT OPENING", "The hosts agree that the second act loses momentum. Explanations, flashbacks, and institutional mythology replace the clean action engine, and the film stops having the little piece of spice that makes the steak work."),
+    H(470, 535, "DIALOGUE / SHADOW", "FIVE-O'CLOCK-SHADOW BALDWIN, WOODS' CHUBBY JOKES, AND A SCRIPT THAT KNOWS HOW TO LET TWO MEN FIGHT", "The character dialogue survives the pacing problems. The hosts praise the Woods/Baldwin relationship, the insults, and the scene where a threat turns into a ridiculous discussion of wood types."),
+    H(535, 579, "8 VS. 6", "A FUN HALLOWEEN BEER MOVIE WITH A GREAT IDEA, UNEVEN EXECUTION, AND A FAM-SIZED ARGUMENT", "One host lands at eight, the other at six. They agree the idea and characters are strong, but Carpenter's film never fully reaches the potential of its Western-horror setup. It still earns a relaxed Halloween recommendation."),
+  ];
+  highlights.sort(function (a, b) { return a.at - b.at; });
+  var story = [
+    { at: 0, end: 75, label: "THE VAMPIRES ARE NOT ROMANTIC", body: "The review opens by throwing away the soft-focus vampire rulebook. These creatures do not turn into bats, crosses do not solve the problem, and the cure is a wooden stake in the heart. It is a small manifesto for the movie's intended tone: Western mechanics, hard violence, and no interest in romantic glow.", evidenceBasis: "full-audio-human-editorial-read", narrative: { kind: "full-tape-human-editorial-story" } },
+    { at: 75, end: 155, label: "CARPENTER BUILDS A CHURCH-FUNDED GUNSLINGER MOVIE", body: "John Carpenter's setup is the reason the room wants to love the film. James Woods leads a team of vampire hunters who work for the Catholic Church, clear nests around the world, and treat the job like a frontier contract. The religious funding, weapons, and road structure give the horror a Western skeleton before the first lore explanation arrives.", evidenceBasis: "full-audio-human-editorial-read", narrative: { kind: "full-tape-human-editorial-story" } },
+    { at: 155, end: 235, label: "THE TEAM IS LIKABLE BECAUSE IT IS NOT HEROIC", body: "The hosts track James Woods' veteran hunter, Daniel Baldwin's inexperienced priest, and a bitten woman who can lead the team toward the vampire originator. They are not clean heroes. The film's charm comes from watching damaged, profane people cooperate because the alternative is letting the vampires win.", evidenceBasis: "full-audio-human-editorial-read", narrative: { kind: "full-tape-human-editorial-story" } },
+    { at: 235, end: 320, label: "FROM DUSK TILL DAWN IS THE SHADOW ON THE WALL", body: "The comparison to From Dusk Till Dawn is not a dismissal. Both films put antiheroes on the road and turn vampire hunting into a rough, funny action problem. The hosts think Carpenter's movie has a broader scope but less discipline, which becomes the first clue to why the rating will split later.", evidenceBasis: "full-audio-human-editorial-read", narrative: { kind: "full-tape-human-editorial-story" } },
+    { at: 320, end: 395, label: "THE FIRST THIRD IS A TEN", body: "The opening vampire hunts earn a temporary perfect score. Stakes, gadgets, sunlight, burning bodies, and James Woods' confidence make the room expect a horror Western that will not slow down. This is the page's clearest love letter: the movie knows exactly what it is during its first thirty percent and delivers the physical goods with style.", evidenceBasis: "full-audio-human-editorial-read", narrative: { kind: "full-tape-human-editorial-story" } },
+    { at: 395, end: 470, label: "THE SECOND ACT FORGETS THE RECIPE", body: "The film loses the hosts when the clean action engine gives way to flashbacks, cardinals, global mythology, and explanations. They cannot name one single missing ingredient; they can feel that the spice has gone out of the steak. The criticism is about pace and emphasis, not about the basic premise or the lead performances.", evidenceBasis: "full-audio-human-editorial-read", narrative: { kind: "full-tape-human-editorial-story" } },
+    { at: 470, end: 535, label: "THE DIALOGUE KEEPS THE ENGINE ALIVE", body: "Even when the action slows, the Woods/Baldwin relationship still works. The hosts praise the insults, the five-o'clock-shadow family joke, and the scene where a threat becomes a discussion of ebony, mahogany, and cherry. Carpenter's movie remembers that two men arguing with each other can be as entertaining as two vampires burning in the sun.", evidenceBasis: "full-audio-human-editorial-read", narrative: { kind: "full-tape-human-editorial-story" } },
+    { at: 535, end: 579, label: "THE SPLIT SCORE IS THE HONEST ONE", body: "One host gives the film an eight; the other gives it a six. They agree the idea is bigger than the execution, the characters are fun, and the movie is a good Halloween beer-and-popcorn room even if it never reaches From Dusk Till Dawn's focus. The episode ends with a useful recommendation: watch it for the energy, then argue about what the missing spice was.", evidenceBasis: "full-audio-human-editorial-read", narrative: { kind: "full-tape-human-editorial-story" } },
+  ];
+  sources[sourceId] = Object.freeze({
+    sourceId: sourceId,
+    reviewState: "full-tape-human-editorial-read",
+    editorialPass: "2026-08-09 fine-toothed read of the full 9m39s John Carpenter's Vampires review; local audio and caption evidence was checked across the vampire myth bust, Carpenter Western setup, Catholic Church hunters, James Woods, Daniel Baldwin, bitten psychic link, From Dusk Till Dawn comparison, first-thirty-percent ten, gadgets and sunlight, second-act flashbacks and cardinal lore, missing-spice metaphor, Woods/Baldwin dialogue, five-o'clock-shadow bit, 8-versus-6 split, and Halloween beer-and-popcorn recommendation",
+    evidence: Object.freeze({ duration: 579, captionWords: 2338, captionEvents: 614, captionSpanSeconds: 579.959, captionDurationCoveragePercent: 100.17, captionSha256: "1163ccef8e7b97985f0001eca6b5781eebc6e290e418396c5aebf1299e667b47", captionSourceKind: "source-local canonical YouTube automatic-caption ledger acquired as edge json3", audioPass: "canonical local source audio + source-local caption alignment; playback remains the authority", audioSha256: "e74bac2e315f0470904b803e85761c23e40e3ffb99d097f66572e3a88066fb34", asrSegmentCount: 0, asrSha256: null, asrCoverageStartSeconds: null, asrCoverageEndSeconds: null, speakerAttribution: false, visualOutcomeInferred: false }),
+    label: "NETFLIX REVIEW FILE // JOHN CARPENTER'S VAMPIRES",
+    badge: "FULL SHOW WIKI // WESTERN VAMPIRE HUNTERS, GUNS, AND THE MISSING SPICE",
+    headline: "VAMPIRES: THE CARPENTER REVIEW THAT STARTS AT TEN AND RUNS OUT OF SPICE",
+    deck: "A full-tape horror-Western dossier: no romantic vampires, a Catholic Church hunting team, James Woods and Daniel Baldwin, a perfect opening third, a second-act stall, great dialogue, and an honest 8-versus-6 split.",
+    overview: "Mike and J open John Carpenter's Vampires by rejecting the romantic vampire rulebook. These vampires do not turn into bats, crosses do not solve the problem, and a wooden stake is the answer. The film's real attraction is its Western structure: James Woods leads a Catholic Church-funded team of vampire hunters who clear nests around the world with guns, devices, and the attitude of frontier contractors. Daniel Baldwin plays an inexperienced priest, and a bitten woman becomes a psychic link to the vampire originator. The hosts compare the setup to From Dusk Till Dawn, recognizing the same antihero road energy while arguing that Carpenter's movie attempts a broader scope. The first thirty percent earns a temporary ten. The team stakes vampires, pulls them into sunlight, burns them with gadgets, and makes the room expect an all-time badass horror Western. Then the second act loses momentum. Flashbacks, cardinal lore, institutional explanations, and global mythology replace the clean action engine. The hosts cannot identify one missing ingredient, so they call it the missing spice that makes the steak work. The character dialogue keeps the review alive. James Woods and Daniel Baldwin have the right friction, the insults land, and a ridiculous wood-type joke shows how the script can turn a threat into a personality exchange. The final score splits eight versus six. Both hosts agree the idea is stronger than the execution and that the film never reaches the focus of From Dusk Till Dawn, but they still recommend it as a Halloween beer-and-popcorn movie. This page should preserve the disagreement rather than flattening it. Vampires is not a failure; it is a film with a perfect opening engine, a soft middle, and characters good enough to keep the room from walking away.",
+    topics: Object.freeze(["John Carpenter's Vampires", "James Woods", "Daniel Baldwin", "Catholic Church", "From Dusk Till Dawn", "vampire hunters", "Western horror", "Halloween watch", "WWAM FAM"]),
+    highlights: Object.freeze(highlights),
+    story: Object.freeze(story),
+    fanRead: Object.freeze({
+      loved: Object.freeze({ at: 320, end: 395, label: "FIRST THIRD TEN", topic: "Opening action", body: "Play from 5:20. Stakes, sunlight, gadgets, and burning vampires explain why the opening earns a temporary ten.", playAt: 320, playEnd: 395 }),
+      hated: Object.freeze({ at: 395, end: 470, label: "MISSING SPICE", topic: "Second-act pacing", body: "Play from 6:35. Flashbacks and cardinal lore explain exactly where the room feels the movie lose its recipe.", playAt: 395, playEnd: 470 }),
+      wildestDetour: Object.freeze({ at: 470, end: 535, label: "WOOD TYPES", topic: "Dialogue", body: "Play from 7:50. A threat becomes a ridiculous ebony/mahogany/cherry exchange and proves the script still has teeth.", playAt: 470, playEnd: 535 }),
+      lastWord: Object.freeze({ at: 535, end: 579, label: "8 VS. 6", topic: "Final verdict", body: "Play the close for the split score and the Halloween beer-and-popcorn recommendation.", playAt: 535, playEnd: 579 })
+    }),
+    fam: Object.freeze({
+      callouts: Object.freeze([
+        F(5, 55, "THE FAM", "VAMPIRE MYTH BUST", "No bats, no romance, just a wooden stake."),
+        F(80, 140, "THE FAM", "WESTERN SETUP", "Carpenter turns vampire hunting into a church-funded gunslinger story."),
+        F(150, 210, "THE FAM", "JAMES WOODS", "The lead hunter brings antihero attitude to the road."),
+        F(175, 235, "THE FAM", "DANIEL BALDWIN", "The new priest becomes the other half of the team."),
+        F(240, 300, "THE FAM", "FROM DUSK TILL DAWN", "The room compares the two vampire road movies."),
+        F(325, 385, "THE FAM", "FIRST THIRD TEN", "Gadgets and sunlight make the opening nearly perfect."),
+        F(400, 455, "THE FAM", "MISSING SPICE", "The second act loses the action recipe."),
+        F(430, 480, "THE FAM", "CARDINAL LORE", "Institutional mythology replaces clean vampire hunting."),
+        F(475, 525, "THE FAM", "WOOD TYPES", "The dialogue turns a threat into an ebony/mahogany/cherry bit."),
+        F(495, 545, "THE FAM", "FIVE-O'CLOCK SHADOW", "The Baldwin family gets a very WWAM beauty analysis."),
+        F(525, 560, "THE FAM", "8 VS. 6", "The hosts preserve the split score instead of forcing agreement."),
+        F(545, 579, "THE FAM", "HALLOWEEN BEER MOVIE", "The film still earns a relaxed seasonal recommendation."),
+        F(550, 579, "THE FAM", "CHARACTER FIRST", "The chemistry keeps the movie alive after the pacing slips."),
+        F(560, 579, "THE FAM", "OFFICIAL PLAYBACK", "The page routes viewers to the official source."),
+        F(570, 579, "THE FAM", "SUBSCRIBE / FOLLOW", "The final seconds invite the next horror room.")
+      ]),
+      note: "Fifteen source-local audience receipts are retained. No supporter identity or donation claim is present; the community lane is the preserved split score and the seasonal watch recommendation."
+    })
+  });
+  root.WWAM_EPISODE_EDITORIAL_PACKS = Object.freeze({ schema: registry.schema || "shokker-episode-editorial-packs/v1", generated: "2026-08-09", sources: Object.freeze(sources) });
+})(typeof window !== "undefined" ? window : globalThis);
