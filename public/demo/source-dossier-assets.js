@@ -543,6 +543,7 @@
     "episode-editorial-packs-wave519.js?v=1.0.0-jan-28-2012-5050-paranormal-activity-3-dawn-of-the-dead-full-audio-human-read",
     "episode-editorial-packs-wave520.js?v=1.0.0-nov-08-2021-ghostbusters-quarantine-full-audio-human-read",
     "episode-editorial-packs-wave521.js?v=1.0.0-oct-01-2021-paper-company-episode-1-full-audio-human-read",
+    "episode-editorial-packs-wave522.js?v=1.0.0-apr-03-2021-justice-league-commentary-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
