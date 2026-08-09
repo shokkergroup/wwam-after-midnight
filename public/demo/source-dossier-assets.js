@@ -592,6 +592,7 @@
     "episode-editorial-packs-wave568.js?v=1.0.0-mar-04-2021-halloween-kills-mortal-kombat-updates-full-audio-human-read",
     "episode-editorial-packs-wave569.js?v=1.0.0-mar-06-2021-top-ten-sun-wham-combat-full-audio-human-read",
     "episode-editorial-packs-wave570.js?v=1.0.0-mar-11-2021-halloween-theory-snyder-cut-full-audio-human-read",
+    "episode-editorial-packs-wave571.js?v=1.0.0-mar-13-2021-damian-maffei-interview-wandavision-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
