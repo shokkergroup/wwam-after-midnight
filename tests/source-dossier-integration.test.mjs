@@ -1189,6 +1189,7 @@ test("dossier CSS brands cold routes immediately while heavy scripts remain lazy
   "episode-editorial-packs-wave441.js",
   "episode-editorial-packs-wave442.js",
   "episode-editorial-packs-wave443.js",
+  "episode-editorial-packs-wave444.js",
     "wwam-fam-index.js",
     "episode-recap-engine.js",
     "wwam-episode-recap-adapter.js",
@@ -1734,6 +1735,11 @@ test("clip callbacks carry the Show Wiki scroll receipt and close works without 
   assert.match(read("source-dossier-ui.js"), /payload\.returnScrollTop = Math\.max\(0, Number\(ownerDialog\.scrollTop\)\)/);
   assert.match(read("source-dossier-ui.js"), /childPlayback: true/);
   assert.match(read("source-dossier-ui.js"), /action === "play-alternate-route"/);
+});
+
+test("100K celebration editorial pack is registered in the source corpus", () => {
+  assert.match(read("episode-editorial-packs-wave444.js"), /d7cuRT5iM6Y/);
+  assert.match(read("source-dossier-assets.js"), /episode-editorial-packs-wave444\.js/);
 });
 
 test("loose clips opened from a Show Wiki carry a nested parent route", () => {

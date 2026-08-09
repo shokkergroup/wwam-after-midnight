@@ -465,6 +465,7 @@
     "episode-editorial-packs-wave441.js?v=1.0.0-dec-14-2019-jason-x-audio-human-read",
     "episode-editorial-packs-wave442.js?v=1.0.0-dec-07-2019-jason-goes-to-hell-audio-human-read",
     "episode-editorial-packs-wave443.js?v=1.0.0-nov-24-2019-play-button-unboxing-fam-full-tape-human-read",
+    "episode-editorial-packs-wave444.js?v=1.0.0-oct-27-2019-100k-celebration-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
