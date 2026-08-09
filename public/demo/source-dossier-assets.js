@@ -626,6 +626,7 @@
     "episode-editorial-packs-wave602.js?v=1.0.0-nov-15-2021-rocky-pulp-fiction-bond-pumpkinhead-full-audio-human-read",
     "episode-editorial-packs-wave603.js?v=1.0.0-oct-15-2021-halloween-kills-spoiler-free-full-audio-human-read",
     "episode-editorial-packs-wave604.js?v=1.0.0-oct-05-2021-halloween-horror-month-venom-scream-pumpkinhead-full-audio-human-read",
+    "episode-editorial-packs-wave605.js?v=1.0.0-sep-24-2021-halloween-kills-trailer-loomis-files-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
