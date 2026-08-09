@@ -521,6 +521,7 @@
     "episode-editorial-packs-wave497.js?v=1.0.0-nov-07-2017-halloween-2-commentary-full-audio-human-read",
     "episode-editorial-packs-wave498.js?v=1.0.0-oct-31-2017-halloween-original-commentary-full-audio-human-read",
     "episode-editorial-packs-wave499.js?v=1.0.0-jul-29-2017-dunkirk-wwam-cast-full-audio-human-read",
+    "episode-editorial-packs-wave500.js?v=1.0.0-jul-15-2017-war-for-the-apes-wish-upon-wwam-cast-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
