@@ -553,6 +553,7 @@
     "episode-editorial-packs-wave529.js?v=1.0.0-feb-14-2021-men-in-black-commentary-full-audio-human-read",
     "episode-editorial-packs-wave530.js?v=1.0.0-feb-07-2021-the-watcher-commentary-full-audio-human-read",
     "episode-editorial-packs-wave531.js?v=1.0.0-nov-11-2020-exorcist-the-beginning-commentary-full-audio-human-read",
+    "episode-editorial-packs-wave532.js?v=1.0.0-nov-01-2020-nightmare-2010-commentary-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
