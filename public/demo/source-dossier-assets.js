@@ -533,6 +533,7 @@
     "episode-editorial-packs-wave509.js?v=1.0.0-oct-22-2014-john-carpenters-vampires-review-full-audio-human-read",
     "episode-editorial-packs-wave510.js?v=1.0.0-oct-19-2014-texas-chainsaw-massacre-2-review-full-audio-human-read",
     "episode-editorial-packs-wave511.js?v=1.0.0-may-16-2013-star-trek-into-darkness-review-full-audio-human-read",
+    "episode-editorial-packs-wave512.js?v=1.0.0-jun-09-2012-rock-of-ages-review-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
