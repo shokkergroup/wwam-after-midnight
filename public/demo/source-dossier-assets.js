@@ -635,6 +635,7 @@
     "episode-editorial-packs-wave611.js?v=1.0.0-aug-10-2021-dean-alioto-mcpherson-tape-jason-masks-full-audio-human-read",
     "episode-editorial-packs-wave612.js?v=1.0.0-aug-06-2021-jay-returns-suicide-squad-he-man-full-audio-human-read",
     "episode-editorial-packs-wave613.js?v=1.0.0-jul-31-2021-jay-break-friday-rights-disney-ayer-batman-full-audio-human-read",
+    "episode-editorial-packs-wave614.js?v=1.0.0-jul-22-2021-old-halloween-kills-jay-audio-restart-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
