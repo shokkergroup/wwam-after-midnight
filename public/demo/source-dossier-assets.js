@@ -430,6 +430,7 @@
     "episode-editorial-packs-wave406.js?v=1.0.0-june-20-2020-schwarzenegger-vs-stallone-full-tape-human-read",
     "episode-editorial-packs-wave407.js?v=1.0.0-june-13-2020-childs-play-vs-hellraiser-full-tape-human-read",
     "episode-editorial-packs-wave408.js?v=1.0.0-june-09-2020-horror-news-halloween-kills-evil-dead-full-tape-human-read",
+    "episode-editorial-packs-wave409.js?v=1.0.0-june-06-2020-jcvd-vs-seagal-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
