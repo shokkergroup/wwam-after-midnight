@@ -357,6 +357,7 @@
     "episode-editorial-packs-wave333.js?v=1.0.0-december-29-2022-most-anticipated-movies-full-tape-human-read",
     "episode-editorial-packs-wave334.js?v=1.0.0-december-18-2022-top-horror-franchises-full-tape-human-read",
     "episode-editorial-packs-wave335.js?v=1.0.0-november-29-2022-150k-qa-full-tape-human-read",
+    "episode-editorial-packs-wave336.js?v=1.0.0-july-20-2022-halloween-ends-trailer-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
