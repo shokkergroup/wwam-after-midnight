@@ -632,6 +632,7 @@
     "episode-editorial-packs-wave608.js?v=1.0.0-sep-04-2021-jason-friday-night-fights-full-audio-human-read",
     "episode-editorial-packs-wave609.js?v=1.0.0-aug-27-2021-candyman-review-halloween-kills-full-audio-human-read",
     "episode-editorial-packs-wave610.js?v=1.0.0-aug-21-2021-tim-waggoner-loomis-files-slenderman-full-audio-human-read",
+    "episode-editorial-packs-wave611.js?v=1.0.0-aug-10-2021-dean-alioto-mcpherson-tape-jason-masks-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
