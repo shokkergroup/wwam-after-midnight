@@ -648,6 +648,7 @@
     "episode-editorial-packs-wave624.js?v=1.0.0-jun-09-2021-halloween6-loki-nathan-fam-full-audio-human-read",
     "episode-editorial-packs-wave625.js?v=1.0.0-jun-04-2021-in-person-conjuring-fam-shorts-full-audio-human-read",
     "episode-editorial-packs-wave626.js?v=1.0.0-may-27-2021-kraven-evil-dead-bourbon-fam-full-audio-human-read",
+    "episode-editorial-packs-wave627.js?v=1.0.0-may-28-2021-quiet-place-its-me-billy-joker-halloween-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
