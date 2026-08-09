@@ -604,6 +604,7 @@
     "episode-editorial-packs-wave580.js?v=1.0.0-apr-17-2021-action-heroes-horror-villains-full-audio-human-read",
     "episode-editorial-packs-wave581.js?v=1.0.0-apr-24-2021-daniel-farrands-mortal-kombat-conjuring-3-full-audio-human-read",
     "episode-editorial-packs-wave582.js?v=1.0.0-apr-29-2021-things-heard-seen-movie-news-full-audio-human-read",
+    "episode-editorial-packs-wave583.js?v=1.0.0-may-01-2021-keanu-cruise-friday-night-fights-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
