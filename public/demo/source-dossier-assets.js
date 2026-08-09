@@ -462,6 +462,7 @@
     "episode-editorial-packs-wave438.js?v=1.0.0-mar-07-2020-video-livestream-full-tape-human-read",
     "episode-editorial-packs-wave439.js?v=1.0.0-jan-01-2020-friday-13th-2009-audio-human-read",
     "episode-editorial-packs-wave440.js?v=1.0.0-dec-27-2019-freddy-vs-jason-audio-human-read",
+    "episode-editorial-packs-wave441.js?v=1.0.0-dec-14-2019-jason-x-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
