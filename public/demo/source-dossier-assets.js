@@ -474,6 +474,7 @@
     "episode-editorial-packs-wave450.js?v=1.0.0-oct-18-2019-friday-13th-part3d-live-commentary-full-audio-human-read",
     "episode-editorial-packs-wave451.js?v=1.0.0-oct-11-2019-hellraiser-inferno-commentary-full-audio-human-read",
     "episode-editorial-packs-wave452.js?v=1.0.0-oct-05-2019-hellraiser-bloodline-commentary-full-audio-human-read",
+    "episode-editorial-packs-wave453.js?v=1.0.0-oct-04-2019-hellraiser-iii-commentary-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
