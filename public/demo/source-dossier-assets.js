@@ -582,6 +582,7 @@
     "episode-editorial-packs-wave558.js?v=1.0.0-jul-08-2020-halloween-kills-delay-trailer-full-audio-human-read",
     "episode-editorial-packs-wave559.js?v=1.0.0-jan-09-2021-friday-night-fights-raimi-wan-full-audio-human-read",
     "episode-editorial-packs-wave560.js?v=1.0.0-feb-04-2021-snyder-justice-league-halloween-kills-burbs-full-audio-human-read",
+    "episode-editorial-packs-wave561.js?v=1.0.0-feb-06-2021-halloween-game-superbowl-party-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
