@@ -546,6 +546,7 @@
     "episode-editorial-packs-wave522.js?v=1.0.0-apr-03-2021-justice-league-commentary-full-audio-human-read",
     "episode-editorial-packs-wave523.js?v=1.0.0-mar-28-2021-the-crow-commentary-full-audio-human-read",
     "episode-editorial-packs-wave524.js?v=1.0.0-mar-21-2021-youre-next-commentary-full-audio-human-read",
+    "episode-editorial-packs-wave525.js?v=1.0.0-mar-14-2021-bloody-new-year-commentary-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
