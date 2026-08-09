@@ -492,6 +492,7 @@
     "episode-editorial-packs-wave468.js?v=1.0.0-apr-29-2019-game-of-thrones-long-night-recap-full-tape-human-read",
     "episode-editorial-packs-wave469.js?v=1.0.0-apr-22-2019-childs-play-3-commentary-full-audio-human-read",
     "episode-editorial-packs-wave470.js?v=1.0.0-apr-15-2019-childs-play-2-commentary-full-audio-human-read",
+    "episode-editorial-packs-wave471.js?v=1.0.0-apr-01-2019-childs-play-original-commentary-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
