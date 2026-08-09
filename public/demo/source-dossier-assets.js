@@ -391,6 +391,7 @@
     "episode-editorial-packs-wave367.js?v=1.0.0-october-19-2021-halloween-kills-spoiler-full-tape-human-read",
     "episode-editorial-packs-wave368.js?v=1.0.0-april-24-2021-daniel-farrands-mortal-kombat-full-tape-human-read",
     "episode-editorial-packs-wave369.js?v=1.0.0-january-16-2021-michael-jason-friday-night-fights-full-tape-human-read",
+    "episode-editorial-packs-wave370.js?v=1.0.0-january-30-2021-abyss-friday-deadpool-snyder-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
