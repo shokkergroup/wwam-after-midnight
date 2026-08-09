@@ -650,6 +650,7 @@
     "episode-editorial-packs-wave626.js?v=1.0.0-may-27-2021-kraven-evil-dead-bourbon-fam-full-audio-human-read",
     "episode-editorial-packs-wave627.js?v=1.0.0-may-28-2021-quiet-place-its-me-billy-joker-halloween-full-audio-human-read",
     "episode-editorial-packs-wave628.js?v=1.0.0-may-19-2021-fear-street-chris-nelson-jason-mask-army-dead-full-audio-human-read",
+    "episode-editorial-packs-wave629.js?v=1.0.0-may-14-2021-spiral-halloween-mask-john-stewart-scream-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
