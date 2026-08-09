@@ -381,6 +381,7 @@
     "episode-editorial-packs-wave357.js?v=1.0.0-february-18-2022-texas-chainsaw-spoiler-free-full-tape-human-read",
     "episode-editorial-packs-wave358.js?v=1.0.0-february-16-2022-texas-chainsaw-remake-live-full-tape-human-read",
     "episode-editorial-packs-wave359.js?v=1.0.0-february-09-2022-batman-returns-full-tape-human-read",
+    "episode-editorial-packs-wave360.js?v=1.0.0-february-07-2022-batman-1989-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
