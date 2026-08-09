@@ -418,6 +418,7 @@
     "episode-editorial-packs-wave394.js?v=1.0.0-october-03-2020-halloween-horror-month-special-round1-full-tape-human-read",
     "episode-editorial-packs-wave395.js?v=1.0.0-september-19-2020-best-horror-remake-of-the-2000s-full-tape-human-read",
     "episode-editorial-packs-wave396.js?v=1.0.0-september-12-2020-best-third-movie-slasher-franchise-full-tape-human-read",
+    "episode-editorial-packs-wave397.js?v=1.0.0-september-05-2020-best-first-slasher-sequel-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
