@@ -401,6 +401,7 @@
     "episode-editorial-packs-wave377.js?v=1.0.0-january-05-2021-halloween4-cobra-kai-full-tape-human-read",
     "episode-editorial-packs-wave378.js?v=1.0.0-december-31-2020-batman-dave-mcrae-hot-noodles-full-tape-human-read",
     "episode-editorial-packs-wave379.js?v=1.0.0-december-22-2020-mandalorian-gareth-west-red-rising-full-tape-human-read",
+    "episode-editorial-packs-wave380.js?v=1.0.0-december-17-2020-top-five-movies-tom-cruise-unboxing-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
