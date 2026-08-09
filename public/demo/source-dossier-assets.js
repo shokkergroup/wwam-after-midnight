@@ -506,6 +506,7 @@
     "episode-editorial-packs-wave482.js?v=1.0.0-jun-01-2018-scream-2-commentary-full-audio-human-read",
     "episode-editorial-packs-wave483.js?v=1.0.0-may-24-2018-scream-commentary-full-audio-human-read",
     "episode-editorial-packs-wave484.js?v=1.0.0-apr-27-2018-martyrs-commentary-full-audio-human-read",
+    "episode-editorial-packs-wave485.js?v=1.0.0-mar-16-2018-from-dusk-till-dawn-commentary-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
