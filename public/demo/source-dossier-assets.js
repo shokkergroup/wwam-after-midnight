@@ -436,6 +436,7 @@
     "episode-editorial-packs-wave412.js?v=1.0.0-may-23-2020-conjuring-vs-paranormal-full-tape-human-read",
     "episode-editorial-packs-wave413.js?v=1.0.0-may-21-2020-snyder-cut-qa-full-tape-human-read",
     "episode-editorial-packs-wave414.js?v=1.0.0-may-19-2020-iconic-horror-weapons-scream5-full-tape-human-read",
+    "episode-editorial-packs-wave415.js?v=1.0.0-may-16-2020-halloween-vs-nightmare-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
