@@ -415,6 +415,7 @@
     "episode-editorial-packs-wave391.js?v=1.0.0-october-24-2020-friday-night-fights-ultimate-horror-vote-round4-full-tape-human-read",
     "episode-editorial-packs-wave392.js?v=1.0.0-october-17-2020-friday-night-horror-franchise-fight-round3-full-tape-human-read",
     "episode-editorial-packs-wave393.js?v=1.0.0-october-10-2020-ultimate-horror-movie-royal-rumble-round2-full-tape-human-read",
+    "episode-editorial-packs-wave394.js?v=1.0.0-october-03-2020-halloween-horror-month-special-round1-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
