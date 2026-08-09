@@ -654,6 +654,7 @@
     "episode-editorial-packs-wave630.js?v=1.0.0-may-12-2021-dustin-mcneil-halloween3d-satanic-susie-oxygen-full-audio-human-read",
     "episode-editorial-packs-wave631.js?v=1.0.0-may-07-2021-john-passarella-halloween2018-stranger-things-full-audio-human-read",
     "episode-editorial-packs-wave632.js?v=1.0.0-may-05-2021-invincible-dc-halloween-kills-full-audio-human-read",
+    "episode-editorial-packs-wave633.js?v=1.0.0-jason-goes-to-hell-expanded-watchalong-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
