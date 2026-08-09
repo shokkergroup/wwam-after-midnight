@@ -495,6 +495,7 @@
     "episode-editorial-packs-wave471.js?v=1.0.0-apr-01-2019-childs-play-original-commentary-full-audio-human-read",
     "episode-editorial-packs-wave472.js?v=1.0.0-mar-27-2019-pet-sematary-commentary-full-audio-human-read",
     "episode-editorial-packs-wave473.js?v=1.0.0-mar-03-2019-fam-reunion-livestream-full-tape-human-read",
+    "episode-editorial-packs-wave474.js?v=1.0.0-feb-27-2019-possession-of-hannah-grace-commentary-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
