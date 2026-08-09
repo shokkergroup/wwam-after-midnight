@@ -587,6 +587,7 @@
     "episode-editorial-packs-wave563.js?v=1.0.0-feb-18-2021-halloween-kills-batman-mike-nelson-full-audio-human-read",
     "episode-editorial-packs-wave564.js?v=1.0.0-jan-09-2021-sam-raimi-james-wan-recovery-full-audio-human-read",
     "episode-editorial-packs-wave565.js?v=1.0.0-feb-20-2021-jim-carrey-adam-sandler-full-audio-human-read",
+    "episode-editorial-packs-wave566.js?v=1.0.0-feb-20-2021-mortal-kombat-leatherface-carrey-sandler-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
