@@ -432,6 +432,7 @@
     "episode-editorial-packs-wave408.js?v=1.0.0-june-09-2020-horror-news-halloween-kills-evil-dead-full-tape-human-read",
     "episode-editorial-packs-wave409.js?v=1.0.0-june-06-2020-jcvd-vs-seagal-full-tape-human-read",
     "episode-editorial-packs-wave410.js?v=1.0.0-may-30-2020-friday-13th-vs-nightmare-full-tape-human-read",
+    "episode-editorial-packs-wave411.js?v=1.0.0-may-28-2020-rob-zombie-halloween-script-trapson-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
