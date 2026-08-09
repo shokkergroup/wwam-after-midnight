@@ -580,6 +580,7 @@
     "episode-editorial-packs-wave556.js?v=1.0.0-mar-27-2020-childs-play-2-follow-up-full-audio-human-read",
     "episode-editorial-packs-wave557.js?v=1.0.0-apr-19-2020-seed-of-chucky-follow-up-full-audio-human-read",
     "episode-editorial-packs-wave558.js?v=1.0.0-jul-08-2020-halloween-kills-delay-trailer-full-audio-human-read",
+    "episode-editorial-packs-wave559.js?v=1.0.0-jan-09-2021-friday-night-fights-raimi-wan-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
