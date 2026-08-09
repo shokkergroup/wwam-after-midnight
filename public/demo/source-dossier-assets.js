@@ -548,6 +548,7 @@
     "episode-editorial-packs-wave524.js?v=1.0.0-mar-21-2021-youre-next-commentary-full-audio-human-read",
     "episode-editorial-packs-wave525.js?v=1.0.0-mar-14-2021-bloody-new-year-commentary-full-audio-human-read",
     "episode-editorial-packs-wave526.js?v=1.0.0-mar-07-2021-the-warriors-commentary-full-audio-human-read",
+    "episode-editorial-packs-wave527.js?v=1.0.0-feb-28-2021-terminator-2-commentary-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
