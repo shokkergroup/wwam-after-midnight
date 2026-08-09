@@ -460,6 +460,7 @@
     "episode-editorial-packs-wave436.js?v=1.0.0-apr-02-2020-livescream-qa-full-tape-human-read",
     "episode-editorial-packs-wave437.js?v=1.0.0-mar-29-2020-halloween-kills-update-full-tape-human-read",
     "episode-editorial-packs-wave438.js?v=1.0.0-mar-07-2020-video-livestream-full-tape-human-read",
+    "episode-editorial-packs-wave439.js?v=1.0.0-jan-01-2020-friday-13th-2009-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
