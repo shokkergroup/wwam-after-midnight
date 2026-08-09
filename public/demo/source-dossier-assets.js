@@ -427,6 +427,7 @@
     "episode-editorial-packs-wave403.js?v=1.0.0-july-18-2020-carpenter-vs-craven-full-tape-human-read",
     "episode-editorial-packs-wave404.js?v=1.0.0-july-11-2020-cameron-vs-fincher-full-tape-human-read",
     "episode-editorial-packs-wave405.js?v=1.0.0-june-27-2020-scream-vs-evil-dead-full-tape-human-read",
+    "episode-editorial-packs-wave406.js?v=1.0.0-june-20-2020-schwarzenegger-vs-stallone-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
