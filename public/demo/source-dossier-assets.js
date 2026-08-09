@@ -409,6 +409,7 @@
     "episode-editorial-packs-wave385.js?v=1.0.0-december-03-2020-hellraiser-daredevil-mortal-kombat-halloween-full-tape-human-read",
     "episode-editorial-packs-wave386.js?v=1.0.0-december-05-2020-friday-night-fights-horror-comedy-bracket-full-tape-human-read",
     "episode-editorial-packs-wave387.js?v=1.0.0-december-19-2020-friday-night-fights-fast-food-wars-full-tape-human-read",
+    "episode-editorial-packs-wave388.js?v=1.0.0-november-21-2020-friday-night-fights-marvel-dc-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
