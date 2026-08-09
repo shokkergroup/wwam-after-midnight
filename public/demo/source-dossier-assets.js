@@ -412,6 +412,7 @@
     "episode-editorial-packs-wave388.js?v=1.0.0-november-21-2020-friday-night-fights-marvel-dc-full-tape-human-read",
     "episode-editorial-packs-wave389.js?v=1.0.0-november-14-2020-friday-the-13th-special-full-tape-human-read",
     "episode-editorial-packs-wave390.js?v=1.0.0-october-31-2020-friday-night-fights-championship-full-tape-human-read",
+    "episode-editorial-packs-wave391.js?v=1.0.0-october-24-2020-friday-night-fights-ultimate-horror-vote-round4-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
