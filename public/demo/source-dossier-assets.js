@@ -508,6 +508,7 @@
     "episode-editorial-packs-wave484.js?v=1.0.0-apr-27-2018-martyrs-commentary-full-audio-human-read",
     "episode-editorial-packs-wave485.js?v=1.0.0-mar-16-2018-from-dusk-till-dawn-commentary-full-audio-human-read",
     "episode-editorial-packs-wave486.js?v=1.0.0-mar-07-2018-the-strangers-commentary-full-audio-human-read",
+    "episode-editorial-packs-wave487.js?v=1.0.0-mar-01-2018-dawn-of-the-dead-commentary-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
