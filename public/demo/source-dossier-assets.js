@@ -577,6 +577,7 @@
     "episode-editorial-packs-wave553.js?v=1.0.0-oct-21-2018-halloween-spoiler-qa-full-audio-human-read",
     "episode-editorial-packs-wave554.js?v=1.0.0-dec-16-2018-20-million-views-live-full-audio-human-read",
     "episode-editorial-packs-wave555.js?v=1.0.0-feb-11-2020-childs-play-follow-up-full-audio-human-read",
+    "episode-editorial-packs-wave556.js?v=1.0.0-mar-27-2020-childs-play-2-follow-up-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
