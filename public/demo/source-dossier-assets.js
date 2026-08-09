@@ -518,6 +518,7 @@
     "episode-editorial-packs-wave494.js?v=1.0.0-nov-28-2017-halloween-4-commentary-full-audio-human-read",
     "episode-editorial-packs-wave495.js?v=1.0.0-nov-23-2017-thankskilling-commentary-full-audio-human-read",
     "episode-editorial-packs-wave496.js?v=1.0.0-nov-16-2017-halloween-3-commentary-full-audio-human-read",
+    "episode-editorial-packs-wave497.js?v=1.0.0-nov-07-2017-halloween-2-commentary-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",

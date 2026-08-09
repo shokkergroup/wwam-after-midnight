@@ -1242,6 +1242,7 @@ test("dossier CSS brands cold routes immediately while heavy scripts remain lazy
   "episode-editorial-packs-wave494.js",
   "episode-editorial-packs-wave495.js",
   "episode-editorial-packs-wave496.js",
+  "episode-editorial-packs-wave497.js",
     "wwam-fam-index.js",
     "episode-recap-engine.js",
     "wwam-episode-recap-adapter.js",
@@ -1886,6 +1887,8 @@ test("MA and Godzilla review editorial pack is registered in the source corpus",
   assert.match(read("source-dossier-assets.js"), /episode-editorial-packs-wave495\.js/);
   assert.match(read("episode-editorial-packs-wave496.js"), /4UokRLETypU/);
   assert.match(read("source-dossier-assets.js"), /episode-editorial-packs-wave496\.js/);
+  assert.match(read("episode-editorial-packs-wave497.js"), /ThPjds8iI9U/);
+  assert.match(read("source-dossier-assets.js"), /episode-editorial-packs-wave497\.js/);
 });
 
 test("loose clips opened from a Show Wiki carry a nested parent route", () => {
