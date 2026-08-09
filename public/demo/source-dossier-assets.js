@@ -641,6 +641,7 @@
     "episode-editorial-packs-wave617.js?v=1.0.0-jul-16-2021-chucky-fear-street-1666-loomis-full-audio-human-read",
     "episode-editorial-packs-wave618.js?v=1.0.0-jul-14-2021-scream-halloween-deadpool-evil-dead-full-audio-human-read",
     "episode-editorial-packs-wave619.js?v=1.0.0-jul-08-2021-halloween-kills-questions-loomis-hospital-full-audio-human-read",
+    "episode-editorial-packs-wave620.js?v=1.0.0-jul-02-2021-halloween-kirby-norman-fear-street-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
