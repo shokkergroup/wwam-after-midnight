@@ -458,6 +458,7 @@
     "episode-editorial-packs-wave434.js?v=1.0.0-apr-08-2020-justice-league-mortal-full-tape-human-read",
     "episode-editorial-packs-wave435.js?v=1.0.0-apr-04-2020-childs-play-3-full-audio-human-read",
     "episode-editorial-packs-wave436.js?v=1.0.0-apr-02-2020-livescream-qa-full-tape-human-read",
+    "episode-editorial-packs-wave437.js?v=1.0.0-mar-29-2020-halloween-kills-update-full-tape-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",

@@ -1,0 +1,62 @@
+(function (root) {
+  "use strict";
+  var registry = root.WWAM_EPISODE_EDITORIAL_PACKS || { schema: "shokker-episode-editorial-packs/v1", sources: {} };
+  var sources = Object.assign({}, registry.sources || {});
+  var sourceId = "0IcuNT8SWYU";
+  var duration = 3238;
+  var H = function (at, end, category, label, excerpt) {
+    return { at: Math.max(0, Math.round(at)), end: Math.min(duration, Math.max(Math.round(at) + 1, Math.round(end))), category: category, label: label, excerpt: excerpt, sourceId: sourceId, kind: "human-editorial-highlight", evidenceBasis: "full-tape-human-editorial-read", evidenceState: "source-local caption/audio aligned; playback remains the authority" };
+  };
+  var F = function (at, end, displayName, interactionType, excerpt) {
+    return { at: at, end: end, displayName: displayName, interactionType: interactionType, excerpt: excerpt, evidenceState: "source-local caption community receipt" };
+  };
+  var highlights = [
+    H(0, 420, "OPENING FILE", "THE OBS PIPELINE BREAKS, J'S HORROR FIGURE WALL APPEARS, AND DAD JOKES GET PUT ON TRIAL", "The March 29 stream begins with J missing from the screen and the hosts trying to pipe OBS into a quarantine broadcast. His Movie Maniacs and Hellraiser figures become the accidental set while the chat argues about whether the weekly dad jokes are spreading."),
+    H(420, 780, "HALLOWEEN FILE", "A HALLOWEEN KILLS TRAILER UPDATE ARRIVES INSIDE A SUNDAY HANGOVER, CHURCH, AND DENNY'S DETOUR", "Mike White is welcomed after a wild Patreon stream, the room remembers church breakfasts, and Halloween Kills news is treated as the reason everyone showed up even though the opening refuses to behave like a news show."),
+    H(780, 1200, "WWAM UP IN YA", "MARIO'S PANTS, SCRAMBLED EGGS, AND A VERY BAD ANSWER TO THE QUESTION 'WHEN IS THE TRAILER COMING?'", "Dad jokes and breakfast memories lead to the actual forecast: Halloween 2018 had two major trailers, so a new Kills trailer could arrive soon—but 'soon' is explicitly framed as optimism, not a promise."),
+    H(1200, 1680, "TAKE GETS NUCLEAR", "THE TRAILER CLOCK, KROGER FUEL POINTS, AND AN UNWANTED DICK-IN-THE-MOUTH ANSWER SHARE THE SAME NEWS SEGMENT", "The room keeps trying to predict advertising windows while J offers the worst possible answer to a date question. A Kroger fuel-points story becomes the cleanest proof that WWAM can leave a movie-news lane without warning."),
+    H(1680, 2160, "HALLOWEEN KILLS FILE", "JASON BLUM'S 'MAKE IT HAPPEN' MESSAGE BECOMES A THEATER-VS-VOD BATTLE WITH THE CHAT AS WITNESS", "Blum's message is read as determined, not definitive. The hosts want an October theater release; J refuses to accept the room's imaginary vote and calls the audience impatient pieces of shit."),
+    H(2160, 2640, "ROOM BREAK", "SNAKE VIDEOS, GHOST FOOTAGE, THE RING, AND JURASSIC PARK EXPLAIN WHAT ACTUALLY SCARES THE HOSTS", "The news stream turns into a fear autobiography: a snake clip produces a pants-shitting confession, a spinning ghost video lands a real shock, and Jurassic Park is named as a childhood jump-scare landmark."),
+    H(2640, 3000, "NOSTALGIA FILE", "NOVELTY 40S, BLINK-182, AND NFL 2003 TURN THE LAST THIRD INTO A SPORTS-PODCAST ORIGIN STORY", "A novelty beer purchase, a future WWAM Sports podcast, Michael Jordan, the 1996 Bulls, and NFL 2003 all become connected to the same friend-memory engine. The stream closes its news lane by admitting it would rather talk about the past."),
+    H(3000, 3238, "CLOSING FILE", "THE STREAM ENDS WITH A PAPER-SACK BEER IMAGE AND A PROMISE THAT THE PODCAST IS GETTING BIGGER", "The final jokes are about drinking in the car, then the mood turns forward: a WWAM Sports podcast is coming, the audience is still there, and the chaotic daily-live experiment has found another lane."),
+  ];
+  highlights.sort(function (a, b) { return a.at - b.at; });
+  var story = [
+    { at: 0, end: 420, label: "THE BROKEN OBS PIPELINE IS THE OPENING ACT", body: "J cannot be cleanly piped into the screen, so the room turns the technical failure into set dressing. The collectible wall appears, the chat is blamed for dad-joke contagion, and the stream's tone is established before the first news item lands.", evidenceBasis: "full-tape-human-editorial-read", narrative: { kind: "human-editorial-story" } },
+    { at: 420, end: 1200, label: "HALLOWEEN KILLS NEWS ARRIVES THROUGH HANGOVERS, CHURCH, AND MARIO'S PANTS", body: "Mike White's Patreon appearance, childhood church breakfasts, and bad Mario jokes surround the question everyone wants answered: when is the trailer coming? The hosts use Halloween 2018's two-trailer history to make a cautious forecast rather than pretending to know.", evidenceBasis: "full-tape-human-editorial-read", narrative: { kind: "human-editorial-story" } },
+    { at: 1200, end: 1680, label: "'SOON' IS A GUESS, FUEL POINTS ARE REAL, AND THE DETOUR ENGINE IS FULLY ONLINE", body: "A trailer-ad-space theory sits beside Kroger fuel points and a filthy answer to a date question. The point is not the subject change; it is how quickly the hosts turn a normal update into a personal story and back again.", evidenceBasis: "full-tape-human-editorial-read", narrative: { kind: "human-editorial-story" } },
+    { at: 1680, end: 2160, label: "JASON BLUM'S MESSAGE DOES NOT SETTLE THE THEATER-VOD WAR", body: "The hosts read 'I will make it happen' as commitment, not a release guarantee. They want Halloween Kills in theaters in October, while J argues that the audience is trying to bully the future with imaginary votes.", evidenceBasis: "full-tape-human-editorial-read", narrative: { kind: "human-editorial-story" } },
+    { at: 2160, end: 2640, label: "THE HORROR NEWS SHOW BECOMES A FEAR DIARY", body: "Snake footage, a ghost video, The Ring, and Jurassic Park map the difference between a cheap jump scare and a childhood memory that still works. The room's laughter does not erase the fact that the reactions are real to them.", evidenceBasis: "full-tape-human-editorial-read", narrative: { kind: "human-editorial-story" } },
+    { at: 2640, end: 3238, label: "SPORTS, BEER, AND NOSTALGIA POINT TOWARD THE NEXT WWAM PROJECT", body: "Novelty 40s and a paper-sack driving image lead into a WWAM Sports podcast announcement, Michael Jordan, the 1996 Bulls, and NFL 2003. The stream ends with a new format trying to grow out of the quarantine room.", evidenceBasis: "full-tape-human-editorial-read", narrative: { kind: "human-editorial-story" } },
+  ];
+  sources[sourceId] = Object.freeze({
+    sourceId: sourceId,
+    reviewState: "full-tape-human-editorial-read",
+    editorialPass: "2026-08-09 fine-toothed read of the 53:58 March 29 Halloween Kills update; the local caption/audio pass was checked across the OBS failure, collectible wall, dad-joke argument, Mike White Patreon welcome, Halloween 2018 trailer comparison, Kroger fuel-points detour, Jason Blum message, theater/VOD fight, snake and ghost fears, Jurassic Park memory, novelty 40s, WWAM Sports announcement, Michael Jordan, 1996 Bulls, and NFL 2003 close",
+    evidence: Object.freeze({ duration: 3238.348, captionWords: 9698, captionEvents: 2587, captionSpanSeconds: 3233.52, captionDurationCoveragePercent: 99.9, captionSha256: "3c3b74459133d8feacb0e1ec0761c768f8441a6405041a8dd831edf0bd3429b0", captionSourceKind: "source-local canonical speech-to-text caption ledger", audioPass: "canonical local source audio + source-local Whisper alignment; playback remains the authority", audioSha256: "fd5d8960cfc7d3e5edad6b27d6ab1f99ca33c092875b53eaf1bebbe49b153f5f", asrWindowCount: 1, asrSegmentCount: 267, asrSha256: "5d2180d59161732dce8a871902282005d1ee88cc1a12df621158bc9bd666a655", asrCoverageStartSeconds: 87, asrCoverageEndSeconds: 3166.38, speakerAttribution: false, visualOutcomeInferred: false }),
+    label: "LIVE UPDATE FILE // HALLOWEEN KILLS TRAILER WATCH",
+    badge: "FULL SHOW WIKI // OBS FAILURES, BLUM NEWS, FEAR DIARIES, AND THE SPORTS-PODCAST SEED",
+    headline: "THE TRAILER IS COMING SOON—WHICH IS NOT THE SAME AS KNOWING WHEN",
+    deck: "A 54-minute quarantine update where Halloween Kills speculation, a broken OBS pipe, dad-joke warfare, snake videos, and a future WWAM Sports podcast all collide in one Sunday room.",
+    overview: "The March 29 update is a small but revealing quarantine-era tape. It starts with the OBS pipeline failing to put J on screen, so the collectible wall becomes the accidental set and the chat gets blamed for spreading dad jokes. That mess matters because the stream is not pretending to be a polished news desk. Mike White arrives from a Patreon night with Baja Blast and Micheladas, the hosts remember childhood church breakfasts, and only then does the Halloween Kills question take over: when is the trailer coming? The answer is careful. Halloween 2018 had two major trailers, ad space may be cheap, and a trailer could arrive soon—but soon is treated as optimism, not a confirmed date. The same stretch happily detours through Kroger fuel points and an answer so filthy it is immediately rejected. Jason Blum's promise to make the movie happen is then weighed against the theater-versus-VOD fight. The hosts want Halloween Kills in theaters in October; the audience is accused of trying to bully the future with imaginary votes. When the news lane runs out, the stream becomes a fear diary. A snake clip, ghost footage, The Ring, and Jurassic Park explain what actually makes the hosts jump. The closing movement is pure nostalgia: novelty 40s, paper sacks, Michael Jordan, the 1996 Bulls, NFL 2003, and the announcement of a future WWAM Sports podcast. The tape's value is its shape. It preserves the exact moment a breaking-news stream was still learning how to become a hangout, a character lab, and a second show at the same time.",
+    topics: Object.freeze(["Halloween Kills", "Halloween", "Trailers", "Jason Blum", "Michael Myers", "Freddy", "Hellraiser", "The Ring", "Jurassic Park", "Sports", "FAM"]),
+    highlights: Object.freeze(highlights),
+    story: Object.freeze(story),
+    fanRead: Object.freeze({
+      loved: Object.freeze({ at: 420, end: 780, label: "THE FAM ARRIVES WITH A HANGOVER AND A TRAILER QUESTION", topic: "Community room", body: "Play from 7:00. Mike White's Patreon welcome and the chat's Halloween appetite establish the real reason this stream exists: people want to be in the room together.", playAt: 420, playEnd: 780 }),
+      hated: Object.freeze({ at: 1680, end: 2160, label: "THEATER OR VOD—PICK A FIGHT", topic: "Halloween Kills", body: "Play from 28:00. Jason Blum's message is not allowed to become a release date, and the theater-versus-VOD argument gets the full WWAM treatment.", playAt: 1680, playEnd: 2160 }),
+      wildestDetour: Object.freeze({ at: 2160, end: 2640, label: "SNAKES, GHOSTS, THE RING, AND JURASSIC PARK", topic: "Fear diary", body: "Play from 36:00. The show abandons the trailer entirely to compare the things that genuinely make the hosts lose their minds.", playAt: 2160, playEnd: 2640 }),
+      lastWord: Object.freeze({ at: 2640, end: 3238, label: "THE WWAM SPORTS SEED", topic: "Future canon", body: "Play from 44:00. The new sports podcast, Jordan, the Bulls, and NFL 2003 turn the close into a second-project origin story.", playAt: 2640, playEnd: 3238 })
+    }),
+    fam: Object.freeze({
+      callouts: Object.freeze([
+        F(530, 620, "Ron", "FREDDY / CHAT JOKE", "Ron is read during the opening run of Halloween and Freddy jokes."),
+        F(760, 900, "Mike White", "PATREON WELCOME", "Mike White is welcomed after the previous night's Patreon stream; the room remembers the Baja Blast and Micheladas."),
+        F(2380, 2470, "Jonathan Joes", "FEAR-VIDEO CONTEXT", "Jonathan Joes is named while the hosts discuss a snake video and the reaction it caused."),
+        F(2380, 2470, "Mike Holtz", "FEAR-VIDEO CONTEXT", "Mike Holtz is named in the same screen/video story; no donation or speaker claim is inferred."),
+      ]),
+      note: "Four source-local name/context receipts are carried into this dossier. The audience lane is otherwise quiet; no donation totals or visual outcomes are invented. The ASR layer starts at 87 seconds and ends at 3166.38 seconds, while the local caption ledger supplies the near-complete runtime span."
+    })
+  });
+  root.WWAM_EPISODE_EDITORIAL_PACKS = Object.freeze({ schema: registry.schema || "shokker-episode-editorial-packs/v1", generated: "2026-08-09", sources: Object.freeze(sources) });
+})(typeof window !== "undefined" ? window : globalThis);
