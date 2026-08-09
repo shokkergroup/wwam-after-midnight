@@ -572,6 +572,7 @@
     "episode-editorial-packs-wave548.js?v=1.0.0-oct-15-2019-friday-13-original-commentary-full-audio-human-read",
     "episode-editorial-packs-wave549.js?v=1.0.0-jun-18-2019-scream-4-commentary-full-audio-human-read",
     "episode-editorial-packs-wave550.js?v=1.0.0-jun-08-2019-american-werewolf-in-london-commentary-full-audio-human-read",
+    "episode-editorial-packs-wave551.js?v=1.0.0-dec-30-2018-halloween-2018-live-commentary-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
