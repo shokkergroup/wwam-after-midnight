@@ -526,6 +526,7 @@
     "episode-editorial-packs-wave502.js?v=1.0.0-jun-09-2016-conjuring-2-review-full-audio-human-read",
     "episode-editorial-packs-wave503.js?v=1.0.0-mar-12-2016-saved-by-the-bell-the-fight-full-audio-human-read",
     "episode-editorial-packs-wave504.js?v=1.0.0-feb-01-2016-halloween-resurrection-commentary-full-audio-human-read",
+    "episode-editorial-packs-wave505.js?v=1.0.0-dec-28-2015-rambo-first-blood-commentary-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
