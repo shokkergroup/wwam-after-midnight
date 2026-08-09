@@ -645,6 +645,7 @@
     "episode-editorial-packs-wave621.js?v=1.0.0-jun-29-2021-halloween-kills-trailer-breakdown-full-audio-human-read",
     "episode-editorial-packs-wave622.js?v=1.0.0-jun-16-2021-batman-scream-vhs-schumacher-full-audio-human-read",
     "episode-editorial-packs-wave623.js?v=1.0.0-jun-11-2021-90s-soundtracks-blade-spawn-loomis-full-audio-human-read",
+    "episode-editorial-packs-wave624.js?v=1.0.0-jun-09-2021-halloween6-loki-nathan-fam-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
