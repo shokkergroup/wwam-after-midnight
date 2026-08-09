@@ -467,6 +467,7 @@
     "episode-editorial-packs-wave443.js?v=1.0.0-nov-24-2019-play-button-unboxing-fam-full-tape-human-read",
     "episode-editorial-packs-wave444.js?v=1.0.0-oct-27-2019-100k-celebration-full-tape-human-read",
     "episode-editorial-packs-wave445.js?v=1.0.0-oct-27-2019-100k-afterparty-companion-full-tape-human-read",
+    "episode-editorial-packs-wave446.js?v=1.0.0-oct-26-2019-jason-lives-commentary-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
