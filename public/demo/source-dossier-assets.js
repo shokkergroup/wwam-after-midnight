@@ -486,6 +486,7 @@
     "episode-editorial-packs-wave462.js?v=1.0.0-may-13-2019-curse-of-chucky-commentary-full-audio-human-read",
     "episode-editorial-packs-wave463.js?v=1.0.0-may-13-2019-game-of-thrones-the-bells-recap-full-tape-human-read",
     "episode-editorial-packs-wave464.js?v=1.0.0-may-06-2019-game-of-thrones-last-of-the-starks-recap-full-tape-human-read",
+    "episode-editorial-packs-wave465.js?v=1.0.0-may-06-2019-seed-of-chucky-commentary-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
