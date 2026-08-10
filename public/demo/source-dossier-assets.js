@@ -657,6 +657,7 @@
     "episode-editorial-packs-wave633.js?v=1.0.0-jason-goes-to-hell-expanded-watchalong-full-audio-human-read",
     "episode-editorial-packs-wave634.js?v=1.0.0-ma-godzilla-expanded-live-review-full-audio-human-read",
     "episode-editorial-packs-wave635.js?v=1.0.0-friday-the-13th-2009-expanded-watchalong-full-audio-human-read",
+    "episode-editorial-packs-wave636.js?v=1.0.0-freddy-vs-jason-expanded-watchalong-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
