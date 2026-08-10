@@ -8,6 +8,34 @@
     return { at: Math.max(0, Math.round(at)), end: Math.min(duration, Math.max(Math.round(at) + 1, Math.round(end))), category: category, label: label, excerpt: excerpt, sourceId: sourceId, kind: "human-editorial-highlight", evidenceBasis: "full-tape-human-editorial-read", evidenceState: "source-local audio + local ASR aligned; playback remains the authority" };
   };
   var highlights = [
+    H(0, 240, "WWAM UP IN YA", "SKARSGARD TWOFER", "The opening notices Bill Skarsgard has now occupied the same horror real estate twice and turns his family resemblance into instant Pazuzu evidence."),
+    H(240, 500, "STRAIGHT TO STEVE'S ASSHOLE", "MIRROR ALCOHOLISM", "A mirror shot stops being a scare and becomes a conversation about alcoholism, self-recognition, and why the movie cannot hold a straight face."),
+    H(500, 750, "TAKE GETS NUCLEAR", "THE 1,500-YEAR-OLD PAWN SHOP", "The ancient artifact gets dragged into a Pawn Stars-style appraisal, with the hosts treating demon archaeology like something they found behind a storage unit."),
+    H(750, 1000, "STRAIGHT TO STEVE'S ASSHOLE", "N64 HYENAS", "The first CGI hyenas are sentenced for looking like Nintendo 64 enemies instead of a credible supernatural threat."),
+    H(1000, 1250, "TAKE GETS NUCLEAR", "BRENDAN FRASER CAREER EXORCISM", "The better Exorcist pitch is an exorcism of Brendan Fraser's lost Hollywood career, a detour that is sharper than the film's actual premise."),
+    H(1250, 1450, "WWAM UP IN YA", "FOREHEAD VEINS", "Visible forehead veins become a Hulk/Marvel-villain effect, turning a supposed possession tell into an accidental superhero audition."),
+    H(1450, 1650, "UPSIDE DOWN", "UPSIDE-DOWN JESUS", "The upside-down Jesus image finally gives the room a visual escalation worth pausing on, even as the hosts question the logic beneath it."),
+    H(1650, 1900, "STRAIGHT TO STEVE'S ASSHOLE", "PARTY CITY PRIEST", "The priest's costume gets reduced to a Party City purchase and an Andy Richter comparison, because the movie has not earned solemnity."),
+    H(1900, 2150, "WWAM UP IN YA", "SUPER-COP HYENAS", "A hyena attack gets a deliberately overpowered police-report recap before the N64 verdict returns for a second bite."),
+    H(2150, 2400, "TAKE GETS NUCLEAR", "GHOST GOAT PARTY", "The demonic-looking band Ghost and the film's Lucifer imagery produce a goat-party theory that has more personality than the villains on screen."),
+    H(2400, 2750, "CHARACTER SIGNAL", "MEDIEVAL EXORCIST PITCH", "The hosts pitch going all the way back to medieval possession, looking for a period story that would justify the Exorcist label."),
+    H(2750, 3000, "STRAIGHT TO STEVE'S ASSHOLE", "BLOOD IV", "A bloody IV and child-in-danger imagery trigger a safety check, then the booth asks whether the movie knows how to make any of it matter."),
+    H(3000, 3250, "TAKE GETS NUCLEAR", "DOES THIS NEED TO BE EXORCIST?", "The commentary asks the franchise question directly and compares the prequel's connective tissue with The Conjuring's cleaner supernatural engine."),
+    H(3250, 3500, "STRAIGHT TO STEVE'S ASSHOLE", "PAZUZU MIRROR BUTTHOLE", "A bathroom break becomes a full Pazuzu mirror-buthole safety protocol, an unmistakable WWAM survival guide for a bad horror movie."),
+    H(3500, 3790, "WWAM UP IN YA", "GOLF ANNOUNCER MODE", "The dull stretch is narrated like a golf broadcast, with the hosts supplying play-by-play because the film has stopped creating its own momentum."),
+    H(3790, 4000, "CHARACTER SIGNAL", "FREDDY AND GREEN INFERNO", "A graveyard beat calls up Freddy Krueger and Green Inferno, turning one image into a quick tour of better, stranger horror detours."),
+    H(4000, 4250, "STRAIGHT TO STEVE'S ASSHOLE", "BURN VS BURY", "The movie's rules for burning versus burying are read back as contradictory, and the commentary keeps a logic ledger the screenplay refuses to maintain."),
+    H(4250, 4500, "TAKE GETS NUCLEAR", "DINOSAUR VIOLENCE", "A question about ancient violence explodes into T-Rex versus Stegosaurus arguments, proving the booth will litigate prehistory before accepting the movie's exposition."),
+    H(4500, 4800, "TAKE GETS NUCLEAR", "ANTARCTICA FIVE-MILE", "The hosts debate whether a five-mile radius around them has ever seen a violent death, extending the demon's local-history problem into Antarctica."),
+    H(4800, 5050, "CHARACTER SIGNAL", "REAGAN DEMON", "The demon keeps returning in a Reagan-like form, and the commentary treats that recurring face as a franchise casting problem."),
+    H(5050, 5300, "WWAM UP IN YA", "TARGET ESCAPE PLAN", "The sane response to possession is to go to Target, buy booze, go home, and watch something funny instead of volunteering for another cave expedition."),
+    H(5300, 5500, "STRAIGHT TO STEVE'S ASSHOLE", "RUN AT THE DEMON", "The survival advice flips the genre script: run straight at the demon, stop freezing in the tunnel, and make the scene earn its threat."),
+    H(5500, 5700, "STRAIGHT TO STEVE'S ASSHOLE", "ROSARY WIRE", "A rosary and a piece of wire are treated as the entire emergency kit, which the booth correctly identifies as inadequate demon infrastructure."),
+    H(5700, 5920, "TAKE GETS NUCLEAR", "EXORCIST CAMPAIGN", "The closing argument becomes a franchise-campaign meeting: if the movie needs the Exorcist name this badly, it should at least know what story it is selling."),
+    H(5920, 6100, "STRAIGHT TO STEVE'S ASSHOLE", "POSSESSED WOMAN REWRITE ROOM", "The possessed-woman ending gets routed through an aggressively vulgar rewrite room, keeping the source's R-rated booth energy without pretending the scene works."),
+    H(6100, 6250, "CHARACTER SIGNAL", "ROB ZOMBIE 2", "Rob Zombie 2 and necrophilia are invoked as emergency alternate endings, a deliberately deranged comparison that exposes how little the canonical finale lands."),
+    H(6250, 6400, "STRAIGHT TO STEVE'S ASSHOLE", "WHY DIG BACK?", "The final excavation is rejected on basic survival grounds: after the cave ruins your life, why would anyone voluntarily dig back into it?"),
+    H(6400, 6458, "WWAM UP IN YA", "HELLRAISER ICE-CREAM BOX", "The last beat compares the green-screen hell image with Hellraiser and an ice-cream box, leaving the prequel with a visual punchline instead of a scare."),
     H(0, 650, "WWAM UP IN YA", "BILL SKARSGARD'S FAMILY SOLD PAZUZU THE GOOD LOOKS", "The opening makes the same-role-twice problem into a Bill Skarsgard family conspiracy, then turns the younger Skarsgard brothers into evidence that somebody traded with Pazuzu."),
     H(650, 1280, "STRAIGHT TO STEVE'S ASSHOLE", "THE ALCOHOLISM MIRROR AND CGI HYENAS", "A mirror becomes a conversation with alcoholism, a 1,500-year-old artifact gets Pawn Stars pricing, and the CGI hyenas are sentenced for looking like a Nintendo 64."),
     H(1280, 1880, "TAKE GETS NUCLEAR", "EXERCISING BRENDAN FRASER'S CAREER", "The hosts pitch a better Exorcist movie as an exorcism of lost Hollywood careers, then the film's bad writing triggers forehead-vein Hulk jokes and a genuinely low scare rating."),
@@ -32,7 +60,7 @@
   sources[sourceId] = Object.freeze({
     sourceId: sourceId,
     reviewState: "full-tape-human-editorial-read",
-    editorialPass: "2026-08-09 fine-toothed full-audio read of the 1h48m Exorcist: The Beginning commentary; local audio, canonical captions, and Whisper ledger checked across Bill Skarsgard family jokes, Pazuzu, alcoholism mirror, Pawn Stars artifact pricing, CGI hyenas, Brendan Fraser career exorcism, Mel Gibson discussion, forehead veins, Ghost and goat-party jokes, upside-down Jesus, bloody IV, medieval Exorcist pitch, Pazuzu mirror protocol, Freddy/Green Inferno callbacks, burn-versus-bury confusion, dinosaur and Antarctica violence argument, Reagan demon, Target escape plan, possessed-woman ending, Rob Zombie 2, necrophilia, and hell excavation",
+    editorialPass: "2026-08-10 fine-toothed full-audio read of the 1h48m Exorcist: The Beginning commentary; local audio, canonical captions, and Whisper ledger checked across Bill Skarsgard family jokes, Pazuzu, alcoholism mirror, Pawn Stars artifact pricing, CGI hyenas, Brendan Fraser career exorcism, Mel Gibson discussion, forehead veins, Ghost and goat-party jokes, upside-down Jesus, bloody IV, medieval Exorcist pitch, Pazuzu mirror protocol, golf-announcer survival mode, Freddy/Green Inferno callbacks, burn-versus-bury confusion, dinosaur and Antarctica violence argument, Reagan demon, Target escape plan, rosary wire, possessed-woman ending, Rob Zombie 2, necrophilia, and hell excavation",
     evidence: Object.freeze({ duration: 6458, captionWords: 3841, captionEvents: 6155, captionSpanSeconds: 6459.68, captionDurationCoveragePercent: 100, captionSha256: "19D9BAEF5EBC1A40E6C9933E66A775F142039F2B1FA7BF071264B53BC37DBA78", captionSourceKind: "source-local canonical YouTube automatic-caption ledger + local Whisper ledger", audioPass: "canonical local source audio + local Whisper alignment; playback remains the authority", audioSha256: "BB3D0C4D14ACE71E0C51A3451563480E80EDF293EF043A0B089B42AA44E8E19A", asrSegmentCount: 561, asrSha256: "CF890E51B6C42C4F72D581243FC9F19C9AC56C6D388F5334D14B328C6392E63E", asrCoverageStartSeconds: 0, asrCoverageEndSeconds: 6457.98, speakerAttribution: false, visualOutcomeInferred: false }),
     label: "EXORCIST: THE BEGINNING // PAZUZU, UPSIDE-DOWN JESUS, AND THE TARGET ESCAPE PLAN",
     badge: "FULL SHOW WIKI // CGI HYENAS, FOREHEAD VEINS, FREDDY CALLBACKS, AND HELL EXCAVATION",
@@ -53,5 +81,5 @@
       note: "No Super Chat, donation, named-fan exchange, or community pick is audible in this commentary. The FAM lane stays empty rather than inventing a receipt."
     })
   });
-  root.WWAM_EPISODE_EDITORIAL_PACKS = Object.freeze({ schema: registry.schema || "shokker-episode-editorial-packs/v1", generated: "2026-08-09", sources: Object.freeze(sources) });
+  root.WWAM_EPISODE_EDITORIAL_PACKS = Object.freeze({ schema: registry.schema || "shokker-episode-editorial-packs/v1", generated: "2026-08-10", sources: Object.freeze(sources) });
 })(typeof window !== "undefined" ? window : globalThis);
