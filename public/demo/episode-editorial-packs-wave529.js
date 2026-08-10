@@ -8,6 +8,41 @@
     return { at: Math.max(0, Math.round(at)), end: Math.min(duration, Math.max(Math.round(at) + 1, Math.round(end))), category: category, label: label, excerpt: excerpt, sourceId: sourceId, kind: "human-editorial-highlight", evidenceBasis: "full-tape-human-editorial-read", evidenceState: "source-local audio + local ASR aligned; playback remains the authority" };
   };
   var highlights = [
+    H(316, 347, "WWAM UP IN YA", "THE MOUNTAIN DEW BUG", "The bug is sentenced for carrying enough juice to have swallowed a whole liter of Mountain Dew before the movie even explains what it is."),
+    H(555, 585, "TAKE GETS NUCLEAR", "GHOSTBUSTERS-ISH ALIENS", "The alien's instant hatred of cops becomes a Ghostbusters comparison, with Danny Elfman's sound-world pulled into the sci-fi comedy argument."),
+    H(610, 628, "CHARACTER SIGNAL", "TOMMY LEE JONES LOOMIS", "Tommy Lee Jones is cast as Dr. Loomis before the booth can even finish discussing his Men in Black performance."),
+    H(720, 750, "STRAIGHT TO STEVE'S ASSHOLE", "WILL SMITH THE STREET CONE", "The wardrobe that looked cool in the 1990s is reclassified as a racing cone, a street cone, and a goodwill raid."),
+    H(904, 930, "CHARACTER SIGNAL", "THE HALLOWEEN ASTEROID", "The asteroid reveal is recognized as the spaceship in the background and immediately filed as a leftover from Rob Zombie's Halloween."),
+    H(1161, 1192, "STRAIGHT TO STEVE'S ASSHOLE", "SKANKY HOT", "A character gets an unapologetically filthy attraction rating, preserving the tape's R-rated booth voice rather than flattening it into a neutral review."),
+    H(1258, 1284, "WWAM UP IN YA", "NORMALIZE ME, FLUSH ME", "The hosts turn forgetting a bad movie into a verb: normalize me, flush me, and erase the evidence from the timeline."),
+    H(1322, 1354, "STRAIGHT TO STEVE'S ASSHOLE", "MONK AND THE HANGOVER NUTSACK", "Tony Shalhoub is identified as Monk, then a face becomes the tiny, dehydrated head of a hangover that only water and hair of the dog can repair."),
+    H(1409, 1434, "TAKE GETS NUCLEAR", "TWENTY-FOUR YEARS OLD", "The hosts discover the movie is twenty-four years old and spiral into the realization that they cannot remember their own ages."),
+    H(1472, 1504, "WWAM UP IN YA", "THE SECRET-AGENT MARRIAGE", "Joining a super-secret agency becomes a marriage plan: disappear, return occasionally, and normalize the spouse whenever the memories get inconvenient."),
+    H(1534, 1566, "STRAIGHT TO STEVE'S ASSHOLE", "NORMALIZE THE WIFE", "The technology is treated as a license to erase a marriage, an O.J. trial, and every other memory that would make the user answer questions."),
+    H(1603, 1617, "TAKE GETS NUCLEAR", "EGG CHAIRS", "The egg-shaped chairs are praised as gaming chairs even while both hosts admit they would be brutally uncomfortable to sit in."),
+    H(1621, 1628, "WWAM UP IN YA", "PENCIL THROUGH PAPER", "A tiny office action triggers the universal high-school memory of breaking a pencil through paper just to see if it works."),
+    H(1649, 1681, "TAKE GETS NUCLEAR", "PRINCE OF BEL-AIR WILL SMITH", "The booth decides this is more Prince of Bel-Air than Bad Boys, and Will Smith's paper-rip reaction becomes an early receipt of that argument."),
+    H(1704, 1721, "STRAIGHT TO STEVE'S ASSHOLE", "EMINEM BURNS WILL SMITH", "Eminem's old diss is used to explain why Will Smith's clean image is both impressive and easy to roast."),
+    H(1835, 1867, "WWAM UP IN YA", "SPORTS-CARD RESALE DEADPOOL", "A sports-card purchase is defended as an investment before the younger Will Smith is floated as Deadpool and immediately rejected as too unwilling to get nasty."),
+    H(1935, 1965, "STRAIGHT TO STEVE'S ASSHOLE", "DUMBO EARS", "The hosts compare Will Smith and Tommy Lee Jones's ears, turning a family-photo reference into another round of body-part inventory."),
+    H(2178, 2208, "STRAIGHT TO STEVE'S ASSHOLE", "RECOGNIZE THE SKILLS", "A relationship line becomes a fake marriage exchange in which 'you chose me' is answered with the booth's most literal possible interpretation of skills."),
+    H(2303, 2334, "WWAM ORIGIN LORE", "THE MICHAEL MYERS VIDEO RECEIPT", "A memory of the Michael Myers video where Cody threw J into a wall surfaces inside the Men in Black commentary, linking the early tape to later WWAM character lore."),
+    H(2593, 2619, "ROOM BREAK", "ONLY DRIVE A PAID-OFF CAR", "The hosts decide any paid-off vehicle is worth driving, including a taxi, while repo men are imagined as people who already shit their pants."),
+    H(2714, 2746, "STRAIGHT TO STEVE'S ASSHOLE", "PANTLESS AND ALREADY SHIT", "A character's walk becomes the universal Walmart dash: no pants, already shit, and trying to reach the bathroom before anyone notices."),
+    H(2893, 2904, "WWAM UP IN YA", "THE HOT SHEETS", "Every unreliable internet article is promoted to the hot sheets, a repeatable WWAM label for stories that might be true and might be total bullshit."),
+    H(2920, 2924, "STRAIGHT TO STEVE'S ASSHOLE", "SUGAR WATER DIABETIC", "The search for an alien who likes sugar water becomes a diabetic speculation spiral, with the hosts trying to diagnose the creature from one prop."),
+    H(3427, 3459, "STRAIGHT TO STEVE'S ASSHOLE", "THE ALIEN CONTROLS THE ALKALISM", "A tiny alien is blamed for Mike and J's alkalism, then their liver is described as the thing inside the film's cute little creature."),
+    H(3702, 3734, "STRAIGHT TO STEVE'S ASSHOLE", "DAYTIME STRIP-CLUB BOTTOM OF THE BARREL", "The booth reviews the logic of going to a strip club in the middle of the day and invents a gallery of increasingly cursed performers."),
+    H(3750, 3781, "WWAM UP IN YA", "THE GARDENER GETS NORMALIZED", "Saving the galaxy from assholes while a wife makes out with the gardener becomes the perfect excuse to normalize the gardener and erase the betrayal."),
+    H(3802, 3823, "WWAM UP IN YA", "NORMALIZE THE PACKERS GAME", "The technology is used on a football loss and an old marriage, with the hosts openly negotiating who deserves to be erased from memory."),
+    H(4255, 4285, "TAKE GETS NUCLEAR", "THE SMALL PENDANT, THE BIG WIENER", "The galaxy pendant gets a sincere small-things-can-matter reading before the booth swerves into a tiny-wiener comparison."),
+    H(4276, 4300, "TAKE GETS NUCLEAR", "THE FIRST JACK-OFF", "The pendant's music and eyes become the first-masturbation memory, then the same feeling is mapped onto walking into a gas station drunk."),
+    H(4324, 4355, "STRAIGHT TO STEVE'S ASSHOLE", "THE 2 A.M. GAS-STATION ACT", "Trying to sound sober while buying another twelve-pack becomes a full performance, especially when the cashier is nice enough to keep talking."),
+    H(4640, 4672, "WWAM UP IN YA", "THE DICK BURGER OF NOSTALGIA", "A fast-food burger is described as biting into nostalgia, then the hosts inventory the patties, jalapeños, sauce, and the memory attached to it."),
+    H(4781, 4800, "STRAIGHT TO STEVE'S ASSHOLE", "THE DRUNK-DRIVING DISCLAIMER", "A driving-while-drinking joke gets immediately walked back with a clear do-not-do-that disclaimer, preserving the bit without presenting it as advice."),
+    H(4898, 4930, "WWAM ORIGIN LORE", "HALLOWEEN HORROR MONTH TRAILER", "The hosts pitch Michael Myers and Dr. Loomis walking a hallway, kicking open a door, and cocking knife and gun for a Halloween Horror Month title card."),
+    H(5673, 5705, "BEST MOMENT", "TOP-THREE WILL SMITH", "The final review calls this one of Will Smith's top three performances and gives Tommy Lee Jones a warm, specific compliment."),
+    H(5759, 5791, "WWAM FAM", "KATIE GETS THE DRUNK GOODNIGHT", "Katie and the audience get the full affectionate sign-off: love, absurd physical requests, and a promise to return for the next movie."),
     H(0, 620, "WWAM UP IN YA", "THE BUG HAS DRUNK A LITER OF MOUNTAIN DEW", "The opening bug gets treated like a creature powered by a full liter of Mountain Dew, while the alien's reaction to a cop becomes the first Ghostbusters comparison."),
     H(620, 1280, "CHARACTER SIGNAL", "TOMMY LEE JONES AS DR. LOOMIS AND WILL SMITH AS A STREET CONE", "Tommy Lee Jones gets a serious Dr. Loomis fancast, Will Smith's once-cool wardrobe is reclassified as a racing cone, and the asteroid reveal earns a Rob Zombie's Halloween cut joke."),
     H(1280, 1770, "STRAIGHT TO STEVE'S ASSHOLE", "NORMALIZE ME, FLUSH ME, AND THE 24-YEAR HANGOVER", "The hosts invent normalize-me language for erasing bad memories, identify Tony Shalhoub as Monk, and turn a hangover into a head that grows back after water and hair of the dog."),
@@ -32,7 +67,7 @@
   sources[sourceId] = Object.freeze({
     sourceId: sourceId,
     reviewState: "full-tape-human-editorial-read",
-    editorialPass: "2026-08-09 fine-toothed full-audio read of the 1h37m Men in Black commentary; local audio, canonical captions, and Whisper ledger checked across the Mountain Dew bug, Ghostbusters comparison, Tommy Lee Jones Dr. Loomis fancast, Will Smith wardrobe, Halloween asteroid joke, normalize-me lore, Tony Shalhoub/Monk, secret-agent marriage, Deadpool casting, repo men, hot sheets, sugar water, strip-club detour, galaxy pendant, drunk gas-station burger, Halloween Horror Month pitch, Katie sign-off, and final verdict",
+    editorialPass: "2026-08-10 fine-toothed full-audio read of the 1h37m Men in Black commentary; local audio, canonical captions, and Whisper ledger checked across the Mountain Dew bug, Ghostbusters comparison, Tommy Lee Jones Dr. Loomis fancast, Will Smith street-cone wardrobe, Rob Zombie Halloween asteroid joke, normalize-me lore, Tony Shalhoub/Monk, twenty-four-year age spiral, secret-agent marriage, Deadpool casting, Michael Myers video callback, repo men, hot sheets, sugar water, alkalism/liver joke, daytime strip-club detour, gardener normalization, galaxy pendant, first-jack-off memory, drunk gas-station burger, Halloween Horror Month pitch, Katie sign-off, and final verdict",
     evidence: Object.freeze({ duration: 5843, captionWords: 3225, captionEvents: 5143, captionSpanSeconds: 5788.28, captionDurationCoveragePercent: 99, captionSha256: "BB3523A9D2D7A858613C8D85D5AD00171442DC9ED238C0FD6E83A2600E087463", captionSourceKind: "source-local canonical YouTube automatic-caption ledger + local Whisper ledger", audioPass: "canonical local source audio + local Whisper alignment; playback remains the authority", audioSha256: "F90D839BC4D8211442BC0599FD8828C764CE9E76AD8209A62872D08106E6E35D", asrSegmentCount: 453, asrSha256: "1EF1C06B958CCDF0CA0A0A8EC03004F3BB6ACD24D2245400923910899EE555E3", asrCoverageStartSeconds: 0, asrCoverageEndSeconds: 5842.88, speakerAttribution: false, visualOutcomeInferred: false }),
     label: "MEN IN BLACK // NORMALIZE ME, TOMMY LEE JONES AS LOOMIS, AND HALLOWEEN HORROR MONTH",
     badge: "FULL SHOW WIKI // SUGAR WATER, HOT SHEETS, THE GALAXY PENDANT, AND THE FAM SIGN-OFF",
@@ -55,5 +90,5 @@
       note: "Katie is explicitly named in the closing sign-off. The tape does not establish a donation, Super Chat, or membership detail, so this receipt records the name and affection only."
     })
   });
-  root.WWAM_EPISODE_EDITORIAL_PACKS = Object.freeze({ schema: registry.schema || "shokker-episode-editorial-packs/v1", generated: "2026-08-09", sources: Object.freeze(sources) });
+  root.WWAM_EPISODE_EDITORIAL_PACKS = Object.freeze({ schema: registry.schema || "shokker-episode-editorial-packs/v1", generated: "2026-08-10", sources: Object.freeze(sources) });
 })(typeof window !== "undefined" ? window : globalThis);
