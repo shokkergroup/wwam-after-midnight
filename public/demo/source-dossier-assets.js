@@ -701,6 +701,7 @@
     "episode-editorial-packs-wave677.js?v=1.0.0-march-03-2026-expanded-scream-7-spoiler-review-party-full-audio-human-read",
     "episode-editorial-packs-wave678.js?v=1.0.0-february-26-2026-expanded-exorcism-mortal-kombat-halloween-livestream-full-audio-human-read",
     "episode-editorial-packs-wave679.js?v=1.0.0-february-22-2026-expanded-birthday-bloodsport-halloween-livestream-full-audio-human-read",
+    "episode-editorial-packs-wave680.js?v=1.0.0-february-19-2026-expanded-chucky-resident-evil-scream-livestream-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
