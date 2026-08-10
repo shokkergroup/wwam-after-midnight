@@ -697,6 +697,7 @@
     "episode-editorial-packs-wave673.js?v=1.0.0-march-24-2026-expanded-texas-chainsaw-poster-livestream-full-audio-human-read",
     "episode-editorial-packs-wave674.js?v=1.0.0-march-21-2026-expanded-brand-new-day-livestream-full-audio-human-read",
     "episode-editorial-packs-wave675.js?v=1.0.0-march-12-2026-expanded-feldman-requiem-livestream-full-audio-human-read",
+    "episode-editorial-packs-wave676.js?v=1.0.0-march-05-2026-expanded-green-lantern-scream-livestream-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
