@@ -1422,6 +1422,7 @@ test("dossier CSS brands cold routes immediately while heavy scripts remain lazy
   "episode-editorial-packs-wave674.js",
   "episode-editorial-packs-wave675.js",
   "episode-editorial-packs-wave676.js",
+  "episode-editorial-packs-wave677.js",
   "wwam-fam-index.js",
     "episode-recap-engine.js",
     "wwam-episode-recap-adapter.js",
@@ -2424,6 +2425,8 @@ test("MA and Godzilla review editorial pack is registered in the source corpus",
   assert.match(read("source-dossier-assets.js"), /episode-editorial-packs-wave675\.js/);
   assert.match(read("episode-editorial-packs-wave676.js"), /_8rkO1gLQds/);
   assert.match(read("source-dossier-assets.js"), /episode-editorial-packs-wave676\.js/);
+  assert.match(read("episode-editorial-packs-wave677.js"), /WKs1uPGMQvw/);
+  assert.match(read("source-dossier-assets.js"), /episode-editorial-packs-wave677\.js/);
   assert.match(read("episode-editorial-packs-wave657.js"), /ag3axSC9BpU/);
   assert.match(read("source-dossier-assets.js"), /episode-editorial-packs-wave657\.js/);
 });
