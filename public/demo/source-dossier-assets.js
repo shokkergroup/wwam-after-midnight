@@ -659,6 +659,7 @@
     "episode-editorial-packs-wave635.js?v=1.0.0-friday-the-13th-2009-expanded-watchalong-full-audio-human-read",
     "episode-editorial-packs-wave636.js?v=1.0.0-freddy-vs-jason-expanded-watchalong-full-audio-human-read",
     "episode-editorial-packs-wave637.js?v=1.0.0-hellraiser-expanded-watchalong-full-audio-human-read",
+    "episode-editorial-packs-wave638.js?v=1.0.0-hell-on-earth-expanded-watchalong-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
