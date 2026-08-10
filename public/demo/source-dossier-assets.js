@@ -709,6 +709,7 @@
     "episode-editorial-packs-wave685.js?v=1.0.0-january-22-2026-expanded-dcu-rip-damon-affleck-halloween-fam-livestream-full-audio-human-read",
     "episode-editorial-packs-wave686.js?v=1.0.0-january-15-2026-expanded-saw-scream-28-years-later-x-files-fam-livestream-full-audio-human-read",
     "episode-editorial-packs-wave687.js?v=1.0.0-january-13-2026-expanded-scream-7-teaser-stu-psychiatric-ward-full-audio-human-read",
+    "episode-editorial-packs-wave688.js?v=1.0.0-january-08-2026-expanded-x-men-stranger-things-prime8-fam-livestream-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
