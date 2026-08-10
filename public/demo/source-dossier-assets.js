@@ -699,6 +699,7 @@
     "episode-editorial-packs-wave675.js?v=1.0.0-march-12-2026-expanded-feldman-requiem-livestream-full-audio-human-read",
     "episode-editorial-packs-wave676.js?v=1.0.0-march-05-2026-expanded-green-lantern-scream-livestream-full-audio-human-read",
     "episode-editorial-packs-wave677.js?v=1.0.0-march-03-2026-expanded-scream-7-spoiler-review-party-full-audio-human-read",
+    "episode-editorial-packs-wave678.js?v=1.0.0-february-26-2026-expanded-exorcism-mortal-kombat-halloween-livestream-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
