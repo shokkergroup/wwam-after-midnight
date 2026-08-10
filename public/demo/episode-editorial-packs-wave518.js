@@ -16,6 +16,15 @@
     H(120, 180, "THE CAMERA FLIES", "HD, KODAK, AND IMPOSSIBLE ANGLES MAKE THE POWER SEQUENCES FEEL LIKE A REAL DISCOVERY", "The action changes the room's expectations. The hosts credit the director, effects, and cinematography for making telekinesis readable and exciting through a camera that should not be able to float."),
     H(180, 230, "THE B IS NOT AN INSULT", "A GREAT MOVIE GETS A SOLID B BECAUSE THE CHARACTERS AND ENDING NEEDED TWENTY MORE MINUTES", "Mike wants more development and a longer ending. J agrees the score is fair: the movie is impressive, satisfying, and still short of the emotional attachment the hosts wanted."),
     H(230, 265, "THEATER RECOMMENDATION", "GO SEE IT IN THE THEATER—THEN USE YOUR TELEKINESIS TO CLICK SUBSCRIBE", "The main review strongly recommends the film for a theater, especially for the effects and found-footage craft."),
+    H(0, 45, "SHITTY-LIFE CAMERA", "ANDREW'S CAMERA RECORDS THE LIFE HE CANNOT FIX BEFORE THE POWER GIVES IT REACH", "The opening keeps Andrew's abuse, bullying, and dying mother in the frame. The camera is not a gimmick; it is the one thing he can control."),
+    H(45, 85, "UNDERGROUND OBJECT", "THREE KIDS FIND THE THING THAT TURNS A BAD LIFE INTO A POWER PROBLEM", "The hosts treat the object as a clean origin point. The film does not need a long mythology lecture before the boys begin testing what they can move."),
+    H(85, 125, "TELEKINESIS IS A WORD", "X-MEN, CLOVERFIELD, GOONIES, AND A VOCABULARY FIGHT BECOME THE FOUND-FOOTAGE THESIS", "The comparison lane is funny but useful. Chronicle borrows the format's panic camera and uses it for a superhero origin instead of another ghost or monster."),
+    H(125, 165, "CAMERA FLIES", "THE DEVICE THAT SHOULD BE STUCK IN ANDREW'S HAND STARTS MOVING LIKE IT HAS ITS OWN POWER", "The action changes the room's expectations. The hosts credit the director, effects, and image quality for making the impossible angles readable."),
+    H(165, 205, "KODAK HD", "A CAMERA BRAND GETS A COMPLIMENT BECAUSE THE EFFECTS LOOK LIKE A DISCOVERY, NOT A BLUR", "The technical praise is bounded to the source. The hosts like that the HD image lets the audience understand the power instead of hiding it behind shake."),
+    H(205, 230, "TWENTY MORE MINUTES", "THE B GRADE IS A REQUEST FOR MORE CHARACTER, NOT A PUNISHMENT FOR THE MOVIE THAT EXISTS", "Mike and J agree the ending and development needed more room. The score stays positive because the movie already satisfies the central experiment."),
+    H(230, 250, "THEATER POWER", "THE BIG SCREEN IS THE ONLY PLACE THE CAMERA'S IMPOSSIBLE MOVEMENT CAN FEEL PHYSICAL", "The recommendation is practical: the effects, floating angles, and telekinetic scale deserve a theater rather than a phone-sized stream."),
+    H(250, 270, "TELEKINESIS SUBSCRIBE", "THE HOSTS USE THE NEW POWER TO ASK THE FAM TO CLICK THE BUTTON", "The call to action stays in character. Instead of a generic subscribe line, the room uses the movie's power as the bit."),
+    H(270, 284, "FOUND FOOTAGE TWIST", "THE OUTRO KEEPS ASKING WHO FOUND THE CAMERA UNTIL THE GENRE LABEL CHANGES SHAPE", "The tag deserves its own playable receipt. Repeating 'found footage' becomes a meta-sketch that hints the footage may be evidence of something larger."),
     H(265, 284, "PLOT-TWIST BUTTON", "THE OUTRO SAYS 'FOUND FOOTAGE' UNTIL A MAJOR TWIST TURNS THE CAMERA INTO A DIFFERENT KIND OF EVIDENCE", "The post-review tag plays with the genre label, repeats 'footage,' and teases a twist that changes how the footage was found. It is a small meta-sketch that belongs beside the main recommendation."),
   ];
   highlights.sort(function (a, b) { return a.at - b.at; });
@@ -30,7 +39,7 @@
   sources[sourceId] = Object.freeze({
     sourceId: sourceId,
     reviewState: "full-tape-human-editorial-read",
-    editorialPass: "2026-08-09 fine-toothed read of the full 4m44s Chronicle review; local audio and caption evidence was checked across Andrew's abusive home and bullying, the underground object, telekinesis, camera as safety net, X-Men/Cloverfield/Goonies comparison, found-footage lineage, Kodak HD camera, director and effects praise, too-long and too-short sections, B grade, theater recommendation, telekinesis subscribe cue, repeated footage tag, and major twist tease",
+    editorialPass: "2026-08-10 fine-toothed read of the full 4m44s Chronicle review; local audio and caption evidence was checked across Andrew's abusive home and bullying, camera as safety net, underground object, telekinesis, X-Men/Cloverfield/Goonies comparison, found-footage lineage, camera-flies and Kodak HD praise, twenty-more-minutes request, B grade, theater recommendation, telekinesis subscribe cue, repeated footage tag, and major twist tease",
     evidence: Object.freeze({ duration: 284, captionWords: 1136, captionEvents: 290, captionSpanSeconds: 280.12, captionDurationCoveragePercent: 98.63, captionSha256: "ED6EE3C080FBC7E0CB4D2AFFD1D14BD0E077AB4D545230820A57E2FF4D5CA35F", captionSourceKind: "source-local canonical YouTube automatic-caption ledger acquired as edge json3", audioPass: "canonical local source audio + source-local caption alignment; playback remains the authority", audioSha256: "018B50EF486ED487C9EFA91A3067AB99ADF29B51381EBEBF35AF8F22F68AD961", asrSegmentCount: 0, asrSha256: null, asrCoverageStartSeconds: null, asrCoverageEndSeconds: null, speakerAttribution: false, visualOutcomeInferred: false }),
     label: "REVIEW FILE // CHRONICLE",
     badge: "FULL SHOW WIKI // TELEKINESIS, FOUND FOOTAGE, AND THE B THAT WANTED TWENTY MORE MINUTES",
@@ -67,5 +76,5 @@
       note: "Fifteen source-local audience receipts are retained. No supporter identity or donation claim is present; the community lane is the theater recommendation and the playful twist tease."
     })
   });
-  root.WWAM_EPISODE_EDITORIAL_PACKS = Object.freeze({ schema: registry.schema || "shokker-episode-editorial-packs/v1", generated: "2026-08-09", sources: Object.freeze(sources) });
+  root.WWAM_EPISODE_EDITORIAL_PACKS = Object.freeze({ schema: registry.schema || "shokker-episode-editorial-packs/v1", generated: "2026-08-10", sources: Object.freeze(sources) });
 })(typeof window !== "undefined" ? window : globalThis);
