@@ -14,6 +14,32 @@
     H(650, 850, "WWAM UP IN YA", "THREE-WAY PHONE CALLS, BUD LIGHT, AND GOD REJECTING THE MOVIE", "The film pauses repeatedly, a three-way phone conversation gets compared with old Bud Light commercials, and the computer seems to refuse the movie on moral grounds."),
     H(850, 1050, "TAKE GETS NUCLEAR", "CHUCKY'S LIMBS, CHUCK CHICKEN BONE, AND THE WORST MOVIE", "After a kitchen-nightmares detour, the hosts watch Chucky lose limbs and declare Seed the worst entry in the series."),
     H(1050, 1178, "LAST CALL", "THE CURSE/CULT SURVIVAL PLAN", "The movie finally ends, the hosts promise Curse and Cult are better, and the drained room describes the watchalong as an American flag waiting for a rocket launch."),
+    H(33, 48, "FAM RECEIPT", "GARY, THE SMOKIES, ERICA IVEY, AND OCTOBER ARE ALREADY WAITING IN THE ROOM", "The short opens with a named roll call before the movie starts. The audience is not an abstract number; these are the people the hosts can hear and greet."),
+    H(48, 89, "WWAM UP IN YA", "BLINK-182 TOURING WITH LIL WAYNE BECOMES THE FIRST IMPOSSIBLE BILLING", "A new-tour announcement turns into a music argument about rock, rap, auto-tune, and whether the pairing makes any sense at all."),
+    H(95, 136, "CHARACTER BIT", "THE ROOM ATTEMPTS A LIL WAYNE IMPRESSION AND ACCIDENTALLY INVENTS AN AUTO-TUNE WAR", "The hosts keep repeating a hook, try to imitate Lil Wayne, and then blame the vocal effect for making the whole tour sound like a dare."),
+    H(146, 188, "WWAM UP IN YA", "NOBODY WANTS TO WATCH SEED OF CHUCKY AND THE DOG GETS DRAGGED INTO A CHICAGO-BUTTHOLE JOKE", "The audience votes no immediately. A nearby dog becomes the subject of an over-the-top argument that the room itself calls disgusting."),
+    H(189, 243, "STRAIGHT TO STEVE'S ASSHOLE", "THE DENTIST-WAITING ROOM FEEL TURNS INTO A SIXTEEN-YEAR-OLD BUTT-EXAM STORY", "Before pressing play, the hosts compare the movie to waiting at the dentist and tell a deeply uncomfortable medical story that becomes the cue's runway."),
+    H(253, 273, "STORY RECEIPT", "THE OPENING REVEAL GETS CALLED A JAPANESE MAN WITH JENNIFER TILLY AND THE MOVIE IS PAUSED", "The first image is misread in real time, then the room stops the tape to figure out what the audience is actually seeing."),
+    H(291, 311, "BEST MOMENT", "THE STABBING SCENE GETS A GENUINE 'THAT WAS COOL' BEFORE THE GUN DROPS", "Even a movie the booth hates earns one honest craft receipt. The praise lasts seconds before the room returns to confusion."),
+    H(321, 352, "WWAM UP IN YA", "THE MONSTER LOOKS LIKE JARED LETO, SEAN MORGAN, AND A REPLACEMENTS KICKER AT ONCE", "The face is processed through several pop-culture comparisons while a live sneeze and a channel glitch keep interrupting the identification."),
+    H(358, 399, "STRAIGHT TO STEVE'S ASSHOLE", "THE JENNIFER TILLY ARGUMENT RETURNS AND THE ROOM REFUSES TO CALL IT A WIN", "A prior argument about the character resurfaces, then escalates into a sexualized roast the hosts immediately recognize as too gross to defend cleanly."),
+    H(417, 450, "BEST MOMENT", "THE MOVIE FREEZES AGAIN AND GOD GETS CREDIT FOR SAYING DON'T WATCH THIS PIECE OF SHIT", "The source stops, the stream reports an error, and the technical failure becomes a supernatural intervention against the film."),
+    H(451, 480, "STRAIGHT TO STEVE'S ASSHOLE", "THE BOOTH IMAGINES PAYING FOR A THEATER TICKET JUST TO LEAVE FOR APPLEBEE'S", "The hosts test the movie's theatrical survivability and decide a drink at Applebee's would be the responsible escape route."),
+    H(487, 520, "FAM RECEIPT", "THEY ENDURE THE HATRED FOR THE VIEWERS AND PROMISE AN ENDGAME COMMENTARY", "The room admits it is suffering for the audience, then pivots to the possibility of three hours of crying through Endgame."),
+    H(545, 577, "WWAM UP IN YA", "CHUCKY MASTURBATES, THE CUP APPEARS, AND THE BOOTH ASKS WHO APPROVED IT", "The film's most infamous bit becomes a forensic inspection of the cup, the plastic anatomy, and the director's decision-making."),
+    H(583, 610, "STRAIGHT TO STEVE'S ASSHOLE", "THE ROOM STOPS REVIEWING AND SIMPLY DECLARES THE MOVIE STUPID", "The repeated verdict is itself the moment: the hosts ask how much longer remains and run out of charitable language."),
+    H(621, 661, "WWAM UP IN YA", "A THREE-WAY CALL BECOMES A BUD LIGHT WHAT'S UP COMMERCIAL BEFORE THE COMPUTER REJECTS THE MOVIE", "The phone conversation is compared to an old beer ad, then the stream freezes for a third time and the booth blames the computer's morals."),
+    H(676, 700, "TECHNICAL CHAOS", "HULU DIES SO BADLY THAT THE ROOM OFFERS DOC MCSTUFFINS INSTEAD", "The stream is still alive but the movie is gone. The only emergency replacement the room can imagine is children's television."),
+    H(735, 779, "BEST WHAT-IF", "THE BOOTH WANTS CAPTAIN AMERICA TO SAY ON YOUR LEFT AND RESCUE THEM FROM THE MOVIE", "Endgame becomes a fantasy exit strategy, then the Jennifer Tilly baby-and-twins reveal makes the story even harder to follow."),
+    H(801, 838, "STORY RECEIPT", "VOODOO, A SECOND FREEZE, AND THE ARGUMENT THAT JENNIFER TILLY IS BETTER THAN THIS MOVIE", "The hosts ask for divine power to end the film, defend Tilly's work in Bound, and watch the source freeze again before the point can settle."),
+    H(842, 869, "STRAIGHT TO STEVE'S ASSHOLE", "CHUCKY SAYS CAN YOU DIG IT AND THE ROOM PROSECUTES EVERYONE WHO DEFENDS THIS MOVIE", "A small line becomes a final witness for the prosecution. The hosts cannot understand who would defend the film and say so with no restraint."),
+    H(887, 918, "FAM RECEIPT", "THE HOSTS APOLOGIZE TO EVERYONE WHO SHOWED UP AND COMPARE THE EXPERIENCE TO JELL-O-SHOT WASTELAND", "The room acknowledges the viewers directly, apologizes for the endurance test, and promises to comment on anything else—just not with the same enthusiasm."),
+    H(926, 956, "WILD DETOUR", "THE SOURCE DISAPPEARS, KITCHEN NIGHTMARES APPEARS, AND THE INTRUDER GETS A FIVE-DOLLAR RECOMMENDATION", "A wrong tab or missing player sends the show into a reality-TV detour before the booth recommends The Intruder as a better use of five dollars."),
+    H(968, 1000, "BEST MOMENT", "CHUCKY LOSES BOTH ARMS AND BOTH LEGS, THEN EARNS THE WORST-MOVIE VERDICT", "The limb inventory is so blunt that it becomes a countdown. The verdict lands immediately: this is the worst Chucky movie."),
+    H(1022, 1043, "WWAM UP IN YA", "THE HUMAN DOLL, SATAN'S COCK, CHUCK CHICKEN BONE, AND RONALD MCDONALD ARRIVE IN ONE MINUTE", "The final transformation gag gets a rapid-fire naming ceremony, with the room bouncing from supernatural anatomy to fast-food imagery."),
+    H(1056, 1078, "LAST CALL", "THE HOSTS THREATEN TO QUIT THE CHANNEL, THEN THANK GOD THE MOVIE IS FINALLY OVER", "The frustration turns inward, the movie ends, and relief replaces the threat to quit. Curse and Cult are offered as the only reason to continue."),
+    H(1092, 1112, "LAST CALL", "CURSE AND CULT ARE THE RESCUE PLAN; THE HOSTS FEEL DRAINED ENOUGH TO NEED AN AMERICAN FLAG", "The franchise roadmap returns with a physical metaphor for exhaustion: the room wants to be wrapped in a flag and launched away from Seed."),
+    H(1128, 1142, "WWAM UP IN YA", "THE FINAL VERDICT IS A HOT MESS, A WET FART, AND A STICKY MESS", "The goodbye is deliberately undignified and audience-facing. The hosts thank the viewers for enduring the shit show with them."),
   ];
   highlights.sort(function (a, b) { return a.at - b.at; });
   var story = [
@@ -42,8 +68,13 @@
       lastWord: Object.freeze({ at: 1050, end: 1178, label: "CURSE AND CULT AS RESCUE", topic: "Franchise recovery", body: "Play the close for the drained verdict and the promise that the next two Chucky films can pull the series back from the edge.", playAt: 1050, playEnd: 1178 })
     }),
     fam: Object.freeze({
-      callouts: Object.freeze([]),
-      note: "No named fan, Super Chat, donation, or community receipt is clearly audible in this short follow-up. The FAM lane stays empty rather than inventing one."
+      callouts: Object.freeze([
+        Object.freeze({ at: 33, end: 43, displayName: "Gary", interactionType: "OPENING ROLL CALL", excerpt: "Gary is greeted during the named opening roll call.", evidenceState: "source-local audio + caption-confirmed name readout" }),
+        Object.freeze({ at: 33, end: 43, displayName: "The Smokies", interactionType: "OPENING ROLL CALL", excerpt: "The Smokies are greeted during the named opening roll call.", evidenceState: "source-local audio + caption-confirmed name readout" }),
+        Object.freeze({ at: 33, end: 43, displayName: "Erica Ivey", interactionType: "OPENING ROLL CALL", excerpt: "Erica Ivey is greeted during the named opening roll call.", evidenceState: "source-local audio + caption-confirmed name readout" }),
+        Object.freeze({ at: 33, end: 43, displayName: "October", interactionType: "OPENING ROLL CALL", excerpt: "October is greeted during the named opening roll call.", evidenceState: "source-local audio + caption-confirmed name readout" })
+      ]),
+      note: "Four named community receipts are promoted because they are audible in the opening roll call. No donor status or repeat-attendance claim is inferred from this short follow-up."
     })
   });
   root.WWAM_EPISODE_EDITORIAL_PACKS = Object.freeze({ schema: registry.schema || "shokker-episode-editorial-packs/v1", generated: "2026-08-09", sources: Object.freeze(sources) });
