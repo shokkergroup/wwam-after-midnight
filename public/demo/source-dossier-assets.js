@@ -690,6 +690,7 @@
     "episode-editorial-packs-wave666.js?v=1.0.0-may-13-2026-expanded-livestream-full-audio-human-read",
     "episode-editorial-packs-wave667.js?v=1.0.0-may-06-2026-expanded-livestream-full-audio-human-read",
     "episode-editorial-packs-wave668.js?v=1.0.0-april-18-2026-expanded-superhero-costumes-livestream-full-audio-human-read",
+    "episode-editorial-packs-wave669.js?v=1.0.0-april-15-2026-expanded-movie-news-livestream-full-audio-human-read",
     "wwam-fam-index.js?v=1.0.0-caption-ledger",
     "episode-recap-engine.js?v=1.9.9-title-topic-carrythrough",
     "wwam-episode-recap-adapter.js?v=2.5.1-editorial-body-truth",
