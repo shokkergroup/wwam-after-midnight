@@ -10,6 +10,7 @@
   sources["QJGSOrFBdS8"] = Object.freeze({
     sourceId: "QJGSOrFBdS8",
     reviewState: "full-tape-human-editorial-read",
+    editorialPass: "2026-08-10 fine-toothed second read; 7 audio-ranked windows reconciled across the full May 22 2025 Sugar Ray / horror-games / Fam hangout",
     evidence: Object.freeze({
       duration: 7316,
       captionWords: 25472,
@@ -163,6 +164,13 @@
       H(7208, 7230, "STRAIGHT TO STEVE'S ASSHOLE", "TOM CRUISE'S RUNTIME WEINER", "Mission Impossible 7's 2:43 runtime becomes a Tom Cruise-sized runtime joke before the final clip."),
       H(7225, 7285, "BEST MOMENT", "TOM CRUISE EATS POPCORN LIKE AN AI", "A final video shows Cruise smiling at the audience while eating popcorn with uncanny timing, and the hosts decide it looks machine-made."),
       H(7280, 7316, "LAST CALL", "BE THERE OR BE DISTURBED", "The show signs off with Saturday, Patreon, Disturbia, and one last affectionate threat to stay in the WWAM orbit."),
+      H(322, 357, "OPEN MIC", "THE TECHNICAL-DIFFICULTY INVITATION", "The stream admits the technical problems are part of the contract, then throws the chat three subjects at once: Mission Impossible, birds and bees, or whatever the room wants."),
+      H(1644, 1679, "WWAM UP IN YA", "PIPPI LONGSTOCKING SOUNDTRACK COURT", "A childhood Pippi Longstocking memory collides with the claim that 90s soundtracks are unbeatable. The joke is crude; the actual point is about music carrying memory."),
+      H(1930, 1964, "WWAM UP IN YA", "CHRIS FARLEY AS SHREK", "The room remembers Chris Farley was once attached to Shrek and imagines how different the movie would feel. The abandoned vocal performance becomes a genuine piece of animation lore."),
+      H(2199, 2232, "CHARACTER SIGNAL", "TARANTINO'S HALLOWEEN 6", "Freddy versus Jason versus Ash and a Tarantino Halloween 6 fantasy become a warning about crossover branding: the comic can be great while the movie version gets corny."),
+      H(4196, 4230, "TAKE GETS NUCLEAR", "THE DOG-EATS-BABY TIME MACHINE", "A time-travel thought experiment escalates into a deliberately disgusting plan involving Hitler and a dog. The room stops the scenario because the joke is already too far out."),
+      H(5521, 5556, "STRAIGHT TO STEVE'S ASSHOLE", "DAY TWO OF THE OFF-BRAND GREEN PIECE", "The hosts joke about loneliness, a stupid movie line, and a second day without using an off-brand adult toy. It is archived as a private-room confession, not a recommendation."),
+      H(6099, 6133, "TAKE GETS NUCLEAR", "THE JOKER GLOVE COMPARISON", "A power-washing plan becomes a Joker-smacking-someone-with-a-glove image. The room uses the comparison to explain why a person's laugh can become a weapon in a scene."),
     ]),
     fanRead: Object.freeze({
       loved: Object.freeze({ at: 7225, end: 7285, label: "TOM CRUISE EATS POPCORN LIKE AN AI", topic: "the final video that resets the room", body: "Play from 2:00:25. Cruise's audience-facing popcorn ritual becomes the closing sound-and-image receipt the hosts cannot stop replaying.", playAt: 7225, playEnd: 7285 }),
