@@ -7,6 +7,7 @@
   sources["SFU12QtMMwE"] = Object.freeze({
     sourceId: "SFU12QtMMwE",
     reviewState: "full-tape-human-editorial-read",
+    editorialPass: "2026-08-10 fine-toothed second read; all 47 audio-ranked windows reconciled across the full September 10 paranormal-horror tier-list room",
     evidence: Object.freeze({
       duration: 11062,
       captionWords: 41757,
