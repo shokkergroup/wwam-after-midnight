@@ -21,6 +21,7 @@
       speakerAttribution: false,
       visualOutcomeInferred: false,
     }),
+    editorialPass: "2026-08-10 third fine-toothed full-audio read of the October 28, 2025 Halloween game and movie-news stream; official caption ledger, local audio windows, and aligned Whisper candidates rechecked across the October apple-juice opening, multiplayer game reveal, playable Loomis debate, Michael's versions, reading fatigue, Scream/Halloween favorites, the 3D script-memory lane, Roger Moore marathon plans, Spawn casting, visual learner complaints, and the RPG dream; 4 uncovered source-bound jump points added after candidate-to-card coverage audit",
     label: "HALLOWEEN UPDATE LIVE // THE NEW ILLFONIC/GUN GAME, LOOMIS QUESTIONS, SINGLE-PLAYER HADDONFIELD, AND APPLE CIDER DAMAGE",
     badge: "FULL SHOW WIKI // 1:27:34 OF THE HALLOWEEN GAME REVEAL, MICHAEL'S MASK COURT, NPC VICTIMS, AND A BOTTOMLESS RPG PITCH",
     headline: "THE HALLOWEEN GAME FINALLY ARRIVES, AND WWAM IMMEDIATELY WANTS LOOMIS PLAYABLE, MICHAEL'S EYE HOLES SMALLER, AND THE DEVELOPERS TO STOP READING THE SCREEN TO THEM LIKE THEY'RE IN ENGLISH CLASS.",
@@ -98,6 +99,10 @@
       { at: 5098, end: 5150, category: "FAN SIGNAL", label: "MICHAEL AND LOOMIS ONLY", excerpt: "The room likes the idea of all-new survivors with Michael and Loomis as the two protected legacy anchors." },
       { at: 5156, end: 5208, category: "TAKE GETS NUCLEAR", label: "CREATE YOUR OWN HORROR SURVIVOR", excerpt: "A true RPG mode with custom characters and a survive-the-night loop becomes the feature the hosts would build if money were no object." },
       { at: 5214, end: 5254, category: "BEST MOMENT", label: "CAUTIOUSLY OPTIMISTIC, ACTUALLY OPTIMISTIC", excerpt: "The stream closes with trust in IllFonic, hope for the solo mode, and a promise to return when the game gives them more to chew on." },
+      { at: 3128, end: 3148, category: "WWAM UP IN YA", label: "LOOMIS IN HIS DEPENDS", excerpt: "A chat message about Loomis's eyes and legs collides with a fan proudly announcing a depends accident, creating a character lane only this room could sustain." },
+      { at: 3446, end: 3466, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "THE 3D AMBULANCE SCRIPT", excerpt: "The abandoned third-film script is remembered as a 3D ambulance flying off a cliff directly into the audience, which is exactly as bad as it sounds." },
+      { at: 3837, end: 3857, category: "WWAM UP IN YA", label: "ROGER MOORE WILL BREAK YOU", excerpt: "A Roger Moore marathon is treated as a dark endurance test that may take several days and permanently damage the viewer's patience." },
+      { at: 4965, end: 4985, category: "CHARACTER SIGNAL", label: "MORTAL KOMBAT JASON CONFUSION", excerpt: "The room cannot remember whether the character was a Mortal Kombat DLC fighter or a Target half-off purchase, so the receipt stays unresolved.", characters: ["Jason Voorhees"] },
     ]),
     fanRead: Object.freeze({
       loved: Object.freeze({ at: 4620, end: 4672, label: "THE SHAPE GETS COVERALLS", topic: "the solo campaign spine", body: "Play from 1:17:00. The developers finally describe a proper story mode with Michael, Haddonfield, police, and Dr. Loomis in the pressure loop.", playAt: 4620, playEnd: 4672 }),
