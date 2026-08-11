@@ -8,6 +8,7 @@
   sources["60zSG002oN4"] = Object.freeze({
     sourceId: "60zSG002oN4",
     reviewState: "full-tape-human-editorial-read",
+    editorialPass: "2026-08-10 fine-toothed second read; all 46 audio-ranked windows reconciled across the full May 20 2025 Final Destination Bloodlines spoiler party and franchise ranking",
     evidence: Object.freeze({
       duration: 10868,
       captionWords: 40138,
