@@ -8,6 +8,7 @@
   sources["uA5lTCjk7sQ"] = Object.freeze({
     sourceId: "uA5lTCjk7sQ",
     reviewState: "full-tape-human-editorial-read",
+    editorialPass: "2026-08-10 fine-toothed second read; 6 audio-ranked windows reconciled across the full May 15 2025 Superman trailer and movie-news livestream",
     evidence: Object.freeze({
       duration: 10839,
       captionWords: 35514,
@@ -133,6 +134,12 @@
       H(10560, 10660, "WWAM UP IN YA", "DOUBLE DRAGON WITH BALD SPOTS", "The closing self-roast turns hairlines, bright overhead lights, and two hosts into a ridiculous video-game character poster."),
       H(10660, 10740, "FAN SIGNAL", "PATREON IS THE AFTER-HOURS DOOR", "The hosts point the audience toward the next commentary lane without turning the sign-off into a hard sell."),
       H(10740, 10839, "LAST CALL", "SEE YOU NEXT WEEK, OR IN THE AFTERLIFE", "The final minute is pure WWAM: thanks to the chat, a next-week promise, a few last vulgar flourishes, and the stream's exit button."),
+      H(1956, 1991, "TAKE GETS NUCLEAR", "THE FIVE-MINUTE FREE FLU SHOT", "A free flu shot and a five-minute in-and-out visit become a health-care victory, followed by an obviously fictional slapstick threat about the shot hurting."),
+      H(2025, 2060, "CHARACTER SIGNAL", "FAUCI JONES SAVES LIVES", "The room invents a fake public-health character who sells flashlights and saves lives while Jason hunts the hosts. It is a parody of the conversation, not medical guidance."),
+      H(2180, 2213, "STRAIGHT TO STEVE'S ASSHOLE", "THE HACKED-ACCOUNT EXPOSURE FEAR", "A fan describes harassment and a hacked account, and the room turns the fear of being exposed for a private bathroom moment into a deliberately over-the-top privacy joke."),
+      H(2458, 2493, "STRAIGHT TO STEVE'S ASSHOLE", "THE MICHAEL MYERS HAM SANDWICH", "An AI movie prompt is imagined producing a ham sandwich after Michael Myers kills Laurie Strode. The joke is that a tool can imitate the shape of a prompt and still miss the entire point."),
+      H(2795, 2831, "ROOM BREAK", "EZRA MILLER ON THE RUN", "The hypothetical third U.S. Marshals movie casts Ezra Miller as the person being tracked. The hosts use the premise as a casting joke without pretending to know anything beyond the public conversation."),
+      H(2908, 2941, "ROOM BREAK", "THE DIDDY-TRIAL COVERAGE RESET", "A Blake Lively and Diddy-trial tangent gets interrupted by the room trying to remember a name and a reported courtroom detail. The archive keeps the uncertainty visible instead of turning the fragment into a fact claim."),
     ]),
     fanRead: Object.freeze({
       loved: Object.freeze({ at: 6260, end: 6760, label: "KUNG FURY 2 STEALS THE ROOM", topic: "the trailer reaction that changes the whole show", body: "Play from 1:44:20. The Thundercops, Fassbender, Arnold, Nazis, time travel, and outrageous 80s action make this the show's clearest joy spike—and the reason the headline belongs to Kung Fury instead of Superman.", playAt: 6260, playEnd: 6760 }),
