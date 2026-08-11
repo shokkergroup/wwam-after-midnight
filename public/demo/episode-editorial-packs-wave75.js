@@ -22,6 +22,7 @@
       speakerAttribution: false,
       visualOutcomeInferred: false,
     }),
+    editorialPass: "2026-08-10 third fine-toothed full-audio read of the October 27, 2025 Welcome to Derry episode-one recap; official caption ledger, local audio windows, and aligned Whisper candidates rechecked across the tumbleweed opening, Green Lantern sleep damage, the grotesque birth gag, Dick Hallorann/turtle lore, the dream-reset warning, Super Chats, the Loomis question, football lip-reading, chicken censorship, and the Halloween script handoff; 2 uncovered source-bound jump points added after candidate-to-card coverage audit",
     label: "IT: WELCOME TO DERRY EPISODE 1 RECAP LIVE // THE BABY, THE TURTLE, DICK HALLORANN, AND A VERY LOUD MORNING",
     badge: "FULL SHOW WIKI // 34:20 OF PENNYWISE LORE, PRACTICAL-VS-CGI ARGUMENTS, CHAT THEORY, AND DR. LOOMIS FILTH",
     headline: "WWAM SEES WELCOME TO DERRY'S OPENING AND IMMEDIATELY DECIDES THE SHOW HAS EARNED ITS OWN HORROR LICENSE",
@@ -82,6 +83,8 @@
       { at: 1925, end: 1970, category: "THE ROOM BREAKS", label: "I WANT A BIG ASS TO EAT", excerpt: "A football mouth-reading attempt becomes a bad-lip-reading script about burgers and demons." },
       { at: 1970, end: 1992, category: "WWAM UP IN YA", label: "THE CHICKEN LIVESTREAM", excerpt: "Chat censorship creates sea sucker, which leads to a fake philosophical crisis about chickens trying to communicate." },
       { at: 1995, end: 2036, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "HEINZ MUSTARD UNIFORMS", excerpt: "The closing sports tangent turns ugly throwback uniforms into a fake mustard sponsorship and a comeback story nobody ordered." },
+      { at: 9, end: 29, category: "THE ROOM BREAKS", label: "THE TUMBLEWEED WELCOME", excerpt: "The early room is so empty that a tumbleweed gets promoted to co-host, setting the recap's sleep-deprived tone before Derry appears." },
+      { at: 1163, end: 1183, category: "CHARACTER PERFORMANCE", label: "JAY SOUNDS LIKE ED EDD AND EDDY", excerpt: "A fan compares Jay's voice to Ed, Edd and Eddy, and the room accepts the cartoon comparison as a better explanation than any vocal analysis." },
     ]),
     fanRead: Object.freeze({
       loved: Object.freeze({ at: 258, end: 344, label: "THE OPENING SWING", topic: "the extreme Welcome to Derry cold open", body: "Play from 4:18. The hosts agree the first scene earns attention by going farther than a safe franchise prequel would dare.", playAt: 258, playEnd: 344 }),
