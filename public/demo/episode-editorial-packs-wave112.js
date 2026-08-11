@@ -7,6 +7,7 @@
   sources["SL2HtTbAF9I"] = Object.freeze({
     sourceId: "SL2HtTbAF9I",
     reviewState: "full-tape-human-editorial-read",
+    editorialPass: "2026-08-10 fine-toothed second read; 8 audio-ranked windows reconciled across the full May 31 2025 movie-news livestream",
     evidence: Object.freeze({
       duration: 11004,
       captionWords: 40269,
@@ -152,6 +153,14 @@
       { at: 10886, end: 10930, category: "WWAM FAM", label: "APPRECIATE THE GOOD TIMES WHILE IN THEM", excerpt: "A simple line about appreciating good times while living them becomes the most sincere thesis statement in the entire stream." },
       { at: 10930, end: 10970, category: "BEST MOMENT", label: "I'LL DO THIS UNTIL I DIE", excerpt: "The hosts say they will keep doing tier lists until they die, which sounds like a joke until the audience answers with genuine warmth." },
       { at: 10970, end: 11003, category: "LAST CALL", label: "THE MICROPHONE GOODBYE", excerpt: "The official signoff ends, then one more thank-you leaks out, a tiny unplanned epilogue that feels more honest than a polished outro." },
+      { at: 889, end: 924, category: "FAN SIGNAL", label: "NICHOLAS GETS HIS SUPER CHAT BACK", excerpt: "A missed Super Chat from Nicholas gets rescued on the next pass. The room explains that messages do not expire and then turns his thank-you into a reason to keep showing up." },
+      { at: 1334, end: 1372, category: "CHARACTER SIGNAL", label: "LEE THE MACHINE'S LOOMIS TRUCK", excerpt: "Lee the Machine completes the Saturday night with a gas-truck correction, a Loomis-and-Challis tidy-whities image, and enough character lore to keep the archive's running joke alive." },
+      { at: 1855, end: 1892, category: "ROOM BREAKS", label: "HAMMER TIME MISSION IMPOSSIBLE", excerpt: "A fan's 'trust me one more time' becomes the proposed tagline for a new Mission: Impossible movie, then collapses into a forgotten Hammer song and a story about getting booed." },
+      { at: 2716, end: 2751, category: "WWAM UP IN YA", label: "THE TERRIFIER 4 HAIRCUT WARNING", excerpt: "Terrifier 4 news arrives with a warning not to promote another channel in the chat. The room immediately pairs the franchise update with a haircut complaint and a little protective gatekeeping." },
+      { at: 3041, end: 3078, category: "ROOM BREAKS", label: "COREY FELDMAN SINGS LICK IT UP", excerpt: "The chat asks if Corey Feldman can sing, and the room mishears the prompt as 'Lick It Up' until the hosts claim the stolen song as their own." },
+      { at: 5146, end: 5180, category: "CHARACTER SIGNAL", label: "THE COREY FELDMAN MONTH", excerpt: "A bathroom break turns into a Corey Feldman viewing session, which the hosts declare perfectly on-brand for the month. The running character obsession has become its own programming lane." },
+      { at: 8602, end: 8636, category: "TAKE GETS NUCLEAR", label: "HAPPY GILMORE 2 ARRIVES", excerpt: "A wrestler-style entrance song gives way to the Happy Gilmore 2 trailer. The room resets into movie mode and lets the sequel prove it can still hit the old rhythm." },
+      { at: 9655, end: 9690, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "THE ALPHA ON SET ARGUMENT", excerpt: "The hosts defend the idea that performers sometimes need an honest correction on set, then frame their own Mike-and-Jay dynamic as the much smaller, consensual version of an alpha intervention." },
     ]),
     fanRead: Object.freeze({
       loved: Object.freeze({ at: 7570, end: 7705, label: "STRANGER THINGS 5 BREAKS INTO THE STREAM", topic: "a live trailer reaction that changes the room", body: "Play from 2:06:10. The chat and booth move from casual movie talk into instant trailer court as the final Stranger Things season arrives on screen.", playAt: 7570, playEnd: 7705 }),
