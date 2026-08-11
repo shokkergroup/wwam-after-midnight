@@ -7,6 +7,7 @@
   sources["qgUX3ySexeI"] = Object.freeze({
     sourceId: "qgUX3ySexeI",
     reviewState: "full-tape-human-editorial-read",
+    editorialPass: "2026-08-10 fine-toothed second read; 3 audio-ranked windows reconciled across the full September 12 Alien Earth / Peacemaker room",
     evidence: Object.freeze({
       duration: 4218,
       captionWords: 17354,
@@ -58,6 +59,7 @@
       { at: 996, end: 1070, category: "ROOM BREAKS", label: "JOHN CAMPIA SAUSAGE", excerpt: "John Campia is introduced as a possible Italian sauce brand before the room remembers he is a movie commentator." },
       { at: 1078, end: 1152, category: "WWAM UP IN YA", label: "WET WIENER", excerpt: "A chat phrase becomes a wet-wiener detour that derails the serious review for exactly the correct amount of time." },
       { at: 1160, end: 1234, category: "CHARACTER SIGNAL", label: "THE WINTER SOLDIER PITCH", excerpt: "The Olyphant/Cockto confrontation is imagined as a Winter Soldier-style faceoff with the corporate plot removed." },
+      { at: 1236, end: 1310, category: "TAKE GETS NUCLEAR", label: "FEIGE MISSES THE X-MEN WINDOW", excerpt: "The room argues that Marvel should have moved immediately on X-Men after reacquiring the rights, especially after X-Men '97 proved the audience was ready." },
       { at: 1242, end: 1316, category: "TAKE GETS NUCLEAR", label: "YOUR MOM HAD A GOOD LIFE", excerpt: "A goodbye to an android mother is praised as a sharp line, then immediately treated like emotional damage delivered by a sarcastic machine." },
       { at: 1324, end: 1398, category: "ROOM BREAKS", label: "THE JEREMY SHELLY WORK CHECK-IN", excerpt: "A fan catches the show at work, proving the WWAM room can be a covert movie-news desk inside somebody else's shift." },
       { at: 1480, end: 1554, category: "FAN SIGNAL", label: "THE SERIOUS QUESTION ARRIVES", excerpt: "A fan asks about a reported political killing and the room stops the jokes long enough to acknowledge a human tragedy." },
@@ -76,10 +78,12 @@
       { at: 2546, end: 2620, category: "DEEP DIVE", label: "THE HELLFIRE BOUNCE", excerpt: "A reported clip shows a missile apparently bouncing off an object, creating the night's most cinematic UFO receipt." },
       { at: 2628, end: 2702, category: "TAKE GETS NUCLEAR", label: "ALIEN DRONES TESTING US", excerpt: "The room wonders whether an extraterrestrial drone would visit nuclear sites to test human capabilities before an invasion." },
       { at: 2710, end: 2784, category: "ROOM BREAKS", label: "THE COMPUTER WANTS TO RESTART", excerpt: "A computer restart warning appears during the UFO theory and temporarily becomes the most believable threat in the room." },
+      { at: 2705, end: 2778, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "WATCH THE TAPE, PAL", excerpt: "A fan pushes back on the room's Peacemaker praise and gets the most WWAM response possible: watch the tape, because the back half is that damn good." },
       { at: 2792, end: 2866, category: "FAN SIGNAL", label: "PEACEMAKER AS A WATER BOTTLE", excerpt: "Peacemaker is called a bottle of water in the Sahara after Alien Earth's emotional drought." },
       { at: 2874, end: 2948, category: "DEEP DIVE", label: "THE PARALLEL DOORWAY", excerpt: "The episode's backstory about the parallel-dimension doorway is explained without spoiling the newly released material." },
       { at: 2956, end: 3030, category: "BEST MOMENT", label: "TIM MEADOWS WINS AGAIN", excerpt: "Tim Meadows is called the best part of the show, a recurring WWAM verdict that survives even a mediocre episode." },
       { at: 3038, end: 3112, category: "FAN SIGNAL", label: "BATMAN ARKHAM ANSWER", excerpt: "A fan asks for favorite games and gets Batman Arkham, Resident Evil, Fallout, Final Fantasy VII, and Spider-Man." },
+      { at: 3116, end: 3190, category: "TAKE GETS NUCLEAR", label: "THE BUTTHOLE-PROBED SPACE-MAN", excerpt: "The game list takes a hard left into Fire in the Sky: a strange object in the woods, an alien abduction, and the immortal question of why anyone would not run away immediately." },
       { at: 3120, end: 3194, category: "WWAM UP IN YA", label: "THE SPORTS-GAME BUTT JOKE", excerpt: "Madden, NBA Live, sweaty football players, and a DLC nobody should be allowed to publish turn the game question into a locker-room hazard." },
       { at: 3202, end: 3276, category: "FAN SIGNAL", label: "HALO 3 GETS ITS FLOWERS", excerpt: "GoldenEye, March Madness, and Halo 3 close the favorite-game answer with the kind of nostalgia that makes a three-hour sequel inevitable." },
       { at: 3284, end: 3358, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "CAPTAIN KELLOGG HIGH SEAS", excerpt: "Weapons is twenty dollars to rent, so the hosts begin planning a voyage on the Captain Kellogg High Seas." },
