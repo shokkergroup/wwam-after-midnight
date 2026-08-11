@@ -21,6 +21,7 @@
       speakerAttribution: false,
       visualOutcomeInferred: false,
     }),
+    editorialPass: "2026-08-10 third fine-toothed full-audio read of the October 27, 2025 Scream 7 teaser reaction; official caption ledger, local audio windows, and aligned Whisper candidates rechecked across the handmade WWAM shirt, Steven Seagal's Punani, Corey Feldman comeback jokes, copyright-safe trailer play, Stu psychiatric-hospital theories, Ethan Embry uncertainty, fan superchats, Jill/Billy face reads, trailer red herrings, Mark's repeated deaths, Roger Jackson meta ideas, and the 400-viewer Tuesday sign-off; 3 uncovered source-bound jump points added after candidate-to-card coverage audit",
     label: "SCREAM 7 TEASER TRAILER BREAKDOWN LIVE // THE PSYCHIATRIC HOSPITAL, MARK WITH A C, THE OLD LOGO, AND THE STU THEORY BOARD",
     badge: "FULL SHOW WIKI // 55:38 OF F.BROOK HOSPITAL RECEIPTS, AI/FACK-DEATH PANIC, KEVIN WILLIAMSON LORE, FAN ENHANCEMENT, AND 400 MIDDAY VIEWERS",
     headline: "THE SCREAM 7 TEASER HIDES A PSYCHIATRIC HOSPITAL, A POSSIBLE MARK MURDER, AND THE OLD END-OF-SCREAM LOGO—SO WWAM BRIGHTENS THE EVIDENCE, SUMMONS THE STU TRUTHERS, AND ACCIDENTALLY INVESTIGATES RANDOM INMATE ART.",
@@ -94,6 +95,9 @@
       { at: 3160, end: 3212, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "TURN THE NOTIFICATIONS ON", excerpt: "The sign-off turns into a TikTok growth request and a demand that every viewer return for the next trailer autopsy." },
       { at: 3220, end: 3272, category: "BEST MOMENT", label: "THE CHAT MADE THIS BETTER", excerpt: "Mike says the live room was more fun than making a normal video because the fans supplied the second half of the mystery board." },
       { at: 3280, end: 3338, category: "WWAM UP IN YA", label: "SLOWLY TICKLE YOUR BUTT WITH A FEATHER", excerpt: "The final promise is another live breakdown, another trailer, and an exit line that could only belong to WWAM." },
+      { at: 1016, end: 1036, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "STU AS HANNIBAL LECTER", excerpt: "A theory puts Stu in a psychiatric hospital as Sydney's Hannibal Lecter, a route the room admits it hates but can absolutely imagine a franchise trying." },
+      { at: 1248, end: 1268, category: "DEEP DIVE", label: "ETHAN EMBRY IN THE WHEELCHAIR", excerpt: "The asylum image may be Ethan Embry, his sister, or a random body placed to bait the trailer detectives; the room refuses to call it confirmed." },
+      { at: 1958, end: 1978, category: "THE ROOM BREAKS", label: "COLLEGE, SATAN, AND THE PERSPECTIVE SHIFT", excerpt: "A perspective joke swerves into a college confession and a Satan insult before the host remembers the room is supposed to be analyzing Scream." },
     ]),
     fanRead: Object.freeze({
       loved: Object.freeze({ at: 1607, end: 1659, label: "THIS IS GOING TO BE FUN", topic: "the old-logo Stu signal", body: "Play from 26:47. The teaser's closing voice and the original Scream logo land together, which is exactly the kind of small return-to-home clue this room loves.", playAt: 1607, playEnd: 1659 }),
