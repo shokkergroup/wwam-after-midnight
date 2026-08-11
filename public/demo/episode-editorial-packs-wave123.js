@@ -9,6 +9,7 @@
   sources["e7Guc5jtHQg"] = Object.freeze({
     sourceId: "e7Guc5jtHQg",
     reviewState: "full-tape-human-editorial-read",
+    editorialPass: "2026-08-10 fine-toothed second read; six late-tape audio-ranked windows reconciled across the cage-story panic, Everclear concert memory, Masters of the Universe take, Black Phone/Freddy tangent, bodily-function bit, and Lee's final FAM arrival.",
     evidence: Object.freeze({
       duration: 11749,
       captionWords: 44418,
@@ -133,6 +134,12 @@
       H(9350, 9460, "FAN SIGNAL", "THE FAM'S LAST PICK", "A final viewer choice decides whether the episode lands on a movie, a band, a character, or one more terrible joke."),
       H(9460, 9570, "LAST CALL", "THE DRINK IS FINISHED", "The hosts recognize that the Woodford is gone and the smart editorial decision is to stop before the next memory becomes a problem."),
       H(9570, 9680, "LAST CALL", "GOODNIGHT FROM THE STEWYARD", "The stream returns to its accidental backstage origin and closes as an honest hangout, not a manufactured episode ending."),
+      H(9710, 9790, "STRAIGHT TO STEVE'S ASSHOLE", "THE UPSIDE-DOWN CAGE PANIC", "A story about an upside-down cage ride, an unexpectedly massive guy, and the split-second fear of losing control gets sent straight to Steve's danger column."),
+      H(10120, 10220, "STRAIGHT TO STEVE'S ASSHOLE", "EVERCLEAR LOSES JAY", "The opening bands are declared terrible, Everclear finally arrives, and Jay vanishes before the first song is properly underway."),
+      H(10290, 10380, "STRAIGHT TO STEVE'S ASSHOLE", "PRINCE ADAM SHOULD STAY IN ETERNIA", "The Masters of the Universe pitch is reduced to one very clear rule: stop exporting the story to Earth and just let Eternia be weird."),
+      H(10490, 10580, "WWAM UP IN YA", "KARATE BY THE PHONE", "A supernatural movie tangent turns a karate move by a phone into the exact kind of corny trailer beat the room loves to roast before imagining Freddy's next franchise lane."),
+      H(10570, 10660, "WWAM UP IN YA", "THE CORK ON YOUR CRACK", "A constipation story becomes a full body-horror metaphor: the food is gone, the poop is not, and the imaginary cork has apparently taken command."),
+      H(11100, 11200, "FAN SIGNAL", "LEE STEALS THE CUP", "Lee arrives with a generous Super Chat, the room talks over itself, and a stolen cup plus another Loomis bathroom reference becomes the final FAM receipt."),
     ]),
     fanRead: Object.freeze({
       loved: Object.freeze({ at: 6820, end: 7150, label: "VAL KILMER REMEMBERED", topic: "the sober turn that gives the stream weight", body: "Play from 1:53:40. Batman Forever, Top Gun, health, and the difference between a great actor and a bad script turn a news item into a real FAM memory.", playAt: 6820, playEnd: 7150 }),
