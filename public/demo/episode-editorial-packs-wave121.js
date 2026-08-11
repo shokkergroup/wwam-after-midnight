@@ -9,6 +9,7 @@
   sources["Ld5o2uamVJw"] = Object.freeze({
     sourceId: "Ld5o2uamVJw",
     reviewState: "full-tape-human-editorial-read",
+    editorialPass: "2026-08-10 fine-toothed second read; 6 audio-ranked windows reconciled across the full April 22 2025 WrestleMania / Sinners / horror-franchise livestream",
     evidence: Object.freeze({
       duration: 10428,
       captionWords: 36314,
@@ -142,6 +143,12 @@
       H(8460, 8550, "WWAM FAM", "FRIDAY OR SATURDAY", "The next-stream scheduling question is left to the chat, preserving the live community rather than inventing a clean production calendar."),
       H(8550, 8640, "LAST CALL", "THE FERTILE MEN SIGN-OFF", "The show closes with its most honest formal statement: they are men, they are fertile, and they have to go."),
       H(8640, 8730, "ROOM BREAK", "THE HOST IS ALONE AGAIN", "After the goodbye, one host realizes he is suddenly alone on camera and has no idea what to do with the remaining live air."),
+      H(8733, 8768, "CHARACTER SIGNAL", "ERIC DRAVEN BEATS THE SLASHER ICONS", "The room argues that Eric Draven's pain and supernatural drive would beat Michael, Jason, Freddy, and the other slashers who keep losing to teenagers in their own movies."),
+      H(9412, 9447, "STRAIGHT TO STEVE'S ASSHOLE", "PAMELA'S BLANKET-SERIES NIGHTMARE", "The hosts predict a Pamela Voorhees show would be boring, get cancelled, and make the studio conclude nobody wants more horror. It is a fictional worst-case scenario, not a real forecast."),
+      H(9551, 9585, "TAKE GETS NUCLEAR", "THE CROW'S PAIN TICKET", "A fan says the new Eric Draven can put his pain onto viewers. The room turns that into a movie-ticket joke while still acknowledging why the character's grief is the franchise's engine."),
+      H(9665, 9700, "STRAIGHT TO STEVE'S ASSHOLE", "FOR WHOM THE BELL TOLLS SINGER COURT", "A band-memory about covering Metallica turns into a confession that the song's opening is brutal to sing live. The hosts then ask which Metallica song actually deserves the crown."),
+      H(9789, 9824, "ROOM BREAK", "PANTERA BLOWS AWAY METALLICA", "A fan argues Pantera is better, and the room responds with a blind-man-looking-for-a-walking-stick bit before returning to the ranking question."),
+      H(9934, 9970, "CHARACTER SIGNAL", "JASON NEEDS THE SILVER SCREEN", "A fan's message reinforces the night's cleanest franchise thesis: Jason belongs in a real movie again, not only in side media and character cameos."),
     ]),
     fanRead: Object.freeze({
       loved: Object.freeze({ at: 3420, end: 4320, label: "STONE COLD'S SINNERS REVIEW", topic: "the guest-character lane with a real verdict", body: "Play from 57:00. Brennan's Stone Cold recap of WrestleMania and 9/10 Sinners reaction show how a recurring character can carry a full segment without pretending the performer is actually the wrestler.", playAt: 3420, playEnd: 4320 }),
