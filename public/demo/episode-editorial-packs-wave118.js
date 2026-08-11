@@ -8,6 +8,7 @@
   sources["_83AxEzsR84"] = Object.freeze({
     sourceId: "_83AxEzsR84",
     reviewState: "full-tape-human-editorial-read",
+    editorialPass: "2026-08-10 fine-toothed second read; 4 audio-ranked windows reconciled across the full May 7 2025 GTA VI / Long Walk / gaming and FAM livestream",
     evidence: Object.freeze({
       duration: 10975,
       captionWords: 41608,
@@ -153,6 +154,10 @@
       H(9700, 9790, "WWAM UP IN YA", "JALAPENO THICK BURGER MEMORY", "The hosts revive the long-lost Hardee's burger as the fast-food item they would most like to bring back."),
       H(9790, 9875, "LAST CALL", "GAS-STATION FOOD IS THERE FOR YOU", "The final food thesis is strangely sincere: when everything else is closed and the night is wrecked, the hot dog at the gas station is a friend."),
       H(9875, 9975, "LAST CALL", "THANK YOU FOR HANGING OUT", "The closing thanks are direct, affectionate, and earned after more than three hours of games, movies, grief, pets, sharks, and pizza."),
+      H(10146, 10179, "STRAIGHT TO STEVE'S ASSHOLE", "THE TWO-YEAR SHARK TARGET", "A beach-trip story turns serious when the host says sharks have targeted him two years in a row. The room keeps the fear intact while joking that somebody should have wrestled the fish."),
+      H(10467, 10502, "FAN SIGNAL", "SON GETS THE MOVIE RECOMMENDATION", "A fan says the channel convinced him to watch Son, then the chat turns the compliment into another invitation to keep the movie list moving."),
+      H(10644, 10680, "ROOM BREAK", "THE GAS-STATION FOOD SHOW", "The room pitches a full viral series reviewing gas-station food after a fan brings up enchiladas. The idea is cheap, repeatable, and exactly the kind of road-trip chaos WWAM can own."),
+      H(10908, 10943, "TAKE GETS NUCLEAR", "THE JALAPENO THICK BURGER PETITION", "Hardee's jalapeño thick burger is declared the greatest sandwich ever made, and the hosts cannot understand why it has not returned while McDonald's gets all the comeback attention."),
     ]),
     fanRead: Object.freeze({
       loved: Object.freeze({ at: 4390, end: 5020, label: "THE GTA VI TRAILER", topic: "the biggest excitement spike in the show", body: "Play from 1:13:10. Lucia, Jason, Vice City, Wang Chung, Scarface energy, the beach, and a 2026 release date make the whole room sound like it just got handed a new console.", playAt: 4390, playEnd: 5020 }),
