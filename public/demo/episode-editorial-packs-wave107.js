@@ -7,6 +7,7 @@
   sources["-PoawT_AuRE"] = Object.freeze({
     sourceId: "-PoawT_AuRE",
     reviewState: "full-tape-human-editorial-read",
+    editorialPass: "2026-08-10 fine-toothed second read; 13 audio-ranked windows reconciled across the full June 17 2025 movie-prediction tier-list livestream",
     evidence: Object.freeze({
       duration: 10914,
       captionWords: 38029,
@@ -110,6 +111,19 @@
       { at: 10758, end: 10838, category: "CHARACTER SIGNAL", label: "THE TWINKIE SCENE REHEARSAL", excerpt: "The hosts attempt the Ghostbusters speech with Loomis and Slenderman, landing on a giant Twinkie full of psychokinetic energy and a containment-unit warning." },
       { at: 10840, end: 10870, category: "LAST WORD", label: "BUTTER THROUGH A PANCAKE", excerpt: "The room tries to describe how quickly the night passed, fails to find the right pancake metaphor, and signs off exactly as loosely as it began." },
       { at: 10870, end: 10910, category: "WWAM FAM", label: "THE SUMMER BREAK WARNING", excerpt: "The hosts warn that late June and early July will be quiet, then promise to squeeze in more streams before disappearing for a couple of weeks." },
+      { at: 1273, end: 1307, category: "WWAM UP IN YA", label: "THE THIRSTY NEW FREDDY", excerpt: "The room predicts a new Freddy could be genuinely supernatural and genuinely good, then immediately accuses itself of being too thirsty for Krueger to judge the trailer fairly." },
+      { at: 2768, end: 2803, category: "ROOM BREAKS", label: "THE ZOOM THERAPY ACTION FIGURE", excerpt: "An action-figure memory turns into a fake Zoom therapy session about abusive parents. The hosts are discussing collectibles, but the bit sounds like a counselor's worst appointment." },
+      { at: 2975, end: 3012, category: "FAN SIGNAL", label: "JEREMY TAKES SUPERMAN TO THE DRIVE-IN", excerpt: "A fan checks in on the way to see Superman at the drive-in. The room turns the message into a small but perfect example of the audience living their movie life alongside the show." },
+      { at: 3793, end: 3829, category: "TAKE GETS NUCLEAR", label: "THE LIU KANG CASTING COMPLAINT", excerpt: "The room revisits the Mortal Kombat movie, praises Scorpion, and complains that the cast never found the right Liu Kang or a convincing reason for the Cole character to exist." },
+      { at: 4029, end: 4064, category: "TAKE GETS NUCLEAR", label: "TRON WITHOUT THE TRAILER", excerpt: "Tron enters the predictions without the hosts having watched the trailer. The first film's memory does the heavy lifting while everyone hopes the third entry is not just neon wallpaper." },
+      { at: 4234, end: 4268, category: "WWAM UP IN YA", label: "THE DICK-SUCKING ALLERGY", excerpt: "A question about thirst turns into a fake medical condition: dick-sucking allergies discovered through an ill-advised experiment. It is the kind of late-night diagnosis no doctor will put in writing." },
+      { at: 5734, end: 5768, category: "TAKE GETS NUCLEAR", label: "LIAM NEESON IN THE PINK PANTHER", excerpt: "The room decides Liam Neeson could work in a Pink Panther-style spy spoof because his Taken seriousness would make the absurdity land, even if nobody can remember Leslie Nielsen's name for a minute." },
+      { at: 6510, end: 6546, category: "WWAM UP IN YA", label: "AVATAR GETS THE FART WINDOW", excerpt: "Avatar is remembered as a fun event that has aged out of the conversation, then a perfectly timed fart interrupts the James Cameron verdict and becomes the actual punctuation." },
+      { at: 7095, end: 7130, category: "TAKE GETS NUCLEAR", label: "THE THEATER BECOMES A RENTAL STORE", excerpt: "The room mourns the possibility that movie theaters will become the next video-rental store, then pivots to a wildly expensive Tom Dong speaker fantasy that only deepens the grief." },
+      { at: 8067, end: 8102, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "THE MOVIE THAT LIVES ON ANOTHER PLANET", excerpt: "One host predicts a coming movie will suck, Michael defends it from a different planet, and the argument goes straight to the hate desk before anyone has seen the finished thing." },
+      { at: 8886, end: 8919, category: "TAKE GETS NUCLEAR", label: "NOBODY 2 EARNS A THEATER CHANCE", excerpt: "Nobody 2 gets a cautious theatrical vote because the trailer has potential and the director's horror pedigree matters. The room is not sold, but it is willing to show up." },
+      { at: 9405, end: 9438, category: "TAKE GETS NUCLEAR", label: "DAYS OF THUNDER IN A THEATER", excerpt: "Even a non-NASCAR fan can imagine Days of Thunder shaking a theater. The hosts defend the communal rush of a racing movie before returning to the tier list." },
+      { at: 10127, end: 10162, category: "FAN SIGNAL", label: "THE TCM REVOTE PETITION", excerpt: "A fan asks for a Texas Chainsaw Massacre versus Friday the 13th revote because the original poll predated the newest TCM film. The archive gets a clean example of canon changing under audience pressure." },
     ]),
     fanRead: Object.freeze({
       loved: Object.freeze({ at: 5110, end: 5280, label: "SMASHING MACHINE IS THE OSCAR SWING", topic: "The Rock, Emily Blunt, and a movie that surprises the room", body: "Play from 1:25:10. The tier list stops being a spreadsheet and becomes a real recommendation when the room makes its most confident case for Smashing Machine.", playAt: 5110, playEnd: 5280 }),
