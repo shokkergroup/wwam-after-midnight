@@ -22,6 +22,7 @@
       speakerAttribution: false,
       visualOutcomeInferred: false,
     }),
+    editorialPass: "2026-08-10 third fine-toothed full-audio read of the October 10, 2025 Peacemaker Season 2 finale review and open-line movie-news show; official caption ledger, local audio windows, and aligned Whisper candidates rechecked across the rushed-finale verdict, Checkmate/Earth X, the missing cameo, Halloween Dies/Silver Shamrock, Jason rights, Pamela routes, Loomis/Challis callbacks, mental-health check-ins, spoiled pork, Wonder Man, Daredevil, Doomsday, and the Tim Meadows sign-off; 3 uncovered source-bound jump points added after candidate-to-card coverage audit",
     label: "PEACEMAKER SEASON 2 FINALE REVIEW // THE CAMEO PROMISE, CHECKMATE, HALLOWEEN DIES, AND THE LOOMIS / SLENDERMAN HOTLINE",
     badge: "FULL SHOW WIKI // 1:11:39 OF FINALE ARGUMENTS, DCU LORE, HALLOWEEN HERESY, FAN SUPPORT, AND TRAILER DOORS",
     headline: "PEACEMAKER'S 9.5/10 SEASON GETS A FINALE WITH A PURPLE BRUISE: THE SHOW LOVED THE RIDE, HATED THE CLIFFHANGER, AND STILL HAS TO TALK ABOUT MICHAEL WEARING THE WHOLE WORLD",
@@ -118,6 +119,9 @@
       { at: 4135, end: 4195, category: "DEEP DIVE", label: "DOOMSDAY TRAILER PLACEMENT", excerpt: "The rumored Doomsday trailer in front of Avatar is criticized as theatrical gatekeeping in a world where studios mainly chase online views." },
       { at: 4180, end: 4225, category: "FAN SIGNAL", label: "THE HELL'S KITCHEN TEAM-UP", excerpt: "Daredevil, Spider-Man, Punisher, and Venom make a more exciting runway than another opaque trailer tease." },
       { at: 4230, end: 4295, category: "LAST WORD", label: "TIM MEADOWS WON THE SEASON", excerpt: "The show closes by returning to Tim Meadows, the season's breakout energy, and a Patreon invitation delivered through a wildly inappropriate location." },
+      { at: 313, end: 333, category: "TAKE GETS NUCLEAR", label: "RICK FLAG'S CALLous TURN", excerpt: "The hosts question whether Rick Flag's cold behavior is intentional characterization or simply bad writing, keeping the verdict open instead of pretending the show answered it." },
+      { at: 3018, end: 3038, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "COLD WEATHER, SUN HATRED", excerpt: "A love of cold weather becomes a contradiction the moment winter is described as miserable and the sun is blamed for every mood problem." },
+      { at: 3883, end: 3903, category: "THE ROOM BREAKS", label: "MOTHRA GOT THE PITCHFORKS", excerpt: "A wrong Mothra callout becomes a full fan roast, with the hosts remembering that comic-book mistakes earn pitchforks faster than any actual plot error." },
     ]),
     fanRead: Object.freeze({
       loved: Object.freeze({ at: 2350, end: 2440, label: "THE SILVER SHAMROCK IDEA", topic: "the unused Halloween Dies mask-factory ending", body: "Play from 39:10. The production idea is exciting because Silver Shamrock returns, but the hosts draw a hard line at making every mask-wearer Michael.", playAt: 2350, playEnd: 2440 }),
