@@ -9,6 +9,7 @@
   sources["gRS6216vIEc"] = Object.freeze({
     sourceId: "gRS6216vIEc",
     reviewState: "full-tape-human-editorial-read",
+    editorialPass: "2026-08-10 fine-toothed second read; 6 audio-ranked windows reconciled across the full April 30 2025 Claremont / GTA VI / tangent-machine livestream",
     evidence: Object.freeze({
       duration: 11481,
       captionWords: 40459,
@@ -169,6 +170,12 @@
       H(10280, 10365, "LAST CALL", "FAM AFTER MIDNIGHT", "The room is exhausted, still laughing, and somehow ready to do the same thing again next week."),
       H(10365, 10450, "WWAM UP IN YA", "THE LAST FULL HOUSE ECHO", "The theme song keeps leaking back into the goodbye, a small callback worth keeping because the show earned it."),
       H(10450, 10535, "LAST CALL", "GOOD NIGHT, EVERYWHERE YOU LOOK", "The final musical fragments and goodbyes are the actual end of the episode, not a generic placeholder."),
+      H(10556, 10593, "TAKE GETS NUCLEAR", "MICROBES FROM THE ASTEROID", "A fan's idea that humans arrived as microbes on an asteroid expands the late-night science tangent into Stardust, aliens, and the room's favorite kind of impossible speculation."),
+      H(10629, 10664, "CHARACTER SIGNAL", "SLENDERMAN'S OPTOMETRIST SETUP", "A deliberately offensive fake diagnosis is used to launch a Slenderman question about Jay's optometrist appointment. The room immediately recognizes that the old story may have been overshared."),
+      H(10921, 10955, "STRAIGHT TO STEVE'S ASSHOLE", "PAMELA VORHEES NEEDS A REST", "The room rejects another Pamela Voorhees origin story because the mystery is gone and the audience wants Jason back in the mask. The criticism is about franchise focus, not a claim that the character has no value."),
+      H(11188, 11222, "FAN SIGNAL", "THE TOGETHER EYEBALL POSTER", "A Super Chat run gets confused with a poster for Together featuring an eyeball kiss. The hosts catch the screen mismatch and turn the navigation error into a little archive receipt."),
+      H(11337, 11370, "ROOM BREAK", "THE FULL HOUSE THEME RESET", "A random quote sends the room into the Full House theme song and a question about how adulthood became this. The late-night detour is so clean it feels pre-written."),
+      H(11401, 11436, "WWAM UP IN YA", "LOOMIS NEEDS A SNICKERS", "Lee the Machine tells an angry Loomis to eat a Snickers, and the room turns chocolate, diabetes, and the character's temper into one final mini-sketch."),
     ]),
     fanRead: Object.freeze({
       loved: Object.freeze({ at: 1440, end: 1950, label: "THE SMASHING MACHINE TRAILER", topic: "the serious acting swing that changes the room", body: "Play from 24:00. Mark Kerr, Emily Blunt, early UFC pain, and the hosts' comparison to Warrior and Southpaw create the night's clearest sincere excitement spike.", playAt: 1440, playEnd: 1950 }),
