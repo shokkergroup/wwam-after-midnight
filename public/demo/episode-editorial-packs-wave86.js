@@ -7,6 +7,7 @@
   sources["BOdxEeN8pGc"] = Object.freeze({
     sourceId: "BOdxEeN8pGc",
     reviewState: "full-tape-human-editorial-read",
+    editorialPass: "2026-08-10 fine-toothed second read; 2 audio-ranked windows reconciled across the full September 5 Peacemaker / movie-news morning room",
     evidence: Object.freeze({
       duration: 4042,
       captionWords: 15514,
@@ -71,6 +72,7 @@
       { at: 2048, end: 2120, category: "DEEP DIVE", label: "SUPERMAN FIRST", excerpt: "The room argues for another Superman movie or two before rushing toward a Justice League event." },
       { at: 2128, end: 2200, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "CONJURING AD FATIGUE", excerpt: "Every other YouTube ad is The Conjuring, and the room asks how long the same paranormal slop can be reheated." },
       { at: 2208, end: 2280, category: "DEEP DIVE", label: "ANNABELLE COMES HOME", excerpt: "Annabelle Comes Home gets a fun Ghostbusters-style containment-room defense despite its CGI problems." },
+      { at: 2287, end: 2360, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "THE DEMON-ASSAULT EXCUSE", excerpt: "A disputed family story is pushed into an outrageous demon explanation for an unwanted pregnancy, making the room's point about sensational TV without treating the claim as established fact." },
       { at: 2288, end: 2360, category: "TAKE GETS NUCLEAR", label: "THE FAST AND FURIOUS OF HORROR", excerpt: "The Conjuring is compared to Fast and Furious: a formula people enjoy even when the film itself is not especially good." },
       { at: 2368, end: 2440, category: "ROOM BREAKS", label: "PATRICK WILSON'S WATCHMEN BUTT", excerpt: "Patrick Wilson's Watchmen memory and his Home Depot-manager resemblance derail the Conjuring review." },
       { at: 2448, end: 2520, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "THE TWO-HOUR-FIFTEEN-MINUTE PROBLEM", excerpt: "Review excerpts agree that The Conjuring: Last Rites spends too long setting up and too little time making the finale matter." },
@@ -85,6 +87,7 @@
       { at: 3168, end: 3240, category: "ROOM BREAKS", label: "DAVE THOMAS BREATH", excerpt: "An argument on the daytime-TV set becomes a Dave Thomas breath and old-ketchup smell riff." },
       { at: 3248, end: 3320, category: "TAKE GETS NUCLEAR", label: "PUT THEM ON JERRY SPRINGER", excerpt: "The Warren/Skeptic confrontation is judged so combustible that Jerry Springer would have been the correct moderator." },
       { at: 3328, end: 3400, category: "CHARACTER SIGNAL", label: "LOOMIS AND MYERS ON DAYTIME TV", excerpt: "The hosts pitch a Halloween Horror Month sketch with Loomis, Myers, a moderator, and an audience that keeps asking whether the supernatural is real." },
+      { at: 3401, end: 3475, category: "TAKE GETS NUCLEAR", label: "THE 90S TALK-SHOW REBOOT", excerpt: "The daytime-TV clip sparks a concrete format idea: put Loomis and Myers in front of a moderator and let the character performances carry the argument instead of explaining the bit." },
       { at: 3408, end: 3480, category: "WWAM UP IN YA", label: "THE GHOST-BUTT TESTIMONY", excerpt: "A daytime-TV witness describes an alleged ghost assault, and the WWAM room cannot resist the most inappropriate possible follow-up questions." },
       { at: 3488, end: 3560, category: "BEST MOMENT", label: "THE MONSTER TRAILER REACTION", excerpt: "The first-look Monster trailer brings skin, mother dialogue, Charlie Hunnam, and instant Texas Chainsaw comparisons into the room." },
       { at: 3568, end: 3640, category: "DEEP DIVE", label: "ED GEIN FACT CHECK CAUTION", excerpt: "The hosts debate how many crimes are documented versus rumored and worry that a glossy performance could turn a killer into a crush." },
