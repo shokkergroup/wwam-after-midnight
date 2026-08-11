@@ -7,6 +7,7 @@
   sources["wdLggqRcisQ"] = Object.freeze({
     sourceId: "wdLggqRcisQ",
     reviewState: "full-tape-human-editorial-read",
+    editorialPass: "2026-08-10 fine-toothed second read; 9 audio-ranked windows reconciled across the full May 29 2025 Final Reckoning review and Mission Impossible ranking",
     evidence: Object.freeze({
       duration: 11078,
       captionWords: 41752,
@@ -172,6 +173,15 @@
       { at: 10949, end: 11028, category: "TAKE GETS NUCLEAR", label: "THE FINAL ROLE-SWAP VERDICT", excerpt: "Tom Cruise could do Oceans 11 and Brad Pitt could do Jerry Maguire, but the booth refuses to put Pitt in Top Gun's exact strange key." },
       { at: 11027, end: 11060, category: "WWAM FAM", label: "SATURDAY IS ALREADY PROMISED", excerpt: "The hosts realize the stream flew by, promise another Saturday, and thank an audience they call the best on YouTube." },
       { at: 11068, end: 11078, category: "LAST CALL", label: "THE BLACK MICROPHONE EPILOGUE", excerpt: "After Jay leaves, Mike keeps talking to the microphone for one last filthy little accidental outro." },
+      { at: 910, end: 944, category: "TAKE GETS NUCLEAR", label: "DEAD RECKONING HAS A LONG TAPE", excerpt: "The Mission: Impossible review finally admits the film is long, then the room explains that the extra runtime is not automatically a flaw if the content earns its place." },
+      { at: 2174, end: 2207, category: "WWAM UP IN YA", label: "THE WORST LOVER SUPER CHAT", excerpt: "A fan's message about a surprise pee break mutates into a fictional review of an inattentive lover with no foreplay. The bit is a character roast, not a claim about a real person." },
+      { at: 2379, end: 2413, category: "TAKE GETS NUCLEAR", label: "THE GOLF-COURSE NERD TAX", excerpt: "The room cannot understand paying to sit on a golf course in a sweater while looking down on people who stayed home. Phil Mickelson becomes shorthand for how expensive the hobby feels." },
+      { at: 3206, end: 3239, category: "TAKE GETS NUCLEAR", label: "MORTAL KOMBAT STILL BEATS STREET FIGHTER", excerpt: "Street Fighter gets a respectful cast case, but the hosts still prefer Mortal Kombat's story and characters. The verdict is franchise taste, not a claim that the rival film has no audience." },
+      { at: 4165, end: 4198, category: "TAKE GETS NUCLEAR", label: "THE PARACHUTE FOURTH-WALL FIX", excerpt: "The room rewrites a plane stunt so the hero looks into the camera and asks for a parachute. The joke works because the audience already knows the stunt is safe while the character absolutely should not." },
+      { at: 6438, end: 6472, category: "FAN SIGNAL", label: "WHY ARE SUPER CHATS DISAPPEARING", excerpt: "A fan asks why their Super Chats keep getting lost. The hosts thank them, acknowledge the platform problem without pretending to solve it, and keep the message in the archive instead of letting it vanish." },
+      { at: 6829, end: 6864, category: "ROOM BREAKS", label: "SMOKE SOME WHISKEY, SMOKE SOME WINE", excerpt: "A song lyric search becomes a mini music-history detour, with a Rockstar chorus, a misremembered title, and a phone call that proves the room can derail itself without any help." },
+      { at: 8395, end: 8429, category: "WWAM UP IN YA", label: "THE STRANGE MISSION FRANCHISE ENTRY", excerpt: "A Mission: Impossible entry gets described as an awkward franchise cousin, then the room circles back to its Dead Reckoning review and the way the series keeps changing its own identity." },
+      { at: 8951, end: 8984, category: "TAKE GETS NUCLEAR", label: "STAR TREK ONLINE MEETS GUACAMOLE DICK", excerpt: "A fan mentions Star Trek Online and gets answered with a crude Doom definition involving a mirror and guacamole. The actual game recommendation survives the anatomy joke." },
     ]),
     fanRead: Object.freeze({
       loved: Object.freeze({ at: 8519, end: 8616, label: "FALLOUT TAKES THE MOUNTAIN", topic: "the franchise's emotional and action summit", body: "Play from 2:21:59. The hosts finally agree on Fallout's pacing, Henry Cavill, practical danger, bathroom fight, and emotional weight.", playAt: 8519, playEnd: 8616 }),
