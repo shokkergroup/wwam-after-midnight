@@ -7,6 +7,7 @@
   sources["wk1j2rL49kA"] = Object.freeze({
     sourceId: "wk1j2rL49kA",
     reviewState: "full-tape-human-editorial-read",
+    editorialPass: "2026-08-10 fine-toothed second read; 12 audio-ranked windows reconciled across the full June 3 2025 horror-news and tier-list livestream",
     evidence: Object.freeze({
       duration: 10904,
       captionWords: 38292,
@@ -128,6 +129,18 @@
       { at: 10776, end: 10797, category: "FAN SIGNAL", label: "DAZED AND CONFUSED GETS THE SPICOLI PASS", excerpt: "Dazed and Confused is placed in Almost Touches the Sun because the room remembers Spicoli even when the rest of the movie has gone hazy." },
       { at: 10800, end: 10864, category: "WWAM FAM", label: "THE STREAM RUNS OUT OF CLOCK", excerpt: "The show ends because the clock wins, with a Patreon tease, a Lit concert promise, and the admission that the Fam made a random Tuesday night feel worth doing." },
       { at: 10870, end: 10903, category: "WWAM FAM", label: "THE MICROPHONE GOODBYE", excerpt: "After the official sign-off, the host keeps talking to the microphone and thanks the audience again, a tiny unplanned epilogue that feels more honest than a polished outro." },
+      { at: 619, end: 653, category: "TAKE GETS NUCLEAR", label: "THE LAUNDRY-MAT WATER CRISIS", excerpt: "A shared laundry room becomes an environmental disaster: clean clothes get washed again, kids throw them on the floor, and one $700 bill is treated like enough water to refill a continent." },
+      { at: 2231, end: 2265, category: "TAKE GETS NUCLEAR", label: "SEGA, WHERE ARE YOU", excerpt: "The room begs Sega to return with a big blue hedgehog and a real hardware strategy, then swings into an Atari rumor before moving on to fresh movie news." },
+      { at: 2650, end: 2685, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "THE SUPERMAN SECOND-WEEK TEST", excerpt: "The hosts predict the real Superman test is week two: built-in audience and reactionary hype can carry opening weekend, but mediocre reviews eventually have to meet the ticket buyers." },
+      { at: 2844, end: 2878, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "MICHAEL BAY CAN SAVE SUPERMAN", excerpt: "Transformers gets sent to the hate desk while The Rock, Pain & Gain, and older Bay/Bruckheimer work receive their flowers. The thesis is not 'Bay is always good'; it is 'Bay can still make a great toy box.'" },
+      { at: 3250, end: 3283, category: "TAKE GETS NUCLEAR", label: "THE BAY-BRUCKHEIMER NAMEPILE", excerpt: "The room cannot remember which producer belongs to which Michael Bay movie, then the microphone clacking becomes part of the joke. The confusion is harmless; the Rock appreciation is sincere." },
+      { at: 3322, end: 3356, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "THE BAG OF DILDOS VERDICT", excerpt: "A movie prediction is described as a bag of dildos on a hot summer day and sent straight to Steve's Asshole. The hosts agree the online hype is wildly out of step with their own reaction." },
+      { at: 3820, end: 3854, category: "WWAM UP IN YA", label: "THE VALTRAX VOICE BIT", excerpt: "A fake medical conversation about tying somebody down, a prescription running low, and a filthy command becomes a character-voice exercise rather than a claim about any real person." },
+      { at: 4200, end: 4236, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "THE CARRIE MULLIGAN COMPARISON", excerpt: "A visual comparison gets called scary, then the room imagines Adam West and George Clooney before joking about burning a fictional personal tape. The segment is archived as a casting/image gag." },
+      { at: 4359, end: 4394, category: "TAKE GETS NUCLEAR", label: "THE CLOONEY BATMAN EYES", excerpt: "A Batman image gets a George Clooney reaction: the eyes are the problem, the suit is a mess, and the room admits the bad design is also the exact reason the picture is memorable." },
+      { at: 4504, end: 4538, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "AI IS A TOOL UNTIL THE CULT STARTS", excerpt: "The room allows that AI can be useful, then rejects the doomsday-cult behavior around every new cartoon filter. The target is the panic and worship, not ordinary people playing with a tool." },
+      { at: 4858, end: 4892, category: "CHARACTER SIGNAL", label: "THE FREDDY REMAKE HAS THE VOICE", excerpt: "The remake gets a fair autopsy: the leads had potential, the voice worked, but Freddy's look was wrong. Robert Englund's explanation of the failure is treated as the clearest diagnosis." },
+      { at: 4999, end: 5034, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "THE TECH-PEE MISHEAR", excerpt: "A garbled fan line becomes a repeating 'tech pee' phrase, then the room tries to describe a social-media pattern without turning a stray observation into a grand claim about an entire community." },
     ]),
     fanRead: Object.freeze({
       loved: Object.freeze({ at: 6206, end: 6356, label: "THE CINEMATOGRAPHY COURT", topic: "TCM, Halloween 78, Scream, and Nightmare ranked by visual identity", body: "Play from 1:43:26. The booth explains why TCM wins this comparison, why Halloween's opening walk still feels supernatural, and why Nightmare lands fourth without being called a bad movie.", playAt: 6206, playEnd: 6356 }),
