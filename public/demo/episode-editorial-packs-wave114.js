@@ -10,6 +10,7 @@
   sources["BikumH8JKmw"] = Object.freeze({
     sourceId: "BikumH8JKmw",
     reviewState: "full-tape-human-editorial-read",
+    editorialPass: "2026-08-10 fine-toothed second read; 13 audio-ranked windows reconciled across the full May 24 2025 Mission Impossible / Corey Feldman / Fam stream",
     evidence: Object.freeze({
       duration: 11109,
       captionWords: 43647,
@@ -171,6 +172,19 @@
       H(11008, 11040, "RANKING LEDGER", "TUESDAY IS MISSION IMPOSSIBLE NIGHT", "The next stream is promised as a Final Reckoning review and franchise ranking, making the next archive door explicit."),
       H(11038, 11080, "WWAM FAM", "THE FAM MADE THREE HOURS FEEL LIKE TWENTY MINUTES", "The hosts say the audience made an unplanned three-hour stream feel impossibly short, which is the cleanest description of this episode's magic."),
       H(11080, 11109, "LAST CALL", "STAY SAFE AND STAY SEXY", "The signoff thanks the community, promises Tuesday, and ends with the exact kind of affectionate vulgarity the archive is built to preserve."),
+      H(80, 114, "TAKE GETS NUCLEAR", "THE QUICKIE REVIEW DISCLAIMER", "The hosts explain that Patreon quickies are intentionally brief, informal, and opinionated rather than polished review essays. The archive preserves the promise instead of overselling the format."),
+      H(299, 331, "CHARACTER SIGNAL", "REBECCA FERGUSON GETS THE CAMERA", "A failed attempt to fix the stream gives way to genuine Rebecca Ferguson admiration. The room remembers her Rogue Nation entrance before it can even settle on her name."),
+      H(3500, 3534, "STRAIGHT TO STEVE'S ASSHOLE", "THE CRYBULLY CONVERSATION", "The hosts say they would rather talk directly to the unnamed creator than keep mocking him, while still filing the public meltdowns and self-mythology under the show's hate desk."),
+      H(6402, 6438, "WWAM UP IN YA", "THE SUPER CHAT PEE BREAK", "A boast about anatomy, a sudden need to pee, and a missed batch of Super Chats collide. The bodily detour becomes the reason the audience gets a second pass at the messages."),
+      H(6569, 6603, "CHARACTER SIGNAL", "THE LOOMIS VOICE COURT", "Jay defends his deliberately theatrical Loomis voice after viewers compare it to a Nazi accent. The room makes clear the performance is a character bit, not an attempted legitimate accent."),
+      H(6692, 6725, "TAKE GETS NUCLEAR", "MR. BEAST'S SKIN-WALKER THUMBNAIL", "A thumbnail discussion turns into a ridiculous Mr. Beast monster metaphor. The hosts are riffing on an image and a public persona, not making a factual claim about a real person."),
+      H(7017, 7051, "ROOM BREAK", "THE SCAREFEST TIE-SHOE INCIDENT", "A drunk-at-the-event memory ends with a shoe-tying struggle and a boss asking whether the host has been drinking. It becomes a bridge into the old Scarefest trips."),
+      H(7530, 7562, "TAKE GETS NUCLEAR", "SHORT HAIR AND THE MISSION IMPOSSIBLE FUNERAL", "A joke about Jay's taste in short hair collides with a real question about whether Tom Cruise should retire Mission Impossible. The vulgarity is a character tease; the franchise argument is genuine."),
+      H(7998, 8032, "WWAM UP IN YA", "THE GROWER NOT A SHOWER COURT", "The audience drags the room into body-image math. The hosts turn the question into a self-deprecating 'grower' defense and keep the whole thing in the lane of absurd late-night banter."),
+      H(8145, 8180, "CHARACTER SIGNAL", "AMAZING DISCOVERIES WITH MIKE LEVY", "A fan remembers an early-90s infomercial-style show and the room recognizes the wild-sweater host image immediately. It is a tiny piece of pre-YouTube broadcast memory."),
+      H(8405, 8440, "ROOM BREAK", "THE UNKNOWN INTERNET WOMAN", "A chat argument names a public figure the hosts do not recognize. They refuse to pretend expertise, separate dislike of an action from dislike of a person, and move back to the movie conversation."),
+      H(9154, 9189, "WWAM UP IN YA", "THE JT ANATOMY LEGEND", "A wildly inappropriate JT story becomes a recurring legend in the chat. The hosts roast the behavior and the mythology around it without treating the fantasy as a real-life recommendation."),
+      H(10636, 10670, "WWAM UP IN YA", "THE THREE DOORS DOWN DATE ESCAPE", "A bathroom emergency leaves Cody waiting while the host makes out with someone in a car. The story is told as a chaotic road-trip receipt, not a model of good planning."),
     ]),
     fanRead: Object.freeze({
       loved: Object.freeze({ at: 10000, end: 10033, label: "THE SPANISH CHUCKY DUB", topic: "a tiny clip that wins the room instantly", body: "Play from 2:46:40. The dubbed Chucky line lands as a short, perfect soundbyte and gives the back half its cleanest shared laugh.", playAt: 10000, playEnd: 10033 }),
