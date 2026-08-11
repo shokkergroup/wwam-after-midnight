@@ -9,6 +9,7 @@
   sources["Q-ia3Nb9KvM"] = Object.freeze({
     sourceId: "Q-ia3Nb9KvM",
     reviewState: "full-tape-human-editorial-read",
+    editorialPass: "2026-08-10 fine-toothed second read; all 47 audio-ranked windows reconciled across the full April 14 2025 Fantastic Four / 1990s list / comedy-news livestream",
     evidence: Object.freeze({
       duration: 11310,
       captionWords: 41858,
