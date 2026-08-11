@@ -9,6 +9,7 @@
   sources["AGL5yUH5Xy4"] = Object.freeze({
     sourceId: "AGL5yUH5Xy4",
     reviewState: "full-tape-human-editorial-read",
+    editorialPass: "2026-08-10 fine-toothed second read; 3 audio-ranked windows reconciled across the full April 25 2025 Sinners / Halloween / Fam character stream",
     evidence: Object.freeze({
       duration: 10265,
       captionWords: 37574,
@@ -162,6 +163,9 @@
       H(9120, 9200, "LAST CALL", "NEXT WEEK IS SOMEWHERE", "The next stream is left intentionally loose because the hosts do not know whether it will be Tuesday, Wednesday, or another late-night ambush."),
       H(9200, 9280, "WWAM UP IN YA", "THE LAST LIGHTSABER ECHO", "The eye-exam joke gets one last callback while the room is visibly trying to get to the end."),
       H(9280, 9360, "LAST CALL", "GOODNIGHT FROM THE FAM", "A warm goodbye lands after a show that covered Sinners, Halloween, horror history, physical media, and a haunted theater."),
+      H(9688, 9722, "STRAIGHT TO STEVE'S ASSHOLE", "THE IDIOT-FACE ANTI-AROUSAL PLAN", "A chat question about an optometry story produces an intentionally ridiculous list of unsexy mental images. The bit is private-room self-mockery, not advice."),
+      H(9775, 9809, "TAKE GETS NUCLEAR", "THE OPTOMETRIST EXAM RECEIPT", "The room explains that a normal eye exam became a full character segment because the chat kept asking about it. Jay's embarrassment is the actual story, not a medical claim."),
+      H(9918, 9957, "STRAIGHT TO STEVE'S ASSHOLE", "LOOMIS LOVES TOE-SUCKING", "A Loomis voice prompt turns into a ridiculous dating advertisement for somebody who likes toe-sucking. The character bit gets a perfect score from the room and then immediately apologizes."),
     ]),
     fanRead: Object.freeze({
       loved: Object.freeze({ at: 3280, end: 4240, label: "THE HORROR MOUNT RUSHMORE", topic: "the argument that creates future wiki doors", body: "Play from 54:40. Ghostface, Leatherface, Pinhead, Norman Bates, Psycho, and the difference between a killer, a movie, and a franchise give this episode its most replayable debate.", playAt: 3280, playEnd: 4240 }),
