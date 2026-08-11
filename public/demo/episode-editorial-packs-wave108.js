@@ -7,6 +7,7 @@
   sources["k698GIJe8EA"] = Object.freeze({
     sourceId: "k698GIJe8EA",
     reviewState: "full-tape-human-editorial-read",
+    editorialPass: "2026-08-10 fine-toothed second read; 7 audio-ranked windows reconciled across the full June 14 2025 Jason Voorhees Royal Rumble livestream",
     evidence: Object.freeze({
       duration: 10776,
       captionWords: 38807,
@@ -137,6 +138,13 @@
       { at: 10610, end: 10680, category: "WWAM FAM", label: "THE FATHER'S DAY ROLL CALL", excerpt: "The Fam Hall sends Father's Day messages, celebrates long-time viewers, and welcomes a new voice saying the show has made every episode a better day." },
       { at: 10682, end: 10740, category: "LAST WORD", label: "THE CHILL STREAM DEFENSE", excerpt: "The hosts admit the night was relaxed rather than nonstop Jason, defend the choice not to rehash the same franchise talk for three hours, and promise more 28 Days Later." },
       { at: 10740, end: 10776, category: "LAST WORD", label: "I'M GOING TO FART", excerpt: "The stream exits on a sincere thank-you, a 28 Weeks Later recommendation, and the most WWAM possible final line: a fart announcement after the goodbye." },
+      { at: 2865, end: 2900, category: "CHARACTER SIGNAL", label: "MANHATTAN JASON GETS KNOCKED OUT", excerpt: "The bracket loses Manhattan Jason, briefly floats a Freddy versus Jason rematch, and moves into the last surviving versions with the fighting-ability rule suddenly feeling very serious." },
+      { at: 4235, end: 4270, category: "CHARACTER SIGNAL", label: "THE ZOMBIE JASON NAMEPILE", excerpt: "The room tries to identify a zombie or ghost version of Jason, gets tangled in the nicknames, and finally blames the chat for voting in a character nobody can cleanly name." },
+      { at: 4834, end: 4868, category: "ROOM BREAKS", label: "FROGURT, PARFAIT, AND THE AIRPORT", excerpt: "A request for Jason to bring mommy a frog becomes a yogurt mistake, a parfait plan, and an airport-food memory. The bracket pauses because nobody can stop talking about dessert." },
+      { at: 5077, end: 5112, category: "TAKE GETS NUCLEAR", label: "THE PUBLIC-FREAKOUT MYTH", excerpt: "The hosts debate whether public freakouts are common in real life or mostly an online phenomenon. The conclusion is less sociology than a reminder that Los Angeles and New York do all the internet's heavy lifting." },
+      { at: 7447, end: 7483, category: "WWAM FAM", label: "THE HALLOWEEN PROMISE", excerpt: "A fan hello turns into a promise that Halloween will always get more attention, with the hosts thanking the audience while briefly losing track of who they are replying to." },
+      { at: 8719, end: 8753, category: "STRAIGHT TO STEVE'S ASSHOLE", label: "THE MOVING GOALPOST ARGUMENT", excerpt: "A debate about who is qualified to speak gets sent to the hate desk when the standard keeps changing. The hosts reject the idea that ordinary people need a PhD before discussing a movie." },
+      { at: 9074, end: 9107, category: "CHARACTER SIGNAL", label: "JASON X BEFORE THE CYBORG UPGRADE", excerpt: "The chat asks about Jason X before the cybernetic upgrade, and the room compares his seasoned monster energy to Super Shredder before admitting the movie has already crossed into its own creature-feature lane." },
     ]),
     fanRead: Object.freeze({
       loved: Object.freeze({ at: 4098, end: 4768, label: "THE UBER JASON FINAL", topic: "New Blood versus the cybernetic champion", body: "Play from 1:08:18. The last two Jasons get a real fight case, the poll closes 53–47, and Uber Jason wins the bracket while New Blood wins the design argument.", playAt: 4098, playEnd: 4768 }),
